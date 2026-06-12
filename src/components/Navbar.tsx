@@ -22,8 +22,17 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
       <div className="container mx-auto px-6 flex justify-between items-center">
         <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
           <div className="relative w-12 h-12 flex items-center justify-center">
-             <img src="/assets/logo.png" alt="Black Diamond" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300" onError={(e) => (e.currentTarget.style.display = 'none')} />
-             <Scissors className="text-gold-600 w-8 h-8 absolute group-hover:rotate-12 transition-transform" style={{ display: 'none' }} id="nav-fallback-icon" />
+             <img 
+               src="/assets/logo.png" 
+               alt="Black Diamond" 
+               className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300" 
+               onError={(e) => {
+                 e.currentTarget.style.display = 'none';
+                 const fallback = document.getElementById('nav-fallback-icon');
+                 if (fallback) fallback.style.display = 'block';
+               }} 
+             />
+             <Scissors className="text-gold-600 w-8 h-8 group-hover:rotate-12 transition-transform" style={{ display: 'none' }} id="nav-fallback-icon" />
           </div>
           <div className="flex flex-col">
             <span className="text-xl md:text-2xl font-serif font-bold tracking-[0.2em] text-white leading-none">BLACK DIAMOND</span>
