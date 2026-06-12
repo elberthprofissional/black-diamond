@@ -1,96 +1,95 @@
 import React from 'react';
-import { Scissors, Phone, MapPin, Globe, Share2, Navigation } from 'lucide-react';
+import { Instagram, MessageCircle } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-dark-pure border-t border-white/5 pt-32 pb-16 relative overflow-hidden">
-      {/* Background Decorative Element */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gold-600/5 blur-[120px] rounded-full pointer-events-none" />
-
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-20 mb-32">
+    <footer className="bg-[#000000] border-t border-[#333333] pt-24 pb-12">
+      <div className="container mx-auto px-6">
+        {/* PARTE 1: ÁREA DE CONTEÚDO */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
           
-          {/* Brand & Mission */}
-          <div className="col-span-1 md:col-span-2 lg:col-span-1">
-            <div className="flex items-center space-x-3 mb-10 group cursor-pointer">
-              <div className="w-10 h-10 bg-gold-600 flex items-center justify-center group-hover:rotate-12 transition-transform duration-500">
-                <Scissors className="text-black w-6 h-6" />
-              </div>
-              <span className="text-2xl font-serif font-black tracking-widest text-white">BLACK DIAMOND</span>
+          {/* Coluna 1 (Logo e Bio) */}
+          <div className="space-y-6">
+            <div className="w-16 h-16 flex items-center justify-center">
+               <img src="/assets/logo.png" alt="Black Diamond Logo" className="w-full h-full object-contain" onError={(e) => e.currentTarget.src = "https://www.svgrepo.com/show/513511/scissors.svg"} />
             </div>
-            <p className="text-gray-500 font-light leading-relaxed mb-10 text-lg">
-              Elevando o padrão da barbearia clássica. Onde cada corte é um compromisso com a sua melhor versão.
+            <p className="text-[#A1A1AA] text-sm leading-relaxed max-w-xs font-light">
+              A excelência está nos detalhes. Lapidamos sua imagem para refletir sua verdadeira essência.
             </p>
-            <div className="flex space-x-6">
-              {[Globe, Share2, Phone].map((Icon, i) => (
-                <a key={i} href="#" className="w-12 h-12 border border-white/10 flex items-center justify-center text-gray-500 hover:border-gold-600 hover:text-gold-600 transition-all duration-500">
-                  <Icon size={20} />
-                </a>
-              ))}
+            <div className="flex space-x-4 pt-2">
+              <a href="#" className="w-10 h-10 rounded-full border border-[#333333] flex items-center justify-center text-white hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all duration-300">
+                <Instagram size={18} />
+              </a>
+              <a href="#" className="w-10 h-10 rounded-full border border-[#333333] flex items-center justify-center text-white hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all duration-300">
+                <MessageCircle size={18} />
+              </a>
             </div>
           </div>
 
-          {/* Useful Links */}
-          <div>
-            <h4 className="text-white font-serif font-bold text-lg tracking-[0.2em] uppercase mb-10">Explorar</h4>
-            <ul className="space-y-6 text-gray-500 font-medium text-xs tracking-[0.2em] uppercase">
-              {['Início', 'Serviços', 'Sobre', 'Galeria', 'Localização'].map(item => (
-                <li key={item}>
-                  <a href={`#${item.toLowerCase()}`} className="hover:text-gold-600 transition-colors duration-300 flex items-center group">
-                    <span className="w-0 group-hover:w-4 h-[1px] bg-gold-600 mr-0 group-hover:mr-3 transition-all duration-300"></span>
-                    {item}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact Details */}
-          <div>
-            <h4 className="text-white font-serif font-bold text-lg tracking-[0.2em] uppercase mb-10">Contato</h4>
-            <ul className="space-y-8 text-gray-500 font-light text-lg">
-              <li className="flex items-start space-x-4">
-                <MapPin className="text-gold-600 w-5 h-5 shrink-0 mt-1" />
-                <span>Av. Brasílio da Gama, 139 - Tupi, Belo Horizonte — MG</span>
+          {/* Coluna 2 (NAVEGAÇÃO) */}
+          <div className="space-y-8">
+            <h4 className="text-white font-serif font-bold text-lg tracking-[0.2em] uppercase">NAVEGAÇÃO</h4>
+            <ul className="flex flex-col space-y-4">
+              <li>
+                <a href="#home" className="text-[#A1A1AA] text-xs font-bold tracking-[0.2em] hover:text-white transition-colors uppercase">INÍCIO</a>
               </li>
-              <li className="flex items-center space-x-4">
-                <Phone className="text-gold-600 w-5 h-5 shrink-0" />
-                <span>(31) 99955-3580</span>
+              <li>
+                <a href="#servicos" className="text-[#A1A1AA] text-xs font-bold tracking-[0.2em] hover:text-white transition-colors uppercase">SERVIÇOS</a>
               </li>
-              <li className="flex items-center space-x-4">
-                <Navigation className="text-gold-600 w-5 h-5 shrink-0" />
-                <span className="text-xs font-bold tracking-[0.2em] uppercase text-white hover:text-gold-600 cursor-pointer transition-colors">Obter Direções</span>
+              <li>
+                <a href="#sobre" className="text-[#A1A1AA] text-xs font-bold tracking-[0.2em] hover:text-white transition-colors uppercase">A HISTÓRIA</a>
+              </li>
+              <li className="pt-2">
+                <a href="#agendar" className="text-[#D4AF37] text-xs font-bold tracking-[0.2em] hover:text-[#E6C766] transition-colors uppercase">AGENDAR HORÁRIO</a>
               </li>
             </ul>
           </div>
 
-          {/* Operating Hours */}
-          <div>
-            <h4 className="text-white font-serif font-bold text-lg tracking-[0.2em] uppercase mb-10">Horário</h4>
-            <ul className="space-y-6 text-gray-500 font-medium text-[10px] tracking-[0.3em] uppercase">
-              <li className="flex justify-between border-b border-white/5 pb-4">
-                <span>Segunda - Sábado</span>
-                <span className="text-white">08:30 - 19:00</span>
-              </li>
-              <li className="flex justify-between border-b border-white/5 pb-4 text-gold-600">
-                <span>Domingo</span>
-                <span className="font-black">Fechado</span>
-              </li>
-              <li className="pt-4 flex items-center text-red-500 font-black">
-                <div className="w-2 h-2 bg-red-500 rounded-full mr-3 animate-pulse"></div>
-                ESTÚDIO FECHADO AGORA
-              </li>
-            </ul>
+          {/* Coluna 3 (CONTATO) */}
+          <div className="space-y-8">
+            <h4 className="text-white font-serif font-bold text-lg tracking-[0.2em] uppercase">CONTATO</h4>
+            <div className="space-y-6">
+              <div>
+                <span className="text-[#D4AF37] text-[10px] font-black tracking-[0.3em] uppercase block mb-2">ENDEREÇO</span>
+                <p className="text-[#A1A1AA] text-sm font-light leading-relaxed">
+                  Av. Brasílio da Gama, 139<br />
+                  Tupi, Belo Horizonte — MG
+                </p>
+              </div>
+              <div>
+                <span className="text-[#D4AF37] text-[10px] font-black tracking-[0.3em] uppercase block mb-2">WHATSAPP</span>
+                <p className="text-[#A1A1AA] text-sm font-light tracking-widest">
+                  (31) 99955-3580
+                </p>
+              </div>
+            </div>
           </div>
+
+          {/* Coluna 4 (HORÁRIOS) */}
+          <div className="space-y-8">
+            <h4 className="text-white font-serif font-bold text-lg tracking-[0.2em] uppercase">HORÁRIOS</h4>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center border-b border-[#333333] pb-4">
+                <span className="text-[#A1A1AA] text-xs font-bold tracking-widest">SEG — SÁB</span>
+                <span className="text-white text-xs font-bold tracking-widest">08:30 - 19:00</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[#A1A1AA] text-xs font-bold tracking-widest uppercase">DOMINGO</span>
+                <span className="text-[#A1A1AA] text-xs font-light tracking-widest uppercase">Fechado</span>
+              </div>
+            </div>
+          </div>
+
         </div>
 
-        <div className="pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
-          <p className="text-gray-600 text-[10px] font-bold tracking-[0.4em] uppercase">
-            &copy; {new Date().getFullYear()} BLACK DIAMOND. ALL RIGHTS RESERVED.
+        {/* PARTE 2: BARRA DE COPYRIGHT */}
+        <div className="pt-12 border-t border-[#333333] flex flex-col md:flex-row justify-between items-center gap-6">
+          <p className="text-[#3F3F46] text-[10px] font-bold tracking-[0.2em] uppercase text-center md:text-left leading-relaxed">
+            &copy; 2026 BLACK DIAMOND BARBEARIA. TODOS OS DIREITOS RESERVADOS.
           </p>
-          <div className="flex items-center space-x-8 text-[9px] font-black tracking-[0.3em] uppercase text-gray-700">
-             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-             <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+          <div className="flex space-x-8 text-[#3F3F46] text-[10px] font-bold tracking-[0.2em] uppercase">
+            <a href="#" className="hover:text-white transition-colors duration-300">PRIVACIDADE</a>
+            <a href="#" className="hover:text-white transition-colors duration-300">TERMOS</a>
           </div>
         </div>
       </div>
