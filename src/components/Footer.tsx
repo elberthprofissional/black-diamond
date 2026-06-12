@@ -1,5 +1,5 @@
 import React from 'react';
-import { Instagram, MessageCircle } from 'lucide-react';
+import { Globe, MessageCircle } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -18,7 +18,7 @@ const Footer: React.FC = () => {
             </p>
             <div className="flex space-x-4 pt-2">
               <a href="#" className="w-10 h-10 rounded-full border border-[#333333] flex items-center justify-center text-white hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all duration-300">
-                <Instagram size={18} />
+                <Globe size={18} />
               </a>
               <a href="#" className="w-10 h-10 rounded-full border border-[#333333] flex items-center justify-center text-white hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all duration-300">
                 <MessageCircle size={18} />
