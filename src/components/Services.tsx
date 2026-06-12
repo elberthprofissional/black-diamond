@@ -20,7 +20,7 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
   }, []);
 
   return (
-    <section id="servicos" className="py-32 bg-white text-black relative overflow-hidden">
+    <section id="servicos" className="py-32 bg-[#f4f4f4] text-black relative overflow-hidden">
       <div className="container mx-auto px-6 relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-end mb-20">
           <motion.div
@@ -30,7 +30,7 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
             className="max-w-2xl"
           >
             <h2 className="text-gold-600 font-sans font-bold text-xs tracking-[0.4em] uppercase mb-4">Especialidades</h2>
-            <h3 className="text-4xl md:text-7xl font-serif font-bold text-black leading-tight">Serviços que <br /> definem seu estilo.</h3>
+            <h3 className="text-4xl md:text-7xl font-serif font-bold text-black leading-tight tracking-tighter">Serviços que <br /> definem seu estilo.</h3>
           </motion.div>
           
           <motion.div
@@ -39,7 +39,7 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
             viewport={{ once: true }}
             className="hidden md:block pb-4"
           >
-            <Scissors className="text-gray-200 w-24 h-24 rotate-12" />
+            <Scissors className="text-gray-300 w-24 h-24 rotate-12" />
           </motion.div>
         </div>
 
@@ -56,7 +56,7 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="group flex justify-between items-end border-b border-gray-100 pb-8 hover:border-gold-600 transition-colors duration-500 cursor-pointer"
+                className="group flex justify-between items-end border-b border-gray-200 pb-8 hover:border-gold-600 transition-colors duration-500 cursor-pointer"
                 onClick={onOpenBooking}
               >
                 <div className="flex-1 pr-6">
@@ -66,7 +66,7 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
                       {service.name}
                     </h4>
                   </div>
-                  <p className="text-gray-400 font-light text-sm tracking-wide">
+                  <p className="text-gray-500 font-light text-sm tracking-wide">
                     {service.description || "A melhor experiência para o seu visual."}
                   </p>
                 </div>
@@ -87,9 +87,9 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
         <div className="mt-24 flex justify-center">
           <button 
             onClick={onOpenBooking}
-            className="px-16 py-6 border border-black text-black text-xs font-bold uppercase tracking-[0.4em] hover:bg-black hover:text-white transition-all duration-500"
+            className="px-16 py-6 border border-black text-black text-[10px] font-bold uppercase tracking-[0.5em] hover:bg-black hover:text-white transition-all duration-500"
           >
-            Ver todos os detalhes
+            Agendar Experiência
           </button>
         </div>
       </div>
