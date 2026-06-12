@@ -32,8 +32,8 @@ const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
             <div className="h-[1px] w-8 md:w-12 bg-gold-600"></div>
           </div>
 
-          <h1 className="text-6xl md:text-9xl font-serif font-bold text-white mb-8 tracking-tighter leading-tight">
-            BLACK <span className="text-gold-gradient block md:inline">DIAMOND</span>
+          <h1 className="text-7xl md:text-[12rem] font-serif font-bold text-white mb-8 tracking-tighter leading-[0.8] drop-shadow-2xl">
+            BLACK <span className="text-gold-gradient block md:inline drop-shadow-[0_0_30px_rgba(212,175,55,0.3)]">DIAMOND</span>
           </h1>
           
           <p className="text-gray-400 text-sm md:text-lg max-w-2xl mx-auto mb-12 font-light tracking-[0.1em] leading-relaxed uppercase">
