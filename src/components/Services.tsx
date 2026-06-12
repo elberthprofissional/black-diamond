@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { getServices } from '../lib/api';
 import type { Service } from '../types';
-import { Scissors } from 'lucide-react';
 
 interface ServicesProps {
   onOpenBooking: () => void;
@@ -20,93 +19,71 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
   }, []);
 
   return (
-    <section id="servicos" className="py-40 bg-dark-pure relative overflow-hidden">
-      {/* Background Decorative Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gold-600/5 rounded-full blur-[180px] pointer-events-none" />
-
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="text-center mb-32">
+    <section id="servicos" className="py-32 bg-[#0d1117] text-white relative overflow-hidden">
+      <div className="container mx-auto px-6 relative z-10 max-w-5xl">
+        <div className="mb-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-gold-600 font-sans font-bold text-xs md:text-sm tracking-[0.6em] uppercase mb-6">Menu de Experiências</h2>
-            <h3 className="text-5xl md:text-8xl font-serif font-bold text-white mb-8 tracking-tighter">NOSSOS SERVIÇOS</h3>
-            <div className="flex items-center justify-center space-x-6">
-              <div className="w-16 h-[1px] bg-gold-600/30"></div>
-              <Scissors className="text-gold-600 w-6 h-6" />
-              <div className="w-16 h-[1px] bg-gold-600/30"></div>
-            </div>
+            <h2 className="text-gold-600 font-sans font-bold text-xs tracking-[0.4em] uppercase mb-4">Investimento</h2>
+            <h3 className="text-4xl md:text-6xl font-serif font-bold text-white mb-2">TABELA DE SERVIÇOS</h3>
+            <p className="text-gray-500 font-sans text-sm tracking-widest uppercase">Escolha sua experiência</p>
           </motion.div>
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-12 h-12 border-2 border-gold-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="flex justify-center py-20">
+            <div className="w-8 h-8 border-2 border-gold-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {services.map((service, index) => (
-              <motion.div
-                key={service.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="group relative bg-dark-card border border-white/5 p-12 hover:border-gold-600/40 transition-all duration-700 cursor-pointer"
-                onClick={onOpenBooking}
-              >
-                {/* Number Indicator */}
-                <span className="absolute top-8 right-12 text-white/5 text-7xl font-serif font-black transition-colors duration-700 group-hover:text-gold-600/10 pointer-events-none">
-                  {(index + 1).toString().padStart(2, '0')}
-                </span>
+          <div className="bg-[#161b22] border border-[#30363d] rounded-md overflow-hidden shadow-2xl">
+            <div className="hidden md:grid grid-cols-12 gap-4 p-6 bg-[#0d1117] border-b border-[#30363d] text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+              <div className="col-span-6">Serviço</div>
+              <div className="col-span-2 text-center">Duração</div>
+              <div className="col-span-2 text-right">Valor</div>
+              <div className="col-span-2 text-right">Ação</div>
+            </div>
 
-                <div className="relative z-10">
-                  <div className="flex justify-between items-start mb-10">
-                    <h4 className="text-2xl md:text-3xl font-serif font-bold text-white group-hover:text-gold-600 transition-colors duration-500 leading-tight pr-10">
-                      {service.name}
-                    </h4>
+            <div className="divide-y divide-[#30363d]">
+              {services.map((service) => (
+                <div 
+                  key={service.id}
+                  className="grid grid-cols-1 md:grid-cols-12 gap-4 p-6 md:items-center hover:bg-[#1f2937]/30 transition-colors group"
+                >
+                  <div className="col-span-1 md:col-span-6">
+                    <h4 className="text-lg font-serif font-bold text-white group-hover:text-gold-600 transition-colors">{service.name}</h4>
+                    <p className="text-sm text-gray-500 font-light mt-1">{service.description}</p>
                   </div>
-                  
-                  <p className="text-gray-500 mb-12 font-light leading-relaxed text-base min-h-[4rem]">
-                    {service.description || "Técnicas clássicas com finalização moderna."}
-                  </p>
-                  
-                  <div className="flex items-center justify-between pt-8 border-t border-white/5">
-                    <div className="flex flex-col">
-                      <span className="text-gold-600 font-serif font-bold text-3xl tracking-tighter">
-                        R$ {Number(service.price).toFixed(0)}
-                      </span>
-                      <span className="text-[9px] text-gray-600 uppercase tracking-[0.3em] font-bold">Investimento</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-white/60 text-[10px] font-bold tracking-[0.2em] mb-1 uppercase">
-                        {service.duration} MINUTOS
-                      </div>
-                      <span className="text-gold-600 text-[10px] uppercase tracking-[0.3em] font-black group-hover:tracking-[0.4em] transition-all duration-500">
-                        RESERVAR →
-                      </span>
-                    </div>
+                  <div className="col-span-1 md:col-span-2 md:text-center">
+                    <span className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full">
+                      {service.duration} MIN
+                    </span>
+                  </div>
+                  <div className="col-span-1 md:col-span-2 md:text-right">
+                    <span className="text-xl font-serif font-bold text-white group-hover:text-gold-600 transition-colors">
+                      R$ {Number(service.price).toFixed(0)}
+                    </span>
+                  </div>
+                  <div className="col-span-1 md:col-span-2 text-right">
+                    <button 
+                      onClick={onOpenBooking}
+                      className="w-full md:w-auto bg-gold-600 hover:bg-gold-hover text-black font-black text-[10px] uppercase tracking-widest px-6 py-3 rounded-sm transition-all shadow-[0_0_20px_rgba(212,175,55,0.1)] hover:shadow-[0_0_20px_rgba(212,175,55,0.3)]"
+                    >
+                      Reservar
+                    </button>
                   </div>
                 </div>
-
-                {/* Hover Glow Effect */}
-                <div className="absolute inset-0 bg-gold-600/0 group-hover:bg-gold-600/[0.02] transition-all duration-700" />
-              </motion.div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
-        <div className="mt-32 text-center">
-          <button 
-            onClick={onOpenBooking}
-            className="group relative px-20 py-6 overflow-hidden border border-white/10 hover:border-gold-600 transition-colors duration-700"
-          >
-            <span className="relative z-10 text-white font-bold text-[11px] uppercase tracking-[0.5em] group-hover:text-gold-600 transition-colors">
-              Explorar Tabela Completa
-            </span>
-          </button>
+        <div className="mt-16 text-center">
+          <p className="text-gray-600 text-[10px] uppercase tracking-[0.3em] font-bold">
+            Atendimento com hora marcada para sua conveniência
+          </p>
         </div>
       </div>
     </section>
