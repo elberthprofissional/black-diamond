@@ -1,29 +1,29 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getBookings, getServices, updateBookingStatus } from '../lib/api';
-import { Scissors, Calendar, Users, DollarSign, LogOut, Check, X, Phone } from 'lucide-react';
+import { getBookings } from '../lib/api';
+import { 
+  Scissors, 
+  Calendar, 
+  DollarSign, 
+  Users, 
+  Clock, 
+  Plus, 
+  Search,
+  MessageSquare,
+  AlertCircle
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { Service } from '../types';
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('agenda');
   const [bookings, setBookings] = useState<any[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
     try {
-      const [bookingsData, servicesData] = await Promise.all([
-        getBookings(new Date().toISOString().split('T')[0]),
-        getServices()
-      ]);
-      setBookings(bookingsData || []);
-      setServices(servicesData || []);
+      const data = await getBookings();
+      setBookings(data || []);
     } catch (error) {
       console.error(error);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -31,172 +31,258 @@ const AdminDashboard: React.FC = () => {
     fetchData();
   }, [fetchData]);
 
-  const getServiceNames = (ids: string[]) => {
-    return ids.map(id => services.find(s => s.id === id)?.name).join(', ');
-  };
-
-  const handleStatusUpdate = async (id: string, status: string) => {
-    try {
-      await updateBookingStatus(id, status);
-      fetchData(); // Refresh list
-    } catch (error) {
-      console.error(error);
-      alert('Erro ao atualizar status.');
-    }
-  };
-
-  const todayRevenue = bookings
+  const today = new Date().toISOString().split('T')[0];
+  const todayBookings = bookings.filter(b => b.booking_date === today);
+  
+  const todayRevenue = todayBookings
     .filter(b => b.status !== 'cancelled')
     .reduce((sum, b) => sum + Number(b.total_price), 0);
 
-  const pendingCount = bookings.filter(b => b.status === 'pending').length;
+  const availableSlots = 21 - todayBookings.length;
+
+  const timeSlots = [
+    "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", 
+    "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", 
+    "16:30", "17:00", "17:30", "18:00", "18:30"
+  ];
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col md:flex-row">
+    <div className="min-h-screen bg-dark-pure text-white flex overflow-hidden">
+      
       {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-dark-card border-r border-dark-border p-6 flex flex-col justify-between">
-        <div>
-          <div className="flex items-center space-x-2 mb-10">
-            <Scissors className="text-gold-600 w-8 h-8" />
-            <span className="text-xl font-serif font-bold tracking-widest uppercase">Admin</span>
+      <aside className="w-80 bg-dark-card border-r border-white/5 flex flex-col h-screen sticky top-0 shrink-0">
+        <div className="p-10 border-b border-white/5">
+          <div className="flex items-center space-x-3 mb-12">
+            <div className="w-10 h-10 bg-gold-600 flex items-center justify-center">
+              <Scissors className="text-black w-6 h-6" />
+            </div>
+            <span className="text-lg font-serif font-black tracking-widest uppercase">Admin</span>
           </div>
 
-          <nav className="space-y-2">
-            <button 
-              onClick={() => setActiveTab('agenda')}
-              className={`w-full flex items-center space-x-3 p-4 rounded-sm transition-all ${activeTab === 'agenda' ? 'bg-gold-600 text-black font-bold' : 'text-gray-400 hover:bg-dark-border'}`}
-            >
-              <Calendar size={20} />
-              <span>Agenda</span>
-            </button>
-            <button 
-              onClick={() => setActiveTab('clientes')}
-              className={`w-full flex items-center space-x-3 p-4 rounded-sm transition-all ${activeTab === 'clientes' ? 'bg-gold-600 text-black font-bold' : 'text-gray-400 hover:bg-dark-border'}`}
-            >
-              <Users size={20} />
-              <span>Clientes</span>
-            </button>
-            <button 
-              onClick={() => setActiveTab('financeiro')}
-              className={`w-full flex items-center space-x-3 p-4 rounded-sm transition-all ${activeTab === 'financeiro' ? 'bg-gold-600 text-black font-bold' : 'text-gray-400 hover:bg-dark-border'}`}
-            >
-              <DollarSign size={20} />
-              <span>Financeiro</span>
-            </button>
-          </nav>
+          <div className="space-y-1">
+            <span className="text-[10px] text-gray-500 font-bold tracking-[0.2em] uppercase mb-4 block">Bem-vindo</span>
+            <h2 className="text-sm font-serif font-bold text-white uppercase tracking-widest">Boa noite, Administrador</h2>
+          </div>
         </div>
 
-        <button 
-          onClick={() => navigate('/')}
-          className="mt-10 flex items-center space-x-3 p-4 text-gray-500 hover:text-white transition-all"
-        >
-          <LogOut size={20} />
-          <span>Sair</span>
-        </button>
+        <nav className="flex-1 p-6 space-y-2 overflow-y-auto custom-scrollbar">
+          {[
+            { id: 'agenda', label: 'Agenda', icon: Calendar },
+            { id: 'faturamento', label: 'Faturamento', icon: DollarSign },
+            { id: 'clientes', label: 'Clientes', icon: Users },
+            { id: 'semanal', label: 'Agenda Semanal', icon: Clock },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`w-full flex items-center space-x-4 p-4 transition-all duration-300 group ${
+                activeTab === item.id 
+                ? 'bg-gold-600 text-black font-bold' 
+                : 'text-gray-400 hover:bg-white/5'
+              }`}
+            >
+              <item.icon size={18} className={activeTab === item.id ? 'text-black' : 'text-gold-600 group-hover:scale-110 transition-transform'} />
+              <span className="text-[11px] uppercase tracking-[0.2em]">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="p-6 border-t border-white/5 space-y-4">
+           <button 
+             onClick={() => navigate('/')}
+             className="w-full flex items-center space-x-4 p-4 text-gray-500 hover:text-white transition-all text-[11px] uppercase tracking-[0.2em]"
+           >
+             <AlertCircle size={18} />
+             <span>Issues</span>
+           </button>
+        </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
-        <header className="mb-10 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-serif font-bold uppercase tracking-widest">
-              {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
-            </h1>
-            <p className="text-gray-500 font-light mt-1">Bem-vindo de volta, Black Diamond.</p>
-          </div>
-          <div className="bg-dark-card border border-dark-border p-2 rounded-full px-4 text-sm font-bold text-gold-600">
-            HOJE: {new Date().toLocaleDateString('pt-BR')}
-          </div>
-        </header>
-
-        {loading ? (
-          <div className="text-center py-20 text-gray-400">Carregando dados...</div>
-        ) : activeTab === 'agenda' ? (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-dark-card border border-dark-border p-6">
-                <p className="text-gray-500 text-sm uppercase tracking-widest mb-1">Hoje</p>
-                <p className="text-3xl font-serif font-bold text-white">{bookings.length} Agendamentos</p>
+      <main className="flex-1 overflow-y-auto h-screen custom-scrollbar bg-dark-pure p-12 lg:p-20">
+        
+        {activeTab === 'agenda' && (
+          <div className="max-w-6xl mx-auto">
+            <div className="flex justify-between items-end mb-16">
+              <div>
+                <h1 className="text-5xl font-serif font-bold text-white mb-4 uppercase tracking-tighter">Agenda do Dia</h1>
+                <div className="flex items-center space-x-3 text-gold-600">
+                  <Calendar size={14} />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.3em]">
+                    {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                  </span>
+                </div>
               </div>
-              <div className="bg-dark-card border border-dark-border p-6">
-                <p className="text-gray-500 text-sm uppercase tracking-widest mb-1">A Confirmar</p>
-                <p className="text-3xl font-serif font-bold text-gold-600">{pendingCount} Pendentes</p>
-              </div>
-              <div className="bg-dark-card border border-dark-border p-6">
-                <p className="text-gray-500 text-sm uppercase tracking-widest mb-1">Receita Hoje</p>
-                <p className="text-3xl font-serif font-bold text-white">R$ {todayRevenue.toFixed(2)}</p>
-              </div>
+              <button className="flex items-center space-x-3 bg-white text-black px-10 py-5 font-black text-[10px] uppercase tracking-[0.3em] hover:bg-gold-600 transition-colors duration-500">
+                <Plus size={16} />
+                <span>Novo Corte</span>
+              </button>
             </div>
 
-            <div className="mt-10">
-              <h2 className="text-xl font-bold mb-6 flex items-center">
-                <div className="w-2 h-2 bg-gold-600 rounded-full mr-3"></div>
-                Atendimentos do Dia
-              </h2>
-              
-              <div className="space-y-4">
-                {bookings.length === 0 ? (
-                  <p className="text-gray-500 italic">Nenhum agendamento para hoje.</p>
-                ) : (
-                  bookings.map((booking) => (
-                    <div key={booking.id} className="bg-dark-card border border-dark-border p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                      <div className="flex items-center gap-6">
-                        <div className="text-center bg-black border border-dark-border p-3 min-w-[80px]">
-                          <p className="text-gold-600 font-bold text-xl">{booking.booking_time.slice(0, 5)}</p>
-                          <p className="text-gray-500 text-xs uppercase tracking-widest">HOJE</p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+              {/* Agenda List */}
+              <div className="lg:col-span-2 space-y-4">
+                <h3 className="text-[10px] text-gray-500 font-bold tracking-[0.4em] uppercase mb-8">Horários Disponíveis</h3>
+                
+                <div className="grid grid-cols-1 gap-3">
+                  {timeSlots.map((time) => {
+                    const booking = todayBookings.find(b => b.booking_time.slice(0, 5) === time);
+                    return (
+                      <div 
+                        key={time} 
+                        className={`group p-6 border flex items-center justify-between transition-all duration-500 ${
+                          booking 
+                          ? 'bg-dark-card border-white/5' 
+                          : 'bg-dark-pure border-white/5 hover:border-gold-600/30'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-8">
+                          <span className={`text-xl font-serif font-bold ${booking ? 'text-white' : 'text-gray-600'}`}>{time}</span>
+                          {booking ? (
+                            <div>
+                              <p className="text-sm font-bold text-white uppercase tracking-widest">{booking.clients?.name}</p>
+                              <p className="text-[10px] text-gold-600 uppercase tracking-widest mt-1">Serviço Confirmado</p>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] text-gray-700 font-bold uppercase tracking-[0.3em]">Disponível</span>
+                          )}
                         </div>
-                        <div>
-                          <h4 className="text-lg font-bold text-white">{booking.clients?.name}</h4>
-                          <p className="text-gray-400 text-sm">{getServiceNames(booking.service_ids)}</p>
-                          <div className="flex items-center text-gray-500 text-xs mt-1">
-                            <Phone size={12} className="mr-1" /> {booking.clients?.phone}
+                        
+                        {booking ? (
+                          <div className="flex items-center space-x-3">
+                             <div className="px-4 py-2 border border-white/10 text-[9px] font-bold uppercase tracking-widest text-gray-500">
+                               R$ {Number(booking.total_price).toFixed(0)}
+                             </div>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="px-4 py-2 bg-gold-600/10 text-gold-600 text-[9px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                            Livre
+                          </div>
+                        )}
                       </div>
+                    );
+                  })}
+                </div>
+              </div>
 
-                      <div className="flex items-center gap-4 w-full md:w-auto">
-                        <div className={`px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full ${
-                          booking.status === 'confirmed' ? 'bg-green-900/30 text-green-500' : 
-                          booking.status === 'pending' ? 'bg-yellow-900/30 text-yellow-500' :
-                          'bg-red-900/30 text-red-500'
-                        }`}>
-                          {booking.status === 'confirmed' ? 'Confirmado' : 
-                           booking.status === 'pending' ? 'Pendente' : 'Cancelado'}
-                        </div>
-                        <div className="flex gap-2 ml-auto">
-                          {booking.status === 'pending' && (
-                            <button 
-                              onClick={() => handleStatusUpdate(booking.id, 'confirmed')}
-                              className="p-2 border border-dark-border hover:bg-green-600 hover:text-white transition-all text-green-500"
-                            >
-                              <Check size={18} />
-                            </button>
-                          )}
-                          {booking.status !== 'cancelled' && (
-                            <button 
-                              onClick={() => handleStatusUpdate(booking.id, 'cancelled')}
-                              className="p-2 border border-dark-border hover:bg-red-600 hover:text-white transition-all text-red-500"
-                            >
-                              <X size={18} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
+              {/* Side Cards */}
+              <div className="space-y-8">
+                <div className="bg-dark-card border border-white/5 p-10">
+                  <p className="text-[10px] text-gray-500 font-bold tracking-[0.3em] uppercase mb-6">Lucro de Hoje</p>
+                  <div className="flex items-baseline space-x-2 mb-2">
+                    <span className="text-gold-600 text-4xl font-serif font-bold">R$ {todayRevenue.toFixed(0)}</span>
+                  </div>
+                  <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">{todayBookings.length} cortes realizados</p>
+                </div>
+
+                <div className="bg-dark-card border border-gold-600/20 p-10 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gold-600 opacity-5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:opacity-10 transition-opacity duration-700" />
+                  <p className="text-[10px] text-gray-500 font-bold tracking-[0.3em] uppercase mb-6">Vagas para Hoje</p>
+                  <p className="text-white text-4xl font-serif font-bold mb-2 uppercase tracking-tighter">{availableSlots} Vagas</p>
+                  <p className="text-gold-600 text-[10px] font-black uppercase tracking-widest">Destaque do dia</p>
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-20 h-20 bg-dark-card border border-dark-border flex items-center justify-center rounded-full mb-6">
-              <Scissors className="text-gray-600" size={40} />
-            </div>
-            <h2 className="text-2xl font-serif font-bold text-white mb-2">Em breve</h2>
-            <p className="text-gray-500">Esta funcionalidade estará disponível na próxima atualização.</p>
           </div>
         )}
+
+        {activeTab === 'faturamento' && (
+          <div className="max-w-6xl mx-auto">
+             <div className="mb-20">
+                <h1 className="text-5xl font-serif font-bold text-white mb-4 uppercase tracking-tighter">Faturamento</h1>
+                <p className="text-gray-500 text-[11px] font-bold uppercase tracking-[0.4em]">Acompanhe o lucro da sua barbearia.</p>
+             </div>
+
+             <div className="grid grid-cols-1 gap-12">
+                <div className="bg-dark-card border border-white/5 p-16 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.05)_0%,transparent_70%)]" />
+                   <p className="text-[10px] text-gray-500 font-bold tracking-[0.5em] uppercase mb-8 relative z-10">Lucro Total do Período</p>
+                   <h2 className="text-8xl font-serif font-bold text-gold-600 tracking-tighter relative z-10">R$ {bookings.reduce((sum, b) => sum + Number(b.total_price), 0).toFixed(2)}</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                   {[
+                     { label: 'Cortes na Semana', value: todayBookings.length, detail: '(Cortes)' },
+                     { label: 'Lucro do Mês', value: `R$ ${todayRevenue.toFixed(2)}`, detail: '(Estimado)' },
+                     { label: 'Novos (Mês)', value: '+0', detail: '(Clientes)' },
+                     { label: 'Total de Clientes', value: '1', detail: '(Base)' },
+                   ].map((stat, i) => (
+                     <div key={i} className="bg-dark-card border border-white/5 p-10 hover:border-gold-600/20 transition-colors">
+                        <p className="text-[9px] text-gray-500 font-bold tracking-[0.3em] uppercase mb-6">{stat.label}</p>
+                        <p className="text-2xl font-serif font-bold text-white mb-1 uppercase tracking-tight">{stat.value}</p>
+                        <p className="text-[9px] text-gray-700 font-bold uppercase tracking-widest">{stat.detail}</p>
+                     </div>
+                   ))}
+                </div>
+             </div>
+          </div>
+        )}
+
+        {activeTab === 'clientes' && (
+          <div className="max-w-6xl mx-auto">
+             <div className="flex justify-between items-end mb-16">
+                <div>
+                  <h1 className="text-5xl font-serif font-bold text-white mb-4 uppercase tracking-tighter">Meus Clientes</h1>
+                  <div className="px-4 py-1 bg-gold-600 text-black text-[9px] font-black uppercase tracking-widest inline-block">
+                    (1 CLIENTES NO TOTAL)
+                  </div>
+                </div>
+                <button className="flex items-center space-x-3 border border-white/10 text-white px-10 py-5 font-black text-[10px] uppercase tracking-[0.3em] hover:bg-white hover:text-black transition-all">
+                  <MessageSquare size={16} />
+                  <span>Enviar p/ Todos</span>
+                </button>
+             </div>
+
+             <div className="bg-dark-card border border-white/5 p-8 mb-12">
+                <div className="relative">
+                   <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-600" size={20} />
+                   <input 
+                     type="text" 
+                     placeholder="Buscar cliente..."
+                     className="w-full bg-dark-pure border border-white/5 p-6 pl-16 outline-none focus:border-gold-600/50 transition-colors font-sans text-sm tracking-wide text-white"
+                   />
+                </div>
+             </div>
+
+             <div className="flex flex-col items-center justify-center py-40 text-center opacity-40">
+                <Users size={64} className="text-gray-800 mb-8" />
+                <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-gray-500">Nenhum cliente encontrado.</p>
+             </div>
+          </div>
+        )}
+
+        {activeTab === 'semanal' && (
+          <div className="max-w-6xl mx-auto">
+             <div className="mb-20">
+                <h1 className="text-5xl font-serif font-bold text-white mb-4 uppercase tracking-tighter">Agenda Semanal</h1>
+                <p className="text-gray-500 text-[11px] font-bold uppercase tracking-[0.4em]">Visão panorâmica dos próximos dias.</p>
+             </div>
+
+             <div className="grid grid-cols-6 gap-4">
+                {[
+                  { d: 'SEG', n: '08' }, { d: 'TER', n: '09' }, { d: 'QUA', n: '10' },
+                  { d: 'QUI', n: '11', current: true }, { d: 'SEX', n: '12' }, { d: 'SÁB', n: '13' }
+                ].map((day, i) => (
+                  <div 
+                    key={i} 
+                    className={`p-10 border transition-all duration-500 flex flex-col items-center ${
+                      day.current 
+                      ? 'bg-gold-600 border-gold-600 text-black scale-110 shadow-[0_0_40px_rgba(212,175,55,0.2)]' 
+                      : 'bg-dark-card border-white/5 text-white opacity-40 hover:opacity-100'
+                    }`}
+                  >
+                    <span className="text-[10px] font-black tracking-[0.3em] uppercase mb-4">{day.d}</span>
+                    <span className="text-4xl font-serif font-bold">{day.n}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-32 p-20 border border-white/5 bg-dark-card/30 text-center">
+                 <p className="text-[10px] text-gray-600 font-bold uppercase tracking-[0.5em]">Selecione um dia para visualizar os detalhes</p>
+              </div>
+          </div>
+        )}
+
       </main>
     </div>
   );

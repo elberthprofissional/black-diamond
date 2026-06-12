@@ -1,29 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-gold-50: #fdfbf2;
-  --color-gold-100: #fbf7e6;
-  --color-gold-200: #f7eecc;
-  --color-gold-300: #f3e6b2;
-  --color-gold-400: #efdd98;
-  --color-gold-500: #ebd57e;
-  --color-gold-600: #c5a059; /* Dourado mais sóbrio e elegante */
-  --color-gold-700: #a6854a;
-  --color-gold-800: #82683a;
-  --color-gold-900: #4a3c21;
+  --color-gold-600: #D4AF37;
+  --color-gold-hover: #E6C766;
+  
+  --color-dark-pure: #000000;
+  --color-dark-card: #0A0A0A;
+  --color-dark-card-light: #111111;
+  --color-dark-border: #1A1A1A;
+  --color-dark-muted: #A1A1AA;
 
-  --color-dark: #0f0f0f;
-  --color-dark-card: #1a1a1a;
-  --color-dark-border: #2a2a2a;
-  --color-dark-muted: #666666;
-
-  --font-serif: "Playfair Display", serif;
+  --font-serif: "Cinzel", serif;
+  --font-accent: "Playfair Display", serif;
   --font-sans: "Inter", sans-serif;
 }
 
 @layer base {
   body {
-    @apply bg-dark text-white font-sans antialiased selection:bg-gold-600 selection:text-white;
+    @apply bg-dark-pure text-white font-sans antialiased selection:bg-gold-600 selection:text-black;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif tracking-widest;
   }
 }
 
@@ -37,11 +35,22 @@
 }
 
 .bg-gold-gradient {
-  background: linear-gradient(135deg, #d4af37 0%, #f3e6b2 50%, #d4af37 100%);
+  background: linear-gradient(135deg, #D4AF37 0%, #F5E0A3 50%, #D4AF37 100%);
 }
 
 .text-gold-gradient {
-  background: linear-gradient(135deg, #d4af37 0%, #f3e6b2 50%, #d4af37 100%);
+  background: linear-gradient(135deg, #D4AF37 0%, #F5E0A3 50%, #D4AF37 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #000;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #D4AF37;
+  border-radius: 10px;
 }
