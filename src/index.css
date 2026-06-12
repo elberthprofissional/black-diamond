@@ -7,9 +7,9 @@
   --color-gold-300: #f3e6b2;
   --color-gold-400: #efdd98;
   --color-gold-500: #ebd57e;
-  --color-gold-600: #d4af37;
-  --color-gold-700: #9d8129;
-  --color-gold-800: #68561b;
+  --color-gold-600: #ffcc33; /* Dourado mais saturado e brilhante */
+  --color-gold-700: #d4af37;
+  --color-gold-800: #9d8129;
   --color-gold-900: #342b0e;
 
   --color-dark: #000000;
