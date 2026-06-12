@@ -76,19 +76,16 @@ const Location: React.FC = () => {
           >
             <div className="absolute -inset-2 border border-gold-600/20 translate-x-2 translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-700" />
             <div className="w-full h-full bg-dark-card border border-white/5 relative overflow-hidden">
-              {/* Monochromatic Map Placeholder */}
-              <div 
-                className="absolute inset-0 grayscale contrast-125 brightness-[0.4] hover:brightness-[0.6] transition-all duration-700 bg-cover bg-center"
-                style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80")' }}
-              />
-              {/* Map Glow */}
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)]" />
-              
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-                <div className="w-16 h-16 bg-gold-600 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(212,175,55,0.4)] animate-pulse">
-                   <MapPin className="text-black w-8 h-8" />
-                </div>
-              </div>
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3752.9849031916665!2d-43.9202011!3d-19.840591699999997!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xa685e76e58e90f%3A0xf899efab3913f3f7!2sBarbearia%20Black%20Diamond!5e0!3m2!1spt-BR!2sbr!4v1781307318513!5m2!1spt-BR!2sbr" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0, filter: 'grayscale(1) invert(0.9) contrast(1.2) brightness(0.8)' }} 
+                allowFullScreen={true} 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+                className="absolute inset-0"
+              ></iframe>
             </div>
           </motion.div>
 
