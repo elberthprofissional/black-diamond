@@ -7,59 +7,61 @@ interface HeroProps {
 
 const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
   return (
-    <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden bg-black">
-      {/* Background Image with optimized overlay */}
+    <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden bg-[#0a0a0a]">
+      {/* Background Image with Sagrada-style clean overlay */}
       <div 
-        className="absolute inset-0 bg-cover bg-center z-0 scale-105 animate-slow-zoom" 
+        className="absolute inset-0 bg-cover bg-center z-0 opacity-40 animate-slow-zoom" 
         style={{ 
-          backgroundImage: 'url("https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80")',
-          filter: 'brightness(0.25) contrast(1.1)'
+          backgroundImage: 'url("https://images.unsplash.com/photo-1585747860715-2ba37e788b70?ixlib=rb-4.0.3&auto=format&fit=crop&w=2074&q=80")',
         }}
       />
       
-      {/* Gradient Overlay for better text readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black z-[1]" />
+      {/* Light Gradient for a cleaner feel */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent z-[1]" />
 
-      <div className="container mx-auto px-6 relative z-10 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-        >
-          <div className="flex items-center justify-center space-x-4 mb-6">
-            <div className="h-[1px] w-8 md:w-12 bg-gold-600"></div>
-            <h2 className="text-gold-600 font-serif italic text-sm md:text-lg tracking-[0.3em] uppercase">Estilo & Tradição</h2>
-            <div className="h-[1px] w-8 md:w-12 bg-gold-600"></div>
-          </div>
+      <div className="container mx-auto px-6 relative z-10">
+        <div className="max-w-4xl">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+          >
+            <h2 className="text-gold-600 font-sans font-semibold text-sm md:text-base tracking-[0.5em] uppercase mb-6">
+              O seu momento, a sua marca
+            </h2>
 
-          <h1 className="text-7xl md:text-[12rem] font-serif font-bold text-white mb-8 tracking-tighter leading-[0.8] drop-shadow-2xl">
-            BLACK <span className="text-gold-gradient block md:inline drop-shadow-[0_0_30px_rgba(212,175,55,0.3)]">DIAMOND</span>
-          </h1>
-          
-          <p className="text-gray-400 text-sm md:text-lg max-w-2xl mx-auto mb-12 font-light tracking-[0.1em] leading-relaxed uppercase">
-            A excelência da barbearia clássica em um ambiente exclusivo projetado para o homem moderno.
-          </p>
-          
-          <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-            <button 
-              onClick={onOpenBooking}
-              className="w-full md:w-auto bg-gold-600 text-black font-bold px-12 py-5 rounded-sm text-[11px] uppercase tracking-[0.2em] hover:bg-white transition-all duration-500 hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] group"
-            >
-              <span className="group-hover:tracking-[0.3em] transition-all duration-500">Agendar Experiência</span>
-            </button>
-            <a 
-              href="#servicos"
-              className="w-full md:w-auto border border-white/20 text-white font-bold px-12 py-5 rounded-sm text-[11px] uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all duration-500 backdrop-blur-sm"
-            >
-              Nossos Serviços
-            </a>
-          </div>
-        </motion.div>
+            <h1 className="text-6xl md:text-9xl font-serif font-bold text-white mb-8 tracking-tight leading-[0.9]">
+              BLACK <br />
+              <span className="text-gold-600 italic">DIAMOND</span>
+            </h1>
+            
+            <p className="text-gray-300 text-base md:text-xl max-w-xl mb-12 font-light tracking-wide leading-relaxed">
+              Muito mais que uma barbearia. Um refúgio de sofisticação e estilo para o homem que busca a sua melhor versão.
+            </p>
+            
+            <div className="flex flex-col md:flex-row items-start gap-8">
+              <button 
+                onClick={onOpenBooking}
+                className="group relative px-12 py-5 bg-gold-600 text-black font-bold text-xs uppercase tracking-[0.3em] overflow-hidden transition-all duration-500 hover:pr-16"
+              >
+                <span className="relative z-10">Agendar agora</span>
+                <span className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-500">→</span>
+              </button>
+              
+              <div className="flex items-center space-x-6">
+                <div className="h-[1px] w-12 bg-gray-700"></div>
+                <span className="text-gray-500 text-[10px] uppercase tracking-[0.4em] font-bold">Desde 2026</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
 
-      {/* Decorative vertical line */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 z-10 hidden md:block">
-        <div className="w-[1px] h-32 bg-gradient-to-b from-gold-600 to-transparent"></div>
+      {/* Side Decorative Text */}
+      <div className="absolute right-10 bottom-24 z-10 hidden lg:block vertical-text">
+        <span className="text-gray-800 text-sm tracking-[1em] uppercase font-bold rotate-90 origin-right">
+          Premium Barber Shop
+        </span>
       </div>
     </section>
   );

@@ -7,15 +7,15 @@
   --color-gold-300: #f3e6b2;
   --color-gold-400: #efdd98;
   --color-gold-500: #ebd57e;
-  --color-gold-600: #ffcc33; /* Dourado mais saturado e brilhante */
-  --color-gold-700: #d4af37;
-  --color-gold-800: #9d8129;
-  --color-gold-900: #342b0e;
+  --color-gold-600: #c5a059; /* Dourado mais sóbrio e elegante */
+  --color-gold-700: #a6854a;
+  --color-gold-800: #82683a;
+  --color-gold-900: #4a3c21;
 
-  --color-dark: #000000;
-  --color-dark-card: #111111;
-  --color-dark-border: #222222;
-  --color-dark-muted: #888888;
+  --color-dark: #0f0f0f;
+  --color-dark-card: #1a1a1a;
+  --color-dark-border: #2a2a2a;
+  --color-dark-muted: #666666;
 
   --font-serif: "Playfair Display", serif;
   --font-sans: "Inter", sans-serif;
@@ -23,7 +23,7 @@
 
 @layer base {
   body {
-    @apply bg-dark text-white font-sans antialiased selection:bg-gold-600 selection:text-black;
+    @apply bg-dark text-white font-sans antialiased selection:bg-gold-600 selection:text-white;
   }
 }
 
