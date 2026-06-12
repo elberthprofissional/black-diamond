@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { getServices } from '../lib/api';
 import type { Service } from '../types';
-import { Clock, Scissors } from 'lucide-react';
+import { Scissors } from 'lucide-react';
 
 interface ServicesProps {
   onOpenBooking: () => void;
