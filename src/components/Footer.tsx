@@ -11,7 +11,7 @@ const Footer: React.FC = () => {
           {/* Coluna 1 (Logo e Bio) */}
           <div className="space-y-6">
             <div className="w-16 h-16 flex items-center justify-center">
-               <img src="/assets/logo.png" alt="Black Diamond Logo" className="w-full h-full object-contain" onError={(e) => e.currentTarget.src = "https://www.svgrepo.com/show/513511/scissors.svg"} />
+               <img src="/assets/logo.webp" alt="Black Diamond Logo" className="w-full h-full object-contain" onError={(e) => e.currentTarget.src = "https://www.svgrepo.com/show/513511/scissors.svg"} />
             </div>
             <p className="text-[#A1A1AA] text-sm leading-relaxed max-w-xs font-light">
               A excelência está nos detalhes. Lapidamos sua imagem para refletir sua verdadeira essência.

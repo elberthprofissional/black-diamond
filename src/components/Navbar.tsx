@@ -23,7 +23,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
         <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
           <div className="relative w-12 h-12 flex items-center justify-center">
              <img 
-               src="/assets/logo.png" 
+               src="/assets/logo.webp" 
                alt="Black Diamond" 
                className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300" 
                onError={(e) => {
