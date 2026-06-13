@@ -3,12 +3,10 @@ import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { getServices } from '../lib/api';
 import type { Service } from '../types';
-import { useNavigate } from 'react-router-dom';
 
 const Services: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     getServices()
