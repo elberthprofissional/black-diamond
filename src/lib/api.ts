@@ -88,3 +88,14 @@ export const updateBookingStatus = async (id: string, status: string) => {
   
   if (error) throw error;
 };
+
+// Clients
+export const getClients = async () => {
+  const { data, error } = await supabase
+    .from('clients')
+    .select('*')
+    .order('name', { ascending: true });
+  
+  if (error) throw error;
+  return data || [];
+};

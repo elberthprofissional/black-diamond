@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getBookings } from '../lib/api';
+import { getBookings, getClients, getServices } from '../lib/api';
 import { 
   Calendar, 
   DollarSign, 
@@ -12,9 +12,7 @@ import {
   ChevronLeft,
   User,
   CheckCircle,
-  Scissors,
-  CalendarDays,
-  SearchX
+  Scissors
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,21 +20,42 @@ import { motion, AnimatePresence } from 'framer-motion';
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('agenda');
   const [bookings, setBookings] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isCreatingBooking, setIsCreatingBooking] = useState(false);
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'info' | 'error' } | null>(null);
   const navigate = useNavigate();
 
   const fetchData = useCallback(async () => {
+    setLoading(true);
     try {
-      const data = await getBookings();
-      setBookings(data || []);
+      const [bookingsData, clientsData, servicesData] = await Promise.all([
+        getBookings(),
+        getClients(),
+        getServices()
+      ]);
+      setBookings(bookingsData || []);
+      setClients(clientsData || []);
+      setServices(servicesData || []);
     } catch (error) {
       console.error(error);
+      setToast({ message: 'Erro ao carregar dados do banco.', type: 'error' });
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const today = new Date().toISOString().split('T')[0];
   const todayBookings = bookings.filter(b => b.booking_date === today);
@@ -45,7 +64,22 @@ const AdminDashboard: React.FC = () => {
     .filter(b => b.status !== 'cancelled')
     .reduce((sum, b) => sum + Number(b.total_price), 0);
 
-  const totalRevenue = bookings.reduce((sum, b) => sum + Number(b.total_price), 0);
+  // Lógica Semanal (7 dias atrás)
+  const lastWeekDate = new Date();
+  lastWeekDate.setDate(lastWeekDate.getDate() - 7);
+  const weeklyBookings = bookings.filter(b => new Date(b.booking_date) >= lastWeekDate);
+  const weeklyRevenue = weeklyBookings
+    .filter(b => b.status !== 'cancelled')
+    .reduce((sum, b) => sum + Number(b.total_price), 0);
+
+  // Lógica Mensal (30 dias atrás)
+  const lastMonthDate = new Date();
+  lastMonthDate.setDate(lastMonthDate.getDate() - 30);
+  const monthlyBookings = bookings.filter(b => new Date(b.booking_date) >= lastMonthDate);
+  const monthlyRevenue = monthlyBookings
+    .filter(b => b.status !== 'cancelled')
+    .reduce((sum, b) => sum + Number(b.total_price), 0);
+
   const availableSlots = 21 - todayBookings.length;
 
   const timeSlots = [
@@ -58,7 +92,7 @@ const AdminDashboard: React.FC = () => {
     { id: 'agenda', label: 'Agenda', icon: Clock },
     { id: 'faturamento', label: 'Finanças', icon: TrendingUp },
     { id: 'clientes', label: 'Clientes', icon: Users },
-    { id: 'semanal', label: 'Semanal', icon: Calendar },
+    { id: 'semanal', label: 'Agenda da Semana', icon: Calendar },
   ];
 
   const currentTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -73,12 +107,18 @@ const AdminDashboard: React.FC = () => {
 
   const [viewMode, setViewMode] = useState<'semanal' | 'mensal'>('semanal');
 
+  const handleCreateBooking = () => {
+    setIsCreatingBooking(false);
+    setToast({ message: 'Agendamento realizado com sucesso!', type: 'success' });
+    fetchData();
+  };
+
   if (isCreatingBooking) {
     return (
       <motion.div 
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="min-h-screen bg-[#0A0A0A] text-white p-6 lg:p-12"
+        className="min-h-screen bg-[#0A0A0A] text-white p-6 lg:p-12 selection:bg-gold-600/30"
       >
         <header className="max-w-4xl mx-auto flex items-center justify-between mb-12">
           <button 
@@ -97,39 +137,33 @@ const AdminDashboard: React.FC = () => {
           <div className="space-y-8">
             <section className="space-y-4">
               <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                <User size={14} className="text-[#D4AF37]" />
+                <User size={14} className="text-[#C5A059]" />
                 Informações do Cliente
               </h3>
               <div className="space-y-4">
                 <input 
                   type="text" 
                   placeholder="NOME COMPLETO"
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl h-14 px-6 outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all text-sm font-bold placeholder:text-zinc-800"
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl h-14 px-6 outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all text-sm font-bold placeholder:text-zinc-800"
                 />
                 <input 
                   type="tel" 
                   placeholder="WHATSAPP (DDD)"
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl h-14 px-6 outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all text-sm font-bold placeholder:text-zinc-800"
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl h-14 px-6 outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all text-sm font-bold placeholder:text-zinc-800"
                 />
               </div>
             </section>
 
             <section className="space-y-4">
               <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                <Scissors size={14} className="text-[#D4AF37]" />
+                <Scissors size={14} className="text-[#C5A059]" />
                 Serviço Escolhido
               </h3>
               <div className="grid grid-cols-1 gap-2">
-                {[
-                  { n: 'Corte', p: '35' },
-                  { n: 'Barba', p: '27' },
-                  { n: 'Barba com Toalha Quente', p: '30' },
-                  { n: 'Sobrancelha', p: '15' },
-                  { n: 'Pezinho', p: '15' }
-                ].map((s) => (
-                  <button key={s.n} className="group flex items-center justify-between py-4 px-6 bg-white/[0.02] border border-white/5 backdrop-blur-md rounded-xl hover:bg-white/10 hover:border-[#D4AF37]/50 transition-all">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 group-hover:text-white">{s.n}</span>
-                    <span className="text-xs font-bold text-[#D4AF37]">R$ {s.p}</span>
+                {services.map((s) => (
+                  <button key={s.id} className="group flex items-center justify-between py-4 px-6 bg-white/[0.02] border border-white/5 backdrop-blur-md rounded-xl hover:bg-white/10 hover:border-[#C5A059]/50 transition-all">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 group-hover:text-white">{s.name}</span>
+                    <span className="text-xs font-bold text-[#C5A059]">R$ {Number(s.price).toFixed(0)}</span>
                   </button>
                 ))}
               </div>
@@ -139,17 +173,17 @@ const AdminDashboard: React.FC = () => {
           <div className="space-y-8">
             <section className="space-y-4">
               <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                <Calendar size={14} className="text-[#D4AF37]" />
+                <Calendar size={14} className="text-[#C5A059]" />
                 Data e Horário
               </h3>
               <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md rounded-2xl p-6 space-y-6 shadow-2xl">
                 <input 
                   type="date" 
-                  className="w-full bg-black/40 border border-white/10 rounded-lg py-3 px-4 outline-none text-xs font-bold uppercase tracking-widest focus:border-[#D4AF37]"
+                  className="w-full bg-black/40 border border-white/10 rounded-lg py-3 px-4 outline-none text-xs font-bold uppercase tracking-widest focus:border-[#C5A059]"
                 />
                 <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                   {timeSlots.map(t => (
-                    <button key={t} className="py-3 text-[10px] font-bold border border-white/10 rounded-xl bg-white/[0.03] hover:bg-[#D4AF37] hover:text-black transition-all uppercase">
+                    <button key={t} className="py-3 text-[10px] font-bold border border-white/10 rounded-xl bg-white/[0.03] hover:bg-[#C5A059] hover:text-black transition-all uppercase">
                       {t}
                     </button>
                   ))}
@@ -157,7 +191,10 @@ const AdminDashboard: React.FC = () => {
               </div>
             </section>
 
-            <button className="w-full bg-[#D4AF37] text-black h-16 rounded-xl font-black uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-3 shadow-[0_10px_30px_-10px_rgba(212,175,55,0.3)] hover:translate-y-[-2px] hover:bg-[#F5E0A3] transition-all">
+            <button 
+              onClick={handleCreateBooking}
+              className="w-full bg-[#C5A059] text-black h-16 rounded-xl font-black uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-3 shadow-[0_10px_30px_-10px_rgba(197,160,89,0.3)] hover:translate-y-[-2px] hover:bg-[#F5E0A3] transition-all"
+            >
               <CheckCircle size={20} />
               Confirmar Agendamento
             </button>
@@ -168,9 +205,26 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-zinc-400 font-sans selection:bg-[#D4AF37]/30 pb-20 lg:pb-0">
+    <div className="min-h-screen bg-[#0A0A0A] text-zinc-400 font-sans selection:bg-gold-600/30 pb-20 lg:pb-0">
+      
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: -20, x: '-50%' }}
+            className={`fixed top-10 left-1/2 md:left-[calc(50%+160px)] z-[100] px-8 py-4 rounded-xl border backdrop-blur-md shadow-2xl ${
+              toast.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'
+            }`}
+          >
+            <p className="text-[10px] font-bold uppercase tracking-widest">{toast.message}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="flex relative z-10">
-        {/* Desktop Sidebar (PRESERVED STRUCTURE, ENHANCED UI) */}
+        {/* Desktop Sidebar */}
         <aside className="w-80 h-screen sticky top-0 bg-[#0A0A0A] border-r border-white/5 flex flex-col hidden lg:flex">
           <div className="flex-1 py-14">
             <div className="flex items-center gap-5 mb-20 group cursor-pointer px-10" onClick={() => navigate('/')}>
@@ -207,7 +261,7 @@ const AdminDashboard: React.FC = () => {
           </div>
         </aside>
 
-        {/* Mobile Bottom Bar (PRESERVED) */}
+        {/* Mobile Bottom Bar */}
         <nav className="fixed bottom-0 left-0 right-0 bg-[#0A0A0A] border-t border-white/5 px-6 py-3 flex items-center justify-between z-50 lg:hidden">
           {menuItems.map((item) => (
             <button
@@ -236,11 +290,11 @@ const AdminDashboard: React.FC = () => {
           <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
             <div>
               <h1 className="text-3xl font-bold text-white tracking-tight">
-                {activeTab === 'agenda' ? 'Agenda Diária' : activeTab === 'faturamento' ? 'Faturamento' : activeTab === 'clientes' ? 'Meus Clientes' : 'Agenda Semanal'}
+                {activeTab === 'agenda' ? 'Agenda Diária' : activeTab === 'faturamento' ? 'Faturamento' : activeTab === 'clientes' ? 'Meus Clientes' : 'Agenda da Semana'}
               </h1>
               {activeTab === 'clientes' && (
                 <div className="mt-2 inline-block px-3 py-1 bg-white/[0.02] border border-white/5 rounded backdrop-blur-md">
-                  <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest">0 CLIENTES NO TOTAL</span>
+                  <span className="text-[10px] font-bold text-[#C5A059] uppercase tracking-widest">{clients.length} CLIENTES NO TOTAL</span>
                 </div>
               )}
             </div>
@@ -253,7 +307,7 @@ const AdminDashboard: React.FC = () => {
               ) : activeTab === 'faturamento' ? null : (
                 <button 
                   onClick={() => setIsCreatingBooking(true)}
-                  className="flex items-center gap-2 bg-[#D4AF37] hover:bg-[#F5E0A3] text-black px-6 py-2.5 rounded-xl font-bold text-xs transition-all uppercase tracking-wide shadow-lg shadow-[#D4AF37]/20"
+                  className="flex items-center gap-2 bg-white hover:bg-zinc-200 text-black px-6 py-2.5 rounded-xl font-bold text-xs transition-all uppercase tracking-wide shadow-lg"
                 >
                   <Plus size={16} />
                   <span>Novo Corte</span>
@@ -262,271 +316,295 @@ const AdminDashboard: React.FC = () => {
             </div>
           </header>
 
-          <AnimatePresence mode="wait">
-            {activeTab === 'agenda' && (
-              <motion.div 
-                key="agenda"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-12"
-              >
-                {/* Coluna Esquerda */}
-                <div className="space-y-12">
-                  <div className="space-y-6">
-                    <h3 className="text-xs font-bold text-[#D4AF37] uppercase tracking-[0.2em]">Próximo Corte</h3>
-                    {nextBooking ? (
-                      <div className="bg-[#D4AF37]/90 backdrop-blur-md p-8 rounded-2xl flex items-center justify-between shadow-2xl border border-[#D4AF37]/50">
-                        <div className="flex items-center gap-8">
-                          <span className="text-5xl font-black text-black tracking-tighter">{nextBooking.time}</span>
-                          <div className="h-12 w-[1px] bg-black/20" />
-                          <div>
-                            <p className="text-[10px] font-black text-black/40 uppercase tracking-widest">Cliente</p>
-                            <p className="text-2xl font-bold text-black uppercase tracking-tight">{nextBooking.booking?.clients?.name}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-[10px] font-black text-black/40 uppercase tracking-widest mb-1">Status</p>
-                          <p className="text-[10px] font-bold text-black uppercase bg-black/10 px-3 py-1 rounded-full">Confirmado</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center py-12">
-                        <CalendarDays className="text-white/10 w-12 h-12 mb-4" />
-                        <p className="text-sm text-neutral-500 italic">Nenhum corte agendado para o restante do dia.</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-6">
-                    <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em]">Horários Ocupados</h3>
-                    {occupiedSlots.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {occupiedSlots.map((slot, i) => (
-                          <div key={i} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.04]">
-                            <div className="flex items-center gap-5">
-                              <span className="text-xl font-bold text-white">{slot.time}</span>
-                              <div className="w-[1px] h-5 bg-[#D4AF37]/30" />
-                              <span className="text-sm font-bold text-zinc-300 uppercase tracking-tight truncate">{slot.booking?.clients?.name}</span>
+          {loading ? (
+            <div className="flex items-center justify-center h-[50vh]">
+              <div className="w-12 h-12 border-4 border-[#C5A059] border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <AnimatePresence mode="wait">
+              {activeTab === 'agenda' && (
+                <motion.div 
+                  key="agenda"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12"
+                >
+                  <div className="space-y-12">
+                    <div className="space-y-6">
+                      <h3 className="text-xs font-bold text-[#C5A059] uppercase tracking-[0.2em]">Próximo Corte</h3>
+                      {nextBooking ? (
+                        <div className="bg-[#C5A059]/90 backdrop-blur-md p-8 rounded-2xl flex items-center justify-between shadow-2xl border border-[#C5A059]/50">
+                          <div className="flex items-center gap-8">
+                            <span className="text-5xl font-black text-black tracking-tighter">{nextBooking.time}</span>
+                            <div className="h-12 w-[1px] bg-black/20" />
+                            <div>
+                              <p className="text-[10px] font-black text-black/40 uppercase tracking-widest">Cliente</p>
+                              <p className="text-2xl font-bold text-black uppercase tracking-tight">{nextBooking.booking?.clients?.name}</p>
                             </div>
                           </div>
-                        ))}
+                          <div className="text-right">
+                            <p className="text-[10px] font-black text-black/40 uppercase tracking-widest mb-1">Status</p>
+                            <p className="text-[10px] font-bold text-black uppercase bg-black/10 px-3 py-1 rounded-full">Confirmado</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-12">
+                          <p className="text-sm text-neutral-500 italic font-medium">Nenhum corte agendado para o restante do dia.</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-6">
+                      <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em]">Horários Ocupados</h3>
+                      {occupiedSlots.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {occupiedSlots.map((slot, i) => (
+                            <div key={i} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.04]">
+                              <div className="flex items-center gap-5">
+                                <span className="text-xl font-bold text-white">{slot.time}</span>
+                                <div className="w-[1px] h-5 bg-[#C5A059]/30" />
+                                <span className="text-sm font-bold text-zinc-300 uppercase tracking-tight truncate">{slot.booking?.clients?.name}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-12 border border-white/5 rounded-2xl border-dashed">
+                          <p className="text-sm text-neutral-500 italic">Nenhum agendamento ocupado.</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em]">Horários Disponíveis</h3>
+                        <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">{new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</span>
                       </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center py-12">
-                        <CalendarDays className="text-white/10 w-12 h-12 mb-4" />
-                        <p className="text-sm text-neutral-500 italic">Nenhum agendamento ocupado.</p>
+                      
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
+                        {timeSlots
+                          .filter(time => !todayBookings.some(b => b.booking_time.slice(0, 5) === time))
+                          .map((time) => (
+                            <div 
+                              key={time} 
+                              onClick={() => setIsCreatingBooking(true)}
+                              className="bg-white/[0.03] border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center hover:bg-white/10 hover:border-[#C5A059]/50 cursor-pointer transition-colors group"
+                            >
+                              <span className="text-lg font-bold text-white group-hover:text-[#C5A059] transition-colors">{time}</span>
+                              <span className="text-[10px] text-neutral-400 uppercase tracking-widest mt-1">Livre</span>
+                            </div>
+                          ))}
                       </div>
-                    )}
+                    </div>
                   </div>
 
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em]">Horários Disponíveis</h3>
-                      <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">{new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</span>
+                  {/* Coluna Direita (Cards) */}
+                  <div className="space-y-6 hidden lg:block">
+                    <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md shadow-2xl rounded-2xl p-8 transition-all hover:bg-white/[0.04] relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-[#D4AF37]/5 rounded-full blur-3xl -mr-12 -mt-12 transition-all group-hover:bg-[#D4AF37]/10" />
+                      <span className="text-xs font-semibold text-neutral-500 uppercase tracking-widest block mb-6">Lucro de Hoje</span>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-bold text-[#D4AF37] opacity-40">R$</span>
+                        <span className="text-5xl font-black text-[#D4AF37] tracking-tighter drop-shadow-[0_0_15px_rgba(212,175,55,0.2)]">{todayRevenue.toFixed(0)}</span>
+                      </div>
                     </div>
-                    
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
-                      {timeSlots
-                        .filter(time => !todayBookings.some(b => b.booking_time.slice(0, 5) === time))
-                        .map((time) => (
-                          <div 
-                            key={time} 
-                            className="bg-white/[0.03] border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center hover:bg-white/10 hover:border-[#D4AF37]/50 cursor-pointer transition-colors group"
-                          >
-                            <span className="text-lg font-bold text-white group-hover:text-[#D4AF37] transition-colors">{time}</span>
-                            <span className="text-[10px] text-neutral-400 uppercase tracking-widest mt-1">Livre</span>
+
+                    <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md shadow-2xl rounded-2xl p-8 transition-all hover:bg-white/[0.04] relative overflow-hidden group">
+                      <div className="flex flex-col">
+                        <span className="text-5xl font-black text-white tracking-tighter leading-none">{availableSlots}</span>
+                        <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-[0.2em] mt-2">Vagas Livres</span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === 'semanal' && (
+                <motion.div 
+                  key="semanal"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-12"
+                >
+                  <div className="flex flex-wrap gap-3 pb-10 border-b border-white/5">
+                    {[
+                      { d: 'SEG', n: '08' }, { d: 'TER', n: '09' }, { d: 'QUA', n: '10' },
+                      { d: 'QUI', n: '11', current: true }, { d: 'SEX', n: '12' }, { d: 'SÁB', n: '13' }
+                    ].map((day, i) => (
+                      <button 
+                        key={i} 
+                        className={`flex flex-col items-center justify-center w-16 h-16 rounded-xl border transition-all duration-300 ${
+                          day.current 
+                          ? 'border-[#C5A059] bg-[#C5A059]/10 text-[#C5A059]' 
+                          : 'border-white/5 bg-white/[0.02] text-zinc-600 hover:border-white/20'
+                        }`}
+                      >
+                        <span className="text-[8px] font-bold uppercase mb-1 tracking-widest">{day.d}</span>
+                        <span className="text-lg font-black">{day.n}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-col items-center justify-center py-20">
+                    <p className="text-sm text-neutral-500 italic">Selecione um dia para ver os agendamentos.</p>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === 'faturamento' && (
+                <motion.div 
+                  key="faturamento"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-12"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-end gap-6">
+                    <div className="flex gap-2 bg-white/[0.03] p-1.5 rounded-xl border border-white/5 backdrop-blur-md">
+                      <button 
+                        onClick={() => setViewMode('semanal')}
+                        className={`px-8 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
+                          viewMode === 'semanal' 
+                          ? 'bg-[#C5A059] text-black shadow-lg shadow-[#C5A059]/20' 
+                          : 'text-zinc-500 hover:text-zinc-300'
+                        }`}
+                      >
+                        Semanal
+                      </button>
+                      <button 
+                        onClick={() => setViewMode('mensal')}
+                        className={`px-8 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
+                          viewMode === 'mensal' 
+                          ? 'bg-[#C5A059] text-black shadow-lg shadow-[#C5A059]/20' 
+                          : 'text-zinc-500 hover:text-zinc-300'
+                        }`}
+                      >
+                        Mensal
+                      </button>
+                    </div>
+                  </div>
+
+                  {viewMode === 'semanal' ? (
+                    <div className="space-y-12">
+                      <div className="bg-gradient-to-b from-white/[0.05] to-transparent border border-white/10 backdrop-blur-md p-16 rounded-[2rem] flex flex-col items-center justify-center text-center shadow-2xl relative overflow-hidden">
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center">
+                            <DollarSign size={16} className="text-zinc-400" />
+                          </div>
+                          <span className="text-[10px] text-zinc-500 font-bold tracking-[0.4em] uppercase opacity-60">Lucro da Semana</span>
+                        </div>
+                        <div className="flex items-baseline gap-4">
+                          <span className="text-4xl font-bold text-[#D4AF37] opacity-40">R$</span>
+                          <h2 className="text-6xl font-black text-[#D4AF37] tracking-tighter leading-none drop-shadow-md">{weeklyRevenue.toFixed(0)}</h2>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[
+                          { label: 'Cancelamentos', value: weeklyBookings.filter(b => b.status === 'cancelled').length.toString(), icon: Scissors },
+                          { label: 'Novos Clientes', value: '12', icon: Users },
+                          { label: 'Atendimentos Realizados', value: weeklyBookings.length.toString(), icon: CheckCircle },
+                        ].map((stat, i) => (
+                          <div key={i} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.05] group relative flex flex-col justify-between h-36">
+                            <div className="flex justify-between items-start">
+                              <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">{stat.label}</p>
+                              <stat.icon size={18} className="text-zinc-500 opacity-60" />
+                            </div>
+                            <p className="text-3xl sm:text-4xl font-extrabold text-white mt-2 tracking-tight">{stat.value}</p>
                           </div>
                         ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Coluna Direita (Cards) - Apenas Desktop */}
-                <div className="space-y-6 hidden lg:block">
-                  <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md shadow-2xl rounded-2xl p-8 transition-all hover:bg-white/[0.04] relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-[#D4AF37]/5 rounded-full blur-3xl -mr-12 -mt-12 transition-all group-hover:bg-[#D4AF37]/10" />
-                    <span className="text-xs font-semibold text-neutral-500 uppercase tracking-widest block mb-6">Lucro de Hoje</span>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-[#D4AF37] opacity-40">R$</span>
-                      <span className="text-5xl font-black text-[#D4AF37] tracking-tighter drop-shadow-[0_0_15px_rgba(212,175,55,0.2)]">{todayRevenue.toFixed(0)}</span>
-                    </div>
-                  </div>
-
-                  <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md shadow-2xl rounded-2xl p-8 transition-all hover:bg-white/[0.04] relative overflow-hidden group">
-                    <div className="flex flex-col">
-                      <span className="text-5xl font-black text-white tracking-tighter leading-none">{availableSlots}</span>
-                      <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-[0.2em] mt-2">Vagas Livres</span>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'semanal' && (
-              <motion.div 
-                key="semanal"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-12"
-              >
-                <div className="flex flex-wrap gap-4 pb-10 border-b border-white/5">
-                  {[
-                    { d: 'SEG', n: '08' }, { d: 'TER', n: '09' }, { d: 'QUA', n: '10' },
-                    { d: 'QUI', n: '11', current: true }, { d: 'SEX', n: '12' }, { d: 'SÁB', n: '13' }
-                  ].map((day, i) => (
-                    <button 
-                      key={i} 
-                      className={`flex flex-col items-center justify-center w-24 h-24 rounded-2xl border transition-all duration-300 ${
-                        day.current 
-                        ? 'border-[#C5A059] bg-[#C5A059]/10 text-[#C5A059] shadow-[0_0_20px_rgba(197,160,89,0.1)]' 
-                        : 'border-white/5 bg-white/[0.02] text-zinc-600 hover:border-white/20 hover:bg-white/[0.05]'
-                      }`}
-                    >
-                      <span className="text-[10px] font-bold uppercase mb-2 tracking-widest">{day.d}</span>
-                      <span className="text-2xl font-black">{day.n}</span>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="flex flex-col items-center justify-center py-20">
-                  <CalendarDays className="text-white/10 w-16 h-16 mb-6" />
-                  <p className="text-sm text-neutral-500 italic max-w-xs text-center leading-relaxed">Selecione um dia acima para ver os detalhes da agenda e atendimentos confirmados.</p>
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'faturamento' && (
-              <motion.div 
-                key="faturamento"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-12"
-              >
-                <div className="flex flex-col md:flex-row md:items-center justify-end gap-6">
-                  <div className="flex gap-2 bg-white/[0.03] p-1.5 rounded-xl border border-white/5 backdrop-blur-md">
-                    <button 
-                      onClick={() => setViewMode('semanal')}
-                      className={`px-8 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
-                        viewMode === 'semanal' 
-                        ? 'bg-[#C5A059] text-black shadow-lg shadow-[#C5A059]/20' 
-                        : 'text-zinc-500 hover:text-zinc-300'
-                      }`}
-                    >
-                      Semanal
-                    </button>
-                    <button 
-                      onClick={() => setViewMode('mensal')}
-                      className={`px-8 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
-                        viewMode === 'mensal' 
-                        ? 'bg-[#C5A059] text-black shadow-lg shadow-[#C5A059]/20' 
-                        : 'text-zinc-500 hover:text-zinc-300'
-                      }`}
-                    >
-                      Mensal
-                    </button>
-                  </div>
-                </div>
-
-                {viewMode === 'semanal' ? (
-                  <div className="space-y-12">
-                    <div className="bg-gradient-to-b from-white/[0.05] to-transparent border border-white/10 backdrop-blur-md p-16 rounded-[2rem] flex flex-col items-center justify-center text-center shadow-2xl relative overflow-hidden">
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center">
-                          <DollarSign size={16} className="text-zinc-400" />
-                        </div>
-                        <span className="text-[10px] text-zinc-500 font-bold tracking-[0.4em] uppercase opacity-60">Lucro da Semana</span>
-                      </div>
-                      <div className="flex items-baseline gap-4">
-                        <span className="text-4xl font-bold text-[#D4AF37] opacity-40">R$</span>
-                        <h2 className="text-6xl font-black text-[#D4AF37] tracking-tighter leading-none drop-shadow-md">{totalRevenue.toFixed(0)}</h2>
                       </div>
                     </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {[
-                        { label: 'Cancelamentos', value: '0', icon: Scissors },
-                        { label: 'Novos Clientes', value: '12', icon: Users },
-                        { label: 'Atendimentos Realizados', value: bookings.length.toString(), icon: CheckCircle },
-                      ].map((stat, i) => (
-                        <div key={i} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.05] group relative flex flex-col justify-between h-36">
-                          <div className="flex justify-between items-start">
-                            <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">{stat.label}</p>
-                            <stat.icon size={18} className="text-zinc-500 opacity-60" />
+                  ) : (
+                    <div className="space-y-12">
+                      <div className="bg-gradient-to-b from-white/[0.05] to-transparent border border-white/10 backdrop-blur-md p-16 rounded-[2rem] flex flex-col items-center justify-center text-center shadow-2xl relative overflow-hidden">
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center">
+                            <DollarSign size={16} className="text-zinc-400" />
                           </div>
-                          <p className="text-3xl sm:text-4xl font-extrabold text-white mt-2 tracking-tight">{stat.value}</p>
+                          <span className="text-[10px] text-zinc-500 font-bold tracking-[0.4em] uppercase opacity-60">Lucro do Mês</span>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-12">
-                    <div className="bg-gradient-to-b from-white/[0.05] to-transparent border border-white/10 backdrop-blur-md p-16 rounded-[2rem] flex flex-col items-center justify-center text-center shadow-2xl relative overflow-hidden">
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center">
-                          <DollarSign size={16} className="text-zinc-400" />
+                        <div className="flex items-baseline gap-4">
+                          <span className="text-4xl font-bold text-[#D4AF37] opacity-40">R$</span>
+                          <h2 className="text-6xl font-black text-[#D4AF37] tracking-tighter leading-none drop-shadow-md">{monthlyRevenue.toFixed(0)}</h2>
                         </div>
-                        <span className="text-[10px] text-zinc-500 font-bold tracking-[0.4em] uppercase opacity-60">Lucro do Mês (Estimado)</span>
                       </div>
-                      <div className="flex items-baseline gap-4">
-                        <span className="text-4xl font-bold text-[#D4AF37] opacity-40">R$</span>
-                        <h2 className="text-6xl font-black text-[#D4AF37] tracking-tighter leading-none drop-shadow-md">{(totalRevenue * 4.2).toFixed(0)}</h2>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl shadow-xl flex flex-col justify-center min-h-[160px] relative group overflow-hidden transition-all hover:bg-white/[0.04]">
+                          <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Cancelamentos no Mês</p>
+                          <p className="text-5xl font-black text-white tracking-tighter">{monthlyBookings.filter(b => b.status === 'cancelled').length.toString()}</p>
+                          <div className="w-10 h-1 bg-red-500/20 mt-6 rounded-full" />
+                          <Scissors size={24} className="absolute top-6 right-6 text-zinc-600/20" />
+                        </div>
+                        <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl shadow-xl flex flex-col justify-center min-h-[160px] relative group overflow-hidden transition-all hover:bg-white/[0.04]">
+                          <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Novos Clientes no Mês</p>
+                          <p className="text-5xl font-black text-[#D4AF37] tracking-tighter">{clients.length}</p>
+                          <div className="w-10 h-1 bg-[#D4AF37]/20 mt-6 rounded-full" />
+                          <Users size={24} className="absolute top-6 right-6 text-zinc-600/20" />
+                        </div>
+                        <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl shadow-xl flex flex-col justify-center min-h-[160px] relative group overflow-hidden transition-all hover:bg-white/[0.04]">
+                          <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Atendimentos no Mês</p>
+                          <p className="text-5xl font-black text-white tracking-tighter">{monthlyBookings.length}</p>
+                          <div className="w-10 h-1 bg-white/10 mt-6 rounded-full" />
+                          <CheckCircle size={24} className="absolute top-6 right-6 text-zinc-600/20" />
+                        </div>
                       </div>
                     </div>
+                  )}
+                </motion.div>
+              )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl shadow-xl flex flex-col justify-center min-h-[160px] relative group overflow-hidden transition-all hover:bg-white/[0.04]">
-                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Cancelamentos no Mês</p>
-                        <p className="text-5xl font-black text-white tracking-tighter">04</p>
-                        <div className="w-10 h-1 bg-red-500/20 mt-6 rounded-full" />
-                        <Scissors size={24} className="absolute top-6 right-6 text-zinc-600/20" />
-                      </div>
-                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl shadow-xl flex flex-col justify-center min-h-[160px] relative group overflow-hidden transition-all hover:bg-white/[0.04]">
-                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Novos Clientes no Mês</p>
-                        <p className="text-5xl font-black text-[#D4AF37] tracking-tighter">48</p>
-                        <div className="w-10 h-1 bg-[#D4AF37]/20 mt-6 rounded-full" />
-                        <Users size={24} className="absolute top-6 right-6 text-zinc-600/20" />
-                      </div>
-                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl shadow-xl flex flex-col justify-center min-h-[160px] relative group overflow-hidden transition-all hover:bg-white/[0.04]">
-                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Atendimentos no Mês</p>
-                        <p className="text-5xl font-black text-white tracking-tighter">{bookings.length * 4}</p>
-                        <div className="w-10 h-1 bg-white/10 mt-6 rounded-full" />
-                        <CheckCircle size={24} className="absolute top-6 right-6 text-zinc-600/20" />
-                      </div>
+              {activeTab === 'clientes' && (
+                <motion.div 
+                  key="clientes"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-12"
+                >
+                  <div className="w-full max-w-2xl mx-auto space-y-12 py-6">
+                    <div className="relative group">
+                      <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-700 group-focus-within:text-[#C5A059] transition-colors" size={20} />
+                      <input 
+                        type="text" 
+                        placeholder="Pesquisar por nome ou WhatsApp..."
+                        className="w-full bg-white/[0.03] border border-white/10 rounded-xl h-16 pl-16 pr-6 outline-none text-sm text-white focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all placeholder:text-zinc-700 italic shadow-xl"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                      {clients.length > 0 ? (
+                        clients.map((client) => (
+                          <div key={client.id} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl flex items-center justify-between hover:bg-white/[0.04] transition-all group">
+                            <div className="flex items-center gap-6">
+                              <div className="w-12 h-12 bg-[#C5A059]/10 rounded-full flex items-center justify-center border border-[#C5A059]/20 group-hover:bg-[#C5A059]/20 transition-all">
+                                <User size={20} className="text-[#C5A059]" />
+                              </div>
+                              <div>
+                                <p className="text-white font-bold uppercase tracking-tight">{client.name}</p>
+                                <p className="text-xs text-zinc-500 font-medium">{client.phone}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mb-1">Cadastrado em</p>
+                              <p className="text-xs text-zinc-400">{new Date(client.created_at).toLocaleDateString('pt-BR')}</p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-12">
+                          <p className="text-sm text-neutral-500 italic font-medium tracking-wide">Nenhum cliente encontrado.</p>
+                        </div>
+                      )}
                     </div>
                   </div>
-                )}
-              </motion.div>
-            )}
-
-            {activeTab === 'clientes' && (
-              <motion.div 
-                key="clientes"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-12"
-              >
-                <div className="w-full max-w-2xl mx-auto space-y-16 py-12">
-                  <div className="relative group">
-                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-700 group-focus-within:text-[#D4AF37] transition-colors" size={20} />
-                    <input 
-                      type="text" 
-                      placeholder="Pesquisar por nome ou WhatsApp..."
-                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl h-16 pl-16 pr-6 outline-none text-sm text-white focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all placeholder:text-zinc-700 italic shadow-xl"
-                    />
-                  </div>
-
-                  <div className="flex flex-col items-center justify-center py-12">
-                    <SearchX className="text-white/10 w-16 h-16 mb-6" />
-                    <p className="text-sm text-neutral-500 italic font-medium tracking-wide">Nenhum registro encontrado na base de clientes.</p>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
         </main>
       </div>
     </div>
