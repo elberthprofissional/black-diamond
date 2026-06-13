@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Camera } from 'lucide-react';
 
 const Gallery: React.FC = () => {
   // Realistic placeholder images focused on premium barbering
@@ -26,24 +27,19 @@ const Gallery: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-7xl mx-auto px-4">
-          {images.map((img, index) => (
+          {[1, 2, 3].map((_, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: index * 0.2, ease: "easeOut" }}
               viewport={{ once: true, margin: "-100px" }}
-              className="group relative aspect-[4/5] overflow-hidden bg-zinc-900 border border-white/5 cursor-pointer shadow-2xl rounded-xl"
+              className="group relative aspect-[4/5] overflow-hidden bg-neutral-900 border border-white/5 cursor-pointer shadow-2xl rounded-xl flex flex-col items-center justify-center space-y-4"
             >
-              <div className="w-full h-full overflow-hidden">
-                <img 
-                  src={img} 
-                  alt={`Corte Premium ${index + 1}`} 
-                  className="w-full h-full object-cover grayscale brightness-50 group-hover:grayscale-0 group-hover:brightness-100 group-hover:scale-110 transition-all duration-1000"
-                />
-              </div>
-              
-              {/* Premium Overlay */}
+              <Camera size={40} strokeWidth={1} className="text-gold-600/30 group-hover:text-gold-600 transition-colors duration-700" />
+              <span className="text-[9px] font-bold tracking-[0.4em] uppercase text-zinc-600">Foto em breve</span>
+
+              {/* View Overlay - Premium Styling */}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-700 bg-black/60 backdrop-blur-[2px]">
                 <div className="relative overflow-hidden px-8 py-4 border border-gold-600/50">
                    <span className="relative z-10 text-gold-600 text-[10px] font-black uppercase tracking-[0.4em]">Explorar</span>

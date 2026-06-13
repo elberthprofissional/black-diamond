@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Camera } from 'lucide-react';
 
 const About: React.FC = () => {
   return (
@@ -21,13 +22,9 @@ const About: React.FC = () => {
               {/* Premium Frame */}
               <div className="absolute -inset-4 border border-gold-600/10 translate-x-4 translate-y-4 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-1000" />
               
-              <div className="aspect-[3/4] bg-zinc-900 border border-white/5 relative overflow-hidden rounded-xl">
-                {/* Real Placeholder Image */}
-                <img 
-                  src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                  alt="Tato em ação" 
-                  className="w-full h-full object-cover grayscale brightness-50 group-hover:brightness-75 group-hover:scale-105 transition-all duration-1000"
-                />
+              <div className="aspect-[3/4] bg-neutral-900 border border-white/5 relative overflow-hidden rounded-xl flex flex-col items-center justify-center space-y-4">
+                <Camera size={48} strokeWidth={1} className="text-gold-600/40" />
+                <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-zinc-600">Foto em breve</span>
                 
                 {/* Subtle Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#09090B] via-transparent to-transparent opacity-60" />
