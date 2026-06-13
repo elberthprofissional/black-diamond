@@ -209,11 +209,13 @@ const AdminDashboard: React.FC = () => {
         className="min-h-screen bg-[#0A0A0A] text-white p-6 lg:p-20 selection:bg-gold-600/30 font-sans"
       >
         <header className="max-w-6xl mx-auto flex items-center justify-between mb-24">
-          <button onClick={() => setViewingClient(null)} className="flex items-center gap-3 text-zinc-600 hover:text-white transition-all uppercase text-[10px] font-black tracking-[0.4em] group">
+          <button onClick={() => setViewingClient(null)} className="flex items-center gap-3 text-zinc-600 hover:text-white transition-all uppercase text-[9px] font-black tracking-[0.4em] group">
             <ArrowLeft size={14} className="group-hover:-translate-x-2 transition-transform" />
             Voltar para Clientes
           </button>
-          <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-800">Intelligence System</span>
+          <div className="flex items-center gap-4">
+             <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-800">Intelligence System</span>
+          </div>
         </header>
 
         <main className="max-w-6xl mx-auto">
