@@ -67,7 +67,10 @@ const Services: React.FC = () => {
                 key={service.id}
                 variants={itemVariants}
                 className="grid grid-cols-1 md:grid-cols-12 gap-6 py-12 md:items-center hover:bg-white/[0.02] transition-all duration-500 group cursor-pointer"
-                onClick={() => navigate('/agendar')}
+                onClick={() => {
+                  const message = `Olá! Gostaria de agendar o serviço: ${service.name}`;
+                  window.open(`https://wa.me/5531980159559?text=${encodeURIComponent(message)}`, '_blank');
+                }}
               >
                 {/* Number & Name Column */}
                 <div className="col-span-1 md:col-span-9">
@@ -77,7 +80,6 @@ const Services: React.FC = () => {
                     </span>
                     <div>
                       <h4 className="text-xl md:text-2xl font-serif font-medium text-white group-hover:text-gold-600 transition-colors duration-500 uppercase tracking-wider">{service.name}</h4>
-                      <p className="text-sm text-gray-500 font-light mt-2 tracking-wide max-w-xl group-hover:text-gray-400 transition-colors duration-500">{service.description}</p>
                     </div>
                   </div>
                 </div>
