@@ -57,6 +57,7 @@ const BookingPage: React.FC = () => {
   const totalPrice = selectedServices.reduce((sum, s) => sum + Number(s.price), 0);
   const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
 
+  // DEFININDO ANTES DE USAR
   const sendWhatsAppReceipt = () => {
     const formattedDate = selectedDate.split('-').reverse().join('/');
     const servicesList = selectedServices.map(s => s.name).join(', ');
@@ -81,7 +82,7 @@ const BookingPage: React.FC = () => {
           phone: userInfo.phone
         }
       );
-      sendWhatsAppReceipt();
+      sendWhatsAppReceipt(); // CHAMADA AQUI
       setStep(5);
     } catch (error) {
       console.error(error);
