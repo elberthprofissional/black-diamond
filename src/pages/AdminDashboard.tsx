@@ -22,6 +22,13 @@ const AdminDashboard: React.FC = () => {
   const [bookings, setBookings] = useState<any[]>([]);
   const navigate = useNavigate();
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Bom dia";
+    if (hour >= 12 && hour < 18) return "Boa tarde";
+    return "Boa noite";
+  };
+
   const fetchData = useCallback(async () => {
     try {
       const data = await getBookings();
@@ -65,9 +72,7 @@ const AdminDashboard: React.FC = () => {
         <aside className="w-64 h-screen sticky top-0 bg-[#0A0A0A] border-r border-white/5 flex flex-col hidden lg:flex">
           <div className="px-0 py-10">
             <div className="flex items-center gap-3 mb-12 group cursor-pointer px-8" onClick={() => navigate('/')}>
-              <div className="w-8 h-8 bg-gold-600 flex items-center justify-center rounded-md">
-                <Scissors className="text-black w-4 h-4" />
-              </div>
+              <img src="/assets/logo.webp" alt="Black Diamond" className="w-8 h-8 object-contain" />
               <h1 className="text-white font-bold text-sm tracking-tight uppercase whitespace-nowrap">Black Diamond</h1>
             </div>
 
@@ -105,6 +110,7 @@ const AdminDashboard: React.FC = () => {
           {/* Top Bar */}
           <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
             <div>
+              <p className="text-xs font-bold text-gold-600 uppercase tracking-widest mb-1">{getGreeting()}</p>
               <h1 className="text-3xl font-bold text-white tracking-tight">{activeTab === 'agenda' ? 'Agenda do Dia' : activeTab === 'faturamento' ? 'Faturamento' : activeTab === 'clientes' ? 'Meus Clientes' : 'Agenda Semanal'}</h1>
             </div>
             
