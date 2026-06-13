@@ -27,16 +27,12 @@ const Gallery: React.FC = () => {
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true, margin: "-100px" }}
-              className="group relative aspect-[4/5] overflow-hidden bg-neutral-900 border border-white/5 cursor-pointer shadow-2xl rounded-xl flex flex-col items-center justify-center space-y-4"
+              className="group relative aspect-[4/5] overflow-hidden bg-neutral-900 border border-white/5 cursor-pointer shadow-2xl rounded-xl flex items-center justify-center"
             >
-              <Camera size={40} strokeWidth={1} className="text-gold-600/30 group-hover:text-gold-600 transition-colors duration-700" />
-              <span className="text-[9px] font-bold tracking-[0.4em] uppercase text-zinc-600">Foto em breve</span>
+              <Camera size={40} strokeWidth={1} className="text-zinc-600" />
 
               {/* View Overlay - Premium Styling */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-700 bg-black/60 backdrop-blur-[2px]">
-                <div className="relative overflow-hidden px-8 py-4 border border-gold-600/50">
-                   <span className="relative z-10 text-gold-600 text-[10px] font-black uppercase tracking-[0.4em]">Explorar</span>
-                </div>
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-700 bg-black/40 backdrop-blur-[1px]">
               </div>
               
               {/* Decorative corners */}

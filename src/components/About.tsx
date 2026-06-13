@@ -22,9 +22,8 @@ const About: React.FC = () => {
               {/* Premium Frame */}
               <div className="absolute -inset-4 border border-gold-600/10 transition-transform" />
               
-              <div className="aspect-[3/4] bg-neutral-900 border border-white/5 relative overflow-hidden rounded-xl flex flex-col items-center justify-center space-y-4">
-                <Camera size={48} strokeWidth={1} className="text-gold-600/40" />
-                <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-zinc-600">Foto em breve</span>
+              <div className="aspect-[3/4] bg-neutral-900 border border-white/5 relative overflow-hidden rounded-xl flex flex-col items-center justify-center">
+                <Camera size={48} strokeWidth={1} className="text-zinc-600" />
                 
                 {/* Subtle Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#09090B] via-transparent to-transparent opacity-60" />

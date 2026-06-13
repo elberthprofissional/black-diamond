@@ -32,7 +32,7 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-700 ${isScrolled ? 'bg-black/90 backdrop-blur-md py-3 shadow-[0_10px_30px_-10px_rgba(197,160,89,0.1)]' : 'bg-transparent py-6'}`}>
+    <nav className={`fixed w-full z-50 transition-all duration-700 bg-black py-3 shadow-[0_10px_30px_-10px_rgba(197,160,89,0.1)]`}>
       <div className="container mx-auto px-6 flex justify-between items-center">
         <motion.div 
           initial={{ opacity: 0 }}
