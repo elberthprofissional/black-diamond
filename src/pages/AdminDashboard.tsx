@@ -652,7 +652,7 @@ const AdminDashboard: React.FC = () => {
                       ].map((tab) => (
                         <button
                           key={tab.id}
-                          onClick={() => setViewMode(tab.id as any)}
+                          onClick={() => setViewMode(tab.id as 'semanal' | 'mensal')}
                           className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${
                             viewMode === tab.id 
                             ? 'bg-[#C5A059] text-black shadow-[0_10px_20px_rgba(197,160,89,0.2)]' 
