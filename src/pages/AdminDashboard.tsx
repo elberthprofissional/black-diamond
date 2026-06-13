@@ -172,25 +172,25 @@ const AdminDashboard: React.FC = () => {
       <div className="flex relative z-10">
         {/* Desktop Sidebar (PRESERVED STRUCTURE, ENHANCED UI) */}
         <aside className="w-80 h-screen sticky top-0 bg-[#0A0A0A] border-r border-white/5 flex flex-col hidden lg:flex">
-          <div className="flex-1 py-12">
-            <div className="flex items-center gap-4 mb-16 group cursor-pointer px-10" onClick={() => navigate('/')}>
-              <img src="/assets/logo.webp" alt="Black Diamond" className="w-12 h-12 object-contain" />
-              <h1 className="text-white font-bold text-base tracking-tight uppercase whitespace-nowrap">Black Diamond</h1>
+          <div className="flex-1 py-14">
+            <div className="flex items-center gap-5 mb-20 group cursor-pointer px-10" onClick={() => navigate('/')}>
+              <img src="/assets/logo.webp" alt="Black Diamond" className="w-14 h-14 object-contain" />
+              <h1 className="text-white font-bold text-lg tracking-tight uppercase whitespace-nowrap">Black Diamond</h1>
             </div>
 
-            <nav className="space-y-2">
+            <nav className="space-y-3">
               {menuItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-4 px-10 py-4 transition-all duration-300 font-medium ${
+                  className={`w-full flex items-center gap-5 px-10 py-4.5 transition-all duration-300 font-medium ${
                     activeTab === item.id 
                     ? 'bg-white/5 border-r-4 border-[#D4AF37] text-white shadow-sm' 
-                    : 'text-neutral-500 hover:text-white hover:bg-white/[0.02]'
+                    : 'text-neutral-400 hover:text-white hover:bg-white/[0.02]'
                   }`}
                 >
-                  <item.icon size={22} className={activeTab === item.id ? 'text-[#D4AF37]' : 'text-zinc-600'} />
-                  <span className="text-[11px] uppercase tracking-[0.2em] font-bold">{item.label}</span>
+                  <item.icon size={24} className={activeTab === item.id ? 'text-[#D4AF37]' : 'text-zinc-600'} />
+                  <span className="text-sm uppercase tracking-widest font-bold">{item.label}</span>
                 </button>
               ))}
             </nav>
