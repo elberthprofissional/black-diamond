@@ -36,8 +36,8 @@ const Testimonials: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Grid de 3 colunas no Desktop */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Container com scroll horizontal no mobile e grid no desktop */}
+        <div className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-3 gap-8 pb-8 md:pb-0 snap-x snap-mandatory scrollbar-hide">
           {reviews.map((review, index) => (
             <motion.div
               key={index}
@@ -45,7 +45,7 @@ const Testimonials: React.FC = () => {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="bg-[#1A1A1A] border border-zinc-800 rounded-lg p-8 flex flex-col space-y-6 transition-all duration-500 hover:border-zinc-700 shadow-sm"
+              className="min-w-[85vw] md:min-w-0 snap-center bg-[#1A1A1A] border border-zinc-800 rounded-lg p-8 flex flex-col space-y-6 transition-all duration-500 hover:border-zinc-700 shadow-sm first:ml-0 last:mr-0"
             >
               {/* Cabeçalho do Card */}
               <div className="flex items-center justify-between">
@@ -63,7 +63,7 @@ const Testimonials: React.FC = () => {
               </div>
 
               {/* Texto do Depoimento */}
-              <p className="text-zinc-400 font-sans font-light leading-relaxed text-sm text-left">
+              <p className="text-zinc-400 font-sans font-light leading-relaxed text-sm text-left italic">
                 "{review.text}"
               </p>
             </motion.div>
