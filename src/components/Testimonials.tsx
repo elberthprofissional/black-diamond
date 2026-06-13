@@ -31,7 +31,6 @@ const Testimonials: React.FC = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-gold-600 font-sans font-bold text-xs tracking-[0.5em] uppercase mb-4">Depoimentos</h2>
             <h3 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4 tracking-tight uppercase">O QUE NOSSOS CLIENTES DIZEM</h3>
             <div className="h-[1px] w-12 bg-gold-600/30 mx-auto"></div>
           </motion.div>
