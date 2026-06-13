@@ -189,7 +189,7 @@ const AdminDashboard: React.FC = () => {
                     : 'text-neutral-400 hover:text-white hover:bg-white/[0.02]'
                   }`}
                 >
-                  <item.icon size={24} className={activeTab === item.id ? 'text-[#D4AF37]' : 'text-zinc-600'} />
+                  <item.icon size={24} className="text-[#D4AF37]" />
                   <span className="text-sm uppercase tracking-widest font-bold">{item.label}</span>
                 </button>
               ))}
@@ -531,6 +531,13 @@ const AdminDashboard: React.FC = () => {
             )}
           </AnimatePresence>
         </main>
+      </div>
+    </div>
+  );
+};
+
+export default AdminDashboard;
+
       </div>
     </div>
   );
