@@ -334,20 +334,14 @@ const BookingPage: React.FC = () => {
                   <div className="space-y-4">
                     <h2 className="text-4xl font-serif font-bold text-white uppercase tracking-tighter italic">Reserva Confirmada!</h2>
                     <p className="text-sm text-gray-400 font-medium tracking-wide max-w-sm mx-auto">
-                      Seu agendamento foi registrado com sucesso. Escolha uma opção abaixo:
+                      Seu agendamento foi registrado com sucesso. Você foi redirecionado para o WhatsApp para enviar os detalhes.
                     </p>
                   </div>
 
                   <div className="flex flex-col gap-4 w-full max-w-xs">
                     <button 
-                      onClick={sendWhatsAppReceipt}
-                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-5 rounded-xl text-[10px] uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-600/20"
-                    >
-                      <Phone size={16} /> Enviar Comprovante
-                    </button>
-                    <button 
                       onClick={() => navigate('/')}
-                      className="w-full bg-white/5 hover:bg-white/10 text-gray-300 font-bold py-5 rounded-xl text-[10px] uppercase tracking-[0.3em] transition-all"
+                      className="w-full bg-white hover:bg-zinc-200 text-black font-black py-5 rounded-xl text-[10px] uppercase tracking-[0.3em] transition-all shadow-lg"
                     >
                       Voltar para Início
                     </button>
