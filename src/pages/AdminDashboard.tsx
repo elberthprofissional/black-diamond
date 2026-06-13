@@ -178,7 +178,7 @@ const AdminDashboard: React.FC = () => {
     <div className="min-h-screen bg-[#0A0A0A] text-zinc-400 font-sans selection:bg-[#D4AF37]/30 pb-20 lg:pb-0">
       <div className="flex relative z-10">
         {/* Desktop Sidebar (PRESERVED STRUCTURE, ENHANCED UI) */}
-        <aside className="w-64 h-screen sticky top-0 bg-[#0A0A0A] border-r border-white/5 flex flex-col hidden lg:flex">
+        <aside className="w-80 h-screen sticky top-0 bg-[#0A0A0A] border-r border-white/5 flex flex-col hidden lg:flex">
           <div className="px-0 py-10">
             <div className="flex items-center gap-4 mb-12 group cursor-pointer px-8" onClick={() => navigate('/')}>
               <img src="/assets/logo.webp" alt="Black Diamond" className="w-12 h-12 object-contain" />
