@@ -1,15 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, ArrowLeft, Mail, Eye, EyeOff } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isError, setIsError] = useState(false);
-  const [message, setMessage] = useState('');
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'info' | 'error' } | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,18 +23,32 @@ const AdminLogin: React.FC = () => {
     if (email === 'admin@gmail.com' && password === 'admin123') {
       navigate('/admin');
     } else {
-      setIsError(true);
-      setMessage('Credenciais inválidas. Tente novamente.');
-      setTimeout(() => setIsError(false), 3000);
+      setToast({ message: 'Credenciais inválidas. Tente novamente.', type: 'error' });
     }
   };
 
   const handleForgotPassword = () => {
-    alert('Uma senha temporária foi enviada para o seu WhatsApp/E-mail registrado.');
+    setToast({ message: 'Senha temporária enviada via WhatsApp.', type: 'info' });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#09090B] relative overflow-hidden px-6 font-sans">
+    <div className="min-h-screen flex items-center justify-center bg-[#09090B] relative overflow-hidden px-6 font-sans selection:bg-gold-600/30">
+      
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: -20, x: '-50%' }}
+            className={`fixed top-10 left-1/2 z-[100] px-8 py-4 rounded-xl border backdrop-blur-md shadow-2xl ${
+              toast.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-[#C5A059]/10 border-[#C5A059]/20 text-[#C5A059]'
+            }`}
+          >
+            <p className="text-[10px] font-bold uppercase tracking-widest">{toast.message}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       {/* Cinematic Background */}
       <div 
@@ -43,7 +63,7 @@ const AdminLogin: React.FC = () => {
       <div className="absolute top-8 left-8 z-20">
         <button 
           onClick={() => navigate('/')}
-          className="flex items-center space-x-3 text-gray-400 hover:text-gold-600 transition-all duration-500 group"
+          className="flex items-center space-x-3 text-gray-400 hover:text-[#C5A059] transition-all duration-500 group"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-2 transition-transform" />
           <span className="text-[10px] font-bold uppercase tracking-[0.3em]">Voltar ao Site</span>
@@ -66,20 +86,20 @@ const AdminLogin: React.FC = () => {
           <span className="text-[10px] tracking-[0.4em] text-gold-600 font-bold uppercase opacity-80">Painel Administrativo</span>
         </div>
 
-        {/* Login Card (Deep Dark Glass) */}
-        <div className="bg-black/60 backdrop-blur-2xl border border-white/10 shadow-2xl relative overflow-hidden rounded-2xl p-8 sm:p-10">
+        {/* Login Card (Real Glassmorphism - Light Layer) */}
+        <div className="bg-white/5 backdrop-blur-lg border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] relative overflow-hidden rounded-2xl p-8 sm:p-10">
           <form onSubmit={handleLogin} className="space-y-8">
             
             {/* Email Field */}
             <div className="space-y-3">
               <label className="text-xs font-semibold text-neutral-400 tracking-widest uppercase block ml-1">NOME DE USUÁRIO OU E-MAIL</label>
               <div className="relative group">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-[#D4AF37] transition-colors duration-300 z-10" size={18} />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-[#C5A059] transition-colors duration-300 z-10" size={18} />
                 <input 
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-12 bg-transparent border border-white/20 text-white pl-12 pr-4 rounded-lg outline-none transition-all duration-300 text-sm focus:bg-white/5 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] placeholder:text-neutral-500"
+                  className="w-full h-12 bg-black/40 border border-white/10 text-white pl-12 pr-4 rounded-xl outline-none transition-all duration-300 text-sm focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] placeholder:text-neutral-500"
                   placeholder="admin@gmail.com"
                   required
                 />
@@ -93,18 +113,18 @@ const AdminLogin: React.FC = () => {
                 <button 
                   type="button"
                   onClick={handleForgotPassword}
-                  className="text-xs text-neutral-500 hover:text-[#D4AF37] transition-colors"
+                  className="text-xs text-neutral-500 hover:text-[#C5A059] transition-colors"
                 >
                   Esqueci minha senha
                 </button>
               </div>
               <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-[#D4AF37] transition-colors duration-300 z-10" size={18} />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-[#C5A059] transition-colors duration-300 z-10" size={18} />
                 <input 
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-12 bg-transparent border border-white/20 text-white pl-12 pr-12 rounded-lg outline-none transition-all duration-300 text-sm focus:bg-white/5 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] placeholder:text-neutral-500"
+                  className="w-full h-12 bg-black/40 border border-white/10 text-white pl-12 pr-12 rounded-xl outline-none transition-all duration-300 text-sm focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] placeholder:text-neutral-500"
                   placeholder="••••••••"
                   required
                 />
@@ -118,20 +138,9 @@ const AdminLogin: React.FC = () => {
               </div>
             </div>
 
-            {/* Error Message */}
-            {isError && (
-              <motion.div 
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-red-500 text-[10px] font-bold uppercase tracking-widest text-center py-2"
-              >
-                {message}
-              </motion.div>
-            )}
-
             <button 
               type="submit"
-              className="mt-6 h-12 w-full bg-white text-black font-bold uppercase tracking-wider rounded-lg hover:bg-neutral-200 hover:scale-[1.02] transition-all shadow-lg"
+              className="mt-6 h-12 w-full bg-white text-black font-bold uppercase tracking-wider rounded-xl hover:bg-neutral-200 hover:scale-[1.02] transition-all shadow-lg"
             >
               Entrar no Painel
             </button>
