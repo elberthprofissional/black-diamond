@@ -1,4 +1,5 @@
 import React from 'react';
+import { Instagram } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -11,6 +12,18 @@ const Footer: React.FC = () => {
               <span className="text-xl font-serif font-bold tracking-[0.2em] text-white uppercase">BLACK DIAMOND</span>
             </div>
             <p className="text-zinc-500 text-[10px] tracking-[0.3em] uppercase font-medium">Excelência em cada detalhe</p>
+            
+            <a 
+              href="https://www.instagram.com/black.diamond.barbeariaa/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-zinc-400 hover:text-[#C5A059] transition-colors group pt-2"
+            >
+              <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#C5A059]/50 transition-all">
+                <Instagram size={14} />
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-widest">Instagram</span>
+            </a>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-2 gap-12 md:gap-20">
