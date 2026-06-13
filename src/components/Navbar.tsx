@@ -4,7 +4,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const Navbar: React.FC = () => {
-  // Trigger build: 14:14
   const navigate = useNavigate();
   const location = useLocation();
 
