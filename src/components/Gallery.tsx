@@ -15,9 +15,10 @@ const Gallery: React.FC = () => {
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center mb-24 lg:mb-32">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            transition={{ duration: 1, ease: "easeOut" }}
           >
             <h2 className="text-gold-600 font-sans font-bold text-xs tracking-[0.6em] uppercase mb-6">Trabalhos Recentes</h2>
             <h3 className="text-5xl md:text-[6rem] font-serif font-bold text-white mb-8 tracking-tighter uppercase leading-none">GALERIA</h3>
@@ -29,18 +30,20 @@ const Gallery: React.FC = () => {
           {placeholders.map((img, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: index * 0.15 }}
-              viewport={{ once: true }}
+              transition={{ duration: 1, delay: index * 0.2, ease: "easeOut" }}
+              viewport={{ once: true, margin: "-100px" }}
               className="group relative aspect-[4/5] overflow-hidden bg-zinc-900 border border-white/5 cursor-pointer shadow-2xl"
             >
-              {/* Image with extreme cinematic filter */}
-              <img 
-                src={img} 
-                alt={`Corte Premium ${index + 1}`} 
-                className="w-full h-full object-cover grayscale brightness-[0.3] blur-[1px] group-hover:blur-0 group-hover:grayscale-0 group-hover:brightness-90 transition-all duration-1000 scale-105 group-hover:scale-100"
-              />
+              {/* Image with extreme cinematic filter and hover zoom */}
+              <div className="w-full h-full overflow-hidden">
+                <img 
+                  src={img} 
+                  alt={`Corte Premium ${index + 1}`} 
+                  className="w-full h-full object-cover grayscale brightness-[0.3] blur-[1px] group-hover:blur-0 group-hover:grayscale-0 group-hover:brightness-90 group-hover:scale-110 transition-all duration-[1500ms] ease-out scale-100"
+                />
+              </div>
               
               {/* Professional Camera Placeholder Overlay */}
               <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 opacity-30 group-hover:opacity-0 transition-opacity duration-700">
