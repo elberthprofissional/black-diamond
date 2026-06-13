@@ -39,6 +39,17 @@ const AdminLogin: React.FC = () => {
       {/* Deep Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-tr from-[#09090B] via-[#09090B]/80 to-transparent z-[1]" />
 
+      {/* Voltar ao Site - Top Left */}
+      <div className="absolute top-8 left-8 z-20">
+        <button 
+          onClick={() => navigate('/')}
+          className="flex items-center space-x-3 text-gray-400 hover:text-gold-600 transition-all duration-500 group"
+        >
+          <ArrowLeft size={16} className="group-hover:-translate-x-2 transition-transform" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em]">Voltar ao Site</span>
+        </button>
+      </div>
+
       {/* Decorative Accents */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gold-600 opacity-[0.03] rounded-full blur-[120px] -mr-64 -mt-64 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gold-600 opacity-[0.03] rounded-full blur-[120px] -ml-64 -mb-64 pointer-events-none" />
@@ -77,16 +88,7 @@ const AdminLogin: React.FC = () => {
 
             {/* Password Field */}
             <div className="space-y-2">
-              <div className="flex justify-between items-center mb-1 px-1">
-                <label className="text-xs font-semibold text-neutral-400 tracking-widest uppercase">SENHA</label>
-                <button 
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-xs text-neutral-500 hover:text-[#D4AF37] transition-colors"
-                >
-                  Esqueci minha senha
-                </button>
-              </div>
+              <label className="text-xs font-semibold text-neutral-400 tracking-widest uppercase block ml-1">SENHA</label>
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-[#D4AF37] transition-colors duration-300 z-10" size={18} />
                 <input 
@@ -105,6 +107,15 @@ const AdminLogin: React.FC = () => {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              <div className="flex justify-end px-1">
+                <button 
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-gold-600 transition-colors"
+                >
+                  Esqueci minha senha
+                </button>
+              </div>
             </div>
 
             {/* Error Message */}
@@ -120,22 +131,11 @@ const AdminLogin: React.FC = () => {
 
             <button 
               type="submit"
-              className="mt-6 h-12 w-full bg-white text-black font-bold uppercase tracking-wider rounded-xl hover:bg-neutral-200 hover:scale-[1.02] transition-all shadow-lg"
+              className="mt-4 h-12 w-full bg-white text-black font-bold uppercase tracking-wider rounded-xl hover:bg-neutral-200 hover:scale-[1.02] transition-all shadow-lg"
             >
               Entrar no Painel
             </button>
           </form>
-        </div>
-
-        {/* Footer Actions */}
-        <div className="mt-12 flex justify-center">
-          <button 
-            onClick={() => navigate('/')}
-            className="flex items-center space-x-3 text-gray-600 hover:text-gold-600 transition-all duration-500 group"
-          >
-            <ArrowLeft size={14} className="group-hover:-translate-x-2 transition-transform" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em]">Voltar ao Site</span>
-          </button>
         </div>
 
       </motion.div>
