@@ -14,8 +14,24 @@ const BookingPage: React.FC = () => {
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existingBookings, setExistingBookings] = useState<any[]>([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const navigate = useNavigate();
+
+  const timeSlots = ['08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30'];
+
+  useEffect(() => {
+    if (selectedDate) {
+      setLoadingBookings(true);
+      getBookings()
+        .then(data => {
+          const filtered = data.filter((b: any) => b.booking_date === selectedDate && b.status !== 'cancelled');
+          setExistingBookings(filtered);
+        })
+        .finally(() => setLoadingBookings(false));
+    }
+  }, [selectedDate]);
 
   useEffect(() => {
     if (toast) {
@@ -212,19 +228,25 @@ const BookingPage: React.FC = () => {
                       <h3 className="text-xl font-serif font-bold uppercase tracking-widest text-white italic">Horário</h3>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
-                      {['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'].map((time) => (
-                        <button
-                          key={time}
-                          onClick={() => setSelectedTime(time)}
-                          className={`p-4 border text-[10px] font-bold tracking-widest transition-all duration-500 rounded-lg ${
-                            selectedTime === time
-                              ? 'border-gold-600 bg-gold-600/10 text-white shadow-[0_0_15px_rgba(212,175,55,0.15)]'
-                              : 'border-white/5 hover:border-white/10 text-gray-500 bg-black/20'
-                          }`}
-                        >
-                          {time}
-                        </button>
-                      ))}
+                      {timeSlots.map((time) => {
+                        const isOccupied = existingBookings.some(b => b.booking_time.slice(0, 5) === time);
+                        return (
+                          <button
+                            key={time}
+                            disabled={isOccupied}
+                            onClick={() => setSelectedTime(time)}
+                            className={`p-4 border text-[10px] font-bold tracking-widest transition-all duration-500 rounded-lg ${
+                              selectedTime === time
+                                ? 'border-gold-600 bg-gold-600/10 text-white shadow-[0_0_15px_rgba(212,175,55,0.15)]'
+                                : isOccupied 
+                                  ? 'border-white/5 bg-white/5 text-zinc-800 cursor-not-allowed'
+                                  : 'border-white/5 hover:border-white/10 text-gray-500 bg-black/20'
+                            }`}
+                          >
+                            {time}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </motion.div>
