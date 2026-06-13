@@ -55,11 +55,21 @@ const AdminDashboard: React.FC = () => {
   };
 
   const menuItems = [
-    { id: 'agenda', label: 'Agenda', icon: LayoutDashboard },
+    { id: 'agenda', label: 'Agenda Diária', icon: LayoutDashboard },
     { id: 'faturamento', label: 'Faturamento', icon: TrendingUp },
     { id: 'clientes', label: 'Clientes', icon: Users },
     { id: 'semanal', label: 'Agenda Semanal', icon: Calendar },
   ];
+
+  const currentTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  
+  const occupiedSlots = timeSlots
+    .map(time => ({ time, booking: todayBookings.find(b => b.booking_time.slice(0, 5) === time) }))
+    .filter(slot => slot.booking);
+
+  const nextBooking = occupiedSlots
+    .filter(slot => slot.time >= currentTime)
+    .sort((a, b) => a.time.localeCompare(b.time))[0];
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-zinc-400 font-sans selection:bg-gold-600/30">
@@ -102,7 +112,7 @@ const AdminDashboard: React.FC = () => {
               className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-zinc-500 hover:text-red-400 transition-all text-sm font-bold uppercase tracking-widest"
             >
               <LogOut size={18} />
-              Sair do Painel
+              Sair
             </button>
           </div>
         </aside>
@@ -113,7 +123,7 @@ const AdminDashboard: React.FC = () => {
           <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
             <div>
               <h1 className="text-3xl font-bold text-white tracking-tight">
-                {activeTab === 'agenda' ? 'Agenda do Dia' : activeTab === 'faturamento' ? 'Faturamento' : activeTab === 'clientes' ? 'Meus Clientes' : 'Agenda Semanal'}
+                {activeTab === 'agenda' ? 'Agenda Diária' : activeTab === 'faturamento' ? 'Faturamento' : activeTab === 'clientes' ? 'Meus Clientes' : 'Agenda Semanal'}
               </h1>
               {activeTab === 'clientes' && (
                 <div className="mt-2 inline-block px-3 py-1 bg-white/5 rounded border border-white/5">
@@ -147,12 +157,49 @@ const AdminDashboard: React.FC = () => {
               >
                 {/* Coluna Esquerda */}
                 <div className="space-y-12">
+                  {/* Próximo Corte */}
+                  <div className="space-y-6">
+                    <h3 className="text-xs font-bold text-gold-600 uppercase tracking-[0.2em]">Próximo Corte</h3>
+                    {nextBooking ? (
+                      <div className="bg-gold-600 p-6 rounded-lg flex items-center justify-between">
+                        <div className="flex items-center gap-6">
+                          <span className="text-4xl font-black text-black">{nextBooking.time}</span>
+                          <div className="h-10 w-[1px] bg-black/20" />
+                          <div>
+                            <p className="text-xs font-black text-black/60 uppercase">Cliente</p>
+                            <p className="text-xl font-bold text-black uppercase">{nextBooking.booking?.clients?.name}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs font-black text-black/60 uppercase">Status</p>
+                          <p className="text-xs font-bold text-black uppercase bg-black/10 px-2 py-1 rounded">Confirmado</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-full py-8 border border-white/5 rounded-lg flex items-center justify-center bg-white/[0.01]">
+                        <p className="text-xs text-zinc-600 italic font-medium uppercase tracking-widest">Nenhum corte agendado para o restante do dia.</p>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Horários Ocupados */}
                   <div className="space-y-6">
                     <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em]">Horários Ocupados</h3>
-                    <div className="w-full py-12 border border-dashed border-white/5 rounded-lg flex items-center justify-center bg-white/[0.01]">
-                      <p className="text-xs text-zinc-600 italic font-medium">NENHUM AGENDAMENTO PARA HOJE.</p>
-                    </div>
+                    {occupiedSlots.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {occupiedSlots.map((slot, i) => (
+                          <div key={i} className="flex items-center gap-4 bg-white/[0.02] border border-white/5 p-4 rounded-lg">
+                            <span className="text-lg font-bold text-white">{slot.time}</span>
+                            <div className="w-[2px] h-4 bg-gold-600/30" />
+                            <span className="text-xs font-bold text-zinc-400 uppercase tracking-tight truncate">{slot.booking?.clients?.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="w-full py-8 border border-dashed border-white/5 rounded-lg flex items-center justify-center bg-white/[0.01]">
+                        <p className="text-xs text-zinc-600 italic font-medium uppercase tracking-widest">Nenhum agendamento ocupado.</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Horários Disponíveis */}
@@ -162,27 +209,18 @@ const AdminDashboard: React.FC = () => {
                       <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">{new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</span>
                     </div>
                     
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
-                      {timeSlots.map((time) => {
-                        const booking = todayBookings.find(b => b.booking_time.slice(0, 5) === time);
-                        return (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
+                      {timeSlots
+                        .filter(time => !todayBookings.some(b => b.booking_time.slice(0, 5) === time))
+                        .map((time) => (
                           <div 
                             key={time} 
-                            className={`p-4 rounded-md border flex flex-col items-center justify-center gap-1 transition-all duration-300 ${
-                              booking 
-                              ? 'bg-gold-600 border-gold-600' 
-                              : 'bg-transparent border-white/10 hover:border-gold-600/50'
-                            }`}
+                            className="p-4 rounded-md border border-white/10 flex flex-col items-center justify-center gap-1 hover:border-gold-600/50 transition-all duration-300 cursor-pointer group"
                           >
-                            <span className={`text-lg font-bold ${booking ? 'text-black' : 'text-white'}`}>{time}</span>
-                            {booking ? (
-                              <span className="text-[10px] font-bold text-black/80 uppercase truncate w-full text-center">{booking.clients?.name}</span>
-                            ) : (
-                              <span className="text-[10px] font-bold text-zinc-600 uppercase">Livre</span>
-                            )}
+                            <span className="text-lg font-bold text-white group-hover:text-gold-600 transition-colors">{time}</span>
+                            <span className="text-[10px] font-bold text-zinc-600 uppercase">Livre</span>
                           </div>
-                        );
-                      })}
+                        ))}
                     </div>
                   </div>
 
