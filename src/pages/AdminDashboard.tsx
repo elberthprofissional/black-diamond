@@ -13,8 +13,7 @@ import {
   ChevronLeft,
   User,
   CheckCircle,
-  Scissors,
-  CalendarDays
+  Scissors
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
