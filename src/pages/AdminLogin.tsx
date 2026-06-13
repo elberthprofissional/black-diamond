@@ -55,20 +55,20 @@ const AdminLogin: React.FC = () => {
           <span className="text-[10px] tracking-[0.4em] text-gold-600 font-bold uppercase opacity-80">Painel Administrativo</span>
         </div>
 
-        {/* Login Card */}
-        <div className="bg-neutral-900/90 backdrop-blur-md border border-white/10 p-10 md:p-12 shadow-2xl relative overflow-hidden rounded-2xl">
-          <form onSubmit={handleLogin} className="space-y-8">
+        {/* Login Card (Premium Glassmorphism) */}
+        <div className="bg-black/60 backdrop-blur-md border border-white/10 p-8 md:p-10 shadow-2xl relative overflow-hidden rounded-2xl">
+          <form onSubmit={handleLogin} className="space-y-6">
             
             {/* Email Field */}
-            <div className="space-y-3">
-              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 block">NOME DE USUÁRIO OU E-MAIL</label>
+            <div className="space-y-2">
+              <label className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-neutral-400 block ml-1">NOME DE USUÁRIO OU E-MAIL</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gold-600/40 group-focus-within:text-gold-600 transition-colors duration-500 z-10" size={18} />
                 <input 
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-neutral-800 border-none text-white py-4 pl-12 pr-4 rounded-lg outline-none transition-all duration-300 text-sm font-medium placeholder:text-zinc-700 focus:ring-2 focus:ring-[#D4AF37]"
+                  className="w-full h-12 md:h-14 bg-white/5 border border-white/5 text-white pl-12 pr-4 rounded-lg outline-none transition-all duration-300 text-sm font-medium placeholder:text-zinc-700 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]"
                   placeholder="admin@gmail.com"
                   required
                 />
@@ -76,13 +76,13 @@ const AdminLogin: React.FC = () => {
             </div>
 
             {/* Password Field */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">SENHA</label>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center mb-1 px-1">
+                <label className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-neutral-400">SENHA</label>
                 <button 
                   type="button"
                   onClick={handleForgotPassword}
-                  className="text-[9px] font-bold uppercase tracking-widest text-neutral-400 hover:text-gold-600 transition-colors"
+                  className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-gold-600 transition-colors"
                 >
                   Esqueci minha senha
                 </button>
@@ -93,7 +93,7 @@ const AdminLogin: React.FC = () => {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-neutral-800 border-none text-white py-4 pl-12 pr-12 rounded-lg outline-none transition-all duration-300 text-sm font-medium placeholder:text-zinc-700 focus:ring-2 focus:ring-[#D4AF37]"
+                  className="w-full h-12 md:h-14 bg-white/5 border border-white/5 text-white pl-12 pr-12 rounded-lg outline-none transition-all duration-300 text-sm font-medium placeholder:text-zinc-700 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]"
                   placeholder="••••••••"
                   required
                 />
@@ -110,9 +110,9 @@ const AdminLogin: React.FC = () => {
             {/* Error Message */}
             {isError && (
               <motion.div 
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-red-500 text-[10px] font-bold uppercase tracking-widest text-center"
+                className="text-red-500 text-[10px] font-bold uppercase tracking-widest text-center py-2"
               >
                 {message}
               </motion.div>
@@ -120,7 +120,7 @@ const AdminLogin: React.FC = () => {
 
             <button 
               type="submit"
-              className="w-full flex items-center justify-center bg-white hover:bg-gold-600 hover:text-black text-black px-8 py-4 transition-all duration-500 rounded-lg font-bold text-xs uppercase tracking-[0.2em] shadow-lg hover:shadow-gold-600/20"
+              className="w-full h-12 flex items-center justify-center bg-white hover:bg-neutral-200 hover:scale-[1.02] text-black px-8 transition-all duration-300 rounded-lg font-bold text-xs uppercase tracking-widest shadow-lg"
             >
               Entrar no Painel
             </button>
