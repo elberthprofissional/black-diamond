@@ -20,7 +20,8 @@ import {
   ChevronRight,
   Trash2,
   History,
-  Info
+  Info,
+  ExternalLink
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -115,11 +116,11 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleDeleteClient = async (id: string) => {
-    if (!confirm('Tem certeza que deseja remover este cliente? Isso não apagará os agendamentos já feitos.')) return;
+    if (!confirm('Tem certeza que deseja remover este cliente?')) return;
     try {
       const { error } = await supabase.from('clients').delete().eq('id', id);
       if (error) throw error;
-      setToast({ message: 'Cliente removido com sucesso.', type: 'success' });
+      setToast({ message: 'Cliente removido.', type: 'success' });
       setViewingClient(null);
       fetchData();
     } catch (error) {
@@ -202,114 +203,140 @@ const AdminDashboard: React.FC = () => {
     fetchData();
   };
 
-  // TELA DE DETALHES DO CLIENTE (CRM)
+  // TELA DE DETALHES DO CLIENTE (CRM REMAKE)
   if (viewingClient) {
     const clientHistory = bookings.filter(b => b.client_id === viewingClient.id).sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime());
     const totalSpent = clientHistory.filter(b => b.status === 'completed' || b.status === 'pending').reduce((sum, b) => sum + Number(b.total_price), 0);
 
     return (
       <motion.div 
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="min-h-screen bg-[#0A0A0A] text-white p-6 lg:p-16 selection:bg-gold-600/30 font-sans"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen bg-[#0A0A0A] text-white p-6 lg:p-20 selection:bg-gold-600/30 font-sans"
       >
-        <header className="max-w-5xl mx-auto flex items-center justify-between mb-20">
+        <header className="max-w-6xl mx-auto flex items-center justify-between mb-24">
           <button 
             onClick={() => setViewingClient(null)}
-            className="flex items-center gap-3 text-zinc-600 hover:text-white transition-all uppercase text-[9px] font-black tracking-[0.4em] group"
+            className="flex items-center gap-3 text-zinc-600 hover:text-white transition-all uppercase text-[10px] font-black tracking-[0.4em] group"
           >
             <ArrowLeft size={14} className="group-hover:-translate-x-2 transition-transform" />
-            Voltar
+            Voltar para Clientes
           </button>
-          <span className="text-[9px] font-bold uppercase tracking-[0.5em] text-zinc-700">CRM / Client Intelligence</span>
+          <div className="flex items-center gap-4">
+             <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-800">Intelligence System</span>
+          </div>
         </header>
 
-        <main className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-20">
-            <div className="space-y-16">
-              <div className="space-y-6">
-                <h2 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none">{viewingClient.name}</h2>
-                <div className="flex flex-wrap items-center gap-8 text-zinc-500">
-                   <div className="flex items-center gap-3">
-                     <Smartphone size={16} className="text-[#C5A059]" />
-                     <span className="text-sm font-bold tracking-widest">{viewingClient.phone}</span>
+        <main className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-32">
+            <div className="space-y-24">
+              {/* Header de Identidade */}
+              <div className="space-y-8">
+                <div className="space-y-2">
+                  <span className="text-[10px] font-black text-[#C5A059] uppercase tracking-[0.6em] mb-4 block">Perfil do Cliente</span>
+                  <h2 className="text-6xl md:text-8xl font-black text-white uppercase tracking-tighter leading-none">{viewingClient.name}</h2>
+                </div>
+                
+                <div className="flex items-center gap-10 pt-4">
+                   <div className="flex flex-col gap-1">
+                      <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Contato Direto</span>
+                      <span className="text-lg font-bold text-zinc-300 tracking-widest">{viewingClient.phone}</span>
                    </div>
-                   <div className="flex items-center gap-3">
-                     <CalendarDays size={16} className="text-zinc-700" />
-                     <span className="text-sm font-bold tracking-widest italic">Desde {new Date(viewingClient.created_at).toLocaleDateString('pt-BR')}</span>
+                   <div className="w-px h-10 bg-white/5" />
+                   <div className="flex flex-col gap-1">
+                      <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Membro desde</span>
+                      <span className="text-lg font-bold text-zinc-300 tracking-widest">{new Date(viewingClient.created_at).toLocaleDateString('pt-BR')}</span>
                    </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5 border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-                 <div className="bg-[#0A0A0A] p-8 space-y-2">
-                   <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Total de Cortes</p>
-                   <p className="text-4xl font-black text-white">{clientHistory.length}</p>
+              {/* Métricas Flutuantes */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
+                 <div className="space-y-4">
+                   <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Frequência Total</p>
+                   <div className="flex items-baseline gap-4">
+                      <p className="text-7xl font-black text-white tracking-tighter">{clientHistory.length}</p>
+                      <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Cortes Realizados</p>
+                   </div>
                  </div>
-                 <div className="bg-[#0A0A0A] p-8 space-y-2 border-l border-white/5">
-                   <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Investimento</p>
-                   <p className="text-4xl font-black text-[#C5A059]">R$ {totalSpent.toFixed(0)}</p>
-                 </div>
-                 <div className="bg-[#0A0A0A] p-8 space-y-2 border-l border-white/5">
-                   <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Status</p>
-                   <p className="text-xs font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 px-3 py-1 rounded-full inline-block">Ativo</p>
+                 <div className="space-y-4">
+                   <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em]">LTV / Valor Gerado</p>
+                   <div className="flex items-baseline gap-3">
+                      <span className="text-3xl font-bold text-[#C5A059] opacity-40">R$</span>
+                      <p className="text-7xl font-black text-[#C5A059] tracking-tighter">{totalSpent.toFixed(0)}</p>
+                   </div>
                  </div>
               </div>
 
-              <div className="space-y-8">
-                 <div className="flex items-center gap-4">
-                    <History size={18} className="text-zinc-700" />
-                    <h3 className="text-xs font-bold uppercase tracking-[0.4em] text-white">Histórico Recente</h3>
+              {/* Histórico Limpo */}
+              <div className="space-y-12 pt-10">
+                 <div className="flex items-center justify-between border-b border-white/5 pb-6">
+                    <div className="flex items-center gap-4">
+                       <History size={18} className="text-[#C5A059]" />
+                       <h3 className="text-xs font-bold uppercase tracking-[0.4em] text-white">Histórico de Atendimentos</h3>
+                    </div>
+                    <span className="text-[10px] font-bold text-zinc-700 uppercase tracking-widest">{clientHistory.length} registros</span>
                  </div>
-                 <div className="space-y-4">
+                 
+                 <div className="space-y-1">
                     {clientHistory.length > 0 ? clientHistory.map((b, i) => (
-                      <div key={i} className="bg-white/[0.02] border border-white/5 p-6 rounded-2xl flex items-center justify-between group hover:bg-white/[0.04] transition-all">
-                        <div className="flex items-center gap-6">
-                           <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/5">
-                              <Scissors size={16} className="text-zinc-500" />
-                           </div>
+                      <div key={i} className="py-8 flex items-center justify-between group border-b border-white/[0.03] hover:border-white/10 transition-colors">
+                        <div className="flex items-center gap-10">
+                           <span className="text-2xl font-black text-zinc-800 group-hover:text-zinc-600 transition-colors">{(clientHistory.length - i).toString().padStart(2, '0')}</span>
                            <div>
-                              <p className="text-sm font-bold text-white uppercase tracking-wider">Corte Black Diamond</p>
-                              <p className="text-[10px] text-zinc-600 font-medium">{new Date(b.booking_date).toLocaleDateString('pt-BR')} às {b.booking_time.slice(0, 5)}</p>
+                              <p className="text-lg font-bold text-white uppercase tracking-tight">Corte Black Diamond</p>
+                              <p className="text-xs text-zinc-500 font-medium tracking-wide">{new Date(b.booking_date).toLocaleDateString('pt-BR')} às {b.booking_time.slice(0, 5)}</p>
                            </div>
                         </div>
-                        <div className="text-right">
-                           <p className="text-sm font-black text-[#C5A059]">R$ {Number(b.total_price).toFixed(0)}</p>
-                           <p className="text-[8px] font-bold text-zinc-700 uppercase tracking-widest">Finalizado</p>
+                        <div className="text-right flex items-center gap-12">
+                           <div className="hidden sm:block">
+                              <p className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest mb-1">Pagamento</p>
+                              <p className="text-sm font-black text-[#C5A059]">R$ {Number(b.total_price).toFixed(0)}</p>
+                           </div>
+                           <CheckCircle size={18} className="text-emerald-500/30" />
                         </div>
                       </div>
                     )) : (
-                      <p className="text-sm text-zinc-600 italic">Sem registros de serviços anteriores.</p>
+                      <div className="py-20 text-center">
+                         <p className="text-sm text-zinc-600 italic">Nenhum serviço registrado no histórico.</p>
+                      </div>
                     )}
                  </div>
               </div>
             </div>
 
-            <div className="space-y-8">
-               <div className="bg-white/[0.03] border border-white/5 p-8 rounded-[2.5rem] space-y-8">
+            {/* Sidebar de Ações Minimalista */}
+            <div className="space-y-12 sticky top-20 h-fit">
+               <div className="bg-white/[0.02] border border-white/5 p-10 rounded-[3rem] space-y-10 shadow-2xl">
                   <div className="space-y-4">
+                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.4em] mb-6 text-center">Ações de Gestão</p>
                      <button 
                       onClick={() => handleSendMessage()}
-                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white h-16 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3"
+                      className="w-full bg-white hover:bg-zinc-200 text-black h-20 rounded-3xl font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95"
                      >
-                       <Smartphone size={16} /> WhatsApp
+                       <ExternalLink size={18} /> WhatsApp
                      </button>
                      <button 
                       onClick={() => handleDeleteClient(viewingClient.id)}
-                      className="w-full bg-white/5 hover:bg-red-500/10 text-zinc-500 hover:text-red-500 h-16 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3"
+                      className="w-full bg-transparent border border-white/10 hover:border-red-500/30 hover:text-red-500 text-zinc-600 h-16 rounded-3xl font-bold text-[10px] uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-3"
                      >
-                       <Trash2 size={16} /> Remover Cliente
+                       <Trash2 size={16} /> Remover Base
                      </button>
                   </div>
-                  <div className="h-px w-full bg-white/5" />
-                  <div className="space-y-4">
-                     <div className="flex items-start gap-4">
-                        <Info size={14} className="text-zinc-700 mt-1" />
-                        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest leading-relaxed">
-                          A remoção é definitiva da base de contatos. O histórico financeiro permanecerá salvo para relatórios.
+
+                  <div className="pt-6 border-t border-white/5">
+                     <div className="flex items-start gap-4 opacity-40 group hover:opacity-100 transition-opacity">
+                        <Info size={14} className="text-zinc-500 mt-1 shrink-0" />
+                        <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest leading-relaxed">
+                          Dados de faturamento permanecem íntegros mesmo após a remoção do contato.
                         </p>
                      </div>
                   </div>
+               </div>
+
+               <div className="px-10 py-6 bg-[#C5A059]/5 border border-[#C5A059]/10 rounded-2xl">
+                  <p className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.3em] mb-1">Status de Fidelidade</p>
+                  <p className="text-sm font-bold text-white uppercase tracking-tighter italic">Cliente Ativo & Verificado</p>
                </div>
             </div>
           </div>
@@ -997,9 +1024,6 @@ const AdminDashboard: React.FC = () => {
           )}
         </main>
       </div>
-
-      {/* Modal de Detalhes do Agendamento (Fallback/Simplified) */}
-      {/* (Já substituído pela tela imersiva, mantendo lógica de AnimatePresence se necessário) */}
     </div>
   );
 };
