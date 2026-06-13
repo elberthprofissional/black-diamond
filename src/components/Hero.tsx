@@ -45,12 +45,12 @@ const Hero: React.FC = () => {
             </button>
             
             {/* Studio Status Badge */}
-            <div className="flex items-center space-x-3 opacity-60">
-              <div className="relative flex h-1.5 w-1.2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-20"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-800"></span>
+            <div className="flex items-center space-x-3 opacity-80">
+              <div className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-20"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-600"></span>
               </div>
-              <span className="text-[9px] font-bold text-gray-500 tracking-[0.3em] uppercase">Estúdio Fechado</span>
+              <span className="text-[9px] font-bold text-emerald-500/80 tracking-[0.3em] uppercase">Aberto Agora</span>
             </div>
           </div>
         </motion.div>

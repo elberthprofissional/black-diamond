@@ -223,7 +223,7 @@ const AdminDashboard: React.FC = () => {
         animate={{ opacity: 1 }}
         className="min-h-screen bg-[#0A0A0A] text-white p-4 md:p-10 lg:p-20 selection:bg-gold-600/30 font-sans"
       >
-        <header className="max-w-6xl mx-auto flex items-center justify-between mb-12 md:mb-24">
+        <header className="max-w-6xl mx-auto flex items-center justify-between mb-12 md:mb-20">
           <button onClick={() => setViewingClient(null)} className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white transition-all group">
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
           </button>
@@ -235,92 +235,101 @@ const AdminDashboard: React.FC = () => {
         </header>
 
         <main className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-12 lg:gap-32">
-            <div className="space-y-16 md:space-y-24">
-              <div className="space-y-8">
-                <div className="flex flex-col md:flex-row md:items-center gap-8">
-                   <div className="w-24 h-24 rounded-3xl border-2 border-white/5 overflow-hidden shadow-2xl shrink-0">
-                      <img 
-                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(viewingClient.name)}&backgroundColor=0a0a0a&fontFamily=serif&fontSize=40`} 
-                        alt={viewingClient.name} 
-                        className="w-full h-full object-cover"
-                      />
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-12 lg:gap-24">
+            <div className="space-y-12">
+              {/* Header Info */}
+              <div className="flex flex-col md:flex-row md:items-center gap-8">
+                 <div className="w-24 h-24 rounded-3xl border-2 border-white/5 overflow-hidden shadow-2xl shrink-0">
+                    <img 
+                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(viewingClient.name)}&backgroundColor=0a0a0a&fontFamily=serif&fontSize=40`} 
+                      alt={viewingClient.name} 
+                      className="w-full h-full object-cover"
+                    />
+                 </div>
+                 <div className="space-y-2">
+                   <h2 className="text-4xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none break-words">{viewingClient.name}</h2>
+                   <div className="flex flex-wrap items-center gap-6 pt-2">
+                      <div className="flex flex-col gap-1">
+                         <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">WhatsApp</span>
+                         <span className="text-base font-bold text-zinc-300 tracking-wider">{viewingClient.phone}</span>
+                      </div>
+                      <div className="w-px h-8 bg-white/5 hidden md:block" />
+                      <div className="flex flex-col gap-1">
+                         <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Membro Desde</span>
+                         <span className="text-base font-bold text-zinc-300 tracking-wider">{new Date(viewingClient.created_at).toLocaleDateString('pt-BR')}</span>
+                      </div>
                    </div>
-                   <div className="space-y-2">
-                     <h2 className="text-4xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none break-words">{viewingClient.name}</h2>
-                     <div className="flex flex-wrap items-center gap-6 pt-2">
-                        <div className="flex flex-col gap-1">
-                           <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">WhatsApp</span>
-                           <span className="text-base font-bold text-zinc-300 tracking-wider">{viewingClient.phone}</span>
-                        </div>
-                        <div className="w-px h-8 bg-white/5 hidden md:block" />
-                        <div className="flex flex-col gap-1">
-                           <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Desde</span>
-                           <span className="text-base font-bold text-zinc-300 tracking-wider">{new Date(viewingClient.created_at).toLocaleDateString('pt-BR')}</span>
-                        </div>
-                     </div>
-                   </div>
-                </div>
+                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-20">
-                 <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl space-y-4">
-                   <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Frequência</p>
+              {/* Main Stats */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                 <div className="bg-[#C5A059] p-10 rounded-[2.5rem] space-y-4 shadow-2xl relative overflow-hidden group">
+                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-white/20 transition-all" />
+                   <p className="text-[10px] font-black text-black/50 uppercase tracking-[0.4em]">Total Investido</p>
+                   <div className="flex items-baseline gap-3 relative z-10">
+                      <span className="text-2xl font-bold text-black opacity-30">R$</span>
+                      <p className="text-7xl font-black text-black tracking-tighter">{totalSpent.toFixed(0)}</p>
+                   </div>
+                 </div>
+                 <div className="bg-white/[0.02] border border-white/5 p-10 rounded-[2.5rem] space-y-4 flex flex-col justify-center">
+                   <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.4em]">Número de Visitas</p>
                    <div className="flex items-baseline gap-4">
-                      <p className="text-6xl font-black text-white tracking-tighter">{clientHistory.length}</p>
+                      <p className="text-7xl font-black text-white tracking-tighter">{clientHistory.length}</p>
                       <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Cortes</p>
                    </div>
                  </div>
-                 <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl space-y-4">
-                   <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Total Investido</p>
-                   <div className="flex items-baseline gap-3">
-                      <span className="text-2xl font-bold text-[#C5A059] opacity-40">R$</span>
-                      <p className="text-6xl font-black text-[#C5A059] tracking-tighter">{totalSpent.toFixed(0)}</p>
-                   </div>
-                 </div>
               </div>
 
-              <div className="space-y-10">
+              {/* Attendance List */}
+              <div className="space-y-8">
                  <div className="flex items-center gap-4 border-b border-white/5 pb-6">
                     <History size={18} className="text-[#C5A059]" />
-                    <h3 className="text-xs font-bold uppercase tracking-[0.4em] text-white">Últimos Atendimentos</h3>
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500">Histórico de Visitas</h3>
                  </div>
-                 <div className="space-y-4">
+                 <div className="grid grid-cols-1 gap-4">
                     {clientHistory.length > 0 ? clientHistory.map((b, i) => (
-                      <div key={i} className="p-6 md:p-8 flex items-center justify-between group bg-white/[0.01] border border-white/5 rounded-2xl hover:bg-white/[0.03] transition-all">
-                        <div className="flex items-center gap-6 md:gap-10">
-                           <span className="text-xl md:text-2xl font-black text-zinc-800 group-hover:text-zinc-600 transition-colors">{(clientHistory.length - i).toString().padStart(2, '0')}</span>
+                      <div key={i} className="p-8 flex items-center justify-between group bg-white/[0.01] border border-white/5 rounded-3xl hover:bg-white/[0.03] transition-all">
+                        <div className="flex items-center gap-8">
+                           <span className="text-3xl font-black text-zinc-900 group-hover:text-[#C5A059]/20 transition-colors">{(clientHistory.length - i).toString().padStart(2, '0')}</span>
                            <div>
-                              <p className="text-base md:text-lg font-bold text-white uppercase tracking-tight">Corte Black Diamond</p>
-                              <p className="text-[10px] text-zinc-500 font-medium tracking-wide uppercase">{new Date(b.booking_date).toLocaleDateString('pt-BR')} — {b.booking_time.slice(0, 5)}</p>
+                              <p className="text-lg font-bold text-white uppercase tracking-tight">Corte Black Diamond</p>
+                              <p className="text-[10px] text-zinc-500 font-medium tracking-widest uppercase mt-1">{new Date(b.booking_date).toLocaleDateString('pt-BR')} — {b.booking_time.slice(0, 5)}</p>
                            </div>
                         </div>
-                        <CheckCircle size={18} className="text-emerald-500/30" />
+                        <div className="flex items-center gap-6">
+                           <div className="text-right hidden sm:block">
+                              <p className="text-[9px] text-zinc-700 font-bold uppercase tracking-widest">Valor</p>
+                              <p className="text-sm font-black text-[#C5A059]">R$ {Number(b.total_price).toFixed(0)}</p>
+                           </div>
+                           <CheckCircle size={18} className="text-emerald-500/20" />
+                        </div>
                       </div>
-                    )) : <p className="text-sm text-zinc-600 italic">Nenhum serviço registrado.</p>}
+                    )) : <p className="text-sm text-zinc-600 italic">Nenhuma visita registrada.</p>}
                  </div>
               </div>
             </div>
 
-            <div className="space-y-6 lg:sticky lg:top-20 h-fit">
-               <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[2.5rem] space-y-6 shadow-2xl">
+            {/* Quick Actions Sidebar */}
+            <div className="space-y-6 lg:sticky lg:top-24 h-fit">
+               <div className="bg-white/[0.02] border border-white/5 p-10 rounded-[3rem] space-y-8">
+                  <p className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.4em] text-center">Ações</p>
                   <div className="space-y-3">
-                     <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em] text-center mb-6">Ações Rápidas</p>
-                     <button onClick={() => handleSendMessage()} className="w-full bg-white hover:bg-zinc-200 text-black h-16 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95">
-                       <ExternalLink size={16} /> Enviar Mensagem
+                     <button onClick={() => handleSendMessage()} className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl text-white border border-white/5 hover:bg-white/5 transition-all text-[10px] font-black uppercase tracking-[0.2em]">
+                       <ExternalLink size={14} className="text-[#C5A059]" /> WhatsApp
                      </button>
                      <button onClick={() => {
                        const target = viewingClient;
                        const message = `Olá ${target.name}, notamos que já faz um tempo que você não nos visita! Que tal agendar seu próximo corte na Black Diamond?`;
                        window.open(`https://wa.me/55${target.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
-                     }} className="w-full bg-white/5 hover:bg-white/10 text-white h-16 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3">
-                       <Smartphone size={16} /> Lembrar Cliente
+                     }} className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl text-white border border-white/5 hover:bg-white/5 transition-all text-[10px] font-black uppercase tracking-[0.2em]">
+                       <Smartphone size={14} className="text-[#C5A059]" /> Lembrar
                      </button>
-                     <div className="pt-4 border-t border-white/5 mt-4">
-                        <button onClick={() => handleDeleteClient(viewingClient.id)} className="w-full bg-transparent text-zinc-700 hover:text-red-500 transition-all font-bold text-[9px] uppercase tracking-[0.4em] flex items-center justify-center gap-2 py-2">
-                          <Trash2 size={14} /> Excluir Cadastro
-                        </button>
-                     </div>
+                  </div>
+                  <div className="pt-6 border-t border-white/5">
+                     <button onClick={() => handleDeleteClient(viewingClient.id)} className="w-full py-2 text-zinc-800 hover:text-red-500 transition-all text-[9px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-2">
+                       <Trash2 size={12} /> Remover Cliente
+                     </button>
                   </div>
                </div>
             </div>
@@ -341,18 +350,20 @@ const AdminDashboard: React.FC = () => {
           <button onClick={() => { setViewingBooking(null); setIsRescheduling(false); }} className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white transition-all group">
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
           </button>
-          <span className="text-[9px] font-bold uppercase tracking-[0.5em] text-zinc-700">Detalhes do Agendamento</span>
+          <div className="px-4 py-1.5 bg-white/[0.03] border border-white/10 rounded-full">
+             <span className="text-[9px] font-black uppercase tracking-[0.4em] text-zinc-500">Gestão de Agendamento</span>
+          </div>
         </header>
 
         <main className="max-w-5xl mx-auto">
           {!isRescheduling ? (
             <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-12 lg:gap-20 items-start">
               <div className="space-y-12">
-                <div className="space-y-6">
-                  <h2 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none break-words">{viewingBooking.clients?.name}</h2>
-                  <div className="flex flex-wrap items-center gap-6 text-zinc-500">
-                    <button onClick={() => handleSendMessage()} className="flex items-center gap-3 hover:text-emerald-500 transition-colors group">
-                      <Smartphone size={16} className="text-zinc-700 group-hover:text-emerald-500" />
+                <div className="space-y-6 text-center lg:text-left">
+                  <h2 className="text-5xl md:text-8xl font-black text-white uppercase tracking-tighter leading-none break-words">{viewingBooking.clients?.name}</h2>
+                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-zinc-500">
+                    <button onClick={() => handleSendMessage()} className="flex items-center gap-3 hover:text-[#C5A059] transition-colors group">
+                      <Smartphone size={16} className="text-zinc-700 group-hover:text-[#C5A059]" />
                       <span className="text-sm font-bold tracking-widest">{viewingBooking.clients?.phone}</span>
                     </button>
                     <div className="flex items-center gap-3">
@@ -362,33 +373,34 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-white/5 border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-                  <div className="bg-[#0A0A0A] p-8 md:p-10 space-y-4">
-                    <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Serviço Selecionado</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="bg-white/[0.02] border border-white/5 p-10 rounded-[2.5rem] space-y-4">
+                    <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Serviço</p>
                     <span className="text-xl md:text-2xl font-bold text-white tracking-tight uppercase">Corte Black Diamond</span>
                   </div>
-                  <div className="bg-[#0A0A0A] p-8 md:p-10 space-y-4">
-                    <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Valor Total</p>
+                  <div className="bg-white/[0.02] border border-white/5 p-10 rounded-[2.5rem] space-y-4">
+                    <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Total</p>
                     <div className="flex items-baseline gap-2">
                       <span className="text-xl font-bold text-[#C5A059] opacity-40">R$</span>
-                      <span className="text-4xl md:text-5xl font-black text-[#C5A059] tracking-tighter">{Number(viewingBooking.total_price).toFixed(0)}</span>
+                      <span className="text-5xl font-black text-[#C5A059] tracking-tighter">{Number(viewingBooking.total_price).toFixed(0)}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-10 bg-white/[0.02] border border-white/5 p-8 md:p-12 rounded-[2.5rem]">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4 text-zinc-600">
-                    <Clock size={18} />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.3em]">Horário Marcado</span>
+              <div className="bg-white/[0.02] border border-white/5 p-10 rounded-[3rem] space-y-10 shadow-2xl">
+                <div className="space-y-4 text-center">
+                  <div className="flex items-center justify-center gap-3 text-zinc-700">
+                    <Clock size={16} />
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em]">Horário Marcado</span>
                   </div>
-                  <p className="text-5xl md:text-6xl font-black text-white tracking-tighter">{viewingBooking.booking_time.slice(0, 5)}</p>
+                  <p className="text-6xl md:text-7xl font-black text-white tracking-tighter">{viewingBooking.booking_time.slice(0, 5)}</p>
                 </div>
+                
                 <div className="space-y-3 pt-6 border-t border-white/5">
-                   <button onClick={() => { setRescheduleData({ date: viewingBooking.booking_date, time: viewingBooking.booking_time.slice(0, 5) }); setIsRescheduling(true); }} className="w-full bg-white hover:bg-zinc-200 text-black h-16 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all shadow-xl active:scale-95">Reagendar Horário</button>
-                   <button onClick={() => handleSendMessage()} className="w-full bg-white/5 hover:bg-white/10 text-white h-16 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all">WhatsApp</button>
-                   <button onClick={() => handleUpdateStatus(viewingBooking.id, 'cancelled')} className="w-full text-zinc-700 hover:text-red-500 transition-colors pt-6 text-[9px] font-bold uppercase tracking-[0.4em]">Cancelar Agendamento</button>
+                   <button onClick={() => { setRescheduleData({ date: viewingBooking.booking_date, time: viewingBooking.booking_time.slice(0, 5) }); setIsRescheduling(true); }} className="w-full py-5 rounded-2xl bg-white text-black font-black text-[10px] uppercase tracking-[0.3em] hover:bg-zinc-200 transition-all shadow-xl active:scale-95">Reagendar</button>
+                   <button onClick={() => handleSendMessage()} className="w-full py-5 rounded-2xl border border-white/5 text-white font-black text-[10px] uppercase tracking-[0.3em] hover:bg-white/5 transition-all">Enviar Mensagem</button>
+                   <button onClick={() => handleUpdateStatus(viewingBooking.id, 'cancelled')} className="w-full py-4 text-zinc-700 hover:text-red-500 transition-colors text-[9px] font-black uppercase tracking-[0.4em]">Cancelar Reserva</button>
                 </div>
               </div>
             </div>
@@ -632,10 +644,24 @@ const AdminDashboard: React.FC = () => {
               )}
               {activeTab === 'faturamento' && (
                 <motion.div key="faturamento" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-12">
-                  <div className="flex justify-end">
-                    <div className="flex gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/5">
-                      <button onClick={() => setViewMode('semanal')} className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${viewMode === 'semanal' ? 'bg-[#C5A059] text-black shadow-md' : 'text-neutral-500 hover:text-white'}`}>Semanal</button>
-                      <button onClick={() => setViewMode('mensal')} className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${viewMode === 'mensal' ? 'bg-[#C5A059] text-black shadow-md' : 'text-neutral-500 hover:text-white'}`}>Mensal</button>
+                  <div className="flex justify-center">
+                    <div className="flex bg-white/[0.02] border border-white/5 p-1 rounded-2xl backdrop-blur-xl">
+                      {[
+                        { id: 'semanal', label: 'Visão Semanal' },
+                        { id: 'mensal', label: 'Visão Mensal' }
+                      ].map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setViewMode(tab.id as any)}
+                          className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${
+                            viewMode === tab.id 
+                            ? 'bg-[#C5A059] text-black shadow-[0_10px_20px_rgba(197,160,89,0.2)]' 
+                            : 'text-zinc-600 hover:text-zinc-400'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
                   {viewMode === 'semanal' ? (
