@@ -4,7 +4,6 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
 import BookingPage from './pages/BookingPage';
 
-// Final Sync: 14:38
 function App() {
   return (
     <Router>
