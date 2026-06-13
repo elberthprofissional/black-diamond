@@ -20,7 +20,8 @@ import {
   ChevronRight,
   Trash2,
   History,
-  ExternalLink
+  ExternalLink,
+  Lock
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -177,7 +178,7 @@ const AdminDashboard: React.FC = () => {
     { id: 'agenda', label: 'Agenda', icon: Clock },
     { id: 'faturamento', label: 'Finanças', icon: TrendingUp },
     { id: 'clientes', label: 'Clientes', icon: Users },
-    { id: 'semanal', label: 'Agenda da Semana', icon: Calendar },
+    { id: 'semanal', label: 'Semanal', icon: Calendar },
   ];
 
   const currentTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -457,10 +458,11 @@ const AdminDashboard: React.FC = () => {
         )}
       </AnimatePresence>
       <div className="flex relative z-10">
-        <aside className="w-80 h-screen sticky top-0 bg-[#0A0A0A] border-r border-white/5 flex flex-col hidden lg:flex">
+        {/* DESKTOP SIDEBAR REMAKE */}
+        <aside className="w-72 h-screen sticky top-0 bg-[#0A0A0A] border-r border-white/5 flex flex-col hidden lg:flex shadow-2xl">
           <div className="flex-1 py-14 flex flex-col">
             <div className="flex items-center gap-5 mb-20 group cursor-pointer px-10" onClick={() => navigate('/')}>
-              <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:border-[#C5A059]/30 transition-all">
+              <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:border-[#C5A059]/30 transition-all shadow-inner">
                 <img src="/assets/logo.webp" alt="Black Diamond" className="w-8 h-8 object-contain" />
               </div>
               <div className="flex flex-col">
@@ -478,19 +480,20 @@ const AdminDashboard: React.FC = () => {
                     onClick={() => setActiveTab(item.id)}
                     className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-500 group relative ${
                       isActive 
-                      ? 'bg-white/5 text-white' 
-                      : 'text-zinc-600 hover:text-zinc-300 hover:bg-white/[0.02]'
+                      ? 'text-white' 
+                      : 'text-zinc-600 hover:text-zinc-300'
                     }`}
                   >
                     {isActive && (
                       <motion.div 
                         layoutId="active-pill"
-                        className="absolute inset-0 bg-[#C5A059]/5 border border-[#C5A059]/20 rounded-2xl shadow-[0_0_20px_rgba(197,160,89,0.05)]"
+                        className="absolute inset-0 bg-white/[0.03] border border-white/5 rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.02)]"
                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                       />
                     )}
                     <item.icon size={20} className={`relative z-10 transition-colors duration-500 ${isActive ? 'text-[#C5A059]' : 'text-zinc-700 group-hover:text-zinc-500'}`} />
-                    <span className="relative z-10 text-[11px] uppercase tracking-[0.3em] font-black">{item.label}</span>
+                    <span className="relative z-10 text-[10px] uppercase tracking-[0.3em] font-black">{item.label}</span>
+                    {isActive && <div className="absolute right-6 w-1 h-1 rounded-full bg-[#C5A059] shadow-[0_0_10px_#C5A059]" />}
                   </button>
                 );
               })}
@@ -500,19 +503,32 @@ const AdminDashboard: React.FC = () => {
           <div className="mt-auto p-8 border-t border-white/5">
             <button 
               onClick={() => navigate('/')}
-              className="w-full flex items-center justify-center gap-3 h-14 rounded-2xl text-zinc-600 hover:text-red-400 hover:bg-red-500/5 transition-all text-[10px] font-black uppercase tracking-[0.4em]"
+              className="w-full flex items-center justify-center gap-3 h-14 rounded-2xl text-zinc-700 hover:text-red-400 hover:bg-red-500/5 transition-all text-[9px] font-black uppercase tracking-[0.4em]"
             >
               <LogOut size={16} />
               Sair do Sistema
             </button>
           </div>
         </aside>
-        <nav className="fixed bottom-0 left-0 right-0 bg-[#0A0A0A] border-t border-white/5 px-6 py-3 flex items-center justify-between z-50 lg:hidden">
-          {menuItems.map((item) => (
-            <button key={item.id} onClick={() => setActiveTab(item.id)} className={`flex flex-col items-center gap-1 transition-all ${activeTab === item.id ? 'text-[#C5A059]' : 'text-zinc-500'}`}><item.icon size={20} className="text-[#C5A059]" /><span className="text-[8px] font-black uppercase tracking-widest">{item.label}</span></button>
-          ))}
-          <button onClick={() => navigate('/')} className="flex flex-col items-center gap-1 text-zinc-600"><LogOut size={20} /><span className="text-[8px] font-black uppercase tracking-widest">Sair</span></button>
+
+        {/* MOBILE BOTTOM BAR REMAKE */}
+        <nav className="fixed bottom-0 left-0 right-0 bg-[#0A0A0A]/80 backdrop-blur-2xl border-t border-white/5 px-6 py-4 flex items-center justify-around z-50 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.5)] rounded-t-3xl">
+          {menuItems.map((item) => {
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`flex flex-col items-center gap-1.5 transition-all relative ${isActive ? 'text-[#C5A059]' : 'text-zinc-600'}`}
+              >
+                <item.icon size={20} className={isActive ? 'drop-shadow-[0_0_8px_rgba(197,160,89,0.5)]' : ''} />
+                <span className="text-[8px] font-black uppercase tracking-widest">{item.label}</span>
+                {isActive && <motion.div layoutId="mobile-indicator" className="absolute -top-4 w-6 h-1 bg-[#C5A059] rounded-full shadow-[0_0_10px_#C5A059]" />}
+              </button>
+            );
+          })}
         </nav>
+
         <main className="flex-1 min-h-screen lg:px-12 px-6 py-10 overflow-x-hidden">
           <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
             <div>
