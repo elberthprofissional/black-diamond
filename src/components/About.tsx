@@ -12,15 +12,15 @@ const About: React.FC = () => {
         <div className="flex flex-col md:flex-row items-center gap-24 lg:gap-40">
           {/* Image Column */}
           <motion.div 
-            initial={{ opacity: 0, scale: 0.98 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 1.2, ease: "easeOut" }}
+            transition={{ duration: 0.8 }}
             className="w-full md:w-5/12 group"
           >
             <div className="relative">
               {/* Premium Frame */}
-              <div className="absolute -inset-4 border border-gold-600/10 translate-x-4 translate-y-4 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-1000" />
+              <div className="absolute -inset-4 border border-gold-600/10 transition-transform" />
               
               <div className="aspect-[3/4] bg-neutral-900 border border-white/5 relative overflow-hidden rounded-xl flex flex-col items-center justify-center space-y-4">
                 <Camera size={48} strokeWidth={1} className="text-gold-600/40" />
@@ -34,10 +34,10 @@ const About: React.FC = () => {
 
           {/* Text Column */}
           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 1, delay: 0.2 }}
+            transition={{ duration: 0.8 }}
             className="w-full md:w-7/12"
           >
             <div className="flex items-center space-x-4 mb-10">

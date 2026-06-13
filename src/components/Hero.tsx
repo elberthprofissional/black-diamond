@@ -9,7 +9,7 @@ const Hero: React.FC = () => {
     <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden bg-[#09090B]">
       {/* Background Image using user-provided 'Tela=incio.webp' */}
       <div 
-        className="absolute inset-0 bg-cover bg-center z-0 scale-105 animate-slow-zoom" 
+        className="absolute inset-0 bg-cover bg-center z-0" 
         style={{ 
           backgroundImage: 'url("/assets/img/Tela=incio.webp")',
           filter: 'brightness(0.3)'
@@ -21,9 +21,9 @@ const Hero: React.FC = () => {
 
       <div className="container mx-auto px-6 relative z-10 text-center">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
         >
           <div className="flex flex-col items-center mb-10">
             <h2 className="text-gold-600 font-sans font-medium text-xs tracking-[0.6em] uppercase mb-4 text-shadow-glow">

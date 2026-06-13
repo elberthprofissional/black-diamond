@@ -10,10 +10,10 @@ const Location: React.FC = () => {
           
           {/* Info Column */}
           <motion.div 
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.6 }}
             className="w-full lg:w-5/12 flex flex-col justify-center"
           >
             <h3 className="text-4xl md:text-6xl font-serif font-bold text-white mb-12 leading-tight tracking-tight uppercase">ONDE ESTAMOS <br /><span className="italic font-light">LOCALIZADOS.</span></h3>
@@ -57,10 +57,10 @@ const Location: React.FC = () => {
 
           {/* Map Column */}
           <motion.div 
-            initial={{ opacity: 0, scale: 0.98 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 1 }}
+            transition={{ duration: 0.8 }}
             className="w-full lg:w-7/12 relative min-h-[500px]"
           >
             <div className="w-full h-full bg-dark-card border border-white/5 relative overflow-hidden shadow-2xl">

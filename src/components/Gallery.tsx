@@ -8,8 +8,8 @@ const Gallery: React.FC = () => {
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center mb-24 lg:mb-32">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1, ease: "easeOut" }}
           >
@@ -23,9 +23,9 @@ const Gallery: React.FC = () => {
           {[1, 2, 3].map((_, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: index * 0.2, ease: "easeOut" }}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 0.8 }}
               viewport={{ once: true, margin: "-100px" }}
               className="group relative aspect-[4/5] overflow-hidden bg-neutral-900 border border-white/5 cursor-pointer shadow-2xl rounded-xl flex flex-col items-center justify-center space-y-4"
             >
