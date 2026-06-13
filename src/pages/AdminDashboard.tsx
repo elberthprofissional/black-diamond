@@ -222,9 +222,18 @@ const AdminDashboard: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-32">
             <div className="space-y-24">
               <div className="space-y-8">
-                <div className="space-y-2">
-                  <span className="text-[10px] font-black text-[#C5A059] uppercase tracking-[0.6em] mb-4 block">Perfil do Cliente</span>
-                  <h2 className="text-6xl md:text-8xl font-black text-white uppercase tracking-tighter leading-none">{viewingClient.name}</h2>
+                <div className="flex items-center gap-8">
+                   <div className="w-24 h-24 rounded-full border-2 border-white/5 overflow-hidden shadow-2xl">
+                      <img 
+                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(viewingClient.name)}&backgroundColor=0a0a0a&fontFamily=serif&fontSize=40`} 
+                        alt={viewingClient.name} 
+                        className="w-full h-full object-cover"
+                      />
+                   </div>
+                   <div className="space-y-2">
+                     <span className="text-[10px] font-black text-[#C5A059] uppercase tracking-[0.6em] mb-4 block">Perfil do Cliente</span>
+                     <h2 className="text-6xl md:text-8xl font-black text-white uppercase tracking-tighter leading-none">{viewingClient.name}</h2>
+                   </div>
                 </div>
                 <div className="flex items-center gap-10 pt-4">
                    <div className="flex flex-col gap-1">
@@ -604,7 +613,15 @@ const AdminDashboard: React.FC = () => {
                     <div className="grid grid-cols-1 gap-4">
                       {clients.length > 0 ? clients.map((client) => (
                         <div key={client.id} onClick={() => setViewingClient(client)} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-colors group cursor-pointer">
-                          <div className="flex items-center gap-6"><div className="w-12 h-12 bg-[#C5A059]/10 rounded-full flex items-center justify-center border border-[#C5A059]/20 group-hover:bg-[#C5A059]/20 transition-all"><User size={20} className="text-[#C5A059]" /></div><div><p className="text-white font-bold uppercase tracking-tight">{client.name}</p><p className="text-xs text-zinc-500 font-medium">{client.phone}</p></div></div>
+                          <div className="flex items-center gap-6">
+                            <div className="w-14 h-14 bg-white/5 rounded-full flex items-center justify-center border border-white/10 overflow-hidden group-hover:border-[#C5A059]/30 transition-all">
+                               <img 
+                                 src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(client.name)}&backgroundColor=0a0a0a&fontFamily=serif&fontSize=40`} 
+                                 alt={client.name} 
+                                 className="w-full h-full object-cover opacity-80"
+                               />
+                            </div>
+                            <div><p className="text-white font-bold uppercase tracking-tight">{client.name}</p><p className="text-xs text-zinc-500 font-medium">{client.phone}</p></div></div>
                           <div className="flex items-center gap-8"><div className="text-right hidden sm:block"><p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mb-1">Cadastrado em</p><p className="text-xs text-zinc-400">{new Date(client.created_at).toLocaleDateString('pt-BR')}</p></div><ChevronRight size={18} className="text-neutral-500 group-hover:text-[#C5A059] transition-colors" /></div>
                         </div>
                       )) : <div className="flex flex-col items-center justify-center py-12"><p className="text-sm text-neutral-500 italic font-medium tracking-wide">Nenhum cliente encontrado.</p></div>}
