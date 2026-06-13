@@ -26,7 +26,8 @@ const BookingPage: React.FC = () => {
         .then((data: any[]) => {
           const filtered = data.filter((b: any) => b.booking_date === selectedDate && b.status !== 'cancelled');
           setExistingBookings(filtered);
-        });
+        })
+        .catch(console.error);
     }
   }, [selectedDate]);
 
@@ -85,12 +86,6 @@ const BookingPage: React.FC = () => {
     const formattedDate = selectedDate.split('-').reverse().join('/');
     const servicesList = selectedServices.map(s => s.name).join(', ');
     
-    // Formato Premium solicitado:
-    // 💎 NOVO AGENDAMENTO | BLACK DIAMOND 💎
-    // 👤 Cliente: [Nome]
-    // ✂️ Serviço: [Serviços]
-    // 📅 Data: [Data]
-    // ⏰ Horário: [Hora]
     const message = `💎 *NOVO AGENDAMENTO | BLACK DIAMOND* 💎%0A%0A👤 *Cliente:* ${userInfo.name}%0A✂️ *Serviço:* ${servicesList}%0A📅 *Data:* ${formattedDate}%0A⏰ *Horário:* ${selectedTime}`;
     
     const phone = '31980159559'; // Número do barbeiro
@@ -100,7 +95,6 @@ const BookingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#09090B] text-white overflow-hidden relative selection:bg-gold-600/30">
       
-      {/* Toast Notification */}
       <AnimatePresence>
         {toast && (
           <motion.div
@@ -116,7 +110,6 @@ const BookingPage: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Background Image using user-provided 'agendamento-bg.webp' */}
       <div 
         className="fixed inset-0 bg-cover bg-center z-0 opacity-20 pointer-events-none" 
         style={{ backgroundImage: 'url("/assets/img/agendamento-bg.webp")' }}
@@ -125,7 +118,6 @@ const BookingPage: React.FC = () => {
 
       <div className="container mx-auto max-w-4xl relative z-10 py-20 px-6">
         
-        {/* Header */}
         <div className="flex flex-col items-center text-center mb-16">
           <button 
             onClick={() => navigate('/')}
@@ -140,7 +132,6 @@ const BookingPage: React.FC = () => {
           <div className="h-[1px] w-12 bg-gold-600/30"></div>
         </div>
 
-        {/* Progress Bar */}
         {step < 5 && (
           <div className="flex justify-center items-center space-x-4 mb-20">
             {[1, 2, 3, 4].map((i) => (
@@ -154,7 +145,6 @@ const BookingPage: React.FC = () => {
           </div>
         )}
 
-        {/* Main Content Card */}
         <div className="bg-black/40 backdrop-blur-xl border border-white/5 p-8 md:p-12 shadow-2xl min-h-[500px] flex flex-col rounded-2xl">
           <div className="flex-1">
             <AnimatePresence mode="wait">
@@ -367,7 +357,6 @@ const BookingPage: React.FC = () => {
             </AnimatePresence>
           </div>
 
-          {/* Actions */}
           {step < 5 && (
             <div className="flex justify-between items-center mt-12 pt-8 border-t border-white/5">
               {step > 1 ? (
@@ -400,7 +389,6 @@ const BookingPage: React.FC = () => {
           )}
         </div>
 
-        {/* Footer Info */}
         <div className="mt-12 flex justify-center items-center space-x-10 text-[9px] font-bold text-gray-700 uppercase tracking-[0.3em]">
            <div className="flex items-center space-x-2">
              <Phone size={12} className="text-gold-600/30" />
