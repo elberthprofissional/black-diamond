@@ -1,4 +1,4 @@
-// AdminDashboard - Elite Version 2.2 - Ultimate Immersive UI
+// AdminDashboard - Elite Version 3.0 - Native App Experience
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { getBookings, getClients, getServices, updateBookingStatus } from '../lib/api';
 import { supabase } from '../lib/supabase';
@@ -219,144 +219,104 @@ const AdminDashboard: React.FC = () => {
 
     return (
       <motion.div 
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="min-h-screen bg-[#0A0A0A] text-white p-4 md:p-12 lg:p-24 selection:bg-[#C5A059]/30 font-sans"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen bg-[#0A0A0A] text-white p-4 md:p-10 font-sans selection:bg-[#C5A059]/30"
       >
-        <header className="max-w-6xl mx-auto flex items-center justify-between mb-16 md:mb-32">
-          <button onClick={() => setViewingClient(null)} className="w-14 h-14 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white hover:border-white hover:bg-white/10 transition-all group shadow-2xl backdrop-blur-xl">
-            <ArrowLeft size={22} className="group-hover:-translate-x-1 transition-transform" />
+        <header className="max-w-4xl mx-auto flex items-center justify-between mb-8 md:mb-12">
+          <button onClick={() => setViewingClient(null)} className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-all group">
+            <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
           </button>
-          <div className="hidden sm:block px-6 py-2 bg-[#C5A059]/5 border border-[#C5A059]/20 rounded-full backdrop-blur-md">
-             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#C5A059]">Elite Database</span>
-          </div>
+          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">Perfil do Cliente</span>
         </header>
 
-        <main className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-20 lg:gap-32">
-            <div className="space-y-24">
-              {/* Header: Avatar Side-by-Side with Name */}
-              <section className="flex flex-row items-end gap-6 md:gap-12">
-                 <div className="relative group shrink-0">
-                    <div className="absolute -inset-1 bg-gradient-to-tr from-[#C5A059] to-white/20 rounded-[2.5rem] md:rounded-[3.2rem] blur opacity-20 group-hover:opacity-40 transition-opacity" />
-                    <div className="w-24 h-24 md:w-56 md:h-56 rounded-[2.2rem] md:rounded-[3rem] bg-[#0A0A0A] border border-white/10 overflow-hidden relative z-10 shadow-2xl">
-                       <img 
-                         src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(viewingClient.name)}&backgroundColor=0a0a0a&fontFamily=serif&fontSize=40`} 
-                         alt={viewingClient.name} 
-                         className="w-full h-full object-cover opacity-90 group-hover:scale-110 transition-transform duration-700"
-                       />
-                    </div>
-                 </div>
-                 <div className="space-y-2 md:space-y-6 pb-2 md:pb-4 flex-1 text-left">
-                    <div className="space-y-1 md:space-y-3">
-                       <span className="text-[8px] md:text-[10px] font-black text-[#C5A059] uppercase tracking-[0.6em] ml-1">Perfil Premium</span>
-                       <h2 className="text-3xl md:text-[7rem] font-black text-white uppercase tracking-tighter leading-[0.8] break-words">{viewingClient.name}</h2>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-4 md:gap-8 pt-2 md:pt-6 text-zinc-500">
-                       <div className="flex items-center gap-2 md:gap-4">
-                          <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_15px_#10b981]" />
-                          <span className="text-[11px] md:text-base font-black tracking-widest">{viewingClient.phone}</span>
+        <main className="max-w-4xl mx-auto space-y-6">
+          {/* Header Card: Avatar + Essential Info */}
+          <section className="bg-neutral-900/50 border border-white/5 p-6 rounded-2xl flex items-center gap-6">
+             <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-black border border-white/10 overflow-hidden shrink-0">
+                <img 
+                  src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(viewingClient.name)}&backgroundColor=0a0a0a&fontFamily=serif&fontSize=40`} 
+                  alt={viewingClient.name} 
+                  className="w-full h-full object-cover"
+                />
+             </div>
+             <div className="space-y-1">
+                <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight uppercase leading-tight">{viewingClient.name}</h2>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-zinc-500">
+                   <span className="text-xs font-bold tracking-wider">{viewingClient.phone}</span>
+                   <div className="hidden sm:block w-1 h-1 rounded-full bg-zinc-800" />
+                   <span className="text-[10px] font-medium uppercase tracking-widest opacity-40">Membro desde {new Date(viewingClient.created_at).toLocaleDateString('pt-BR')}</span>
+                </div>
+             </div>
+          </section>
+
+          {/* Stats Grid */}
+          <section className="grid grid-cols-2 gap-4">
+             <div className="bg-neutral-900/50 border border-white/5 p-6 rounded-2xl space-y-2">
+                <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Investimento Total</p>
+                <div className="flex items-baseline gap-1.5">
+                   <span className="text-xs font-bold text-[#D4AF37] opacity-60">R$</span>
+                   <p className="text-3xl font-black text-[#D4AF37] tracking-tighter">{totalSpent.toFixed(0)}</p>
+                </div>
+             </div>
+             <div className="bg-neutral-900/50 border border-white/5 p-6 rounded-2xl space-y-2">
+                <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Número de Visitas</p>
+                <div className="flex items-baseline gap-2">
+                   <p className="text-3xl font-black text-white tracking-tighter">{clientHistory.length}</p>
+                   <p className="text-[10px] font-bold text-zinc-700 uppercase">Cortes</p>
+                </div>
+             </div>
+          </section>
+
+          {/* Actions Section */}
+          <section className="bg-neutral-900/50 border border-white/5 p-6 rounded-2xl space-y-4">
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button onClick={() => handleSendMessage()} className="h-14 rounded-xl bg-white text-black font-black text-[11px] uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all flex items-center justify-center gap-3">
+                   <ExternalLink size={16} /> WhatsApp
+                </button>
+                <button 
+                  onClick={() => {
+                    const target = viewingClient;
+                    const message = `Olá ${target.name}, tudo bem? Sentimos sua falta aqui na Black Diamond! Quando quiser renovar o visual, é só avisar.`;
+                    window.open(`https://wa.me/55${target.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+                  }}
+                  className="h-14 rounded-xl border border-white/10 text-white font-black text-[11px] uppercase tracking-[0.2em] hover:bg-white/5 transition-all flex items-center justify-center gap-3"
+                >
+                   <Smartphone size={16} className="text-[#C5A059]" /> Notificar
+                </button>
+             </div>
+             <button onClick={() => handleDeleteClient(viewingClient.id)} className="w-full py-2 text-red-500/60 hover:text-red-500 transition-all text-[9px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-2">
+                <Trash2 size={12} /> Excluir Registro
+             </button>
+          </section>
+
+          {/* History Section */}
+          <section className="space-y-4">
+             <div className="flex items-center gap-3 px-2">
+                <History size={14} className="text-zinc-600" />
+                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Histórico Recente</h3>
+             </div>
+             <div className="space-y-3">
+                {clientHistory.length > 0 ? clientHistory.map((b, i) => (
+                  <div key={i} className="bg-neutral-900/30 border border-white/5 p-5 rounded-2xl flex items-center justify-between group">
+                    <div className="flex items-center gap-5">
+                       <span className="text-xl font-black text-zinc-800 group-hover:text-zinc-700 transition-colors">{(clientHistory.length - i).toString().padStart(2, '0')}</span>
+                       <div>
+                          <p className="text-sm font-bold text-white uppercase tracking-tight">Corte Black Diamond</p>
+                          <div className="flex items-center gap-3 mt-1 opacity-50">
+                             <p className="text-[10px] font-bold text-zinc-400">{new Date(b.booking_date).toLocaleDateString('pt-BR')}</p>
+                             <div className="w-1 h-1 rounded-full bg-zinc-700" />
+                             <p className="text-[10px] font-bold text-zinc-400">{b.booking_time.slice(0, 5)}</p>
+                          </div>
                        </div>
-                       <div className="w-px h-4 md:h-6 bg-white/10 hidden md:block" />
-                       <span className="text-[9px] md:text-[11px] font-bold uppercase tracking-widest italic opacity-30">Membro desde {new Date(viewingClient.created_at).toLocaleDateString('pt-BR')}</span>
                     </div>
-                 </div>
-              </section>
-
-              {/* Stats Grid: Focus on LTV */}
-              <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-                 <div className="bg-gradient-to-br from-white/[0.05] to-transparent border border-white/10 p-12 rounded-[3.5rem] md:rounded-[4.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.5)] relative overflow-hidden group hover:border-[#C5A059]/30 transition-all duration-500">
-                    <div className="absolute top-0 right-0 w-60 h-60 bg-[#C5A059]/5 rounded-full blur-[100px] -mr-30 -mt-30 group-hover:bg-[#C5A059]/10 transition-all" />
-                    <DollarSign size={28} className="text-[#C5A059] mb-10 opacity-30" />
-                    <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.5em] mb-6">Investimento Total</p>
-                    <div className="flex items-baseline gap-4 relative z-10">
-                       <span className="text-2xl md:text-3xl font-bold text-[#C5A059] opacity-30 italic">R$</span>
-                       <p className="text-7xl md:text-[8rem] font-black text-[#C5A059] tracking-tighter drop-shadow-2xl leading-none">{totalSpent.toFixed(0)}</p>
+                    <div className="text-right">
+                       <p className="text-sm font-black text-[#D4AF37]">R$ {Number(b.total_price).toFixed(0)}</p>
                     </div>
-                 </div>
-                 <div className="bg-white/[0.02] border border-white/5 p-12 rounded-[3.5rem] md:rounded-[4.5rem] flex flex-col justify-end shadow-2xl group hover:border-white/10 transition-all duration-500">
-                    <Users size={28} className="text-zinc-800 mb-10 opacity-30" />
-                    <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.5em] mb-6">Número de Visitas</p>
-                    <div className="flex items-baseline gap-5">
-                       <p className="text-7xl md:text-[8rem] font-black text-white tracking-tighter leading-none">{clientHistory.length}</p>
-                       <p className="text-[10px] md:text-[12px] font-black text-zinc-700 uppercase tracking-[0.3em]">Cortes Realizados</p>
-                    </div>
-                 </div>
-              </section>
-
-              {/* Attendance List */}
-              <section className="space-y-12 md:space-y-16">
-                 <div className="flex items-center justify-between border-b border-white/5 pb-10 md:pb-14">
-                    <div className="flex items-center gap-6">
-                       <div className="w-12 h-12 rounded-2xl bg-[#C5A059]/10 flex items-center justify-center border border-[#C5A059]/20 shadow-inner">
-                          <History size={20} className="text-[#C5A059]" />
-                       </div>
-                       <h3 className="text-[12px] font-black uppercase tracking-[0.6em] text-white">Histórico de Elite</h3>
-                    </div>
-                    <span className="text-[10px] font-bold text-zinc-800 uppercase tracking-widest">{clientHistory.length} Registros</span>
-                 </div>
-                 <div className="space-y-6 md:space-y-8">
-                    {clientHistory.length > 0 ? clientHistory.map((b, i) => (
-                      <div key={i} className="p-10 md:p-14 flex items-center justify-between group bg-[#0D0D0D]/50 border border-white/5 rounded-[3rem] md:rounded-[4rem] hover:bg-white/[0.03] transition-all duration-700 hover:border-white/10 shadow-3xl overflow-hidden relative">
-                        <div className="absolute top-0 left-0 w-1 h-full bg-[#C5A059] opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="flex items-center gap-10 md:gap-16">
-                           <span className="text-4xl md:text-6xl font-black text-zinc-900 group-hover:text-[#C5A059]/20 transition-all duration-700">{(clientHistory.length - i).toString().padStart(2, '0')}</span>
-                           <div>
-                              <p className="text-2xl md:text-4xl font-black text-white uppercase tracking-tight group-hover:text-[#C5A059] transition-colors duration-700 italic">Corte Black Diamond</p>
-                              <div className="flex items-center gap-6 md:gap-8 mt-4">
-                                 <div className="flex items-center gap-3">
-                                    <Calendar size={14} className="text-zinc-700" />
-                                    <p className="text-[11px] md:text-sm text-zinc-500 font-black tracking-[0.2em] uppercase">{new Date(b.booking_date).toLocaleDateString('pt-BR')}</p>
-                                 </div>
-                                 <div className="w-1.5 h-1.5 rounded-full bg-zinc-800" />
-                                 <div className="flex items-center gap-3">
-                                    <Clock size={14} className="text-zinc-700" />
-                                    <p className="text-[11px] md:text-sm text-zinc-500 font-black tracking-[0.2em] uppercase">{b.booking_time.slice(0, 5)}</p>
-                                 </div>
-                              </div>
-                           </div>
-                        </div>
-                        <div className="flex items-center gap-12 md:gap-20">
-                           <div className="text-right hidden sm:block">
-                              <p className="text-[10px] text-zinc-700 font-black uppercase tracking-widest mb-2">Faturado</p>
-                              <p className="text-2xl md:text-4xl font-black text-white italic tracking-tighter">R$ {Number(b.total_price).toFixed(0)}</p>
-                           </div>
-                           <CheckCircle size={28} className="text-[#C5A059]/10 group-hover:text-emerald-500/50 transition-all duration-700 scale-125" />
-                        </div>
-                      </div>
-                    )) : <p className="text-sm text-zinc-600 italic">Nenhum registro de serviço encontrado.</p>}
-                 </div>
-              </section>
-            </div>
-
-            {/* Sidebar Actions: Elite Minimalist */}
-            <aside className="space-y-10 lg:sticky lg:top-32 h-fit">
-               <div className="bg-[#0D0D0D]/80 border border-white/10 p-12 md:p-16 rounded-[4rem] md:rounded-[5rem] backdrop-blur-3xl shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden group">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#C5A059]/40 to-transparent" />
-                  <p className="text-[11px] font-black text-zinc-800 uppercase tracking-[0.8em] text-center mb-16">Premium Actions</p>
-                  <div className="space-y-5 md:space-y-6">
-                     <button onClick={() => handleSendMessage()} className="w-full h-24 md:h-28 rounded-[2rem] bg-white text-black font-black text-[13px] md:text-[14px] uppercase tracking-[0.4em] hover:bg-zinc-200 transition-all flex items-center justify-center gap-6 shadow-[0_20px_40px_rgba(255,255,255,0.1)] active:scale-[0.97] group/btn">
-                        <ExternalLink size={20} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" /> WhatsApp
-                     </button>
-                     <button 
-                       onClick={() => {
-                         const target = viewingClient;
-                         const message = `Olá ${target.name}, notamos que já faz um tempo que você não nos visita! Que tal agendar seu próximo corte na Black Diamond?`;
-                         window.open(`https://wa.me/55${target.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
-                       }} 
-                       className="w-full h-20 md:h-24 rounded-[2rem] border border-white/10 text-white font-black text-[11px] md:text-[12px] uppercase tracking-[0.4em] hover:bg-white/[0.03] hover:border-white/20 transition-all flex items-center justify-center gap-5 group/btn"
-                     >
-                        <Smartphone size={20} className="text-[#C5A059] group-hover/btn:scale-110 transition-transform" /> Notificar
-                     </button>
                   </div>
-                  <div className="mt-20 pt-12 border-t border-white/5">
-                     <button onClick={() => handleDeleteClient(viewingClient.id)} className="w-full py-4 text-zinc-800 hover:text-red-500 transition-all text-[10px] font-black uppercase tracking-[0.8em] flex items-center justify-center gap-4 opacity-50 hover:opacity-100">
-                        <Trash2 size={16} /> Excluir Registro
-                     </button>
-                  </div>
-               </div>
-            </aside>
-          </div>
+                )) : <p className="text-xs text-zinc-700 italic px-2">Nenhum registro encontrado.</p>}
+             </div>
+          </section>
         </main>
       </motion.div>
     );
@@ -365,103 +325,91 @@ const AdminDashboard: React.FC = () => {
   if (viewingBooking) {
     return (
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="min-h-screen bg-[#0A0A0A] text-white p-4 md:p-12 lg:p-24 selection:bg-[#C5A059]/30 font-sans flex items-center justify-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen bg-[#0A0A0A] text-white p-4 md:p-10 font-sans selection:bg-[#C5A059]/30 flex flex-col items-center"
       >
-        <div className="max-w-7xl w-full">
-          <header className="flex items-center justify-between mb-20">
-            <button onClick={() => { setViewingBooking(null); setIsRescheduling(false); }} className="w-16 h-16 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white transition-all group shadow-2xl backdrop-blur-xl">
-              <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
+        <div className="max-w-2xl w-full">
+          <header className="flex items-center justify-between mb-8 md:mb-12">
+            <button onClick={() => { setViewingBooking(null); setIsRescheduling(false); }} className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-all group">
+              <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
             </button>
-            <div className="px-10 py-3 bg-white/5 border border-white/10 rounded-full backdrop-blur-2xl">
-               <span className="text-[10px] font-black uppercase tracking-[0.8em] text-zinc-500">Service Insight</span>
-            </div>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">Gestão de Agendamento</span>
           </header>
 
           {!isRescheduling ? (
-            <div className="bg-[#0D0D0D]/80 border border-white/5 rounded-[5rem] md:rounded-[6rem] p-10 md:p-28 shadow-[0_80px_150px_-30px_rgba(0,0,0,0.9)] relative overflow-hidden group backdrop-blur-[100px]">
-               <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-[#C5A059]/5 rounded-full blur-[150px] -mr-80 -mt-80 pointer-events-none group-hover:bg-[#C5A059]/10 transition-all duration-1000" />
-               
-               <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-20 md:gap-32 items-center">
-                  <div className="space-y-14 md:space-y-20 text-center lg:text-left">
-                     <div className="space-y-8">
-                        <div className="inline-flex items-center gap-4 px-6 py-2 bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-full mb-4">
-                           <div className="w-2 h-2 rounded-full bg-[#C5A059] animate-pulse" />
-                           <span className="text-[11px] font-black text-[#C5A059] uppercase tracking-[0.6em]">Agendamento Ativo</span>
-                        </div>
-                        <h2 className="text-6xl md:text-[11rem] font-black text-white uppercase tracking-tighter leading-[0.75] break-words drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]">{viewingBooking.clients?.name}</h2>
+            <main className="space-y-6 w-full">
+               {/* Client Info Card */}
+               <section className="bg-neutral-900/50 border border-white/5 p-6 md:p-8 rounded-2xl space-y-4">
+                  <div className="space-y-1">
+                     <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.5em] ml-0.5">Cliente Agendado</span>
+                     <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight uppercase leading-tight">{viewingBooking.clients?.name}</h2>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-6 pt-2 text-zinc-500 border-t border-white/5 mt-4 pt-4">
+                     <div className="flex items-center gap-3">
+                        <Smartphone size={14} className="text-zinc-600" />
+                        <span className="text-sm font-bold tracking-widest">{viewingBooking.clients?.phone}</span>
                      </div>
-                     
-                     <div className="flex flex-wrap items-center justify-center lg:justify-start gap-12 md:gap-16 text-zinc-500">
-                        <button onClick={() => handleSendMessage()} className="flex items-center gap-6 hover:text-[#C5A059] transition-all group/btn">
-                           <div className="w-16 h-16 rounded-[1.5rem] bg-white/5 border border-white/10 flex items-center justify-center group-hover/btn:border-[#C5A059]/50 group-hover/btn:bg-[#C5A059]/5 transition-all shadow-xl">
-                              <Smartphone size={24} />
-                           </div>
-                           <span className="text-lg font-black tracking-[0.4em]">{viewingBooking.clients?.phone}</span>
-                        </button>
-                        <div className="flex items-center gap-6 group/btn">
-                           <div className="w-16 h-16 rounded-[1.5rem] bg-white/5 border border-white/10 flex items-center justify-center shadow-xl">
-                              <Calendar size={24} />
-                           </div>
-                           <span className="text-lg font-black tracking-[0.4em] uppercase">{new Date(viewingBooking.booking_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                        </div>
-                     </div>
-
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-20 max-w-3xl">
-                        <div className="bg-white/[0.02] border border-white/5 p-12 rounded-[3rem] space-y-4 hover:border-white/10 transition-all duration-500 text-left group/card">
-                           <p className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.4em] group-hover/card:text-zinc-500 transition-colors">Serviço Especialista</p>
-                           <p className="text-2xl font-black text-white uppercase italic tracking-tighter leading-tight">Corte Black Diamond</p>
-                        </div>
-                        <div className="bg-white/[0.02] border border-white/5 p-12 rounded-[3rem] space-y-4 hover:border-[#C5A059]/30 transition-all duration-500 text-left group/card">
-                           <p className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.4em] group-hover/card:text-[#C5A059]/50 transition-colors">Valor Investido</p>
-                           <div className="flex items-baseline gap-4">
-                              <span className="text-2xl font-bold text-[#C5A059] opacity-30 italic">R$</span>
-                              <p className="text-5xl font-black text-[#C5A059] tracking-tighter leading-none">{Number(viewingBooking.total_price).toFixed(0)}</p>
-                           </div>
-                        </div>
+                     <div className="flex items-center gap-3">
+                        <Calendar size={14} className="text-zinc-600" />
+                        <span className="text-sm font-bold tracking-widest">{new Date(viewingBooking.booking_date).toLocaleDateString('pt-BR')}</span>
                      </div>
                   </div>
+               </section>
 
-                  <div className="flex flex-col items-center gap-20 md:gap-24">
-                     <div className="space-y-8 text-center group/time">
-                        <p className="text-[12px] font-black text-zinc-800 uppercase tracking-[1em] group-hover/time:text-[#C5A059] transition-colors ml-4">Start Time</p>
-                        <p className="text-[10rem] md:text-[15rem] font-black text-white leading-none tracking-tighter drop-shadow-[0_0_80px_rgba(255,255,255,0.08)] group-hover/time:scale-110 transition-transform duration-1000">
-                           {viewingBooking.booking_time.slice(0, 5)}
-                        </p>
-                     </div>
-                     <div className="w-full space-y-4 px-6 md:px-0">
-                        <button onClick={() => { setRescheduleData({ date: viewingBooking.booking_date, time: viewingBooking.booking_time.slice(0, 5) }); setIsRescheduling(true); }} className="w-full h-28 rounded-[2.5rem] bg-white text-black font-black text-[15px] uppercase tracking-[0.6em] hover:bg-zinc-200 transition-all shadow-[0_30px_60px_rgba(255,255,255,0.15)] active:scale-[0.96]">
-                           REAGENDAR
-                        </button>
-                        <button onClick={() => handleUpdateStatus(viewingBooking.id, 'cancelled')} className="w-full py-6 text-zinc-800 hover:text-red-500 transition-all text-[11px] font-black uppercase tracking-[0.8em] flex items-center justify-center gap-4 opacity-40 hover:opacity-100">
-                           <Trash2 size={18} /> CANCELAR CORTE
-                        </button>
+               {/* Time Card: Dominant but Grouped */}
+               <section className="bg-neutral-900/80 border border-white/10 p-8 md:p-12 rounded-2xl flex flex-col items-center justify-center space-y-4 shadow-2xl relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-[#C5A059]/20" />
+                  <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.6em]">Início às</p>
+                  <p className="text-6xl md:text-7xl font-black text-white tracking-tighter leading-none">{viewingBooking.booking_time.slice(0, 5)}</p>
+               </section>
+
+               {/* Details Grid */}
+               <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-neutral-900/50 border border-white/5 p-6 rounded-2xl space-y-1">
+                     <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Serviço</p>
+                     <p className="text-sm font-black text-white uppercase italic">Corte Black Diamond</p>
+                  </div>
+                  <div className="bg-neutral-900/50 border border-white/5 p-6 rounded-2xl space-y-1 text-right sm:text-left">
+                     <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Valor</p>
+                     <div className="flex items-baseline justify-end sm:justify-start gap-1">
+                        <span className="text-[10px] font-bold text-[#D4AF37] opacity-60 uppercase">R$</span>
+                        <p className="text-xl font-black text-[#D4AF37]">{Number(viewingBooking.total_price).toFixed(0)}</p>
                      </div>
                   </div>
-               </div>
-            </div>
+               </section>
+
+               {/* Action Buttons */}
+               <section className="pt-6 space-y-3">
+                  <button onClick={() => { setRescheduleData({ date: viewingBooking.booking_date, time: viewingBooking.booking_time.slice(0, 5) }); setIsRescheduling(true); }} className="w-full h-14 rounded-xl bg-white text-black font-black text-[11px] uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all flex items-center justify-center shadow-xl active:scale-[0.98]">
+                     Reagendar Horário
+                  </button>
+                  <button onClick={() => handleUpdateStatus(viewingBooking.id, 'cancelled')} className="w-full h-14 rounded-xl border border-red-500/20 text-red-500 font-black text-[11px] uppercase tracking-[0.2em] hover:bg-red-500/5 transition-all flex items-center justify-center gap-2">
+                     <Trash2 size={14} /> Cancelar Atendimento
+                  </button>
+               </section>
+            </main>
           ) : (
-            <div className="max-w-2xl mx-auto space-y-16">
-               <div className="flex items-center gap-8 mb-16">
-                  <button onClick={() => setIsRescheduling(false)} className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white hover:border-white transition-all shadow-2xl"><ArrowLeft size={28} /></button>
-                  <h2 className="text-5xl font-black text-white uppercase tracking-widest italic text-left leading-none">NOVA JANELA</h2>
+            <div className="w-full space-y-8">
+               <div className="flex items-center gap-6">
+                  <button onClick={() => setIsRescheduling(false)} className="w-12 h-12 rounded-xl border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white transition-all"><ArrowLeft size={20} /></button>
+                  <h2 className="text-2xl font-black text-white uppercase tracking-tight italic">Nova Janela</h2>
                </div>
-               <div className="space-y-16">
-                  <div className="space-y-6">
-                    <label className="text-[12px] font-black text-zinc-700 uppercase tracking-[0.8em] ml-2">DATA DO ATENDIMENTO</label>
-                    <input type="date" value={rescheduleData.date} onChange={(e) => setRescheduleData({...rescheduleData, date: e.target.value})} className="w-full bg-white/[0.02] border border-white/10 text-white p-10 rounded-[3rem] outline-none focus:border-[#C5A059] transition-all text-lg font-black uppercase tracking-widest shadow-[0_30px_60px_rgba(0,0,0,0.5)]" />
+               <div className="space-y-8">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] ml-1">Selecione a Data</label>
+                    <input type="date" value={rescheduleData.date} onChange={(e) => setRescheduleData({...rescheduleData, date: e.target.value})} className="w-full bg-neutral-900 border border-white/10 text-white p-5 rounded-xl outline-none focus:border-[#C5A059] transition-all text-sm font-black uppercase tracking-widest shadow-inner" />
                   </div>
-                  <div className="space-y-8">
-                    <label className="text-[12px] font-black text-zinc-700 uppercase tracking-[0.8em] ml-2">ESCOLHER HORÁRIO</label>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] ml-1">Escolha o Horário</label>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                       {timeSlots.map(t => (
-                        <button key={t} onClick={() => setRescheduleData({...rescheduleData, time: t})} className={`py-8 text-[14px] font-black border rounded-3xl transition-all duration-700 ${rescheduleData.time === t ? 'border-[#C5A059] bg-[#C5A059]/10 text-white shadow-[0_0_30px_rgba(197,160,89,0.3)]' : 'border-white/5 bg-white/[0.01] text-zinc-600 hover:border-white/20'}`}>{t}</button>
+                        <button key={t} onClick={() => setRescheduleData({...rescheduleData, time: t})} className={`py-4 text-[10px] font-black border rounded-xl transition-all ${rescheduleData.time === t ? 'border-[#C5A059] bg-[#C5A059]/10 text-[#C5A059] shadow-lg shadow-[#C5A059]/10' : 'border-white/5 bg-neutral-900/50 text-zinc-600 hover:border-white/20'}`}>{t}</button>
                       ))}
                     </div>
                   </div>
-                  <div className="pt-10">
-                    <button onClick={handleReschedule} className="w-full h-28 rounded-[2.5rem] bg-[#C5A059] text-black font-black text-sm uppercase tracking-[0.6em] hover:bg-[#F5E0A3] transition-all shadow-[0_40px_80px_rgba(197,160,89,0.3)] active:scale-[0.96]">EFETIVAR MUDANÇA</button>
+                  <div className="pt-6">
+                    <button onClick={handleReschedule} className="w-full h-16 rounded-xl bg-[#C5A059] text-black font-black text-xs uppercase tracking-[0.3em] hover:bg-[#F5E0A3] transition-all shadow-xl active:scale-[0.98]">Confirmar Reagendamento</button>
                   </div>
                </div>
             </div>
@@ -474,57 +422,57 @@ const AdminDashboard: React.FC = () => {
   if (isCreatingBooking) {
     return (
       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="min-h-screen bg-[#0A0A0A] text-white p-4 md:p-12 selection:bg-[#C5A059]/30">
-        <header className="max-w-5xl mx-auto flex items-center justify-between mb-20">
-          <button onClick={() => setIsCreatingBooking(false)} className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white transition-all shadow-2xl"><ChevronLeft size={24} /></button>
-          <h1 className="text-2xl font-black uppercase tracking-[0.4em] italic text-[#C5A059]">Elite Booking</h1>
+        <header className="max-w-4xl mx-auto flex items-center justify-between mb-12">
+          <button onClick={() => setIsCreatingBooking(false)} className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white transition-all shadow-xl"><ChevronLeft size={20} /></button>
+          <h1 className="text-xl font-black uppercase tracking-[0.2em] italic text-[#C5A059]">Elite Booking</h1>
         </header>
-        <main className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-20">
-          <div className="space-y-16">
-            <section className="space-y-8">
-              <h3 className="text-[11px] font-black text-zinc-700 uppercase tracking-[0.6em] flex items-center gap-4">
-                 <div className="w-8 h-8 rounded-xl bg-[#C5A059]/10 flex items-center justify-center border border-[#C5A059]/20">
-                    <User size={14} className="text-[#C5A059]" />
+        <main className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
+          <div className="space-y-10">
+            <section className="space-y-5">
+              <h3 className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.5em] flex items-center gap-3 px-1">
+                 <div className="w-6 h-6 rounded-lg bg-[#C5A059]/10 flex items-center justify-center border border-[#C5A059]/20">
+                    <User size={12} className="text-[#C5A059]" />
                  </div>
-                 Dados do Cliente
+                 Informações do Cliente
               </h3>
-              <div className="space-y-5">
-                <input type="text" placeholder="NOME COMPLETO" className="w-full bg-white/[0.02] border border-white/10 rounded-[2rem] h-20 px-10 outline-none focus:border-[#C5A059] transition-all text-xs font-black uppercase tracking-widest placeholder:text-zinc-800 shadow-inner" />
-                <input type="tel" placeholder="WHATSAPP (DDD)" className="w-full bg-white/[0.02] border border-white/10 rounded-[2rem] h-20 px-10 outline-none focus:border-[#C5A059] transition-all text-xs font-black uppercase tracking-widest placeholder:text-zinc-800 shadow-inner" />
+              <div className="space-y-3">
+                <input type="text" placeholder="NOME DO CLIENTE" className="w-full bg-neutral-900 border border-white/10 rounded-xl h-14 px-6 outline-none focus:border-[#C5A059] transition-all text-xs font-black uppercase tracking-widest placeholder:text-zinc-800" />
+                <input type="tel" placeholder="NÚMERO WHATSAPP" className="w-full bg-neutral-900 border border-white/10 rounded-xl h-14 px-6 outline-none focus:border-[#C5A059] transition-all text-xs font-black uppercase tracking-widest placeholder:text-zinc-800" />
               </div>
             </section>
-            <section className="space-y-8">
-              <h3 className="text-[11px] font-black text-zinc-700 uppercase tracking-[0.6em] flex items-center gap-4">
-                 <div className="w-8 h-8 rounded-xl bg-[#C5A059]/10 flex items-center justify-center border border-[#C5A059]/20">
-                    <Scissors size={14} className="text-[#C5A059]" />
+            <section className="space-y-5">
+              <h3 className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.5em] flex items-center gap-3 px-1">
+                 <div className="w-6 h-6 rounded-lg bg-[#C5A059]/10 flex items-center justify-center border border-[#C5A059]/20">
+                    <Scissors size={12} className="text-[#C5A059]" />
                  </div>
-                 Serviço Especialista
+                 Serviços Selecionados
               </h3>
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-2">
                 {services.map((s) => (
-                  <button key={s.id} className="group flex items-center justify-between p-8 bg-[#0D0D0D] border border-white/5 rounded-[2rem] hover:bg-white/[0.03] hover:border-[#C5A059]/30 transition-all duration-700 shadow-xl">
-                    <span className="text-[11px] font-black uppercase tracking-widest text-zinc-600 group-hover:text-white transition-colors">{s.name}</span>
-                    <span className="text-[12px] font-black text-[#C5A059] italic">R$ {Number(s.price).toFixed(0)}</span>
+                  <button key={s.id} className="group flex items-center justify-between p-5 bg-neutral-900/50 border border-white/5 rounded-xl hover:border-[#C5A059]/30 transition-all duration-300">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 group-hover:text-white transition-colors">{s.name}</span>
+                    <span className="text-[11px] font-black text-[#C5A059] italic">R$ {Number(s.price).toFixed(0)}</span>
                   </button>
                 ))}
               </div>
             </section>
           </div>
-          <div className="space-y-16">
-            <section className="space-y-8">
-              <h3 className="text-[11px] font-black text-zinc-700 uppercase tracking-[0.6em] flex items-center gap-4">
-                 <div className="w-8 h-8 rounded-xl bg-[#C5A059]/10 flex items-center justify-center border border-[#C5A059]/20">
-                    <Calendar size={14} className="text-[#C5A059]" />
+          <div className="space-y-10">
+            <section className="space-y-5">
+              <h3 className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.5em] flex items-center gap-3 px-1">
+                 <div className="w-6 h-6 rounded-lg bg-[#C5A059]/10 flex items-center justify-center border border-[#C5A059]/20">
+                    <Calendar size={12} className="text-[#C5A059]" />
                  </div>
-                 Agenda Elite
+                 Agenda e Horário
               </h3>
-              <div className="bg-[#0D0D0D] border border-white/5 p-10 rounded-[3rem] space-y-10 shadow-[0_50px_100px_rgba(0,0,0,0.8)]">
-                <input type="date" className="w-full bg-black/50 border border-white/10 rounded-2xl py-6 px-8 outline-none text-[12px] font-black uppercase tracking-widest focus:border-[#C5A059] shadow-inner text-white" />
-                <div className="grid grid-cols-3 gap-3 max-h-72 overflow-y-auto pr-4 custom-scrollbar">
-                  {timeSlots.map(t => <button key={t} className="py-5 text-[11px] font-black border border-white/5 rounded-2xl bg-white/[0.01] hover:bg-[#C5A059] hover:text-black transition-all uppercase shadow-md">{t}</button>)}
+              <div className="bg-neutral-900 border border-white/10 p-6 rounded-2xl space-y-6 shadow-2xl">
+                <input type="date" className="w-full bg-black/50 border border-white/5 rounded-xl py-4 px-6 outline-none text-[11px] font-black uppercase tracking-widest focus:border-[#C5A059] shadow-inner text-white" />
+                <div className="grid grid-cols-3 gap-2 max-h-56 overflow-y-auto pr-3 custom-scrollbar">
+                  {timeSlots.map(t => <button key={t} className="py-4 text-[10px] font-black border border-white/5 rounded-xl bg-white/[0.01] hover:bg-[#C5A059] hover:text-black transition-all uppercase">{t}</button>)}
                 </div>
               </div>
             </section>
-            <button onClick={handleCreateBooking} className="w-full h-24 rounded-[2.5rem] bg-[#C5A059] text-black font-black uppercase tracking-[0.4em] text-xs hover:bg-[#F5E0A3] transition-all shadow-[0_40px_80px_rgba(197,160,89,0.3)] active:scale-[0.97]">EFETUAR AGENDAMENTO</button>
+            <button onClick={handleCreateBooking} className="w-full h-16 rounded-xl bg-[#C5A059] text-black font-black uppercase tracking-[0.3em] text-xs hover:bg-[#F5E0A3] transition-all shadow-xl active:scale-[0.97]">EFETUAR AGENDAMENTO</button>
           </div>
         </main>
       </motion.div>
