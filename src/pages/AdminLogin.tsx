@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Scissors, Lock, ArrowLeft } from 'lucide-react';
+import { Lock, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const AdminLogin: React.FC = () => {
@@ -19,7 +19,7 @@ const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#09090B] relative overflow-hidden px-6">
+    <div className="min-h-screen flex items-center justify-center bg-[#09090B] relative overflow-hidden px-6 font-sans">
       
       {/* Cinematic Background */}
       <div 
@@ -41,18 +41,13 @@ const AdminLogin: React.FC = () => {
         className="w-full max-w-[440px] relative z-10"
       >
         {/* Logo Section */}
-        <div className="flex flex-col items-center mb-12">
-          <div className="w-16 h-16 border border-white/10 flex items-center justify-center mb-6 bg-black/40 backdrop-blur-md rounded-md">
-            <Scissors className="text-gold-600 w-8 h-8" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white uppercase text-center leading-none">
-            BLACK DIAMOND
-          </h1>
-          <span className="text-[10px] tracking-[0.3em] text-gold-600 font-bold mt-4 uppercase">Painel Administrativo</span>
+        <div className="flex flex-col items-center mb-10">
+          <img src="/assets/logo.webp" alt="Black Diamond" className="w-32 md:w-40 object-contain mb-4" />
+          <span className="text-[10px] tracking-[0.4em] text-gold-600 font-bold uppercase opacity-80">Painel Administrativo</span>
         </div>
 
         {/* Login Card */}
-        <div className="bg-[#141414] border border-white/5 p-10 md:p-12 shadow-2xl relative overflow-hidden rounded-lg">
+        <div className="bg-neutral-900/90 backdrop-blur-md border border-white/10 p-10 md:p-12 shadow-2xl relative overflow-hidden rounded-2xl">
           <form onSubmit={handleLogin} className="space-y-10">
             <div className="space-y-4">
               <div className="flex justify-between items-end">
@@ -68,13 +63,13 @@ const AdminLogin: React.FC = () => {
                 )}
               </div>
               <div className="relative group">
-                <Lock className="absolute left-0 top-1/2 -translate-y-1/2 text-gold-600/40 group-focus-within:text-gold-600 transition-colors duration-500" size={18} />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gold-600/40 group-focus-within:text-gold-600 transition-colors duration-500 z-10" size={18} />
                 <input 
                   type="password" 
                   autoFocus
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full bg-transparent border-b border-white/10 text-white py-4 pl-10 outline-none transition-all duration-700 text-lg font-light tracking-[0.5em] focus:border-gold-600 ${isError ? 'border-red-900 focus:border-red-500' : ''}`}
+                  className={`w-full bg-neutral-800 border-none text-white py-4 pl-12 rounded-lg outline-none transition-all duration-300 text-lg font-medium tracking-[0.5em] placeholder:text-zinc-700 focus:ring-2 focus:ring-gold-600 ${isError ? 'ring-2 ring-red-500/50' : ''}`}
                   placeholder="••••••••"
                 />
               </div>
@@ -82,7 +77,7 @@ const AdminLogin: React.FC = () => {
 
             <button 
               type="submit"
-              className="w-full flex items-center justify-center bg-white hover:bg-zinc-200 text-black px-8 py-4 transition-all duration-300 rounded-md font-bold text-xs uppercase tracking-[0.2em]"
+              className="w-full flex items-center justify-center bg-white hover:bg-zinc-200 text-black px-8 py-4 transition-all duration-300 rounded-lg font-bold text-xs uppercase tracking-[0.2em]"
             >
               Entrar no Painel
             </button>
