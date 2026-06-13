@@ -10,9 +10,7 @@ import {
   LayoutDashboard,
   LogOut,
   ChevronLeft,
-  Clock,
   User,
-  Phone,
   CheckCircle,
   Scissors
 } from 'lucide-react';
