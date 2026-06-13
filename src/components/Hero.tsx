@@ -6,10 +6,10 @@ const Hero: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden bg-[#09090B]">
+    <section id="home" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#09090B] pt-28">
       {/* Background Image using user-provided 'Tela=incio.webp' */}
       <div 
-        className="absolute inset-0 bg-cover bg-center z-0" 
+        className="absolute inset-0 bg-cover bg-[50%_20%] z-0" 
         style={{ 
           backgroundImage: 'url("/assets/img/Tela=incio.webp")',
           filter: 'brightness(0.3)'
