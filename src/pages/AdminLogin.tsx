@@ -55,20 +55,20 @@ const AdminLogin: React.FC = () => {
           <span className="text-[10px] tracking-[0.4em] text-gold-600 font-bold uppercase opacity-80">Painel Administrativo</span>
         </div>
 
-        {/* Login Card (Premium Glassmorphism) */}
-        <div className="bg-black/60 backdrop-blur-md border border-white/10 p-8 md:p-10 shadow-2xl relative overflow-hidden rounded-2xl">
+        {/* Login Card (Sênior Glassmorphism & Depth) */}
+        <div className="bg-black/40 backdrop-blur-xl border border-white/10 p-8 sm:p-10 shadow-[0_0_40px_rgba(0,0,0,0.5)] relative overflow-hidden rounded-2xl">
           <form onSubmit={handleLogin} className="space-y-6">
             
             {/* Email Field */}
             <div className="space-y-2">
-              <label className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-neutral-400 block ml-1">NOME DE USUÁRIO OU E-MAIL</label>
+              <label className="text-xs font-semibold text-neutral-400 tracking-widest uppercase block ml-1">NOME DE USUÁRIO OU E-MAIL</label>
               <div className="relative group">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gold-600/40 group-focus-within:text-gold-600 transition-colors duration-500 z-10" size={18} />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-[#D4AF37] transition-colors duration-300 z-10" size={18} />
                 <input 
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-12 md:h-14 bg-white/5 border border-white/5 text-white pl-12 pr-4 rounded-lg outline-none transition-all duration-300 text-sm font-medium placeholder:text-zinc-700 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]"
+                  className="w-full h-12 bg-white/5 border border-white/10 text-white pl-12 pr-4 rounded-lg outline-none transition-all duration-300 text-sm focus:bg-white/10 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] focus:outline-none placeholder:text-zinc-700"
                   placeholder="admin@gmail.com"
                   required
                 />
@@ -78,29 +78,29 @@ const AdminLogin: React.FC = () => {
             {/* Password Field */}
             <div className="space-y-2">
               <div className="flex justify-between items-center mb-1 px-1">
-                <label className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-neutral-400">SENHA</label>
+                <label className="text-xs font-semibold text-neutral-400 tracking-widest uppercase">SENHA</label>
                 <button 
                   type="button"
                   onClick={handleForgotPassword}
-                  className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-gold-600 transition-colors"
+                  className="text-xs text-neutral-500 hover:text-[#D4AF37] transition-colors"
                 >
                   Esqueci minha senha
                 </button>
               </div>
               <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gold-600/40 group-focus-within:text-gold-600 transition-colors duration-500 z-10" size={18} />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-[#D4AF37] transition-colors duration-300 z-10" size={18} />
                 <input 
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-12 md:h-14 bg-white/5 border border-white/5 text-white pl-12 pr-12 rounded-lg outline-none transition-all duration-300 text-sm font-medium placeholder:text-zinc-700 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]"
+                  className="w-full h-12 bg-white/5 border border-white/10 text-white pl-12 pr-12 rounded-lg outline-none transition-all duration-300 text-sm focus:bg-white/10 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] focus:outline-none placeholder:text-zinc-700"
                   placeholder="••••••••"
                   required
                 />
                 <button 
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors z-10"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white transition-colors z-10"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -120,7 +120,7 @@ const AdminLogin: React.FC = () => {
 
             <button 
               type="submit"
-              className="w-full h-12 flex items-center justify-center bg-white hover:bg-neutral-200 hover:scale-[1.02] text-black px-8 transition-all duration-300 rounded-lg font-bold text-xs uppercase tracking-widest shadow-lg"
+              className="mt-6 h-12 w-full bg-white text-black font-bold uppercase tracking-wider rounded-lg hover:bg-neutral-200 hover:scale-[1.02] transition-all shadow-lg"
             >
               Entrar no Painel
             </button>
