@@ -25,16 +25,9 @@ const Hero: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
         >
-          <h1 className="text-5xl md:text-8xl font-serif font-bold text-white mb-10 tracking-[0.2em] leading-tight">
+          <h1 className="text-5xl md:text-8xl font-serif font-bold text-white mb-14 tracking-[0.2em] leading-tight">
             BLACK <span className="italic font-light">DIAMOND</span>
           </h1>
-          
-          <div className="max-w-xl mx-auto mb-12">
-            <p className="text-gray-300 font-sans font-light text-xs md:text-sm tracking-[0.3em] uppercase leading-relaxed">
-              Onde a tradição encontra o luxo moderno. <br />
-              Excelência em cada detalhe.
-            </p>
-          </div>
           
           <div className="flex flex-col items-center gap-10">
             <button 

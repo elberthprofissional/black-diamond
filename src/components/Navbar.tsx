@@ -71,7 +71,6 @@ const Navbar: React.FC = () => {
           ))}
         </div>
 
-        {/* CTA Button (Visible on all sizes) */}
         <div className="flex items-center">
           <motion.button 
             initial={{ opacity: 0 }}
@@ -80,7 +79,7 @@ const Navbar: React.FC = () => {
             onClick={() => navigate('/agendar')}
             className="group relative border border-[#C5A059] px-4 md:px-8 py-2 md:py-2.5 rounded-sm transition-all duration-500 hover:bg-[#C5A059] overflow-hidden"
           >
-            <span className="relative z-10 text-[#C5A059] group-hover:text-black font-bold text-[9px] md:text-[11px] uppercase tracking-widest transition-colors duration-500">Agendar Agora</span>
+            <span className="relative z-10 text-[#C5A059] group-hover:text-black font-bold text-[9px] md:text-[11px] uppercase tracking-widest transition-colors duration-500 whitespace-nowrap">Agendar Agora</span>
           </motion.button>
         </div>
       </div>
