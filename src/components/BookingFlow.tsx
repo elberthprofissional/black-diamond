@@ -75,7 +75,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center px-4 font-sans">
       <motion.div 
         initial={{ opacity: 0 }} 
         animate={{ opacity: 1 }} 
@@ -87,21 +87,30 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ isOpen, onClose }) => {
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="bg-dark-card border border-dark-border w-full max-w-2xl relative z-10 overflow-hidden shadow-2xl"
+        className="bg-[#0A0A0B] border border-white/5 w-full max-w-2xl relative z-10 overflow-hidden shadow-2xl rounded-2xl"
       >
         {/* Header */}
-        <div className="p-6 border-b border-dark-border flex justify-between items-center">
+        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
           <div>
-            <h3 className="text-2xl font-serif font-bold text-white uppercase tracking-wider">Agendamento Online</h3>
-            <p className="text-gray-400 text-sm font-light">Passo {step} de 4</p>
+            <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Agendamento Online</h3>
+            <div className="flex gap-1.5 mt-2">
+              {[1, 2, 3, 4].map((s) => (
+                <div 
+                  key={s} 
+                  className={`h-1 w-8 rounded-full transition-all duration-500 ${
+                    s <= step ? 'bg-gold-600' : 'bg-white/10'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
-            <X size={24} />
+          <button onClick={onClose} className="w-10 h-10 rounded-full border border-white/5 flex items-center justify-center text-zinc-500 hover:text-white transition-colors">
+            <X size={20} />
           </button>
         </div>
 
         {/* Step Content */}
-        <div className="p-6 min-h-[400px]">
+        <div className="p-8 min-h-[400px]">
           <AnimatePresence mode="wait">
             {step === 1 && (
               <motion.div
@@ -109,28 +118,28 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ isOpen, onClose }) => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-4"
+                className="space-y-6"
               >
-                <h4 className="text-lg font-bold text-white mb-4">Selecione os serviços:</h4>
+                <h4 className="text-xs font-bold text-gold-600 uppercase tracking-widest">01. Selecione os serviços</h4>
                 {loadingServices ? (
-                  <div className="text-center text-gray-400">Carregando serviços...</div>
+                  <div className="text-center text-zinc-500 py-12">Carregando serviços...</div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-3 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
+                  <div className="grid grid-cols-1 gap-3 overflow-y-auto max-h-[350px] pr-2 custom-scrollbar">
                     {services.map((service) => (
                       <button
                         key={service.id}
                         onClick={() => toggleService(service)}
-                        className={`flex justify-between items-center p-4 border transition-all ${
+                        className={`group flex justify-between items-center p-5 border rounded-xl transition-all ${
                           selectedServices.find(s => s.id === service.id)
-                            ? 'border-gold-600 bg-gold-600/10'
-                            : 'border-dark-border hover:border-gold-600/30 bg-black'
+                            ? 'border-gold-600 bg-gold-600/5'
+                            : 'border-white/5 hover:border-gold-600/30 bg-white/[0.02]'
                         }`}
                       >
                         <div className="text-left">
-                          <div className="font-bold text-white">{service.name}</div>
-                          <div className="text-sm text-gray-400 font-light">{service.duration} min</div>
+                          <div className={`font-bold uppercase tracking-tight ${selectedServices.find(s => s.id === service.id) ? 'text-white' : 'text-zinc-300 group-hover:text-white'}`}>{service.name}</div>
+                          <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">{service.duration} min</div>
                         </div>
-                        <div className="font-bold text-gold-600">R$ {Number(service.price).toFixed(2)}</div>
+                        <div className="font-black text-gold-600">R$ {Number(service.price).toFixed(0)}</div>
                       </button>
                     ))}
                   </div>
@@ -144,28 +153,28 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ isOpen, onClose }) => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-6"
+                className="space-y-8"
               >
-                <div>
-                  <h4 className="text-lg font-bold text-white mb-4">Escolha o dia:</h4>
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gold-600 uppercase tracking-widest">02. Escolha o dia</h4>
                   <input 
                     type="date" 
-                    className="w-full bg-black border border-dark-border text-white p-4 rounded-sm outline-none focus:border-gold-600 transition-colors"
+                    className="w-full bg-neutral-800/50 border border-white/5 text-white p-5 rounded-xl outline-none focus:ring-2 focus:ring-gold-600 transition-all font-bold uppercase tracking-widest text-xs"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
                   />
                 </div>
-                <div>
-                  <h4 className="text-lg font-bold text-white mb-4">Horários disponíveis:</h4>
-                  <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gold-600 uppercase tracking-widest">Horários disponíveis</h4>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                     {['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'].map((time) => (
                       <button
                         key={time}
                         onClick={() => setSelectedTime(time)}
-                        className={`p-3 border text-sm transition-all ${
+                        className={`p-4 border rounded-lg text-xs font-bold transition-all ${
                           selectedTime === time
-                            ? 'border-gold-600 bg-gold-600/10 text-white'
-                            : 'border-dark-border hover:border-gold-600/30 text-gray-400'
+                            ? 'border-gold-600 bg-gold-600 text-black'
+                            : 'border-white/5 hover:border-gold-600/30 text-zinc-500 bg-white/[0.02]'
                         }`}
                       >
                         {time}
@@ -182,26 +191,26 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ isOpen, onClose }) => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-4"
+                className="space-y-8"
               >
-                <h4 className="text-lg font-bold text-white mb-4">Informe seus dados:</h4>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-gray-400 text-sm mb-2">Nome Completo</label>
+                <h4 className="text-xs font-bold text-gold-600 uppercase tracking-widest">03. Informe seus dados</h4>
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Nome Completo</label>
                     <input 
                       type="text" 
-                      placeholder="Ex: João Silva"
-                      className="w-full bg-black border border-dark-border text-white p-4 rounded-sm outline-none focus:border-gold-600 transition-colors"
+                      placeholder="COMO DEVEMOS TE CHAMAR?"
+                      className="w-full bg-neutral-800/50 border border-white/5 text-white p-5 rounded-xl outline-none focus:ring-2 focus:ring-gold-600 transition-all font-bold uppercase tracking-widest text-xs placeholder:text-zinc-700"
                       value={userInfo.name}
                       onChange={(e) => setUserInfo({...userInfo, name: e.target.value})}
                     />
                   </div>
-                  <div>
-                    <label className="block text-gray-400 text-sm mb-2">WhatsApp</label>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">WhatsApp</label>
                     <input 
                       type="tel" 
-                      placeholder="Ex: (48) 99999-9999"
-                      className="w-full bg-black border border-dark-border text-white p-4 rounded-sm outline-none focus:border-gold-600 transition-colors"
+                      placeholder="(00) 00000-0000"
+                      className="w-full bg-neutral-800/50 border border-white/5 text-white p-5 rounded-xl outline-none focus:ring-2 focus:ring-gold-600 transition-all font-bold uppercase tracking-widest text-xs placeholder:text-zinc-700"
                       value={userInfo.phone}
                       onChange={(e) => setUserInfo({...userInfo, phone: e.target.value})}
                     />
@@ -216,28 +225,33 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ isOpen, onClose }) => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="text-center space-y-6"
+                className="text-center space-y-8"
               >
                 <div className="flex justify-center">
-                  <CheckCircle size={64} className="text-gold-600" />
-                </div>
-                <h4 className="text-2xl font-serif font-bold text-white">Quase lá!</h4>
-                <div className="bg-black p-6 border border-dark-border text-left space-y-4">
-                  <div className="flex justify-between border-b border-dark-border pb-2 text-sm">
-                    <span className="text-gray-400">Serviços</span>
-                    <span className="text-white font-bold max-w-[200px] text-right">{selectedServices.map(s => s.name).join(', ')}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-dark-border pb-2 text-sm">
-                    <span className="text-gray-400">Data e Hora</span>
-                    <span className="text-white font-bold">{selectedDate.split('-').reverse().join('/')} às {selectedTime}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-dark-border pb-2 text-sm">
-                    <span className="text-gray-400">Total</span>
-                    <span className="text-gold-600 font-bold">R$ {totalPrice.toFixed(2)}</span>
+                  <div className="w-20 h-20 rounded-full bg-gold-600/10 flex items-center justify-center border border-gold-600/20">
+                    <CheckCircle size={40} className="text-gold-600" />
                   </div>
                 </div>
-                <p className="text-gray-400 text-sm italic">
-                  Um lembrete será enviado para seu WhatsApp 24h antes.
+                <div className="space-y-2">
+                  <h4 className="text-2xl font-black text-white uppercase tracking-tighter">Resumo do Agendamento</h4>
+                  <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Confira se está tudo correto</p>
+                </div>
+                <div className="bg-white/[0.02] p-8 border border-white/5 rounded-2xl text-left space-y-6">
+                  <div className="flex justify-between border-b border-white/5 pb-4 text-xs font-bold uppercase tracking-widest">
+                    <span className="text-zinc-500">Serviços</span>
+                    <span className="text-white max-w-[200px] text-right">{selectedServices.map(s => s.name).join(', ')}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-white/5 pb-4 text-xs font-bold uppercase tracking-widest">
+                    <span className="text-zinc-500">Data e Hora</span>
+                    <span className="text-white">{selectedDate.split('-').reverse().join('/')} às {selectedTime}</span>
+                  </div>
+                  <div className="flex justify-between text-xs font-black uppercase tracking-widest">
+                    <span className="text-zinc-500">Total</span>
+                    <span className="text-gold-600 text-lg font-black">R$ {totalPrice.toFixed(0)}</span>
+                  </div>
+                </div>
+                <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.2em] italic">
+                  * UM LEMBRETE SERÁ ENVIADO PARA SEU WHATSAPP 24H ANTES.
                 </p>
               </motion.div>
             )}
@@ -245,13 +259,13 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer Actions */}
-        <div className="p-6 border-t border-dark-border flex justify-between items-center bg-black/50">
+        <div className="p-8 border-t border-white/5 flex justify-between items-center bg-black/40">
           {step > 1 ? (
             <button 
               onClick={() => setStep(step - 1)}
-              className="flex items-center text-gray-400 hover:text-white transition-colors"
+              className="flex items-center text-zinc-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest"
             >
-              <ChevronLeft size={20} className="mr-1" /> Voltar
+              <ChevronLeft size={18} className="mr-1" /> Voltar
             </button>
           ) : <div></div>}
 
@@ -259,17 +273,17 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ isOpen, onClose }) => {
             <button 
               disabled={step === 1 && selectedServices.length === 0}
               onClick={() => setStep(step + 1)}
-              className="bg-gold-600 text-black font-bold px-8 py-3 rounded-sm text-sm uppercase tracking-widest hover:bg-gold-500 transition-colors disabled:opacity-50"
+              className="bg-white hover:bg-zinc-200 text-black font-black px-10 py-4 rounded-lg text-xs uppercase tracking-[0.2em] transition-all disabled:opacity-50 shadow-xl"
             >
-              Continuar <ChevronRight size={20} className="inline ml-1" />
+              Próximo Passo <ChevronRight size={18} className="inline ml-1" />
             </button>
           ) : (
             <button 
               disabled={isSubmitting}
               onClick={handleConfirm}
-              className="bg-gold-gradient text-black font-bold px-8 py-3 rounded-sm text-sm uppercase tracking-widest hover:scale-105 transition-transform disabled:opacity-50"
+              className="bg-gold-600 hover:bg-gold-500 text-black font-black px-10 py-4 rounded-lg text-xs uppercase tracking-[0.2em] transition-all disabled:opacity-50 shadow-xl shadow-gold-600/20"
             >
-              {isSubmitting ? 'Processando...' : 'Confirmar Agendamento'}
+              {isSubmitting ? 'Processando...' : 'Confirmar'}
             </button>
           )}
         </div>
