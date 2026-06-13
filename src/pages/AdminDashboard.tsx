@@ -457,7 +457,7 @@ const AdminDashboard: React.FC = () => {
                         <div key={i} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.05] group relative flex flex-col justify-between h-36">
                           <div className="flex justify-between items-start">
                             <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">{stat.label}</p>
-                            <stat.icon size={18} className="text-[#D4AF37] opacity-60" />
+                            <stat.icon size={18} className="text-zinc-500 opacity-60" />
                           </div>
                           <p className="text-3xl sm:text-4xl font-extrabold text-white mt-2 tracking-tight">{stat.value}</p>
                         </div>
@@ -484,19 +484,19 @@ const AdminDashboard: React.FC = () => {
                         <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Cancelamentos no Mês</p>
                         <p className="text-5xl font-black text-white tracking-tighter">04</p>
                         <div className="w-10 h-1 bg-red-500/20 mt-6 rounded-full" />
-                        <Scissors size={24} className="absolute top-6 right-6 text-red-500/20" />
+                        <Scissors size={24} className="absolute top-6 right-6 text-zinc-600/20" />
                       </div>
                       <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl shadow-xl flex flex-col justify-center min-h-[160px] relative group overflow-hidden transition-all hover:bg-white/[0.04]">
                         <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Novos Clientes no Mês</p>
                         <p className="text-5xl font-black text-[#D4AF37] tracking-tighter">48</p>
                         <div className="w-10 h-1 bg-[#D4AF37]/20 mt-6 rounded-full" />
-                        <Users size={24} className="absolute top-6 right-6 text-[#D4AF37]/20" />
+                        <Users size={24} className="absolute top-6 right-6 text-zinc-600/20" />
                       </div>
                       <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl shadow-xl flex flex-col justify-center min-h-[160px] relative group overflow-hidden transition-all hover:bg-white/[0.04]">
                         <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Atendimentos no Mês</p>
                         <p className="text-5xl font-black text-white tracking-tighter">{bookings.length * 4}</p>
                         <div className="w-10 h-1 bg-white/10 mt-6 rounded-full" />
-                        <CheckCircle size={24} className="absolute top-6 right-6 text-white/10" />
+                        <CheckCircle size={24} className="absolute top-6 right-6 text-zinc-600/20" />
                       </div>
                     </div>
                   </div>
