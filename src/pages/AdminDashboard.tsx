@@ -12,7 +12,9 @@ import {
   ChevronLeft,
   User,
   CheckCircle,
-  Scissors
+  Scissors,
+  CalendarDays,
+  SearchX
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -102,26 +104,26 @@ const AdminDashboard: React.FC = () => {
           <div className="space-y-8">
             <section className="space-y-4">
               <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                <User size={14} className="text-gold-600" />
+                <User size={14} className="text-[#D4AF37]" />
                 Informações do Cliente
               </h3>
               <div className="space-y-4">
                 <input 
                   type="text" 
                   placeholder="NOME COMPLETO"
-                  className="w-full bg-white/[0.02] border border-white/5 rounded-lg py-4 px-6 outline-none focus:border-gold-600/30 transition-all text-sm font-bold placeholder:text-zinc-800"
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl h-14 px-6 outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all text-sm font-bold placeholder:text-zinc-800"
                 />
                 <input 
                   type="tel" 
                   placeholder="WHATSAPP (DDD)"
-                  className="w-full bg-white/[0.02] border border-white/5 rounded-lg py-4 px-6 outline-none focus:border-gold-600/30 transition-all text-sm font-bold placeholder:text-zinc-800"
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl h-14 px-6 outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all text-sm font-bold placeholder:text-zinc-800"
                 />
               </div>
             </section>
 
             <section className="space-y-4">
               <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                <Scissors size={14} className="text-gold-600" />
+                <Scissors size={14} className="text-[#D4AF37]" />
                 Serviço Escolhido
               </h3>
               <div className="grid grid-cols-1 gap-2">
@@ -132,9 +134,9 @@ const AdminDashboard: React.FC = () => {
                   { n: 'Sobrancelha', p: '15' },
                   { n: 'Pezinho', p: '15' }
                 ].map((s) => (
-                  <button key={s.n} className="group flex items-center justify-between py-4 px-6 bg-white/[0.02] border border-white/5 rounded-lg hover:border-gold-600/30 transition-all">
+                  <button key={s.n} className="group flex items-center justify-between py-4 px-6 bg-white/[0.02] border border-white/5 backdrop-blur-md rounded-xl hover:bg-white/10 hover:border-[#D4AF37]/50 transition-all">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 group-hover:text-white">{s.n}</span>
-                    <span className="text-xs font-bold text-gold-600">R$ {s.p}</span>
+                    <span className="text-xs font-bold text-[#D4AF37]">R$ {s.p}</span>
                   </button>
                 ))}
               </div>
@@ -144,17 +146,17 @@ const AdminDashboard: React.FC = () => {
           <div className="space-y-8">
             <section className="space-y-4">
               <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                <Calendar size={14} className="text-gold-600" />
+                <Calendar size={14} className="text-[#D4AF37]" />
                 Data e Horário
               </h3>
-              <div className="bg-white/[0.02] border border-white/5 rounded-lg p-6 space-y-6">
+              <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md rounded-2xl p-6 space-y-6 shadow-2xl">
                 <input 
                   type="date" 
-                  className="w-full bg-black/40 border border-white/5 rounded py-3 px-4 outline-none text-xs font-bold uppercase tracking-widest"
+                  className="w-full bg-black/40 border border-white/10 rounded-lg py-3 px-4 outline-none text-xs font-bold uppercase tracking-widest focus:border-[#D4AF37]"
                 />
                 <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                   {timeSlots.map(t => (
-                    <button key={t} className="py-2 text-[10px] font-bold border border-white/5 rounded hover:bg-gold-600 hover:text-black transition-all">
+                    <button key={t} className="py-3 text-[10px] font-bold border border-white/10 rounded-xl bg-white/[0.03] hover:bg-[#D4AF37] hover:text-black transition-all uppercase">
                       {t}
                     </button>
                   ))}
@@ -162,7 +164,7 @@ const AdminDashboard: React.FC = () => {
               </div>
             </section>
 
-            <button className="w-full bg-gold-600 text-black py-5 rounded-lg font-black uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-3 shadow-[0_10px_30px_-10px_rgba(212,175,55,0.3)] hover:translate-y-[-2px] transition-all">
+            <button className="w-full bg-[#D4AF37] text-black h-16 rounded-xl font-black uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-3 shadow-[0_10px_30px_-10px_rgba(212,175,55,0.3)] hover:translate-y-[-2px] hover:bg-[#F5E0A3] transition-all">
               <CheckCircle size={20} />
               Confirmar Agendamento
             </button>
@@ -173,9 +175,9 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-zinc-400 font-sans selection:bg-gold-600/30 pb-20 lg:pb-0">
+    <div className="min-h-screen bg-[#0A0A0A] text-zinc-400 font-sans selection:bg-[#D4AF37]/30 pb-20 lg:pb-0">
       <div className="flex relative z-10">
-        {/* Desktop Sidebar */}
+        {/* Desktop Sidebar (PRESERVED) */}
         <aside className="w-64 h-screen sticky top-0 bg-[#0A0A0A] border-r border-white/5 flex flex-col hidden lg:flex">
           <div className="px-0 py-10">
             <div className="flex items-center gap-4 mb-12 group cursor-pointer px-8" onClick={() => navigate('/')}>
@@ -196,11 +198,11 @@ const AdminDashboard: React.FC = () => {
                   onClick={() => setActiveTab(item.id)}
                   className={`w-full flex items-center gap-3 px-8 py-4 transition-all duration-200 ${
                     activeTab === item.id 
-                    ? 'bg-neutral-800 text-gold-600' 
+                    ? 'bg-neutral-800 text-[#D4AF37]' 
                     : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02]'
                   }`}
                 >
-                  <item.icon size={20} className={activeTab === item.id ? 'text-gold-600' : 'text-zinc-600'} />
+                  <item.icon size={20} className={activeTab === item.id ? 'text-[#D4AF37]' : 'text-zinc-600'} />
                   <span className="text-sm font-bold uppercase tracking-wide">{item.label}</span>
                 </button>
               ))}
@@ -218,14 +220,14 @@ const AdminDashboard: React.FC = () => {
           </div>
         </aside>
 
-        {/* Mobile Bottom Bar */}
+        {/* Mobile Bottom Bar (PRESERVED) */}
         <nav className="fixed bottom-0 left-0 right-0 bg-[#0A0A0A] border-t border-white/5 px-6 py-3 flex items-center justify-between z-50 lg:hidden">
           {menuItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={`flex flex-col items-center gap-1 transition-all ${
-                activeTab === item.id ? 'text-gold-600' : 'text-zinc-600'
+                activeTab === item.id ? 'text-[#D4AF37]' : 'text-zinc-600'
               }`}
             >
               <item.icon size={20} />
@@ -250,21 +252,21 @@ const AdminDashboard: React.FC = () => {
                 {activeTab === 'agenda' ? 'Agenda Diária' : activeTab === 'faturamento' ? 'Faturamento' : activeTab === 'clientes' ? 'Meus Clientes' : 'Agenda Semanal'}
               </h1>
               {activeTab === 'clientes' && (
-                <div className="mt-2 inline-block px-3 py-1 bg-white/5 rounded border border-white/5">
-                  <span className="text-[10px] font-bold text-gold-600 uppercase tracking-widest">0 CLIENTES NO TOTAL</span>
+                <div className="mt-2 inline-block px-3 py-1 bg-white/[0.02] border border-white/5 rounded backdrop-blur-md">
+                  <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest">0 CLIENTES NO TOTAL</span>
                 </div>
               )}
             </div>
             
             <div className="flex items-center gap-4">
               {activeTab === 'clientes' ? (
-                <button className="flex items-center gap-2 bg-white hover:bg-zinc-200 text-black px-6 py-2.5 rounded-md font-bold text-xs transition-all uppercase tracking-wide">
+                <button className="flex items-center gap-2 bg-white hover:bg-zinc-200 text-black px-6 py-2.5 rounded-xl font-bold text-xs transition-all uppercase tracking-wide">
                   💬 ENVIAR P/ TODOS
                 </button>
               ) : activeTab === 'faturamento' ? null : (
                 <button 
                   onClick={() => setIsCreatingBooking(true)}
-                  className="flex items-center gap-2 bg-gold-600 hover:bg-gold-500 text-black px-6 py-2.5 rounded-md font-bold text-xs transition-all uppercase tracking-wide shadow-lg shadow-gold-600/20"
+                  className="flex items-center gap-2 bg-[#D4AF37] hover:bg-[#F5E0A3] text-black px-6 py-2.5 rounded-xl font-bold text-xs transition-all uppercase tracking-wide shadow-lg shadow-[#D4AF37]/20"
                 >
                   <Plus size={16} />
                   <span>Novo Corte</span>
@@ -285,25 +287,26 @@ const AdminDashboard: React.FC = () => {
                 {/* Coluna Esquerda */}
                 <div className="space-y-12">
                   <div className="space-y-6">
-                    <h3 className="text-xs font-bold text-gold-600 uppercase tracking-[0.2em]">Próximo Corte</h3>
+                    <h3 className="text-xs font-bold text-[#D4AF37] uppercase tracking-[0.2em]">Próximo Corte</h3>
                     {nextBooking ? (
-                      <div className="bg-gold-600 p-6 rounded-lg flex items-center justify-between">
-                        <div className="flex items-center gap-6">
-                          <span className="text-4xl font-black text-black">{nextBooking.time}</span>
-                          <div className="h-10 w-[1px] bg-black/20" />
+                      <div className="bg-[#D4AF37]/90 backdrop-blur-md p-8 rounded-2xl flex items-center justify-between shadow-2xl border border-[#D4AF37]/50">
+                        <div className="flex items-center gap-8">
+                          <span className="text-5xl font-black text-black tracking-tighter">{nextBooking.time}</span>
+                          <div className="h-12 w-[1px] bg-black/20" />
                           <div>
-                            <p className="text-xs font-black text-black/60 uppercase">Cliente</p>
-                            <p className="text-xl font-bold text-black uppercase">{nextBooking.booking?.clients?.name}</p>
+                            <p className="text-[10px] font-black text-black/40 uppercase tracking-widest">Cliente</p>
+                            <p className="text-2xl font-bold text-black uppercase tracking-tight">{nextBooking.booking?.clients?.name}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs font-black text-black/60 uppercase">Status</p>
-                          <p className="text-xs font-bold text-black uppercase bg-black/10 px-2 py-1 rounded">Confirmado</p>
+                          <p className="text-[10px] font-black text-black/40 uppercase tracking-widest mb-1">Status</p>
+                          <p className="text-[10px] font-bold text-black uppercase bg-black/10 px-3 py-1 rounded-full">Confirmado</p>
                         </div>
                       </div>
                     ) : (
-                      <div className="w-full py-8 border border-white/5 rounded-lg flex items-center justify-center bg-white/[0.01]">
-                        <p className="text-xs text-zinc-600 italic font-medium uppercase tracking-widest">Nenhum corte agendado para o restante do dia.</p>
+                      <div className="flex flex-col items-center justify-center py-12">
+                        <CalendarDays className="text-white/10 w-12 h-12 mb-4" />
+                        <p className="text-sm text-neutral-500 italic">Nenhum corte agendado para o restante do dia.</p>
                       </div>
                     )}
                   </div>
@@ -311,18 +314,21 @@ const AdminDashboard: React.FC = () => {
                   <div className="space-y-6">
                     <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em]">Horários Ocupados</h3>
                     {occupiedSlots.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {occupiedSlots.map((slot, i) => (
-                          <div key={i} className="flex items-center gap-4 bg-white/[0.02] border border-white/5 p-4 rounded-lg">
-                            <span className="text-lg font-bold text-white">{slot.time}</span>
-                            <div className="w-[2px] h-4 bg-gold-600/30" />
-                            <span className="text-xs font-bold text-zinc-400 uppercase tracking-tight truncate">{slot.booking?.clients?.name}</span>
+                          <div key={i} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.04]">
+                            <div className="flex items-center gap-5">
+                              <span className="text-xl font-bold text-white">{slot.time}</span>
+                              <div className="w-[1px] h-5 bg-[#D4AF37]/30" />
+                              <span className="text-sm font-bold text-zinc-300 uppercase tracking-tight truncate">{slot.booking?.clients?.name}</span>
+                            </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="w-full py-8 border border-dashed border-white/5 rounded-lg flex items-center justify-center bg-white/[0.01]">
-                        <p className="text-xs text-zinc-600 italic font-medium uppercase tracking-widest">Nenhum agendamento ocupado.</p>
+                      <div className="flex flex-col items-center justify-center py-12">
+                        <CalendarDays className="text-white/10 w-12 h-12 mb-4" />
+                        <p className="text-sm text-neutral-500 italic">Nenhum agendamento ocupado.</p>
                       </div>
                     )}
                   </div>
@@ -339,10 +345,10 @@ const AdminDashboard: React.FC = () => {
                         .map((time) => (
                           <div 
                             key={time} 
-                            className="p-4 rounded-md border border-white/10 flex flex-col items-center justify-center gap-1 hover:border-gold-600/50 transition-all duration-300 cursor-pointer group"
+                            className="bg-white/[0.03] border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center hover:bg-white/10 hover:border-[#D4AF37]/50 cursor-pointer transition-colors group"
                           >
-                            <span className="text-lg font-bold text-white group-hover:text-gold-600 transition-colors">{time}</span>
-                            <span className="text-[10px] font-bold text-zinc-600 uppercase">Livre</span>
+                            <span className="text-lg font-bold text-white group-hover:text-[#D4AF37] transition-colors">{time}</span>
+                            <span className="text-[10px] text-neutral-400 uppercase tracking-widest mt-1">Livre</span>
                           </div>
                         ))}
                     </div>
@@ -351,19 +357,19 @@ const AdminDashboard: React.FC = () => {
 
                 {/* Coluna Direita (Cards) - Apenas Desktop */}
                 <div className="space-y-6 hidden lg:block">
-                  <div className="bg-[#141414] border border-white/5 p-8 rounded-lg">
+                  <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md shadow-2xl rounded-2xl p-8 transition-all hover:bg-white/[0.04]">
                     <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-4">Lucro de Hoje</span>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-bold text-white">R$</span>
-                      <span className="text-4xl font-bold text-gold-600">{todayRevenue.toFixed(0)}</span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-bold text-white opacity-40">R$</span>
+                      <span className="text-5xl font-black text-[#D4AF37] tracking-tighter">{todayRevenue.toFixed(0)}</span>
                     </div>
                   </div>
 
-                  <div className="bg-[#141414] border border-white/5 p-8 rounded-lg text-center">
+                  <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md shadow-2xl rounded-2xl p-8 transition-all hover:bg-white/[0.04] text-center">
                     <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-6">Vagas para Hoje</span>
                     <div className="flex flex-col items-center">
-                      <span className="text-6xl font-black text-gold-600 mb-2">{availableSlots}</span>
-                      <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em]">Vagas Livres</span>
+                      <span className="text-7xl font-black text-[#D4AF37] mb-2 tracking-tighter">{availableSlots}</span>
+                      <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.3em]">Vagas Disponíveis</span>
                     </div>
                   </div>
                 </div>
@@ -378,28 +384,28 @@ const AdminDashboard: React.FC = () => {
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-12"
               >
-                <div className="flex flex-wrap gap-3 pb-8 border-b border-white/5">
+                <div className="flex flex-wrap gap-4 pb-10 border-b border-white/5">
                   {[
                     { d: 'SEG', n: '08' }, { d: 'TER', n: '09' }, { d: 'QUA', n: '10' },
                     { d: 'QUI', n: '11', current: true }, { d: 'SEX', n: '12' }, { d: 'SÁB', n: '13' }
                   ].map((day, i) => (
                     <button 
                       key={i} 
-                      className={`flex flex-col items-center justify-center w-20 h-20 rounded-md border transition-all duration-300 ${
+                      className={`flex flex-col items-center justify-center w-24 h-24 rounded-2xl border transition-all duration-300 ${
                         day.current 
-                        ? 'border-gold-600 bg-white/5 text-gold-600' 
-                        : 'border-white/10 bg-transparent text-zinc-600 hover:border-white/20'
+                        ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.1)]' 
+                        : 'border-white/5 bg-white/[0.02] text-zinc-600 hover:border-white/20 hover:bg-white/[0.05]'
                       }`}
                     >
-                      <span className="text-[10px] font-bold uppercase mb-1">{day.d}</span>
-                      <span className="text-xl font-bold">{day.n}</span>
+                      <span className="text-[10px] font-bold uppercase mb-2 tracking-widest">{day.d}</span>
+                      <span className="text-2xl font-black">{day.n}</span>
                     </button>
                   ))}
                 </div>
 
-                <div className="w-full py-20 border border-dashed border-white/5 rounded-lg flex flex-col items-center justify-center bg-[#141414] text-center">
-                  <Calendar size={32} className="mb-4 text-zinc-800" />
-                  <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Selecione um dia acima para ver os detalhes da agenda</p>
+                <div className="flex flex-col items-center justify-center py-20">
+                  <CalendarDays className="text-white/10 w-16 h-16 mb-6" />
+                  <p className="text-sm text-neutral-500 italic max-w-xs text-center leading-relaxed">Selecione um dia acima para ver os detalhes da agenda e atendimentos confirmados.</p>
                 </div>
               </motion.div>
             )}
@@ -412,28 +418,28 @@ const AdminDashboard: React.FC = () => {
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-12"
               >
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-white tracking-tight">Relatórios de Faturamento</h2>
-                    <p className="text-xs text-zinc-500 font-medium mt-1">Acompanhe a saúde financeira da Black Diamond.</p>
+                    <h2 className="text-2xl font-bold text-white tracking-tight">Relatórios Financeiros</h2>
+                    <p className="text-sm text-zinc-500 font-medium mt-1">Gestão consolidada da saúde econômica do estúdio.</p>
                   </div>
-                  <div className="flex gap-2 bg-neutral-900 p-1 rounded-lg border border-white/5">
+                  <div className="flex gap-2 bg-white/[0.03] p-1.5 rounded-xl border border-white/5 backdrop-blur-md">
                     <button 
                       onClick={() => setViewMode('semanal')}
-                      className={`px-6 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${
+                      className={`px-8 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
                         viewMode === 'semanal' 
-                        ? 'bg-gold-600 text-black' 
-                        : 'bg-neutral-800 text-zinc-400 border border-white/5'
+                        ? 'bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20' 
+                        : 'text-zinc-500 hover:text-zinc-300'
                       }`}
                     >
                       Semanal
                     </button>
                     <button 
                       onClick={() => setViewMode('mensal')}
-                      className={`px-6 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${
+                      className={`px-8 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
                         viewMode === 'mensal' 
-                        ? 'bg-gold-600 text-black' 
-                        : 'bg-neutral-800 text-zinc-400 border border-white/5'
+                        ? 'bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20' 
+                        : 'text-zinc-500 hover:text-zinc-300'
                       }`}
                     >
                       Mensal
@@ -442,71 +448,73 @@ const AdminDashboard: React.FC = () => {
                 </div>
 
                 {viewMode === 'semanal' ? (
-                  <div className="space-y-8">
-                    <div className="bg-[#141414] border border-white/5 p-16 rounded-lg flex flex-col items-center justify-center text-center">
-                      <span className="text-[10px] text-zinc-500 font-bold tracking-[0.3em] uppercase mb-8">Receita Bruta Total</span>
-                      <div className="flex items-baseline gap-3">
-                        <span className="text-4xl font-bold text-white">R$</span>
-                        <h2 className="text-8xl font-black text-gold-600 tracking-tighter leading-none">{totalRevenue.toFixed(0)}</h2>
+                  <div className="space-y-12">
+                    <div className="bg-gradient-to-b from-white/[0.05] to-transparent border border-white/10 backdrop-blur-md p-16 rounded-[2rem] flex flex-col items-center justify-center text-center shadow-2xl">
+                      <span className="text-[10px] text-zinc-500 font-bold tracking-[0.4em] uppercase mb-8 opacity-60">Receita Bruta Acumulada</span>
+                      <div className="flex items-baseline gap-4">
+                        <span className="text-4xl font-bold text-[#D4AF37] opacity-40">R$</span>
+                        <h2 className="text-[7rem] font-black text-[#D4AF37] tracking-tighter leading-none">{totalRevenue.toFixed(0)}</h2>
                       </div>
-                      <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-[0.2em] mt-8">+24% vs mês anterior lucro da semana</p>
+                      <div className="mt-10 px-6 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                        <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-[0.2em]">+24.8% vs período anterior</p>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                       {[
                         { label: 'Ticket Médio', value: `R$ ${(totalRevenue / (bookings.length || 1)).toFixed(0)}`, icon: DollarSign },
-                        { label: 'Cancelamentos', value: '4%', icon: Scissors },
+                        { label: 'Cancelamentos', value: '4.2%', icon: Scissors },
                         { label: 'Novos Clientes', value: '12', icon: Users },
-                        { label: 'Retenção', value: '88%', icon: TrendingUp },
+                        { label: 'Taxa Retenção', value: '88.5%', icon: TrendingUp },
                       ].map((stat, i) => (
-                        <div key={i} className="bg-[#141414] border border-white/5 p-8 rounded-lg hover:bg-white/[0.02] transition-colors group">
-                          <div className="w-10 h-10 rounded bg-black border border-white/5 flex items-center justify-center mb-6">
-                            {React.createElement(stat.icon as any, { size: 18, className: "text-gold-600" })}
+                        <div key={i} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl shadow-xl transition-all hover:bg-white/[0.05] group">
+                          <div className="w-12 h-12 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center mb-6 group-hover:border-[#D4AF37]/30 transition-all">
+                            {React.createElement(stat.icon as any, { size: 20, className: "text-[#D4AF37]" })}
                           </div>
-                          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-3">{stat.label}</p>
-                          <p className="text-2xl font-bold text-white">{stat.value}</p>
+                          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-3 opacity-60">{stat.label}</p>
+                          <p className="text-3xl font-bold text-white tracking-tight">{stat.value}</p>
                         </div>
                       ))}
                     </div>
 
-                    <div className="bg-white/[0.01] border border-dashed border-white/5 p-8 rounded-lg flex flex-col md:flex-row items-center justify-around text-center gap-8">
-                      <div>
-                        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mb-2">Clientes Atendidos (Semana)</p>
-                        <p className="text-3xl font-bold text-white">{bookings.length}</p>
+                    <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-10 rounded-2xl flex flex-col md:flex-row items-center justify-around text-center gap-12 shadow-xl border-dashed">
+                      <div className="space-y-2">
+                        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Atendimentos Efetuados</p>
+                        <p className="text-4xl font-black text-white">{bookings.length}</p>
                       </div>
-                      <div className="h-12 w-[1px] bg-white/5 hidden md:block" />
-                      <div>
-                        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mb-2">Cancelamentos na Semana</p>
-                        <p className="text-3xl font-bold text-red-500/80">1</p>
+                      <div className="h-16 w-[1px] bg-white/5 hidden md:block" />
+                      <div className="space-y-2">
+                        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Faltas & No-show</p>
+                        <p className="text-4xl font-black text-red-500/80 tracking-tighter">01</p>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-8">
-                    <div className="bg-[#141414] border border-white/5 p-16 rounded-lg flex flex-col items-center justify-center text-center">
-                      <span className="text-[10px] text-zinc-500 font-bold tracking-[0.3em] uppercase mb-8">Lucro do Mês</span>
-                      <div className="flex items-baseline gap-3">
-                        <span className="text-4xl font-bold text-white">R$</span>
-                        <h2 className="text-8xl font-black text-gold-600 tracking-tighter leading-none">{(totalRevenue * 4).toFixed(0)}</h2>
+                  <div className="space-y-12">
+                    <div className="bg-gradient-to-b from-white/[0.05] to-transparent border border-white/10 backdrop-blur-md p-16 rounded-[2rem] flex flex-col items-center justify-center text-center shadow-2xl">
+                      <span className="text-[10px] text-zinc-500 font-bold tracking-[0.4em] uppercase mb-8 opacity-60">Faturamento Mensal Estimado</span>
+                      <div className="flex items-baseline gap-4">
+                        <span className="text-4xl font-bold text-[#D4AF37] opacity-40">R$</span>
+                        <h2 className="text-[7rem] font-black text-[#D4AF37] tracking-tighter leading-none">{(totalRevenue * 4.2).toFixed(0)}</h2>
                       </div>
-                      <p className="text-[10px] text-gold-600/60 font-bold uppercase tracking-[0.2em] mt-8">Resumo Mensal Consolidado</p>
+                      <p className="text-[10px] text-gold-600/60 font-bold uppercase tracking-[0.3em] mt-10">Resumo Consolidado 30 dias</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="bg-[#141414] border border-white/5 p-8 rounded-lg text-center">
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-4">Clientes no Mês</p>
-                        <p className="text-4xl font-bold text-white">{bookings.length * 4}</p>
-                        <p className="text-[10px] text-zinc-600 mt-2">Atendimentos totais</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-10 rounded-2xl text-center shadow-xl">
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-5 opacity-60">Clientes Atendidos</p>
+                        <p className="text-5xl font-black text-white tracking-tighter">{bookings.length * 4}</p>
+                        <div className="w-10 h-1 bg-[#D4AF37]/20 mx-auto mt-6 rounded-full" />
                       </div>
-                      <div className="bg-[#141414] border border-white/5 p-8 rounded-lg text-center">
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-4">Cancelamentos (Mês)</p>
-                        <p className="text-4xl font-bold text-white">4</p>
-                        <p className="text-[10px] text-zinc-600 mt-2">Taxa de 3.2%</p>
+                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-10 rounded-2xl text-center shadow-xl">
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-5 opacity-60">Cancelamentos Totais</p>
+                        <p className="text-5xl font-black text-white tracking-tighter">04</p>
+                        <div className="w-10 h-1 bg-red-500/20 mx-auto mt-6 rounded-full" />
                       </div>
-                      <div className="bg-[#141414] border border-white/5 p-8 rounded-lg text-center">
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-4">Novos Clientes</p>
-                        <p className="text-4xl font-bold text-gold-600">48</p>
-                        <p className="text-[10px] text-zinc-600 mt-2">Crescimento constante</p>
+                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-10 rounded-2xl text-center shadow-xl border-[#D4AF37]/10">
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-5 opacity-60">Crescimento de Base</p>
+                        <p className="text-5xl font-black text-[#D4AF37] tracking-tighter">48</p>
+                        <div className="w-10 h-1 bg-[#D4AF37]/40 mx-auto mt-6 rounded-full" />
                       </div>
                     </div>
                   </div>
@@ -522,18 +530,19 @@ const AdminDashboard: React.FC = () => {
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-12"
               >
-                <div className="w-full max-w-2xl mx-auto space-y-12 py-20">
+                <div className="w-full max-w-2xl mx-auto space-y-16 py-12">
                   <div className="relative group">
-                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-700 group-focus-within:text-gold-600 transition-colors" size={20} />
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-700 group-focus-within:text-[#D4AF37] transition-colors" size={20} />
                     <input 
                       type="text" 
-                      placeholder="Buscar cliente..."
-                      className="w-full bg-white/[0.02] border border-white/5 rounded-lg py-5 pl-16 pr-6 outline-none text-sm text-white focus:border-gold-600/30 transition-all placeholder:text-zinc-700 italic"
+                      placeholder="Pesquisar por nome ou WhatsApp..."
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl h-16 pl-16 pr-6 outline-none text-sm text-white focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all placeholder:text-zinc-700 italic shadow-xl"
                     />
                   </div>
 
-                  <div className="text-center space-y-2">
-                    <p className="text-sm text-zinc-700 italic font-medium">Nenhum cliente encontrado.</p>
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <SearchX className="text-white/10 w-16 h-16 mb-6" />
+                    <p className="text-sm text-neutral-500 italic font-medium tracking-wide">Nenhum registro encontrado na base de clientes.</p>
                   </div>
                 </div>
               </motion.div>
