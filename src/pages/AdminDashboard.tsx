@@ -17,7 +17,8 @@ import {
   CalendarDays,
   ArrowLeft,
   Smartphone,
-  Tag
+  Tag,
+  ChevronRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -99,10 +100,11 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleSendMessage = () => {
-    if (!viewingBooking?.clients?.phone) return;
-    const message = `Olá ${viewingBooking.clients.name}, aqui é da Black Diamond. Gostaria de falar sobre o seu agendamento para o dia ${new Date(viewingBooking.booking_date).toLocaleDateString('pt-BR')} às ${viewingBooking.booking_time.slice(0, 5)}.`;
-    window.open(`https://wa.me/55${viewingBooking.clients.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+  const handleSendMessage = (client?: any) => {
+    const target = client || viewingBooking?.clients;
+    if (!target?.phone) return;
+    const message = `Olá ${target.name}, aqui é da Black Diamond!`;
+    window.open(`https://wa.me/55${target.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -189,7 +191,7 @@ const AdminDashboard: React.FC = () => {
                   <h2 className="font-sans text-5xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none">{viewingBooking.clients?.name}</h2>
                   <div className="flex flex-wrap items-center gap-8 text-zinc-500">
                     <button 
-                      onClick={handleSendMessage}
+                      onClick={() => handleSendMessage()}
                       className="flex items-center gap-3 hover:text-emerald-500 transition-colors group"
                     >
                       <Smartphone size={16} className="text-zinc-700 group-hover:text-emerald-500" />
@@ -241,7 +243,7 @@ const AdminDashboard: React.FC = () => {
                      Reagendar
                    </button>
                    <button 
-                    onClick={handleSendMessage}
+                    onClick={() => handleSendMessage()}
                     className="w-full bg-white/5 hover:bg-white/10 text-white h-16 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all"
                    >
                      Entrar em Contato
@@ -650,7 +652,8 @@ const AdminDashboard: React.FC = () => {
                     ))}
                   </div>
 
-                  <div className="flex flex-col items-center justify-center py-20">
+                  <div className="flex flex-col items-center justify-center pt-20">
+                    <CalendarDays size={64} className="text-white/[0.03] mb-4" />
                     <p className="text-sm text-neutral-500 italic">Selecione um dia para ver os agendamentos.</p>
                   </div>
                 </motion.div>
@@ -665,23 +668,23 @@ const AdminDashboard: React.FC = () => {
                   className="space-y-12"
                 >
                   <div className="flex flex-col md:flex-row md:items-center justify-end gap-6">
-                    <div className="flex gap-2 bg-white/[0.03] p-1.5 rounded-xl border border-white/5 backdrop-blur-md">
+                    <div className="flex gap-2 bg-white/[0.03] p-1 rounded-xl border border-white/5 backdrop-blur-md">
                       <button 
                         onClick={() => setViewMode('semanal')}
-                        className={`px-8 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
+                        className={`px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
                           viewMode === 'semanal' 
-                          ? 'bg-[#C5A059] text-black shadow-lg shadow-[#C5A059]/20' 
-                          : 'text-zinc-500 hover:text-zinc-300'
+                          ? 'bg-[#C5A059] text-black shadow-md' 
+                          : 'text-neutral-400 hover:text-white hover:bg-white/5'
                         }`}
                       >
                         Semanal
                       </button>
                       <button 
                         onClick={() => setViewMode('mensal')}
-                        className={`px-8 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
+                        className={`px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
                           viewMode === 'mensal' 
-                          ? 'bg-[#C5A059] text-black shadow-lg shadow-[#C5A059]/20' 
-                          : 'text-zinc-500 hover:text-zinc-300'
+                          ? 'bg-[#C5A059] text-black shadow-md' 
+                          : 'text-neutral-400 hover:text-white hover:bg-white/5'
                         }`}
                       >
                         Mensal
@@ -781,7 +784,11 @@ const AdminDashboard: React.FC = () => {
                     <div className="grid grid-cols-1 gap-4">
                       {clients.length > 0 ? (
                         clients.map((client) => (
-                          <div key={client.id} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl flex items-center justify-between hover:bg-white/[0.04] transition-all group">
+                          <div 
+                            key={client.id} 
+                            onClick={() => handleSendMessage(client)}
+                            className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-colors group cursor-pointer"
+                          >
                             <div className="flex items-center gap-6">
                               <div className="w-12 h-12 bg-[#C5A059]/10 rounded-full flex items-center justify-center border border-[#C5A059]/20 group-hover:bg-[#C5A059]/20 transition-all">
                                 <User size={20} className="text-[#C5A059]" />
@@ -791,9 +798,12 @@ const AdminDashboard: React.FC = () => {
                                 <p className="text-xs text-zinc-500 font-medium">{client.phone}</p>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mb-1">Cadastrado em</p>
-                              <p className="text-xs text-zinc-400">{new Date(client.created_at).toLocaleDateString('pt-BR')}</p>
+                            <div className="flex items-center gap-8">
+                              <div className="text-right hidden sm:block">
+                                <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mb-1">Cadastrado em</p>
+                                <p className="text-xs text-zinc-400">{new Date(client.created_at).toLocaleDateString('pt-BR')}</p>
+                              </div>
+                              <ChevronLeft size={18} className="rotate-180 text-neutral-500 group-hover:text-[#C5A059] transition-colors" />
                             </div>
                           </div>
                         ))
