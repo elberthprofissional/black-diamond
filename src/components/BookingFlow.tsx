@@ -21,11 +21,18 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (isOpen) {
-      setLoadingServices(true);
-      getServices()
-        .then(setServices)
-        .catch(console.error)
-        .finally(() => setLoadingServices(false));
+      const loadServices = async () => {
+        setLoadingServices(true);
+        try {
+          const data = await getServices();
+          setServices(data);
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setLoadingServices(false);
+        }
+      };
+      loadServices();
     }
   }, [isOpen]);
 
@@ -46,8 +53,8 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ isOpen, onClose }) => {
       await createBooking(
         {
           service_ids: selectedServices.map(s => s.id),
-          date: selectedDate,
-          time: selectedTime,
+          booking_date: selectedDate,
+          booking_time: selectedTime,
           total_price: totalPrice,
           total_duration: totalDuration
         },
