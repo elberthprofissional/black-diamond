@@ -16,9 +16,7 @@ import {
   Scissors,
   CalendarDays,
   ArrowLeft,
-  Smartphone,
-  Tag,
-  ChevronRight
+  Smartphone
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
