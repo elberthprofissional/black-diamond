@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getBookings, getClients, getServices } from '../lib/api';
+import { getBookings, getClients, getServices, updateBookingStatus } from '../lib/api';
+import { supabase } from '../lib/supabase';
 import { 
   Calendar, 
   DollarSign, 
@@ -12,7 +13,8 @@ import {
   ChevronLeft,
   User,
   CheckCircle,
-  Scissors
+  Scissors,
+  CalendarDays
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -49,15 +51,20 @@ const AdminDashboard: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
   const handleUpdateStatus = async (id: string, status: string) => {
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status })
-        .eq('id', id);
-      
-      if (error) throw error;
-
+      await updateBookingStatus(id, status);
       setToast({ message: `Agendamento ${status === 'cancelled' ? 'cancelado' : 'atualizado'} com sucesso!`, type: 'success' });
       setSelectedBooking(null);
       fetchData();
@@ -88,17 +95,6 @@ const AdminDashboard: React.FC = () => {
       setToast({ message: 'Erro ao reagendar.', type: 'error' });
     }
   };
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
 
   const today = new Date().toISOString().split('T')[0];
   const todayBookings = bookings.filter(b => b.booking_date === today);
@@ -403,11 +399,18 @@ const AdminDashboard: React.FC = () => {
                       {occupiedSlots.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {occupiedSlots.map((slot, i) => (
-                            <div key={i} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.04]">
-                              <div className="flex items-center gap-5">
-                                <span className="text-xl font-bold text-white">{slot.time}</span>
-                                <div className="w-[1px] h-5 bg-[#C5A059]/30" />
-                                <span className="text-sm font-bold text-zinc-300 uppercase tracking-tight truncate">{slot.booking?.clients?.name}</span>
+                            <div 
+                              key={i} 
+                              onClick={() => setSelectedBooking(slot.booking)}
+                              className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.04] cursor-pointer group"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-5">
+                                  <span className="text-xl font-bold text-white group-hover:text-[#C5A059] transition-colors">{slot.time}</span>
+                                  <div className="w-[1px] h-5 bg-[#C5A059]/30" />
+                                  <span className="text-sm font-bold text-zinc-300 uppercase tracking-tight truncate">{slot.booking?.clients?.name}</span>
+                                </div>
+                                <ChevronLeft size={14} className="rotate-180 text-zinc-600 group-hover:text-[#C5A059]" />
                               </div>
                             </div>
                           ))}
@@ -650,6 +653,137 @@ const AdminDashboard: React.FC = () => {
           )}
         </main>
       </div>
+
+      {/* Modal de Detalhes do Agendamento */}
+      <AnimatePresence>
+        {selectedBooking && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => { if(!isRescheduling) setSelectedBooking(null); }}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg bg-neutral-900 border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden"
+            >
+              <div className="p-8 md:p-12">
+                {!isRescheduling ? (
+                  <div className="space-y-10">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-black text-[#C5A059] uppercase tracking-[0.4em]">Detalhes do Corte</span>
+                        <h2 className="text-3xl font-serif font-bold text-white uppercase tracking-tight">{selectedBooking.clients?.name}</h2>
+                        <p className="text-xs text-zinc-500 font-medium tracking-wide">{selectedBooking.clients?.phone}</p>
+                      </div>
+                      <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                        <Clock size={24} className="text-[#C5A059]" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6 bg-white/[0.02] border border-white/5 p-6 rounded-2xl">
+                      <div>
+                        <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mb-1">Horário</p>
+                        <p className="text-lg font-black text-white tracking-tighter">{selectedBooking.booking_time.slice(0, 5)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mb-1">Valor</p>
+                        <p className="text-lg font-black text-[#C5A059] tracking-tighter uppercase">R$ {Number(selectedBooking.total_price).toFixed(0)}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3 pt-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        <button 
+                          onClick={() => {
+                            setRescheduleData({ date: selectedBooking.booking_date, time: selectedBooking.booking_time.slice(0, 5) });
+                            setIsRescheduling(true);
+                          }}
+                          className="flex items-center justify-center gap-2 bg-white text-black py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all"
+                        >
+                          Reagendar
+                        </button>
+                        <button 
+                          onClick={() => handleUpdateStatus(selectedBooking.id, 'cancelled')}
+                          className="flex items-center justify-center gap-2 bg-red-500/10 text-red-500 border border-red-500/20 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                      <button 
+                        onClick={() => setSelectedBooking(null)}
+                        className="w-full bg-white/5 text-zinc-500 py-4 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:text-white transition-all"
+                      >
+                        Fechar Janela
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-8">
+                    <div className="flex items-center gap-4 mb-4">
+                      <button onClick={() => setIsRescheduling(false)} className="text-zinc-500 hover:text-white transition-colors">
+                        <ChevronLeft size={20} />
+                      </button>
+                      <h2 className="text-xl font-serif font-bold text-white uppercase tracking-widest italic">Novo Horário</h2>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1">Data do Reagendamento</label>
+                        <input 
+                          type="date" 
+                          value={rescheduleData.date}
+                          onChange={(e) => setRescheduleData({...rescheduleData, date: e.target.value})}
+                          className="w-full bg-black/40 border border-white/10 text-white p-5 rounded-xl outline-none focus:border-[#C5A059] transition-all text-xs font-bold uppercase tracking-widest"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1">Novo Horário</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {timeSlots.map(t => (
+                            <button 
+                              key={t}
+                              onClick={() => setRescheduleData({...rescheduleData, time: t})}
+                              className={`py-3 text-[10px] font-bold border rounded-lg transition-all ${
+                                rescheduleData.time === t 
+                                ? 'border-[#C5A059] bg-[#C5A059]/10 text-white' 
+                                : 'border-white/5 bg-white/[0.02] text-zinc-500 hover:border-white/20'
+                              }`}
+                            >
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-3 pt-4">
+                        <button 
+                          onClick={handleReschedule}
+                          className="w-full bg-[#C5A059] text-black py-5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#F5E0A3] transition-all"
+                        >
+                          Confirmar Reagendamento
+                        </button>
+                        <button 
+                          onClick={() => setIsRescheduling(false)}
+                          className="w-full bg-white/5 text-zinc-500 py-4 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:text-white transition-all"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
