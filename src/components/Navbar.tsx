@@ -75,7 +75,10 @@ const Navbar: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
-            onClick={() => navigate('/agendar')}
+            onClick={() => {
+              const message = 'Olá! Gostaria de agendar um horário na Black Diamond.';
+              window.open(`https://wa.me/5531980159559?text=${encodeURIComponent(message)}`, '_blank');
+            }}
             className="group relative border border-[#C5A059] px-4 md:px-8 py-2 md:py-2.5 rounded-sm transition-all duration-500 hover:bg-[#C5A059] overflow-hidden"
           >
             <span className="relative z-10 text-[#C5A059] group-hover:text-black font-bold text-[9px] md:text-[11px] uppercase tracking-widest transition-colors duration-500 whitespace-nowrap">Agendar Agora</span>

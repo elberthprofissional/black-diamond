@@ -31,7 +31,10 @@ const Hero: React.FC = () => {
           
           <div className="flex flex-col items-center gap-10">
             <button 
-              onClick={() => navigate('/agendar')}
+              onClick={() => {
+                const message = 'Olá! Gostaria de agendar um horário na Black Diamond.';
+                window.open(`https://wa.me/5531980159559?text=${encodeURIComponent(message)}`, '_blank');
+              }}
               className="border border-gold-600 text-gold-600 hover:bg-gold-600 hover:text-black font-bold px-12 py-5 rounded-none text-[10px] uppercase tracking-[0.4em] transition-all duration-700 group relative"
             >
               <span className="relative z-10 text-[11px]">Agendar Horário</span>
