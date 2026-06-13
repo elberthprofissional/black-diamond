@@ -13,8 +13,8 @@ const Gallery: React.FC = () => {
             viewport={{ once: true }}
             transition={{ duration: 1, ease: "easeOut" }}
           >
-            <h2 className="text-gold-600 font-bold text-xs tracking-[0.6em] uppercase mb-6">Trabalhos Recentes</h2>
-            <h3 className="text-5xl md:text-[6rem] font-black text-white mb-8 tracking-tighter uppercase leading-none">GALERIA</h3>
+            <h2 className="text-gold-600 font-bold text-xs tracking-[0.6em] uppercase mb-6">Conheça alguns dos</h2>
+            <h3 className="text-5xl md:text-[6rem] font-black text-white mb-8 tracking-tighter uppercase leading-none">MEUS TRABALHOS</h3>
             <div className="w-12 h-[2px] bg-gold-600 mx-auto"></div>
           </motion.div>
         </div>

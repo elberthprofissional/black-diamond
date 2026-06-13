@@ -39,11 +39,6 @@ const About: React.FC = () => {
             transition={{ duration: 0.8 }}
             className="w-full md:w-7/12"
           >
-            <div className="flex items-center space-x-4 mb-10">
-              <div className="h-[1px] w-8 bg-gold-600/40"></div>
-              <h2 className="text-gold-600 font-bold text-xs tracking-[0.5em] uppercase">Nossa Essência</h2>
-            </div>
-            
             <h3 className="text-5xl md:text-[5.5rem] font-black text-white mb-12 leading-[1.05] tracking-tighter uppercase">
               PRAZER, <br />
               <span className="text-gold-600">TATO.</span>
