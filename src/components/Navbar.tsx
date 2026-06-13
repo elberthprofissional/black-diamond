@@ -47,7 +47,6 @@ const Navbar: React.FC = () => {
           </div>
           <div className="flex flex-col">
             <span className="text-xl md:text-2xl font-serif font-bold tracking-[0.2em] text-white leading-none uppercase">BLACK DIAMOND</span>
-            <span className="text-[10px] tracking-[0.4em] text-gold-600 uppercase font-light">Barbearia Premium</span>
           </div>
         </motion.div>
 
