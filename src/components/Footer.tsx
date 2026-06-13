@@ -1,9 +1,12 @@
 import React from 'react';
-import { Globe, MessageCircle } from 'lucide-react';
+import { Globe, MessageCircle, MapPin, Phone } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Footer: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
-    <footer className="bg-[#000000] border-t border-[#333333] pt-24 pb-12">
+    <footer className="bg-[#000000] border-t border-[#1A1A1A] pt-24 pb-12">
       <div className="container mx-auto px-6">
         {/* PARTE 1: ÁREA DE CONTEÚDO */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
@@ -17,10 +20,10 @@ const Footer: React.FC = () => {
               A excelência está nos detalhes. Lapidamos sua imagem para refletir sua verdadeira essência.
             </p>
             <div className="flex space-x-4 pt-2">
-              <a href="#" className="w-10 h-10 rounded-full border border-[#333333] flex items-center justify-center text-white hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all duration-300">
+              <a href="#" className="w-10 h-10 rounded-full border border-[#1A1A1A] flex items-center justify-center text-[#A1A1AA] hover:border-[#C5A059] hover:text-[#C5A059] transition-all duration-300">
                 <Globe size={18} />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full border border-[#333333] flex items-center justify-center text-white hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all duration-300">
+              <a href="#" className="w-10 h-10 rounded-full border border-[#1A1A1A] flex items-center justify-center text-[#A1A1AA] hover:border-[#C5A059] hover:text-[#C5A059] transition-all duration-300">
                 <MessageCircle size={18} />
               </a>
             </div>
@@ -31,7 +34,7 @@ const Footer: React.FC = () => {
             <h4 className="text-white font-serif font-bold text-lg tracking-[0.2em] uppercase">NAVEGAÇÃO</h4>
             <ul className="flex flex-col space-y-4">
               <li>
-                <a href="#home" className="text-[#A1A1AA] text-xs font-bold tracking-[0.2em] hover:text-white transition-colors uppercase">INÍCIO</a>
+                <button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="text-[#A1A1AA] text-xs font-bold tracking-[0.2em] hover:text-white transition-colors uppercase">INÍCIO</button>
               </li>
               <li>
                 <a href="#servicos" className="text-[#A1A1AA] text-xs font-bold tracking-[0.2em] hover:text-white transition-colors uppercase">SERVIÇOS</a>
@@ -40,7 +43,7 @@ const Footer: React.FC = () => {
                 <a href="#sobre" className="text-[#A1A1AA] text-xs font-bold tracking-[0.2em] hover:text-white transition-colors uppercase">A HISTÓRIA</a>
               </li>
               <li className="pt-2">
-                <a href="#agendar" className="text-[#D4AF37] text-xs font-bold tracking-[0.2em] hover:text-[#E6C766] transition-colors uppercase">AGENDAR HORÁRIO</a>
+                <button onClick={() => navigate('/agendar')} className="text-[#C5A059] text-xs font-bold tracking-[0.2em] hover:text-white transition-colors uppercase">AGENDAR HORÁRIO</button>
               </li>
             </ul>
           </div>
@@ -50,14 +53,20 @@ const Footer: React.FC = () => {
             <h4 className="text-white font-serif font-bold text-lg tracking-[0.2em] uppercase">CONTATO</h4>
             <div className="space-y-6">
               <div>
-                <span className="text-[#D4AF37] text-[10px] font-black tracking-[0.3em] uppercase block mb-2">ENDEREÇO</span>
+                <div className="flex items-center space-x-2 mb-2">
+                  <MapPin size={12} className="text-[#C5A059]" />
+                  <span className="text-[#C5A059] text-[10px] font-black tracking-[0.3em] uppercase block">ENDEREÇO</span>
+                </div>
                 <p className="text-[#A1A1AA] text-sm font-light leading-relaxed">
                   Av. Brasílio da Gama, 139<br />
                   Tupi, Belo Horizonte — MG
                 </p>
               </div>
               <div>
-                <span className="text-[#D4AF37] text-[10px] font-black tracking-[0.3em] uppercase block mb-2">WHATSAPP</span>
+                <div className="flex items-center space-x-2 mb-2">
+                  <Phone size={12} className="text-[#C5A059]" />
+                  <span className="text-[#C5A059] text-[10px] font-black tracking-[0.3em] uppercase block">WHATSAPP</span>
+                </div>
                 <p className="text-[#A1A1AA] text-sm font-light tracking-widest">
                   (31) 99955-3580
                 </p>
@@ -69,7 +78,7 @@ const Footer: React.FC = () => {
           <div className="space-y-8">
             <h4 className="text-white font-serif font-bold text-lg tracking-[0.2em] uppercase">HORÁRIOS</h4>
             <div className="space-y-4">
-              <div className="flex justify-between items-center border-b border-[#333333] pb-4">
+              <div className="flex justify-between items-center border-b border-[#1A1A1A] pb-4">
                 <span className="text-[#A1A1AA] text-xs font-bold tracking-widest">SEG — SÁB</span>
                 <span className="text-white text-xs font-bold tracking-widest">08:30 - 19:00</span>
               </div>
@@ -77,17 +86,22 @@ const Footer: React.FC = () => {
                 <span className="text-[#A1A1AA] text-xs font-bold tracking-widest uppercase">DOMINGO</span>
                 <span className="text-[#A1A1AA] text-xs font-light tracking-widest uppercase">Fechado</span>
               </div>
+              <div className="pt-4 flex items-center text-red-900/60 font-black text-[9px] tracking-[0.2em] uppercase">
+                <div className="w-1.5 h-1.5 bg-red-900/60 rounded-full mr-2"></div>
+                Estúdio Fechado
+              </div>
             </div>
           </div>
 
         </div>
 
         {/* PARTE 2: BARRA DE COPYRIGHT */}
-        <div className="pt-12 border-t border-[#333333] flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="pt-12 border-t border-[#1A1A1A] flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-[#3F3F46] text-[10px] font-bold tracking-[0.2em] uppercase text-center md:text-left leading-relaxed">
             &copy; 2026 BLACK DIAMOND BARBEARIA. TODOS OS DIREITOS RESERVADOS.
           </p>
           <div className="flex space-x-8 text-[#3F3F46] text-[10px] font-bold tracking-[0.2em] uppercase">
+             <button onClick={() => navigate('/admin/login')} className="hover:text-white transition-colors duration-300">ADMIN</button>
             <a href="#" className="hover:text-white transition-colors duration-300">PRIVACIDADE</a>
             <a href="#" className="hover:text-white transition-colors duration-300">TERMOS</a>
           </div>

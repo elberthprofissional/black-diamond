@@ -17,7 +17,7 @@
 
 @layer base {
   body {
-    @apply bg-dark-pure text-white font-sans antialiased selection:bg-gold-600 selection:text-white;
+    @apply bg-[#09090B] text-white font-sans antialiased selection:bg-gold-600 selection:text-white;
   }
   
   h1, h2, h3, h4, h5, h6 {
