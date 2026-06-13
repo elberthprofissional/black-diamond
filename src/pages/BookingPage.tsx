@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Clock, Calendar as CalendarIcon, DollarSign } from 'lucide-react';
 import { getServices, createBooking, getBookings } from '../lib/api';
 import type { Service, Booking } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -99,7 +99,7 @@ const BookingPage: React.FC = () => {
   };
 
   return (
-    <div className="h-screen w-full bg-[#09090B] text-white overflow-hidden relative selection:bg-gold-600/30 font-sans flex flex-col">
+    <div className="min-h-screen md:h-screen w-full bg-[#09090B] text-white overflow-hidden relative selection:bg-gold-600/30 font-sans flex flex-col items-center justify-center">
       <AnimatePresence>
         {toast && (
           <motion.div
@@ -115,163 +115,176 @@ const BookingPage: React.FC = () => {
 
       <div className="fixed inset-0 bg-cover bg-center z-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'url("/assets/img/agendamento-bg.webp")' }} />
 
-      {/* Header Simplificado */}
-      <header className="relative z-10 flex items-center h-20 px-6 shrink-0">
-        <button 
-          onClick={() => navigate('/')} 
-          className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white transition-all group"
-        >
-          <ChevronLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
-        </button>
-        <div className="flex-1 flex justify-center mr-10">
-           <h1 className="text-sm font-black uppercase tracking-[0.5em] text-zinc-500">Agendamento</h1>
-        </div>
-      </header>
+      {/* Container Principal Centralizado no Desktop */}
+      <div className="relative z-10 w-full max-w-md h-full md:h-auto md:max-h-[90vh] flex flex-col bg-black/40 md:bg-neutral-900/40 md:border md:border-white/5 md:rounded-[2.5rem] md:shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] md:backdrop-blur-3xl overflow-hidden">
+        
+        {/* Header Simplificado */}
+        <header className="flex items-center h-20 px-6 shrink-0 border-b border-white/5 md:border-none">
+          <button 
+            onClick={() => navigate('/')} 
+            className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white transition-all group"
+          >
+            <ChevronLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
+          </button>
+          <div className="flex-1 flex justify-center mr-10">
+            <h1 className="text-sm font-black uppercase tracking-[0.5em] text-zinc-500">Agendamento</h1>
+          </div>
+        </header>
 
-      {/* Main Content Area - Fixed & Non-scrollable */}
-      <main className="relative z-10 flex-1 flex flex-col overflow-hidden px-6 pb-6">
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-          <AnimatePresence mode="wait">
-            {step === 1 && (
-              <motion.div key="step1" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-4">
-                <div className="flex items-center gap-3 mb-2 px-1">
-                   <div className="w-1.5 h-1.5 rounded-full bg-gold-600 shadow-[0_0_8px_#C5A059]" />
-                   <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Escolha os Serviços</h3>
-                </div>
-                {loadingServices ? (
-                  <div className="flex justify-center py-20"><div className="w-6 h-6 border-2 border-gold-600 border-t-transparent rounded-full animate-spin" /></div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-3">
-                    {services.map((service) => (
-                      <button 
-                        key={service.id} 
-                        onClick={() => toggleService(service)} 
-                        className={`flex justify-between items-center p-5 border transition-all duration-300 text-left rounded-2xl ${
-                          selectedServices.find(s => s.id === service.id) 
-                          ? 'border-gold-600 bg-gold-600/5' 
-                          : 'border-white/5 bg-neutral-900/50'
-                        }`}
-                      >
-                        <div className="space-y-1">
-                          <div className="font-bold text-sm text-white uppercase tracking-tight">{service.name}</div>
-                          <div className="text-[9px] text-zinc-600 uppercase font-black tracking-widest">{service.duration} MINUTOS</div>
-                        </div>
-                        <div className="text-base font-black text-gold-600">R$ {Number(service.price).toFixed(0)}</div>
-                      </button>
-                    ))}
+        {/* Main Content Area */}
+        <main className="flex-1 flex flex-col overflow-hidden px-6 pb-6 pt-4">
+          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+            <AnimatePresence mode="wait">
+              {step === 1 && (
+                <motion.div key="step1" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-4">
+                  <div className="flex items-center gap-3 mb-2 px-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gold-600 shadow-[0_0_8px_#C5A059]" />
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Escolha os Serviços</h3>
                   </div>
-                )}
-              </motion.div>
-            )}
-
-            {step === 2 && (
-              <motion.div key="step2" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 px-1">Data do Atendimento</h3>
-                  <input 
-                    type="date" 
-                    className="w-full bg-neutral-900 border border-white/10 text-white p-5 rounded-2xl outline-none focus:border-gold-600 transition-all uppercase text-xs font-black tracking-widest" 
-                    value={selectedDate} 
-                    onChange={(e) => setSelectedDate(e.target.value)} 
-                  />
-                </div>
-                <div className="space-y-4">
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 px-1">Escolha o Horário</h3>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {timeSlots.map((time) => {
-                      const isOccupied = existingBookings.some(b => b.booking_time.slice(0, 5) === time);
-                      return (
+                  {loadingServices ? (
+                    <div className="flex justify-center py-20"><div className="w-6 h-6 border-2 border-gold-600 border-t-transparent rounded-full animate-spin" /></div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-3">
+                      {services.map((service) => (
                         <button 
-                          key={time} 
-                          disabled={isOccupied} 
-                          onClick={() => setSelectedTime(time)} 
-                          className={`py-4 border text-[10px] font-black tracking-widest transition-all duration-300 rounded-xl ${
-                            selectedTime === time 
-                            ? 'border-gold-600 bg-gold-600/10 text-white' 
-                            : isOccupied 
-                              ? 'border-transparent bg-white/5 text-zinc-800 cursor-not-allowed opacity-20' 
-                              : 'border-white/5 text-zinc-600 bg-neutral-900/50 hover:border-white/20'
+                          key={service.id} 
+                          onClick={() => toggleService(service)} 
+                          className={`flex justify-between items-center p-5 border transition-all duration-300 text-left rounded-2xl ${
+                            selectedServices.find(s => s.id === service.id) 
+                            ? 'border-gold-600 bg-gold-600/5 shadow-[inset_0_0_20px_rgba(197,160,89,0.05)]' 
+                            : 'border-white/5 bg-neutral-900/50'
                           }`}
                         >
-                          {time}
+                          <div className="space-y-1">
+                            <div className="font-bold text-sm text-white uppercase tracking-tight">{service.name}</div>
+                            <div className="text-[9px] text-zinc-600 uppercase font-black tracking-widest">{service.duration} MINUTOS</div>
+                          </div>
+                          <div className="text-base font-black text-gold-600">R$ {Number(service.price).toFixed(0)}</div>
                         </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </motion.div>
-            )}
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              )}
 
-            {step === 3 && (
-              <motion.div key="step3" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6 max-w-xl mx-auto w-full">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 text-center mb-8">Informações de Contato</h3>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1">Nome Completo</label>
-                    <input type="text" placeholder="Como quer ser chamado?" className="w-full bg-neutral-900 border border-white/10 text-white p-5 rounded-2xl outline-none focus:border-gold-600 transition-all text-sm font-bold placeholder:text-zinc-800" value={userInfo.name} onChange={(e) => setUserInfo({...userInfo, name: e.target.value})} />
+              {step === 2 && (
+                <motion.div key="step2" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
+                  <div className="space-y-3">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 px-1">Data do Atendimento</h3>
+                    <input 
+                      type="date" 
+                      className="w-full bg-neutral-900 border border-white/10 text-white p-5 rounded-2xl outline-none focus:border-gold-600 transition-all uppercase text-xs font-black tracking-widest" 
+                      value={selectedDate} 
+                      onChange={(e) => setSelectedDate(e.target.value)} 
+                    />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1">WhatsApp</label>
-                    <input type="tel" placeholder="(00) 00000-0000" className="w-full bg-neutral-900 border border-white/10 text-white p-5 rounded-2xl outline-none focus:border-gold-600 transition-all text-sm font-bold placeholder:text-zinc-800" value={userInfo.phone} onChange={(e) => setUserInfo({...userInfo, phone: e.target.value})} />
+                  <div className="space-y-4">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 px-1">Escolha o Horário</h3>
+                    <div className="grid grid-cols-3 gap-2">
+                      {timeSlots.map((time) => {
+                        const isOccupied = existingBookings.some(b => b.booking_time.slice(0, 5) === time);
+                        return (
+                          <button 
+                            key={time} 
+                            disabled={isOccupied} 
+                            onClick={() => setSelectedTime(time)} 
+                            className={`py-4 border text-[10px] font-black tracking-widest transition-all duration-300 rounded-xl ${
+                              selectedTime === time 
+                              ? 'border-gold-600 bg-gold-600/10 text-white shadow-[0_0_15px_rgba(197,160,89,0.2)]' 
+                              : isOccupied 
+                                ? 'border-transparent bg-white/5 text-zinc-800 cursor-not-allowed opacity-20' 
+                                : 'border-white/5 text-zinc-600 bg-neutral-900/50 hover:border-white/20'
+                            }`}
+                          >
+                            {time}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            )}
+                </motion.div>
+              )}
 
-            {step === 4 && (
-              <motion.div key="step4" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-6">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 text-center mb-6">Confirmação do Corte</h3>
-                <div className="bg-neutral-900/80 border border-white/10 p-8 rounded-3xl space-y-6 shadow-2xl relative overflow-hidden">
-                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold-600/30 to-transparent" />
-                   <div className="space-y-1 text-center">
+              {step === 3 && (
+                <motion.div key="step3" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6 w-full">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 text-center mb-8">Informações de Contato</h3>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1">Nome Completo</label>
+                      <input type="text" placeholder="Como quer ser chamado?" className="w-full bg-neutral-900 border border-white/10 text-white p-5 rounded-2xl outline-none focus:border-gold-600 transition-all text-sm font-bold placeholder:text-zinc-800" value={userInfo.name} onChange={(e) => setUserInfo({...userInfo, name: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1">WhatsApp</label>
+                      <input type="tel" placeholder="(00) 00000-0000" className="w-full bg-neutral-900 border border-white/10 text-white p-5 rounded-2xl outline-none focus:border-gold-600 transition-all text-sm font-bold placeholder:text-zinc-800" value={userInfo.phone} onChange={(e) => setUserInfo({...userInfo, phone: e.target.value})} />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {step === 4 && (
+                <motion.div key="step4" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-6">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 text-center mb-6">Confirmação do Corte</h3>
+                  <div className="bg-neutral-900/80 border border-white/10 p-8 rounded-3xl space-y-6 shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold-600/30 to-transparent" />
+                    <div className="space-y-1 text-center">
                       <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Horário Marcado</p>
                       <p className="text-6xl font-black text-white tracking-tighter leading-none">{selectedTime}</p>
-                   </div>
-                   <div className="space-y-3 pt-6 border-t border-white/5">
-                      <div className="flex justify-between items-center"><span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Data</span><span className="text-sm font-black text-white uppercase">{selectedDate.split('-').reverse().join('/')}</span></div>
-                      <div className="flex justify-between items-start"><span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Serviços</span><span className="text-xs font-bold text-white text-right max-w-[180px] uppercase leading-tight">{selectedServices.map(s => s.name).join(', ')}</span></div>
-                      <div className="flex justify-between items-baseline pt-2"><span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Total</span><span className="text-2xl font-black text-gold-600 tracking-tighter italic">R$ {totalPrice.toFixed(0)}</span></div>
-                   </div>
-                </div>
-              </motion.div>
-            )}
+                    </div>
+                    <div className="space-y-4 pt-6 border-t border-white/5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10"><CalendarIcon size={14} className="text-zinc-500" /></div>
+                        <div className="flex-1"><p className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Data</p><p className="text-sm font-black text-white uppercase">{selectedDate.split('-').reverse().join('/')}</p></div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10"><Clock size={14} className="text-zinc-500" /></div>
+                        <div className="flex-1"><p className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Serviços</p><p className="text-xs font-bold text-white uppercase leading-tight truncate">{selectedServices.map(s => s.name).join(', ')}</p></div>
+                      </div>
+                      <div className="flex items-center gap-4 pt-2">
+                        <div className="w-8 h-8 rounded-lg bg-gold-600/10 flex items-center justify-center border border-gold-600/20"><DollarSign size={14} className="text-gold-600" /></div>
+                        <div className="flex-1"><p className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Investimento</p><p className="text-xl font-black text-gold-600 tracking-tighter italic">R$ {totalPrice.toFixed(0)}</p></div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
 
-            {step === 5 && (
-              <motion.div key="step5" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center text-center space-y-10 py-10 h-full">
-                <div className="relative"><div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center border border-emerald-500/20"><CheckCircle size={32} className="text-emerald-500" /></div></div>
-                <div className="space-y-3"><h2 className="text-3xl font-black text-white uppercase tracking-tighter italic">Sucesso!</h2><p className="text-xs text-zinc-500 font-bold uppercase tracking-widest leading-relaxed max-w-[240px]">Agendamento confirmado. Redirecionando para o WhatsApp...</p></div>
-                <button onClick={() => navigate('/')} className="w-full max-w-[200px] bg-white text-black font-black py-4 rounded-xl text-[10px] uppercase tracking-[0.3em] shadow-xl active:scale-95 transition-all">Concluído</button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Footer Actions - Standardized Buttons */}
-        {step < 5 && (
-          <div className="shrink-0 flex items-center gap-3 pt-4">
-            {step > 1 && (
-              <button 
-                onClick={() => setStep(step - 1)} 
-                className="w-14 h-14 rounded-2xl bg-neutral-900 border border-white/5 flex items-center justify-center text-zinc-500 hover:text-white transition-all active:scale-95"
-              >
-                <ChevronLeft size={20} />
-              </button>
-            )}
-            <button 
-              disabled={(step === 1 && selectedServices.length === 0) || (step === 2 && (!selectedDate || !selectedTime)) || (step === 3 && (!userInfo.name || !userInfo.phone))} 
-              onClick={step === 4 ? handleConfirm : () => setStep(step + 1)} 
-              className={`flex-1 h-14 rounded-2xl font-black text-[11px] uppercase tracking-[0.3em] transition-all active:scale-[0.98] shadow-2xl flex items-center justify-center gap-2 ${
-                step === 4 
-                ? 'bg-gold-600 text-black' 
-                : 'bg-white text-black hover:bg-zinc-200'
-              } disabled:opacity-20 disabled:grayscale`}
-            >
-              {isSubmitting ? 'Processando...' : step === 4 ? 'Confirmar' : 'Próximo'}
-              {step < 4 && <ChevronRight size={16} />}
-            </button>
+              {step === 5 && (
+                <motion.div key="step5" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center text-center space-y-10 py-10 h-full">
+                  <div className="relative"><div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]"><CheckCircle size={32} className="text-emerald-500" /></div></div>
+                  <div className="space-y-3"><h2 className="text-3xl font-black text-white uppercase tracking-tighter italic leading-none">Sucesso!</h2><p className="text-xs text-zinc-500 font-bold uppercase tracking-widest leading-relaxed max-w-[240px]">Agendamento confirmado. Redirecionando para o WhatsApp...</p></div>
+                  <button onClick={() => navigate('/')} className="w-full max-w-[200px] bg-white text-black font-black py-5 rounded-xl text-[11px] uppercase tracking-[0.3em] shadow-2xl active:scale-95 transition-all">Concluído</button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        )}
-      </main>
+
+          {/* Footer Actions */}
+          {step < 5 && (
+            <div className="shrink-0 flex items-center gap-3 pt-6 border-t border-white/5 mt-4">
+              {step > 1 && (
+                <button 
+                  onClick={() => setStep(step - 1)} 
+                  className="w-14 h-14 rounded-xl bg-neutral-900 border border-white/5 flex items-center justify-center text-zinc-500 hover:text-white transition-all active:scale-95 shadow-lg"
+                >
+                  <ChevronLeft size={22} />
+                </button>
+              )}
+              <button 
+                disabled={(step === 1 && selectedServices.length === 0) || (step === 2 && (!selectedDate || !selectedTime)) || (step === 3 && (!userInfo.name || !userInfo.phone))} 
+                onClick={step === 4 ? handleConfirm : () => setStep(step + 1)} 
+                className={`flex-1 h-14 rounded-xl font-black text-[12px] uppercase tracking-[0.3em] transition-all active:scale-[0.98] shadow-2xl flex items-center justify-center gap-2 ${
+                  step === 4 
+                  ? 'bg-gold-600 text-black shadow-[0_15px_30px_-10px_rgba(197,160,89,0.3)]' 
+                  : 'bg-white text-black hover:bg-zinc-200'
+                } disabled:opacity-10 disabled:grayscale`}
+              >
+                {isSubmitting ? 'Processando...' : step === 4 ? 'Confirmar' : 'Próximo'}
+                {step < 4 && <ChevronRight size={18} />}
+              </button>
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 };
