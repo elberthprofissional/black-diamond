@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
-import { Scissors, Menu, X } from 'lucide-react';
+import React from 'react';
+import { Scissors } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const Navbar: React.FC = () => {
-  // Trigger build: 14:10
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  // Trigger build: 14:14
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -20,7 +19,6 @@ const Navbar: React.FC = () => {
       const element = document.getElementById(id);
       if (element) element.scrollIntoView({ behavior: 'smooth' });
     }
-    setIsMobileMenuOpen(false);
   };
 
   return (
