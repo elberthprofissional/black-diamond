@@ -54,13 +54,6 @@ const AdminDashboard: React.FC = () => {
     "16:30", "17:00", "17:30", "18:00", "18:30"
   ];
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return "BOM DIA";
-    if (hour >= 12 && hour < 18) return "BOA TARDE";
-    return "BOA NOITE";
-  };
-
   const menuItems = [
     { id: 'agenda', label: 'Agenda', icon: LayoutDashboard },
     { id: 'faturamento', label: 'Finanças', icon: TrendingUp },
