@@ -549,7 +549,6 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="flex flex-col">
                 <h1 className="text-white font-black text-sm tracking-[0.2em] uppercase leading-none">Black Diamond</h1>
-                <span className="text-[9px] text-[#C5A059] font-bold uppercase tracking-[0.4em] mt-1">Elite System</span>
               </div>
             </div>
 
