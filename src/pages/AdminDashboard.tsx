@@ -439,14 +439,14 @@ const AdminDashboard: React.FC = () => {
 
                 {viewMode === 'semanal' ? (
                   <div className="space-y-12">
-                    <div className="bg-gradient-to-b from-white/[0.05] to-transparent border border-white/10 backdrop-blur-md p-16 rounded-[2rem] flex flex-col items-center justify-center text-center shadow-2xl">
-                      <span className="text-[10px] text-zinc-500 font-bold tracking-[0.4em] uppercase mb-8 opacity-60">Receita Bruta Acumulada</span>
+                    <div className="bg-gradient-to-b from-white/[0.05] to-transparent border border-white/10 backdrop-blur-md p-16 rounded-[2rem] flex flex-col items-center justify-center text-center shadow-2xl relative overflow-hidden">
+                      <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center mb-6">
+                        <DollarSign size={20} className="text-[#D4AF37]" />
+                      </div>
+                      <span className="text-[10px] text-zinc-500 font-bold tracking-[0.4em] uppercase mb-4 opacity-60">Lucro da Semana</span>
                       <div className="flex items-baseline gap-4">
                         <span className="text-4xl font-bold text-[#D4AF37] opacity-40">R$</span>
                         <h2 className="text-6xl font-black text-[#D4AF37] tracking-tighter leading-none drop-shadow-md">{totalRevenue.toFixed(0)}</h2>
-                      </div>
-                      <div className="mt-10 px-6 py-2 bg-emerald-500/5 border border-emerald-500/10 rounded-full">
-                        <p className="text-emerald-400/80 text-xs font-medium tracking-wide uppercase">+24.8% vs período anterior</p>
                       </div>
                     </div>
 
