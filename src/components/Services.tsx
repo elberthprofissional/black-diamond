@@ -22,17 +22,16 @@ const Services: React.FC = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
+        duration: 0.5
       }
     }
   };
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      y: 0,
-      transition: { duration: 0.8, ease: "easeOut" }
+      transition: { duration: 0.5 }
     }
   };
 
@@ -41,8 +40,8 @@ const Services: React.FC = () => {
       <div className="container mx-auto px-6 relative z-10 max-w-5xl">
         <div className="text-center mb-24 lg:mb-32">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >

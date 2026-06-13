@@ -35,9 +35,9 @@ const Navbar: React.FC = () => {
     <nav className={`fixed w-full z-50 transition-all duration-700 ${isScrolled ? 'bg-black/90 backdrop-blur-md py-3 shadow-[0_10px_30px_-10px_rgba(197,160,89,0.1)]' : 'bg-transparent py-6'}`}>
       <div className="container mx-auto px-6 flex justify-between items-center">
         <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
           className="flex items-center space-x-3 group cursor-pointer" 
           onClick={() => navigate('/')}
         >
@@ -45,14 +45,14 @@ const Navbar: React.FC = () => {
              <img 
                src="/assets/logo.webp" 
                alt="Black Diamond" 
-               className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" 
+               className="w-full h-full object-contain" 
                onError={(e) => {
                  e.currentTarget.style.display = 'none';
                  const fallback = document.getElementById('nav-fallback-icon');
                  if (fallback) fallback.style.display = 'block';
                }} 
              />
-             <Scissors className="text-gold-600 w-8 h-8 group-hover:rotate-12 transition-transform duration-500" style={{ display: 'none' }} id="nav-fallback-icon" />
+             <Scissors className="text-gold-600 w-8 h-8" style={{ display: 'none' }} id="nav-fallback-icon" />
           </div>
           <div className="flex flex-col">
             <span className="text-xl md:text-2xl font-serif font-bold tracking-[0.2em] text-white leading-none uppercase">BLACK DIAMOND</span>
@@ -67,12 +67,12 @@ const Navbar: React.FC = () => {
             { label: 'Serviços', id: 'servicos' },
             { label: 'Sobre', id: 'sobre' },
             { label: 'Localização', id: 'localização' }
-          ].map((item, idx) => (
+          ].map((item) => (
             <motion.button 
               key={item.id}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 * idx }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
               onClick={() => handleNavClick(item.id)}
               className="text-[11px] uppercase tracking-[0.2em] text-gray-400 hover:text-white transition-colors duration-500 font-medium relative group"
             >
@@ -81,11 +81,11 @@ const Navbar: React.FC = () => {
             </motion.button>
           ))}
           <motion.button 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
             onClick={() => navigate('/agendar')}
-            className="group relative border border-[#C5A059] px-8 py-2.5 rounded-sm transition-all duration-700 hover:bg-[#C5A059] overflow-hidden"
+            className="group relative border border-[#C5A059] px-8 py-2.5 rounded-sm transition-all duration-500 hover:bg-[#C5A059] overflow-hidden"
           >
             <span className="relative z-10 text-[#C5A059] group-hover:text-black font-bold text-[11px] uppercase tracking-widest transition-colors duration-500">Agendar Agora</span>
           </motion.button>
