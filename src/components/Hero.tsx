@@ -7,12 +7,12 @@ const Hero: React.FC = () => {
 
   return (
     <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden bg-[#09090B]">
-      {/* Background Image with Cinematic Overlay */}
+      {/* Background Image using user-provided 'Tela=incio.webp' */}
       <div 
         className="absolute inset-0 bg-cover bg-center z-0 scale-105 animate-slow-zoom" 
         style={{ 
-          backgroundImage: 'url("https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80")',
-          filter: 'brightness(0.15)'
+          backgroundImage: 'url("/assets/img/Tela=incio.webp")',
+          filter: 'brightness(0.3)'
         }}
       />
       
@@ -26,18 +26,18 @@ const Hero: React.FC = () => {
           transition={{ duration: 1.5, ease: "easeOut" }}
         >
           <div className="flex flex-col items-center mb-10">
-            <h2 className="text-gold-600 font-sans font-medium text-xs tracking-[0.6em] uppercase mb-4">
+            <h2 className="text-gold-600 font-sans font-medium text-xs tracking-[0.6em] uppercase mb-4 text-shadow-glow">
               Estilo e Tradição
             </h2>
-            <div className="h-[1px] w-12 bg-gold-600/40"></div>
+            <div className="h-[1px] w-12 bg-gold-600/40 shadow-[0_0_10px_rgba(197,160,89,0.5)]"></div>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-serif font-bold text-white mb-10 tracking-[0.2em] leading-tight">
-            BLACK <span className="italic">DIAMOND</span>
+          <h1 className="text-5xl md:text-8xl font-serif font-bold text-white mb-10 tracking-[0.2em] leading-tight">
+            BLACK <span className="italic font-light">DIAMOND</span>
           </h1>
           
           <div className="max-w-xl mx-auto mb-12">
-            <p className="text-gray-500 font-sans font-light text-xs md:text-sm tracking-[0.3em] uppercase leading-relaxed">
+            <p className="text-gray-300 font-sans font-light text-xs md:text-sm tracking-[0.3em] uppercase leading-relaxed">
               Onde a tradição encontra o luxo moderno. <br />
               Excelência em cada detalhe.
             </p>
@@ -65,7 +65,7 @@ const Hero: React.FC = () => {
 
       {/* Decorative vertical line */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 z-10 opacity-30">
-        <div className="w-[1px] h-24 bg-gradient-to-b from-gold-600 to-transparent"></div>
+        <div className="w-[1px] h-24 bg-gradient-to-b from-gold-600 to-transparent shadow-[0_0_15px_rgba(197,160,89,0.5)]"></div>
       </div>
     </section>
   );

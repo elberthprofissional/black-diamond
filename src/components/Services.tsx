@@ -17,7 +17,7 @@ const Services: React.FC = () => {
   }, []);
 
   return (
-    <section id="servicos" className="py-40 bg-[#09090B] text-white relative overflow-hidden">
+    <section id="servicos" className="py-40 bg-[#09090B] text-white relative overflow-hidden border-t border-white/5">
       <div className="container mx-auto px-6 relative z-10 max-w-5xl">
         <div className="text-center mb-24">
           <motion.div
@@ -36,7 +36,7 @@ const Services: React.FC = () => {
             <div className="w-8 h-8 border-2 border-gold-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : (
-          <div className="divide-y divide-zinc-900 border-y border-zinc-900">
+          <div className="divide-y divide-white/5 border-y border-white/5">
             {services.map((service, index) => (
               <motion.div 
                 key={service.id}
@@ -44,23 +44,26 @@ const Services: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: index * 0.05 }}
                 viewport={{ once: true }}
-                className="grid grid-cols-1 md:grid-cols-12 gap-6 py-10 md:items-center hover:bg-zinc-900/20 transition-all duration-500 group cursor-pointer"
+                className="grid grid-cols-1 md:grid-cols-12 gap-6 py-12 md:items-center hover:bg-white/[0.02] transition-all duration-500 group cursor-pointer"
                 onClick={() => navigate('/agendar')}
               >
                 <div className="col-span-1 md:col-span-7">
-                  <div className="flex items-baseline space-x-6">
+                  <div className="flex items-baseline space-x-8">
                     <span className="text-[10px] text-gold-600/40 font-bold tracking-widest font-serif">0{index + 1}</span>
                     <div>
                       <h4 className="text-xl md:text-2xl font-serif font-medium text-white group-hover:text-gold-600 transition-colors duration-500">{service.name}</h4>
-                      <p className="text-sm text-gray-600 font-light mt-2 tracking-wide max-w-md">{service.description}</p>
+                      <p className="text-sm text-gray-500 font-light mt-2 tracking-wide max-w-md">{service.description}</p>
                     </div>
                   </div>
                 </div>
                 
                 <div className="col-span-1 md:col-span-2">
-                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">
-                    {service.duration} MIN
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-1 h-1 rounded-full bg-gold-600/30"></div>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">
+                      {service.duration} MIN
+                    </span>
+                  </div>
                 </div>
                 
                 <div className="col-span-1 md:col-span-3 text-right flex items-center justify-end space-x-10">

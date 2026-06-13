@@ -62,8 +62,15 @@ const BookingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090B] text-white py-20 px-6">
-      <div className="container mx-auto max-w-4xl">
+    <div className="min-h-screen bg-[#09090B] text-white overflow-hidden relative">
+      {/* Background Image using user-provided 'agendamento-bg.webp' */}
+      <div 
+        className="fixed inset-0 bg-cover bg-center z-0 opacity-20 pointer-events-none" 
+        style={{ backgroundImage: 'url("/assets/img/agendamento-bg.webp")' }}
+      />
+      <div className="fixed inset-0 bg-gradient-to-b from-transparent via-[#09090B]/60 to-[#09090B] z-0 pointer-events-none" />
+
+      <div className="container mx-auto max-w-4xl relative z-10 py-20 px-6">
         
         {/* Header */}
         <div className="flex flex-col items-center text-center mb-16">
@@ -93,7 +100,7 @@ const BookingPage: React.FC = () => {
         </div>
 
         {/* Main Content Card */}
-        <div className="bg-[#0A0A0A] border border-white/5 p-8 md:p-12 shadow-2xl min-h-[500px] flex flex-col">
+        <div className="bg-black/40 backdrop-blur-xl border border-white/5 p-8 md:p-12 shadow-2xl min-h-[500px] flex flex-col">
           <div className="flex-1">
             <AnimatePresence mode="wait">
               {step === 1 && (
@@ -122,7 +129,7 @@ const BookingPage: React.FC = () => {
                           className={`flex justify-between items-center p-6 border transition-all duration-500 text-left ${
                             selectedServices.find(s => s.id === service.id)
                               ? 'border-gold-600 bg-gold-600/5'
-                              : 'border-white/5 hover:border-white/10 bg-[#09090B]'
+                              : 'border-white/5 hover:border-white/10 bg-black/20'
                           }`}
                         >
                           <div>
@@ -152,7 +159,7 @@ const BookingPage: React.FC = () => {
                     </div>
                     <input 
                       type="date" 
-                      className="w-full bg-[#09090B] border border-white/5 text-white p-5 rounded-none outline-none focus:border-gold-600 transition-colors uppercase text-[10px] font-bold tracking-[0.2em]"
+                      className="w-full bg-black/20 border border-white/5 text-white p-5 rounded-none outline-none focus:border-gold-600 transition-colors uppercase text-[10px] font-bold tracking-[0.2em]"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
                     />
@@ -171,7 +178,7 @@ const BookingPage: React.FC = () => {
                           className={`p-4 border text-[10px] font-bold tracking-widest transition-all duration-500 ${
                             selectedTime === time
                               ? 'border-gold-600 bg-gold-600/10 text-white'
-                              : 'border-white/5 hover:border-white/10 text-gray-500 bg-[#09090B]'
+                              : 'border-white/5 hover:border-white/10 text-gray-500 bg-black/20'
                           }`}
                         >
                           {time}
@@ -201,7 +208,7 @@ const BookingPage: React.FC = () => {
                       <input 
                         type="text" 
                         placeholder="Ex: João Silva"
-                        className="w-full bg-[#09090B] border border-white/5 text-white p-5 rounded-none outline-none focus:border-gold-600 transition-colors text-sm font-light tracking-wide"
+                        className="w-full bg-black/20 border border-white/5 text-white p-5 rounded-none outline-none focus:border-gold-600 transition-colors text-sm font-light tracking-wide"
                         value={userInfo.name}
                         onChange={(e) => setUserInfo({...userInfo, name: e.target.value})}
                       />
@@ -211,7 +218,7 @@ const BookingPage: React.FC = () => {
                       <input 
                         type="tel" 
                         placeholder="Ex: (31) 99999-9999"
-                        className="w-full bg-[#09090B] border border-white/5 text-white p-5 rounded-none outline-none focus:border-gold-600 transition-colors text-sm font-light tracking-wide"
+                        className="w-full bg-black/20 border border-white/5 text-white p-5 rounded-none outline-none focus:border-gold-600 transition-colors text-sm font-light tracking-wide"
                         value={userInfo.phone}
                         onChange={(e) => setUserInfo({...userInfo, phone: e.target.value})}
                       />
@@ -233,7 +240,7 @@ const BookingPage: React.FC = () => {
                     <h3 className="text-3xl font-serif font-bold text-white uppercase tracking-widest">Resumo Final</h3>
                   </div>
                   
-                  <div className="bg-[#09090B] p-10 border border-white/5 text-left space-y-6 max-w-lg mx-auto">
+                  <div className="bg-black/20 p-10 border border-white/5 text-left space-y-6 max-w-lg mx-auto">
                     <div className="flex justify-between border-b border-white/5 pb-4">
                       <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Serviços</span>
                       <span className="text-sm font-bold text-white text-right max-w-[200px]">{selectedServices.map(s => s.name).join(', ')}</span>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Star, Quote } from 'lucide-react';
+import { Star, ChevronRight } from 'lucide-react';
 
 const Testimonials: React.FC = () => {
   const reviews = [
@@ -33,66 +33,72 @@ const Testimonials: React.FC = () => {
       name: "Anderson Piedrahita",
       text: "Exelente atendimento recomendado. Estaremos aqui sempre para oferecer o melhor.",
       date: "um mês atrás"
+    },
+    {
+      name: "Tiago Comam",
+      text: "Essa é a melhor barbiaria da região. Tato é bom demais, cara sabe como cuidar de um cabelo.",
+      date: "2 meses atrás"
+    },
+    {
+      name: "Alan Nunes",
+      text: "Top, super recomendo. Muito obrigado por contar com nossos serviços.",
+      date: "2 meses atrás"
     }
   ];
 
   return (
     <section id="depoimentos" className="py-40 bg-[#09090B] text-white relative overflow-hidden">
-      {/* Decorative Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gold-600/5 blur-[120px] rounded-full pointer-events-none" />
-
       <div className="container mx-auto px-6 relative z-10">
-        <div className="text-center mb-24">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-24">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-gold-600 font-sans font-bold text-xs tracking-[0.5em] uppercase mb-4">Social Proof</h2>
-            <h3 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4 tracking-tight uppercase">O QUE NOSSOS CLIENTES DIZEM</h3>
-            <div className="h-[1px] w-12 bg-gold-600/30 mx-auto"></div>
+            <h2 className="text-gold-600 font-sans font-bold text-xs tracking-[0.5em] uppercase mb-4">Experiências Reais</h2>
+            <h3 className="text-4xl md:text-6xl font-serif font-bold text-white tracking-tight uppercase">O QUE DIZEM <br /> NOSSOS CLIENTES</h3>
           </motion.div>
+          
+          <div className="hidden md:flex space-x-4 mb-2">
+            <div className="text-gray-600 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center">
+              Arraste para o lado <ChevronRight size={14} className="ml-2 animate-bounce-x" />
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Horizontal Scroll Container */}
+        <div className="flex overflow-x-auto space-x-6 pb-12 custom-scrollbar snap-x snap-mandatory group">
           {reviews.map((review, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: index * 0.05 }}
               viewport={{ once: true }}
-              className="bg-white/[0.02] border border-white/5 p-10 hover:border-gold-600/30 transition-all duration-500 group relative"
+              className="min-w-[300px] md:min-w-[400px] bg-white/[0.02] border border-white/5 p-12 snap-start hover:border-gold-600/30 transition-all duration-700"
             >
-              <Quote className="absolute top-8 right-10 text-gold-600/10 w-12 h-12" />
-              
-              <div className="flex space-x-1 mb-6">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star key={s} size={12} className="fill-gold-600 text-gold-600" />
-                ))}
-              </div>
+              <div className="flex flex-col h-full">
+                <div className="mb-8">
+                  <h4 className="text-white font-serif font-bold text-lg uppercase tracking-widest mb-2 truncate">
+                    {review.name}
+                  </h4>
+                  <div className="flex space-x-1">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star key={s} size={10} className="fill-gold-600 text-gold-600" />
+                    ))}
+                  </div>
+                </div>
 
-              <p className="text-gray-400 font-light leading-relaxed mb-8 italic">
-                "{review.text}"
-              </p>
+                <p className="text-gray-400 font-light leading-relaxed text-sm md:text-base italic flex-1 mb-10">
+                  "{review.text}"
+                </p>
 
-              <div className="flex flex-col border-t border-white/5 pt-6">
-                <span className="text-white font-serif font-bold text-sm uppercase tracking-widest">{review.name}</span>
-                <span className="text-[10px] text-gray-600 uppercase tracking-widest font-bold mt-1">{review.date}</span>
+                <div className="text-[9px] text-gray-600 uppercase tracking-widest font-black">
+                  {review.date}
+                </div>
               </div>
             </motion.div>
           ))}
-        </div>
-
-        <div className="mt-20 text-center">
-          <a 
-            href="https://www.google.com/maps" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-gray-500 hover:text-gold-600 transition-colors text-[10px] font-black uppercase tracking-[0.4em] border-b border-gray-800 hover:border-gold-600 pb-2"
-          >
-            Ver todas as avaliações no Google →
-          </a>
         </div>
       </div>
     </section>
