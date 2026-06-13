@@ -452,12 +452,11 @@ const AdminDashboard: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                       {[
-                        { label: 'Ticket Médio', value: `R$ ${(totalRevenue / (bookings.length || 1)).toFixed(0)}`, icon: DollarSign },
-                        { label: 'Cancelamentos', value: '4.2%', icon: Scissors },
+                        { label: 'Cancelamentos', value: '0', icon: Scissors },
                         { label: 'Novos Clientes', value: '12', icon: Users },
-                        { label: 'Taxa Retenção', value: '88.5%', icon: TrendingUp },
+                        { label: 'Atendimentos Realizados', value: bookings.length.toString(), icon: CheckCircle },
                       ].map((stat, i) => (
                         <div key={i} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.05] group relative flex flex-col justify-between h-36">
                           <div className="flex justify-between items-start">
@@ -468,45 +467,40 @@ const AdminDashboard: React.FC = () => {
                         </div>
                       ))}
                     </div>
-
-                    <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-10 rounded-2xl flex flex-col md:flex-row items-center justify-around text-center gap-12 shadow-xl border-dashed">
-                      <div className="space-y-2">
-                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">Atendimentos Efetuados</p>
-                        <p className="text-4xl font-black text-white tracking-tight">{bookings.length}</p>
-                      </div>
-                      <div className="h-16 w-[1px] bg-white/5 hidden md:block" />
-                      <div className="space-y-2">
-                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">Faltas & No-show</p>
-                        <p className="text-4xl font-black text-red-500/80 tracking-tighter">01</p>
-                      </div>
-                    </div>
                   </div>
                 ) : (
                   <div className="space-y-12">
-                    <div className="bg-gradient-to-b from-white/[0.05] to-transparent border border-white/10 backdrop-blur-md p-16 rounded-[2rem] flex flex-col items-center justify-center text-center shadow-2xl">
-                      <span className="text-[10px] text-zinc-500 font-bold tracking-[0.4em] uppercase mb-8 opacity-60">Faturamento Mensal Estimado</span>
+                    <div className="bg-gradient-to-b from-white/[0.05] to-transparent border border-white/10 backdrop-blur-md p-16 rounded-[2rem] flex flex-col items-center justify-center text-center shadow-2xl relative overflow-hidden">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center">
+                          <DollarSign size={16} className="text-zinc-400" />
+                        </div>
+                        <span className="text-[10px] text-zinc-500 font-bold tracking-[0.4em] uppercase opacity-60">Lucro do Mês (Estimado)</span>
+                      </div>
                       <div className="flex items-baseline gap-4">
                         <span className="text-4xl font-bold text-[#D4AF37] opacity-40">R$</span>
                         <h2 className="text-6xl font-black text-[#D4AF37] tracking-tighter leading-none drop-shadow-md">{(totalRevenue * 4.2).toFixed(0)}</h2>
                       </div>
-                      <p className="text-[10px] text-gold-600/60 font-bold uppercase tracking-[0.3em] mt-10">Resumo Consolidado 30 dias</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl text-center shadow-xl flex flex-col justify-center min-h-[160px]">
-                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Clientes Atendidos</p>
-                        <p className="text-5xl font-black text-white tracking-tighter">{bookings.length * 4}</p>
-                        <div className="w-10 h-1 bg-[#D4AF37]/20 mx-auto mt-6 rounded-full" />
-                      </div>
-                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl text-center shadow-xl flex flex-col justify-center min-h-[160px]">
-                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Cancelamentos Totais</p>
+                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl shadow-xl flex flex-col justify-center min-h-[160px] relative group overflow-hidden transition-all hover:bg-white/[0.04]">
+                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Cancelamentos no Mês</p>
                         <p className="text-5xl font-black text-white tracking-tighter">04</p>
-                        <div className="w-10 h-1 bg-red-500/20 mx-auto mt-6 rounded-full" />
+                        <div className="w-10 h-1 bg-red-500/20 mt-6 rounded-full" />
+                        <Scissors size={24} className="absolute top-6 right-6 text-red-500/20" />
                       </div>
-                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl text-center shadow-xl border-[#D4AF37]/10 flex flex-col justify-center min-h-[160px]">
-                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Crescimento de Base</p>
+                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl shadow-xl flex flex-col justify-center min-h-[160px] relative group overflow-hidden transition-all hover:bg-white/[0.04]">
+                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Novos Clientes no Mês</p>
                         <p className="text-5xl font-black text-[#D4AF37] tracking-tighter">48</p>
-                        <div className="w-10 h-1 bg-[#D4AF37]/40 mx-auto mt-6 rounded-full" />
+                        <div className="w-10 h-1 bg-[#D4AF37]/20 mt-6 rounded-full" />
+                        <Users size={24} className="absolute top-6 right-6 text-[#D4AF37]/20" />
+                      </div>
+                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl shadow-xl flex flex-col justify-center min-h-[160px] relative group overflow-hidden transition-all hover:bg-white/[0.04]">
+                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Atendimentos no Mês</p>
+                        <p className="text-5xl font-black text-white tracking-tighter">{bookings.length * 4}</p>
+                        <div className="w-10 h-1 bg-white/10 mt-6 rounded-full" />
+                        <CheckCircle size={24} className="absolute top-6 right-6 text-white/10" />
                       </div>
                     </div>
                   </div>
