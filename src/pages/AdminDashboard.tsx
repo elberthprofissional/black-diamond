@@ -217,7 +217,7 @@ const AdminDashboard: React.FC = () => {
         <header className="max-w-6xl mx-auto flex items-center justify-between mb-24">
           <button 
             onClick={() => setViewingClient(null)}
-            className="flex items-center gap-3 text-zinc-600 hover:text-white transition-all uppercase text-[10px] font-black tracking-[0.4em] group"
+            className="flex items-center gap-3 text-zinc-600 hover:text-white transition-all uppercase text-[9px] font-black tracking-[0.4em] group"
           >
             <ArrowLeft size={14} className="group-hover:-translate-x-2 transition-transform" />
             Voltar para Clientes
