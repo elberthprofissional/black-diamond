@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Scissors, Lock, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Scissors, Lock, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const AdminLogin: React.FC = () => {
