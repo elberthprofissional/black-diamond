@@ -54,10 +54,9 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
           ))}
           <button 
             onClick={onOpenBooking}
-            className="relative overflow-hidden group bg-gold-600 px-8 py-2.5 rounded-sm transition-all duration-300 hover:shadow-[0_0_20px_rgba(212,175,55,0.3)]"
+            className="group relative border border-gold-600 px-8 py-2.5 rounded-sm transition-all duration-500 hover:bg-gold-600"
           >
-            <span className="relative z-10 text-black font-bold text-[11px] uppercase tracking-widest">Agendar Agora</span>
-            <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+            <span className="relative z-10 text-gold-600 group-hover:text-black font-bold text-[11px] uppercase tracking-widest transition-colors duration-500">Agendar Agora</span>
           </button>
         </div>
 

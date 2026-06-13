@@ -53,7 +53,7 @@ const About: React.FC = () => {
             </h3>
             
             <div className="space-y-10">
-              <p className="text-gray-500 font-light text-lg md:text-xl leading-relaxed tracking-wide max-w-2xl">
+              <p className="text-gray-500 font-light text-lg md:text-xl leading-relaxed tracking-wide max-w-2xl font-sans">
                 "A Black Diamond nasceu do sonho de ser mais do que uma barbearia: um espaço de confiança. Um lugar pra você sentar, relaxar e saber que está em boas mãos."
               </p>
               

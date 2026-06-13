@@ -27,24 +27,24 @@ const Location: React.FC = () => {
               <div className="flex items-start space-x-6 group">
                 <MapPin className="text-gold-600 w-5 h-5 shrink-0 mt-1" />
                 <div>
-                  <h4 className="text-gray-500 font-bold text-[9px] tracking-[0.3em] uppercase mb-3">Endereço</h4>
-                  <p className="text-gray-400 font-light text-lg leading-relaxed">Av. Brasílio da Gama, 139 - Bairro Tupi, <br />Belo Horizonte — MG</p>
+                  <h4 className="text-gold-600 font-sans font-bold text-[9px] tracking-[0.3em] uppercase mb-3">Endereço</h4>
+                  <p className="text-gray-500 font-sans font-light text-lg leading-relaxed">Av. Brasílio da Gama, 139 - Bairro Tupi, <br />Belo Horizonte — MG</p>
                 </div>
               </div>
 
               <div className="flex items-start space-x-6 group">
                 <Clock className="text-gold-600 w-5 h-5 shrink-0 mt-1" />
                 <div>
-                  <h4 className="text-gray-500 font-bold text-[9px] tracking-[0.3em] uppercase mb-3">Horário</h4>
-                  <p className="text-gray-400 font-light text-lg leading-relaxed">Segunda a Sábado — 08:30 às 19:00</p>
+                  <h4 className="text-gold-600 font-sans font-bold text-[9px] tracking-[0.3em] uppercase mb-3">Horário</h4>
+                  <p className="text-gray-500 font-sans font-light text-lg leading-relaxed">Segunda a Sábado — 08:30 às 19:00</p>
                 </div>
               </div>
 
               <div className="flex items-start space-x-6 group">
                 <Phone className="text-gold-600 w-5 h-5 shrink-0 mt-1" />
                 <div>
-                  <h4 className="text-gray-500 font-bold text-[9px] tracking-[0.3em] uppercase mb-3">WhatsApp</h4>
-                  <p className="text-gray-400 font-light text-lg leading-relaxed">(31) 99955-3580</p>
+                  <h4 className="text-gold-600 font-sans font-bold text-[9px] tracking-[0.3em] uppercase mb-3">WhatsApp</h4>
+                  <p className="text-gray-500 font-sans font-light text-lg leading-relaxed">(31) 99955-3580</p>
                 </div>
               </div>
             </div>
@@ -54,7 +54,7 @@ const Location: React.FC = () => {
                 onClick={() => window.open('https://maps.google.com', '_blank')}
                 className="group flex items-center space-x-4 border border-white/10 px-10 py-6 hover:border-gold-600 transition-all duration-700"
               >
-                <span className="text-white text-[10px] font-black uppercase tracking-[0.4em] group-hover:text-gold-600 transition-colors">Abrir no Google Maps</span>
+                <span className="text-white text-[10px] font-sans font-black uppercase tracking-[0.4em] group-hover:text-gold-600 transition-colors">Abrir no Google Maps</span>
                 <Navigation className="w-3 h-3 text-gold-600" />
               </button>
             </div>
@@ -68,7 +68,7 @@ const Location: React.FC = () => {
             transition={{ duration: 1 }}
             className="w-full lg:w-7/12 relative min-h-[500px]"
           >
-            <div className="w-full h-full bg-dark-card border border-white/5 relative overflow-hidden">
+            <div className="w-full h-full bg-dark-card border border-white/5 relative overflow-hidden shadow-2xl">
               <iframe 
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3752.9849031916665!2d-43.9202011!3d-19.840591699999997!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xa685e76e58e90f%3A0xf899efab3913f3f7!2sBarbearia%20Black%20Diamond!5e0!3m2!1spt-BR!2sbr!4v1781307318513!5m2!1spt-BR!2sbr" 
                 width="100%" 
