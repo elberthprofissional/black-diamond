@@ -2,14 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { getServices } from '../lib/api';
 import type { Service } from '../types';
+import { useNavigate } from 'react-router-dom';
 
-interface ServicesProps {
-  onOpenBooking: () => void;
-}
-
-const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
+const Services: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     getServices()
@@ -19,7 +17,7 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
   }, []);
 
   return (
-    <section id="servicos" className="py-40 bg-dark-pure text-white relative overflow-hidden">
+    <section id="servicos" className="py-40 bg-[#09090B] text-white relative overflow-hidden">
       <div className="container mx-auto px-6 relative z-10 max-w-5xl">
         <div className="text-center mb-24">
           <motion.div
@@ -47,7 +45,7 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
                 transition={{ duration: 0.8, delay: index * 0.05 }}
                 viewport={{ once: true }}
                 className="grid grid-cols-1 md:grid-cols-12 gap-6 py-10 md:items-center hover:bg-zinc-900/20 transition-all duration-500 group cursor-pointer"
-                onClick={onOpenBooking}
+                onClick={() => navigate('/agendar')}
               >
                 <div className="col-span-1 md:col-span-7">
                   <div className="flex items-baseline space-x-6">
@@ -70,7 +68,7 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
                     R$ {Number(service.price).toFixed(0)}
                   </span>
                   <button 
-                    onClick={(e) => { e.stopPropagation(); onOpenBooking(); }}
+                    onClick={(e) => { e.stopPropagation(); navigate('/agendar'); }}
                     className="opacity-0 group-hover:opacity-100 transition-all duration-500 text-gold-600 text-[9px] font-black uppercase tracking-[0.4em] border-b border-gold-600/0 hover:border-gold-600 pb-1"
                   >
                     Reservar

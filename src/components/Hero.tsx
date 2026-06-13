@@ -1,13 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
-interface HeroProps {
-  onOpenBooking: () => void;
-}
+const Hero: React.FC = () => {
+  const navigate = useNavigate();
 
-const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
   return (
-    <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden bg-dark-pure">
+    <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden bg-[#09090B]">
       {/* Background Image with Cinematic Overlay */}
       <div 
         className="absolute inset-0 bg-cover bg-center z-0 scale-105 animate-slow-zoom" 
@@ -18,7 +17,7 @@ const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
       />
       
       {/* Subtle Gradient for focus */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80 z-[1]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#09090B]/90 z-[1]" />
 
       <div className="container mx-auto px-6 relative z-10 text-center">
         <motion.div
@@ -46,10 +45,10 @@ const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
           
           <div className="flex flex-col items-center gap-10">
             <button 
-              onClick={onOpenBooking}
+              onClick={() => navigate('/agendar')}
               className="border border-gold-600 text-gold-600 hover:bg-gold-600 hover:text-black font-bold px-12 py-5 rounded-none text-[10px] uppercase tracking-[0.4em] transition-all duration-700 group relative"
             >
-              <span className="relative z-10">Agendar Horário</span>
+              <span className="relative z-10 text-[11px]">Agendar Horário</span>
             </button>
             
             {/* Studio Status Badge */}
