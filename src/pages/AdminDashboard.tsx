@@ -1,3 +1,4 @@
+// AdminDashboard - Elite Version 2.0 - Final Build
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { getBookings, getClients, getServices, updateBookingStatus } from '../lib/api';
 import { supabase } from '../lib/supabase';
