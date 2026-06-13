@@ -73,6 +73,7 @@ const BookingPage: React.FC = () => {
           phone: userInfo.phone
         }
       );
+      sendWhatsAppReceipt();
       setStep(5);
     } catch (error) {
       console.error(error);
