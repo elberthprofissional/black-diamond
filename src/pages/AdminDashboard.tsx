@@ -1,4 +1,4 @@
-// AdminDashboard - Elite Version 2.1 - Immersive Experience
+// AdminDashboard - Elite Version 2.2 - Ultimate Immersive UI
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { getBookings, getClients, getServices, updateBookingStatus } from '../lib/api';
 import { supabase } from '../lib/supabase';
