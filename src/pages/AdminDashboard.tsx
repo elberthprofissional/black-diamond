@@ -16,7 +16,12 @@ import {
   Scissors,
   CalendarDays,
   ArrowLeft,
-  Smartphone
+  Smartphone,
+  Tag,
+  ChevronRight,
+  Trash2,
+  History,
+  Info
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,6 +34,7 @@ const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isCreatingBooking, setIsCreatingBooking] = useState(false);
   const [viewingBooking, setViewingBooking] = useState<any | null>(null);
+  const [viewingClient, setViewingClient] = useState<any | null>(null);
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' });
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'info' | 'error' } | null>(null);
@@ -99,10 +105,23 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleSendMessage = (client?: any) => {
-    const target = client || viewingBooking?.clients;
+    const target = client || viewingBooking?.clients || viewingClient;
     if (!target?.phone) return;
     const message = `Olá ${target.name}, aqui é da Black Diamond!`;
     window.open(`https://wa.me/55${target.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  const handleDeleteClient = async (id: string) => {
+    if (!confirm('Tem certeza que deseja remover este cliente? Isso não apagará os agendamentos já feitos, mas ele sairá da sua lista de contatos.')) return;
+    try {
+      const { error } = await supabase.from('clients').delete().eq('id', id);
+      if (error) throw error;
+      setToast({ message: 'Cliente removido com sucesso.', type: 'success' });
+      setViewingClient(null);
+      fetchData();
+    } catch (error) {
+      setToast({ message: 'Erro ao remover cliente.', type: 'error' });
+    }
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -112,7 +131,7 @@ const AdminDashboard: React.FC = () => {
     .filter(b => b.status !== 'cancelled')
     .reduce((sum, b) => sum + Number(b.total_price), 0);
 
-  // Lógica Semanal (7 dias atrás)
+  // Lógica Semanal
   const lastWeekDate = new Date();
   lastWeekDate.setDate(lastWeekDate.getDate() - 7);
   const weeklyBookings = bookings.filter(b => new Date(b.booking_date) >= lastWeekDate);
@@ -120,7 +139,7 @@ const AdminDashboard: React.FC = () => {
     .filter(b => b.status !== 'cancelled')
     .reduce((sum, b) => sum + Number(b.total_price), 0);
 
-  // Lógica Mensal (30 dias atrás)
+  // Lógica Mensal
   const lastMonthDate = new Date();
   lastMonthDate.setDate(lastMonthDate.getDate() - 30);
   const monthlyBookings = bookings.filter(b => new Date(b.booking_date) >= lastMonthDate);
@@ -161,7 +180,123 @@ const AdminDashboard: React.FC = () => {
     fetchData();
   };
 
-  // TELA DE DETALHES DEDICADA
+  // TELA DE DETALHES DO CLIENTE (CRM)
+  if (viewingClient) {
+    const clientHistory = bookings.filter(b => b.client_id === viewingClient.id).sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime());
+    const totalSpent = clientHistory.filter(b => b.status === 'completed' || b.status === 'pending').reduce((sum, b) => sum + Number(b.total_price), 0);
+
+    return (
+      <motion.div 
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="min-h-screen bg-[#0A0A0A] text-white p-6 lg:p-16 selection:bg-gold-600/30 font-sans"
+      >
+        <header className="max-w-5xl mx-auto flex items-center justify-between mb-20">
+          <button 
+            onClick={() => setViewingClient(null)}
+            className="flex items-center gap-3 text-zinc-600 hover:text-white transition-all uppercase text-[9px] font-black tracking-[0.4em] group"
+          >
+            <ArrowLeft size={14} className="group-hover:-translate-x-2 transition-transform" />
+            Voltar
+          </button>
+          <span className="text-[9px] font-bold uppercase tracking-[0.5em] text-zinc-700">CRM / Client Intelligence</span>
+        </header>
+
+        <main className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-20">
+            <div className="space-y-16">
+              <div className="space-y-6">
+                <h2 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none">{viewingClient.name}</h2>
+                <div className="flex flex-wrap items-center gap-8 text-zinc-500">
+                   <div className="flex items-center gap-3">
+                     <Smartphone size={16} className="text-[#C5A059]" />
+                     <span className="text-sm font-bold tracking-widest">{viewingClient.phone}</span>
+                   </div>
+                   <div className="flex items-center gap-3">
+                     <CalendarDays size={16} className="text-zinc-700" />
+                     <span className="text-sm font-bold tracking-widest italic">Desde {new Date(viewingClient.created_at).toLocaleDateString('pt-BR')}</span>
+                   </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5 border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+                 <div className="bg-[#0A0A0A] p-8 space-y-2">
+                   <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Total de Cortes</p>
+                   <p className="text-4xl font-black text-white">{clientHistory.length}</p>
+                 </div>
+                 <div className="bg-[#0A0A0A] p-8 space-y-2 border-l border-white/5">
+                   <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Investimento</p>
+                   <p className="text-4xl font-black text-[#C5A059]">R$ {totalSpent.toFixed(0)}</p>
+                 </div>
+                 <div className="bg-[#0A0A0A] p-8 space-y-2 border-l border-white/5">
+                   <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Status</p>
+                   <p className="text-xs font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 px-3 py-1 rounded-full inline-block">Ativo</p>
+                 </div>
+              </div>
+
+              <div className="space-y-8">
+                 <div className="flex items-center gap-4">
+                    <History size={18} className="text-zinc-700" />
+                    <h3 className="text-xs font-bold uppercase tracking-[0.4em] text-white">Histórico Recente</h3>
+                 </div>
+                 <div className="space-y-4">
+                    {clientHistory.length > 0 ? clientHistory.map((b, i) => (
+                      <div key={i} className="bg-white/[0.02] border border-white/5 p-6 rounded-2xl flex items-center justify-between group hover:bg-white/[0.04] transition-all">
+                        <div className="flex items-center gap-6">
+                           <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/5">
+                              <Scissors size={16} className="text-zinc-500" />
+                           </div>
+                           <div>
+                              <p className="text-sm font-bold text-white uppercase tracking-wider">Corte Black Diamond</p>
+                              <p className="text-[10px] text-zinc-600 font-medium">{new Date(b.booking_date).toLocaleDateString('pt-BR')} às {b.booking_time.slice(0, 5)}</p>
+                           </div>
+                        </div>
+                        <div className="text-right">
+                           <p className="text-sm font-black text-[#C5A059]">R$ {Number(b.total_price).toFixed(0)}</p>
+                           <p className="text-[8px] font-bold text-zinc-700 uppercase tracking-widest">Finalizado</p>
+                        </div>
+                      </div>
+                    )) : (
+                      <p className="text-sm text-zinc-600 italic">Sem registros de serviços anteriores.</p>
+                    )}
+                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-8">
+               <div className="bg-white/[0.03] border border-white/5 p-8 rounded-[2.5rem] space-y-8">
+                  <div className="space-y-4">
+                     <button 
+                      onClick={() => handleSendMessage()}
+                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white h-16 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3"
+                     >
+                       <Smartphone size={16} /> WhatsApp
+                     </button>
+                     <button 
+                      onClick={() => handleDeleteClient(viewingClient.id)}
+                      className="w-full bg-white/5 hover:bg-red-500/10 text-zinc-500 hover:text-red-500 h-16 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3"
+                     >
+                       <Trash2 size={16} /> Remover Cliente
+                     </button>
+                  </div>
+                  <div className="h-px w-full bg-white/5" />
+                  <div className="space-y-4">
+                     <div className="flex items-start gap-4">
+                        <Info size={14} className="text-zinc-700 mt-1" />
+                        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest leading-relaxed">
+                          A remoção é definitiva da base de contatos. O histórico financeiro permanecerá salvo para relatórios.
+                        </p>
+                     </div>
+                  </div>
+               </div>
+            </div>
+          </div>
+        </main>
+      </motion.div>
+    );
+  }
+
+  // TELA DE DETALHES DO AGENDAMENTO
   if (viewingBooking) {
     return (
       <motion.div 
@@ -784,7 +919,7 @@ const AdminDashboard: React.FC = () => {
                         clients.map((client) => (
                           <div 
                             key={client.id} 
-                            onClick={() => handleSendMessage(client)}
+                            onClick={() => setViewingClient(client)}
                             className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-colors group cursor-pointer"
                           >
                             <div className="flex items-center gap-6">
@@ -801,7 +936,7 @@ const AdminDashboard: React.FC = () => {
                                 <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mb-1">Cadastrado em</p>
                                 <p className="text-xs text-zinc-400">{new Date(client.created_at).toLocaleDateString('pt-BR')}</p>
                               </div>
-                              <ChevronLeft size={18} className="rotate-180 text-neutral-500 group-hover:text-[#C5A059] transition-colors" />
+                              <ChevronRight size={18} className="text-neutral-500 group-hover:text-[#C5A059] transition-colors" />
                             </div>
                           </div>
                         ))
