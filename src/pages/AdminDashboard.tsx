@@ -358,19 +358,28 @@ const AdminDashboard: React.FC = () => {
 
                 {/* Coluna Direita (Cards) - Apenas Desktop */}
                 <div className="space-y-6 hidden lg:block">
-                  <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md shadow-2xl rounded-2xl p-8 transition-all hover:bg-white/[0.04]">
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-4">Lucro de Hoje</span>
+                  <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md shadow-2xl rounded-2xl p-8 transition-all hover:bg-white/[0.04] relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-[#D4AF37]/5 rounded-full blur-3xl -mr-12 -mt-12 transition-all group-hover:bg-[#D4AF37]/10" />
+                    <span className="text-xs font-semibold text-neutral-500 uppercase tracking-widest block mb-6">Lucro de Hoje</span>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-white opacity-40">R$</span>
-                      <span className="text-5xl font-black text-[#D4AF37] tracking-tighter">{todayRevenue.toFixed(0)}</span>
+                      <span className="text-2xl font-bold text-[#D4AF37] opacity-40">R$</span>
+                      <span className="text-5xl font-black text-[#D4AF37] tracking-tighter drop-shadow-[0_0_15px_rgba(212,175,55,0.2)]">{todayRevenue.toFixed(0)}</span>
                     </div>
                   </div>
 
-                  <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md shadow-2xl rounded-2xl p-8 transition-all hover:bg-white/[0.04] text-center">
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-6">Vagas para Hoje</span>
-                    <div className="flex flex-col items-center">
-                      <span className="text-7xl font-black text-[#D4AF37] mb-2 tracking-tighter">{availableSlots}</span>
-                      <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.3em]">Vagas Disponíveis</span>
+                  <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md shadow-2xl rounded-2xl p-8 transition-all hover:bg-white/[0.04] relative overflow-hidden group">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-semibold text-neutral-500 uppercase tracking-widest block mb-8">Disponibilidade</span>
+                      <div className="flex items-center justify-between">
+                         <div className="flex flex-col">
+                           <span className="text-5xl font-black text-white tracking-tighter leading-none">{availableSlots}</span>
+                           <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-[0.2em] mt-2">Vagas Livres</span>
+                         </div>
+                         <div className="relative flex items-center justify-center w-16 h-16 rounded-full border-2 border-white/5 bg-white/5 group-hover:border-[#D4AF37]/30 transition-all">
+                            <Calendar size={24} className="text-[#D4AF37] opacity-60" />
+                            <div className="absolute inset-0 rounded-full bg-[#D4AF37]/5 blur-md animate-pulse" />
+                         </div>
+                      </div>
                     </div>
                   </div>
                 </div>
