@@ -57,7 +57,7 @@ const AdminDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#09090B] text-white flex font-sans overflow-hidden">
       
-      {/* Sidebar - Padrão de Site (Full Height) */}
+      {/* Sidebar - Visual Pixel Perfect */}
       <aside className="w-72 bg-[#0A0A0A] border-r border-white/5 flex flex-col h-screen sticky top-0 shrink-0 z-20">
         <div className="p-8 border-b border-white/5">
           <div className="flex items-center space-x-3 mb-10 group cursor-pointer" onClick={() => navigate('/')}>
@@ -77,7 +77,7 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar">
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
           {[
             { id: 'agenda', label: 'Agenda', icon: Calendar },
             { id: 'faturamento', label: 'Faturamento', icon: DollarSign },
@@ -87,14 +87,14 @@ const AdminDashboard: React.FC = () => {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center space-x-4 p-4 rounded-xl transition-all duration-500 group ${
+              className={`w-full flex items-center space-x-4 p-4 transition-all duration-300 group ${
                 activeTab === item.id 
-                ? 'bg-white/[0.03] text-[#C5A059]' 
-                : 'text-zinc-600 hover:text-zinc-300 hover:bg-white/[0.01]'
+                ? 'bg-zinc-900 rounded-lg border-l-2 border-[#C5A059] text-white' 
+                : 'text-zinc-500 hover:text-zinc-300'
               }`}
             >
-              <item.icon size={16} className={activeTab === item.id ? 'text-[#C5A059]' : 'text-zinc-700 group-hover:text-zinc-500 transition-colors'} />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] leading-none">{item.label}</span>
+              <item.icon size={16} className={activeTab === item.id ? 'text-white' : 'text-zinc-600 group-hover:text-zinc-400 transition-colors'} />
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] leading-none">{item.label}</span>
             </button>
           ))}
         </nav>
@@ -110,8 +110,8 @@ const AdminDashboard: React.FC = () => {
         </div>
       </aside>
 
-      {/* Main Content Area - Infinite Background */}
-      <main className="flex-1 overflow-y-auto h-screen custom-scrollbar px-10 md:px-16 py-12 lg:py-20">
+      {/* Main Content Area */}
+      <main className="flex-1 overflow-y-auto h-screen custom-scrollbar bg-[#09090B] px-10 md:px-16 py-12 lg:py-20">
         
         {activeTab === 'agenda' && (
           <motion.div 
@@ -142,7 +142,7 @@ const AdminDashboard: React.FC = () => {
                       key={time} 
                       className={`group p-10 flex items-center justify-between transition-all duration-700 rounded-[2rem] ${
                         booking 
-                        ? 'bg-[#121212] border border-white/[0.05] shadow-xl' 
+                        ? 'bg-[#121212] border border-zinc-800/40 shadow-xl' 
                         : 'bg-transparent border border-white/[0.02] hover:border-white/5'
                       }`}
                     >
@@ -172,13 +172,13 @@ const AdminDashboard: React.FC = () => {
 
               {/* Side Metric Cards */}
               <div className="lg:col-span-4 space-y-10">
-                <div className="bg-[#121212] border border-white/[0.05] p-12 rounded-[2.5rem] relative overflow-hidden shadow-2xl">
+                <div className="bg-[#121212] border border-zinc-800/50 p-12 rounded-[2.5rem] relative overflow-hidden shadow-2xl">
                   <span className="text-[9px] text-zinc-600 font-black uppercase tracking-[0.5em] mb-12 block leading-none">Lucro Bruto Hoje</span>
                   <span className="text-[#C5A059] text-7xl font-serif font-bold tracking-tighter block mb-4 leading-none">R$ {todayRevenue.toFixed(0)}</span>
                   <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-[0.3em] opacity-60">{todayBookings.length} Atendimentos</p>
                 </div>
 
-                <div className="bg-[#121212] border border-white/[0.05] p-12 rounded-[2.5rem] relative overflow-hidden">
+                <div className="bg-[#121212] border border-zinc-800/50 p-12 rounded-[2.5rem] relative overflow-hidden">
                   <span className="text-[9px] text-zinc-600 font-black uppercase tracking-[0.5em] mb-12 block leading-none">Capacidade</span>
                   <p className="text-white text-6xl font-serif font-bold mb-4 tracking-tighter uppercase leading-none">{availableSlots}</p>
                   <p className="text-zinc-700 text-[10px] font-black uppercase tracking-[0.5em]">Slots Disponíveis</p>
@@ -201,7 +201,7 @@ const AdminDashboard: React.FC = () => {
 
              <div className="space-y-12">
                 {/* Main Card */}
-                <div className="bg-[#121212] border border-white/[0.05] rounded-[4rem] p-24 md:p-32 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-2xl">
+                <div className="bg-[#121212] border border-zinc-800/50 rounded-[4rem] p-24 md:p-32 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-2xl">
                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(197,160,89,0.05)_0%,transparent_75%)]" />
                    <span className="text-[11px] text-zinc-600 font-black tracking-[0.8em] uppercase mb-16 relative z-10 opacity-40 leading-none">Lucro Acumulado Total</span>
                    <h2 className="text-8xl md:text-[13rem] font-serif font-bold text-[#C5A059] tracking-tighter relative z-10 leading-none drop-shadow-2xl">R$ {bookings.reduce((sum, b) => sum + Number(b.total_price), 0).toFixed(0)}</h2>
@@ -215,7 +215,7 @@ const AdminDashboard: React.FC = () => {
                      { label: 'Novos Clientes', value: '+0', detail: 'Conquistas' },
                      { label: 'Base Total', value: '1', detail: 'Fidelizados' },
                    ].map((stat, i) => (
-                     <div key={i} className="bg-[#121212] border border-white/[0.05] p-12 rounded-[2.5rem] transition-all duration-700 hover:scale-[1.02] group">
+                     <div key={i} className="bg-[#121212] border border-zinc-800/50 p-12 rounded-[2.5rem] transition-all duration-700 hover:scale-[1.02] group">
                         <span className="text-[9px] text-zinc-700 font-black uppercase tracking-[0.5em] mb-12 block group-hover:text-zinc-500 transition-colors leading-none">{stat.label}</span>
                         <p className="text-4xl font-serif font-bold text-zinc-100 uppercase tracking-tighter leading-none mb-3">{stat.value}</p>
                         <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-[0.4em] leading-none">{stat.detail}</p>
@@ -232,48 +232,33 @@ const AdminDashboard: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="max-w-6xl mx-auto"
           >
-             <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-12">
+             <div className="flex flex-col md:flex-row justify-between items-start mb-12 gap-8">
                 <div>
-                  <h1 className="text-6xl font-serif font-bold text-white mb-4 uppercase tracking-tighter leading-none">Clientes</h1>
-                  <span className="text-[10px] font-sans font-bold text-zinc-700 uppercase tracking-[0.8em]">Base de Dados Consolidada</span>
+                  <h1 className="text-4xl font-serif font-bold text-white mb-3 uppercase tracking-tighter">Meus Clientes</h1>
+                  <div className="px-3 py-1 bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-md text-[9px] font-black text-[#C5A059] uppercase tracking-widest inline-block">
+                    0 Clientes no Total
+                  </div>
                 </div>
-                <button className="flex items-center space-x-6 border border-zinc-800 text-zinc-500 px-14 py-6 font-black text-[10px] uppercase tracking-[0.5em] hover:bg-white hover:text-black transition-all rounded-none">
-                  <MessageSquare size={18} />
-                  <span>Notificar Todos</span>
+                <button className="flex items-center space-x-3 bg-white text-black px-10 py-4 font-black text-[10px] uppercase tracking-[0.3em] hover:bg-[#C5A059] transition-all duration-500 rounded-full shadow-lg">
+                  <MessageSquare size={16} />
+                  <span>Enviar p/ Todos</span>
                 </button>
              </div>
 
-             <div className="bg-transparent border border-white/5 rounded-none p-1 mb-20 shadow-2xl relative overflow-hidden">
-                <div className="relative z-10 group">
-                   <Search className="absolute left-8 top-1/2 -translate-y-1/2 text-zinc-800 group-focus-within:text-[#C5A059] transition-all duration-500" size={20} />
-                   <input 
-                     type="text" 
-                     placeholder="PESQUISAR BASE..."
-                     className="w-full bg-[#0A0A0A] border-none rounded-none p-8 pl-24 outline-none focus:bg-black transition-all font-sans text-xs tracking-[0.3em] text-white placeholder:text-zinc-900 uppercase font-black"
-                   />
-                </div>
-             </div>
-
-             {/* Minimalist List Layout */}
-             <div className="border border-white/5 divide-y divide-white/5 bg-[#121212]/30">
-                <div className="grid grid-cols-12 gap-4 p-8 text-[9px] font-black uppercase tracking-[0.4em] text-zinc-600 bg-white/[0.01]">
-                   <div className="col-span-4">Cliente</div>
-                   <div className="col-span-4">Telefone</div>
-                   <div className="col-span-2">Última Visita</div>
-                   <div className="col-span-2 text-right">Valor Total</div>
-                </div>
-                {/* Example Placeholder */}
-                <div className="grid grid-cols-12 gap-4 p-10 items-center hover:bg-white/[0.02] transition-colors group cursor-pointer">
-                   <div className="col-span-4 flex items-center space-x-6">
-                      <div className="w-12 h-12 bg-zinc-950 border border-white/5 flex items-center justify-center text-xs font-serif text-gold-600">JS</div>
-                      <div>
-                         <p className="text-sm font-bold text-white uppercase tracking-widest">João Silva</p>
-                         <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-1">Registrado</p>
-                      </div>
+             <div className="bg-[#121212] border border-zinc-800 rounded-xl p-1 shadow-2xl relative overflow-hidden flex flex-col min-h-[500px]">
+                <div className="p-8 border-b border-zinc-800/40">
+                   <div className="relative group">
+                      <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-700 group-focus-within:text-[#C5A059] transition-all duration-500" size={18} />
+                      <input 
+                        type="text" 
+                        placeholder="Buscar cliente..."
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-5 pl-16 outline-none focus:border-[#C5A059]/30 transition-all font-sans text-xs tracking-widest text-white placeholder:text-zinc-700 uppercase"
+                      />
                    </div>
-                   <div className="col-span-4 text-xs text-zinc-500 font-light tracking-widest">(31) 99999-9999</div>
-                   <div className="col-span-2 text-[10px] text-zinc-600 font-bold uppercase">12 JUN 2026</div>
-                   <div className="col-span-2 text-right text-sm font-serif font-bold text-[#C5A059]">R$ 35,00</div>
+                </div>
+
+                <div className="flex-1 flex flex-col items-center justify-center py-40 text-center opacity-40">
+                   <p className="text-[11px] font-black uppercase tracking-[0.6em] text-zinc-500">Nenhum cliente encontrado.</p>
                 </div>
              </div>
           </motion.div>
