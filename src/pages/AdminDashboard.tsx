@@ -47,6 +47,13 @@ const AdminDashboard: React.FC = () => {
     "16:30", "17:00", "17:30", "18:00", "18:30"
   ];
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "BOM DIA";
+    if (hour >= 12 && hour < 18) return "BOA TARDE";
+    return "BOA NOITE";
+  };
+
   const menuItems = [
     { id: 'agenda', label: 'Agenda', icon: LayoutDashboard },
     { id: 'faturamento', label: 'Faturamento', icon: TrendingUp },
@@ -60,14 +67,14 @@ const AdminDashboard: React.FC = () => {
         {/* Sidebar */}
         <aside className="w-64 h-screen sticky top-0 bg-[#0A0A0A] border-r border-white/5 flex flex-col hidden lg:flex">
           <div className="px-0 py-10">
-            <div className="flex items-center gap-3 mb-12 group cursor-pointer px-8" onClick={() => navigate('/')}>
-              <img src="/assets/logo.webp" alt="Black Diamond" className="w-8 h-8 object-contain" />
-              <h1 className="text-white font-bold text-sm tracking-tight uppercase whitespace-nowrap">Black Diamond</h1>
+            <div className="flex items-center gap-4 mb-12 group cursor-pointer px-8" onClick={() => navigate('/')}>
+              <img src="/assets/logo.webp" alt="Black Diamond" className="w-12 h-12 object-contain" />
+              <h1 className="text-white font-bold text-base tracking-tight uppercase whitespace-nowrap">Black Diamond</h1>
             </div>
 
             <div className="px-8 mb-10">
               <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] leading-relaxed">
-                BOM DIA,<br />ADMINISTRADOR
+                {getGreeting()},<br />TATO
               </p>
             </div>
 
