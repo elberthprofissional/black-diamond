@@ -7,7 +7,7 @@ import {
   Plus, 
   Search,
   TrendingUp,
-  LayoutDashboard,
+  Clock,
   LogOut,
   ChevronLeft,
   User,
@@ -55,7 +55,7 @@ const AdminDashboard: React.FC = () => {
   ];
 
   const menuItems = [
-    { id: 'agenda', label: 'Agenda', icon: LayoutDashboard },
+    { id: 'agenda', label: 'Agenda', icon: Clock },
     { id: 'faturamento', label: 'Finanças', icon: TrendingUp },
     { id: 'clientes', label: 'Clientes', icon: Users },
     { id: 'semanal', label: 'Semanal', icon: Calendar },
@@ -185,11 +185,11 @@ const AdminDashboard: React.FC = () => {
                   onClick={() => setActiveTab(item.id)}
                   className={`w-full flex items-center gap-5 px-10 py-4.5 transition-all duration-300 font-medium ${
                     activeTab === item.id 
-                    ? 'bg-white/5 border-r-4 border-[#D4AF37] text-white shadow-sm' 
+                    ? 'bg-white/5 border-r-4 border-[#C5A059] text-white shadow-sm' 
                     : 'text-neutral-400 hover:text-white hover:bg-white/[0.02]'
                   }`}
                 >
-                  <item.icon size={24} className="text-[#D4AF37]" />
+                  <item.icon size={24} className="text-[#C5A059]" />
                   <span className="text-sm uppercase tracking-widest font-bold">{item.label}</span>
                 </button>
               ))}
@@ -214,10 +214,10 @@ const AdminDashboard: React.FC = () => {
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={`flex flex-col items-center gap-1 transition-all ${
-                activeTab === item.id ? 'text-[#D4AF37]' : 'text-zinc-600'
+                activeTab === item.id ? 'text-[#C5A059]' : 'text-zinc-500'
               }`}
             >
-              <item.icon size={20} />
+              <item.icon size={20} className="text-[#C5A059]" />
               <span className="text-[8px] font-black uppercase tracking-widest">{item.label}</span>
             </button>
           ))}
@@ -383,7 +383,7 @@ const AdminDashboard: React.FC = () => {
                       key={i} 
                       className={`flex flex-col items-center justify-center w-24 h-24 rounded-2xl border transition-all duration-300 ${
                         day.current 
-                        ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.1)]' 
+                        ? 'border-[#C5A059] bg-[#C5A059]/10 text-[#C5A059] shadow-[0_0_20px_rgba(197,160,89,0.1)]' 
                         : 'border-white/5 bg-white/[0.02] text-zinc-600 hover:border-white/20 hover:bg-white/[0.05]'
                       }`}
                     >
@@ -414,7 +414,7 @@ const AdminDashboard: React.FC = () => {
                       onClick={() => setViewMode('semanal')}
                       className={`px-8 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
                         viewMode === 'semanal' 
-                        ? 'bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20' 
+                        ? 'bg-[#C5A059] text-black shadow-lg shadow-[#C5A059]/20' 
                         : 'text-zinc-500 hover:text-zinc-300'
                       }`}
                     >
@@ -424,7 +424,7 @@ const AdminDashboard: React.FC = () => {
                       onClick={() => setViewMode('mensal')}
                       className={`px-8 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
                         viewMode === 'mensal' 
-                        ? 'bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20' 
+                        ? 'bg-[#C5A059] text-black shadow-lg shadow-[#C5A059]/20' 
                         : 'text-zinc-500 hover:text-zinc-300'
                       }`}
                     >
