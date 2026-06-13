@@ -3,13 +3,6 @@ import { motion } from 'framer-motion';
 import { Camera } from 'lucide-react';
 
 const Gallery: React.FC = () => {
-  // Realistic placeholder images focused on premium barbering
-  const images = [
-    "https://images.unsplash.com/photo-1593702295094-ada7444229ad?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1621605815971-fbc98d665033?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  ];
-
   return (
     <section id="galeria" className="py-32 md:py-48 bg-[#09090B] relative overflow-hidden font-sans">
       <div className="container mx-auto px-6 relative z-10">
