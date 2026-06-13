@@ -223,29 +223,6 @@ const AdminDashboard: React.FC = () => {
                         ))}
                     </div>
                   </div>
-
-                  {activeTab === 'semanal' && (
-                    <div className="pt-8 space-y-8">
-                       <div className="flex flex-wrap gap-3">
-                        {[
-                          { d: 'SEG', n: '08' }, { d: 'TER', n: '09' }, { d: 'QUA', n: '10' },
-                          { d: 'QUI', n: '11', current: true }, { d: 'SEX', n: '12' }, { d: 'SÁB', n: '13' }
-                        ].map((day, i) => (
-                          <button 
-                            key={i} 
-                            className={`flex flex-col items-center justify-center w-20 h-20 rounded-md border transition-all duration-300 ${
-                              day.current 
-                              ? 'border-gold-600 bg-white/5 text-gold-600' 
-                              : 'border-white/10 bg-transparent text-zinc-600 hover:border-white/20'
-                            }`}
-                          >
-                            <span className="text-[10px] font-bold uppercase mb-1">{day.d}</span>
-                            <span className="text-xl font-bold">{day.n}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* Coluna Direita (Cards) */}
@@ -263,6 +240,45 @@ const AdminDashboard: React.FC = () => {
                     <div className="flex flex-col items-center">
                       <span className="text-6xl font-black text-gold-600 mb-2">{availableSlots}</span>
                       <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em]">Vagas Livres</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'semanal' && (
+              <motion.div 
+                key="semanal"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-12"
+              >
+                {/* Seletor de Dias no Topo */}
+                <div className="flex flex-wrap gap-3 pb-8 border-b border-white/5">
+                  {[
+                    { d: 'SEG', n: '08' }, { d: 'TER', n: '09' }, { d: 'QUA', n: '10' },
+                    { d: 'QUI', n: '11', current: true }, { d: 'SEX', n: '12' }, { d: 'SÁB', n: '13' }
+                  ].map((day, i) => (
+                    <button 
+                      key={i} 
+                      className={`flex flex-col items-center justify-center w-20 h-20 rounded-md border transition-all duration-300 ${
+                        day.current 
+                        ? 'border-gold-600 bg-white/5 text-gold-600' 
+                        : 'border-white/10 bg-transparent text-zinc-600 hover:border-white/20'
+                      }`}
+                    >
+                      <span className="text-[10px] font-bold uppercase mb-1">{day.d}</span>
+                      <span className="text-xl font-bold">{day.n}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-12">
+                  <div className="space-y-12">
+                    <div className="w-full py-20 border border-dashed border-white/5 rounded-lg flex flex-col items-center justify-center bg-[#141414] text-center">
+                      <Calendar size={32} className="mb-4 text-zinc-800" />
+                      <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Selecione um dia acima para ver os detalhes da agenda</p>
                     </div>
                   </div>
                 </div>
