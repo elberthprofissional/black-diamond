@@ -55,8 +55,8 @@ const AdminLogin: React.FC = () => {
           <span className="text-[10px] tracking-[0.4em] text-gold-600 font-bold uppercase opacity-80">Painel Administrativo</span>
         </div>
 
-        {/* Login Card (Sênior Glassmorphism & Depth) */}
-        <div className="bg-black/40 backdrop-blur-xl border border-white/10 p-8 sm:p-10 shadow-[0_0_40px_rgba(0,0,0,0.5)] relative overflow-hidden rounded-2xl">
+        {/* Login Card (Real Glassmorphism - Light Layer) */}
+        <div className="bg-white/5 backdrop-blur-lg border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] relative overflow-hidden rounded-2xl p-8 sm:p-10">
           <form onSubmit={handleLogin} className="space-y-6">
             
             {/* Email Field */}
@@ -68,7 +68,7 @@ const AdminLogin: React.FC = () => {
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-12 bg-white/5 border border-white/10 text-white pl-12 pr-4 rounded-lg outline-none transition-all duration-300 text-sm focus:bg-white/10 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] focus:outline-none placeholder:text-zinc-700"
+                  className="w-full h-12 bg-black/40 border border-white/10 text-white pl-12 pr-4 rounded-xl outline-none transition-all duration-300 text-sm focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] placeholder:text-neutral-500"
                   placeholder="admin@gmail.com"
                   required
                 />
@@ -93,7 +93,7 @@ const AdminLogin: React.FC = () => {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-12 bg-white/5 border border-white/10 text-white pl-12 pr-12 rounded-lg outline-none transition-all duration-300 text-sm focus:bg-white/10 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] focus:outline-none placeholder:text-zinc-700"
+                  className="w-full h-12 bg-black/40 border border-white/10 text-white pl-12 pr-12 rounded-xl outline-none transition-all duration-300 text-sm focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] placeholder:text-neutral-500"
                   placeholder="••••••••"
                   required
                 />
@@ -120,7 +120,7 @@ const AdminLogin: React.FC = () => {
 
             <button 
               type="submit"
-              className="mt-6 h-12 w-full bg-white text-black font-bold uppercase tracking-wider rounded-lg hover:bg-neutral-200 hover:scale-[1.02] transition-all shadow-lg"
+              className="mt-6 h-12 w-full bg-white text-black font-bold uppercase tracking-wider rounded-xl hover:bg-neutral-200 hover:scale-[1.02] transition-all shadow-lg"
             >
               Entrar no Painel
             </button>
