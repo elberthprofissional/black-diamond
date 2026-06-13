@@ -21,7 +21,7 @@ const Location: React.FC = () => {
               <h2 className="text-gold-600 font-sans font-bold text-xs tracking-[0.5em] uppercase">Onde Estamos</h2>
             </div>
             
-            <h3 className="text-4xl md:text-6xl font-serif font-bold text-white mb-12 leading-tight tracking-tight">ENCONTRE A <br /><span className="italic font-light">BLACK DIAMOND.</span></h3>
+            <h3 className="text-4xl md:text-6xl font-serif font-bold text-white mb-12 leading-tight tracking-tight uppercase">ONDE ESTAMOS <br /><span className="italic font-light">LOCALIZADOS.</span></h3>
             
             <div className="space-y-12">
               <div className="flex items-start space-x-6 group">
