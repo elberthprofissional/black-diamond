@@ -112,29 +112,30 @@ const BookingPage: React.FC = () => {
       <div className="fixed inset-0 bg-cover bg-center z-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'url("/assets/img/agendamento-bg.webp")' }} />
       <div className="fixed inset-0 bg-gradient-to-b from-transparent via-[#09090B]/60 to-[#09090B] z-0 pointer-events-none" />
 
-      <div className="container mx-auto max-w-4xl relative z-10 py-20 px-6">
-        <div className="flex flex-col items-center text-center mb-16">
-          <button onClick={() => navigate('/')} className="flex items-center space-x-2 text-gray-500 hover:text-gold-600 transition-colors mb-8 group">
+      <div className="container mx-auto max-w-4xl relative z-10 py-10 px-6">
+        <div className="flex flex-col items-center text-center mb-10">
+          <button onClick={() => navigate('/')} className="flex items-center space-x-2 text-gray-500 hover:text-gold-600 transition-colors mb-6 group">
             <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em]">Voltar para o Início</span>
+            <span className="text-[9px] font-bold uppercase tracking-[0.3em]">Início</span>
           </button>
-          <h2 className="text-gold-600 font-sans font-bold text-xs tracking-[0.5em] uppercase mb-4">Experiência Black Diamond</h2>
-          <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4 uppercase tracking-tighter italic">Agendamento</h1>
-          <div className="h-[1px] w-12 bg-gold-600/30"></div>
+
+          <h2 className="text-gold-600 font-sans font-bold text-[9px] tracking-[0.5em] uppercase mb-2">Black Diamond</h2>
+          <h1 className="text-3xl md:text-5xl font-serif font-bold text-white mb-2 uppercase tracking-tighter italic">Agendamento</h1>
+          <div className="h-[1px] w-10 bg-gold-600/30"></div>
         </div>
 
         {step < 5 && (
-          <div className="flex justify-center items-center space-x-4 mb-20">
+          <div className="flex justify-center items-center space-x-4 mb-12">
             {[1, 2, 3, 4].map((i) => (
               <React.Fragment key={i}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black transition-all duration-500 ${step >= i ? 'bg-gold-600 text-black shadow-[0_0_20px_rgba(212,175,55,0.3)]' : 'bg-white/5 text-gray-600 border border-white/5'}`}>{i}</div>
-                {i < 4 && <div className={`w-12 h-[1px] ${step > i ? 'bg-gold-600' : 'bg-white/5'}`} />}
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-black transition-all duration-500 ${step >= i ? 'bg-gold-600 text-black shadow-[0_0_15px_rgba(212,175,55,0.3)]' : 'bg-white/5 text-gray-600 border border-white/5'}`}>{i}</div>
+                {i < 4 && <div className={`w-8 h-[1px] ${step > i ? 'bg-gold-600' : 'bg-white/5'}`} />}
               </React.Fragment>
             ))}
           </div>
         )}
 
-        <div className="bg-black/40 backdrop-blur-xl border border-white/5 p-8 md:p-12 shadow-2xl min-h-[500px] flex flex-col rounded-2xl">
+        <div className="bg-black/40 backdrop-blur-xl border border-white/5 p-6 md:p-10 shadow-2xl min-h-[400px] flex flex-col rounded-2xl">
           <div className="flex-1">
             <AnimatePresence mode="wait">
               {step === 1 && (
