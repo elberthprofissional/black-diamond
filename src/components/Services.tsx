@@ -92,12 +92,6 @@ const Services: React.FC = () => {
             ))}
           </motion.div>
         )}
-
-        <div className="mt-24 text-center">
-          <p className="text-gray-700 text-[9px] uppercase tracking-[0.4em] font-bold">
-            Atendimento exclusivo com hora marcada
-          </p>
-        </div>
       </div>
     </section>
   );
