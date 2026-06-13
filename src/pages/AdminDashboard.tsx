@@ -54,8 +54,8 @@ const AdminDashboard: React.FC = () => {
       setBookings(bookingsData || []);
       setClients(clientsData || []);
       setServices(servicesData || []);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       setToast({ message: 'Erro ao carregar dados do banco.', type: 'error' });
     } finally {
       setLoading(false);
@@ -79,7 +79,8 @@ const AdminDashboard: React.FC = () => {
       setToast({ message: `Agendamento ${status === 'cancelled' ? 'cancelado' : 'atualizado'} com sucesso!`, type: 'success' });
       setViewingBooking(null);
       fetchData();
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       setToast({ message: 'Erro ao atualizar agendamento.', type: 'error' });
     }
   };
@@ -102,7 +103,8 @@ const AdminDashboard: React.FC = () => {
       setIsRescheduling(false);
       setViewingBooking(null);
       fetchData();
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       setToast({ message: 'Erro ao reagendar.', type: 'error' });
     }
   };
