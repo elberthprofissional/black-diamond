@@ -95,7 +95,6 @@ const AdminDashboard: React.FC = () => {
           </button>
           <div className="text-right">
             <h1 className="text-2xl font-black uppercase tracking-tighter italic">Novo Agendamento</h1>
-            <p className="text-[10px] text-gold-600 font-bold uppercase tracking-[0.2em]">Black Diamond Exclusive</p>
           </div>
         </header>
 
@@ -125,10 +124,17 @@ const AdminDashboard: React.FC = () => {
                 <Scissors size={14} className="text-gold-600" />
                 Serviço Escolhido
               </h3>
-              <div className="grid grid-cols-2 gap-3">
-                {['Corte Social', 'Degradê', 'Barba Terapia', 'Combo Diamond'].map((s) => (
-                  <button key={s} className="py-4 px-4 bg-white/[0.02] border border-white/5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:border-gold-600/30 transition-all">
-                    {s}
+              <div className="grid grid-cols-1 gap-2">
+                {[
+                  { n: 'Corte', p: '35' },
+                  { n: 'Barba', p: '27' },
+                  { n: 'Barba com Toalha Quente', p: '30' },
+                  { n: 'Sobrancelha', p: '15' },
+                  { n: 'Pezinho', p: '15' }
+                ].map((s) => (
+                  <button key={s.n} className="group flex items-center justify-between py-4 px-6 bg-white/[0.02] border border-white/5 rounded-lg hover:border-gold-600/30 transition-all">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 group-hover:text-white">{s.n}</span>
+                    <span className="text-xs font-bold text-gold-600">R$ {s.p}</span>
                   </button>
                 ))}
               </div>
