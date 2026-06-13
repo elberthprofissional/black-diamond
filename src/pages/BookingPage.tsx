@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, CheckCircle, Scissors, Calendar, User, Phone } from 'lucide-react';
-import { getServices, createBooking } from '../lib/api';
+import { getServices, createBooking, getBookings } from '../lib/api';
 import type { Service } from '../types';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,7 +15,6 @@ const BookingPage: React.FC = () => {
   const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingBookings, setExistingBookings] = useState<any[]>([]);
-  const [loadingBookings, setLoadingBookings] = useState(false);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const navigate = useNavigate();
 
@@ -23,13 +22,11 @@ const BookingPage: React.FC = () => {
 
   useEffect(() => {
     if (selectedDate) {
-      setLoadingBookings(true);
       getBookings()
-        .then(data => {
+        .then((data: any[]) => {
           const filtered = data.filter((b: any) => b.booking_date === selectedDate && b.status !== 'cancelled');
           setExistingBookings(filtered);
-        })
-        .finally(() => setLoadingBookings(false));
+        });
     }
   }, [selectedDate]);
 
