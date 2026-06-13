@@ -355,11 +355,8 @@ const AdminDashboard: React.FC = () => {
 
                   <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md shadow-2xl rounded-2xl p-8 transition-all hover:bg-white/[0.04] relative overflow-hidden group">
                     <div className="flex flex-col">
-                      <span className="text-xs font-semibold text-neutral-500 uppercase tracking-widest block mb-8">Disponibilidade</span>
-                      <div className="flex flex-col">
-                        <span className="text-5xl font-black text-white tracking-tighter leading-none">{availableSlots}</span>
-                        <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-[0.2em] mt-2">Vagas Livres</span>
-                      </div>
+                      <span className="text-5xl font-black text-white tracking-tighter leading-none">{availableSlots}</span>
+                      <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-[0.2em] mt-2">Vagas Livres</span>
                     </div>
                   </div>
                 </div>
