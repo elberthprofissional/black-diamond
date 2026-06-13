@@ -51,7 +51,6 @@ const Footer: React.FC = () => {
               <h4 className="text-gold-600 font-sans font-bold text-[9px] tracking-[0.3em] uppercase">Contato</h4>
               <ul className="space-y-2 text-zinc-400 text-xs">
                 <li>(31) 99955-3580</li>
-                <li>@blackdiamond.bhe</li>
               </ul>
             </div>
           </div>
