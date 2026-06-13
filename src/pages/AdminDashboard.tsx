@@ -529,7 +529,7 @@ const AdminDashboard: React.FC = () => {
             </nav>
           </div>
 
-          <div className="mt-auto p-8 border-t border-white/5">
+          <div className="mt-auto p-8 border-t border-white/5 flex flex-col gap-4">
             <button 
               onClick={() => navigate('/')}
               className="w-full flex items-center justify-center gap-3 h-14 rounded-2xl text-zinc-700 hover:text-red-400 hover:bg-red-500/5 transition-all text-[9px] font-black uppercase tracking-[0.4em]"
@@ -537,6 +537,7 @@ const AdminDashboard: React.FC = () => {
               <LogOut size={16} />
               Sair do Sistema
             </button>
+            <p className="text-center text-[7px] text-zinc-900 font-black tracking-widest uppercase">System Version 1.2.1 | Elite</p>
           </div>
         </aside>
         <nav className="fixed bottom-0 left-0 right-0 bg-[#0A0A0A]/80 backdrop-blur-2xl border-t border-white/5 px-4 py-4 flex items-center justify-around z-50 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.5)] rounded-t-[2rem]">
