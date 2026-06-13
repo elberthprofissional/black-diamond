@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { getBookings, getClients, getServices, updateBookingStatus } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { 
@@ -17,7 +17,6 @@ import {
   CalendarDays,
   ArrowLeft,
   Smartphone,
-  Tag,
   ChevronRight,
   Trash2,
   History,
@@ -38,6 +37,10 @@ const AdminDashboard: React.FC = () => {
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' });
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'info' | 'error' } | null>(null);
+  
+  // Estado para Agenda Semanal
+  const [selectedWeeklyDate, setSelectedWeeklyDate] = useState<string>(new Date().toISOString().split('T')[0]);
+
   const navigate = useNavigate();
 
   const fetchData = useCallback(async () => {
@@ -112,7 +115,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleDeleteClient = async (id: string) => {
-    if (!confirm('Tem certeza que deseja remover este cliente? Isso não apagará os agendamentos já feitos, mas ele sairá da sua lista de contatos.')) return;
+    if (!confirm('Tem certeza que deseja remover este cliente? Isso não apagará os agendamentos já feitos.')) return;
     try {
       const { error } = await supabase.from('clients').delete().eq('id', id);
       if (error) throw error;
@@ -154,6 +157,25 @@ const AdminDashboard: React.FC = () => {
     "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", 
     "16:30", "17:00", "17:30", "18:00", "18:30"
   ];
+
+  // Gerar dias da semana atual
+  const weekDays = useMemo(() => {
+    const days = [];
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay() + 1); // Começa na Segunda
+
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      days.push({
+        full: d.toISOString().split('T')[0],
+        short: d.toLocaleDateString('pt-BR', { weekday: 'short' }).toUpperCase().replace('.', ''),
+        num: d.getDate().toString().padStart(2, '0')
+      });
+    }
+    return days;
+  }, []);
 
   const menuItems = [
     { id: 'agenda', label: 'Agenda', icon: Clock },
@@ -767,27 +789,49 @@ const AdminDashboard: React.FC = () => {
                   className="space-y-12"
                 >
                   <div className="flex flex-wrap gap-3 pb-10 border-b border-white/5">
-                    {[
-                      { d: 'SEG', n: '08' }, { d: 'TER', n: '09' }, { d: 'QUA', n: '10' },
-                      { d: 'QUI', n: '11', current: true }, { d: 'SEX', n: '12' }, { d: 'SÁB', n: '13' }
-                    ].map((day, i) => (
+                    {weekDays.map((day, i) => (
                       <button 
                         key={i} 
+                        onClick={() => setSelectedWeeklyDate(day.full)}
                         className={`flex flex-col items-center justify-center w-16 h-16 rounded-xl border transition-all duration-300 ${
-                          day.current 
+                          selectedWeeklyDate === day.full 
                           ? 'border-[#C5A059] bg-[#C5A059]/10 text-[#C5A059]' 
                           : 'border-white/5 bg-white/[0.02] text-zinc-600 hover:border-white/20'
                         }`}
                       >
-                        <span className="text-[8px] font-bold uppercase mb-1 tracking-widest">{day.d}</span>
-                        <span className="text-lg font-black">{day.n}</span>
+                        <span className="text-[8px] font-bold uppercase mb-1 tracking-widest">{day.short}</span>
+                        <span className="text-lg font-black">{day.num}</span>
                       </button>
                     ))}
                   </div>
 
-                  <div className="flex flex-col items-center justify-center pt-20">
-                    <CalendarDays size={64} className="text-white/[0.03] mb-4" />
-                    <p className="text-sm text-neutral-500 italic">Selecione um dia para ver os agendamentos.</p>
+                  <div className="space-y-8">
+                     <h3 className="text-xs font-bold text-[#C5A059] uppercase tracking-[0.2em]">Agendamentos para {new Date(selectedWeeklyDate + 'T12:00:00').toLocaleDateString('pt-BR')}</h3>
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {bookings.filter(b => b.booking_date === selectedWeeklyDate).length > 0 ? (
+                          bookings.filter(b => b.booking_date === selectedWeeklyDate).map((b, i) => (
+                            <div 
+                              key={i} 
+                              onClick={() => setViewingBooking(b)}
+                              className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.04] cursor-pointer group"
+                            >
+                               <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-4">
+                                     <span className="text-xl font-bold text-white">{b.booking_time.slice(0, 5)}</span>
+                                     <div className="w-px h-4 bg-white/10" />
+                                     <span className="text-sm font-bold text-zinc-300 uppercase truncate max-w-[120px]">{b.clients?.name}</span>
+                                  </div>
+                                  <ChevronRight size={16} className="text-zinc-600 group-hover:text-[#C5A059] transition-colors" />
+                               </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="col-span-full flex flex-col items-center justify-center py-20">
+                            <CalendarDays size={64} className="text-white/[0.03] mb-4" />
+                            <p className="text-sm text-neutral-500 italic">Nenhum agendamento para este dia.</p>
+                          </div>
+                        )}
+                     </div>
                   </div>
                 </motion.div>
               )}
@@ -953,6 +997,9 @@ const AdminDashboard: React.FC = () => {
           )}
         </main>
       </div>
+
+      {/* Modal de Detalhes do Agendamento (Fallback/Simplified) */}
+      {/* (Já substituído pela tela imersiva, mantendo lógica de AnimatePresence se necessário) */}
     </div>
   );
 };
