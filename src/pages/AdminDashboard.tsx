@@ -26,15 +26,24 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import type { Service, Booking, Client } from '../types';
+
+interface ExtendedBooking extends Booking {
+  clients?: {
+    name: string;
+    phone: string;
+  };
+}
+
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('agenda');
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [clients, setClients] = useState<any[]>([]);
-  const [services, setServices] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreatingBooking, setIsCreatingBooking] = useState(false);
-  const [viewingBooking, setViewingBooking] = useState<any | null>(null);
-  const [viewingClient, setViewingClient] = useState<any | null>(null);
+  const [viewingBooking, setViewingBooking] = useState<ExtendedBooking | null>(null);
+  const [viewingClient, setViewingClient] = useState<Client | null>(null);
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' });
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'info' | 'error' } | null>(null);
@@ -44,12 +53,11 @@ const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
     try {
       const [bookingsData, clientsData, servicesData] = await Promise.all([
-        getBookings(),
-        getClients(),
-        getServices()
+        getBookings() as Promise<Booking[]>,
+        getClients() as Promise<Client[]>,
+        getServices() as Promise<Service[]>
       ]);
       setBookings(bookingsData || []);
       setClients(clientsData || []);
@@ -57,13 +65,16 @@ const AdminDashboard: React.FC = () => {
     } catch (err) {
       console.error(err);
       setToast({ message: 'Erro ao carregar dados do banco.', type: 'error' });
-    } finally {
-      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchData();
+    const init = async () => {
+      setLoading(true);
+      await fetchData();
+      setLoading(false);
+    };
+    init();
   }, [fetchData]);
 
   useEffect(() => {
@@ -78,7 +89,7 @@ const AdminDashboard: React.FC = () => {
       await updateBookingStatus(id, status);
       setToast({ message: `Agendamento ${status === 'cancelled' ? 'cancelado' : 'atualizado'} com sucesso!`, type: 'success' });
       setViewingBooking(null);
-      fetchData();
+      await fetchData();
     } catch (err) {
       console.error(err);
       setToast({ message: 'Erro ao atualizar agendamento.', type: 'error' });
@@ -86,9 +97,9 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleReschedule = async () => {
-    if (!rescheduleData.date || !rescheduleData.time) return;
+    if (!rescheduleData.date || !rescheduleData.time || !viewingBooking) return;
     try {
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from('bookings')
         .update({ 
           booking_date: rescheduleData.date, 
@@ -97,19 +108,19 @@ const AdminDashboard: React.FC = () => {
         })
         .eq('id', viewingBooking.id);
       
-      if (error) throw error;
+      if (updateError) throw updateError;
       
       setToast({ message: 'Reagendamento concluído!', type: 'success' });
       setIsRescheduling(false);
       setViewingBooking(null);
-      fetchData();
+      await fetchData();
     } catch (err) {
       console.error(err);
       setToast({ message: 'Erro ao reagendar.', type: 'error' });
     }
   };
 
-  const handleSendMessage = (client?: any) => {
+  const handleSendMessage = (client?: Client) => {
     const target = client || viewingBooking?.clients || viewingClient;
     if (!target?.phone) return;
     const message = `Olá ${target.name}, aqui é da Black Diamond!`;
@@ -119,12 +130,13 @@ const AdminDashboard: React.FC = () => {
   const handleDeleteClient = async (id: string) => {
     if (!confirm('Tem certeza que deseja remover este cliente?')) return;
     try {
-      const { error } = await supabase.from('clients').delete().eq('id', id);
-      if (error) throw error;
+      const { error: deleteError } = await supabase.from('clients').delete().eq('id', id);
+      if (deleteError) throw deleteError;
       setToast({ message: 'Cliente removido.', type: 'success' });
       setViewingClient(null);
-      fetchData();
-    } catch (error) {
+      await fetchData();
+    } catch (err) {
+      console.error(err);
       setToast({ message: 'Erro ao remover cliente.', type: 'error' });
     }
   };
@@ -550,7 +562,7 @@ const AdminDashboard: React.FC = () => {
                     <div className="space-y-6">
                       <h3 className="text-[10px] font-bold text-[#C5A059] uppercase tracking-[0.2em]">Próximo Corte</h3>
                       {nextBooking ? (
-                        <div onClick={() => setViewingBooking(nextBooking.booking)} className="bg-white/[0.03] border-y border-r border-white/5 border-l-4 border-l-[#C5A059] shadow-lg rounded-xl p-6 md:p-8 flex items-center justify-between transition-all cursor-pointer hover:bg-white/[0.05]">
+                        <div onClick={() => nextBooking.booking && setViewingBooking(nextBooking.booking)} className="bg-white/[0.03] border-y border-r border-white/5 border-l-4 border-l-[#C5A059] shadow-lg rounded-xl p-6 md:p-8 flex items-center justify-between transition-all cursor-pointer hover:bg-white/[0.05]">
                           <div className="flex items-center gap-6 md:gap-8">
                             <span className="text-3xl md:text-5xl font-extrabold text-[#C5A059] tracking-tighter">{nextBooking.time}</span>
                             <div className="h-10 w-[1px] bg-white/10" />
@@ -565,7 +577,7 @@ const AdminDashboard: React.FC = () => {
                       {occupiedSlots.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {occupiedSlots.map((slot, i) => (
-                            <div key={i} onClick={() => setViewingBooking(slot.booking)} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.04] cursor-pointer group">
+                            <div key={i} onClick={() => slot.booking && setViewingBooking(slot.booking)} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.04] cursor-pointer group">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4 md:gap-5">
                                   <span className="text-lg md:text-xl font-bold text-white group-hover:text-[#C5A059] transition-colors">{slot.time}</span>

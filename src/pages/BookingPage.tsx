@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, CheckCircle, Scissors, Calendar, User, Phone } from 'lucide-react';
 import { getServices, createBooking, getBookings } from '../lib/api';
-import type { Service } from '../types';
+import type { Service, Booking } from '../types';
 import { useNavigate } from 'react-router-dom';
 
 const BookingPage: React.FC = () => {
@@ -14,7 +14,7 @@ const BookingPage: React.FC = () => {
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [existingBookings, setExistingBookings] = useState<any[]>([]);
+  const [existingBookings, setExistingBookings] = useState<Booking[]>([]);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const navigate = useNavigate();
 
@@ -23,8 +23,8 @@ const BookingPage: React.FC = () => {
   useEffect(() => {
     if (selectedDate) {
       getBookings()
-        .then((data: any[]) => {
-          const filtered = data.filter((b: any) => b.booking_date === selectedDate && b.status !== 'cancelled');
+        .then((data: Booking[]) => {
+          const filtered = data.filter((b: Booking) => b.booking_date === selectedDate && b.status !== 'cancelled');
           setExistingBookings(filtered);
         })
         .catch(console.error);
@@ -39,11 +39,18 @@ const BookingPage: React.FC = () => {
   }, [toast]);
 
   useEffect(() => {
-    setLoadingServices(true);
-    getServices()
-      .then(setServices)
-      .catch(console.error)
-      .finally(() => setLoadingServices(false));
+    const loadServices = async () => {
+      setLoadingServices(true);
+      try {
+        const data = await getServices();
+        setServices(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoadingServices(false);
+      }
+    };
+    loadServices();
   }, []);
 
   const toggleService = (service: Service) => {
@@ -72,8 +79,8 @@ const BookingPage: React.FC = () => {
       await createBooking(
         {
           service_ids: selectedServices.map(s => s.id),
-          date: selectedDate,
-          time: selectedTime,
+          booking_date: selectedDate,
+          booking_time: selectedTime,
           total_price: totalPrice,
           total_duration: totalDuration
         },
