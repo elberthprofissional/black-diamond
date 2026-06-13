@@ -5,18 +5,53 @@ import { Star, User } from 'lucide-react';
 const Testimonials: React.FC = () => {
   const reviews = [
     {
-      name: "Eloisa Maria",
+      name: "YP TATTOO",
       text: "Barbearia super confortável, ambiente agradável, higiênico profissional super qualificado e atencioso... Parabéns vai explodir",
       rating: 5
     },
     {
-      name: "Giovanna Cardoso",
-      text: "Profissional agradável, super atencioso, trabalho impecável e corte perfeito. Super recomendo!!!",
+      name: "Helbert Henrique",
+      text: "Venezuelano mais fera de BH!! Tem o macete",
       rating: 5
     },
     {
       name: "Maia Studio",
       text: "Ele foi o único profissional que conseguiu cortar o cabelo do meu filho com paciência, respeito e excelência, ganhando a nossa total confiança.",
+      rating: 5
+    },
+    {
+      name: "Renato Dias",
+      text: "Profissional !! Talento são pra poucos e esse venezuelano tem bastante",
+      rating: 5
+    },
+    {
+      name: "Lucas Campos",
+      text: "Muito satisfeito com o corte, atendimento de qualidade 👏🏽👏🏽",
+      rating: 5
+    },
+    {
+      name: "GabrielLuiz",
+      text: "Otimo atendimento, lugar top Experiente incrível, super recomendo !",
+      rating: 5
+    },
+    {
+      name: "Marcos Crisley",
+      text: "Top trabalhado excelente bom papo e um ótimo atendimento",
+      rating: 5
+    },
+    {
+      name: "Matheus",
+      text: "Tato é bom demais, cara sabe como cuidar de um cabelo",
+      rating: 5
+    },
+    {
+      name: "Guilherme Henrique",
+      text: "Ótimo profissional, lugar aconchegante e trabalho impecável!",
+      rating: 5
+    },
+    {
+      name: "Fabio Campos",
+      text: "Muito satisfeito com o atendimento e o serviço prestado! Super indico! 🫡",
       rating: 5
     }
   ];
