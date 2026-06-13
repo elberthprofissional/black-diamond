@@ -34,7 +34,7 @@ const Footer: React.FC = () => {
                 <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-white/20 transition-all">
                   <Lock size={12} />
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest">Management</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest">Gestão Interna</span>
               </Link>
             </div>
           </div>
