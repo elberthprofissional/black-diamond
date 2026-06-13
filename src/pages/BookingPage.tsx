@@ -88,14 +88,15 @@ const BookingPage: React.FC = () => {
     const formattedDate = selectedDate.split('-').reverse().join('/');
     const servicesList = selectedServices.map(s => s.name).join(', ');
     
-    // Mensagem Minimalista solicitada:
-    // Novo Corte black diamond [Nome]
-    // [Nome]
-    // [Serviço]
-    // [Hora]
-    const message = `Novo Corte black diamond ${userInfo.name}%0A${userInfo.name}%0A${servicesList}%0A${formattedDate} às ${selectedTime}`;
+    // Formato Premium solicitado:
+    // 💎 NOVO AGENDAMENTO | BLACK DIAMOND 💎
+    // 👤 Cliente: [Nome]
+    // ✂️ Serviço: [Serviços]
+    // 📅 Data: [Data]
+    // ⏰ Horário: [Hora]
+    const message = `💎 *NOVO AGENDAMENTO | BLACK DIAMOND* 💎%0A%0A👤 *Cliente:* ${userInfo.name}%0A✂️ *Serviço:* ${servicesList}%0A📅 *Data:* ${formattedDate}%0A⏰ *Horário:* ${selectedTime}`;
     
-    const phone = '31980159559'; // Número do teste real
+    const phone = '31980159559'; // Número do barbeiro
     window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
   };
 
