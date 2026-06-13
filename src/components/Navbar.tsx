@@ -29,10 +29,10 @@ const Navbar: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="flex items-center space-x-3 group cursor-pointer" 
+          className="flex items-center space-x-2 md:space-x-3 group cursor-pointer" 
           onClick={() => navigate('/')}
         >
-          <div className="relative w-12 h-12 flex items-center justify-center">
+          <div className="relative w-8 h-8 md:w-12 md:h-12 flex items-center justify-center">
              <img 
                src="/assets/logo.webp" 
                alt="Black Diamond" 
@@ -43,14 +43,14 @@ const Navbar: React.FC = () => {
                  if (fallback) fallback.style.display = 'block';
                }} 
              />
-             <Scissors className="text-gold-600 w-8 h-8" style={{ display: 'none' }} id="nav-fallback-icon" />
+             <Scissors className="text-gold-600 w-6 h-6 md:w-8 md:h-8" style={{ display: 'none' }} id="nav-fallback-icon" />
           </div>
           <div className="flex flex-col">
-            <span className="text-xl md:text-2xl font-serif font-bold tracking-[0.2em] text-white leading-none uppercase">BLACK DIAMOND</span>
+            <span className="text-base md:text-2xl font-serif font-bold tracking-[0.1em] md:tracking-[0.2em] text-white leading-none uppercase">BLACK DIAMOND</span>
           </div>
         </motion.div>
 
-        {/* Desktop Menu */}
+        {/* Desktop Links (Hidden on Mobile) */}
         <div className="hidden md:flex items-center space-x-10">
           {[
             { label: 'Início', id: 'home' },
@@ -70,59 +70,21 @@ const Navbar: React.FC = () => {
               <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-gold-600 transition-all duration-500 group-hover:w-full"></span>
             </motion.button>
           ))}
+        </div>
+
+        {/* CTA Button (Visible on all sizes) */}
+        <div className="flex items-center">
           <motion.button 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
             onClick={() => navigate('/agendar')}
-            className="group relative border border-[#C5A059] px-8 py-2.5 rounded-sm transition-all duration-500 hover:bg-[#C5A059] overflow-hidden"
+            className="group relative border border-[#C5A059] px-4 md:px-8 py-2 md:py-2.5 rounded-sm transition-all duration-500 hover:bg-[#C5A059] overflow-hidden"
           >
-            <span className="relative z-10 text-[#C5A059] group-hover:text-black font-bold text-[11px] uppercase tracking-widest transition-colors duration-500">Agendar Agora</span>
+            <span className="relative z-10 text-[#C5A059] group-hover:text-black font-bold text-[9px] md:text-[11px] uppercase tracking-widest transition-colors duration-500">Agendar Agora</span>
           </motion.button>
         </div>
-
-        {/* Mobile Toggle */}
-        <div className="md:hidden">
-          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white">
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
       </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-            className="md:hidden bg-black/95 backdrop-blur-xl absolute top-full left-0 w-full p-10 flex flex-col space-y-8 border-t border-white/5 shadow-2xl overflow-hidden"
-          >
-            {['home', 'servicos', 'sobre', 'localização'].map((id, idx) => (
-              <motion.button 
-                key={id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 * idx }}
-                onClick={() => handleNavClick(id)} 
-                className="text-sm uppercase tracking-[0.3em] text-gray-400 text-left hover:text-white transition-colors duration-300"
-              >
-                {id === 'localização' ? 'Localização' : id.charAt(0).toUpperCase() + id.slice(1)}
-              </motion.button>
-            ))}
-            <motion.button 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              onClick={() => { navigate('/agendar'); setIsMobileMenuOpen(false); }}
-              className="border border-gold-600 text-gold-600 font-bold px-6 py-4 rounded-sm text-xs uppercase tracking-[0.3em] text-center active:bg-gold-600 active:text-black transition-colors"
-            >
-              Agendar Agora
-            </motion.button>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </nav>
   );
 };
