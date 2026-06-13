@@ -55,13 +55,13 @@ const AdminDashboard: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#09090B] text-white flex font-sans overflow-hidden">
+    <div className="min-h-screen bg-[#09090B] text-white flex p-4 md:p-6 lg:p-8 font-sans gap-8 overflow-hidden">
       
-      {/* Sidebar - Visual Pixel Perfect */}
-      <aside className="w-72 bg-[#0A0A0A] border-r border-white/5 flex flex-col h-screen sticky top-0 shrink-0 z-20">
-        <div className="p-8 border-b border-white/5">
+      {/* Sidebar - Floating Web App Style */}
+      <aside className="w-80 bg-[#0A0A0A] border border-white/[0.03] flex flex-col h-[calc(100vh-4rem)] sticky top-8 shrink-0 z-20 rounded-[2.5rem] shadow-2xl">
+        <div className="p-10 border-b border-zinc-800/30">
           <div className="flex items-center space-x-3 mb-10 group cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-10 h-10 border border-white/10 flex items-center justify-center bg-zinc-950 shadow-inner group-hover:border-gold-600/20 transition-all duration-500 rounded-lg overflow-hidden">
+            <div className="w-10 h-10 border border-white/10 flex items-center justify-center bg-zinc-950 shadow-inner group-hover:border-gold-600/20 transition-all duration-500 rounded-2xl overflow-hidden">
               <img src="/assets/logo.webp" alt="Logo" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
               <Scissors className="text-[#C5A059] w-5 h-5 absolute group-hover:rotate-12 transition-transform duration-500" style={{ display: 'none' }} id="admin-sidebar-fallback" />
             </div>
@@ -77,7 +77,7 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+        <nav className="flex-1 p-6 space-y-3 overflow-y-auto custom-scrollbar">
           {[
             { id: 'agenda', label: 'Agenda', icon: Calendar },
             { id: 'faturamento', label: 'Faturamento', icon: DollarSign },
@@ -87,31 +87,31 @@ const AdminDashboard: React.FC = () => {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center space-x-4 p-4 transition-all duration-300 group ${
+              className={`w-full flex items-center space-x-5 p-5 transition-all duration-700 rounded-2xl group ${
                 activeTab === item.id 
-                ? 'bg-zinc-900 rounded-lg border-l-2 border-[#C5A059] text-white' 
-                : 'text-zinc-500 hover:text-zinc-300'
+                ? 'bg-zinc-900 border-l-2 border-[#C5A059] text-white shadow-xl' 
+                : 'text-zinc-600 hover:text-zinc-400'
               }`}
             >
-              <item.icon size={16} className={activeTab === item.id ? 'text-white' : 'text-zinc-600 group-hover:text-zinc-400 transition-colors'} />
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] leading-none">{item.label}</span>
+              <item.icon size={18} className={activeTab === item.id ? 'text-white' : 'text-zinc-700 group-hover:text-zinc-500 transition-colors'} />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] leading-none">{item.label}</span>
             </button>
           ))}
         </nav>
 
-        <div className="p-6 border-t border-white/5">
+        <div className="p-8">
            <button 
              onClick={() => navigate('/')}
-             className="w-full flex items-center justify-center space-x-3 p-4 text-zinc-700 hover:text-white transition-all text-[9px] font-black uppercase tracking-[0.4em] border border-white/5 rounded-xl hover:bg-zinc-900"
+             className="w-full flex items-center justify-center space-x-3 p-5 text-zinc-700 hover:text-white transition-all text-[9px] font-black uppercase tracking-[0.4em] border border-white/5 rounded-full hover:bg-zinc-900"
            >
              <AlertCircle size={14} />
-             <span>Sair do Painel</span>
+             <span>Sair da Sessão</span>
            </button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto h-screen custom-scrollbar bg-[#09090B] px-10 md:px-16 py-12 lg:py-20">
+      {/* Main Content Area - Infinite Background */}
+      <main className="flex-1 overflow-y-auto h-[calc(100vh-4rem)] custom-scrollbar pr-4">
         
         {activeTab === 'agenda' && (
           <motion.div 
@@ -140,9 +140,9 @@ const AdminDashboard: React.FC = () => {
                   return (
                     <div 
                       key={time} 
-                      className={`group p-10 flex items-center justify-between transition-all duration-700 rounded-[2rem] ${
+                      className={`group p-10 flex items-center justify-between transition-all duration-700 rounded-[2.5rem] ${
                         booking 
-                        ? 'bg-[#121212] border border-zinc-800/40 shadow-xl' 
+                        ? 'bg-[#121212] border border-white/[0.05] shadow-xl' 
                         : 'bg-transparent border border-white/[0.02] hover:border-white/5'
                       }`}
                     >
@@ -172,13 +172,13 @@ const AdminDashboard: React.FC = () => {
 
               {/* Side Metric Cards */}
               <div className="lg:col-span-4 space-y-10">
-                <div className="bg-[#121212] border border-zinc-800/50 p-12 rounded-[2.5rem] relative overflow-hidden shadow-2xl">
+                <div className="bg-[#121212] border border-white/[0.05] p-12 rounded-[2.5rem] relative overflow-hidden shadow-2xl">
                   <span className="text-[9px] text-zinc-600 font-black uppercase tracking-[0.5em] mb-12 block leading-none">Lucro Bruto Hoje</span>
                   <span className="text-[#C5A059] text-7xl font-serif font-bold tracking-tighter block mb-4 leading-none">R$ {todayRevenue.toFixed(0)}</span>
                   <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-[0.3em] opacity-60">{todayBookings.length} Atendimentos</p>
                 </div>
 
-                <div className="bg-[#121212] border border-zinc-800/50 p-12 rounded-[2.5rem] relative overflow-hidden">
+                <div className="bg-[#121212] border border-white/[0.05] p-12 rounded-[2.5rem] relative overflow-hidden shadow-xl">
                   <span className="text-[9px] text-zinc-600 font-black uppercase tracking-[0.5em] mb-12 block leading-none">Capacidade</span>
                   <p className="text-white text-6xl font-serif font-bold mb-4 tracking-tighter uppercase leading-none">{availableSlots}</p>
                   <p className="text-zinc-700 text-[10px] font-black uppercase tracking-[0.5em]">Slots Disponíveis</p>
@@ -194,20 +194,18 @@ const AdminDashboard: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="max-w-6xl mx-auto"
           >
-             <div className="mb-24">
+             <div className="mb-24 text-center md:text-left">
                 <h1 className="text-6xl font-serif font-bold text-white mb-4 uppercase tracking-tighter leading-none">Financeiro</h1>
                 <span className="text-[10px] font-sans font-bold text-zinc-600 uppercase tracking-[0.6em]">Métricas de Desempenho Bruto</span>
              </div>
 
              <div className="space-y-12">
-                {/* Main Card */}
-                <div className="bg-[#121212] border border-zinc-800/50 rounded-[4rem] p-24 md:p-32 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-2xl">
+                <div className="bg-[#121212] border border-white/[0.05] rounded-[4rem] p-24 md:p-32 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-2xl">
                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(197,160,89,0.05)_0%,transparent_75%)]" />
                    <span className="text-[11px] text-zinc-600 font-black tracking-[0.8em] uppercase mb-16 relative z-10 opacity-40 leading-none">Lucro Acumulado Total</span>
                    <h2 className="text-8xl md:text-[13rem] font-serif font-bold text-[#C5A059] tracking-tighter relative z-10 leading-none drop-shadow-2xl">R$ {bookings.reduce((sum, b) => sum + Number(b.total_price), 0).toFixed(0)}</h2>
                 </div>
 
-                {/* Stat Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                    {[
                      { label: 'Cortes/Semana', value: todayBookings.length, detail: 'Atendimentos' },
@@ -215,7 +213,7 @@ const AdminDashboard: React.FC = () => {
                      { label: 'Novos Clientes', value: '+0', detail: 'Conquistas' },
                      { label: 'Base Total', value: '1', detail: 'Fidelizados' },
                    ].map((stat, i) => (
-                     <div key={i} className="bg-[#121212] border border-zinc-800/50 p-12 rounded-[2.5rem] transition-all duration-700 hover:scale-[1.02] group">
+                     <div key={i} className="bg-[#121212] border border-white/[0.05] p-12 rounded-[2.5rem] transition-all duration-700 hover:scale-[1.02] group shadow-xl">
                         <span className="text-[9px] text-zinc-700 font-black uppercase tracking-[0.5em] mb-12 block group-hover:text-zinc-500 transition-colors leading-none">{stat.label}</span>
                         <p className="text-4xl font-serif font-bold text-zinc-100 uppercase tracking-tighter leading-none mb-3">{stat.value}</p>
                         <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-[0.4em] leading-none">{stat.detail}</p>
@@ -234,31 +232,31 @@ const AdminDashboard: React.FC = () => {
           >
              <div className="flex flex-col md:flex-row justify-between items-start mb-12 gap-8">
                 <div>
-                  <h1 className="text-4xl font-serif font-bold text-white mb-3 uppercase tracking-tighter">Meus Clientes</h1>
-                  <div className="px-3 py-1 bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-md text-[9px] font-black text-[#C5A059] uppercase tracking-widest inline-block">
-                    0 Clientes no Total
+                  <h1 className="text-5xl font-serif font-bold text-white mb-3 uppercase tracking-tighter leading-none">Meus Clientes</h1>
+                  <div className="px-4 py-1.5 bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-full text-[9px] font-black text-[#C5A059] uppercase tracking-widest inline-block mt-4">
+                    0 Clientes Registrados
                   </div>
                 </div>
-                <button className="flex items-center space-x-3 bg-white text-black px-10 py-4 font-black text-[10px] uppercase tracking-[0.3em] hover:bg-[#C5A059] transition-all duration-500 rounded-full shadow-lg">
-                  <MessageSquare size={16} />
+                <button className="flex items-center space-x-4 bg-white text-black px-12 py-5 font-black text-[10px] uppercase tracking-[0.4em] hover:bg-[#C5A059] transition-all duration-500 rounded-full shadow-xl active:scale-95">
+                  <MessageSquare size={18} />
                   <span>Enviar p/ Todos</span>
                 </button>
              </div>
 
-             <div className="bg-[#121212] border border-zinc-800 rounded-xl p-1 shadow-2xl relative overflow-hidden flex flex-col min-h-[500px]">
-                <div className="p-8 border-b border-zinc-800/40">
+             <div className="bg-[#121212] border border-white/[0.05] rounded-[3rem] p-2 shadow-2xl relative overflow-hidden flex flex-col min-h-[600px]">
+                <div className="p-10 border-b border-zinc-800/40">
                    <div className="relative group">
-                      <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-700 group-focus-within:text-[#C5A059] transition-all duration-500" size={18} />
+                      <Search className="absolute left-10 top-1/2 -translate-y-1/2 text-zinc-800 group-focus-within:text-[#C5A059] transition-all duration-500" size={24} />
                       <input 
                         type="text" 
-                        placeholder="Buscar cliente..."
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-5 pl-16 outline-none focus:border-[#C5A059]/30 transition-all font-sans text-xs tracking-widest text-white placeholder:text-zinc-700 uppercase"
+                        placeholder="BUSCAR CLIENTE NA BASE..."
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-full p-10 pl-28 outline-none focus:border-[#C5A059]/30 transition-all font-sans text-xs tracking-widest text-white placeholder:text-zinc-900 uppercase font-black shadow-inner"
                       />
                    </div>
                 </div>
 
                 <div className="flex-1 flex flex-col items-center justify-center py-40 text-center opacity-40">
-                   <p className="text-[11px] font-black uppercase tracking-[0.6em] text-zinc-500">Nenhum cliente encontrado.</p>
+                   <p className="text-[12px] font-black uppercase tracking-[1em] text-zinc-700 leading-none">Nenhum registro encontrado.</p>
                 </div>
              </div>
           </motion.div>
