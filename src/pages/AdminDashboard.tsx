@@ -408,11 +408,7 @@ const AdminDashboard: React.FC = () => {
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-12"
               >
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-white tracking-tight">Relatórios Financeiros</h2>
-                    <p className="text-sm text-zinc-500 font-medium mt-1">Gestão consolidada da saúde econômica do estúdio.</p>
-                  </div>
+                <div className="flex flex-col md:flex-row md:items-center justify-end gap-6">
                   <div className="flex gap-2 bg-white/[0.03] p-1.5 rounded-xl border border-white/5 backdrop-blur-md">
                     <button 
                       onClick={() => setViewMode('semanal')}
