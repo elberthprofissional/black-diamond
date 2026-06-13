@@ -16,11 +16,6 @@ const Location: React.FC = () => {
             transition={{ duration: 0.8 }}
             className="w-full lg:w-5/12 flex flex-col justify-center"
           >
-            <div className="flex items-center space-x-4 mb-8">
-              <div className="h-[1px] w-8 bg-gold-600/50"></div>
-              <h2 className="text-gold-600 font-sans font-bold text-xs tracking-[0.5em] uppercase">Onde Estamos</h2>
-            </div>
-            
             <h3 className="text-4xl md:text-6xl font-serif font-bold text-white mb-12 leading-tight tracking-tight uppercase">ONDE ESTAMOS <br /><span className="italic font-light">LOCALIZADOS.</span></h3>
             
             <div className="space-y-12">
