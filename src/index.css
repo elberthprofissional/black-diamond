@@ -1,18 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-gold-600: #C5A059; /* Dourado envelhecido sofisticado */
-  --color-gold-hover: #D4AF37;
+  --color-gold-600: #D4AF37; /* Gold Destaque */
+  --color-gold-hover: #C5A059;
   
-  --color-dark-pure: #000000;
-  --color-dark-card: #0A0A0A;
-  --color-dark-card-light: #111111;
-  --color-dark-border: #1A1A1A;
+  --color-dark-pure: #0A0A0A;
+  --color-dark-card: #141414;
+  --color-dark-card-light: #1A1A1A;
+  --color-dark-border: rgba(255, 255, 255, 0.05);
   --color-dark-muted: #666666;
 
-  --font-serif: "Cinzel", serif;
-  --font-accent: "Playfair Display", serif;
-  --font-sans: "Inter", sans-serif;
+  --font-sans: "Inter", "Poppins", "Roboto", sans-serif;
 }
 
 @layer base {
@@ -20,11 +18,11 @@
     @apply scroll-smooth;
   }
   body {
-    @apply bg-[#09090B] text-white font-sans antialiased selection:bg-gold-600 selection:text-white overflow-x-hidden;
+    @apply bg-[#0A0A0A] text-white font-sans antialiased selection:bg-gold-600 selection:text-white overflow-x-hidden;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif tracking-widest;
+    @apply font-sans tracking-tight;
   }
 }
 
