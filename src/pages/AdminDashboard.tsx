@@ -177,7 +177,7 @@ const AdminDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-zinc-400 font-sans selection:bg-[#D4AF37]/30 pb-20 lg:pb-0">
       <div className="flex relative z-10">
-        {/* Desktop Sidebar (PRESERVED) */}
+        {/* Desktop Sidebar (PRESERVED STRUCTURE, ENHANCED UI) */}
         <aside className="w-64 h-screen sticky top-0 bg-[#0A0A0A] border-r border-white/5 flex flex-col hidden lg:flex">
           <div className="px-0 py-10">
             <div className="flex items-center gap-4 mb-12 group cursor-pointer px-8" onClick={() => navigate('/')}>
@@ -186,9 +186,10 @@ const AdminDashboard: React.FC = () => {
             </div>
 
             <div className="px-8 mb-10">
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] leading-relaxed">
-                {getGreeting()},<br />TATO
-              </p>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-neutral-500 tracking-widest uppercase font-semibold">{getGreeting()}</span>
+                <span className="text-sm text-white font-bold tracking-wide">TATO</span>
+              </div>
             </div>
 
             <nav className="space-y-1">
@@ -196,14 +197,14 @@ const AdminDashboard: React.FC = () => {
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-8 py-4 transition-all duration-200 ${
+                  className={`w-full flex items-center gap-3 px-8 py-3.5 transition-all duration-300 font-medium ${
                     activeTab === item.id 
-                    ? 'bg-neutral-800 text-[#D4AF37]' 
-                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02]'
+                    ? 'bg-white/10 border-l-4 border-[#D4AF37] text-white shadow-lg' 
+                    : 'text-neutral-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <item.icon size={20} className={activeTab === item.id ? 'text-[#D4AF37]' : 'text-zinc-600'} />
-                  <span className="text-sm font-bold uppercase tracking-wide">{item.label}</span>
+                  <span className="text-sm uppercase tracking-wider">{item.label}</span>
                 </button>
               ))}
             </nav>
@@ -453,10 +454,10 @@ const AdminDashboard: React.FC = () => {
                       <span className="text-[10px] text-zinc-500 font-bold tracking-[0.4em] uppercase mb-8 opacity-60">Receita Bruta Acumulada</span>
                       <div className="flex items-baseline gap-4">
                         <span className="text-4xl font-bold text-[#D4AF37] opacity-40">R$</span>
-                        <h2 className="text-[7rem] font-black text-[#D4AF37] tracking-tighter leading-none">{totalRevenue.toFixed(0)}</h2>
+                        <h2 className="text-6xl font-black text-[#D4AF37] tracking-tighter leading-none drop-shadow-md">{totalRevenue.toFixed(0)}</h2>
                       </div>
-                      <div className="mt-10 px-6 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-                        <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-[0.2em]">+24.8% vs período anterior</p>
+                      <div className="mt-10 px-6 py-2 bg-emerald-500/5 border border-emerald-500/10 rounded-full">
+                        <p className="text-emerald-400/80 text-xs font-medium tracking-wide uppercase">+24.8% vs período anterior</p>
                       </div>
                     </div>
 
@@ -467,24 +468,24 @@ const AdminDashboard: React.FC = () => {
                         { label: 'Novos Clientes', value: '12', icon: Users },
                         { label: 'Taxa Retenção', value: '88.5%', icon: TrendingUp },
                       ].map((stat, i) => (
-                        <div key={i} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl shadow-xl transition-all hover:bg-white/[0.05] group">
-                          <div className="w-12 h-12 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center mb-6 group-hover:border-[#D4AF37]/30 transition-all">
-                            {React.createElement(stat.icon as any, { size: 20, className: "text-[#D4AF37]" })}
+                        <div key={i} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.05] group relative flex flex-col justify-between h-36">
+                          <div className="flex justify-between items-start">
+                            <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">{stat.label}</p>
+                            <stat.icon size={18} className="text-[#D4AF37] opacity-60" />
                           </div>
-                          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-3 opacity-60">{stat.label}</p>
-                          <p className="text-3xl font-bold text-white tracking-tight">{stat.value}</p>
+                          <p className="text-3xl sm:text-4xl font-extrabold text-white mt-2 tracking-tight">{stat.value}</p>
                         </div>
                       ))}
                     </div>
 
                     <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-10 rounded-2xl flex flex-col md:flex-row items-center justify-around text-center gap-12 shadow-xl border-dashed">
                       <div className="space-y-2">
-                        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Atendimentos Efetuados</p>
-                        <p className="text-4xl font-black text-white">{bookings.length}</p>
+                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">Atendimentos Efetuados</p>
+                        <p className="text-4xl font-black text-white tracking-tight">{bookings.length}</p>
                       </div>
                       <div className="h-16 w-[1px] bg-white/5 hidden md:block" />
                       <div className="space-y-2">
-                        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Faltas & No-show</p>
+                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">Faltas & No-show</p>
                         <p className="text-4xl font-black text-red-500/80 tracking-tighter">01</p>
                       </div>
                     </div>
@@ -495,24 +496,24 @@ const AdminDashboard: React.FC = () => {
                       <span className="text-[10px] text-zinc-500 font-bold tracking-[0.4em] uppercase mb-8 opacity-60">Faturamento Mensal Estimado</span>
                       <div className="flex items-baseline gap-4">
                         <span className="text-4xl font-bold text-[#D4AF37] opacity-40">R$</span>
-                        <h2 className="text-[7rem] font-black text-[#D4AF37] tracking-tighter leading-none">{(totalRevenue * 4.2).toFixed(0)}</h2>
+                        <h2 className="text-6xl font-black text-[#D4AF37] tracking-tighter leading-none drop-shadow-md">{(totalRevenue * 4.2).toFixed(0)}</h2>
                       </div>
                       <p className="text-[10px] text-gold-600/60 font-bold uppercase tracking-[0.3em] mt-10">Resumo Consolidado 30 dias</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-10 rounded-2xl text-center shadow-xl">
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-5 opacity-60">Clientes Atendidos</p>
+                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl text-center shadow-xl flex flex-col justify-center min-h-[160px]">
+                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Clientes Atendidos</p>
                         <p className="text-5xl font-black text-white tracking-tighter">{bookings.length * 4}</p>
                         <div className="w-10 h-1 bg-[#D4AF37]/20 mx-auto mt-6 rounded-full" />
                       </div>
-                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-10 rounded-2xl text-center shadow-xl">
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-5 opacity-60">Cancelamentos Totais</p>
+                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl text-center shadow-xl flex flex-col justify-center min-h-[160px]">
+                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Cancelamentos Totais</p>
                         <p className="text-5xl font-black text-white tracking-tighter">04</p>
                         <div className="w-10 h-1 bg-red-500/20 mx-auto mt-6 rounded-full" />
                       </div>
-                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-10 rounded-2xl text-center shadow-xl border-[#D4AF37]/10">
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-5 opacity-60">Crescimento de Base</p>
+                      <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl text-center shadow-xl border-[#D4AF37]/10 flex flex-col justify-center min-h-[160px]">
+                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-semibold mb-4">Crescimento de Base</p>
                         <p className="text-5xl font-black text-[#D4AF37] tracking-tighter">48</p>
                         <div className="w-10 h-1 bg-[#D4AF37]/40 mx-auto mt-6 rounded-full" />
                       </div>
