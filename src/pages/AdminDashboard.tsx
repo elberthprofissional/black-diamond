@@ -440,10 +440,12 @@ const AdminDashboard: React.FC = () => {
                 {viewMode === 'semanal' ? (
                   <div className="space-y-12">
                     <div className="bg-gradient-to-b from-white/[0.05] to-transparent border border-white/10 backdrop-blur-md p-16 rounded-[2rem] flex flex-col items-center justify-center text-center shadow-2xl relative overflow-hidden">
-                      <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center mb-6">
-                        <DollarSign size={20} className="text-[#D4AF37]" />
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center">
+                          <DollarSign size={16} className="text-zinc-400" />
+                        </div>
+                        <span className="text-[10px] text-zinc-500 font-bold tracking-[0.4em] uppercase opacity-60">Lucro da Semana</span>
                       </div>
-                      <span className="text-[10px] text-zinc-500 font-bold tracking-[0.4em] uppercase mb-4 opacity-60">Lucro da Semana</span>
                       <div className="flex items-baseline gap-4">
                         <span className="text-4xl font-bold text-[#D4AF37] opacity-40">R$</span>
                         <h2 className="text-6xl font-black text-[#D4AF37] tracking-tighter leading-none drop-shadow-md">{totalRevenue.toFixed(0)}</h2>
