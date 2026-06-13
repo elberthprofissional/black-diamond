@@ -1,9 +1,10 @@
-import React, { useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Star, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
+import { Star, User } from 'lucide-react';
 
 const Testimonials: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const reviews = [
     {
@@ -58,73 +59,74 @@ const Testimonials: React.FC = () => {
     }
   ];
 
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const { scrollLeft, clientWidth } = scrollRef.current;
-      const scrollTo = direction === 'left' 
-        ? scrollLeft - clientWidth 
-        : scrollLeft + clientWidth;
-      
-      scrollRef.current.scrollTo({
-        left: scrollTo,
-        behavior: 'smooth'
-      });
-    }
-  };
+  // Configuração do Scroll Progress
+  const { scrollXProgress } = useScroll({ container: scrollRef });
+  const scaleX = useSpring(scrollXProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
+  // Efeito Parallax para o texto de fundo
+  const backgroundX = useTransform(scrollXProgress, [0, 1], ["0%", "-20%"]);
 
   return (
-    <section id="depoimentos" className="py-32 md:py-48 bg-[#09090B] text-white relative overflow-hidden">
-      <div className="container mx-auto px-6 relative z-10 max-w-6xl">
-        <div className="flex justify-between items-end mb-16 md:mb-24">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <h3 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4 tracking-tight uppercase">O QUE NOSSOS CLIENTES DIZEM</h3>
-            <div className="h-[1px] w-12 bg-gold-600/30"></div>
-          </motion.div>
+    <section id="depoimentos" className="py-32 md:py-48 bg-[#09090B] text-white relative overflow-hidden select-none">
+      
+      {/* Texto Parallax Gigante de Fundo */}
+      <motion.div 
+        style={{ x: backgroundX }}
+        className="absolute top-1/2 -translate-y-1/2 left-0 whitespace-nowrap text-[15rem] md:text-[25rem] font-black text-white/[0.02] uppercase pointer-events-none z-0 tracking-tighter"
+      >
+        EXCELÊNCIA BLACK DIAMOND
+      </motion.div>
 
-          {/* Botões de Navegação Desktop */}
-          <div className="hidden md:flex gap-4">
-            <button 
-              onClick={() => scroll('left')}
-              className="p-4 border border-white/10 rounded-full hover:bg-white/5 hover:border-gold-600/50 transition-all duration-300 group"
-            >
-              <ChevronLeft size={20} className="text-zinc-500 group-hover:text-gold-600" />
-            </button>
-            <button 
-              onClick={() => scroll('right')}
-              className="p-4 border border-white/10 rounded-full hover:bg-white/5 hover:border-gold-600/50 transition-all duration-300 group"
-            >
-              <ChevronRight size={20} className="text-zinc-500 group-hover:text-gold-600" />
-            </button>
-          </div>
+      <div className="container mx-auto px-6 relative z-10 max-w-7xl">
+        <div className="text-center mb-24 md:mb-32">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <h3 className="text-4xl md:text-7xl font-serif font-bold text-white mb-6 tracking-tight uppercase">
+              O QUE DIZEM <br />
+              <span className="text-gold-600 italic font-light">SOBRE NÓS.</span>
+            </h3>
+            <div className="h-[1px] w-24 bg-gold-600/30 mx-auto"></div>
+          </motion.div>
         </div>
 
-        {/* Slider Unificado */}
+        {/* Slider com Spotlight Effect */}
         <div 
           ref={scrollRef}
-          className="flex overflow-x-auto gap-6 md:gap-8 pb-12 snap-x snap-mandatory scrollbar-hide cursor-grab active:cursor-grabbing"
+          onMouseDown={() => setIsDragging(true)}
+          onMouseUp={() => setIsDragging(false)}
+          onMouseLeave={() => setIsDragging(false)}
+          className="flex overflow-x-auto gap-8 md:gap-12 pb-24 snap-x snap-mandatory scrollbar-hide cursor-grab active:cursor-grabbing"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {reviews.map((review, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.05 }}
-              className="min-w-[85vw] md:min-w-[calc(33.333%-1.5rem)] snap-center md:snap-start bg-[#1A1A1A] border border-zinc-800 rounded-lg p-8 flex flex-col space-y-6 transition-all duration-500 hover:border-zinc-700 shadow-sm"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: false, margin: "-100px" }}
+              transition={{ duration: 0.5 }}
+              className="min-w-[85vw] md:min-w-[450px] snap-center bg-zinc-900/40 backdrop-blur-sm border border-white/5 rounded-3xl p-10 md:p-12 flex flex-col space-y-8 transition-all duration-700 hover:bg-zinc-900/60 hover:border-gold-600/30 group relative overflow-hidden"
             >
-              {/* Cabeçalho do Card */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 rounded-full bg-zinc-600 flex items-center justify-center overflow-hidden">
-                    <User size={20} className="text-zinc-300" />
+              {/* Efeito Glow Interno no Hover */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              
+              <div className="flex items-center justify-between relative z-10">
+                <div className="flex items-center space-x-5">
+                  <div className="w-14 h-14 rounded-2xl bg-gold-600/10 border border-gold-600/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                    <User size={24} className="text-gold-600" />
                   </div>
-                  <span className="text-zinc-100 font-medium text-sm tracking-wide">{review.name}</span>
+                  <div className="flex flex-col">
+                    <span className="text-white font-bold text-lg tracking-tight">{review.name}</span>
+                    <span className="text-gold-600/60 text-[10px] uppercase tracking-[0.2em] font-black">Cliente Verificado</span>
+                  </div>
                 </div>
                 <div className="flex space-x-1">
                   {[...Array(review.rating)].map((_, i) => (
@@ -133,19 +135,30 @@ const Testimonials: React.FC = () => {
                 </div>
               </div>
 
-              {/* Texto do Depoimento */}
-              <p className="text-zinc-400 font-sans font-light leading-relaxed text-sm text-left italic flex-1">
+              <p className="text-zinc-400 font-sans font-light leading-relaxed text-lg md:text-xl text-left italic relative z-10">
                 "{review.text}"
               </p>
+
+              <div className="pt-4 flex items-center justify-between opacity-20 group-hover:opacity-100 transition-opacity duration-700 relative z-10">
+                <div className="h-[1px] flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] ml-4 text-zinc-500">Black Diamond Studio</span>
+              </div>
             </motion.div>
           ))}
         </div>
 
-        {/* Pontinhos de Paginação (Visíveis em todos, mas úteis no Mobile) */}
-        <div className="flex justify-center items-center space-x-3 mt-8">
-          <div className="w-2 h-2 rounded-full bg-[#C5A059] shadow-[0_0_10px_rgba(197,160,89,0.5)]"></div>
-          <div className="w-2 h-2 rounded-full bg-zinc-700"></div>
-          <div className="w-2 h-2 rounded-full bg-zinc-700"></div>
+        {/* Barra de Progresso Minimalista e Interativa */}
+        <div className="max-w-md mx-auto relative h-[2px] bg-white/5 rounded-full overflow-hidden">
+          <motion.div 
+            className="absolute top-0 left-0 h-full bg-gold-600 shadow-[0_0_15px_#C5A059]"
+            style={{ scaleX, transformOrigin: "0%" }}
+          />
+        </div>
+        
+        <div className="mt-6 text-center">
+          <span className="text-[9px] font-black uppercase tracking-[0.5em] text-zinc-700 animate-pulse">
+            Arraste para explorar
+          </span>
         </div>
 
       </div>
