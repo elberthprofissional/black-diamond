@@ -7,7 +7,7 @@ import BookingPage from './pages/BookingPage';
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-[#09090B]">
+      <div className="min-h-screen bg-[#0A0A0A]">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/agendar" element={<BookingPage />} />

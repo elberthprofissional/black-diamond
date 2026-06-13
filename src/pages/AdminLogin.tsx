@@ -42,24 +42,21 @@ const AdminLogin: React.FC = () => {
       >
         {/* Logo Section */}
         <div className="flex flex-col items-center mb-12">
-          <div className="w-16 h-16 border border-white/10 flex items-center justify-center mb-6 bg-black/40 backdrop-blur-md">
+          <div className="w-16 h-16 border border-white/10 flex items-center justify-center mb-6 bg-black/40 backdrop-blur-md rounded-md">
             <Scissors className="text-gold-600 w-8 h-8" />
           </div>
-          <h1 className="text-2xl font-serif font-black tracking-[0.3em] text-white uppercase text-center leading-none">
+          <h1 className="text-2xl font-bold tracking-tight text-white uppercase text-center leading-none">
             BLACK DIAMOND
           </h1>
-          <span className="text-[10px] tracking-[0.5em] text-gold-600/60 uppercase font-bold mt-4">Administrative Suite</span>
+          <span className="text-[10px] tracking-[0.3em] text-gold-600 font-bold mt-4 uppercase">Painel Administrativo</span>
         </div>
 
         {/* Login Card */}
-        <div className="bg-black/40 backdrop-blur-2xl border border-white/5 p-10 md:p-12 shadow-2xl relative overflow-hidden">
-          {/* Subtle line decoration */}
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold-600/30 to-transparent" />
-          
+        <div className="bg-[#141414] border border-white/5 p-10 md:p-12 shadow-2xl relative overflow-hidden rounded-lg">
           <form onSubmit={handleLogin} className="space-y-10">
             <div className="space-y-4">
               <div className="flex justify-between items-end">
-                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-500">Access Key</label>
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Chave de Acesso</label>
                 {isError && (
                   <motion.span 
                     initial={{ opacity: 0, x: 10 }}
@@ -85,13 +82,9 @@ const AdminLogin: React.FC = () => {
 
             <button 
               type="submit"
-              className="w-full group flex items-center justify-between bg-transparent border border-white/10 hover:border-gold-600 px-8 py-6 transition-all duration-700 relative overflow-hidden"
+              className="w-full flex items-center justify-center bg-white hover:bg-zinc-200 text-black px-8 py-4 transition-all duration-300 rounded-md font-bold text-xs uppercase tracking-[0.2em]"
             >
-              <div className="absolute inset-0 bg-gold-600 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-              <span className="relative z-10 text-[10px] font-black uppercase tracking-[0.5em] text-white group-hover:text-black transition-colors duration-500">
-                Entrar no Painel
-              </span>
-              <ChevronRight className="relative z-10 text-gold-600 group-hover:text-black group-hover:translate-x-1 transition-all duration-500" size={16} />
+              Entrar no Painel
             </button>
           </form>
         </div>
