@@ -1,9 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 
 const Hero: React.FC = () => {
-  const navigate = useNavigate();
 
   return (
     <section id="home" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#09090B] pt-28">
