@@ -457,7 +457,6 @@ const AdminDashboard: React.FC = () => {
         )}
       </AnimatePresence>
       <div className="flex relative z-10">
-        {/* DESKTOP SIDEBAR REMAKE */}
         <aside className="w-72 h-screen sticky top-0 bg-[#0A0A0A] border-r border-white/5 flex flex-col hidden lg:flex shadow-2xl">
           <div className="flex-1 py-14 flex flex-col">
             <div className="flex items-center gap-5 mb-20 group cursor-pointer px-10" onClick={() => navigate('/')}>
@@ -509,8 +508,6 @@ const AdminDashboard: React.FC = () => {
             </button>
           </div>
         </aside>
-
-        {/* MOBILE BOTTOM BAR REMAKE */}
         <nav className="fixed bottom-0 left-0 right-0 bg-[#0A0A0A]/80 backdrop-blur-2xl border-t border-white/5 px-6 py-4 flex items-center justify-around z-50 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.5)] rounded-t-3xl">
           {menuItems.map((item) => {
             const isActive = activeTab === item.id;
@@ -527,7 +524,6 @@ const AdminDashboard: React.FC = () => {
             );
           })}
         </nav>
-
         <main className="flex-1 min-h-screen lg:px-12 px-6 py-10 overflow-x-hidden">
           <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
             <div>
