@@ -504,7 +504,7 @@ const AdminDashboard: React.FC = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {[
                           { label: 'Cancelamentos', value: weeklyBookings.filter(b => b.status === 'cancelled').length.toString(), icon: Scissors },
-                          { label: 'Novos Clientes', value: '12', icon: Users },
+                          { label: 'Novos Clientes', value: clients.length.toString(), icon: Users },
                           { label: 'Atendimentos Realizados', value: weeklyBookings.length.toString(), icon: CheckCircle },
                         ].map((stat, i) => (
                           <div key={i} className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.05] group relative flex flex-col justify-between h-36">
