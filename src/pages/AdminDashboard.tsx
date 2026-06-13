@@ -363,15 +363,9 @@ const AdminDashboard: React.FC = () => {
                   <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md shadow-2xl rounded-2xl p-8 transition-all hover:bg-white/[0.04] relative overflow-hidden group">
                     <div className="flex flex-col">
                       <span className="text-xs font-semibold text-neutral-500 uppercase tracking-widest block mb-8">Disponibilidade</span>
-                      <div className="flex items-center justify-between">
-                         <div className="flex flex-col">
-                           <span className="text-5xl font-black text-white tracking-tighter leading-none">{availableSlots}</span>
-                           <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-[0.2em] mt-2">Vagas Livres</span>
-                         </div>
-                         <div className="relative flex items-center justify-center w-16 h-16 rounded-full border-2 border-white/5 bg-white/5 group-hover:border-[#D4AF37]/30 transition-all">
-                            <Calendar size={24} className="text-[#D4AF37] opacity-60" />
-                            <div className="absolute inset-0 rounded-full bg-[#D4AF37]/5 blur-md animate-pulse" />
-                         </div>
+                      <div className="flex flex-col">
+                        <span className="text-5xl font-black text-white tracking-tighter leading-none">{availableSlots}</span>
+                        <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-[0.2em] mt-2">Vagas Livres</span>
                       </div>
                     </div>
                   </div>
