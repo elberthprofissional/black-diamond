@@ -99,6 +99,12 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleSendMessage = () => {
+    if (!viewingBooking?.clients?.phone) return;
+    const message = `Olá ${viewingBooking.clients.name}, aqui é da Black Diamond. Gostaria de falar sobre o seu agendamento para o dia ${new Date(viewingBooking.booking_date).toLocaleDateString('pt-BR')} às ${viewingBooking.booking_time.slice(0, 5)}.`;
+    window.open(`https://wa.me/55${viewingBooking.clients.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
   const today = new Date().toISOString().split('T')[0];
   const todayBookings = bookings.filter(b => b.booking_date === today);
   
@@ -159,103 +165,94 @@ const AdminDashboard: React.FC = () => {
   if (viewingBooking) {
     return (
       <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="min-h-screen bg-[#0A0A0A] text-white p-6 lg:p-12 selection:bg-gold-600/30 font-sans"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen bg-[#0A0A0A] text-white p-6 lg:p-16 selection:bg-gold-600/30 font-sans"
       >
-        <header className="max-w-5xl mx-auto flex items-center justify-between mb-16">
+        <header className="max-w-5xl mx-auto flex items-center justify-between mb-20">
           <button 
             onClick={() => { setViewingBooking(null); setIsRescheduling(false); }}
-            className="flex items-center gap-3 text-zinc-500 hover:text-white transition-all uppercase text-[10px] font-black tracking-[0.3em] group"
+            className="flex items-center gap-3 text-zinc-600 hover:text-white transition-all uppercase text-[9px] font-black tracking-[0.4em] group"
           >
-            <ArrowLeft size={18} className="group-hover:-translate-x-2 transition-transform" />
-            Voltar para Agenda
+            <ArrowLeft size={14} className="group-hover:-translate-x-2 transition-transform" />
+            Voltar
           </button>
-          <div className="flex items-center gap-4">
-             <div className="h-px w-12 bg-white/10" />
-             <h1 className="text-sm font-sans font-bold uppercase tracking-[0.3em] text-zinc-500 text-right">Gestão de Agendamento</h1>
-          </div>
+          <span className="text-[9px] font-bold uppercase tracking-[0.5em] text-zinc-700">Management / Booking</span>
         </header>
 
         <main className="max-w-5xl mx-auto">
           {!isRescheduling ? (
-            <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-16 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.7fr_1fr] gap-20 items-start">
               {/* Informações Principais */}
-              <div className="space-y-12">
-                <div className="space-y-4">
-                  <span className="text-[10px] font-black text-[#C5A059] uppercase tracking-[0.5em] mb-2 block">Resumo do Cliente</span>
-                  <h2 className="font-sans text-4xl sm:text-6xl font-extrabold text-white uppercase tracking-tight leading-none">{viewingBooking.clients?.name}</h2>
-                  <div className="flex items-center gap-6 pt-6 text-zinc-500">
-                    <div className="flex items-center gap-2">
-                      <Smartphone size={16} className="text-[#C5A059]" />
+              <div className="space-y-16">
+                <div className="space-y-6">
+                  <h2 className="font-sans text-5xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none">{viewingBooking.clients?.name}</h2>
+                  <div className="flex flex-wrap items-center gap-8 text-zinc-500">
+                    <button 
+                      onClick={handleSendMessage}
+                      className="flex items-center gap-3 hover:text-emerald-500 transition-colors group"
+                    >
+                      <Smartphone size={16} className="text-zinc-700 group-hover:text-emerald-500" />
                       <span className="text-sm font-bold tracking-widest">{viewingBooking.clients?.phone}</span>
-                    </div>
-                    <div className="h-4 w-px bg-white/10" />
-                    <div className="flex items-center gap-2">
-                      <CalendarDays size={16} className="text-[#C5A059]" />
+                      <span className="text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded">Enviar Mensagem</span>
+                    </button>
+                    <div className="flex items-center gap-3">
+                      <Calendar size={16} className="text-zinc-700" />
                       <span className="text-sm font-bold tracking-widest">{new Date(viewingBooking.booking_date).toLocaleDateString('pt-BR')}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 shadow-xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-white/[0.02] rounded-full -mr-8 -mt-8" />
-                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-6">Serviço Selecionado</p>
-                    <div className="space-y-3">
-                       <div className="flex items-center gap-3">
-                         <Tag size={16} className="text-[#C5A059]" />
-                         <span className="text-xl font-bold text-white tracking-tight uppercase">Corte Premium</span>
-                       </div>
-                       <p className="text-xs text-zinc-500 font-medium tracking-wide">Experiência Black Diamond</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/5 border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+                  <div className="bg-[#0A0A0A] p-10 space-y-4">
+                    <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Serviço</p>
+                    <div className="flex items-center gap-3">
+                       <span className="text-2xl font-bold text-white tracking-tight uppercase">Corte Premium</span>
                     </div>
                   </div>
-                  <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 shadow-xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-white/[0.02] rounded-full -mr-8 -mt-8" />
-                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-6">Valor Total</p>
+                  <div className="bg-[#0A0A0A] p-10 space-y-4">
+                    <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Investimento</p>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-[#C5A059] opacity-40">R$</span>
-                      <span className="text-5xl font-black text-[#C5A059] tracking-tighter drop-shadow-sm">{Number(viewingBooking.total_price).toFixed(0)}</span>
+                      <span className="text-xl font-bold text-[#C5A059] opacity-40">R$</span>
+                      <span className="text-5xl font-black text-[#C5A059] tracking-tighter">{Number(viewingBooking.total_price).toFixed(0)}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Ações */}
-              <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl shadow-2xl space-y-8">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                    <Clock size={24} className="text-[#C5A059]" />
+              {/* Ações Sidebar */}
+              <div className="space-y-12">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4 text-zinc-600">
+                    <Clock size={18} />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.3em]">Horário Confirmado</span>
                   </div>
-                  <div>
-                    <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Horário Confirmado</p>
-                    <p className="text-3xl font-black text-white tracking-tighter">{viewingBooking.booking_time.slice(0, 5)}</p>
-                  </div>
+                  <p className="text-6xl font-black text-white tracking-tighter">{viewingBooking.booking_time.slice(0, 5)}</p>
                 </div>
 
-                <div className="h-px w-full bg-white/5" />
-
-                <div className="space-y-4">
+                <div className="space-y-3">
                    <button 
                     onClick={() => {
                       setRescheduleData({ date: viewingBooking.booking_date, time: viewingBooking.booking_time.slice(0, 5) });
                       setIsRescheduling(true);
                     }}
-                    className="w-full bg-white text-black font-extrabold uppercase tracking-widest rounded-xl h-14 hover:bg-neutral-200 transition-all shadow-xl hover:scale-[1.01]"
+                    className="w-full bg-white hover:bg-zinc-200 text-black h-16 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all shadow-xl active:scale-95"
                    >
                      Reagendar
                    </button>
                    <button 
+                    onClick={handleSendMessage}
+                    className="w-full bg-white/5 hover:bg-white/10 text-white h-16 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all"
+                   >
+                     Entrar em Contato
+                   </button>
+                   <button 
                     onClick={() => handleUpdateStatus(viewingBooking.id, 'cancelled')}
-                    className="w-full bg-transparent border border-red-500/40 hover:bg-red-500/10 text-red-500 font-extrabold uppercase tracking-widest rounded-xl h-14 transition-all"
+                    className="w-full text-zinc-600 hover:text-red-500 transition-colors py-4 text-[9px] font-bold uppercase tracking-[0.4em]"
                    >
                      Cancelar Agendamento
                    </button>
                 </div>
-
-                <p className="text-[9px] text-zinc-600 text-center font-bold uppercase tracking-[0.2em] leading-relaxed">
-                  Reflexo instantâneo na agenda <br />administrativa e do cliente.
-                </p>
               </div>
             </div>
           ) : (
