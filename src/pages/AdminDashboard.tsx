@@ -13,7 +13,11 @@ import {
   ChevronLeft,
   User,
   CheckCircle,
-  Scissors
+  Scissors,
+  CalendarDays,
+  ArrowLeft,
+  Smartphone,
+  Tag
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,7 +29,7 @@ const AdminDashboard: React.FC = () => {
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreatingBooking, setIsCreatingBooking] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
+  const [viewingBooking, setViewingBooking] = useState<any | null>(null);
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' });
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'info' | 'error' } | null>(null);
@@ -65,7 +69,7 @@ const AdminDashboard: React.FC = () => {
     try {
       await updateBookingStatus(id, status);
       setToast({ message: `Agendamento ${status === 'cancelled' ? 'cancelado' : 'atualizado'} com sucesso!`, type: 'success' });
-      setSelectedBooking(null);
+      setViewingBooking(null);
       fetchData();
     } catch (error) {
       setToast({ message: 'Erro ao atualizar agendamento.', type: 'error' });
@@ -82,13 +86,13 @@ const AdminDashboard: React.FC = () => {
           booking_time: rescheduleData.time,
           status: 'pending' 
         })
-        .eq('id', selectedBooking.id);
+        .eq('id', viewingBooking.id);
       
       if (error) throw error;
       
       setToast({ message: 'Reagendamento concluído!', type: 'success' });
       setIsRescheduling(false);
-      setSelectedBooking(null);
+      setViewingBooking(null);
       fetchData();
     } catch (error) {
       setToast({ message: 'Erro ao reagendar.', type: 'error' });
@@ -150,6 +154,162 @@ const AdminDashboard: React.FC = () => {
     setToast({ message: 'Agendamento realizado com sucesso!', type: 'success' });
     fetchData();
   };
+
+  // TELA DE DETALHES DEDICADA
+  if (viewingBooking) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="min-h-screen bg-[#0A0A0A] text-white p-6 lg:p-12 selection:bg-gold-600/30"
+      >
+        <header className="max-w-5xl mx-auto flex items-center justify-between mb-16">
+          <button 
+            onClick={() => { setViewingBooking(null); setIsRescheduling(false); }}
+            className="flex items-center gap-3 text-zinc-500 hover:text-white transition-all uppercase text-[10px] font-black tracking-[0.3em] group"
+          >
+            <ArrowLeft size={18} className="group-hover:-translate-x-2 transition-transform" />
+            Voltar para Agenda
+          </button>
+          <div className="flex items-center gap-4">
+             <div className="h-px w-12 bg-white/10" />
+             <h1 className="text-xl font-serif font-bold uppercase tracking-widest italic text-zinc-500">Gestão de Agendamento</h1>
+          </div>
+        </header>
+
+        <main className="max-w-5xl mx-auto">
+          {!isRescheduling ? (
+            <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-16 items-start">
+              {/* Informações Principais */}
+              <div className="space-y-12">
+                <div className="space-y-4">
+                  <span className="text-[10px] font-black text-[#C5A059] uppercase tracking-[0.5em] mb-2 block">Cliente Premium</span>
+                  <h2 className="text-5xl md:text-7xl font-serif font-bold text-white uppercase tracking-tighter leading-none">{viewingBooking.clients?.name}</h2>
+                  <div className="flex items-center gap-6 pt-4 text-zinc-500">
+                    <div className="flex items-center gap-2">
+                      <Smartphone size={16} className="text-[#C5A059]" />
+                      <span className="text-sm font-bold tracking-widest">{viewingBooking.clients?.phone}</span>
+                    </div>
+                    <div className="h-4 w-px bg-white/10" />
+                    <div className="flex items-center gap-2">
+                      <CalendarDays size={16} className="text-[#C5A059]" />
+                      <span className="text-sm font-bold tracking-widest">{new Date(viewingBooking.booking_date).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-10 rounded-[2rem] shadow-xl">
+                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-4">Serviços Contratados</p>
+                    <div className="space-y-3">
+                       <div className="flex items-center gap-3">
+                         <Tag size={14} className="text-[#C5A059]" />
+                         <span className="text-xl font-bold text-white tracking-tight uppercase">Corte & Estilo</span>
+                       </div>
+                       <p className="text-xs text-zinc-500 font-medium">Tempo estimado: 45 min</p>
+                    </div>
+                  </div>
+                  <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-10 rounded-[2rem] shadow-xl">
+                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-4">Investimento Total</p>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-bold text-[#C5A059] opacity-40">R$</span>
+                      <span className="text-5xl font-black text-[#C5A059] tracking-tighter">{Number(viewingBooking.total_price).toFixed(0)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ações */}
+              <div className="bg-white/[0.03] border border-white/10 backdrop-blur-2xl p-10 rounded-[2.5rem] shadow-2xl space-y-8">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+                    <Clock size={24} className="text-[#C5A059]" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Horário Agendado</p>
+                    <p className="text-2xl font-black text-white">{viewingBooking.booking_time.slice(0, 5)}</p>
+                  </div>
+                </div>
+
+                <div className="h-px w-full bg-white/5" />
+
+                <div className="space-y-4">
+                   <button 
+                    onClick={() => {
+                      setRescheduleData({ date: viewingBooking.booking_date, time: viewingBooking.booking_time.slice(0, 5) });
+                      setIsRescheduling(true);
+                    }}
+                    className="w-full bg-white hover:bg-zinc-200 text-black h-16 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl hover:scale-[1.02]"
+                   >
+                     Reagendar Atendimento
+                   </button>
+                   <button 
+                    onClick={() => handleUpdateStatus(viewingBooking.id, 'cancelled')}
+                    className="w-full bg-transparent border border-red-500/30 hover:bg-red-500/10 text-red-500 h-16 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all"
+                   >
+                     Cancelar Agendamento
+                   </button>
+                </div>
+
+                <p className="text-[9px] text-zinc-600 text-center font-bold uppercase tracking-widest leading-relaxed">
+                  As alterações feitas nesta tela serão refletidas <br />instantaneamente na agenda do cliente.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-2xl mx-auto space-y-12">
+               <div className="flex items-center gap-6 mb-12">
+                  <button onClick={() => setIsRescheduling(false)} className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white hover:border-white transition-all">
+                    <ArrowLeft size={20} />
+                  </button>
+                  <h2 className="text-4xl font-serif font-bold text-white uppercase tracking-widest italic">Novo Horário</h2>
+               </div>
+
+               <div className="space-y-10">
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] ml-2">Selecione a Nova Data</label>
+                    <input 
+                      type="date" 
+                      value={rescheduleData.date}
+                      onChange={(e) => setRescheduleData({...rescheduleData, date: e.target.value})}
+                      className="w-full bg-white/[0.03] border border-white/10 text-white p-8 rounded-[1.5rem] outline-none focus:border-[#C5A059] transition-all text-sm font-bold uppercase tracking-widest"
+                    />
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] ml-2">Selecione o Novo Horário</label>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                      {timeSlots.map(t => (
+                        <button 
+                          key={t}
+                          onClick={() => setRescheduleData({...rescheduleData, time: t})}
+                          className={`py-5 text-xs font-bold border rounded-xl transition-all ${
+                            rescheduleData.time === t 
+                            ? 'border-[#C5A059] bg-[#C5A059]/10 text-white shadow-lg' 
+                            : 'border-white/5 bg-white/[0.02] text-zinc-500 hover:border-white/20'
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="pt-8">
+                    <button 
+                      onClick={handleReschedule}
+                      className="w-full bg-[#C5A059] text-black h-20 rounded-2xl font-black text-sm uppercase tracking-[0.3em] hover:bg-[#F5E0A3] transition-all shadow-2xl hover:translate-y-[-2px]"
+                    >
+                      Confirmar Reagendamento
+                    </button>
+                  </div>
+               </div>
+            </div>
+          )}
+        </main>
+      </motion.div>
+    );
+  }
 
   if (isCreatingBooking) {
     return (
@@ -400,7 +560,7 @@ const AdminDashboard: React.FC = () => {
                           {occupiedSlots.map((slot, i) => (
                             <div 
                               key={i} 
-                              onClick={() => setSelectedBooking(slot.booking)}
+                              onClick={() => setViewingBooking(slot.booking)}
                               className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-6 rounded-2xl shadow-xl transition-all hover:bg-white/[0.04] cursor-pointer group"
                             >
                               <div className="flex items-center justify-between">
@@ -652,137 +812,6 @@ const AdminDashboard: React.FC = () => {
           )}
         </main>
       </div>
-
-      {/* Modal de Detalhes do Agendamento */}
-      <AnimatePresence>
-        {selectedBooking && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => { if(!isRescheduling) setSelectedBooking(null); }}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            />
-            
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-neutral-900 border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden"
-            >
-              <div className="p-8 md:p-12">
-                {!isRescheduling ? (
-                  <div className="space-y-10">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-[#C5A059] uppercase tracking-[0.4em]">Detalhes do Corte</span>
-                        <h2 className="text-3xl font-serif font-bold text-white uppercase tracking-tight">{selectedBooking.clients?.name}</h2>
-                        <p className="text-xs text-zinc-500 font-medium tracking-wide">{selectedBooking.clients?.phone}</p>
-                      </div>
-                      <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                        <Clock size={24} className="text-[#C5A059]" />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-6 bg-white/[0.02] border border-white/5 p-6 rounded-2xl">
-                      <div>
-                        <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mb-1">Horário</p>
-                        <p className="text-lg font-black text-white tracking-tighter">{selectedBooking.booking_time.slice(0, 5)}</p>
-                      </div>
-                      <div>
-                        <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mb-1">Valor</p>
-                        <p className="text-lg font-black text-[#C5A059] tracking-tighter uppercase">R$ {Number(selectedBooking.total_price).toFixed(0)}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-3 pt-4">
-                      <div className="grid grid-cols-2 gap-3">
-                        <button 
-                          onClick={() => {
-                            setRescheduleData({ date: selectedBooking.booking_date, time: selectedBooking.booking_time.slice(0, 5) });
-                            setIsRescheduling(true);
-                          }}
-                          className="flex items-center justify-center gap-2 bg-white text-black py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all"
-                        >
-                          Reagendar
-                        </button>
-                        <button 
-                          onClick={() => handleUpdateStatus(selectedBooking.id, 'cancelled')}
-                          className="flex items-center justify-center gap-2 bg-red-500/10 text-red-500 border border-red-500/20 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                      <button 
-                        onClick={() => setSelectedBooking(null)}
-                        className="w-full bg-white/5 text-zinc-500 py-4 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:text-white transition-all"
-                      >
-                        Fechar Janela
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-8">
-                    <div className="flex items-center gap-4 mb-4">
-                      <button onClick={() => setIsRescheduling(false)} className="text-zinc-500 hover:text-white transition-colors">
-                        <ChevronLeft size={20} />
-                      </button>
-                      <h2 className="text-xl font-serif font-bold text-white uppercase tracking-widest italic">Novo Horário</h2>
-                    </div>
-
-                    <div className="space-y-6">
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1">Data do Reagendamento</label>
-                        <input 
-                          type="date" 
-                          value={rescheduleData.date}
-                          onChange={(e) => setRescheduleData({...rescheduleData, date: e.target.value})}
-                          className="w-full bg-black/40 border border-white/10 text-white p-5 rounded-xl outline-none focus:border-[#C5A059] transition-all text-xs font-bold uppercase tracking-widest"
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1">Novo Horário</label>
-                        <div className="grid grid-cols-3 gap-2">
-                          {timeSlots.map(t => (
-                            <button 
-                              key={t}
-                              onClick={() => setRescheduleData({...rescheduleData, time: t})}
-                              className={`py-3 text-[10px] font-bold border rounded-lg transition-all ${
-                                rescheduleData.time === t 
-                                ? 'border-[#C5A059] bg-[#C5A059]/10 text-white' 
-                                : 'border-white/5 bg-white/[0.02] text-zinc-500 hover:border-white/20'
-                              }`}
-                            >
-                              {t}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col gap-3 pt-4">
-                        <button 
-                          onClick={handleReschedule}
-                          className="w-full bg-[#C5A059] text-black py-5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#F5E0A3] transition-all"
-                        >
-                          Confirmar Reagendamento
-                        </button>
-                        <button 
-                          onClick={() => setIsRescheduling(false)}
-                          className="w-full bg-white/5 text-zinc-500 py-4 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:text-white transition-all"
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
