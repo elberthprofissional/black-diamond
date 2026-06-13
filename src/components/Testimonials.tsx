@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Star, User } from 'lucide-react';
+import { Star, User, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Testimonials: React.FC = () => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
   const reviews = [
     {
       name: "YP TATTOO",
@@ -56,31 +58,65 @@ const Testimonials: React.FC = () => {
     }
   ];
 
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const { scrollLeft, clientWidth } = scrollRef.current;
+      const scrollTo = direction === 'left' 
+        ? scrollLeft - clientWidth 
+        : scrollLeft + clientWidth;
+      
+      scrollRef.current.scrollTo({
+        left: scrollTo,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <section id="depoimentos" className="py-32 md:py-48 bg-[#09090B] text-white relative overflow-hidden">
       <div className="container mx-auto px-6 relative z-10 max-w-6xl">
-        <div className="text-center mb-24">
+        <div className="flex justify-between items-end mb-16 md:mb-24">
           <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
             <h3 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4 tracking-tight uppercase">O QUE NOSSOS CLIENTES DIZEM</h3>
-            <div className="h-[1px] w-12 bg-gold-600/30 mx-auto"></div>
+            <div className="h-[1px] w-12 bg-gold-600/30"></div>
           </motion.div>
+
+          {/* Botões de Navegação Desktop */}
+          <div className="hidden md:flex gap-4">
+            <button 
+              onClick={() => scroll('left')}
+              className="p-4 border border-white/10 rounded-full hover:bg-white/5 hover:border-gold-600/50 transition-all duration-300 group"
+            >
+              <ChevronLeft size={20} className="text-zinc-500 group-hover:text-gold-600" />
+            </button>
+            <button 
+              onClick={() => scroll('right')}
+              className="p-4 border border-white/10 rounded-full hover:bg-white/5 hover:border-gold-600/50 transition-all duration-300 group"
+            >
+              <ChevronRight size={20} className="text-zinc-500 group-hover:text-gold-600" />
+            </button>
+          </div>
         </div>
 
-        {/* Container com scroll horizontal no mobile e grid no desktop */}
-        <div className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-3 gap-8 pb-8 md:pb-0 snap-x snap-mandatory scrollbar-hide">
+        {/* Slider Unificado */}
+        <div 
+          ref={scrollRef}
+          className="flex overflow-x-auto gap-6 md:gap-8 pb-12 snap-x snap-mandatory scrollbar-hide cursor-grab active:cursor-grabbing"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           {reviews.map((review, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="min-w-[85vw] md:min-w-0 snap-center bg-[#1A1A1A] border border-zinc-800 rounded-lg p-8 flex flex-col space-y-6 transition-all duration-500 hover:border-zinc-700 shadow-sm first:ml-0 last:mr-0"
+              transition={{ duration: 0.5, delay: index * 0.05 }}
+              className="min-w-[85vw] md:min-w-[calc(33.333%-1.5rem)] snap-center md:snap-start bg-[#1A1A1A] border border-zinc-800 rounded-lg p-8 flex flex-col space-y-6 transition-all duration-500 hover:border-zinc-700 shadow-sm"
             >
               {/* Cabeçalho do Card */}
               <div className="flex items-center justify-between">
@@ -98,15 +134,15 @@ const Testimonials: React.FC = () => {
               </div>
 
               {/* Texto do Depoimento */}
-              <p className="text-zinc-400 font-sans font-light leading-relaxed text-sm text-left italic">
+              <p className="text-zinc-400 font-sans font-light leading-relaxed text-sm text-left italic flex-1">
                 "{review.text}"
               </p>
             </motion.div>
           ))}
         </div>
 
-        {/* Pontinhos de Paginação */}
-        <div className="flex justify-center items-center space-x-3 mt-16">
+        {/* Pontinhos de Paginação (Visíveis em todos, mas úteis no Mobile) */}
+        <div className="flex justify-center items-center space-x-3 mt-8">
           <div className="w-2 h-2 rounded-full bg-[#C5A059] shadow-[0_0_10px_rgba(197,160,89,0.5)]"></div>
           <div className="w-2 h-2 rounded-full bg-zinc-700"></div>
           <div className="w-2 h-2 rounded-full bg-zinc-700"></div>
