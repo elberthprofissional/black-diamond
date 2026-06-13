@@ -61,11 +61,6 @@ const About: React.FC = () => {
                   "NÃO SOU O MELHOR, <br />MAS SOU O MELHOR PARA VOCÊ."
                 </p>
               </div>
-
-              <div className="pt-12 flex flex-col items-start gap-2">
-                <span className="text-white text-lg uppercase tracking-[0.4em] font-black italic">Tatiano Silva</span>
-                <span className="text-zinc-600 text-[10px] uppercase tracking-[0.6em] font-black">Fundador & Master Barber</span>
-              </div>
             </div>
           </motion.div>
         </div>
