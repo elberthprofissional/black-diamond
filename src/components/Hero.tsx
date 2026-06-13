@@ -9,7 +9,7 @@ const Hero: React.FC = () => {
     <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden bg-[#09090B]">
       {/* Background Image using user-provided 'Tela=incio.webp' */}
       <div 
-        className="absolute inset-0 bg-cover bg-top z-0" 
+        className="absolute inset-0 bg-cover bg-center z-0" 
         style={{ 
           backgroundImage: 'url("/assets/img/Tela=incio.webp")',
           filter: 'brightness(0.3)'
@@ -19,7 +19,7 @@ const Hero: React.FC = () => {
       {/* Subtle Gradient for focus */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#09090B]/90 z-[1]" />
 
-      <div className="container mx-auto px-6 relative z-10 text-center pt-32">
+      <div className="container mx-auto px-6 relative z-10 text-center">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
