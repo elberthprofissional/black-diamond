@@ -24,6 +24,9 @@ const AdminDashboard: React.FC = () => {
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreatingBooking, setIsCreatingBooking] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
+  const [isRescheduling, setIsRescheduling] = useState(false);
+  const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' });
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'info' | 'error' } | null>(null);
   const navigate = useNavigate();
 
@@ -45,6 +48,46 @@ const AdminDashboard: React.FC = () => {
       setLoading(false);
     }
   }, []);
+
+  const handleUpdateStatus = async (id: string, status: string) => {
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status })
+        .eq('id', id);
+      
+      if (error) throw error;
+
+      setToast({ message: `Agendamento ${status === 'cancelled' ? 'cancelado' : 'atualizado'} com sucesso!`, type: 'success' });
+      setSelectedBooking(null);
+      fetchData();
+    } catch (error) {
+      setToast({ message: 'Erro ao atualizar agendamento.', type: 'error' });
+    }
+  };
+
+  const handleReschedule = async () => {
+    if (!rescheduleData.date || !rescheduleData.time) return;
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ 
+          booking_date: rescheduleData.date, 
+          booking_time: rescheduleData.time,
+          status: 'pending' 
+        })
+        .eq('id', selectedBooking.id);
+      
+      if (error) throw error;
+      
+      setToast({ message: 'Reagendamento concluído!', type: 'success' });
+      setIsRescheduling(false);
+      setSelectedBooking(null);
+      fetchData();
+    } catch (error) {
+      setToast({ message: 'Erro ao reagendar.', type: 'error' });
+    }
+  };
 
   useEffect(() => {
     fetchData();
