@@ -161,7 +161,7 @@ const AdminDashboard: React.FC = () => {
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="min-h-screen bg-[#0A0A0A] text-white p-6 lg:p-12 selection:bg-gold-600/30"
+        className="min-h-screen bg-[#0A0A0A] text-white p-6 lg:p-12 selection:bg-gold-600/30 font-sans"
       >
         <header className="max-w-5xl mx-auto flex items-center justify-between mb-16">
           <button 
@@ -173,7 +173,7 @@ const AdminDashboard: React.FC = () => {
           </button>
           <div className="flex items-center gap-4">
              <div className="h-px w-12 bg-white/10" />
-             <h1 className="text-xl font-serif font-bold uppercase tracking-widest italic text-zinc-500">Gestão de Agendamento</h1>
+             <h1 className="text-sm font-sans font-bold uppercase tracking-[0.3em] text-zinc-500 text-right">Gestão de Agendamento</h1>
           </div>
         </header>
 
@@ -183,9 +183,9 @@ const AdminDashboard: React.FC = () => {
               {/* Informações Principais */}
               <div className="space-y-12">
                 <div className="space-y-4">
-                  <span className="text-[10px] font-black text-[#C5A059] uppercase tracking-[0.5em] mb-2 block">Cliente Premium</span>
-                  <h2 className="text-5xl md:text-7xl font-serif font-bold text-white uppercase tracking-tighter leading-none">{viewingBooking.clients?.name}</h2>
-                  <div className="flex items-center gap-6 pt-4 text-zinc-500">
+                  <span className="text-[10px] font-black text-[#C5A059] uppercase tracking-[0.5em] mb-2 block">Resumo do Cliente</span>
+                  <h2 className="font-sans text-4xl sm:text-6xl font-extrabold text-white uppercase tracking-tight leading-none">{viewingBooking.clients?.name}</h2>
+                  <div className="flex items-center gap-6 pt-6 text-zinc-500">
                     <div className="flex items-center gap-2">
                       <Smartphone size={16} className="text-[#C5A059]" />
                       <span className="text-sm font-bold tracking-widest">{viewingBooking.clients?.phone}</span>
@@ -199,35 +199,37 @@ const AdminDashboard: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-10 rounded-[2rem] shadow-xl">
-                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-4">Serviços Contratados</p>
+                  <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 shadow-xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-16 h-16 bg-white/[0.02] rounded-full -mr-8 -mt-8" />
+                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-6">Serviço Selecionado</p>
                     <div className="space-y-3">
                        <div className="flex items-center gap-3">
-                         <Tag size={14} className="text-[#C5A059]" />
-                         <span className="text-xl font-bold text-white tracking-tight uppercase">Corte & Estilo</span>
+                         <Tag size={16} className="text-[#C5A059]" />
+                         <span className="text-xl font-bold text-white tracking-tight uppercase">Corte Premium</span>
                        </div>
-                       <p className="text-xs text-zinc-500 font-medium">Tempo estimado: 45 min</p>
+                       <p className="text-xs text-zinc-500 font-medium tracking-wide">Experiência Black Diamond</p>
                     </div>
                   </div>
-                  <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-10 rounded-[2rem] shadow-xl">
-                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-4">Investimento Total</p>
+                  <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 shadow-xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-16 h-16 bg-white/[0.02] rounded-full -mr-8 -mt-8" />
+                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-6">Valor Total</p>
                     <div className="flex items-baseline gap-2">
                       <span className="text-2xl font-bold text-[#C5A059] opacity-40">R$</span>
-                      <span className="text-5xl font-black text-[#C5A059] tracking-tighter">{Number(viewingBooking.total_price).toFixed(0)}</span>
+                      <span className="text-5xl font-black text-[#C5A059] tracking-tighter drop-shadow-sm">{Number(viewingBooking.total_price).toFixed(0)}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Ações */}
-              <div className="bg-white/[0.03] border border-white/10 backdrop-blur-2xl p-10 rounded-[2.5rem] shadow-2xl space-y-8">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+              <div className="bg-white/[0.02] border border-white/5 backdrop-blur-md p-8 rounded-2xl shadow-2xl space-y-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
                     <Clock size={24} className="text-[#C5A059]" />
                   </div>
                   <div>
-                    <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Horário Agendado</p>
-                    <p className="text-2xl font-black text-white">{viewingBooking.booking_time.slice(0, 5)}</p>
+                    <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Horário Confirmado</p>
+                    <p className="text-3xl font-black text-white tracking-tighter">{viewingBooking.booking_time.slice(0, 5)}</p>
                   </div>
                 </div>
 
@@ -239,20 +241,20 @@ const AdminDashboard: React.FC = () => {
                       setRescheduleData({ date: viewingBooking.booking_date, time: viewingBooking.booking_time.slice(0, 5) });
                       setIsRescheduling(true);
                     }}
-                    className="w-full bg-white hover:bg-zinc-200 text-black h-16 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl hover:scale-[1.02]"
+                    className="w-full bg-white text-black font-extrabold uppercase tracking-widest rounded-xl h-14 hover:bg-neutral-200 transition-all shadow-xl hover:scale-[1.01]"
                    >
-                     Reagendar Atendimento
+                     Reagendar
                    </button>
                    <button 
                     onClick={() => handleUpdateStatus(viewingBooking.id, 'cancelled')}
-                    className="w-full bg-transparent border border-red-500/30 hover:bg-red-500/10 text-red-500 h-16 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all"
+                    className="w-full bg-transparent border border-red-500/40 hover:bg-red-500/10 text-red-500 font-extrabold uppercase tracking-widest rounded-xl h-14 transition-all"
                    >
                      Cancelar Agendamento
                    </button>
                 </div>
 
-                <p className="text-[9px] text-zinc-600 text-center font-bold uppercase tracking-widest leading-relaxed">
-                  As alterações feitas nesta tela serão refletidas <br />instantaneamente na agenda do cliente.
+                <p className="text-[9px] text-zinc-600 text-center font-bold uppercase tracking-[0.2em] leading-relaxed">
+                  Reflexo instantâneo na agenda <br />administrativa e do cliente.
                 </p>
               </div>
             </div>
@@ -391,7 +393,7 @@ const AdminDashboard: React.FC = () => {
 
             <button 
               onClick={handleCreateBooking}
-              className="w-full bg-[#C5A059] text-black h-16 rounded-xl font-black uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-3 shadow-[0_10px_30px_-10px_rgba(197,160,89,0.3)] hover:translate-y-[-2px] hover:bg-[#F5E0A3] transition-all"
+              className="w-full bg-[#C5A059] text-black h-16 rounded-xl font-black uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-3 shadow-[0_10px_30px_-10px_rgba(212,175,55,0.3)] hover:translate-y-[-2px] hover:bg-[#F5E0A3] transition-all"
             >
               <CheckCircle size={20} />
               Confirmar Agendamento
@@ -532,18 +534,17 @@ const AdminDashboard: React.FC = () => {
                     <div className="space-y-6">
                       <h3 className="text-xs font-bold text-[#C5A059] uppercase tracking-[0.2em]">Próximo Corte</h3>
                       {nextBooking ? (
-                        <div className="bg-[#C5A059]/90 backdrop-blur-md p-8 rounded-2xl flex items-center justify-between shadow-2xl border border-[#C5A059]/50">
+                        <div className="bg-white/[0.03] border-y border-r border-white/5 border-l-4 border-l-[#C5A059] shadow-lg rounded-xl p-6 flex items-center justify-between transition-all">
                           <div className="flex items-center gap-8">
-                            <span className="text-5xl font-black text-black tracking-tighter">{nextBooking.time}</span>
-                            <div className="h-12 w-[1px] bg-black/20" />
+                            <span className="text-4xl font-extrabold text-[#C5A059] tracking-tighter">{nextBooking.time}</span>
+                            <div className="h-10 w-[1px] bg-white/10" />
                             <div>
-                              <p className="text-[10px] font-black text-black/40 uppercase tracking-widest">Cliente</p>
-                              <p className="text-2xl font-bold text-black uppercase tracking-tight">{nextBooking.booking?.clients?.name}</p>
+                              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Cliente</p>
+                              <p className="text-xl font-bold text-white uppercase tracking-tight">{nextBooking.booking?.clients?.name}</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-[10px] font-black text-black/40 uppercase tracking-widest mb-1">Status</p>
-                            <p className="text-[10px] font-bold text-black uppercase bg-black/10 px-3 py-1 rounded-full">Confirmado</p>
+                            <p className="text-[10px] font-bold text-[#C5A059] uppercase bg-[#C5A059]/20 px-3 py-1 rounded-full">Confirmado</p>
                           </div>
                         </div>
                       ) : (
