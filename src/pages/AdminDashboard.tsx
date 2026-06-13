@@ -5,7 +5,6 @@ import {
   Calendar, 
   DollarSign, 
   Users, 
-  Clock, 
   Plus, 
   Search,
   MessageSquare,
@@ -13,8 +12,7 @@ import {
   TrendingUp,
   LayoutDashboard,
   LogOut,
-  ChevronRight,
-  User
+  ChevronRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
