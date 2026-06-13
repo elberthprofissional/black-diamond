@@ -19,6 +19,13 @@ const AdminDashboard: React.FC = () => {
   const [bookings, setBookings] = useState<any[]>([]);
   const navigate = useNavigate();
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Bom dia";
+    if (hour >= 12 && hour < 18) return "Boa tarde";
+    return "Boa noite";
+  };
+
   const fetchData = useCallback(async () => {
     try {
       const data = await getBookings();
@@ -54,8 +61,9 @@ const AdminDashboard: React.FC = () => {
       <aside className="w-72 bg-[#0A0A0A] border-r border-white/5 flex flex-col h-screen sticky top-0 shrink-0 z-20">
         <div className="p-8 border-b border-white/5">
           <div className="flex items-center space-x-3 mb-10 group cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-10 h-10 border border-white/10 flex items-center justify-center bg-zinc-950 shadow-inner group-hover:border-gold-600/20 transition-all duration-500 rounded-lg">
-              <Scissors className="text-[#C5A059] w-5 h-5 group-hover:rotate-12 transition-transform duration-500" />
+            <div className="w-10 h-10 border border-white/10 flex items-center justify-center bg-zinc-950 shadow-inner group-hover:border-gold-600/20 transition-all duration-500 rounded-lg overflow-hidden">
+              <img src="/assets/logo.webp" alt="Logo" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+              <Scissors className="text-[#C5A059] w-5 h-5 absolute group-hover:rotate-12 transition-transform duration-500" style={{ display: 'none' }} id="admin-sidebar-fallback" />
             </div>
             <div className="flex flex-col">
               <span className="text-xs font-serif font-black tracking-[0.2em] uppercase leading-none text-white">Black Diamond</span>
@@ -64,8 +72,8 @@ const AdminDashboard: React.FC = () => {
           </div>
 
           <div className="space-y-1">
-            <span className="text-[8px] text-zinc-600 font-black uppercase tracking-[0.6em] block mb-2 opacity-50">Control Suite</span>
-            <h2 className="text-[10px] font-sans font-bold text-zinc-400 uppercase tracking-widest leading-none">Tatiano Silva</h2>
+            <span className="text-[8px] text-zinc-600 font-black uppercase tracking-[0.6em] block mb-2 opacity-50">Controle</span>
+            <h2 className="text-[10px] font-sans font-bold text-zinc-400 uppercase tracking-widest leading-none">{getGreeting()}, Tato</h2>
           </div>
         </div>
 
@@ -109,11 +117,11 @@ const AdminDashboard: React.FC = () => {
           <motion.div 
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-6xl"
+            className="max-w-6xl mx-auto"
           >
             <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-8">
               <div>
-                <h1 className="text-6xl font-serif font-bold text-white mb-4 uppercase tracking-tighter leading-none">Agenda</h1>
+                <h1 className="text-6xl font-serif font-bold text-white mb-4 uppercase tracking-tighter leading-none text-shadow-glow">Agenda</h1>
                 <span className="text-[10px] font-sans font-bold text-zinc-600 uppercase tracking-[0.6em]">
                   {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </span>
@@ -143,7 +151,7 @@ const AdminDashboard: React.FC = () => {
                         {booking ? (
                           <div className="flex flex-col">
                             <p className="text-[15px] font-bold text-zinc-200 uppercase tracking-widest leading-none">{booking.clients?.name}</p>
-                            <span className="text-[9px] text-[#C5A059] font-black uppercase tracking-[0.5em] mt-3 opacity-80 uppercase">Experiência Confirmada</span>
+                            <span className="text-[9px] text-[#C5A059] font-black uppercase tracking-[0.5em] mt-3 opacity-80 uppercase">Confirmado</span>
                           </div>
                         ) : (
                           <div className="h-px w-12 bg-zinc-900" />
@@ -155,7 +163,7 @@ const AdminDashboard: React.FC = () => {
                           R$ {Number(booking.total_price).toFixed(0)}
                         </div>
                       ) : (
-                        <span className="text-[10px] text-zinc-900 font-black uppercase tracking-[0.5em] opacity-0 group-hover:opacity-100 transition-opacity uppercase">Vago</span>
+                        <span className="text-[10px] text-zinc-900 font-black uppercase tracking-[0.5em] opacity-0 group-hover:opacity-100 transition-opacity uppercase">Disponível</span>
                       )}
                     </div>
                   );
@@ -226,29 +234,47 @@ const AdminDashboard: React.FC = () => {
           >
              <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-12">
                 <div>
-                  <h1 className="text-6xl font-serif font-bold text-white mb-6 uppercase tracking-tighter leading-none">Clientes</h1>
+                  <h1 className="text-6xl font-serif font-bold text-white mb-4 uppercase tracking-tighter leading-none">Clientes</h1>
                   <span className="text-[10px] font-sans font-bold text-zinc-700 uppercase tracking-[0.8em]">Base de Dados Consolidada</span>
                 </div>
-                <button className="flex items-center space-x-6 border border-zinc-800 text-zinc-500 px-14 py-6 font-black text-[10px] uppercase tracking-[0.5em] hover:bg-white hover:text-black transition-all rounded-full">
+                <button className="flex items-center space-x-6 border border-zinc-800 text-zinc-500 px-14 py-6 font-black text-[10px] uppercase tracking-[0.5em] hover:bg-white hover:text-black transition-all rounded-none">
                   <MessageSquare size={18} />
                   <span>Notificar Todos</span>
                 </button>
              </div>
 
-             <div className="bg-[#121212] border border-white/[0.05] rounded-[3rem] p-10 mb-20 shadow-2xl relative overflow-hidden">
+             <div className="bg-transparent border border-white/5 rounded-none p-1 mb-20 shadow-2xl relative overflow-hidden">
                 <div className="relative z-10 group">
-                   <Search className="absolute left-10 top-1/2 -translate-y-1/2 text-zinc-800 group-focus-within:text-[#C5A059] transition-all duration-500" size={24} />
+                   <Search className="absolute left-8 top-1/2 -translate-y-1/2 text-zinc-800 group-focus-within:text-[#C5A059] transition-all duration-500" size={20} />
                    <input 
                      type="text" 
-                     placeholder="PESQUISAR CLIENTE..."
-                     className="w-full bg-zinc-950 border border-zinc-800 rounded-full p-10 pl-28 outline-none focus:border-white/10 transition-all font-sans text-sm tracking-[0.3em] text-white placeholder:text-zinc-900 uppercase font-black"
+                     placeholder="PESQUISAR BASE..."
+                     className="w-full bg-[#0A0A0A] border-none rounded-none p-8 pl-24 outline-none focus:bg-black transition-all font-sans text-xs tracking-[0.3em] text-white placeholder:text-zinc-900 uppercase font-black"
                    />
                 </div>
              </div>
 
-             <div className="bg-[#121212] border border-white/[0.03] rounded-[4rem] p-40 flex flex-col items-center justify-center text-center opacity-20 border-dashed">
-                <Users size={80} strokeWidth={0.5} className="text-zinc-600 mb-12" />
-                <p className="text-[12px] font-black uppercase tracking-[1.2em] text-zinc-800">Processando registros...</p>
+             {/* Minimalist List Layout */}
+             <div className="border border-white/5 divide-y divide-white/5 bg-[#121212]/30">
+                <div className="grid grid-cols-12 gap-4 p-8 text-[9px] font-black uppercase tracking-[0.4em] text-zinc-600 bg-white/[0.01]">
+                   <div className="col-span-4">Cliente</div>
+                   <div className="col-span-4">Telefone</div>
+                   <div className="col-span-2">Última Visita</div>
+                   <div className="col-span-2 text-right">Valor Total</div>
+                </div>
+                {/* Example Placeholder */}
+                <div className="grid grid-cols-12 gap-4 p-10 items-center hover:bg-white/[0.02] transition-colors group cursor-pointer">
+                   <div className="col-span-4 flex items-center space-x-6">
+                      <div className="w-12 h-12 bg-zinc-950 border border-white/5 flex items-center justify-center text-xs font-serif text-gold-600">JS</div>
+                      <div>
+                         <p className="text-sm font-bold text-white uppercase tracking-widest">João Silva</p>
+                         <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-1">Registrado</p>
+                      </div>
+                   </div>
+                   <div className="col-span-4 text-xs text-zinc-500 font-light tracking-widest">(31) 99999-9999</div>
+                   <div className="col-span-2 text-[10px] text-zinc-600 font-bold uppercase">12 JUN 2026</div>
+                   <div className="col-span-2 text-right text-sm font-serif font-bold text-[#C5A059]">R$ 35,00</div>
+                </div>
              </div>
           </motion.div>
         )}
