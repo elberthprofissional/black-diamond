@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
 import { Star, User } from 'lucide-react';
 
+// Componente de Depoimentos com efeito de Spotlight e Parallax
 const Testimonials: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
