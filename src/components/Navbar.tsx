@@ -28,24 +28,24 @@ const Navbar: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="flex items-center space-x-2 md:space-x-3 group cursor-pointer" 
+          className="flex items-center space-x-3 md:space-x-4 group cursor-pointer" 
           onClick={() => navigate('/')}
         >
-          <div className="relative w-8 h-8 md:w-12 md:h-12 flex items-center justify-center">
+          <div className="relative w-12 h-12 md:w-16 md:h-16 flex items-center justify-center">
              <img 
                src="/assets/logo.webp" 
                alt="Black Diamond" 
-               className="w-full h-full object-contain" 
+               className="w-full h-full object-contain scale-110 md:scale-125" 
                onError={(e) => {
                  e.currentTarget.style.display = 'none';
                  const fallback = document.getElementById('nav-fallback-icon');
                  if (fallback) fallback.style.display = 'block';
                }} 
              />
-             <Scissors className="text-gold-600 w-6 h-6 md:w-8 md:h-8" style={{ display: 'none' }} id="nav-fallback-icon" />
+             <Scissors className="text-gold-600 w-8 h-8 md:w-10 md:h-10" style={{ display: 'none' }} id="nav-fallback-icon" />
           </div>
           <div className="flex flex-col">
-            <span className="text-base md:text-2xl font-serif font-bold tracking-[0.1em] md:tracking-[0.2em] text-white leading-none uppercase">BLACK DIAMOND</span>
+            <span className="text-lg md:text-3xl font-serif font-bold tracking-[0.1em] md:tracking-[0.2em] text-white leading-none uppercase">BLACK DIAMOND</span>
           </div>
         </motion.div>
 
