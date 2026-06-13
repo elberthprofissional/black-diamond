@@ -61,17 +61,17 @@ const AdminLogin: React.FC = () => {
         className="w-full max-w-[440px] relative z-10"
       >
         {/* Logo Section */}
-        <div className="flex flex-col items-center mb-10">
-          <img src="/assets/logo.webp" alt="Black Diamond" className="w-32 md:w-40 object-contain mb-4" />
+        <div className="flex flex-col items-center mb-12">
+          <img src="/assets/logo.webp" alt="Black Diamond" className="w-32 md:w-40 object-contain mb-6" />
           <span className="text-[10px] tracking-[0.4em] text-gold-600 font-bold uppercase opacity-80">Painel Administrativo</span>
         </div>
 
-        {/* Login Card (Real Glassmorphism - Light Layer) */}
-        <div className="bg-white/5 backdrop-blur-lg border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] relative overflow-hidden rounded-2xl p-8 sm:p-10">
-          <form onSubmit={handleLogin} className="space-y-6">
+        {/* Login Card (Deep Dark Glass) */}
+        <div className="bg-black/60 backdrop-blur-2xl border border-white/10 shadow-2xl relative overflow-hidden rounded-2xl p-8 sm:p-10">
+          <form onSubmit={handleLogin} className="space-y-8">
             
             {/* Email Field */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <label className="text-xs font-semibold text-neutral-400 tracking-widest uppercase block ml-1">NOME DE USUÁRIO OU E-MAIL</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-[#D4AF37] transition-colors duration-300 z-10" size={18} />
@@ -79,7 +79,7 @@ const AdminLogin: React.FC = () => {
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-12 bg-black/40 border border-white/10 text-white pl-12 pr-4 rounded-xl outline-none transition-all duration-300 text-sm focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] placeholder:text-neutral-500"
+                  className="w-full h-12 bg-transparent border border-white/20 text-white pl-12 pr-4 rounded-lg outline-none transition-all duration-300 text-sm focus:bg-white/5 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] placeholder:text-neutral-500"
                   placeholder="admin@gmail.com"
                   required
                 />
@@ -87,15 +87,24 @@ const AdminLogin: React.FC = () => {
             </div>
 
             {/* Password Field */}
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-neutral-400 tracking-widest uppercase block ml-1">SENHA</label>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-xs font-semibold text-neutral-400 tracking-widest uppercase block ml-1">SENHA</label>
+                <button 
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-xs text-neutral-500 hover:text-[#D4AF37] transition-colors"
+                >
+                  Esqueci minha senha
+                </button>
+              </div>
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-[#D4AF37] transition-colors duration-300 z-10" size={18} />
                 <input 
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-12 bg-black/40 border border-white/10 text-white pl-12 pr-12 rounded-xl outline-none transition-all duration-300 text-sm focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] placeholder:text-neutral-500"
+                  className="w-full h-12 bg-transparent border border-white/20 text-white pl-12 pr-12 rounded-lg outline-none transition-all duration-300 text-sm focus:bg-white/5 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] placeholder:text-neutral-500"
                   placeholder="••••••••"
                   required
                 />
@@ -105,15 +114,6 @@ const AdminLogin: React.FC = () => {
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white transition-colors z-10"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              <div className="flex justify-end px-1">
-                <button 
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-gold-600 transition-colors"
-                >
-                  Esqueci minha senha
                 </button>
               </div>
             </div>
@@ -131,7 +131,7 @@ const AdminLogin: React.FC = () => {
 
             <button 
               type="submit"
-              className="mt-4 h-12 w-full bg-white text-black font-bold uppercase tracking-wider rounded-xl hover:bg-neutral-200 hover:scale-[1.02] transition-all shadow-lg"
+              className="mt-6 h-12 w-full bg-white text-black font-bold uppercase tracking-wider rounded-lg hover:bg-neutral-200 hover:scale-[1.02] transition-all shadow-lg"
             >
               Entrar no Painel
             </button>
