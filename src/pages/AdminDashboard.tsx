@@ -458,22 +458,53 @@ const AdminDashboard: React.FC = () => {
       </AnimatePresence>
       <div className="flex relative z-10">
         <aside className="w-80 h-screen sticky top-0 bg-[#0A0A0A] border-r border-white/5 flex flex-col hidden lg:flex">
-          <div className="flex-1 py-14">
+          <div className="flex-1 py-14 flex flex-col">
             <div className="flex items-center gap-5 mb-20 group cursor-pointer px-10" onClick={() => navigate('/')}>
-              <img src="/assets/logo.webp" alt="Black Diamond" className="w-14 h-14 object-contain" />
-              <h1 className="text-white font-bold text-lg tracking-tight uppercase whitespace-nowrap">Black Diamond</h1>
+              <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:border-[#C5A059]/30 transition-all">
+                <img src="/assets/logo.webp" alt="Black Diamond" className="w-8 h-8 object-contain" />
+              </div>
+              <div className="flex flex-col">
+                <h1 className="text-white font-black text-sm tracking-[0.2em] uppercase leading-none">Black Diamond</h1>
+                <span className="text-[9px] text-[#C5A059] font-bold uppercase tracking-[0.4em] mt-1">Elite System</span>
+              </div>
             </div>
-            <nav className="space-y-3">
-              {menuItems.map((item) => (
-                <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-5 px-10 py-4.5 transition-all duration-300 font-medium ${activeTab === item.id ? 'bg-white/5 border-r-4 border-[#C5A059] text-white shadow-sm' : 'text-neutral-400 hover:text-white hover:bg-white/[0.02]'}`}>
-                  <item.icon size={24} className="text-[#C5A059]" />
-                  <span className="text-sm uppercase tracking-widest font-bold">{item.label}</span>
-                </button>
-              ))}
+
+            <nav className="space-y-2 px-4">
+              {menuItems.map((item) => {
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-500 group relative ${
+                      isActive 
+                      ? 'bg-white/5 text-white' 
+                      : 'text-zinc-600 hover:text-zinc-300 hover:bg-white/[0.02]'
+                    }`}
+                  >
+                    {isActive && (
+                      <motion.div 
+                        layoutId="active-pill"
+                        className="absolute inset-0 bg-[#C5A059]/5 border border-[#C5A059]/20 rounded-2xl shadow-[0_0_20px_rgba(197,160,89,0.05)]"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                    <item.icon size={20} className={`relative z-10 transition-colors duration-500 ${isActive ? 'text-[#C5A059]' : 'text-zinc-700 group-hover:text-zinc-500'}`} />
+                    <span className="relative z-10 text-[11px] uppercase tracking-[0.3em] font-black">{item.label}</span>
+                  </button>
+                );
+              })}
             </nav>
           </div>
-          <div className="mt-auto p-6 border-t border-white/5">
-            <button onClick={() => navigate('/')} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-zinc-500 hover:text-red-400 transition-all text-sm font-bold uppercase tracking-widest"><LogOut size={18} />Sair</button>
+
+          <div className="mt-auto p-8 border-t border-white/5">
+            <button 
+              onClick={() => navigate('/')}
+              className="w-full flex items-center justify-center gap-3 h-14 rounded-2xl text-zinc-600 hover:text-red-400 hover:bg-red-500/5 transition-all text-[10px] font-black uppercase tracking-[0.4em]"
+            >
+              <LogOut size={16} />
+              Sair do Sistema
+            </button>
           </div>
         </aside>
         <nav className="fixed bottom-0 left-0 right-0 bg-[#0A0A0A] border-t border-white/5 px-6 py-3 flex items-center justify-between z-50 lg:hidden">
