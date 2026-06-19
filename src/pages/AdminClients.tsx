@@ -339,9 +339,8 @@ const AdminClients: React.FC = () => {
                 </div>
 
                 {/* Delete */}
-                <button onClick={() => setIsDeleteOpen(true)} className="w-full h-9 bg-red-500/[0.04] border border-red-500/[0.06] hover:bg-red-500/[0.06] text-red-500/60 text-[10px] font-bold uppercase tracking-[0.1em] rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5">
-                  <Trash2 size={11} />
-                  Excluir Cliente
+                <button onClick={() => setIsDeleteOpen(true)} className="text-[10px] font-semibold text-zinc-600 hover:text-red-400 transition-colors cursor-pointer pt-2">
+                  Excluir cliente
                 </button>
               </div>
             </motion.div>
@@ -376,11 +375,11 @@ const AdminClients: React.FC = () => {
         {isDeleteOpen && selectedClient && (
           <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !isDeleting && setIsDeleteOpen(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="relative z-10 w-full sm:max-w-xs bg-[#111] border-t sm:border border-white/[0.06] sm:rounded-2xl rounded-t-2xl p-4 space-y-3">
-              <p className="text-xs text-zinc-400">Excluir <span className="text-white font-semibold">{selectedClient.name}</span>? Não pode ser desfeita.</p>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="relative z-10 w-full sm:max-w-xs bg-[#111] border-t sm:border border-white/[0.06] sm:rounded-2xl rounded-t-2xl p-5 space-y-4">
+              <p className="text-xs text-zinc-400 leading-relaxed">Excluir <span className="text-white font-semibold">{selectedClient.name}</span>? Essa ação não pode ser desfeita.</p>
               <div className="flex gap-2">
-                <button onClick={() => setIsDeleteOpen(false)} disabled={isDeleting} className="flex-1 h-9 bg-white/[0.04] border border-white/[0.06] text-zinc-400 text-[9px] font-bold uppercase tracking-wider rounded-lg cursor-pointer">Manter</button>
-                <button onClick={confirmDelete} disabled={isDeleting} className="flex-1 h-9 bg-red-500/10 border border-red-500/20 text-red-500 text-[9px] font-bold uppercase tracking-wider rounded-lg cursor-pointer">{isDeleting ? '...' : 'Excluir'}</button>
+                <button onClick={() => setIsDeleteOpen(false)} disabled={isDeleting} className="flex-1 h-10 bg-white/[0.04] border border-white/[0.06] text-zinc-400 text-[10px] font-bold uppercase tracking-wider rounded-xl hover:bg-white/[0.06] transition-all cursor-pointer">Manter</button>
+                <button onClick={confirmDelete} disabled={isDeleting} className="flex-1 h-10 bg-[#C5A059] text-black text-[10px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer">{isDeleting ? '...' : 'Excluir'}</button>
               </div>
             </motion.div>
           </div>
