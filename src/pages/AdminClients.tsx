@@ -254,9 +254,6 @@ const AdminClients: React.FC = () => {
                   </div>
                 </div>
               </div>
-                  </button>
-                </div>
-              </div>
 
               <div className="px-5 py-5 space-y-5">
                 {/* Avatar + Name */}
