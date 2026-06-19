@@ -189,19 +189,19 @@ const AdminClients: React.FC = () => {
                 {/* Desktop: Grid */}
                 <div className="hidden lg:grid grid-cols-2 xl:grid-cols-3 gap-3">
                   {filteredClients.map((client) => (
-                    <div key={client.id} onClick={() => openPanel(client)} className="flex items-center gap-4 p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all cursor-pointer group">
-                      <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center text-base font-bold text-[#C5A059] uppercase shrink-0">
+                    <div key={client.id} onClick={() => openPanel(client)} className="flex flex-col items-center justify-center gap-3 p-6 bg-[#111111] hover:bg-[#161618] transition-all cursor-pointer group aspect-square">
+                      <div className="w-16 h-16 bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center text-xl font-bold text-[#C5A059] uppercase">
                         {client.name.charAt(0)}
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="text-center min-w-0 w-full">
                         <p className="text-sm font-semibold text-white truncate">{client.name}</p>
-                        <p className="text-[11px] text-zinc-500 mt-0.5">{formatPhone(client.phone)}</p>
-                        <div className="flex items-center gap-3 mt-2">
-                          <span className="text-[9px] text-zinc-600">{client.bookingsCount} visitas</span>
+                        <p className="text-[11px] text-zinc-500 mt-1">{client.phone}</p>
+                        <div className="flex items-center justify-center gap-2 mt-2">
+                          <span className="text-[9px] text-zinc-600">{client.bookingsCount}x</span>
+                          <span className="text-[9px] text-zinc-600">·</span>
                           <span className="text-[9px] text-zinc-600">R$ {(client.totalSpent || 0).toFixed(0)}</span>
                         </div>
                       </div>
-                      <ChevronRight size={14} className="text-zinc-700 group-hover:text-zinc-400 transition-colors shrink-0" />
                     </div>
                   ))}
                 </div>
