@@ -339,7 +339,8 @@ const AdminClients: React.FC = () => {
                 </div>
 
                 {/* Delete */}
-                <button onClick={() => setIsDeleteOpen(true)} className="text-[10px] font-semibold text-zinc-600 hover:text-red-400 transition-colors cursor-pointer pt-2">
+                <button onClick={() => setIsDeleteOpen(true)} className="w-full h-9 bg-white/[0.03] border border-white/[0.06] hover:bg-red-500/[0.06] hover:border-red-500/10 text-zinc-500 hover:text-red-400 text-[10px] font-bold uppercase tracking-[0.1em] rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                  <Trash2 size={11} />
                   Excluir cliente
                 </button>
               </div>
@@ -379,7 +380,7 @@ const AdminClients: React.FC = () => {
               <p className="text-xs text-zinc-400 leading-relaxed">Excluir <span className="text-white font-semibold">{selectedClient.name}</span>? Essa ação não pode ser desfeita.</p>
               <div className="flex gap-2">
                 <button onClick={() => setIsDeleteOpen(false)} disabled={isDeleting} className="flex-1 h-10 bg-white/[0.04] border border-white/[0.06] text-zinc-400 text-[10px] font-bold uppercase tracking-wider rounded-xl hover:bg-white/[0.06] transition-all cursor-pointer">Manter</button>
-                <button onClick={confirmDelete} disabled={isDeleting} className="flex-1 h-10 bg-[#C5A059] text-black text-[10px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer">{isDeleting ? '...' : 'Excluir'}</button>
+                <button onClick={confirmDelete} disabled={isDeleting} className="flex-1 h-10 bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer">{isDeleting ? '...' : 'Excluir'}</button>
               </div>
             </motion.div>
           </div>
