@@ -6,7 +6,7 @@ import { formatPhone } from '../lib/utils';
 import AdminNavbar from '../components/Admin/Navbar';
 import AdminSidebar from '../components/Admin/AdminSidebar';
 import BottomTabs from '../components/Admin/BottomTabs';
-import { ArrowLeft, Search, Filter, ChevronDown, ChevronRight, User, Phone, Trash2, Pencil, X } from 'lucide-react';
+import { ArrowLeft, Search, Filter, ChevronDown, ChevronRight, User, Phone, Trash2, Pencil, X, MoreVertical } from 'lucide-react';
 
 const AdminClients: React.FC = () => {
   const [clients, setClients] = useState<any[]>([]);
@@ -27,6 +27,7 @@ const AdminClients: React.FC = () => {
   const [savingNotes, setSavingNotes] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [templates, setTemplates] = useState<string[]>(() => {
     const saved = localStorage.getItem('barber_reminder_templates');
@@ -223,17 +224,36 @@ const AdminClients: React.FC = () => {
               className="relative w-full sm:w-[440px] bg-[#0A0A0A] border-l border-white/[0.06] h-full overflow-y-auto scrollbar-hide"
             >
               {/* Header */}
-              <div className="sticky top-0 bg-[#0A0A0A]/95 backdrop-blur-md z-10 px-6 py-4 border-b border-white/[0.04]">
+              <div className="sticky top-0 bg-[#0A0A0A]/95 backdrop-blur-md z-10 px-5 py-3 border-b border-white/[0.04]">
                 <div className="flex items-center gap-3">
-                  <button onClick={closePanel} className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-zinc-500 hover:text-white transition-all cursor-pointer shrink-0">
-                    <X size={14} />
+                  <button onClick={closePanel} className="text-zinc-500 hover:text-white transition-all cursor-pointer">
+                    <X size={18} />
                   </button>
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-sm font-bold text-white truncate">{selectedClient.name}</h2>
-                    <p className="text-[10px] text-zinc-500">{formatPhone(selectedClient.phone)}</p>
+                  <div className="relative">
+                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-zinc-500 hover:text-white transition-all cursor-pointer">
+                      <MoreVertical size={14} />
+                    </button>
+                    <AnimatePresence>
+                      {isMenuOpen && (
+                        <>
+                          <div className="fixed inset-0 z-[199]" onClick={() => setIsMenuOpen(false)} />
+                          <motion.div initial={{ opacity: 0, scale: 0.95, y: -4 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: -4 }} className="absolute right-0 top-[calc(100%+4px)] w-40 bg-[#161618] border border-white/[0.08] rounded-xl shadow-2xl py-1 z-[200]">
+                            <button onClick={() => { setEditName(selectedClient.name); setEditPhone(selectedClient.phone); setIsEditing(true); setIsMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/[0.05] hover:text-white transition-colors cursor-pointer flex items-center gap-2.5">
+                              <Pencil size={12} className="text-zinc-500" />
+                              Editar
+                            </button>
+                            <div className="mx-3 h-px bg-white/[0.04]" />
+                            <button onClick={() => { setIsDeleteOpen(true); setIsMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-xs text-red-400/80 hover:bg-red-500/[0.06] hover:text-red-400 transition-colors cursor-pointer flex items-center gap-2.5">
+                              <Trash2 size={12} />
+                              Excluir
+                            </button>
+                          </motion.div>
+                        </>
+                      )}
+                    </AnimatePresence>
                   </div>
-                  <button onClick={() => { setEditName(selectedClient.name); setEditPhone(selectedClient.phone); setIsEditing(true); }} className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-zinc-500 hover:text-white transition-all cursor-pointer">
-                    <Pencil size={13} />
+                </div>
+              </div>
                   </button>
                 </div>
               </div>
