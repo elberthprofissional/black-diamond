@@ -225,13 +225,13 @@ const AdminClients: React.FC = () => {
             >
               {/* Header */}
               <div className="sticky top-0 bg-[#0A0A0A]/95 backdrop-blur-md z-10 px-5 py-3 border-b border-white/[0.04]">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between">
                   <button onClick={closePanel} className="text-zinc-500 hover:text-white transition-all cursor-pointer">
                     <X size={18} />
                   </button>
                   <div className="relative">
-                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-zinc-500 hover:text-white transition-all cursor-pointer">
-                      <MoreVertical size={14} />
+                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-zinc-500 hover:text-white transition-all cursor-pointer p-1">
+                      <MoreVertical size={16} />
                     </button>
                     <AnimatePresence>
                       {isMenuOpen && (
