@@ -1,57 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
-import { getServices, createBooking, getBookings } from '../lib/api';
-import type { Service, Booking } from '../types';
 import { useNavigate } from 'react-router-dom';
+import { getServices, createBooking, getBookings } from '../lib/api';
+import { TIME_SLOTS, getNextDays, isTimeOccupied, getLocalDateString, formatPhone } from '../lib/utils';
+import type { Service } from '../types';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Check } from 'lucide-react';
 
 const BookingPage: React.FC = () => {
   const [step, setStep] = useState(1);
   const [services, setServices] = useState<Service[]>([]);
-  const [loadingServices, setLoadingServices] = useState(true);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<string>(getLocalDateString());
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [existingBookings, setExistingBookings] = useState<Booking[]>([]);
-  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+  const [existingBookings, setExistingBookings] = useState<any[]>([]);
   const navigate = useNavigate();
-
-  const timeSlots = ['08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30'];
-
-  useEffect(() => {
-    if (selectedDate) {
-      getBookings()
-        .then((data: Booking[]) => {
-          const filtered = data.filter((b: Booking) => b.booking_date === selectedDate && b.status !== 'cancelled');
-          setExistingBookings(filtered);
-        })
-        .catch(console.error);
-    }
-  }, [selectedDate]);
-
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
 
   useEffect(() => {
     const loadServices = async () => {
-      setLoadingServices(true);
       try {
         const data = await getServices();
         setServices(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoadingServices(false);
-      }
+      } catch (error) { console.error(error); }
     };
     loadServices();
   }, []);
+
+  useEffect(() => {
+    if (selectedDate) {
+      const loadBookings = async () => {
+        try {
+          const data = await getBookings(selectedDate);
+          setExistingBookings(data);
+        } catch (error) { console.error(error); }
+      };
+      loadBookings();
+    }
+  }, [selectedDate]);
 
   const toggleService = (service: Service) => {
     if (selectedServices.find(s => s.id === service.id)) {
@@ -62,19 +48,19 @@ const BookingPage: React.FC = () => {
   };
 
   const totalPrice = selectedServices.reduce((sum, s) => sum + Number(s.price), 0);
-  const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
 
-  const sendWhatsAppReceipt = () => {
-    const formattedDate = selectedDate.split('-').reverse().join('/');
-    const servicesList = selectedServices.map(s => s.name).join(', ');
-    const message = `💎 *NOVO AGENDAMENTO | BLACK DIAMOND* 💎%0A%0A👤 *Cliente:* ${userInfo.name}%0A✂️ *Serviço:* ${servicesList}%0A📅 *Data:* ${formattedDate}%0A⏰ *Horário:* ${selectedTime}`;
-    const phone = '31980159559';
-    window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
+  const isStepDisabled = () => {
+    if (step === 1) return selectedServices.length === 0;
+    if (step === 2) return !selectedTime;
+    if (step === 3) return !userInfo.name.trim() || userInfo.name.trim().length < 3 || userInfo.phone.replace(/\D/g, '').length < 10 || isSubmitting;
+    return false;
   };
 
   const handleConfirm = async () => {
+    if (isSubmitting || !selectedTime || !userInfo.name || !userInfo.phone || selectedServices.length === 0) return;
     setIsSubmitting(true);
     try {
+      const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
       await createBooking(
         {
           service_ids: selectedServices.map(s => s.id),
@@ -83,195 +69,548 @@ const BookingPage: React.FC = () => {
           total_price: totalPrice,
           total_duration: totalDuration
         },
-        {
-          name: userInfo.name,
-          phone: userInfo.phone
-        }
+        { name: userInfo.name, phone: userInfo.phone }
       );
-      sendWhatsAppReceipt();
-      setStep(5);
+      
+      const serviceNames = selectedServices.map(s => s.name).join(', ');
+      const message = `*NOVO AGENDAMENTO - BLACK DIAMOND*\n\n` +
+                      `*Cliente:* ${userInfo.name}\n` +
+                      `*Serviço:* ${serviceNames}\n` +
+                      `*Data:* ${selectedDate.split('-').reverse().join('/')}\n` +
+                      `*Horário:* ${selectedTime}\n` +
+                      `*Valor:* R$ ${totalPrice.toFixed(0)}`;
+      
+      window.open(`https://wa.me/5531980159559?text=${encodeURIComponent(message)}`, '_blank');
+      setStep(4); // Mover para tela de sucesso em vez de sair
     } catch (error) {
       console.error(error);
-      setToast({ message: 'Erro ao realizar agendamento.', type: 'error' });
-    } finally {
-      setIsSubmitting(false);
-    }
+      alert('Erro ao realizar agendamento.');
+    } finally { setIsSubmitting(false); }
   };
 
   return (
-    <div className="h-screen w-full bg-[#09090B] text-white overflow-hidden relative selection:bg-gold-600/30 font-sans flex flex-col">
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, x: '-50%' }}
-            animate={{ opacity: 1, y: 0, x: '-50%' }}
-            exit={{ opacity: 0, y: -20, x: '-50%' }}
-            className="fixed top-6 left-1/2 z-[100] px-6 py-3 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 backdrop-blur-md shadow-2xl"
-          >
-            <p className="text-[10px] font-black uppercase tracking-widest">{toast.message}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div className="font-sans relative min-h-screen bg-[#050505] flex flex-col selection:bg-[#C5A059] selection:text-black">
+      <main className="flex-1 relative z-10 h-full flex flex-col">
+        
+        {/* DESKTOP LAYOUT */}
+        <div className="hidden lg:flex min-h-screen bg-[#0E0E0E] text-white">
+          
+          {/* Left Panel - Dark */}
+          <div className="w-[420px] shrink-0 bg-[#0A0A0A] flex flex-col justify-between p-12 text-white relative overflow-hidden">
+            <div 
+              className="absolute inset-0 bg-no-repeat bg-center bg-cover opacity-15 pointer-events-none grayscale"
+              style={{ backgroundImage: "url('/assets/Agendamento-Cliente.webp')" }}
+            />
+            <div>
+              <span className="text-[10px] font-black tracking-[0.5em] text-[#C5A059] uppercase">BLACK DIAMOND</span>
+              <h1 className="text-3xl font-bold mt-6 leading-tight">Agendamento<br />Online</h1>
+              <p className="text-sm text-zinc-500 mt-3 leading-relaxed">Escolha seus serviços, horário e confirme. Rápido e fácil.</p>
+            </div>
 
-      <div className="fixed inset-0 bg-cover bg-center z-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'url("/assets/img/agendamento-bg.webp")' }} />
-
-      {/* Header Simplificado */}
-      <header className="relative z-10 flex items-center h-20 px-6 shrink-0">
-        <button 
-          onClick={() => navigate('/')} 
-          className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white transition-all group"
-        >
-          <ChevronLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
-        </button>
-        <div className="flex-1 flex justify-center mr-10">
-           <h1 className="text-sm font-black uppercase tracking-[0.5em] text-zinc-500">Agendamento</h1>
-        </div>
-      </header>
-
-      {/* Main Content Area - Fixed & Non-scrollable */}
-      <main className="relative z-10 flex-1 flex flex-col overflow-hidden px-6 pb-6">
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-          <AnimatePresence mode="wait">
-            {step === 1 && (
-              <motion.div key="step1" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-4">
-                <div className="flex items-center gap-3 mb-2 px-1">
-                   <div className="w-1.5 h-1.5 rounded-full bg-gold-600 shadow-[0_0_8px_#C5A059]" />
-                   <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Escolha os Serviços</h3>
+            {/* Live Summary */}
+            <div className="mt-auto">
+              {selectedServices.length > 0 && (
+                <div className="bg-white/[0.04] rounded-2xl p-5 space-y-3 border border-white/[0.06]">
+                  <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Resumo</p>
+                  {selectedServices.map((s) => (
+                    <div key={`side-${s.id}`} className="flex justify-between items-center">
+                      <span className="text-[13px] text-zinc-300">{s.name}</span>
+                      <span className="text-[13px] font-bold text-[#C5A059]">R$ {Number(s.price).toFixed(0)}</span>
+                    </div>
+                  ))}
+                  {selectedDate && (
+                    <div className="border-t border-white/[0.06] pt-3 space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-[10px] text-zinc-500">Data</span>
+                        <span className="text-[13px] font-bold">{selectedDate.split('-').reverse().join('/')}</span>
+                      </div>
+                      {selectedTime && (
+                        <div className="flex justify-between">
+                          <span className="text-[10px] text-zinc-500">Horário</span>
+                          <span className="text-[13px] font-bold text-[#C5A059]">{selectedTime}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div className="border-t border-white/[0.06] pt-3 flex justify-between">
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase">Total</span>
+                    <span className="text-lg font-bold">R$ {totalPrice.toFixed(0)}</span>
+                  </div>
                 </div>
-                {loadingServices ? (
-                  <div className="flex justify-center py-20"><div className="w-6 h-6 border-2 border-gold-600 border-t-transparent rounded-full animate-spin" /></div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-3">
-                    {services.map((service) => (
+              )}
+              <p className="text-[8px] text-zinc-600 mt-6">Precisa de ajuda? WhatsApp</p>
+            </div>
+          </div>
+
+          {/* Right Panel - Content */}
+          <div className="flex-1 flex flex-col">
+            {/* Header */}
+            <div className="px-14 py-6 flex items-center justify-between">
+              <div className="flex items-center gap-5">
+                {step > 1 && step < 4 && (
+                  <button 
+                    onClick={() => setStep(step - 1)}
+                    className="w-10 h-10 rounded-xl border border-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/[0.12] transition-all cursor-pointer"
+                  >
+                    <ArrowLeft size={16} />
+                  </button>
+                )}
+                {step < 4 && (
+                  <div>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Passo {step} de 3</p>
+                    <h2 className="text-xl font-bold text-white mt-0.5">
+                      {step === 1 ? 'Escolha os serviços' : step === 2 ? 'Data e horário' : 'Seus dados'}
+                    </h2>
+                  </div>
+                )}
+              </div>
+              {/* Progress */}
+              <div className="flex gap-1 w-40">
+                {[1, 2, 3].map((s) => (
+                  <div key={s} className={`h-[2px] flex-1 rounded-full transition-all duration-500 ${
+                    step === s ? 'bg-[#C5A059]' : step > s ? 'bg-[#C5A059]/30' : 'bg-white/[0.08]'
+                  }`} />
+                ))}
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto px-14 pt-10 pb-6 flex flex-col">
+              <AnimatePresence mode="wait">
+                {step === 1 && (
+                  <motion.div key="d1" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1">
+                    <div className="space-y-2">
+                      {services.map((service) => {
+                        const isSelected = selectedServices.some((s) => s.id === service.id);
+                        return (
+                          <button 
+                            key={service.id}
+                            onClick={() => toggleService(service)}
+                            className={`w-full flex items-center gap-5 px-6 py-5 rounded-xl transition-all duration-200 text-left group ${
+                              isSelected 
+                                ? 'bg-[#C5A059]/[0.06]' 
+                                : 'hover:bg-white/[0.03]'
+                            }`}
+                          >
+                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all shrink-0 ${
+                              isSelected ? 'border-[#C5A059] bg-[#C5A059]' : 'border-white/20'
+                            }`}>
+                              {isSelected && <Check size={11} className="text-white stroke-[3px]" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-[14px] font-medium ${isSelected ? 'text-[#C5A059]' : 'text-white'}`}>{service.name}</p>
+                            </div>
+                            <span className={`text-[14px] font-semibold tabular-nums w-16 text-right ${isSelected ? 'text-[#C5A059]' : 'text-zinc-400'}`}>
+                              R$ {Number(service.price).toFixed(0)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+
+                {step === 2 && (
+                  <motion.div key="d2" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1">
+                    <div className="flex gap-2 mb-12">
+                      {getNextDays().map((day) => {
+                        const isSelected = selectedDate === day.fullDate;
+                        return (
+                          <button
+                            key={day.fullDate}
+                            onClick={() => setSelectedDate(day.fullDate)}
+                            disabled={day.isPast}
+                            className={`flex-1 py-5 rounded-xl transition-all duration-300 flex flex-col items-center gap-1 border ${
+                              day.isPast
+                                ? 'border-white/[0.04] text-zinc-700 opacity-40 cursor-not-allowed'
+                                : day.isToday
+                                  ? 'border-[#C5A059]/30 text-[#C5A059]'
+                                  : isSelected
+                                    ? 'border-[#C5A059]/30 text-[#C5A059]'
+                                    : 'border-white/[0.08] text-zinc-500 hover:text-zinc-300'
+                            }`}
+                          >
+                            <span className="text-[9px] font-semibold uppercase tracking-wider opacity-60">{day.dayName}</span>
+                            <span className="text-xl font-bold">{day.dayNumber}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.25em] mb-4">Horários</p>
+                    <div className="grid grid-cols-7 gap-2">
+                      {TIME_SLOTS.map((time) => {
+                        const occupied = isTimeOccupied(time, existingBookings);
+                        const isSelected = selectedTime === time;
+                        return (
+                          <button
+                            key={time}
+                            disabled={occupied}
+                            type="button"
+                            onClick={() => setSelectedTime(time)}
+                            className={`py-3 rounded-lg text-[12px] font-medium transition-all duration-200 border border-white/[0.08] ${
+                              occupied 
+                                ? 'text-zinc-800 cursor-not-allowed line-through' 
+                                : isSelected 
+                                  ? 'text-black bg-[#C5A059]' 
+                                  : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
+                            }`}
+                          >
+                            {time}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+
+                {step === 3 && (
+                  <motion.div key="d3" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1 flex flex-col justify-center">
+                    <div className="max-w-lg mx-auto w-full">
+                      <div className="space-y-8">
+                        <div className="space-y-3">
+                          <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">Nome completo</label>
+                          <input 
+                            type="text" 
+                            placeholder="Digite seu nome..." 
+                            className="w-full bg-white/[0.04] border border-white/[0.08] focus:border-[#C5A059]/50 rounded-xl px-5 py-5 text-[18px] text-white outline-none transition-all placeholder:text-zinc-700" 
+                            value={userInfo.name} 
+                            onChange={e => setUserInfo({...userInfo, name: e.target.value})} 
+                          />
+                          {userInfo.name && userInfo.name.trim().length < 3 && (
+                            <p className="text-[11px] text-red-400/80">Mínimo 3 caracteres</p>
+                          )}
+                        </div>
+                        <div className="space-y-3">
+                          <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">WhatsApp</label>
+                          <input 
+                            type="tel" 
+                            placeholder="(31) 90000-0000" 
+                            className="w-full bg-white/[0.04] border border-white/[0.08] focus:border-[#C5A059]/50 rounded-xl px-5 py-5 text-[18px] text-white outline-none transition-all placeholder:text-zinc-700" 
+                            value={userInfo.phone} 
+                            onChange={e => setUserInfo({...userInfo, phone: formatPhone(e.target.value)})} 
+                          />
+                          {userInfo.phone && userInfo.phone.replace(/\D/g, '').length < 11 && (
+                            <p className="text-[11px] text-red-400/80">Informe um WhatsApp válido</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {step === 4 && (
+                  <motion.div key="d4" initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3 }} className="flex-1 flex flex-col items-center justify-center text-center max-w-lg mx-auto">
+                    <div className="w-20 h-20 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-8">
+                      <Check size={36} className="text-[#C5A059]" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mb-2">Agendamento confirmado!</h2>
+                    <p className="text-base text-zinc-500 mb-10">Enviamos os detalhes no seu WhatsApp.</p>
+                    <button 
+                      onClick={() => navigate('/')}
+                      className="h-12 px-10 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-2xl hover:bg-zinc-200 transition-all"
+                    >
+                      Voltar ao início
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Bottom Button */}
+              {step < 4 && (
+                <div className={`flex justify-end ${step === 3 ? 'pt-2' : 'pt-6'}`}>
+                  <button 
+                    onClick={() => {
+                      if (step === 1) setStep(2);
+                      else if (step === 2) setStep(3);
+                      else handleConfirm();
+                    }}
+                    disabled={isStepDisabled()}
+                    className={`h-11 px-8 rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] transition-all duration-300 ${
+                      !isStepDisabled()
+                        ? 'bg-[#C5A059] text-black hover:bg-[#A68233] active:scale-95'
+                        : 'bg-white/[0.04] text-zinc-600 cursor-not-allowed'
+                    }`}
+                  >
+                    {isSubmitting ? 'CONFIRMANDO...' : 'Continuar'}
+                  </button>
+                </div>
+              )}
+
+            </div>
+
+            {/* Footer */}
+            <div className="px-14 py-5 border-t border-white/[0.06] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-black tracking-[0.4em] text-[#C5A059] uppercase">BLACK DIAMOND</span>
+                <span className="text-[9px] text-zinc-600">Barbearia</span>
+              </div>
+              <p className="text-[9px] text-zinc-600">© 2025 Black Diamond. Todos os direitos reservados.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* MOBILE LAYOUT */}
+        <div className="lg:hidden h-[100dvh] bg-[#050505] flex flex-col text-white font-sans overflow-hidden">
+          
+          {/* Header */}
+          <header className="px-5 py-4 flex items-center gap-3 shrink-0 border-b border-white/[0.04]">
+            <button 
+              onClick={() => step > 1 ? setStep(step - 1) : navigate('/')}
+              className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
+            >
+              <ArrowLeft size={16} />
+            </button>
+            <div className="flex-1">
+              <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+                Passo {step} de 3
+              </p>
+              <h1 className="text-sm font-bold text-white mt-0.5">
+                {step === 1 ? 'Escolha os serviços' : step === 2 ? 'Data e horário' : 'Seus dados'}
+              </h1>
+            </div>
+          </header>
+
+          {/* Progress */}
+          <div className="flex gap-1 px-5 py-3 shrink-0">
+            {[1, 2, 3].map((s) => (
+              <div 
+                key={s} 
+                className={`h-0.5 flex-1 rounded-full transition-all duration-300 ${
+                  step === s 
+                    ? 'bg-[#C5A059]' 
+                    : step > s 
+                      ? 'bg-[#C5A059]/40' 
+                      : 'bg-white/[0.06]'
+                }`}
+              />
+            ))}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-hidden px-5 pt-4 pb-32">
+            <AnimatePresence mode="wait">
+              {step === 1 && (
+                <motion.div key="m1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-3 overflow-y-auto h-full scrollbar-hide pb-4">
+                  {services.map(service => {
+                    const isSelected = selectedServices.some(s => s.id === service.id);
+                    return (
                       <button 
                         key={service.id} 
                         onClick={() => toggleService(service)} 
-                        className={`flex justify-between items-center p-5 border transition-all duration-300 text-left rounded-2xl ${
-                          selectedServices.find(s => s.id === service.id) 
-                          ? 'border-gold-600 bg-gold-600/5' 
-                          : 'border-white/5 bg-neutral-900/50'
+                        className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 text-left ${
+                          isSelected 
+                            ? 'bg-[#C5A059]/[0.06] border border-[#C5A059]/30' 
+                            : 'bg-[#111111] border border-white/[0.04] hover:border-white/[0.08]'
                         }`}
                       >
-                        <div className="space-y-1">
-                          <div className="font-bold text-sm text-white uppercase tracking-tight">{service.name}</div>
-                          <div className="text-[9px] text-zinc-600 uppercase font-black tracking-widest">{service.duration} MINUTOS</div>
+                        <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all shrink-0 ${
+                          isSelected ? 'border-[#C5A059] bg-[#C5A059]' : 'border-zinc-700'
+                        }`}>
+                          {isSelected && <Check size={12} className="text-black stroke-[3px]" />}
                         </div>
-                        <div className="text-base font-black text-gold-600">R$ {Number(service.price).toFixed(0)}</div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-semibold ${isSelected ? 'text-[#C5A059]' : 'text-white'}`}>{service.name}</p>
+                          <p className="text-[10px] text-zinc-500 mt-0.5">{service.duration} min</p>
+                        </div>
+                        <span className={`text-sm font-bold tabular-nums ${isSelected ? 'text-[#C5A059]' : 'text-zinc-400'}`}>
+                          R$ {Number(service.price).toFixed(0)}
+                        </span>
                       </button>
-                    ))}
-                  </div>
-                )}
-              </motion.div>
-            )}
+                    );
+                  })}
+                </motion.div>
+              )}
 
-            {step === 2 && (
-              <motion.div key="step2" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 px-1">Data do Atendimento</h3>
-                  <input 
-                    type="date" 
-                    className="w-full bg-neutral-900 border border-white/10 text-white p-5 rounded-2xl outline-none focus:border-gold-600 transition-all uppercase text-xs font-black tracking-widest" 
-                    value={selectedDate} 
-                    onChange={(e) => setSelectedDate(e.target.value)} 
-                  />
-                </div>
-                <div className="space-y-4">
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 px-1">Escolha o Horário</h3>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {timeSlots.map((time) => {
-                      const isOccupied = existingBookings.some(b => b.booking_time.slice(0, 5) === time);
+              {step === 2 && (
+                <motion.div key="m2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-5 h-full flex flex-col overflow-hidden">
+                  {/* Date Picker */}
+                  <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide -mx-5 px-5 snap-x shrink-0">
+                    {(() => {
+                      const days = [];
+                      const today = new Date();
+                      const currentDay = today.getDay();
+                      const daysUntilSaturday = 6 - currentDay;
+                      const startOffset = currentDay === 0 ? 1 : 0;
+                      const limit = currentDay === 0 ? 6 : daysUntilSaturday;
+                      for (let i = startOffset; i <= limit; i++) {
+                        const date = new Date();
+                        date.setDate(today.getDate() + i);
+                        days.push({
+                          fullDate: getLocalDateString(date),
+                          dayName: date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase(),
+                          dayNumber: date.getDate(),
+                        });
+                      }
+                      return days;
+                    })().map(day => {
+                      const isSelected = selectedDate === day.fullDate;
                       return (
                         <button 
-                          key={time} 
-                          disabled={isOccupied} 
-                          onClick={() => setSelectedTime(time)} 
-                          className={`py-4 border text-[10px] font-black tracking-widest transition-all duration-300 rounded-xl ${
-                            selectedTime === time 
-                            ? 'border-gold-600 bg-gold-600/10 text-white' 
-                            : isOccupied 
-                              ? 'border-transparent bg-white/5 text-zinc-800 cursor-not-allowed opacity-20' 
-                              : 'border-white/5 text-zinc-600 bg-neutral-900/50 hover:border-white/20'
+                          key={day.fullDate} 
+                          onClick={() => setSelectedDate(day.fullDate)}
+                          disabled={false}
+                          className={`min-w-[60px] py-3 snap-center flex flex-col items-center gap-1 rounded-xl transition-all ${
+                            isSelected 
+                              ? 'bg-[#C5A059]/10 border border-[#C5A059]/30 text-[#C5A059]' 
+                              : 'bg-[#111111] border border-white/[0.04] text-zinc-500'
                           }`}
                         >
-                          {time}
+                          <span className="text-[8px] font-bold uppercase tracking-wider">{day.dayName}</span>
+                          <span className="text-lg font-bold">{day.dayNumber}</span>
                         </button>
                       );
                     })}
                   </div>
-                </div>
-              </motion.div>
-            )}
 
-            {step === 3 && (
-              <motion.div key="step3" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6 max-w-xl mx-auto w-full">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 text-center mb-8">Informações de Contato</h3>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1">Nome Completo</label>
-                    <input type="text" placeholder="Como quer ser chamado?" className="w-full bg-neutral-900 border border-white/10 text-white p-5 rounded-2xl outline-none focus:border-gold-600 transition-all text-sm font-bold placeholder:text-zinc-800" value={userInfo.name} onChange={(e) => setUserInfo({...userInfo, name: e.target.value})} />
+                  {/* Time Slots */}
+                  <div className="flex-1 overflow-y-auto scrollbar-hide pb-4">
+                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Horários disponíveis</p>
+                    <div className="grid grid-cols-4 gap-2">
+                      {TIME_SLOTS.map(time => {
+                        const occupied = isTimeOccupied(time, existingBookings);
+                        const isSelected = selectedTime === time;
+                        return (
+                          <button
+                            key={time}
+                            type="button"
+                            disabled={occupied}
+                            onClick={() => setSelectedTime(time)}
+                            className={`py-3 rounded-xl text-xs font-bold transition-all ${
+                              occupied 
+                                ? 'text-zinc-800 bg-transparent cursor-not-allowed line-through opacity-20' 
+                                : isSelected 
+                                  ? 'text-[#C5A059] bg-[#C5A059]/10 border border-[#C5A059]/30' 
+                                  : 'text-zinc-400 bg-[#111111] border border-white/[0.04] hover:border-white/[0.08]'
+                            }`}
+                          >
+                            {time}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1">WhatsApp</label>
-                    <input type="tel" placeholder="(00) 00000-0000" className="w-full bg-neutral-900 border border-white/10 text-white p-5 rounded-2xl outline-none focus:border-gold-600 transition-all text-sm font-bold placeholder:text-zinc-800" value={userInfo.phone} onChange={(e) => setUserInfo({...userInfo, phone: e.target.value})} />
+                </motion.div>
+              )}
+
+              {step === 3 && (
+                <motion.div key="m3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-4 overflow-y-auto h-full scrollbar-hide pb-4">
+                  <div className="space-y-3">
+                    <label className="text-[11px] font-semibold text-zinc-400">Nome completo</label>
+                    <input 
+                      type="text" 
+                      placeholder="Digite seu nome..." 
+                      className="w-full bg-[#111111] border border-white/[0.06] focus:border-[#C5A059]/50 rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-zinc-600" 
+                      value={userInfo.name} 
+                      onChange={e => setUserInfo({...userInfo, name: e.target.value})} 
+                    />
+                    {userInfo.name && userInfo.name.trim().length < 3 && (
+                      <p className="text-[10px] text-red-400/80">Mínimo 3 caracteres</p>
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[11px] font-semibold text-zinc-400">WhatsApp</label>
+                    <input 
+                      type="tel" 
+                      placeholder="(00) 90000-0000" 
+                      className="w-full bg-[#111111] border border-white/[0.06] focus:border-[#C5A059]/50 rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-zinc-600" 
+                      value={userInfo.phone} 
+                      onChange={e => setUserInfo({...userInfo, phone: formatPhone(e.target.value)})} 
+                    />
+                    {userInfo.phone && userInfo.phone.replace(/\D/g, '').length < 10 && (
+                      <p className="text-[10px] text-red-400/80">Informe um WhatsApp válido</p>
+                    )}
+                  </div>
+
+                  {/* Summary */}
+                  {selectedServices.length > 0 && (
+                    <div className="mt-6 bg-[#111111] border border-white/[0.04] rounded-xl p-4 space-y-3">
+                      <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Resumo</p>
+                      {selectedServices.map(s => (
+                        <div key={s.id} className="flex justify-between items-center">
+                          <span className="text-xs text-zinc-300">{s.name}</span>
+                          <span className="text-xs font-bold text-[#C5A059]">R$ {Number(s.price).toFixed(0)}</span>
+                        </div>
+                      ))}
+                      <div className="border-t border-white/[0.04] pt-2 flex justify-between items-center">
+                        <span className="text-[10px] font-bold text-zinc-500 uppercase">Total</span>
+                        <span className="text-sm font-bold text-white">R$ {totalPrice.toFixed(0)}</span>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Footer Button */}
+          {step < 4 && (
+            <div className="fixed bottom-0 left-0 right-0 px-5 pb-6 pt-4 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent z-[100]">
+              <button 
+                onClick={() => step < 3 ? setStep(step + 1) : handleConfirm()}
+                disabled={isStepDisabled()}
+                className={`w-full h-12 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${
+                  isStepDisabled()
+                    ? 'bg-zinc-900 border border-white/[0.04] text-zinc-600 cursor-not-allowed'
+                    : 'bg-[#C5A059] text-black hover:brightness-110 active:scale-[0.98]'
+                }`}
+              >
+                {isSubmitting ? 'CONFIRMANDO...' : step < 3 ? 'Continuar' : 'Confirmar Agendamento'}
+              </button>
+            </div>
+          )}
+
+          {/* Success Screen */}
+          {step === 4 && (
+            <div className="fixed inset-0 bg-[#050505] z-[200] flex flex-col items-center justify-center p-6 text-center">
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }} 
+                animate={{ scale: 1, opacity: 1 }} 
+                className="w-full max-w-sm space-y-8"
+              >
+                <div className="w-16 h-16 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center mx-auto">
+                  <Check size={28} className="text-[#C5A059]" />
+                </div>
+
+                <div className="space-y-2">
+                  <h2 className="text-xl font-bold text-white">Agendamento confirmado!</h2>
+                  <p className="text-sm text-zinc-500">Enviamos os detalhes no seu WhatsApp.</p>
+                </div>
+
+                <div className="bg-[#111111] border border-white/[0.04] rounded-xl p-5 space-y-3 text-left">
+                  <div className="flex justify-between">
+                    <span className="text-[10px] text-zinc-500 uppercase">Data</span>
+                    <span className="text-xs font-bold text-white">{selectedDate.split('-').reverse().join('/')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[10px] text-zinc-500 uppercase">Horário</span>
+                    <span className="text-xs font-bold text-[#C5A059]">{selectedTime}</span>
+                  </div>
+                  <div className="flex justify-between border-t border-white/[0.04] pt-2">
+                    <span className="text-[10px] text-zinc-500 uppercase">Total</span>
+                    <span className="text-sm font-bold text-white">R$ {totalPrice.toFixed(0)}</span>
                   </div>
                 </div>
-              </motion.div>
-            )}
 
-            {step === 4 && (
-              <motion.div key="step4" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-6">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 text-center mb-6">Confirmação do Corte</h3>
-                <div className="bg-neutral-900/80 border border-white/10 p-8 rounded-3xl space-y-6 shadow-2xl relative overflow-hidden">
-                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold-600/30 to-transparent" />
-                   <div className="space-y-1 text-center">
-                      <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Horário Marcado</p>
-                      <p className="text-6xl font-black text-white tracking-tighter leading-none">{selectedTime}</p>
-                   </div>
-                   <div className="space-y-3 pt-6 border-t border-white/5">
-                      <div className="flex justify-between items-center"><span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Data</span><span className="text-sm font-black text-white uppercase">{selectedDate.split('-').reverse().join('/')}</span></div>
-                      <div className="flex justify-between items-start"><span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Serviços</span><span className="text-xs font-bold text-white text-right max-w-[180px] uppercase leading-tight">{selectedServices.map(s => s.name).join(', ')}</span></div>
-                      <div className="flex justify-between items-baseline pt-2"><span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Total</span><span className="text-2xl font-black text-gold-600 tracking-tighter italic">R$ {totalPrice.toFixed(0)}</span></div>
-                   </div>
-                </div>
+                <button 
+                  onClick={() => navigate('/')}
+                  className="w-full h-12 bg-white text-black font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-zinc-200 transition-all"
+                >
+                  Voltar ao início
+                </button>
               </motion.div>
-            )}
-
-            {step === 5 && (
-              <motion.div key="step5" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center text-center space-y-10 py-10 h-full">
-                <div className="relative"><div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center border border-emerald-500/20"><CheckCircle size={32} className="text-emerald-500" /></div></div>
-                <div className="space-y-3"><h2 className="text-3xl font-black text-white uppercase tracking-tighter italic">Sucesso!</h2><p className="text-xs text-zinc-500 font-bold uppercase tracking-widest leading-relaxed max-w-[240px]">Agendamento confirmado. Redirecionando para o WhatsApp...</p></div>
-                <button onClick={() => navigate('/')} className="w-full max-w-[200px] bg-white text-black font-black py-4 rounded-xl text-[10px] uppercase tracking-[0.3em] shadow-xl active:scale-95 transition-all">Concluído</button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            </div>
+          )}
         </div>
 
-        {/* Footer Actions - Standardized Buttons */}
-        {step < 5 && (
-          <div className="shrink-0 flex items-center gap-3 pt-4">
-            {step > 1 && (
-              <button 
-                onClick={() => setStep(step - 1)} 
-                className="w-14 h-14 rounded-2xl bg-neutral-900 border border-white/5 flex items-center justify-center text-zinc-500 hover:text-white transition-all active:scale-95"
-              >
-                <ChevronLeft size={20} />
-              </button>
-            )}
-            <button 
-              disabled={(step === 1 && selectedServices.length === 0) || (step === 2 && (!selectedDate || !selectedTime)) || (step === 3 && (!userInfo.name || !userInfo.phone))} 
-              onClick={step === 4 ? handleConfirm : () => setStep(step + 1)} 
-              className={`flex-1 h-14 rounded-2xl font-black text-[11px] uppercase tracking-[0.3em] transition-all active:scale-[0.98] shadow-2xl flex items-center justify-center gap-2 ${
-                step === 4 
-                ? 'bg-gold-600 text-black' 
-                : 'bg-white text-black hover:bg-zinc-200'
-              } disabled:opacity-20 disabled:grayscale`}
-            >
-              {isSubmitting ? 'Processando...' : step === 4 ? 'Confirmar' : 'Próximo'}
-              {step < 4 && <ChevronRight size={16} />}
-            </button>
-          </div>
-        )}
       </main>
+
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #050505; }
+      `}</style>
     </div>
   );
 };
