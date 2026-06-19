@@ -172,7 +172,7 @@ const AdminClients: React.FC = () => {
                   {filteredClients.map((client, index) => (
                     <React.Fragment key={client.id}>
                       <div onClick={() => openPanel(client)} className="flex items-center gap-4 py-3.5 px-4 rounded-xl cursor-pointer hover:bg-white/[0.03] transition-all group">
-                        <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center text-sm font-bold text-[#C5A059] uppercase shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-[#111111] border border-white/[0.08] flex items-center justify-center text-sm font-bold text-white uppercase shrink-0">
                           {client.name.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -190,7 +190,7 @@ const AdminClients: React.FC = () => {
                 <div className="hidden lg:grid grid-cols-2 gap-3">
                   {filteredClients.map((client) => (
                     <div key={client.id} onClick={() => openPanel(client)} className="flex items-center gap-4 p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all cursor-pointer group">
-                      <div className="w-12 h-12 rounded-xl bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center text-base font-bold text-[#C5A059] uppercase shrink-0">
+                      <div className="w-12 h-12 rounded-xl bg-[#111111] border border-white/[0.08] flex items-center justify-center text-base font-bold text-white uppercase shrink-0">
                         {client.name.charAt(0)}
                       </div>
                       <div className="flex-1 min-w-0">
