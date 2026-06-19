@@ -196,11 +196,7 @@ const AdminClients: React.FC = () => {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-white truncate">{client.name}</p>
                         <p className="text-[11px] text-zinc-500 mt-0.5">{client.phone}</p>
-                        <div className="flex items-center gap-4 mt-2.5">
-                          <span className="text-[9px] text-zinc-600 uppercase tracking-wider">{client.bookingsCount} visitas</span>
-                          <span className="text-[9px] text-zinc-600 uppercase tracking-wider">R$ {(client.totalSpent || 0).toFixed(0)}</span>
-                          <span className="text-[9px] text-zinc-600 uppercase tracking-wider">{client.lastVisit}</span>
-                        </div>
+                        <p className="text-[9px] text-zinc-600 uppercase tracking-wider mt-2">Membro desde {new Date(client.created_at).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}</p>
                       </div>
                       <ChevronRight size={14} className="text-zinc-700 group-hover:text-zinc-400 transition-colors shrink-0" />
                     </div>
