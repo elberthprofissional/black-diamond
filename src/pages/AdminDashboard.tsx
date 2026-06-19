@@ -163,7 +163,7 @@ const AdminDashboard: React.FC = () => {
           </div>
 
           {/* 2. STATS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 sm:mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-3 mb-4 sm:mb-6">
             {/* Próximo Cliente - Expandable */}
             <div className="md:col-span-1">
               <button
