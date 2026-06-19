@@ -166,7 +166,9 @@ const AdminClients: React.FC = () => {
                 <p className="text-zinc-600 text-sm font-medium">Nenhum cliente encontrado</p>
               </div>
             ) : (
-                <div className="space-y-0.5">
+              <>
+                {/* Mobile: List */}
+                <div className="lg:hidden space-y-0.5">
                   {filteredClients.map((client, index) => (
                     <React.Fragment key={client.id}>
                       <div onClick={() => openPanel(client)} className="flex items-center gap-4 py-3.5 px-4 rounded-xl cursor-pointer hover:bg-white/[0.03] transition-all group">
@@ -177,26 +179,33 @@ const AdminClients: React.FC = () => {
                           <p className="text-sm font-semibold text-white truncate">{client.name}</p>
                           <p className="text-[11px] text-zinc-500 mt-0.5">{client.phone}</p>
                         </div>
-                        <div className="hidden sm:flex items-center gap-8 shrink-0">
-                          <div className="text-right">
-                            <p className="text-[8px] text-zinc-600 uppercase tracking-widest">Visitas</p>
-                            <p className="text-sm font-bold text-white">{client.bookingsCount}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-[8px] text-zinc-600 uppercase tracking-widest">Total</p>
-                            <p className="text-sm font-bold text-white">R$ {(client.totalSpent || 0).toFixed(0)}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-[8px] text-zinc-600 uppercase tracking-widest">Última</p>
-                            <p className="text-xs font-medium text-zinc-400">{client.lastVisit}</p>
-                          </div>
-                        </div>
-                        <ChevronRight size={14} className="text-zinc-700 group-hover:text-zinc-400 transition-colors shrink-0" />
+                        <ChevronRight size={14} className="text-zinc-700 shrink-0" />
                       </div>
                       {index < filteredClients.length - 1 && <div className="ml-[68px] h-px bg-white/[0.04]" />}
                     </React.Fragment>
                   ))}
                 </div>
+
+                {/* Desktop: Grid */}
+                <div className="hidden lg:grid grid-cols-2 xl:grid-cols-3 gap-3">
+                  {filteredClients.map((client) => (
+                    <div key={client.id} onClick={() => openPanel(client)} className="flex flex-col items-center justify-center gap-3 p-6 bg-[#111111] hover:bg-[#161618] transition-all cursor-pointer group aspect-square">
+                      <div className="w-16 h-16 bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center text-xl font-bold text-[#C5A059] uppercase">
+                        {client.name.charAt(0)}
+                      </div>
+                      <div className="text-center min-w-0 w-full">
+                        <p className="text-sm font-semibold text-white truncate">{client.name}</p>
+                        <p className="text-[11px] text-zinc-500 mt-1">{client.phone}</p>
+                        <div className="flex items-center justify-center gap-2 mt-2">
+                          <span className="text-[9px] text-zinc-600">{client.bookingsCount}x</span>
+                          <span className="text-[9px] text-zinc-600">·</span>
+                          <span className="text-[9px] text-zinc-600">R$ {(client.totalSpent || 0).toFixed(0)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </main>
