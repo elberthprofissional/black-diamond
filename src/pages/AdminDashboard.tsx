@@ -164,17 +164,6 @@ const AdminDashboard: React.FC = () => {
 
           {/* 2. STATS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 sm:mb-6">
-            {/* Lucro do Dia */}
-            <div className="md:col-span-1 bg-[#111111] border border-white/5 py-3 px-4 rounded-2xl flex items-center justify-between hover:border-white/10 transition-colors">
-              <div className="flex flex-col">
-                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em]">Lucro do Dia</span>
-                <span className="text-base font-black text-white tracking-tight tabular-nums mt-1">R$ {dailyRevenue.toFixed(0)}</span>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-center text-zinc-500">
-                <TrendingUp size={16} />
-              </div>
-            </div>
-
             {/* Próximo Cliente - Expandable */}
             <div className="md:col-span-1">
               <button
@@ -266,6 +255,17 @@ const AdminDashboard: React.FC = () => {
                   </motion.div>
                 )}
               </AnimatePresence>
+            </div>
+
+            {/* Lucro do Dia */}
+            <div className="md:col-span-1 bg-[#111111] border border-white/5 py-3 px-4 rounded-2xl flex items-center justify-between hover:border-white/10 transition-colors">
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em]">Lucro do Dia</span>
+                <span className="text-base font-black text-white tracking-tight tabular-nums mt-1">R$ {dailyRevenue.toFixed(0)}</span>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-center text-zinc-500">
+                <TrendingUp size={16} />
+              </div>
             </div>
           </div>
 
