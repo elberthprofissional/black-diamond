@@ -1,14 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, User, LogOut } from 'lucide-react';
+import { ChevronDown, User, LogOut, Download, Check } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
 const AdminNavbar: React.FC = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showInstallConfirm, setShowInstallConfirm] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isInstalled] = useState(() => 
+    window.matchMedia('(display-mode: standalone)').matches || 
+    (navigator as unknown as { standalone?: boolean }).standalone === true
+  );
   const handleLogout = useAdminLogout();
+
+  useEffect(() => {
+    if (isInstalled) return;
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, [isInstalled]);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setShowInstallConfirm(false);
+    }
+    setDeferredPrompt(null);
+  };
 
   return (
     <>
@@ -54,6 +87,16 @@ const AdminNavbar: React.FC = () => {
                     <div className="h-px bg-white/[0.04]" />
                     <div className="p-2">
                       <button 
+                        onClick={() => { setIsMenuOpen(false); setShowInstallConfirm(true); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-bold text-zinc-300 hover:text-white hover:bg-white/[0.04] rounded-lg transition-all"
+                      >
+                        {isInstalled ? <Check size={13} className="text-emerald-500" /> : <Download size={13} className="text-zinc-500" />}
+                        {isInstalled ? 'App Instalado' : 'Instalar App'}
+                      </button>
+                    </div>
+                    <div className="h-px bg-white/[0.04]" />
+                    <div className="p-2">
+                      <button 
                         onClick={() => { setIsMenuOpen(false); setShowLogoutConfirm(true); }}
                         className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-bold text-red-400/70 hover:text-red-400 hover:bg-red-500/5 rounded-lg transition-all"
                       >
@@ -67,6 +110,74 @@ const AdminNavbar: React.FC = () => {
           </div>
         </div>
       </nav>
+
+      {/* INSTALL CONFIRMATION MODAL */}
+      <AnimatePresence>
+        {showInstallConfirm && (
+          <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              onClick={() => setShowInstallConfirm(false)}
+              className="absolute inset-0 bg-black/60"
+            />
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="relative z-10 w-full sm:w-[260px] bg-[#1A1A1A] sm:rounded-2xl rounded-t-2xl overflow-hidden"
+            >
+              {isInstalled ? (
+                <>
+                  <div className="p-5 text-center">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-3">
+                      <Check size={16} className="text-emerald-500" />
+                    </div>
+                    <p className="text-[11px] text-zinc-300 font-medium">App já instalado</p>
+                    <p className="text-[9px] text-zinc-600 mt-1">Acesse pela tela inicial</p>
+                  </div>
+                  <div className="border-t border-white/[0.06]">
+                    <button 
+                      onClick={() => setShowInstallConfirm(false)}
+                      className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="p-5 text-center">
+                    <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-3">
+                      <Download size={16} className="text-[#C5A059]" />
+                    </div>
+                    <p className="text-[11px] text-zinc-300 font-medium">Instalar aplicativo?</p>
+                    <p className="text-[9px] text-zinc-600 mt-1">Acesso rápido na tela inicial</p>
+                  </div>
+                  <div className="border-t border-white/[0.06]">
+                    <button 
+                      onClick={handleInstall}
+                      className="w-full py-3.5 text-[11px] font-bold text-[#C5A059] active:bg-white/[0.03] transition-colors cursor-pointer"
+                    >
+                      Instalar
+                    </button>
+                  </div>
+                  <div className="border-t border-white/[0.06]">
+                    <button 
+                      onClick={() => setShowInstallConfirm(false)}
+                      className="w-full py-3.5 text-[11px] font-bold text-zinc-400 active:bg-white/[0.03] transition-colors cursor-pointer"
+                    >
+                      Agora não
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* LOGOUT CONFIRMATION MODAL */}
       <AnimatePresence>
@@ -83,7 +194,7 @@ const AdminNavbar: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+              transition={{ duration: 0.2 }}
               className="relative z-10 w-full sm:w-[260px] bg-[#1A1A1A] sm:rounded-2xl rounded-t-2xl overflow-hidden"
             >
               <div className="p-5 text-center">
