@@ -155,9 +155,9 @@ const AdminProfile: React.FC = () => {
             </div>
             <button
               onClick={() => setShowLogoutConfirm(true)}
-              className="text-[10px] text-zinc-600 hover:text-red-400 transition-colors cursor-pointer shrink-0"
+              className="px-3 py-1.5 text-[9px] font-bold text-zinc-500 hover:text-red-400 border border-white/[0.06] hover:border-red-500/20 rounded-lg uppercase tracking-wider transition-all cursor-pointer shrink-0"
             >
-              sair
+              Sair
             </button>
           </div>
 
@@ -215,56 +215,24 @@ const AdminProfile: React.FC = () => {
             </div>
           </div>
 
-          {/* 4. BOTTOM: Serviços + Últimos Agendamentos lado a lado */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            {/* Serviços Populares */}
-            <div className="bg-[#111111] border border-white/5 rounded-2xl p-5">
-              <h2 className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4">Análise de Serviços</h2>
-              {topServices.length > 0 ? (
-                <div className="space-y-3">
-                  {topServices.map((srv, idx) => (
-                    <div key={idx} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-[10px] font-bold text-zinc-600 font-mono w-4">0{idx + 1}</span>
-                        <span className="text-[11px] font-bold text-zinc-300 uppercase tracking-wide">{srv.name}</span>
-                      </div>
-                      <span className="text-[11px] font-black text-[#C5A059] tabular-nums">{srv.count}x</span>
+          {/* 4. Análise de Serviços */}
+          <div className="bg-[#111111] border border-white/5 rounded-2xl p-5">
+            <h2 className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4">Análise de Serviços</h2>
+            {topServices.length > 0 ? (
+              <div className="space-y-3">
+                {topServices.map((srv, idx) => (
+                  <div key={idx} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-bold text-zinc-600 font-mono w-4">0{idx + 1}</span>
+                      <span className="text-[11px] font-bold text-zinc-300 uppercase tracking-wide">{srv.name}</span>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-[9px] text-zinc-600 uppercase tracking-widest text-center py-4">Nenhum serviço no período</p>
-              )}
-            </div>
-
-            {/* Últimos Agendamentos */}
-            <div className="bg-[#111111] border border-white/5 rounded-2xl p-5">
-              <h2 className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4">Últimos Agendamentos</h2>
-              {bookings.length > 0 ? (
-                <div className="space-y-3">
-                  {bookings
-                    .filter(b => b.status !== 'cancelled')
-                    .sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime())
-                    .slice(0, 5)
-                    .map((b, idx) => (
-                      <div key={idx} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-full bg-white/[0.04] flex items-center justify-center text-[10px] font-bold text-zinc-400 shrink-0">
-                            {(b as Booking & { clients?: { name: string } }).clients?.name?.charAt(0) || '?'}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-[11px] font-bold text-zinc-300 truncate">{(b as Booking & { clients?: { name: string } }).clients?.name || 'Cliente'}</p>
-                            <p className="text-[9px] text-zinc-600">{new Date(b.booking_date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</p>
-                          </div>
-                        </div>
-                        <span className="text-[11px] font-bold text-[#C5A059] tabular-nums shrink-0">R$ {Number(b.total_price).toFixed(0)}</span>
-                      </div>
-                    ))}
-                </div>
-              ) : (
-                <p className="text-[9px] text-zinc-600 uppercase tracking-widest text-center py-4">Nenhum agendamento</p>
-              )}
-            </div>
+                    <span className="text-[11px] font-black text-[#C5A059] tabular-nums">{srv.count}x</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[9px] text-zinc-600 uppercase tracking-widest text-center py-4">Nenhum serviço no período</p>
+            )}
           </div>
 
       {/* LOGOUT CONFIRMATION MODAL */}

@@ -144,7 +144,7 @@ const AdminWeekly: React.FC = () => {
             </div>
 
             {/* Filter + Count */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                 {filteredSlots.length} {filteredSlots.length === 1 ? 'horário' : 'horários'}
               </span>
