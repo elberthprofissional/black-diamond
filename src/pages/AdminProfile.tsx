@@ -172,7 +172,7 @@ const AdminProfile: React.FC = () => {
 
           {/* 2. SWITCHER */}
           <div className="flex items-center justify-between">
-            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Desempenho</span>
+            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Análise da Barbearia</span>
             <div className="flex gap-4">
               <button 
                 onClick={() => setTimeRange('week')}
@@ -218,20 +218,29 @@ const AdminProfile: React.FC = () => {
           {/* 4. Análise de Serviços */}
           <div className="bg-[#111111] border border-white/5 rounded-2xl p-5">
             <h2 className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4">Análise de Serviços</h2>
-            {topServices.length > 0 ? (
+            {topServices.length > 0 && topServices.some(s => s.count > 0) ? (
               <div className="space-y-3">
-                {topServices.map((srv, idx) => (
-                  <div key={idx} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-bold text-zinc-600 font-mono w-4">0{idx + 1}</span>
-                      <span className="text-[11px] font-bold text-zinc-300 uppercase tracking-wide">{srv.name}</span>
+                {topServices.filter(s => s.count > 0).map((srv, idx) => {
+                  const maxCount = Math.max(...topServices.map(s => s.count));
+                  const percentage = maxCount > 0 ? (srv.count / maxCount) * 100 : 0;
+                  return (
+                    <div key={idx} className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-zinc-300">{srv.name}</span>
+                        <span className="text-[10px] font-black text-[#C5A059] tabular-nums">{srv.count}x</span>
+                      </div>
+                      <div className="h-1 bg-white/[0.04] rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-[#C5A059] rounded-full transition-all duration-500" 
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
                     </div>
-                    <span className="text-[11px] font-black text-[#C5A059] tabular-nums">{srv.count}x</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
-              <p className="text-[9px] text-zinc-600 uppercase tracking-widest text-center py-4">Nenhum serviço no período</p>
+              <p className="text-[9px] text-zinc-600 uppercase tracking-widest text-center py-6">Nenhum serviço no período</p>
             )}
           </div>
 
