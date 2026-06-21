@@ -139,7 +139,7 @@ const AdminDashboard: React.FC = () => {
                 </div>
 
                 {/* 3. BOOKINGS HEADER */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 px-1">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1 pt-2">
                   <h2 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-[0.25em]">Agenda de Hoje</h2>
                   
                   {/* Segmented Control Tab Switcher */}

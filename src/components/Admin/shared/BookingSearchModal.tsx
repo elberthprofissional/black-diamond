@@ -29,13 +29,13 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="fixed inset-0 z-[200] flex flex-col lg:items-center lg:justify-center lg:p-4 bg-[#0A0A0A] lg:bg-black/60">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={() => { onClose(); setSearchQuery(''); }}
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm hidden lg:block"
         />
         <motion.div
           role="dialog"
@@ -45,9 +45,9 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative z-10 w-full sm:max-w-md bg-[#0A0A0A] border-t sm:border border-white/[0.06] sm:rounded-2xl rounded-t-2xl overflow-hidden max-h-[80vh] flex flex-col"
+          className="relative z-10 w-full h-full lg:h-auto lg:max-w-md lg:bg-[#0A0A0A] lg:border lg:border-white/[0.06] lg:rounded-2xl overflow-hidden max-h-full flex flex-col"
         >
-          <div className="px-6 pt-6 pb-4 flex items-center justify-between shrink-0">
+          <div className="px-5 pt-14 pb-4 lg:pt-6 flex items-center justify-between shrink-0">
             <div>
               <h3 id="modal-title-search" className="text-sm font-bold text-white uppercase tracking-wider">Buscar Cliente</h3>
               <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Pesquise por nome ou whatsapp</p>
@@ -61,7 +61,7 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
             </button>
           </div>
 
-          <div className="px-6 py-2 shrink-0">
+          <div className="px-5 py-2 shrink-0">
             <div className="relative">
               <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
               <input
@@ -89,7 +89,7 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0 scrollbar-hide">
+          <div className="flex-1 overflow-y-auto px-5 py-4 min-h-0 scrollbar-hide">
             {multipleMatches.length > 0 ? (
               <div className="divide-y divide-white/5 border-t border-b border-white/5">
                 {multipleMatches.map(c => (
@@ -122,7 +122,7 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
             )}
           </div>
 
-          <div className="px-6 pb-6 pt-2 shrink-0">
+          <div className="px-5 pb-8 lg:pb-6 pt-2 shrink-0">
             <div className="flex gap-2">
               <button
                 onClick={() => { onClose(); setSearchQuery(''); }}

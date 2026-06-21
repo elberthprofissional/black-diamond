@@ -26,10 +26,10 @@ const AdminNavbar: React.FC = () => {
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="flex items-center gap-2 group"
             >
-              <div className="w-8 h-8 rounded-full bg-zinc-900 border border-white/[0.05] flex items-center justify-center text-zinc-600 group-hover:border-[#C5A059]/30 transition-all overflow-hidden">
+              <div className="w-8 h-8 rounded-full overflow-hidden border border-white/[0.08] group-hover:border-[#C5A059]/30 transition-all">
                  <img src="/assets/barbeiro.webp" alt="Tato" className="w-full h-full object-cover" />
               </div>
-              <ChevronDown size={10} className={`text-zinc-700 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={10} className={`text-zinc-600 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`} />
             </button>
 
             <AnimatePresence>
@@ -37,26 +37,29 @@ const AdminNavbar: React.FC = () => {
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setIsMenuOpen(false)} />
                   <motion.div 
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 mt-3 w-48 bg-zinc-950 border border-white/[0.05] rounded-[1.2rem] shadow-2xl z-50 overflow-hidden p-1.5"
+                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-2 w-52 bg-[#161618] border border-white/[0.06] rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-50 overflow-hidden"
                   >
-                    <button 
-                      onClick={() => { navigate('/admin/profile'); setIsMenuOpen(false); }}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 text-[9px] font-bold text-zinc-400 hover:text-white hover:bg-white/[0.02] rounded-lg transition-all uppercase tracking-widest"
-                    >
-                      <User size={12} /> Meu Perfil
-                    </button>
-                    
-                    <div className="h-px bg-white/[0.03] my-1.5" />
-                    
-                    <button 
-                      onClick={() => { setIsMenuOpen(false); setShowLogoutConfirm(true); }}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 text-[9px] font-bold text-red-500/60 hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-all uppercase tracking-widest"
-                    >
-                      <LogOut size={12} /> Sair
-                    </button>
+                    <div className="p-2">
+                      <button 
+                        onClick={() => { navigate('/admin/profile'); setIsMenuOpen(false); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-bold text-zinc-300 hover:text-white hover:bg-white/[0.04] rounded-lg transition-all"
+                      >
+                        <User size={13} className="text-zinc-500" /> Meu Perfil
+                      </button>
+                    </div>
+                    <div className="h-px bg-white/[0.04]" />
+                    <div className="p-2">
+                      <button 
+                        onClick={() => { setIsMenuOpen(false); setShowLogoutConfirm(true); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-bold text-red-400/70 hover:text-red-400 hover:bg-red-500/5 rounded-lg transition-all"
+                      >
+                        <LogOut size={13} /> Sair
+                      </button>
+                    </div>
                   </motion.div>
                 </>
               )}
