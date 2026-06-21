@@ -2,60 +2,60 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, EyeOff, Eye, ChevronRight } from 'lucide-react';
-import { getAdminSettings } from '../lib/api';
+import { supabase } from '../lib/supabase';
+import { useToast } from '../hooks/useToast';
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const supportPhone = import.meta.env.VITE_SUPPORT_WHATSAPP || '5531980159559';
   const [showPassword, setShowPassword] = useState(false);
   const [isForgotOpen, setIsForgotOpen] = useState(false);
-  const [adminConfig, setAdminConfig] = useState<any>({
-    email: 'admin@gmail.com',
-    password: 'admin123',
-    recovery_pin: '000000'
-  });
-  const [toast, setToast] = useState<{ message: string, type: 'success' | 'info' | 'error' } | null>(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const { toast, showError } = useToast();
   const navigate = useNavigate();
 
+  // Se já houver uma sessão ativa, redireciona para o admin automaticamente
   useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const data = await getAdminSettings();
-        if (data) {
-          setAdminConfig(data);
-        }
-      } catch (err) {
-        console.warn('Usando credenciais padrão do código (tabela admin_settings ainda não criada).');
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/admin');
       }
     };
-    loadSettings();
-  }, []);
+    checkSession();
+  }, [navigate]);
 
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === adminConfig.email && password === adminConfig.password) {
-      localStorage.setItem('admin_authenticated', 'true');
-      navigate('/admin');
-    } else {
-      setToast({ message: 'Email ou senha incorretos.', type: 'error' });
+    if (!email.trim() || !password.trim()) {
+      showError('Preencha todos os campos.');
+      return;
+    }
+    
+    setIsLoggingIn(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim()
+      });
+
+      if (error) {
+        showError('E-mail ou senha incorretos.');
+      } else {
+        navigate('/admin');
+      }
+    } catch {
+      showError('Erro ao tentar fazer login.');
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
-  const [isStandalone, setIsStandalone] = useState(false);
-
-  useEffect(() => {
-    setIsStandalone(
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (navigator as any).standalone === true
-    );
-  }, []);
+  const [isStandalone] = useState(() => 
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (navigator as unknown as { standalone?: boolean }).standalone === true
+  );
 
   return (
     <div className="h-screen w-full bg-[#0A0A0A] text-white flex relative overflow-hidden font-sans touch-none">
@@ -87,7 +87,7 @@ const AdminLogin: React.FC = () => {
           className="absolute inset-0"
         >
           <img 
-            src="/assets/Tela de Login.webp" 
+            src="/assets/login.webp"
             alt="Barbershop" 
             className="w-full h-full object-cover grayscale opacity-20"
           />
@@ -121,7 +121,7 @@ const AdminLogin: React.FC = () => {
         
         <div className="absolute inset-0 lg:hidden overflow-hidden hidden md:block">
           <img 
-            src="/assets/Tela de Login.webp" 
+            src="/assets/login.webp"
             alt="Background" 
             className="w-full h-full object-cover grayscale opacity-10"
           />
@@ -153,7 +153,7 @@ const AdminLogin: React.FC = () => {
             <div className="space-y-4 lg:space-y-10">
               {/* Email */}
               <div className="space-y-2 lg:space-y-4">
-                <label className="text-[9px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0">E-mail de acesso</label>
+                <label className="text-[9px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0">E-mail</label>
                 <div className="relative group">
                   <input 
                     type="email" 
@@ -204,10 +204,11 @@ const AdminLogin: React.FC = () => {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               type="submit"
-              className="w-full h-14 lg:h-16 bg-[#C5A059] text-black font-black uppercase tracking-[0.5em] text-[11px] rounded-2xl lg:rounded-sm hover:bg-white transition-all flex items-center justify-center gap-3 group lg:mt-8"
+              disabled={isLoggingIn}
+              className="w-full h-14 lg:h-16 bg-[#C5A059] text-black font-black uppercase tracking-[0.5em] text-[11px] rounded-2xl lg:rounded-sm hover:bg-white transition-all flex items-center justify-center gap-3 group lg:mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>Entrar</span>
-              <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              <span>{isLoggingIn ? 'Entrando...' : 'Entrar'}</span>
+              {!isLoggingIn && <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />}
             </motion.button>
           </form>
         </motion.div>
@@ -244,7 +245,7 @@ const AdminLogin: React.FC = () => {
 
                 <div className="flex flex-col gap-2 pt-2">
                   <a 
-                    href="https://wa.me/5531980159559?text=Ol%C3%A1%21%20Esqueci%20minha%20senha%20de%20acesso%20ao%20painel%20do%20Black%20Diamond.%20Pode%20me%20ajudar%20com%20o%20reset%3F%20%F0%9F%92%88"
+                    href={`https://wa.me/${supportPhone}?text=${encodeURIComponent('Olá! Esqueci minha senha de acesso ao painel do Black Diamond. Pode me ajudar com o reset? 💈')}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => setIsForgotOpen(false)}
@@ -254,7 +255,7 @@ const AdminLogin: React.FC = () => {
                   </a>
                   <button 
                     onClick={() => setIsForgotOpen(false)}
-                    className="w-full h-10 text-zinc-550 font-bold text-[9px] uppercase tracking-[0.3em] hover:text-white transition-all cursor-pointer"
+                    className="w-full h-10 text-zinc-500 font-bold text-[9px] uppercase tracking-[0.3em] hover:text-white transition-all cursor-pointer"
                   >
                     Voltar
                   </button>

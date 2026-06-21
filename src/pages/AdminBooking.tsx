@@ -1,68 +1,88 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getServices, createBooking, getBookings, getClients } from '../lib/api';
-import type { Service, Client } from '../types';
+import { createBooking, getBookings, getClients, deleteBooking } from '../lib/api';
+import { TIME_SLOTS, getPeriod, formatPhone, getNextDays, isTimeOccupied, getLocalDateString } from '../lib/utils';
+import { useToast } from '../hooks/useToast';
+import { useServices } from '../hooks/useServices';
+import type { Service, Client, Booking } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminNavbar from '../components/Admin/Navbar';
 import BottomTabs from '../components/Admin/BottomTabs';
+import BookingSearchModal from '../components/Admin/shared/BookingSearchModal';
+import BookingSummaryPanel from '../components/Admin/shared/BookingSummaryPanel';
 import { 
   ArrowLeft, 
-  X, 
-  User, 
-  Phone,
-  Search, 
-  ChevronRight, 
-  Check, 
-  Calendar, 
-  Clock, 
-  Tag 
+  ChevronRight,
+  Check,
+  Loader2,
+  Search
 } from 'lucide-react';
 
-const timeSlots = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'];
-
 const AdminBooking: React.FC = () => {
+  const nextDays = useMemo(() => getNextDays(), []);
   const location = useLocation();
   const navigate = useNavigate();
+  const rescheduleBooking = location.state?.rescheduleBooking;
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [services, setServices] = useState<Service[]>([]);
+  const { services } = useServices();
   const [clients, setClients] = useState<Client[]>([]);
-  const [existingBookings, setExistingBookings] = useState<any[]>([]);
+  const [existingBookings, setExistingBookings] = useState<Booking[]>([]);
+  const { showSuccess, showError } = useToast();
   
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [newClient, setNewClient] = useState({ name: '', phone: '' });
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   
-  // Mobile Stepper State
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(() => {
+    if (location.state?.rescheduleBooking) return 3;
+    return 1;
+  });
 
-  const [selectedDate, setSelectedDate] = useState<string>(
-    location.state?.date || new Date().toISOString().split('T')[0]
-  );
-  const [selectedTime, setSelectedTime] = useState<string>(
-    location.state?.time || ''
-  );
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    if (location.state?.rescheduleBooking?.booking_date) {
+      return location.state.rescheduleBooking.booking_date;
+    }
+    return location.state?.date || getLocalDateString();
+  });
   
-  const [searchClient, setSearchClient] = useState('');
-  const [showClientList, setShowClientList] = useState(false);
+  const [selectedTime, setSelectedTime] = useState<string>(() => {
+    if (location.state?.rescheduleBooking?.booking_time) {
+      return location.state.rescheduleBooking.booking_time.slice(0, 5);
+    }
+    return location.state?.time || '';
+  });
   
-  const today = new Date();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [multipleMatches, setMultipleMatches] = useState<Client[]>([]);
+  const [isSearchingClient, setIsSearchingClient] = useState(false);
+  const [isManualEntry, setIsManualEntry] = useState(true);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [servicesData, clientsData] = await Promise.all([
-          getServices(),
-          getClients()
-        ]);
-        setServices(servicesData);
+        const clientsData = await getClients();
         setClients(clientsData);
+        if (rescheduleBooking) {
+          const match = clientsData.find(c => c.id === rescheduleBooking.client_id || c.phone === rescheduleBooking.clients?.phone);
+          if (match) {
+            setSelectedClient(match);
+            setIsManualEntry(false);
+          } else {
+            setNewClient({
+              name: rescheduleBooking.clients?.name || '',
+              phone: rescheduleBooking.clients?.phone || ''
+            });
+            setIsManualEntry(true);
+          }
+        }
       } catch (error) {
         console.error(error);
       }
     };
     fetchData();
-  }, []);
+  }, [rescheduleBooking]);
 
   useEffect(() => {
     if (selectedDate) {
@@ -78,6 +98,15 @@ const AdminBooking: React.FC = () => {
     }
   }, [selectedDate]);
 
+  useEffect(() => {
+    if (rescheduleBooking && services.length > 0 && rescheduleBooking.service_ids) {
+      const matchedServices = services.filter(s => rescheduleBooking.service_ids.includes(s.id));
+      Promise.resolve().then(() => {
+        setSelectedServices(matchedServices);
+      });
+    }
+  }, [rescheduleBooking, services]);
+
   const toggleService = (service: Service) => {
     if (selectedServices.find(s => s.id === service.id)) {
       setSelectedServices(selectedServices.filter(s => s.id !== service.id));
@@ -90,7 +119,11 @@ const AdminBooking: React.FC = () => {
   const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
 
   const isOccupied = (time: string) => {
-    return existingBookings.some(b => b.booking_time === time && b.status !== 'cancelled');
+    let bookingsToCheck = existingBookings;
+    if (rescheduleBooking) {
+      bookingsToCheck = existingBookings.filter(b => b.id !== rescheduleBooking.id);
+    }
+    return isTimeOccupied(time, bookingsToCheck);
   };
 
   const handleFinish = async () => {
@@ -98,12 +131,16 @@ const AdminBooking: React.FC = () => {
     const phone = selectedClient ? selectedClient.phone : newClient.phone;
 
     if (!name || !phone || selectedServices.length === 0 || !selectedDate || !selectedTime) {
-      alert('Preencha todos os campos.');
+      showError('Preencha todos os campos.');
       return;
     }
 
     setIsSubmitting(true);
     try {
+      if (rescheduleBooking?.id) {
+        await deleteBooking(rescheduleBooking.id);
+      }
+      
       await createBooking(
         {
           service_ids: selectedServices.map(s => s.id),
@@ -114,518 +151,891 @@ const AdminBooking: React.FC = () => {
         },
         { name, phone }
       );
-      navigate('/admin');
+      showSuccess(rescheduleBooking?.id ? 'Agendamento reagendado com sucesso!' : 'Agendamento realizado!');
+      setTimeout(() => navigate('/admin'), 1500);
     } catch (error) {
-      alert('Erro ao agendar.');
+      showError(error instanceof Error ? error.message : 'Erro ao agendar.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const filteredClients = clients.filter(c => 
-    c.name.toLowerCase().includes(searchClient.toLowerCase()) || 
-    c.phone.includes(searchClient)
-  );
+  const handleSearch = () => {
+    if (!searchQuery.trim()) {
+      showError('Digite um WhatsApp ou Nome.');
+      return;
+    }
 
-  // Stepper Handlers
+    setIsSearchingClient(true);
+    
+    // Smooth lookup delay to feel premium and fast
+    setTimeout(() => {
+      const term = searchQuery.trim().toLowerCase();
+      const isPhone = /^\+?\d[\d\s\-()]*$/.test(term);
+      const matches = isPhone
+        ? clients.filter(c => c.phone.replace(/\D/g, '').includes(term.replace(/\D/g, '')))
+        : clients.filter(c => c.name.toLowerCase().includes(term));
+
+      setIsSearchingClient(false);
+
+      if (matches.length === 1) {
+        setSelectedClient(matches[0]);
+        setNewClient({ name: '', phone: '' });
+        setMultipleMatches([]);
+        setIsManualEntry(false);
+      } else if (matches.length > 1) {
+        setSelectedClient(null);
+        setMultipleMatches(matches);
+        setIsManualEntry(false);
+      } else {
+        setSelectedClient(null);
+        setMultipleMatches([]);
+        const prefilledPhone = isPhone ? formatPhone(term) : '';
+        setNewClient({ name: '', phone: prefilledPhone });
+        setIsManualEntry(true);
+        showError('Cliente não encontrado. Preencha o nome.');
+      }
+    }, 400);
+  };
+
   const handleNextStep = () => {
-    if (currentStep === 1 && !selectedClient && !newClient.name) return alert('Selecione ou insira um cliente.');
-    if (currentStep === 2 && selectedServices.length === 0) return alert('Selecione ao menos um serviço.');
-    if (currentStep === 3 && !selectedTime) return alert('Selecione um horário.');
+    if (currentStep === 1) {
+      if (!selectedClient && (!newClient.name.trim() || newClient.phone.trim().length < 8)) {
+        showError('Preencha o nome e telefone do cliente.');
+        return;
+      }
+    }
+    if (currentStep === 2 && selectedServices.length === 0) {
+      showError('Selecione ao menos um procedimento.');
+      return;
+    }
+    if (currentStep === 3 && !selectedTime) {
+      showError('Selecione um horário.');
+      return;
+    }
     setCurrentStep(prev => prev + 1);
   };
-  
-  const handlePrevStep = () => {
-    if (currentStep > 1) setCurrentStep(prev => prev - 1);
-    else navigate('/admin');
+
+  const isStepValid = (step: number) => {
+    if (step === 1) {
+      if (selectedClient) return true;
+      return newClient.name.trim() !== '' && newClient.phone.trim().length >= 8;
+    }
+    if (step === 2) return selectedServices.length > 0;
+    if (step === 3) return !!selectedTime;
+    return false;
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white font-sans flex overflow-hidden selection:bg-[#B89B49]/30 relative">
-      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-[#0A0A0A]">
+    <div className="h-screen lg:min-h-screen bg-[#121212] text-white font-sans selection:bg-[#C5A059]/30 flex flex-col relative overflow-hidden">
+      
+      {/* Subtle Ambient Radial Glows */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-b from-[#C5A059]/5 via-transparent to-transparent rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-t from-white/[0.02] via-transparent to-transparent rounded-full blur-[120px] pointer-events-none" />
+      </div>
+
+      {/* DESKTOP LAYOUT - STAYS EXACTLY THE SAME */}
+      <div className="hidden lg:flex flex-col flex-1 relative z-10 overflow-visible w-full">
         <AdminNavbar />
 
-        <main className="flex-1 flex flex-col lg:block overflow-hidden lg:overflow-y-auto p-6 lg:p-10 pt-24 lg:pt-10 pb-4 lg:pb-40 scrollbar-hide">
-          <div className="max-w-[1200px] mx-auto space-y-8 flex-1 flex flex-col lg:block">
+        {/* Full Viewport Width Header with Full-length underline */}
+        <div className="w-full px-6 md:px-12 md:border-b md:border-white/[0.04] py-5 md:py-6 flex items-center justify-between shrink-0 sticky top-0 z-30">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate('/admin')}
+              className="text-zinc-500 hover:text-white transition-all cursor-pointer mr-1.5 active:scale-95 group"
+            >
+              <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
+            </button>
+            <h1 className="text-sm md:text-base font-bold tracking-[0.25em] text-white uppercase">
+              {rescheduleBooking ? 'Reagendar Atendimento' : 'Novo Agendamento'}
+            </h1>
+          </div>
+        </div>
+
+        {/* DUAL CANVAS CONTAINER - Center aligned max-w-7xl */}
+        <main className="w-full max-w-7xl mx-auto px-6 md:px-12 pt-6 pb-28 lg:pb-16 flex-1 flex flex-col overflow-visible">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 xl:gap-16 items-start flex-1 overflow-visible h-full">
             
-            {/* 1. HEADER - MOBILE */}
-            <div className="lg:hidden flex flex-col pb-2 flex-shrink-0">
-              <div className="flex items-center gap-4 mb-3">
-                <button 
-                  onClick={handlePrevStep}
-                  className="text-zinc-400 hover:text-white transition-all p-1"
-                >
-                  <ArrowLeft size={24} />
-                </button>
-                <h1 className="text-2xl font-bold text-white tracking-tight">
-                  {currentStep === 1 ? 'Novo Agendamento' : 
-                   currentStep === 2 ? 'Serviços' : 
-                   currentStep === 3 ? 'Data e Hora' : 'Resumo'}
-                </h1>
-              </div>
-              <p className="text-sm font-normal text-zinc-400 pl-11">
-                {currentStep === 1 ? 'Preencha os dados do cliente.' : 
-                 currentStep === 2 ? 'Selecione os procedimentos desejados.' : 
-                 currentStep === 3 ? 'Escolha o melhor momento para o atendimento.' : 'Confirme os dados da reserva.'}
-              </p>
-            </div>
-
-            {/* 1. HEADER - DESKTOP */}
-            <div className="hidden lg:flex flex-col border-b border-white/[0.03] pb-6 flex-shrink-0">
-              <div className="flex items-center gap-4">
-                <button 
-                  onClick={() => navigate('/admin')}
-                  className="text-zinc-500 hover:text-white transition-all p-1"
-                >
-                  <ArrowLeft size={24} />
-                </button>
-                <h1 className="text-sm font-black uppercase tracking-[0.4em] text-white">
-                  Novo Agendamento
-                </h1>
-              </div>
-            </div>
-
-            {/* 2. VERSÃO MOBILE (Stepper) */}
-            <div className="lg:hidden flex-1 flex flex-col justify-between overflow-hidden pb-20">
-              
-              <div className="flex-1 overflow-y-auto scrollbar-hide py-6">
-                <AnimatePresence mode="wait">
-                  
-                  {/* STEP 1: CLIENTE */}
-                  {currentStep === 1 && (
-                    <motion.section 
-                      key="step1"
-                      initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                      className="h-full flex flex-col pt-4 pb-8 space-y-12"
-                    >
-                      {selectedClient ? (
-                        <div className="flex flex-col items-center justify-center space-y-6 flex-1">
-                          <div className="w-20 h-20 bg-[#151515] border border-white/5 flex items-center justify-center text-3xl font-light text-[#B89B49] rounded-full shadow-xl">
-                            {selectedClient.name.charAt(0)}
-                          </div>
-                          <div className="text-center space-y-2">
-                            <p className="text-2xl font-bold text-white tracking-tight">{selectedClient.name}</p>
-                            <p className="text-sm font-normal text-zinc-400 tabular-nums">{selectedClient.phone}</p>
-                          </div>
-                          <button onClick={() => setSelectedClient(null)} className="mt-4 text-xs font-semibold text-[#B89B49] hover:text-white transition-colors">
-                            Trocar Cliente
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col space-y-8 flex-1 w-full">
-                          
-                          <div className="space-y-4">
-                            <div className="space-y-2">
-                               <label className="text-xs font-semibold text-zinc-500 ml-1">Dados do cliente</label>
-                               <div className="relative group">
-                                 <User size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-[#B89B49] transition-colors" />
-                                 <input 
-                                   type="text"
-                                   placeholder="Nome do cliente"
-                                   className="w-full bg-[#151515] border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium outline-none focus:border-[#B89B49]/50 transition-all placeholder:text-zinc-600 placeholder:font-normal text-white"
-                                   value={newClient.name}
-                                   onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
-                                 />
-                               </div>
-                            </div>
-                            
-                            <div className="space-y-3">
-                              <div className="relative group">
-                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-[#B89B49] transition-colors" size={20} />
-                                <input 
-                                  type="tel"
-                                  placeholder="WhatsApp"
-                                  className="w-full bg-[#151515] border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium outline-none focus:border-[#B89B49]/50 transition-all placeholder:text-zinc-600 placeholder:font-normal text-white"
-                                  value={newClient.phone}
-                                  onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
-                                />
-                              </div>
-                              
-                              <div className="flex justify-between items-center px-1 pt-2">
-                                <span className="text-xs text-zinc-500">Cliente já cadastrado?</span>
-                                <button 
-                                  onClick={() => setShowClientList(true)}
-                                  className="text-xs font-semibold text-[#B89B49] hover:text-white transition-colors"
-                                >
-                                  Buscar cliente &rarr;
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                          
-                        </div>
-                      )}
-                    </motion.section>
-                  )}
-
-                  {/* STEP 2: SERVIÇOS */}
-                  {currentStep === 2 && (
-                    <motion.section 
-                      key="step2"
-                      initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                      className="space-y-6 h-full flex flex-col pt-4"
-                    >
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-                        {services.map(service => {
-                          const isSelected = selectedServices.some(s => s.id === service.id);
-                          return (
-                            <button
-                              key={service.id}
-                              onClick={() => toggleService(service)}
-                              className={`flex items-center justify-between p-5 rounded-2xl border transition-all w-full ${
-                                isSelected 
-                                  ? 'bg-[#151515] text-white border-[#B89B49] shadow-lg shadow-[#B89B49]/10' 
-                                  : 'bg-[#0D0D0D] border-white/5 text-zinc-400'
-                              }`}
-                            >
-                              <div className="text-left space-y-1">
-                                <p className={`text-base font-semibold ${isSelected ? 'text-white' : 'text-zinc-300'}`}>{service.name}</p>
-                              </div>
-                              <span className={`text-base font-semibold ${isSelected ? 'text-[#B89B49]' : 'text-zinc-500'}`}>R$ {Number(service.price).toFixed(0)}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </motion.section>
-                  )}
-
-                  {/* STEP 3: DATA E HORA */}
-                  {currentStep === 3 && (
-                    <motion.section 
-                      key="step3"
-                      initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                      className="space-y-10 pt-4"
-                    >
-                      <div className="space-y-4">
-                        <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-2 px-2">
-                          {Array.from({ length: 14 }).map((_, i) => {
-                            const date = new Date();
-                            date.setDate(today.getDate() + i);
-                            const dateStr = date.toISOString().split('T')[0];
-                            const isSelected = selectedDate === dateStr;
-                            return (
-                              <button
-                                key={dateStr}
-                                onClick={() => setSelectedDate(dateStr)}
-                                className={`flex flex-col items-center min-w-[72px] py-4 rounded-2xl transition-all border ${
-                                  isSelected 
-                                    ? 'bg-[#B89B49] text-black border-[#B89B49] shadow-lg shadow-[#B89B49]/20' 
-                                    : 'bg-[#151515] border-white/5 text-zinc-400'
-                                }`}
-                              >
-                                <span className={`text-xs font-semibold mb-1 ${isSelected ? 'text-black/70' : 'text-zinc-500'}`}>
-                                  {date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}
-                                </span>
-                                <span className={`text-xl font-bold ${isSelected ? 'text-black' : 'text-zinc-300'}`}>{date.getDate()}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-4 gap-3">
-                          {timeSlots.map(time => {
-                            const occupied = isOccupied(time);
-                            const isSelected = selectedTime === time;
-                            return (
-                              <button
-                                key={time}
-                                disabled={occupied}
-                                onClick={() => setSelectedTime(time)}
-                                className={`py-4 rounded-2xl text-sm font-semibold transition-all ${
-                                  occupied 
-                                    ? 'bg-transparent border border-dashed border-white/5 text-zinc-700 cursor-not-allowed' 
-                                    : isSelected 
-                                      ? 'bg-[#B89B49] text-black shadow-lg shadow-[#B89B49]/20' 
-                                      : 'bg-[#151515] text-zinc-300 border border-white/5 hover:border-white/10'
-                                }`}
-                              >
-                                {time}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </motion.section>
-                  )}
-
-                  {/* STEP 4: RESUMO FINAL */}
-                  {currentStep === 4 && (
-                    <motion.section 
-                      key="step4"
-                      initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                      className="space-y-8 pt-4"
-                    >
-                      <div className="bg-[#151515] border border-white/5 rounded-3xl p-6 space-y-6">
-                        <div className="space-y-1">
-                          <span className="text-xs font-normal text-zinc-500">Cliente</span>
-                          <p className="text-lg font-semibold text-white tracking-tight">{selectedClient?.name || newClient.name}</p>
-                        </div>
-                        <div className="h-px bg-white/5" />
-                        <div className="space-y-3">
-                          <span className="text-xs font-normal text-zinc-500">Serviços ({selectedServices.length})</span>
-                          {selectedServices.map(s => (
-                             <div key={s.id} className="flex justify-between items-center">
-                               <p className="text-base font-medium text-zinc-300">{s.name}</p>
-                               <span className="text-base font-medium text-zinc-500">R$ {Number(s.price).toFixed(0)}</span>
-                             </div>
-                          ))}
-                        </div>
-                        <div className="h-px bg-white/5" />
-                        <div className="space-y-1">
-                          <span className="text-xs font-normal text-zinc-500">Data e Hora</span>
-                          <p className="text-lg font-semibold text-white">{selectedDate.split('-').reverse().join('/')} às <span className="text-[#B89B49]">{selectedTime}</span></p>
-                        </div>
-                      </div>
-                    </motion.section>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* FOOTER ACTION MOBILE COMUM */}
-              <div className="pt-6 pb-6 border-t border-white/5 flex-shrink-0">
-                <div className="flex items-center justify-between mb-8">
-                  <span className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Total</span>
-                  <p className="text-4xl font-bold text-white tracking-tighter">
-                    <span className="text-xl text-[#B89B49] mr-1 font-semibold">R$</span>
-                    {totalPrice.toFixed(0)}
-                  </p>
-                </div>
+            {/* LEFT SIDE: STEPPER CANVAS (lg:col-span-7 xl:col-span-8) */}
+            <div className="lg:col-span-7 xl:col-span-8 flex flex-col h-full justify-between overflow-visible">
+              <div>
                 
-                {currentStep < 4 ? (
-                  <button 
-                    onClick={handleNextStep}
-                    className="w-full bg-white text-black font-semibold px-8 py-5 rounded-2xl text-sm hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 active:scale-95"
-                  >
-                    Continuar
-                  </button>
-                ) : (
-                  <button 
-                    onClick={handleFinish}
-                    disabled={isSubmitting}
-                    className="w-full bg-[#D4AF37] text-black font-semibold px-8 py-5 rounded-2xl text-sm disabled:opacity-50 shadow-[0_10px_30px_rgba(212,175,55,0.3)] hover:brightness-110 transition-all flex items-center justify-center gap-3 active:scale-95"
-                  >
-                    {isSubmitting ? 'Processando...' : 'Confirmar Agendamento'}
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* 3. VERSÃO DESKTOP (Grid Original) */}
-            <div className="hidden lg:grid lg:grid-cols-12 gap-8 items-start">
-              <div className="lg:col-span-8 space-y-12">
-                <section className="space-y-6">
-                  <h2 className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em]">1. Identificação</h2>
-                  {selectedClient ? (
-                    <div className="bg-[#111111] border border-white/5 rounded-2xl p-8 flex items-center justify-between">
-                      <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-[#0A0A0A] rounded-2xl flex items-center justify-center border border-[#B89B49]/30 text-2xl font-bold text-[#B89B49]">
-                          {selectedClient.name.charAt(0)}
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-white uppercase tracking-tight italic">{selectedClient.name}</h3>
-                          <p className="text-sm font-mono text-zinc-500 mt-1">{selectedClient.phone}</p>
-                        </div>
-                      </div>
-                      <button onClick={() => setSelectedClient(null)} className="px-6 py-2 border border-white/5 rounded-xl text-[9px] font-bold text-zinc-500 uppercase tracking-widest hover:text-white transition-all">Alterar</button>
-                    </div>
-                  ) : (
-                    <div className="bg-[#111111] border border-white/5 rounded-2xl p-8 grid grid-cols-2 gap-6">
-                      <div className="relative group">
-                        <User size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
-                        <input 
-                          type="text"
-                          placeholder="NOME COMPLETO"
-                          className="w-full bg-[#0A0A0A] border border-white/5 rounded-xl py-4 pl-12 text-[11px] font-bold tracking-widest outline-none focus:border-[#B89B49]/30 transition-all placeholder:text-zinc-700 text-white uppercase"
-                          value={newClient.name}
-                          onChange={(e) => setNewClient({ ...newClient, name: e.target.value.toUpperCase() })}
-                        />
-                      </div>
-                      <div className="relative group">
-                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={14} />
-                        <input 
-                          type="tel"
-                          placeholder="WHATSAPP / CELULAR"
-                          className="w-full bg-[#0A0A0A] border border-white/5 rounded-xl py-4 pl-12 text-[11px] font-bold tracking-widest outline-none focus:border-[#B89B49]/30 transition-all placeholder:text-zinc-700 text-white"
-                          value={newClient.phone}
-                          onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
-                        />
-                      </div>
-                      <div className="col-span-2 flex justify-end">
-                        <button onClick={() => setShowClientList(true)} className="text-[9px] font-bold text-[#B89B49] hover:text-white uppercase tracking-widest transition-colors flex items-center gap-1">
-                          Buscar na Base de Clientes <ChevronRight size={10} />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </section>
-
-                <section className="space-y-6">
-                  <h2 className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em]">2. Seleção de Serviços</h2>
-                  <div className="grid grid-cols-2 gap-4">
-                    {services.map(service => {
-                      const isSelected = selectedServices.some(s => s.id === service.id);
+                {/* Stepper Navigation bar */}
+                {!rescheduleBooking && (
+                  <div className="flex items-center gap-6 md:gap-8 border-b border-white/[0.04] pb-6 mb-10 overflow-x-auto scrollbar-hide">
+                    {[
+                      { step: 1, num: '01', title: 'CLIENTE' },
+                      { step: 2, num: '02', title: 'SERVIÇOS' },
+                      { step: 3, num: '03', title: 'AGENDA' },
+                    ].map((s) => {
+                      const isActive = currentStep === s.step;
+                      const isPassed = s.step < currentStep;
+                      const canClick = s.step < currentStep || (s.step === 2 && selectedClient) || (s.step === 3 && selectedClient && selectedServices.length > 0);
+                      
                       return (
                         <button
-                          key={service.id}
-                          onClick={() => toggleService(service)}
-                          className={`flex items-center justify-between p-6 rounded-2xl border transition-all ${
-                            isSelected ? 'bg-[#B89B49]/5 border-[#B89B49]/30' : 'bg-[#111111] border-white/5 hover:border-white/10'
+                          key={s.step}
+                          disabled={!canClick}
+                          onClick={() => setCurrentStep(s.step)}
+                          className={`flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+                            isActive ? 'text-[#C5A059]' : isPassed ? 'text-white/80 hover:text-white' : 'text-zinc-600'
                           }`}
                         >
-                          <p className={`text-sm font-bold uppercase tracking-wide ${isSelected ? 'text-white' : 'text-zinc-400'}`}>{service.name}</p>
-                          <span className={`text-sm font-bold ${isSelected ? 'text-[#B89B49]' : 'text-zinc-700'}`}>R$ {Number(service.price).toFixed(0)}</span>
+                          <span className="text-[10px] font-black tracking-widest">{s.num}</span>
+                          <span className="text-xs font-bold uppercase tracking-wider">{s.title}</span>
+                          {isPassed && <Check size={11} className="text-[#C5A059]" />}
                         </button>
                       );
                     })}
                   </div>
-                </section>
+                )}
 
-                <section className="space-y-6">
-                  <h2 className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em]">3. Agendamento</h2>
-                  <div className="bg-[#111111] border border-white/5 rounded-2xl p-8 space-y-10">
-                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                      {Array.from({ length: 14 }).map((_, i) => {
-                        const date = new Date();
-                        date.setDate(today.getDate() + i);
-                        const dateStr = date.toISOString().split('T')[0];
-                        const isSelected = selectedDate === dateStr;
-                        return (
+                {/* Animated Step Slides */}
+                <div className="relative flex-1 overflow-visible">
+                  <AnimatePresence mode="wait">
+                    {/* STEP 1: CLIENT IDENTIFICATION */}
+                    {currentStep === 1 && (
+                      <motion.div
+                        key="step-client"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        className="space-y-6 lg:space-y-8 h-full flex flex-col justify-between overflow-visible pr-1 scrollbar-hide"
+                      >
+                        <div className="space-y-2">
+                          <h2 className="text-3xl font-bold uppercase tracking-tight">IDENTIFIQUE O CLIENTE</h2>
+                          <p className="text-zinc-500 text-sm font-medium">
+                            {selectedClient 
+                              ? 'Cliente selecionado com sucesso.' 
+                              : isManualEntry 
+                                ? 'Insira os dados do cliente abaixo para o agendamento.' 
+                                : 'Busque o cliente pelo WhatsApp ou Nome cadastrado.'}
+                          </p>
+                        </div>
+
+                        {selectedClient ? (
+                          <div className="p-6 bg-white/[0.01] border border-white/[0.04] flex items-center justify-between transition-all group hover:border-[#C5A059]/30">
+                            <div className="flex items-center gap-5">
+                              <div className="w-14 h-14 bg-zinc-950 border border-white/[0.05] group-hover:border-[#C5A059]/30 flex items-center justify-center text-[#C5A059] text-xl font-black italic transition-all duration-300">
+                                {selectedClient.name.charAt(0)}
+                              </div>
+                              <div>
+                                <span className="text-[8px] font-bold text-[#C5A059] tracking-[0.25em] uppercase block mb-1">CLIENTE CADASTRADO</span>
+                                <h3 className="text-xl font-bold text-white uppercase italic leading-none">{selectedClient.name}</h3>
+                                <p className="text-xs text-zinc-500 mt-2 font-medium">{selectedClient.phone}</p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedClient(null);
+                                setSearchQuery('');
+                                setIsManualEntry(true);
+                              }}
+                              className="text-[10px] font-bold uppercase tracking-widest text-[#C5A059] hover:text-white underline underline-offset-4 cursor-pointer"
+                            >
+                              Alterar
+                            </button>
+                          </div>
+                        ) : !isManualEntry ? (
+                          multipleMatches.length > 0 ? (
+                            <div className="space-y-4">
+                              <div className="p-4 bg-zinc-955 border border-white/[0.05] text-xs text-zinc-400 font-medium uppercase tracking-wider">
+                                Múltiplos clientes encontrados. Selecione o correto abaixo:
+                              </div>
+                              <div className="divide-y divide-white/[0.02] border border-white/[0.04] max-h-60 overflow-y-auto scrollbar-hide bg-[#0A0A0A]/40">
+                                {multipleMatches.map(c => (
+                                  <button
+                                    key={c.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedClient(c);
+                                      setMultipleMatches([]);
+                                    }}
+                                    className="w-full text-left p-4 hover:bg-white/[0.02] transition-all flex items-center justify-between cursor-pointer group"
+                                  >
+                                    <div>
+                                      <p className="text-base font-bold text-zinc-300 group-hover:text-white uppercase italic leading-none">{c.name}</p>
+                                      <p className="text-xs text-zinc-600 group-hover:text-zinc-500 mt-1.5 transition-colors">{c.phone}</p>
+                                    </div>
+                                    <ChevronRight size={14} className="text-[#C5A059] group-hover:translate-x-0.5 transition-all" />
+                                  </button>
+                                ))}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setMultipleMatches([]);
+                                  setSearchQuery('');
+                                }}
+                                className="text-[10px] font-bold uppercase tracking-widest text-[#C5A059] hover:text-white underline underline-offset-4 cursor-pointer"
+                              >
+                                Fazer nova busca
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="space-y-6">
+                              <div className="space-y-3">
+                                <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] ml-0.5">WHATSAPP OU NOME DO CLIENTE</label>
+                                <div className="flex gap-3">
+                                  <div className="relative flex-1">
+                                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-700" />
+                                    <input
+                                      type="text"
+                                      placeholder="Digite o número (ou nome)..."
+                                      className="w-full bg-white/[0.01] border border-white/[0.06] focus:border-[#C5A059] focus:bg-white/[0.03] py-4 pl-12 pr-4 text-base text-white outline-none transition-all placeholder:text-zinc-700 italic font-medium"
+                                      value={searchQuery}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (/^\d/.test(val) || val === '') {
+                                          setSearchQuery(formatPhone(val));
+                                        } else {
+                                          setSearchQuery(val);
+                                        }
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          e.preventDefault();
+                                          handleSearch();
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={handleSearch}
+                                    disabled={!searchQuery.trim() || isSearchingClient}
+                                    className="px-8 bg-zinc-900 border border-white/[0.05] hover:border-[#C5A059]/30 hover:bg-zinc-850 text-[#C5A059] text-[10px] font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2 min-w-[120px] disabled:opacity-30 disabled:cursor-not-allowed"
+                                  >
+                                    {isSearchingClient ? (
+                                      <Loader2 size={12} className="animate-spin text-[#C5A059]" />
+                                    ) : (
+                                      'Buscar'
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+                              
+                              <div className="pt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setIsSearchOpen(true)}
+                                  className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#C5A059] hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
+                                >
+                                  <Search size={11} />
+                                  <span>Buscar Cliente Cadastrado</span>
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        ) : (
+                          <div className="space-y-6">
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] ml-0.5">NOME DO CLIENTE</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="Digite o nome completo"
+                                  className="w-full bg-white/[0.01] border border-white/[0.06] focus:border-[#C5A059] focus:bg-white/[0.03] px-4 py-3.5 text-base text-white outline-none transition-all placeholder:text-zinc-700 uppercase italic font-medium"
+                                  value={newClient.name}
+                                  onChange={(e) => setNewClient({ ...newClient, name: e.target.value.toUpperCase() })}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] ml-0.5">TELEFONE (WHATSAPP)</label>
+                                <input 
+                                  type="tel" 
+                                  placeholder="(00) 00000-0000"
+                                  className="w-full bg-white/[0.01] border border-white/[0.06] focus:border-[#C5A059] focus:bg-white/[0.03] px-4 py-3.5 text-base text-white outline-none transition-all placeholder:text-zinc-700 italic font-medium"
+                                  value={newClient.phone}
+                                  onChange={(e) => setNewClient({ ...newClient, phone: formatPhone(e.target.value) })}
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="flex flex-col gap-6">
+                              <div>
+                                <button
+                                  type="button"
+                                  onClick={() => setIsSearchOpen(true)}
+                                  className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#C5A059] hover:text-white transition-colors flex items-center gap-2 cursor-pointer group"
+                                >
+                                  <Search size={11} className="text-[#C5A059] group-hover:text-white transition-colors" />
+                                  <span>Buscar Cliente Cadastrado</span>
+                                </button>
+                              </div>
+                              
+                              <div className="pt-6 border-t border-white/[0.02]">
+                                <button
+                                  type="button"
+                                  onClick={handleNextStep}
+                                  disabled={!isStepValid(1)}
+                                  className="px-10 py-4 bg-white text-black hover:bg-[#C5A059] hover:text-black text-[10px] font-bold uppercase tracking-[0.3em] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  Avançar
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+
+                    {/* STEP 2: SERVICE TILES SELECTION */}
+                    {currentStep === 2 && (
+                      <motion.div
+                        key="step-services"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        className="space-y-6 lg:space-y-8 h-full flex flex-col overflow-visible"
+                      >
+                        <div className="space-y-2">
+                          <h2 className="text-3xl font-bold uppercase tracking-tight">ESCOLHA OS SERVIÇOS</h2>
+                          <p className="text-zinc-500 text-sm font-medium">Selecione os serviços que farão parte do atendimento.</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pr-1 pb-0">
+                          {services.map(service => {
+                            const isSelected = selectedServices.some(s => s.id === service.id);
+                            return (
+                              <div 
+                                key={service.id}
+                                onClick={() => toggleService(service)}
+                                className={`p-5 border transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[140px] relative group select-none ${
+                                  isSelected 
+                                    ? 'border-[#C5A059] bg-[#C5A059]/5 shadow-[0_0_20px_rgba(184,155,73,0.05)]' 
+                                    : 'border-white/[0.04] bg-white/[0.01] hover:border-zinc-700 hover:bg-white/[0.02]'
+                                }`}
+                              >
+                                <div className="flex justify-between items-start gap-4">
+                                  <div className="space-y-1 min-w-0">
+                                    <h3 className={`font-bold italic uppercase tracking-tight text-lg leading-none truncate ${isSelected ? 'text-[#C5A059]' : 'text-zinc-300 group-hover:text-white'}`}>
+                                      {service.name}
+                                    </h3>
+                                  </div>
+                                  <div className={`w-4 h-4 border flex items-center justify-center transition-all shrink-0 ${isSelected ? 'border-[#C5A059] bg-transparent' : 'border-zinc-850 group-hover:border-zinc-700'}`}>
+                                    {isSelected && <Check size={10} className="text-[#C5A059] stroke-[4px]" />}
+                                  </div>
+                                </div>
+                                <div className="flex justify-between items-end pt-4 border-t border-white/[0.02] mt-4">
+                                  <span className="text-zinc-500 text-[9px] font-black uppercase tracking-widest">Valor</span>
+                                  <span className={`font-black italic text-xl ${isSelected ? 'text-[#C5A059]' : 'text-white'}`}>
+                                    R$ {Number(service.price).toFixed(0)}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        <div className="pt-6 border-t border-white/[0.02]">
                           <button
-                            key={dateStr}
-                            onClick={() => setSelectedDate(dateStr)}
-                            className={`flex flex-col items-center min-w-[70px] py-4 rounded-xl border transition-all ${
-                              isSelected ? 'bg-[#B89B49] border-[#B89B49] text-black shadow-lg shadow-[#B89B49]/20' : 'bg-zinc-900/50 border-white/5 text-zinc-500 hover:border-white/10'
+                            type="button"
+                            onClick={handleNextStep}
+                            disabled={selectedServices.length === 0}
+                            className="px-10 py-4 bg-white text-black hover:bg-[#C5A059] text-[10px] font-bold uppercase tracking-[0.3em] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            Avançar
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* STEP 3: SCHEDULE / CALENDAR & SHIFTS */}
+                    {currentStep === 3 && (
+                      <motion.div
+                        key="step-calendar"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        className="space-y-6 lg:space-y-10 h-full flex flex-col overflow-visible"
+                      >
+                        {rescheduleBooking ? (
+                          <div className="p-5 bg-white/[0.01] border border-[#C5A059]/25 flex flex-col gap-2 relative text-left">
+                            <span className="text-[8px] font-black text-[#C5A059] uppercase tracking-[0.25em]">REAGENDANDO ATENDIMENTO</span>
+                            <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
+                              <h3 className="text-base font-bold text-white uppercase italic leading-none">{rescheduleBooking.clients?.name}</h3>
+                              <span className="text-zinc-600 hidden sm:inline">•</span>
+                              <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{selectedServices.map(s => s.name).join(' + ')}</p>
+                            </div>
+                            <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mt-1">
+                              Original: {new Date(rescheduleBooking.booking_date.replace(/-/g, '/')).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })} às {rescheduleBooking.booking_time.slice(0, 5)}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <h2 className="text-3xl font-bold uppercase tracking-tight">ESCOLHA DATA E HORÁRIO</h2>
+                            <p className="text-zinc-500 text-sm font-medium">Defina o dia e horário do agendamento.</p>
+                          </div>
+                        )}
+
+                        <div className="space-y-3">
+                          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] block pl-0.5">Selecione o Dia</span>
+                          <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-2 px-2 border-b border-white/[0.02]">
+                            {nextDays.map(day => {
+                              const isSelected = selectedDate === day.fullDate;
+                              return (
+                                <button
+                                  key={day.fullDate}
+                                  type="button"
+                                  onClick={() => setSelectedDate(day.fullDate)}
+                                  className={`flex flex-col items-center gap-1 select-none cursor-pointer group shrink-0 border p-4 min-w-[75px] transition-all duration-300 ${
+                                    isSelected 
+                                      ? 'border-[#C5A059] bg-[#C5A059]/5 text-[#C5A059] shadow-[0_0_15px_rgba(184,155,73,0.05)]' 
+                                      : 'border-white/[0.04] bg-white/[0.01] text-zinc-500 hover:border-zinc-800 hover:text-white'
+                                  }`}
+                                >
+                                  <span className="text-[9px] font-bold tracking-widest uppercase">{day.dayName}</span>
+                                  <span className="text-2xl font-light">{day.dayNumber}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div className="space-y-8 pr-1 pb-0">
+                          {['Manhã', 'Tarde', 'Noite'].map((period) => {
+                            const periodSlots = TIME_SLOTS.filter(time => getPeriod(time) === period);
+                            if (periodSlots.length === 0) return null;
+
+                            return (
+                              <div key={period} className="flex flex-col gap-3">
+                                <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] pl-0.5">
+                                  Turno da {period}
+                                </span>
+                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                                  {periodSlots.map(time => {
+                                    const occupied = isOccupied(time);
+                                    const isSelected = selectedTime === time;
+                                    return (
+                                      <button
+                                        key={time}
+                                        type="button"
+                                        disabled={occupied}
+                                        onClick={() => setSelectedTime(time)}
+                                        className={`py-4 border text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                                          occupied 
+                                            ? 'text-zinc-800/10 border-transparent cursor-not-allowed line-through opacity-20 bg-transparent' 
+                                            : isSelected 
+                                              ? 'text-[#C5A059] border-[#C5A059] bg-[#C5A059]/5 font-black shadow-[0_0_15px_rgba(184,155,73,0.05)]' 
+                                              : 'text-zinc-400 border-white/[0.04] hover:border-zinc-800 hover:text-white bg-transparent'
+                                        }`}
+                                      >
+                                        {time}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        <div className="pt-6 border-t border-white/[0.02]">
+                          <button
+                            type="button"
+                            onClick={handleFinish}
+                            disabled={isSubmitting || !selectedTime || !isStepValid(1) || !isStepValid(2) || !isStepValid(3)}
+                            className={`px-10 py-4 text-xs font-black uppercase tracking-[0.3em] transition-all duration-300 rounded-none cursor-pointer ${
+                              isSubmitting || !selectedTime || !isStepValid(1) || !isStepValid(2) || !isStepValid(3)
+                                ? 'bg-zinc-950 text-zinc-600 border border-white/[0.03] opacity-30 cursor-not-allowed'
+                                : 'bg-white text-black hover:bg-[#C5A059] hover:text-black shadow-[0_0_35px_rgba(255,255,255,0.03)] hover:shadow-[0_0_35px_rgba(184,155,73,0.15)] active:scale-[0.98]'
                             }`}
                           >
-                            <span className="text-[9px] font-black uppercase mb-1">{date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}</span>
-                            <span className="text-base font-black">{date.getDate()}</span>
+                            {isSubmitting ? 'CONFIRMANDO...' : rescheduleBooking ? 'CONFIRMAR REAGENDAMENTO' : 'FINALIZAR RESERVA'}
                           </button>
-                        );
-                      })}
-                    </div>
-                    <div className="grid grid-cols-8 gap-3">
-                      {timeSlots.map(time => {
-                        const occupied = isOccupied(time);
-                        const isSelected = selectedTime === time;
-                        return (
-                          <button
-                            key={time}
-                            disabled={occupied}
-                            onClick={() => setSelectedTime(time)}
-                            className={`py-4 rounded-xl text-[11px] font-black tracking-tighter transition-all ${
-                              occupied ? 'bg-transparent border border-white/[0.02] text-zinc-900 opacity-20 cursor-not-allowed' : isSelected ? 'bg-[#B89B49] text-black scale-105' : 'bg-zinc-900/50 border border-white/5 text-zinc-500 hover:border-[#B89B49]/30'
-                            }`}
-                          >
-                            {time}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </section>
-              </div>
-
-              <div className="lg:col-span-4 space-y-6 sticky top-10">
-                <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
-                  <div className="p-8 space-y-8">
-                    <div className="flex items-center gap-4 p-4 bg-white/[0.02] rounded-2xl border border-white/5">
-                       <div className={`w-3 h-3 rounded-full ${selectedTime && selectedServices.length > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-800'}`} />
-                       <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Resumo da Reserva</span>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center text-zinc-400">
-                        <span className="text-[10px] font-bold uppercase tracking-widest">Serviços</span>
-                        <span className="text-sm font-bold text-white">{selectedServices.length}</span>
-                      </div>
-                      <div className="h-px bg-white/5" />
-                      <div className="flex justify-between items-end pt-4">
-                        <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-1">Total a Pagar</span>
-                        <p className="text-4xl font-bold tracking-tighter text-white">
-                          <span className="text-sm font-medium text-[#B89B49] mr-1">R$</span>
-                          {totalPrice.toFixed(0)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-6 bg-zinc-900/50 border-t border-white/5">
-                    <button 
-                      onClick={handleFinish}
-                      disabled={isSubmitting || !selectedTime || (selectedServices.length === 0) || (!selectedClient && !newClient.name)}
-                      className="w-full py-5 bg-[#B89B49] hover:bg-[#a68a3d] text-black rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all disabled:opacity-20 shadow-lg shadow-[#B89B49]/10 flex items-center justify-center gap-3"
-                    >
-                      {isSubmitting ? 'Agendando...' : 'Confirmar Agendamento'}
-                    </button>
-                  </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             </div>
+
+            {/* RIGHT SIDE: LUXURY LIVE SUMMARY PANEL */}
+            <BookingSummaryPanel
+              selectedClient={selectedClient}
+              newClient={newClient}
+              selectedServices={selectedServices}
+              selectedDate={selectedDate}
+              selectedTime={selectedTime}
+              totalPrice={totalPrice}
+            />
           </div>
         </main>
 
-        <AnimatePresence>
-          {showClientList && (
-            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-              <motion.div 
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                onClick={() => { setShowClientList(false); setSearchClient(''); }}
-                className="absolute inset-0 bg-black/95 backdrop-blur-md"
+        {/* Subtle Luxury Mini Footer */}
+        <footer className="w-full max-w-7xl mx-auto px-6 md:px-12 pt-8 pb-8 mt-auto border-t border-white/[0.03] flex justify-center items-center gap-4 text-zinc-600 relative z-10">
+          <p className="text-[9px] font-bold uppercase tracking-[0.3em] font-sans">
+            © 2026 BLACK DIAMOND — TODOS OS DIREITOS RESERVADOS.
+          </p>
+        </footer>
+      </div>
+
+      {/* MOBILE LAYOUT - APP-LIKE FIXED VIEWPORT */}
+      <div className="lg:hidden flex-1 flex flex-col relative z-10 overflow-hidden h-[calc(100dvh-72px)] bg-[#121212]">
+        {/* Custom Mobile Header */}
+        <header className="px-6 py-5 flex items-center gap-4 shrink-0">
+          <button 
+            onClick={() => currentStep > 1 && !rescheduleBooking ? setCurrentStep(currentStep - 1) : navigate('/admin')}
+            className="text-zinc-500 hover:text-white transition-all mr-1 active:scale-95 shrink-0"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <h1 className="text-xl font-bold text-white tracking-tighter uppercase italic leading-none">
+            {rescheduleBooking ? 'Reagendar Atendimento' : 'Novo Agendamento'}
+          </h1>
+        </header>
+
+        {/* Stepper Progress Bar */}
+        {!rescheduleBooking && (
+          <div className="px-6 py-2.5 bg-[#121212]/95 border-b border-white/[0.02] flex items-center gap-2 shrink-0 justify-center">
+            {[1, 2, 3].map((s) => (
+              <div 
+                key={s} 
+                className={`h-0.5 transition-all duration-300 ${
+                  currentStep === s 
+                    ? 'w-10 bg-[#C5A059] shadow-[0_0_8px_#C5A059]' 
+                    : currentStep > s 
+                      ? 'w-5 bg-white/40' 
+                      : 'w-5 bg-white/10'
+                }`}
               />
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="w-full max-w-lg bg-[#0C0C0E] border border-white/10 rounded-[40px] shadow-2xl relative z-10 flex flex-col overflow-hidden max-h-[80vh]"
+            ))}
+          </div>
+        )}
+
+        {/* Frozen Content Area */}
+        <div className="flex-1 overflow-hidden px-6 pt-5 pb-32 flex flex-col">
+          <AnimatePresence mode="wait">
+            {currentStep === 1 && (
+              <motion.div
+                key="m-step-client"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6 h-full flex flex-col overflow-hidden"
               >
-                <div className="p-8 border-b border-white/5 flex items-center justify-between">
-                  <h3 className="text-[10px] font-black text-white uppercase tracking-[0.4em]">Selecionar Cliente</h3>
-                  <button onClick={() => { setShowClientList(false); setSearchClient(''); }} className="text-zinc-500 hover:text-white transition-all">
-                    <X size={20} />
-                  </button>
-                </div>
-                <div className="p-8 overflow-y-auto scrollbar-hide">
-                  <div className="relative mb-8">
-                    <Search size={16} className="absolute left-0 top-1/2 -translate-y-1/2 text-zinc-700" />
-                    <input 
-                      type="text"
-                      autoFocus
-                      placeholder="PESQUISAR NOME OU WHATSAPP..."
-                      className="w-full bg-transparent border-b border-white/10 py-4 pl-8 text-xs font-bold tracking-widest outline-none focus:border-[#B89B49] transition-all placeholder:text-zinc-800 text-white"
-                      value={searchClient}
-                      onChange={(e) => setSearchClient(e.target.value)}
-                    />
+                <div className="flex items-center justify-between shrink-0">
+                  <div className="space-y-1">
+                    <h2 className="text-xl font-bold text-white uppercase italic tracking-tight">Cliente</h2>
+                    <p className="text-xs text-zinc-500 font-light">Identifique o cliente do agendamento</p>
                   </div>
-                  <div className="space-y-2">
-                    {filteredClients.map(c => (
-                      <button 
-                        key={c.id} 
-                        onClick={() => { setSelectedClient(c); setShowClientList(false); setSearchClient(''); setNewClient({name: '', phone: ''}); }} 
-                        className="w-full text-left p-6 bg-zinc-900/20 hover:bg-zinc-900/50 border border-white/5 rounded-[2rem] transition-all flex items-center justify-between group"
-                      >
-                        <div className="space-y-1">
-                          <p className="text-sm font-black uppercase tracking-wide text-zinc-300 group-hover:text-white transition-colors">{c.name}</p>
-                          <p className="text-[11px] font-mono text-zinc-600">{c.phone}</p>
+                  {!selectedClient && (
+                    <button
+                      type="button"
+                      onClick={() => setIsSearchOpen(true)}
+                      className="px-3 py-1.5 bg-white/[0.02] border border-white/[0.06] hover:bg-white hover:text-black rounded-lg text-[9px] font-bold uppercase tracking-[0.1em] text-zinc-400 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Search size={11} />
+                      <span>Buscar</span>
+                    </button>
+                  )}
+                </div>
+
+                {selectedClient ? (
+                  <div className="p-5 border border-[#C5A059]/35 bg-[#C5A059]/5 flex items-center justify-between transition-all group rounded-none">
+                    <div className="flex items-center gap-4">
+                      <div className="w-11 h-11 bg-zinc-950 border border-white/[0.05] flex items-center justify-center text-[#C5A059] text-base font-black italic">
+                        {selectedClient.name.charAt(0)}
+                      </div>
+                      <div>
+                        <span className="text-[8px] font-bold text-[#C5A059] tracking-widest uppercase block mb-0.5">CLIENTE CADASTRADO</span>
+                        <h3 className="text-base font-bold text-white uppercase italic leading-none">{selectedClient.name}</h3>
+                        <p className="text-[11px] text-zinc-555 mt-1.5 font-medium">{selectedClient.phone}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedClient(null);
+                        setSearchQuery('');
+                        setIsManualEntry(true);
+                      }}
+                      className="text-[9px] font-bold uppercase tracking-widest text-[#C5A059] hover:text-white underline underline-offset-4 cursor-pointer"
+                    >
+                      Alterar
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex-1 flex flex-col overflow-hidden">
+                    <div className="flex-1 overflow-hidden pr-1 scrollbar-hide pb-4 space-y-6">
+                      {isManualEntry ? (
+                        <div className="space-y-6">
+                          <div className="space-y-2.5">
+                            <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] ml-0.5">NOME DO CLIENTE</label>
+                            <input 
+                              type="text" 
+                              placeholder="DIGITE O NOME COMPLETO"
+                              className="w-full bg-transparent border-b border-white/[0.06] focus:border-[#C5A059] py-3 text-base text-white outline-none transition-all placeholder:text-zinc-800 uppercase italic font-bold tracking-wider"
+                              value={newClient.name}
+                              onChange={(e) => setNewClient({ ...newClient, name: e.target.value.toUpperCase() })}
+                            />
+                            {newClient.name.trim().length > 0 && newClient.name.trim().length < 3 && (
+                              <p className="text-[8px] text-zinc-700 uppercase tracking-widest ml-0.5 italic">Mínimo 3 caracteres</p>
+                            )}
+                          </div>
+                          <div className="space-y-2.5">
+                            <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] ml-0.5">TELEFONE (WHATSAPP)</label>
+                            <input 
+                              type="tel" 
+                              placeholder="(00) 00000-0000"
+                              className="w-full bg-transparent border-b border-white/[0.06] focus:border-[#C5A059] py-3 text-base text-white outline-none transition-all placeholder:text-zinc-800 italic font-bold tracking-wider"
+                              value={newClient.phone}
+                              onChange={(e) => setNewClient({ ...newClient, phone: formatPhone(e.target.value) })}
+                            />
+                            {newClient.phone.trim().length > 0 && newClient.phone.replace(/\D/g, '').length < 8 && (
+                              <p className="text-[8px] text-zinc-700 uppercase tracking-widest ml-0.5 italic">Telefone muito curto</p>
+                            )}
+                          </div>
                         </div>
-                        <ChevronRight size={16} className="text-zinc-800 group-hover:text-[#B89B49] transition-colors" />
+                      ) : (
+                        <div className="space-y-6">
+                          <div className="space-y-3">
+                            <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] ml-0.5">WHATSAPP OU NOME</label>
+                            <div className="flex gap-2">
+                              <div className="relative flex-1">
+                                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+                                <input
+                                  type="text"
+                                  placeholder="DIGITE PARA BUSCAR..."
+                                  className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-[#C5A059] py-3 pl-10 pr-3 text-sm text-white outline-none transition-all placeholder:text-zinc-800 italic font-bold uppercase tracking-wider"
+                                  value={searchQuery}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (/^\d/.test(val) || val === '') {
+                                      setSearchQuery(formatPhone(val));
+                                    } else {
+                                      setSearchQuery(val);
+                                    }
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      handleSearch();
+                                    }
+                                  }}
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={handleSearch}
+                                disabled={!searchQuery.trim() || isSearchingClient}
+                                className="px-5 bg-zinc-900 border border-white/[0.04] text-[#C5A059] text-[9px] font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 min-w-[90px] disabled:opacity-30 disabled:cursor-not-allowed"
+                              >
+                                {isSearchingClient ? <Loader2 size={12} className="animate-spin text-[#C5A059]" /> : 'Buscar'}
+                              </button>
+                            </div>
+                          </div>
+
+                          {multipleMatches.length > 0 && (
+                            <div className="space-y-3">
+                              <div className="p-3 bg-zinc-950 border border-white/[0.03] text-[9px] text-zinc-400 font-bold uppercase tracking-wider">
+                                Selecione o cliente abaixo:
+                              </div>
+                              <div className="divide-y divide-white/[0.02] border border-white/[0.04] max-h-48 overflow-y-auto scrollbar-hide bg-[#121212]/40">
+                                {multipleMatches.map(c => (
+                                  <button
+                                    key={c.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedClient(c);
+                                      setMultipleMatches([]);
+                                    }}
+                                    className="w-full text-left p-3.5 hover:bg-white/[0.02] transition-all flex items-center justify-between cursor-pointer group"
+                                  >
+                                    <div>
+                                      <p className="text-sm font-bold text-zinc-300 group-hover:text-white uppercase italic leading-none">{c.name}</p>
+                                      <p className="text-[10px] text-zinc-600 mt-1 transition-colors">{c.phone}</p>
+                                    </div>
+                                    <ChevronRight size={12} className="text-[#C5A059]" />
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Minimalist register switch link at the bottom */}
+                          <div className="pt-6 border-t border-white/[0.02] flex justify-center">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsManualEntry(true);
+                                setSearchQuery('');
+                              }}
+                              className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#C5A059] hover:underline transition-colors cursor-pointer"
+                            >
+                              ← Cadastrar Novo Cliente
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {currentStep === 2 && (
+              <motion.div
+                key="m-step-services"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6 h-full flex flex-col overflow-hidden"
+              >
+                <div className="space-y-1 shrink-0">
+                  <h2 className="text-xl font-bold text-white uppercase italic tracking-tight">Serviços</h2>
+                  <p className="text-xs text-zinc-500 font-light">Selecione os procedimentos desejados</p>
+                </div>
+
+                <div className="space-y-3 overflow-y-auto flex-1 scrollbar-hide pb-24">
+                  {services.map(service => {
+                    const isSelected = selectedServices.some(s => s.id === service.id);
+                    return (
+                      <button 
+                        key={service.id} 
+                        onClick={() => toggleService(service)} 
+                        className={`w-full flex items-center justify-between p-4 transition-all duration-300 rounded-none border-b ${
+                          isSelected 
+                            ? 'bg-[#C5A059]/5 border-[#C5A059] shadow-[0_0_20px_rgba(184,155,73,0.02)]' 
+                            : 'bg-transparent border-white/[0.04] hover:border-zinc-800'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3.5 text-left min-w-0">
+                          <div className={`w-4 h-4 border flex items-center justify-center transition-all shrink-0 ${isSelected ? 'border-[#C5A059]' : 'border-zinc-850'}`}>
+                            {isSelected && <Check size={10} className="text-[#C5A059] stroke-[4px]" />}
+                          </div>
+                          <div className="space-y-0.5 min-w-0">
+                            <p className={`text-sm font-bold italic uppercase tracking-tight truncate ${isSelected ? 'text-[#C5A059]' : 'text-zinc-200'}`}>{service.name}</p>
+                          </div>
+                        </div>
+                        <span className={`font-black italic text-sm tracking-tight shrink-0 ${isSelected ? 'text-[#C5A059]' : 'text-zinc-500'}`}>R$ {Number(service.price).toFixed(0)}</span>
                       </button>
-                    ))}
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+
+            {currentStep === 3 && (
+              <motion.div
+                key="m-step-calendar"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6 h-full flex flex-col overflow-hidden"
+              >
+                {rescheduleBooking ? (
+                  <div className="p-4 bg-white/[0.01] border border-[#C5A059]/25 rounded-none flex flex-col gap-1 text-left shrink-0">
+                    <span className="text-[8px] font-black text-[#C5A059] uppercase tracking-[0.25em]">REAGENDANDO ATENDIMENTO</span>
+                    <h3 className="text-sm font-bold text-white uppercase italic leading-none">{rescheduleBooking.clients?.name}</h3>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider truncate">{selectedServices.map(s => s.name).join(' + ')}</p>
+                    <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5">
+                      Original: {new Date(rescheduleBooking.booking_date.replace(/-/g, '/')).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })} às {rescheduleBooking.booking_time.slice(0, 5)}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-1 shrink-0">
+                    <h2 className="text-xl font-bold text-white uppercase italic tracking-tight">Data e horário</h2>
+                    <p className="text-xs text-zinc-500 font-light">Selecione o melhor dia e horário</p>
+                  </div>
+                )}
+
+                {/* Elegant Date Picker */}
+                <div className="flex overflow-x-auto gap-3 pb-3 scrollbar-hide -mx-6 px-6 snap-x shrink-0 border-b border-white/[0.02]">
+                  {nextDays.map(day => {
+                    const isSelected = selectedDate === day.fullDate;
+                    return (
+                      <button 
+                        key={day.fullDate} 
+                        onClick={() => {
+                          setSelectedDate(day.fullDate);
+                          setSelectedTime('');
+                        }} 
+                        className={`min-w-[70px] py-3.5 transition-all duration-300 snap-center flex flex-col items-center gap-1 rounded-none border ${
+                          isSelected 
+                            ? 'bg-[#C5A059]/5 border-[#C5A059] text-[#C5A059] shadow-[0_0_15px_rgba(184,155,73,0.05)]' 
+                            : 'bg-transparent border-white/[0.04] text-zinc-500 hover:text-white'
+                        }`}
+                      >
+                        <span className="text-[8px] font-bold uppercase tracking-widest">{day.dayName}</span>
+                        <span className="text-xl font-black italic">{day.dayNumber}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="space-y-3 overflow-y-auto flex-1 scrollbar-hide pb-28">
+                  <div className="grid grid-cols-4 gap-2">
+                    {TIME_SLOTS.map(time => {
+                      const occupied = isOccupied(time);
+                      const isSelected = selectedTime === time;
+                      return (
+                        <button
+                          key={time}
+                          type="button"
+                          disabled={occupied}
+                          onClick={() => setSelectedTime(time)}
+                          className={`py-3 border text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer rounded-none ${
+                            occupied 
+                              ? 'text-zinc-800/10 border-transparent cursor-not-allowed line-through opacity-20 bg-transparent' 
+                              : isSelected 
+                                ? 'text-[#C5A059] border-[#C5A059] bg-[#C5A059]/5 font-black shadow-[0_0_15px_rgba(184,155,73,0.05)]' 
+                                : 'text-zinc-400 border-white/[0.04] hover:border-zinc-800 hover:text-white bg-transparent'
+                          }`}
+                        >
+                          {time}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Floating Action Button Footer */}
+        {((currentStep === 1 && (selectedClient || newClient.name)) || selectedServices.length > 0) && (
+          <div className="absolute bottom-[72px] left-0 right-0 px-6 py-4 bg-gradient-to-t from-[#121212] via-[#121212]/98 to-transparent z-[90] flex flex-col items-center gap-2.5">
+            <button 
+              onClick={() => currentStep < 3 ? handleNextStep() : handleFinish()}
+              disabled={!isStepValid(currentStep) || isSubmitting}
+              className={`w-full h-12 rounded-none font-bold uppercase tracking-[0.2em] text-[10px] transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
+                !isStepValid(currentStep)
+                  ? 'bg-zinc-950 border border-white/[0.03] text-zinc-700 cursor-not-allowed shadow-none'
+                  : 'bg-white text-black hover:bg-[#C5A059] hover:text-black shadow-lg shadow-white/5'
+              }`}
+            >
+              <span>{isSubmitting ? 'CONFIRMANDO...' : rescheduleBooking ? 'CONFIRMAR REAGENDAMENTO' : currentStep < 3 ? 'AVANÇAR' : 'CONFIRMAR AGENDAMENTO'}</span>
+              {!isSubmitting && <ChevronRight size={12} />}
+            </button>
+          </div>
+        )}
       </div>
 
+      {/* SEARCH CLIENT MODAL */}
+      <BookingSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => { setIsSearchOpen(false); setMultipleMatches([]); }}
+        onSelectClient={(client) => {
+          setSelectedClient(client);
+          setMultipleMatches([]);
+          setIsSearchOpen(false);
+          setIsManualEntry(false);
+        }}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        multipleMatches={multipleMatches}
+        isSearchingClient={isSearchingClient}
+        onSearch={handleSearch}
+      />
+
       <BottomTabs />
-      
-      <style>{`
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
     </div>
   );
 };

@@ -1,97 +1,47 @@
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import type { Variants } from 'framer-motion';
-import { getServices } from '../lib/api';
-import type { Service } from '../types';
+import React from 'react';
+import { useServices } from '../hooks/useServices';
 
-const Services: React.FC = () => {
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
+interface ServicesProps {
+  onBookingClick: () => void;
+}
 
-  useEffect(() => {
-    getServices()
-      .then(setServices)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.5
-      }
-    }
-  };
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { duration: 0.5 }
-    }
-  };
+const Services: React.FC<ServicesProps> = ({ onBookingClick }) => {
+  const { services, loading } = useServices();
 
   return (
-    <section id="servicos" className="py-32 md:py-48 bg-[#09090B] text-white relative overflow-hidden border-t border-white/5">
-      <div className="container mx-auto px-6 relative z-10 max-w-5xl">
-        <div className="text-center mb-24 lg:mb-32">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <h3 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4 tracking-tight uppercase">SERVIÇOS</h3>
-            <div className="h-[1px] w-12 bg-gold-600/30 mx-auto"></div>
-          </motion.div>
-        </div>
+    <section id="servicos" className="py-24 md:py-60 bg-[#0A0A0A]">
+      <div className="container mx-auto px-6">
 
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-2 border-gold-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-20 md:mb-32">
+            <h2 className="text-3xl md:text-5xl font-bebas tracking-[0.4em] text-white uppercase mb-4 text-center">Tabela de Serviços</h2>
+            <div className="w-24 h-px bg-[#D4AF37]/30 mx-auto" />
           </div>
-        ) : (
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            className="divide-y divide-white/5 border-y border-white/5"
-          >
-            {services.map((service, index) => (
-              <motion.div 
-                key={service.id}
-                variants={itemVariants}
-                className="grid grid-cols-1 md:grid-cols-12 gap-6 py-12 md:items-center hover:bg-white/[0.02] transition-all duration-500 group cursor-pointer"
-                onClick={() => {
-                  const message = `Olá! Gostaria de agendar o serviço: ${service.name}`;
-                  window.open(`https://wa.me/5531980159559?text=${encodeURIComponent(message)}`, '_blank');
-                }}
-              >
-                {/* Number & Name Column */}
-                <div className="col-span-1 md:col-span-9">
-                  <div className="flex items-baseline space-x-8">
-                    <span className="text-[10px] text-gold-600/40 font-bold tracking-widest font-serif group-hover:text-gold-600 transition-colors duration-500">
-                      {(index + 1).toString().padStart(2, '0')}
+
+          {loading ? (
+            <div className="text-center py-20 text-zinc-900 font-bebas uppercase tracking-[0.4em] text-xs">Sincronizando sistema...</div>
+          ) : (
+            <div className="space-y-0">
+              {services.map((service) => (
+                <div 
+                  key={service.id}
+                  className="group py-8 md:py-12 flex items-center justify-between border-b border-white/[0.03] cursor-pointer hover:border-[#D4AF37]/30 transition-all duration-700"
+                  onClick={onBookingClick}
+                >
+                  <h4 className="text-2xl sm:text-3xl md:text-5xl font-bebas text-white uppercase tracking-wider group-hover:text-[#D4AF37] transition-all duration-700">
+                    {service.name}
+                  </h4>
+                  
+                  <div className="flex items-baseline gap-4 shrink-0">
+                    <span className="text-lg sm:text-xl md:text-3xl font-bebas text-[#D4AF37] whitespace-nowrap opacity-80 group-hover:opacity-100 transition-all duration-700">
+                      R$ {Number(service.price).toFixed(0)}
                     </span>
-                    <div>
-                      <h4 className="text-xl md:text-2xl font-serif font-medium text-white group-hover:text-gold-600 transition-colors duration-500 uppercase tracking-wider">{service.name}</h4>
-                    </div>
                   </div>
                 </div>
-                
-                {/* Price Column */}
-                <div className="col-span-1 md:col-span-3 text-right">
-                  <span className="text-2xl md:text-3xl font-serif font-bold text-white tracking-tighter group-hover:text-gold-600 transition-colors duration-500">
-                    R$ {Number(service.price).toFixed(0)}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );

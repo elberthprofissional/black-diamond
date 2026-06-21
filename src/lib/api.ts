@@ -9,7 +9,21 @@ export const getServices = async (): Promise<Service[]> => {
     .order('name', { ascending: true });
   
   if (error) throw error;
-  return data || [];
+  
+  if (!data) return [];
+  
+  // Deduplicate by name and filter out "Sobrancelha"
+  const uniqueData: Service[] = [];
+  const seenNames = new Set<string>();
+  
+  for (const service of data) {
+    if (!seenNames.has(service.name)) {
+      seenNames.add(service.name);
+      uniqueData.push(service);
+    }
+  }
+  
+  return uniqueData;
 };
 
 // Bookings
@@ -17,45 +31,50 @@ export const createBooking = async (
   bookingData: Omit<Booking, 'id' | 'created_at' | 'status' | 'client_id'>,
   clientData: { name: string; phone: string }
 ) => {
-  // 1. First, find or create the client
-  const { data: existingClient, error: clientError } = await supabase
-    .from('clients')
-    .select('id')
-    .eq('phone', clientData.phone)
-    .single();
+  const { data, error } = await supabase.rpc('criar_agendamento', {
+    p_cliente_nome: clientData.name,
+    p_cliente_telefone: clientData.phone,
+    p_servicos: bookingData.service_ids,
+    p_data: bookingData.booking_date,
+    p_hora: bookingData.booking_time,
+    p_preco_total: bookingData.total_price,
+    p_duracao_total: bookingData.total_duration
+  });
 
-  if (clientError && clientError.code !== 'PGRST116') throw clientError;
-
-  let client = existingClient;
-
-  if (!client) {
-    const { data: newClient, error: createError } = await supabase
-      .from('clients')
-      .insert([clientData])
-      .select('id')
-      .single();
-    
-    if (createError) throw createError;
-    client = newClient;
+  if (error) {
+    if (error.message && error.message.includes('Este horário acabou de ser preenchido')) {
+      throw new Error('Este horário acabou de ser preenchido. Por favor, escolha outro.');
+    }
+    if (error.message && error.message.includes('limite de agendamentos')) {
+      throw new Error('Você já atingiu o limite de agendamentos para este dia. Máximo 3 por dia.');
+    }
+    throw error;
   }
+  
+  return Array.isArray(data) ? data : [data];
+};
 
-  // 2. Create the booking
-  const { data, error } = await supabase
-    .from('bookings')
-    .insert([
-      {
-        client_id: client.id,
-        service_ids: bookingData.service_ids,
-        booking_date: bookingData.booking_date,
-        booking_time: bookingData.booking_time,
-        total_price: bookingData.total_price,
-        total_duration: bookingData.total_duration,
-        status: 'pending'
-      }
-    ]);
+export const getOccupiedSlots = async (date: string) => {
+  const { data, error } = await supabase.rpc('get_occupied_slots', {
+    p_date: date
+  });
 
   if (error) throw error;
-  return data;
+  return data || [];
+};
+
+export const getBusinessHours = async () => {
+  const { data, error } = await supabase.rpc('get_business_hours');
+  if (error) throw error;
+  return data || {};
+};
+
+export const getAvailableSlots = async (date: string) => {
+  const { data, error } = await supabase.rpc('get_available_slots', {
+    p_date: date
+  });
+  if (error) throw error;
+  return (data || []).map((item: { slot_time: string }) => item.slot_time);
 };
 
 export const getBookings = async (date?: string) => {
@@ -76,7 +95,7 @@ export const getBookings = async (date?: string) => {
 
   const { data, error } = await query;
   if (error) throw error;
-  return data;
+  return data || [];
 };
 
 export const updateBookingStatus = async (id: string, status: string) => {
@@ -84,6 +103,34 @@ export const updateBookingStatus = async (id: string, status: string) => {
     .from('bookings')
     .update({ status })
     .eq('id', id);
+  
+  if (error) throw error;
+};
+
+export const deleteBooking = async (id: string) => {
+  const { error } = await supabase
+    .from('bookings')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw error;
+};
+
+export const clearAllBookings = async () => {
+  const { error } = await supabase
+    .from('bookings')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000');
+  
+  if (error) throw error;
+};
+
+export const clearWeekBookings = async (startDate: string, endDate: string) => {
+  const { error } = await supabase
+    .from('bookings')
+    .delete()
+    .gte('booking_date', startDate)
+    .lte('booking_date', endDate);
   
   if (error) throw error;
 };
@@ -98,3 +145,33 @@ export const getClients = async () => {
   if (error) throw error;
   return data || [];
 };
+
+export const deleteClient = async (id: string) => {
+  const { error } = await supabase
+    .from('clients')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw error;
+};
+
+export const updateClient = async (id: string, data: { name: string; phone: string }) => {
+  const { error } = await supabase
+    .from('clients')
+    .update(data)
+    .eq('id', id);
+  
+  if (error) throw error;
+};
+
+export const updateClientNotes = async (id: string, notes: string) => {
+  const { error } = await supabase
+    .from('clients')
+    .update({ notes })
+    .eq('id', id);
+  
+  if (error) throw error;
+};
+
+
+

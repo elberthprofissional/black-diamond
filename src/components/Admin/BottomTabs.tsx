@@ -15,7 +15,7 @@ const BottomTabs: React.FC = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-black border-t border-white/[0.04] z-[100] lg:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 h-[72px] bg-[#0E0E0E]/90 backdrop-blur-md border-t border-white/[0.06] z-[100] lg:hidden">
       <div className="flex items-center justify-around h-full max-w-lg mx-auto px-4">
         {tabs.map((tab) => {
           const active = isActive(tab.path);

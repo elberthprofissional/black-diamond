@@ -1,49 +1,79 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Camera } from 'lucide-react';
 
 const Gallery: React.FC = () => {
+  const images = [
+    { src: '/assets/gallery/corte-1.webp', alt: 'Corte 1' },
+    { src: '/assets/gallery/corte-2.webp', alt: 'Corte 2' },
+    { src: '/assets/gallery/corte-3.webp', alt: 'Corte 3' },
+    { src: '/assets/gallery/corte-4.webp', alt: 'Corte 4' },
+    { src: '/assets/gallery/corte-5.webp', alt: 'Corte 5' },
+    { src: '/assets/gallery/corte-6.webp', alt: 'Corte 6' },
+    { src: '/assets/gallery/corte-7.webp', alt: 'Corte 7' },
+    { src: '/assets/gallery/corte-8.webp', alt: 'Corte 8' },
+  ];
+
+  // Double the images for infinite scroll effect
+  const displayImages = [...images, ...images];
+
   return (
-    <section id="galeria" className="py-32 md:py-48 bg-[#09090B] relative overflow-hidden font-sans">
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="text-center mb-24 lg:mb-32">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1, ease: "easeOut" }}
-          >
-            <h2 className="text-gold-600 font-bold text-xs tracking-[0.6em] uppercase mb-6">Conheça alguns dos</h2>
-            <h3 className="text-5xl md:text-[6rem] font-black text-white mb-8 tracking-tighter uppercase leading-none">MEUS TRABALHOS</h3>
-            <div className="w-12 h-[2px] bg-gold-600 mx-auto"></div>
-          </motion.div>
+    <section id="galeria" className="py-20 md:py-40 bg-[#0A0A0A] overflow-hidden">
+      <div className="container mx-auto px-6 mb-16 md:mb-32">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-[#D4AF37] font-bebas text-[10px] md:text-xs tracking-[0.6em] uppercase mb-6">Galeria</h2>
+          <h3 className="text-4xl sm:text-6xl md:text-8xl font-bebas text-white mb-8 tracking-tight uppercase leading-none">
+            MEUS <span className="text-[#D4AF37]">TRABALHOS</span>
+          </h3>
+          <div className="w-12 h-px bg-[#D4AF37]/30 mx-auto"></div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-7xl mx-auto px-4">
-          {[1, 2, 3].map((_, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true, margin: "-100px" }}
-              className="group relative aspect-[4/5] overflow-hidden bg-neutral-900 border border-white/5 cursor-pointer shadow-2xl rounded-xl flex items-center justify-center"
+      {/* Infinite Scroll Container */}
+      <div className="relative flex overflow-x-hidden">
+        <div className="flex animate-marquee whitespace-nowrap gap-4 md:gap-8 px-4">
+          {displayImages.map((img, index) => (
+            <div 
+              key={`${img.alt}-${index}`}
+              className="relative w-[280px] md:w-[400px] aspect-[3/4] bg-[#1a1a1a] border border-white/[0.03] overflow-hidden flex-shrink-0 group"
             >
-              <Camera size={40} strokeWidth={1} className="text-zinc-600" />
-
-              {/* View Overlay - Premium Styling */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-700 bg-black/40 backdrop-blur-[1px]">
-              </div>
-              
-              {/* Decorative corners */}
-              <div className="absolute top-6 left-6 w-3 h-3 border-t border-l border-gold-600/20 group-hover:border-gold-600 transition-colors duration-700" />
-              <div className="absolute bottom-6 right-6 w-3 h-3 border-b border-r border-gold-600/20 group-hover:border-gold-600 transition-colors duration-700" />
-            </motion.div>
+              <img 
+                src={img.src} 
+                alt={img.alt}
+                loading="lazy"
+                className="w-full h-full object-cover"
+              />
+              {/* Minimal Frame overlay */}
+              <div className="absolute inset-4 border border-white/[0.05] pointer-events-none" />
+              {/* Dark Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            </div>
           ))}
         </div>
       </div>
+
+      <div className="mt-20 text-center">
+        <p className="text-[8px] md:text-[10px] font-medium text-zinc-600 uppercase tracking-[0.4em]">
+          Siga no Instagram <span className="text-[#D4AF37]">@blackdiamond</span>
+        </p>
+      </div>
+
+      <style>{`
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(calc(-50% - 1rem)); }
+        }
+        .animate-marquee {
+          animation: marquee 40s linear infinite;
+        }
+        @media (min-width: 768px) {
+          @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(-50% - 2rem)); }
+          }
+        }
+      `}</style>
     </section>
   );
 };
 
 export default Gallery;
+

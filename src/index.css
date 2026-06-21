@@ -2,15 +2,18 @@
 
 @theme {
   --color-gold-600: #D4AF37; /* Gold Destaque */
-  --color-gold-hover: #C5A059;
+  --color-gold-hover: #B8952E;
   
-  --color-dark-pure: #0A0A0A;
-  --color-dark-card: #141414;
-  --color-dark-card-light: #1A1A1A;
+  --color-dark-pure: #0f0f0f;
+  --color-dark-card: #1a1a1a;
+  --color-dark-card-light: #1f1f1f;
   --color-dark-border: rgba(255, 255, 255, 0.05);
-  --color-dark-muted: #666666;
+  --color-dark-muted: #737373;
 
   --font-sans: "Inter", "Poppins", "Roboto", sans-serif;
+  --font-bebas: "Bebas Neue", sans-serif;
+  --font-roboto: "Roboto", sans-serif;
+  --font-cinzel: "Cinzel", serif;
 }
 
 @layer base {
@@ -18,7 +21,7 @@
     @apply scroll-smooth;
   }
   body {
-    @apply bg-[#0A0A0A] text-white font-sans antialiased selection:bg-gold-600 selection:text-white overflow-x-hidden;
+    @apply bg-[#0f0f0f] text-white font-sans antialiased selection:bg-gold-600 selection:text-white overflow-x-hidden;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -36,11 +39,11 @@
 }
 
 .bg-gold-gradient {
-  background: linear-gradient(135deg, #D4AF37 0%, #F5E0A3 50%, #D4AF37 100%);
+  background: linear-gradient(135deg, #D4AF37 0%, #ffedd5 50%, #D4AF37 100%);
 }
 
 .text-gold-gradient {
-  background: linear-gradient(135deg, #D4AF37 0%, #F5E0A3 50%, #D4AF37 100%);
+  background: linear-gradient(135deg, #D4AF37 0%, #ffedd5 50%, #D4AF37 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -52,7 +55,7 @@
   background: #000;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #C5A059;
+  background: #D4AF37;
   border-radius: 10px;
 }
 
@@ -65,4 +68,60 @@
 .scrollbar-hide {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+}
+
+/* Custom tuning for installed PWA standalone mode (keeps layout compact on tall screens) */
+@media (display-mode: standalone) {
+  /* Reduce excessive vertical paddings for mobile viewports */
+  .lg\:hidden .py-24, 
+  .lg\:hidden .py-20, 
+  .lg\:hidden .py-16, 
+  .lg\:hidden .py-14, 
+  .lg\:hidden .py-12, 
+  .lg\:hidden .py-10 {
+    padding-top: 1.25rem !important;
+    padding-bottom: 1.25rem !important;
+  }
+
+  .lg\:hidden .pt-24, 
+  .lg\:hidden .pt-20, 
+  .lg\:hidden .pt-16 {
+    padding-top: 1.5rem !important;
+  }
+
+  .lg\:hidden .pb-40, 
+  .lg\:hidden .pb-32, 
+  .lg\:hidden .pb-28 {
+    padding-bottom: 5.5rem !important; /* Mantém espaço confortável para as tabs inferiores */
+  }
+
+  /* Compress spacing classes */
+  .lg\:hidden .space-y-12 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1.5rem !important;
+  }
+
+  .lg\:hidden .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1rem !important;
+  }
+
+  .lg\:hidden .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.85rem !important;
+  }
+
+  .lg\:hidden .mt-12 {
+    margin-top: 1.25rem !important;
+  }
+
+  /* Make form inputs and lists scroll nicely without being stretched */
+  .lg\:hidden select, 
+  .lg\:hidden input, 
+  .lg\:hidden textarea {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+  }
+
+  .lg\:hidden button {
+    padding-top: 0.85rem !important;
+    padding-bottom: 0.85rem !important;
+  }
 }

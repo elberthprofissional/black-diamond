@@ -1,61 +1,57 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 
-const Hero: React.FC = () => {
+interface HeroProps {
+  onBookingClick: () => void;
+}
 
+const Hero: React.FC<HeroProps> = ({ onBookingClick }) => {
   return (
-    <section id="home" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#09090B] pt-28">
-      {/* Background Image using user-provided 'Tela=incio.webp' */}
-      <div 
-        className="absolute inset-0 bg-cover bg-[50%_20%] z-0" 
-        style={{ 
-          backgroundImage: 'url("/assets/img/Tela=incio.webp")',
-          filter: 'brightness(0.3)'
-        }}
-      />
-      
-      {/* Subtle Gradient for focus */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#09090B]/90 z-[1]" />
-
-      <div className="container mx-auto px-6 relative z-10 text-center">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-        >
-          <h1 className="text-5xl md:text-8xl font-serif font-bold text-white mb-14 tracking-[0.2em] leading-tight">
-            BLACK <span className="italic font-light">DIAMOND</span>
-          </h1>
-          
-          <div className="flex flex-col items-center gap-10">
-            <button 
-              onClick={() => {
-                const message = 'Olá! Gostaria de agendar um horário na Black Diamond.';
-                window.open(`https://wa.me/5531980159559?text=${encodeURIComponent(message)}`, '_blank');
-              }}
-              className="border border-gold-600 text-gold-600 hover:bg-gold-600 hover:text-black font-bold px-12 py-5 rounded-none text-[10px] uppercase tracking-[0.4em] transition-all duration-700 group relative"
-            >
-              <span className="relative z-10 text-[11px]">Agendar Horário</span>
-            </button>
-            
-            {/* Studio Status Badge */}
-            <div className="flex items-center space-x-3 opacity-80">
-              <div className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-20"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-600"></span>
-              </div>
-              <span className="text-[9px] font-bold text-emerald-500/80 tracking-[0.3em] uppercase">Aberto Agora</span>
-            </div>
-          </div>
-        </motion.div>
+    <section id="home" className="relative min-h-[90vh] md:min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background Image with Asymmetrical Overlay */}
+      <div className="absolute inset-0 z-0">
+        <img 
+          src="/assets/fundo-inicial.webp"
+          alt="Black Diamond" 
+          className="w-full h-full object-cover opacity-50"
+        />
+        {/* Escurece o lado esquerdo intensamente e deixa o direito mais limpo */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-[#0f0f0f]/80 to-transparent" />
+        {/* Suaviza o topo e a base para integrar com o site */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#0f0f0f]" />
       </div>
 
-      {/* Decorative vertical line */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 z-10 opacity-30">
-        <div className="w-[1px] h-24 bg-gradient-to-b from-gold-600 to-transparent shadow-[0_0_15px_rgba(197,160,89,0.5)]"></div>
+      <div className="container mx-auto px-6 relative z-10 h-full flex items-center">
+        <div className="w-full lg:w-1/2 flex flex-col items-start text-left pt-20">
+          <div className="space-y-4 md:space-y-2 mb-12">
+            <h1 className="flex flex-col items-start">
+              <span className="text-5xl sm:text-7xl md:text-[8rem] font-bebas tracking-[0.2em] md:tracking-[0.3em] text-white uppercase leading-none">BLACK</span>
+              <span className="text-5xl sm:text-7xl md:text-[8rem] font-bebas tracking-[0.2em] md:tracking-[0.3em] text-[#D4AF37] uppercase leading-none mt-1 md:-mt-2">DIAMOND</span>
+            </h1>
+            <p className="text-[14px] md:text-[20px] font-sans font-light tracking-wide text-zinc-400 max-w-md mt-6 leading-relaxed">
+              Onde o cuidado pessoal encontra a excelência. Mais que uma barbearia, o seu momento de recarregar as energias.
+            </p>
+          </div>
+          
+          <button 
+            onClick={onBookingClick}
+            className="mt-4"
+          >
+            <div className="px-10 py-5 bg-[#D4AF37] hover:brightness-110 transition-all duration-300 rounded-sm shadow-[0_0_20px_rgba(212,175,55,0.2)]">
+              <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-black">
+                Agende seu horário
+              </span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* Decorative side text - Hidden on small mobile */}
+      <div className="absolute bottom-10 left-10 hidden sm:block">
+        <p className="text-[7px] font-bold text-zinc-900 uppercase tracking-[0.4em] rotate-90 origin-left">Since 2026</p>
       </div>
     </section>
   );
 };
 
 export default Hero;
+

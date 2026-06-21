@@ -1,92 +1,98 @@
-import React from 'react';
-import { Scissors } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const Navbar: React.FC = () => {
+interface NavbarProps {
+  onBookingClick: () => void;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ onBookingClick }) => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleNavClick = (id: string) => {
-    if (location.pathname !== '/') {
-      navigate('/');
-      setTimeout(() => {
-        const element = document.getElementById(id);
-        if (element) element.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    } else {
-      const element = document.getElementById(id);
-      if (element) element.scrollIntoView({ behavior: 'smooth' });
+    const element = document.getElementById(id);
+    if (element) {
+      const offset = 80;
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = element.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
     }
   };
 
+  const navLinks = [
+    { label: 'O ESPAÇO', id: 'sobre' },
+    { label: 'SERVIÇOS', id: 'servicos' },
+    { label: 'GALERIA', id: 'galeria' },
+    { label: 'LOCALIZAÇÃO', id: 'localização' }
+  ];
+
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-700 bg-black py-3 shadow-[0_10px_30px_-10px_rgba(197,160,89,0.1)]`}>
-      <div className="container mx-auto px-6 flex justify-between items-center">
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="flex items-center space-x-4 md:space-x-5 group cursor-pointer" 
-          onClick={() => navigate('/')}
-        >
-          <div className="relative w-14 h-14 md:w-20 md:h-20 flex items-center justify-center">
-             <img 
-               src="/assets/logo.webp" 
-               alt="Black Diamond" 
-               className="w-full h-full object-contain scale-125 md:scale-150" 
-               onError={(e) => {
-                 e.currentTarget.style.display = 'none';
-                 const fallback = document.getElementById('nav-fallback-icon');
-                 if (fallback) fallback.style.display = 'block';
-               }} 
-             />
-             <Scissors className="text-gold-600 w-10 h-10 md:w-12 md:h-12" style={{ display: 'none' }} id="nav-fallback-icon" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xl md:text-4xl font-serif font-bold tracking-[0.1em] md:tracking-[0.2em] text-white leading-none uppercase">BLACK DIAMOND</span>
-          </div>
-        </motion.div>
-
-        {/* Desktop Links (Hidden on Mobile) */}
-        <div className="hidden md:flex items-center space-x-10">
-          {[
-            { label: 'Início', id: 'home' },
-            { label: 'Serviços', id: 'servicos' },
-            { label: 'Sobre', id: 'sobre' },
-            { label: 'Localização', id: 'localização' }
-          ].map((item) => (
-            <motion.button 
-              key={item.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
-              onClick={() => handleNavClick(item.id)}
-              className="text-[11px] uppercase tracking-[0.2em] text-gray-400 hover:text-white transition-colors duration-500 font-medium relative group"
-            >
-              {item.label}
-              <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-gold-600 transition-all duration-500 group-hover:w-full"></span>
-            </motion.button>
-          ))}
-        </div>
-
-        <div className="flex items-center">
-          <motion.button 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4 }}
-            onClick={() => {
-              const message = 'Olá! Gostaria de agendar um horário na Black Diamond.';
-              window.open(`https://wa.me/5531980159559?text=${encodeURIComponent(message)}`, '_blank');
-            }}
-            className="group relative border border-[#C5A059] px-4 md:px-8 py-2 md:py-2.5 rounded-sm transition-all duration-500 hover:bg-[#C5A059] overflow-hidden"
+    <>
+      <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
+        scrolled ? 'bg-black/20 backdrop-blur-lg h-20' : 'bg-transparent h-24 md:h-32'
+      }`}>
+        <div className="container mx-auto h-full px-4 md:px-8 flex justify-between items-center max-w-[1920px]">
+          <div 
+            className="flex items-center gap-2 md:gap-6 cursor-pointer group" 
+            onClick={() => navigate('/')}
+            role="button"
+            aria-label="Página Inicial - Black Diamond"
           >
-            <span className="relative z-10 text-[#C5A059] group-hover:text-black font-bold text-[9px] md:text-[11px] uppercase tracking-widest transition-colors duration-500 whitespace-nowrap">Agendar Agora</span>
-          </motion.button>
+            <img 
+              src="/assets/logo.webp" 
+              alt="Black Diamond" 
+              className={`transition-all duration-500 object-contain -ml-2 md:-ml-6 ${
+                scrolled ? 'w-16 h-16 md:w-24 md:h-24' : 'w-20 h-20 md:w-36 md:h-36'
+              }`}
+            />
+            <div className="flex items-baseline gap-1.5 md:gap-4">
+              <span className="text-[18px] md:text-[28px] font-bebas font-normal tracking-[0.15em] md:tracking-[0.3em] text-white uppercase leading-none">BLACK</span>
+              <span className="text-[18px] md:text-[28px] font-bebas font-normal tracking-[0.1em] md:tracking-[0.2em] text-[#C5A059] leading-none uppercase">DIAMOND</span>
+            </div>
+          </div>
+
+          {/* Desktop Links */}
+          <div className="hidden lg:flex items-center space-x-12" role="tablist">
+            {navLinks.map((item) => (
+              <button 
+                key={item.id}
+                onClick={() => handleNavClick(item.id)}
+                aria-label={`Ir para a seção ${item.label.toLowerCase()}`}
+                className="text-[14px] uppercase tracking-[0.3em] text-zinc-400 font-bebas hover:text-[#C5A059] transition-all cursor-pointer"
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={onBookingClick}
+              aria-label="Abrir formulário de agendamento online"
+              className="px-6 sm:px-12 py-3 md:py-4 border border-[#C5A059]/30 rounded-full text-[12px] sm:text-[14px] md:text-[16px] font-bebas uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white hover:bg-[#C5A059] hover:text-black transition-all duration-500 cursor-pointer"
+            >
+              Agendar
+            </button>
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 };
 
 export default Navbar;
+

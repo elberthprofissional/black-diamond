@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getServices, createBooking, getBookings } from '../lib/api';
-import { TIME_SLOTS, getNextDays, isTimeOccupied, getLocalDateString, formatPhone } from '../lib/utils';
+import { getServices, createBooking, getBookings, getAvailableSlots } from '../lib/api';
+import { getNextDays, isTimeOccupied, getLocalDateString, formatPhone } from '../lib/utils';
 import type { Service } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Check } from 'lucide-react';
+import { useToast } from '../hooks/useToast';
+import ToastNotification from '../components/Admin/shared/ToastNotification';
 
 const BookingPage: React.FC = () => {
+  const { toast, showError } = useToast();
+  const nextDays = useMemo(() => getNextDays(), []);
   const [step, setStep] = useState(1);
   const [services, setServices] = useState<Service[]>([]);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
@@ -14,7 +18,8 @@ const BookingPage: React.FC = () => {
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [existingBookings, setExistingBookings] = useState<any[]>([]);
+  const [existingBookings, setExistingBookings] = useState<{ booking_time: string; status: string }[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,7 +40,18 @@ const BookingPage: React.FC = () => {
           setExistingBookings(data);
         } catch (error) { console.error(error); }
       };
+      const loadAvailableSlots = async () => {
+        try {
+          const slots = await getAvailableSlots(selectedDate);
+          setAvailableSlots(slots);
+        } catch (error) { 
+          console.error(error);
+          // Fallback para slots padrão se a função falhar
+          setAvailableSlots(['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']);
+        }
+      };
       loadBookings();
+      loadAvailableSlots();
     }
   }, [selectedDate]);
 
@@ -84,7 +100,8 @@ const BookingPage: React.FC = () => {
       setStep(4); // Mover para tela de sucesso em vez de sair
     } catch (error) {
       console.error(error);
-      alert('Erro ao realizar agendamento.');
+      const message = error instanceof Error ? error.message : 'Erro ao realizar agendamento.';
+      showError(message);
     } finally { setIsSubmitting(false); }
   };
 
@@ -97,9 +114,10 @@ const BookingPage: React.FC = () => {
           
           {/* Left Panel - Dark */}
           <div className="w-[420px] shrink-0 bg-[#0A0A0A] flex flex-col justify-between p-12 text-white relative overflow-hidden">
-            <div 
-              className="absolute inset-0 bg-no-repeat bg-center bg-cover opacity-15 pointer-events-none grayscale"
-              style={{ backgroundImage: "url('/assets/Agendamento-Cliente.webp')" }}
+            <img 
+              src="/assets/agendamento.webp"
+              alt="Agendamento" 
+              className="absolute inset-0 w-full h-full object-cover grayscale opacity-20 pointer-events-none"
             />
             <div>
               <span className="text-[10px] font-black tracking-[0.5em] text-[#C5A059] uppercase">BLACK DIAMOND</span>
@@ -150,6 +168,7 @@ const BookingPage: React.FC = () => {
                 {step > 1 && step < 4 && (
                   <button 
                     onClick={() => setStep(step - 1)}
+                    aria-label="Voltar para o passo anterior"
                     className="w-10 h-10 rounded-xl border border-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/[0.12] transition-all cursor-pointer"
                   >
                     <ArrowLeft size={16} />
@@ -186,6 +205,7 @@ const BookingPage: React.FC = () => {
                           <button 
                             key={service.id}
                             onClick={() => toggleService(service)}
+                            aria-label={`Selecionar serviço ${service.name}. Preço: R$ ${Number(service.price).toFixed(0)}. Duração: ${service.duration} minutos.`}
                             className={`w-full flex items-center gap-5 px-6 py-5 rounded-xl transition-all duration-200 text-left group ${
                               isSelected 
                                 ? 'bg-[#C5A059]/[0.06]' 
@@ -212,26 +232,27 @@ const BookingPage: React.FC = () => {
 
                 {step === 2 && (
                   <motion.div key="d2" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1">
-                    <div className="flex gap-2 mb-12">
-                      {getNextDays().map((day) => {
+                    <div className="flex gap-1.5 mb-12">
+                      {nextDays.map((day) => {
                         const isSelected = selectedDate === day.fullDate;
                         return (
                           <button
                             key={day.fullDate}
                             onClick={() => setSelectedDate(day.fullDate)}
                             disabled={day.isPast}
-                            className={`flex-1 py-5 rounded-xl transition-all duration-300 flex flex-col items-center gap-1 border ${
+                            aria-label={`Selecionar data: dia ${day.dayNumber}, ${day.dayName}`}
+                            className={`flex-1 py-4 rounded-lg transition-all duration-200 flex flex-col items-center gap-0.5 ${
                               day.isPast
-                                ? 'border-white/[0.04] text-zinc-700 opacity-40 cursor-not-allowed'
-                                : day.isToday
-                                  ? 'border-[#C5A059]/30 text-[#C5A059]'
-                                  : isSelected
-                                    ? 'border-[#C5A059]/30 text-[#C5A059]'
-                                    : 'border-white/[0.08] text-zinc-500 hover:text-zinc-300'
+                                ? 'text-zinc-700 opacity-40 cursor-not-allowed'
+                                : isSelected
+                                  ? 'bg-[#C5A059] text-black'
+                                  : day.isToday
+                                    ? 'bg-white/[0.04] text-[#C5A059]'
+                                    : 'bg-white/[0.02] text-zinc-400 hover:bg-white/[0.05] hover:text-zinc-200'
                             }`}
                           >
-                            <span className="text-[9px] font-semibold uppercase tracking-wider opacity-60">{day.dayName}</span>
-                            <span className="text-xl font-bold">{day.dayNumber}</span>
+                            <span className={`text-[8px] font-bold uppercase tracking-widest ${isSelected ? 'text-black/60' : 'opacity-50'}`}>{day.dayName}</span>
+                            <span className="text-lg font-black">{day.dayNumber}</span>
                           </button>
                         );
                       })}
@@ -239,7 +260,7 @@ const BookingPage: React.FC = () => {
 
                     <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.25em] mb-4">Horários</p>
                     <div className="grid grid-cols-7 gap-2">
-                      {TIME_SLOTS.map((time) => {
+                      {availableSlots.map((time) => {
                         const occupied = isTimeOccupied(time, existingBookings);
                         const isSelected = selectedTime === time;
                         return (
@@ -248,6 +269,7 @@ const BookingPage: React.FC = () => {
                             disabled={occupied}
                             type="button"
                             onClick={() => setSelectedTime(time)}
+                            aria-label={`Selecionar horário: ${time}${occupied ? ' (indisponível)' : ''}`}
                             className={`py-3 rounded-lg text-[12px] font-medium transition-all duration-200 border border-white/[0.08] ${
                               occupied 
                                 ? 'text-zinc-800 cursor-not-allowed line-through' 
@@ -273,6 +295,7 @@ const BookingPage: React.FC = () => {
                           <input 
                             type="text" 
                             placeholder="Digite seu nome..." 
+                            aria-label="Seu nome completo"
                             className="w-full bg-white/[0.04] border border-white/[0.08] focus:border-[#C5A059]/50 rounded-xl px-5 py-5 text-[18px] text-white outline-none transition-all placeholder:text-zinc-700" 
                             value={userInfo.name} 
                             onChange={e => setUserInfo({...userInfo, name: e.target.value})} 
@@ -286,6 +309,7 @@ const BookingPage: React.FC = () => {
                           <input 
                             type="tel" 
                             placeholder="(31) 90000-0000" 
+                            aria-label="Seu número de WhatsApp com DDD"
                             className="w-full bg-white/[0.04] border border-white/[0.08] focus:border-[#C5A059]/50 rounded-xl px-5 py-5 text-[18px] text-white outline-none transition-all placeholder:text-zinc-700" 
                             value={userInfo.phone} 
                             onChange={e => setUserInfo({...userInfo, phone: formatPhone(e.target.value)})} 
@@ -308,7 +332,8 @@ const BookingPage: React.FC = () => {
                     <p className="text-base text-zinc-500 mb-10">Enviamos os detalhes no seu WhatsApp.</p>
                     <button 
                       onClick={() => navigate('/')}
-                      className="h-12 px-10 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-2xl hover:bg-zinc-200 transition-all"
+                      aria-label="Voltar para a página inicial"
+                      className="h-12 px-10 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-2xl hover:bg-zinc-200 transition-all cursor-pointer"
                     >
                       Voltar ao início
                     </button>
@@ -326,6 +351,7 @@ const BookingPage: React.FC = () => {
                       else handleConfirm();
                     }}
                     disabled={isStepDisabled()}
+                    aria-label={step === 3 ? 'Confirmar e concluir agendamento' : 'Continuar para a próxima etapa'}
                     className={`h-11 px-8 rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] transition-all duration-300 ${
                       !isStepDisabled()
                         ? 'bg-[#C5A059] text-black hover:bg-[#A68233] active:scale-95'
@@ -357,6 +383,7 @@ const BookingPage: React.FC = () => {
           <header className="px-5 py-4 flex items-center gap-3 shrink-0 border-b border-white/[0.04]">
             <button 
               onClick={() => step > 1 ? setStep(step - 1) : navigate('/')}
+              aria-label={step > 1 ? 'Voltar para a etapa anterior' : 'Voltar para a página inicial'}
               className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
             >
               <ArrowLeft size={16} />
@@ -398,6 +425,7 @@ const BookingPage: React.FC = () => {
                       <button 
                         key={service.id} 
                         onClick={() => toggleService(service)} 
+                        aria-label={`Selecionar serviço ${service.name}. Preço: R$ ${Number(service.price).toFixed(0)}. Duração: ${service.duration} minutos.`}
                         className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 text-left ${
                           isSelected 
                             ? 'bg-[#C5A059]/[0.06] border border-[#C5A059]/30' 
@@ -425,39 +453,27 @@ const BookingPage: React.FC = () => {
               {step === 2 && (
                 <motion.div key="m2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-5 h-full flex flex-col overflow-hidden">
                   {/* Date Picker */}
-                  <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide -mx-5 px-5 snap-x shrink-0">
-                    {(() => {
-                      const days = [];
-                      const today = new Date();
-                      const currentDay = today.getDay();
-                      const daysUntilSaturday = 6 - currentDay;
-                      const startOffset = currentDay === 0 ? 1 : 0;
-                      const limit = currentDay === 0 ? 6 : daysUntilSaturday;
-                      for (let i = startOffset; i <= limit; i++) {
-                        const date = new Date();
-                        date.setDate(today.getDate() + i);
-                        days.push({
-                          fullDate: getLocalDateString(date),
-                          dayName: date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase(),
-                          dayNumber: date.getDate(),
-                        });
-                      }
-                      return days;
-                    })().map(day => {
+                  <div className="flex overflow-x-auto gap-1.5 pb-2 scrollbar-hide -mx-5 px-5 snap-x shrink-0">
+                    {nextDays.map(day => {
                       const isSelected = selectedDate === day.fullDate;
                       return (
                         <button 
                           key={day.fullDate} 
                           onClick={() => setSelectedDate(day.fullDate)}
-                          disabled={false}
-                          className={`min-w-[60px] py-3 snap-center flex flex-col items-center gap-1 rounded-xl transition-all ${
-                            isSelected 
-                              ? 'bg-[#C5A059]/10 border border-[#C5A059]/30 text-[#C5A059]' 
-                              : 'bg-[#111111] border border-white/[0.04] text-zinc-500'
+                          disabled={day.isPast}
+                          aria-label={`Selecionar data: dia ${day.dayNumber}, ${day.dayName}`}
+                          className={`min-w-[56px] py-3 snap-center flex flex-col items-center gap-0.5 rounded-lg transition-all ${
+                            day.isPast
+                              ? 'text-zinc-700 opacity-40 cursor-not-allowed'
+                              : isSelected 
+                                ? 'bg-[#C5A059] text-black' 
+                                : day.isToday
+                                  ? 'bg-white/[0.04] text-[#C5A059]'
+                                  : 'bg-white/[0.02] text-zinc-400'
                           }`}
                         >
-                          <span className="text-[8px] font-bold uppercase tracking-wider">{day.dayName}</span>
-                          <span className="text-lg font-bold">{day.dayNumber}</span>
+                          <span className={`text-[8px] font-bold uppercase tracking-widest ${isSelected ? 'text-black/60' : 'opacity-50'}`}>{day.dayName}</span>
+                          <span className="text-lg font-black">{day.dayNumber}</span>
                         </button>
                       );
                     })}
@@ -467,7 +483,7 @@ const BookingPage: React.FC = () => {
                   <div className="flex-1 overflow-y-auto scrollbar-hide pb-4">
                     <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Horários disponíveis</p>
                     <div className="grid grid-cols-4 gap-2">
-                      {TIME_SLOTS.map(time => {
+                      {availableSlots.map(time => {
                         const occupied = isTimeOccupied(time, existingBookings);
                         const isSelected = selectedTime === time;
                         return (
@@ -476,6 +492,7 @@ const BookingPage: React.FC = () => {
                             type="button"
                             disabled={occupied}
                             onClick={() => setSelectedTime(time)}
+                            aria-label={`Selecionar horário: ${time}${occupied ? ' (indisponível)' : ''}`}
                             className={`py-3 rounded-xl text-xs font-bold transition-all ${
                               occupied 
                                 ? 'text-zinc-800 bg-transparent cursor-not-allowed line-through opacity-20' 
@@ -500,6 +517,7 @@ const BookingPage: React.FC = () => {
                     <input 
                       type="text" 
                       placeholder="Digite seu nome..." 
+                      aria-label="Seu nome completo"
                       className="w-full bg-[#111111] border border-white/[0.06] focus:border-[#C5A059]/50 rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-zinc-600" 
                       value={userInfo.name} 
                       onChange={e => setUserInfo({...userInfo, name: e.target.value})} 
@@ -513,6 +531,7 @@ const BookingPage: React.FC = () => {
                     <input 
                       type="tel" 
                       placeholder="(00) 90000-0000" 
+                      aria-label="Seu número de WhatsApp com DDD"
                       className="w-full bg-[#111111] border border-white/[0.06] focus:border-[#C5A059]/50 rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-zinc-600" 
                       value={userInfo.phone} 
                       onChange={e => setUserInfo({...userInfo, phone: formatPhone(e.target.value)})} 
@@ -549,7 +568,8 @@ const BookingPage: React.FC = () => {
               <button 
                 onClick={() => step < 3 ? setStep(step + 1) : handleConfirm()}
                 disabled={isStepDisabled()}
-                className={`w-full h-12 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${
+                aria-label={step < 3 ? 'Continuar para a próxima etapa' : 'Confirmar e concluir agendamento'}
+                className={`w-full h-12 rounded-xl font-bold text-xs uppercase tracking-widest transition-all cursor-pointer ${
                   isStepDisabled()
                     ? 'bg-zinc-900 border border-white/[0.04] text-zinc-600 cursor-not-allowed'
                     : 'bg-[#C5A059] text-black hover:brightness-110 active:scale-[0.98]'
@@ -594,7 +614,8 @@ const BookingPage: React.FC = () => {
 
                 <button 
                   onClick={() => navigate('/')}
-                  className="w-full h-12 bg-white text-black font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-zinc-200 transition-all"
+                  aria-label="Voltar para a página inicial"
+                  className="w-full h-12 bg-white text-black font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-zinc-200 transition-all cursor-pointer"
                 >
                   Voltar ao início
                 </button>
@@ -611,6 +632,7 @@ const BookingPage: React.FC = () => {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #050505; }
       `}</style>
+      <ToastNotification toast={toast} />
     </div>
   );
 };

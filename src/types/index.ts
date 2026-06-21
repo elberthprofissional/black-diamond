@@ -10,8 +10,8 @@ export interface Booking {
   id: string;
   client_id: string;
   service_ids: string[];
-  booking_date: string; // ISO string (YYYY-MM-DD)
-  booking_time: string; // HH:mm
+  booking_date: string;
+  booking_time: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   total_price: number;
   total_duration: number;
@@ -23,18 +23,24 @@ export interface Booking {
   };
 }
 
+export interface BookingWithClient extends Booking {
+  clients: {
+    name: string;
+    phone: string;
+  };
+}
+
 export interface Client {
   id: string;
   name: string;
   phone: string;
   email?: string;
+  notes?: string;
   created_at: string;
 }
 
-export interface Expense {
-  id: string;
-  description: string;
-  amount: number;
-  date: string;
-  category: string;
+export interface ClientWithStats extends Client {
+  lastVisit: string;
+  totalSpent: number;
+  bookingsCount: number;
 }

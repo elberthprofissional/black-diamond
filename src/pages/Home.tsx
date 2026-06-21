@@ -7,15 +7,22 @@ import Testimonials from '../components/TestimonialsSlider';
 import Gallery from '../components/Gallery';
 import Location from '../components/Location';
 import Footer from '../components/Footer';
+import { useNavigate } from 'react-router-dom';
 
 const Home: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleBooking = () => {
+    navigate('/agendar');
+  };
+
   return (
     <>
-      <Navbar />
-      <main className="bg-[#09090B]">
-        <Hero />
+      <Navbar onBookingClick={handleBooking} />
+      <main className="bg-[#0f0f0f]">
+        <Hero onBookingClick={handleBooking} />
         <About />
-        <Services />
+        <Services onBookingClick={handleBooking} />
         <Testimonials />
         <Gallery />
         <Location />
