@@ -32,6 +32,9 @@ const AdminProfile: React.FC = () => {
   useEffect(() => {
     if (isInstalled) return;
 
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (!isMobile) return;
+
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
