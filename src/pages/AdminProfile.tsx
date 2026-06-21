@@ -120,6 +120,17 @@ const AdminProfile: React.FC = () => {
     }))
     .sort((a, b) => b.count - a.count);
 
+  // DADOS FALSOS PARA TESTE - REMOVER DEPOIS
+  const topServicesWithFakeData = topServices.length > 0 && topServices.every(s => s.count === 0)
+    ? [
+        { name: 'Corte de Cabelo', count: 24 },
+        { name: 'Barba', count: 18 },
+        { name: 'Barba com Toalha Quente', count: 12 },
+        { name: 'Pezinho', count: 8 },
+        { name: 'Sobrancelha', count: 5 },
+      ]
+    : topServices;
+
   const clientesNovosMes = clients.filter(c => new Date(c.created_at) >= startOfMonth).length;
   const clientesNovosSemana = clients.filter(c => new Date(c.created_at) >= startOfWeek).length;
   const currentNovos = timeRange === 'week' ? clientesNovosSemana : clientesNovosMes;
@@ -218,10 +229,10 @@ const AdminProfile: React.FC = () => {
           {/* 4. Análise de Serviços */}
           <div className="bg-[#111111] border border-white/5 rounded-2xl p-5">
             <h2 className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4">Análise de Serviços</h2>
-            {topServices.length > 0 && topServices.some(s => s.count > 0) ? (
+            {topServicesWithFakeData.length > 0 && topServicesWithFakeData.some(s => s.count > 0) ? (
               <div className="space-y-3">
-                {topServices.filter(s => s.count > 0).map((srv, idx) => {
-                  const maxCount = Math.max(...topServices.map(s => s.count));
+                {topServicesWithFakeData.filter(s => s.count > 0).map((srv, idx) => {
+                  const maxCount = Math.max(...topServicesWithFakeData.map(s => s.count));
                   const percentage = maxCount > 0 ? (srv.count / maxCount) * 100 : 0;
                   return (
                     <div key={idx} className="space-y-1.5">
