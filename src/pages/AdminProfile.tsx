@@ -164,8 +164,19 @@ const AdminProfile: React.FC = () => {
             </button>
           </div>
 
-          {/* 2. FATURAMENTO TOTAL - Card */}
-          <div className="bg-[#111111] border border-white/5 rounded-2xl p-5">
+          {/* 1.5 INSTALAR APP (mobile only) */}
+          {!isInstalled && deferredPrompt && (
+            <button
+              onClick={() => setShowInstallPrompt(true)}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-[10px] font-bold text-zinc-400 hover:text-[#C5A059] hover:border-[#C5A059]/20 transition-all cursor-pointer lg:hidden"
+            >
+              <Download size={13} />
+              Instalar Aplicativo
+            </button>
+          )}
+
+          {/* 2. FATURAMENTO TOTAL */}
+          <div className="lg:bg-[#111111] lg:border lg:border-white/5 lg:rounded-2xl lg:p-5">
             <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">Faturamento Total</span>
             <p className="text-3xl font-black text-white tracking-tight">
               <span className="text-sm font-bold text-[#C5A059] mr-1">R$</span>

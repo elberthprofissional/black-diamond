@@ -206,7 +206,7 @@ const AdminBooking: React.FC = () => {
       }
     }
     if (currentStep === 2 && selectedServices.length === 0) {
-      showError('Selecione ao menos um procedimento.');
+      showError('Selecione ao menos um serviço.');
       return;
     }
     if (currentStep === 3 && !selectedTime) {
@@ -305,13 +305,13 @@ const AdminBooking: React.FC = () => {
                         className="space-y-6 lg:space-y-8 h-full flex flex-col justify-between overflow-visible pr-1 scrollbar-hide"
                       >
                         <div className="space-y-2">
-                          <h2 className="text-3xl font-bold uppercase tracking-tight">IDENTIFIQUE O CLIENTE</h2>
+                          <h2 className="text-3xl font-bold uppercase tracking-tight">CLIENTE</h2>
                           <p className="text-zinc-500 text-sm font-medium">
                             {selectedClient 
                               ? 'Cliente selecionado com sucesso.' 
                               : isManualEntry 
-                                ? 'Insira os dados do cliente abaixo para o agendamento.' 
-                                : 'Busque o cliente pelo WhatsApp ou Nome cadastrado.'}
+                                ? 'Insira os dados do cliente abaixo.' 
+                                : 'Busque pelo WhatsApp ou nome cadastrado.'}
                           </p>
                         </div>
 
@@ -690,24 +690,6 @@ const AdminBooking: React.FC = () => {
           </h1>
         </header>
 
-        {/* Stepper Progress Bar */}
-        {!rescheduleBooking && (
-          <div className="px-6 py-2.5 bg-[#121212]/95 border-b border-white/[0.02] flex items-center gap-2 shrink-0 justify-center">
-            {[1, 2, 3].map((s) => (
-              <div 
-                key={s} 
-                className={`h-0.5 transition-all duration-300 ${
-                  currentStep === s 
-                    ? 'w-10 bg-[#C5A059] shadow-[0_0_8px_#C5A059]' 
-                    : currentStep > s 
-                      ? 'w-5 bg-white/40' 
-                      : 'w-5 bg-white/10'
-                }`}
-              />
-            ))}
-          </div>
-        )}
-
         {/* Frozen Content Area */}
         <div className="flex-1 overflow-hidden px-6 pt-5 pb-32 flex flex-col">
           <AnimatePresence mode="wait">
@@ -722,7 +704,7 @@ const AdminBooking: React.FC = () => {
                 <div className="flex items-center justify-between shrink-0">
                   <div className="space-y-1">
                     <h2 className="text-xl font-bold text-white uppercase italic tracking-tight">Cliente</h2>
-                    <p className="text-xs text-zinc-500 font-light">Identifique o cliente do agendamento</p>
+                    <p className="text-xs text-zinc-500 font-light">Busque ou cadastre o cliente</p>
                   </div>
                   {!selectedClient && (
                     <button
@@ -889,7 +871,7 @@ const AdminBooking: React.FC = () => {
               >
                 <div className="space-y-1 shrink-0">
                   <h2 className="text-xl font-bold text-white uppercase italic tracking-tight">Serviços</h2>
-                  <p className="text-xs text-zinc-500 font-light">Selecione os procedimentos desejados</p>
+                  <p className="text-xs text-zinc-500 font-light">Selecione os serviços desejados</p>
                 </div>
 
                 <div className="space-y-3 overflow-y-auto flex-1 scrollbar-hide pb-24">
@@ -910,7 +892,7 @@ const AdminBooking: React.FC = () => {
                             {isSelected && <Check size={10} className="text-[#C5A059] stroke-[4px]" />}
                           </div>
                           <div className="space-y-0.5 min-w-0">
-                            <p className={`text-sm font-bold italic uppercase tracking-tight truncate ${isSelected ? 'text-[#C5A059]' : 'text-zinc-200'}`}>{service.name}</p>
+                            <p className={`text-sm font-bold italic uppercase tracking-tight ${isSelected ? 'text-[#C5A059]' : 'text-zinc-200'}`}>{service.name}</p>
                           </div>
                         </div>
                         <span className={`font-black italic text-sm tracking-tight shrink-0 ${isSelected ? 'text-[#C5A059]' : 'text-zinc-500'}`}>R$ {Number(service.price).toFixed(0)}</span>

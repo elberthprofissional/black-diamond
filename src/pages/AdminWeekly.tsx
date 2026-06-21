@@ -146,7 +146,7 @@ const AdminWeekly: React.FC = () => {
             {/* Filter + Count */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                {filteredSlots.length} {filteredSlots.length === 1 ? 'horário' : 'horários'}
+                {filteredSlots.length > 0 ? `${filteredSlots.length} ${filteredSlots.length === 1 ? 'horário' : 'horários'}` : ''}
               </span>
               <FilterTabs filter={filter} setFilter={setFilter} layoutId="activeFilterTabWeekly" />
             </div>
