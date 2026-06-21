@@ -480,10 +480,10 @@ const AdminDashboard: React.FC = () => {
               className="absolute inset-0 bg-black/85 backdrop-blur-md" 
             />
             <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
               className="relative w-full h-[100dvh] bg-[#0E0E0E] border-t border-[#C5A059]/20 shadow-[0_-20px_50px_rgba(0,0,0,0.9)] z-10 flex flex-col text-left overflow-y-auto scrollbar-hide"
             >
               <div className="sticky top-0 bg-[#0E0E0E]/95 backdrop-blur-md z-10 px-6 py-5 border-b border-white/[0.04] flex items-center justify-between">

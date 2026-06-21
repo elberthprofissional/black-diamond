@@ -255,10 +255,10 @@ const AdminWeekly: React.FC = () => {
               className="absolute inset-0 bg-black/70"
             />
             <motion.div 
-              initial={{ y: '100%', opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: '100%', opacity: 0 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
               className="relative z-10 w-full sm:w-[340px] bg-[#161618] sm:rounded-2xl rounded-t-2xl overflow-hidden"
             >
               <div className="px-6 py-5 border-b border-white/[0.06] flex items-center justify-between">
