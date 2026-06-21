@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getBookings, getServices, getClients } from '../lib/api';
 import type { Booking, Service, Client } from '../types';
-import { Download } from 'lucide-react';
+import { Download, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
 import { useAdminLogout } from '../hooks/useAdminLogout';
@@ -18,7 +18,6 @@ const AdminProfile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'week' | 'month'>('week');
 
-  const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -165,15 +164,13 @@ const AdminProfile: React.FC = () => {
           </div>
 
           {/* 1.5 INSTALAR APP (mobile only) */}
-          {!isInstalled && deferredPrompt && (
-            <button
-              onClick={() => setShowInstallPrompt(true)}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-[10px] font-bold text-zinc-400 hover:text-[#C5A059] hover:border-[#C5A059]/20 transition-all cursor-pointer lg:hidden"
-            >
-              <Download size={13} />
-              Instalar Aplicativo
-            </button>
-          )}
+          <button
+            onClick={() => setShowInstallPrompt(true)}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-[10px] font-bold text-zinc-400 hover:text-[#C5A059] hover:border-[#C5A059]/20 transition-all cursor-pointer lg:hidden"
+          >
+            <Download size={13} />
+            {isInstalled ? 'App Instalado' : 'Instalar Aplicativo'}
+          </button>
 
           {/* 2. FATURAMENTO TOTAL */}
           <div className="lg:bg-[#111111] lg:border lg:border-white/5 lg:rounded-2xl lg:p-5">
@@ -300,10 +297,10 @@ const AdminProfile: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* INSTALL APP PROMPT - Android */}
+      {/* INSTALL APP PROMPT */}
       <AnimatePresence>
-        {showInstallPrompt && !isInstalled && (
-          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
+        {showInstallPrompt && (
+          <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
             <motion.div 
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 
@@ -312,73 +309,75 @@ const AdminProfile: React.FC = () => {
               className="absolute inset-0 bg-black/60"
             />
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-              className="relative z-10 w-full sm:w-[280px] bg-[#1A1A1A] sm:rounded-2xl rounded-t-2xl overflow-hidden"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="relative z-10 w-full max-w-[280px] bg-[#1A1A1A] rounded-2xl overflow-hidden"
             >
-              <div className="p-5 text-center">
-                <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-3">
-                  <Download size={16} className="text-[#C5A059]" />
-                </div>
-                <p className="text-[11px] text-zinc-300 font-medium">Instalar aplicativo?</p>
-                <p className="text-[9px] text-zinc-600 mt-1">Acesso rápido na tela inicial</p>
-              </div>
-              <div className="border-t border-white/[0.06]">
-                <button 
-                  onClick={handleInstall}
-                  className="w-full py-3.5 text-[11px] font-bold text-[#C5A059] active:bg-white/[0.03] transition-colors cursor-pointer"
-                >
-                  Instalar
-                </button>
-              </div>
-              <div className="border-t border-white/[0.06]">
-                <button 
-                  onClick={() => setShowInstallPrompt(false)}
-                  className="w-full py-3.5 text-[11px] font-bold text-zinc-400 active:bg-white/[0.03] transition-colors cursor-pointer"
-                >
-                  Agora não
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* iOS INSTALL INSTRUCTIONS MODAL */}
-      <AnimatePresence>
-        {showIOSPrompt && (
-          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }}
-              onClick={() => setShowIOSPrompt(false)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="relative z-10 w-full sm:max-w-xs bg-[#0E0E0E] border-t sm:border border-[#C5A059]/20 sm:rounded-2xl rounded-t-2xl overflow-hidden p-6 text-center space-y-4"
-            >
-              <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center text-[#C5A059] mx-auto">
-                <Download size={18} />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-sm font-bold text-white uppercase tracking-[0.15em]">Instalar no iPhone</h3>
-                <p className="text-xs text-zinc-400 leading-relaxed uppercase font-bold text-[10px]">
-                  Clique no botão de <span className="text-white font-black">Compartilhar</span> no Safari (ícone de quadrado com seta para cima) e depois selecione <span className="text-white font-black">"Adicionar à Tela de Início"</span>.
-                </p>
-              </div>
-              <button 
-                onClick={() => setShowIOSPrompt(false)}
-                className="w-full h-10 border border-white/[0.06] hover:bg-white/[0.03] text-zinc-400 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer"
-              >
-                Entendido
-              </button>
+              {isInstalled ? (
+                <>
+                  <div className="p-5 text-center">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-3">
+                      <Check size={16} className="text-emerald-500" />
+                    </div>
+                    <p className="text-[11px] text-zinc-300 font-medium">App já instalado</p>
+                    <p className="text-[9px] text-zinc-600 mt-1">Acesse pela tela inicial</p>
+                  </div>
+                  <div className="border-t border-white/[0.06]">
+                    <button 
+                      onClick={() => setShowInstallPrompt(false)}
+                      className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                </>
+              ) : deferredPrompt ? (
+                <>
+                  <div className="p-5 text-center">
+                    <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-3">
+                      <Download size={16} className="text-[#C5A059]" />
+                    </div>
+                    <p className="text-[11px] text-zinc-300 font-medium">Instalar aplicativo?</p>
+                    <p className="text-[9px] text-zinc-600 mt-1">Acesso rápido na tela inicial</p>
+                  </div>
+                  <div className="border-t border-white/[0.06]">
+                    <button 
+                      onClick={handleInstall}
+                      className="w-full py-3.5 text-[11px] font-bold text-[#C5A059] active:bg-white/[0.03] transition-colors cursor-pointer"
+                    >
+                      Instalar
+                    </button>
+                  </div>
+                  <div className="border-t border-white/[0.06]">
+                    <button 
+                      onClick={() => setShowInstallPrompt(false)}
+                      className="w-full py-3.5 text-[11px] font-bold text-zinc-400 active:bg-white/[0.03] transition-colors cursor-pointer"
+                    >
+                      Agora não
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="p-5 text-center">
+                    <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-3">
+                      <Download size={16} className="text-[#C5A059]" />
+                    </div>
+                    <p className="text-[11px] text-zinc-300 font-medium">Instalar aplicativo</p>
+                    <p className="text-[9px] text-zinc-600 mt-1 max-w-[220px] mx-auto leading-relaxed">Toque em <strong className="text-white">Compartilhar</strong> e depois <strong className="text-white">"Adicionar à Tela de Início"</strong></p>
+                  </div>
+                  <div className="border-t border-white/[0.06]">
+                    <button 
+                      onClick={() => setShowInstallPrompt(false)}
+                      className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
+                    >
+                      Entendido
+                    </button>
+                  </div>
+                </>
+              )}
             </motion.div>
           </div>
         )}
