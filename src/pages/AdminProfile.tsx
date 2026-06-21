@@ -6,6 +6,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
 import { useAdminLogout } from '../hooks/useAdminLogout';
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 const AdminProfile: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -15,8 +20,37 @@ const AdminProfile: React.FC = () => {
 
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isInstalled] = useState(() => 
+    window.matchMedia('(display-mode: standalone)').matches || 
+    (navigator as unknown as { standalone?: boolean }).standalone === true
+  );
 
   const handleLogout = useAdminLogout();
+
+  useEffect(() => {
+    if (isInstalled) return;
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setShowInstallPrompt(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, [isInstalled]);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setShowInstallPrompt(false);
+    }
+    setDeferredPrompt(null);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -268,6 +302,52 @@ const AdminProfile: React.FC = () => {
                   className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
                 >
                   Manter
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* INSTALL APP PROMPT - Android */}
+      <AnimatePresence>
+        {showInstallPrompt && !isInstalled && (
+          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              onClick={() => setShowInstallPrompt(false)}
+              className="absolute inset-0 bg-black/60"
+            />
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+              className="relative z-10 w-full sm:w-[280px] bg-[#1A1A1A] sm:rounded-2xl rounded-t-2xl overflow-hidden"
+            >
+              <div className="p-5 text-center">
+                <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-3">
+                  <Download size={16} className="text-[#C5A059]" />
+                </div>
+                <p className="text-[11px] text-zinc-300 font-medium">Instalar aplicativo?</p>
+                <p className="text-[9px] text-zinc-600 mt-1">Acesso rápido na tela inicial</p>
+              </div>
+              <div className="border-t border-white/[0.06]">
+                <button 
+                  onClick={handleInstall}
+                  className="w-full py-3.5 text-[11px] font-bold text-[#C5A059] active:bg-white/[0.03] transition-colors cursor-pointer"
+                >
+                  Instalar
+                </button>
+              </div>
+              <div className="border-t border-white/[0.06]">
+                <button 
+                  onClick={() => setShowInstallPrompt(false)}
+                  className="w-full py-3.5 text-[11px] font-bold text-zinc-400 active:bg-white/[0.03] transition-colors cursor-pointer"
+                >
+                  Agora não
                 </button>
               </div>
             </motion.div>
