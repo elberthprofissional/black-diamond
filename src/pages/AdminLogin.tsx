@@ -33,12 +33,8 @@ const AdminLogin: React.FC = () => {
     setIsPWA(!!standalone);
 
     if (standalone) {
-      // Adiciona uma entrada no histórico para consumir a primeira ação de voltar
-      window.history.pushState(null, '', window.location.href);
-
       const handlePopState = () => {
-        // Empurra o estado de volta para travar o usuário na tela de login
-        window.history.pushState(null, '', window.location.href);
+        window.close();
       };
 
       window.addEventListener('popstate', handlePopState);
