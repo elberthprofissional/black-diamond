@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getServices, createBooking, getBookings, getAvailableSlots } from '../lib/api';
-import { getNextDays, isTimeOccupied, getLocalDateString, formatPhone } from '../lib/utils';
+import { getNextDays, isTimeOccupied, formatPhone } from '../lib/utils';
 import type { Service } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Check } from 'lucide-react';
@@ -14,7 +14,7 @@ const BookingPage: React.FC = () => {
   const [step, setStep] = useState(1);
   const [services, setServices] = useState<Service[]>([]);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>(getLocalDateString());
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,7 +67,7 @@ const BookingPage: React.FC = () => {
 
   const isStepDisabled = () => {
     if (step === 1) return selectedServices.length === 0;
-    if (step === 2) return !selectedTime;
+    if (step === 2) return !selectedDate || !selectedTime;
     if (step === 3) return !userInfo.name.trim() || userInfo.name.trim().length < 3 || userInfo.phone.replace(/\D/g, '').length < 10 || isSubmitting;
     return false;
   };
@@ -259,30 +259,34 @@ const BookingPage: React.FC = () => {
                     </div>
 
                     <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.25em] mb-4">Horários</p>
-                    <div className="grid grid-cols-7 gap-2">
-                      {availableSlots.map((time) => {
-                        const occupied = isTimeOccupied(time, existingBookings);
-                        const isSelected = selectedTime === time;
-                        return (
-                          <button
-                            key={time}
-                            disabled={occupied}
-                            type="button"
-                            onClick={() => setSelectedTime(time)}
-                            aria-label={`Selecionar horário: ${time}${occupied ? ' (indisponível)' : ''}`}
-                            className={`py-3 rounded-lg text-[12px] font-medium transition-all duration-200 border border-white/[0.08] ${
-                              occupied 
-                                ? 'text-zinc-800 cursor-not-allowed line-through' 
-                                : isSelected 
-                                  ? 'text-black bg-[#C5A059]' 
-                                  : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
-                            }`}
-                          >
-                            {time}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    {selectedDate ? (
+                      <div className="grid grid-cols-7 gap-2">
+                        {availableSlots.map((time) => {
+                          const occupied = isTimeOccupied(time, existingBookings);
+                          const isSelected = selectedTime === time;
+                          return (
+                            <button
+                              key={time}
+                              disabled={occupied}
+                              type="button"
+                              onClick={() => setSelectedTime(time)}
+                              aria-label={`Selecionar horário: ${time}${occupied ? ' (indisponível)' : ''}`}
+                              className={`py-3 rounded-lg text-[12px] font-medium transition-all duration-200 border border-white/[0.08] ${
+                                occupied 
+                                  ? 'text-zinc-800 cursor-not-allowed line-through' 
+                                  : isSelected 
+                                    ? 'text-black bg-[#C5A059]' 
+                                    : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
+                              }`}
+                            >
+                              {time}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-zinc-500 text-xs py-4 text-center">Selecione um dia da semana acima para ver os horários disponíveis.</p>
+                    )}
                   </motion.div>
                 )}
 
@@ -377,7 +381,7 @@ const BookingPage: React.FC = () => {
         </div>
 
         {/* MOBILE LAYOUT */}
-        <div className="lg:hidden h-[100dvh] bg-[#050505] flex flex-col text-white font-sans overflow-hidden">
+        <div className="lg:hidden min-h-screen bg-[#050505] flex flex-col text-white font-sans relative pb-28">
           
           {/* Header */}
           <header className="px-5 py-4 flex items-center gap-3 shrink-0 border-b border-white/[0.04]">
@@ -415,10 +419,10 @@ const BookingPage: React.FC = () => {
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-hidden px-5 pt-4 pb-32">
+          <div className="flex-1 px-5 pt-4 pb-12">
             <AnimatePresence mode="wait">
               {step === 1 && (
-                <motion.div key="m1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-3 overflow-y-auto h-full scrollbar-hide pb-4">
+                <motion.div key="m1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-3 pb-4">
                   {services.map(service => {
                     const isSelected = selectedServices.some(s => s.id === service.id);
                     return (
@@ -439,7 +443,6 @@ const BookingPage: React.FC = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className={`text-sm font-semibold ${isSelected ? 'text-[#C5A059]' : 'text-white'}`}>{service.name}</p>
-                          <p className="text-[10px] text-zinc-500 mt-0.5">{service.duration} min</p>
                         </div>
                         <span className={`text-sm font-bold tabular-nums ${isSelected ? 'text-[#C5A059]' : 'text-zinc-400'}`}>
                           R$ {Number(service.price).toFixed(0)}
@@ -451,7 +454,7 @@ const BookingPage: React.FC = () => {
               )}
 
               {step === 2 && (
-                <motion.div key="m2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-5 h-full flex flex-col overflow-hidden">
+                <motion.div key="m2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-5">
                   {/* Date Picker */}
                   <div className="flex overflow-x-auto gap-1.5 pb-2 scrollbar-hide -mx-5 px-5 snap-x shrink-0">
                     {nextDays.map(day => {
@@ -480,38 +483,42 @@ const BookingPage: React.FC = () => {
                   </div>
 
                   {/* Time Slots */}
-                  <div className="flex-1 overflow-y-auto scrollbar-hide pb-4">
+                  <div className="pb-4">
                     <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Horários disponíveis</p>
-                    <div className="grid grid-cols-4 gap-2">
-                      {availableSlots.map(time => {
-                        const occupied = isTimeOccupied(time, existingBookings);
-                        const isSelected = selectedTime === time;
-                        return (
-                          <button
-                            key={time}
-                            type="button"
-                            disabled={occupied}
-                            onClick={() => setSelectedTime(time)}
-                            aria-label={`Selecionar horário: ${time}${occupied ? ' (indisponível)' : ''}`}
-                            className={`py-3 rounded-xl text-xs font-bold transition-all ${
-                              occupied 
-                                ? 'text-zinc-800 bg-transparent cursor-not-allowed line-through opacity-20' 
-                                : isSelected 
-                                  ? 'text-[#C5A059] bg-[#C5A059]/10 border border-[#C5A059]/30' 
-                                  : 'text-zinc-400 bg-[#111111] border border-white/[0.04] hover:border-white/[0.08]'
-                            }`}
-                          >
-                            {time}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    {selectedDate ? (
+                      <div className="grid grid-cols-4 gap-2">
+                        {availableSlots.map(time => {
+                          const occupied = isTimeOccupied(time, existingBookings);
+                          const isSelected = selectedTime === time;
+                          return (
+                            <button
+                              key={time}
+                              type="button"
+                              disabled={occupied}
+                              onClick={() => setSelectedTime(time)}
+                              aria-label={`Selecionar horário: ${time}${occupied ? ' (indisponível)' : ''}`}
+                              className={`py-3 rounded-xl text-xs font-bold transition-all ${
+                                occupied 
+                                  ? 'text-zinc-800 bg-transparent cursor-not-allowed line-through opacity-20' 
+                                  : isSelected 
+                                    ? 'text-[#C5A059] bg-[#C5A059]/10 border border-[#C5A059]/30' 
+                                    : 'text-zinc-400 bg-[#111111] border border-white/[0.04] hover:border-white/[0.08]'
+                              }`}
+                            >
+                              {time}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-zinc-500 text-xs py-6 text-center">Selecione um dia da semana acima para ver os horários disponíveis.</p>
+                    )}
                   </div>
                 </motion.div>
               )}
 
               {step === 3 && (
-                <motion.div key="m3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-4 overflow-y-auto h-full scrollbar-hide pb-4">
+                <motion.div key="m3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-4 pb-4">
                   <div className="space-y-3">
                     <label className="text-[11px] font-semibold text-zinc-400">Nome completo</label>
                     <input 

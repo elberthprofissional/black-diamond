@@ -13,7 +13,7 @@ interface AdminLayoutProps {
 const AdminLayout: React.FC<AdminLayoutProps> = ({
   children,
   wrapperClassName = "min-h-screen bg-[#0A0A0A] text-white font-sans flex selection:bg-[#C5A059]/30",
-  innerClassName = "flex-1 lg:ml-[320px] flex flex-col min-h-screen overflow-y-auto bg-[#0A0A0A] overscroll-contain",
+  innerClassName = "flex-1 lg:ml-[260px] flex flex-col min-h-screen bg-[#0A0A0A]",
   mainClassName = "flex-1 w-full max-w-5xl mx-auto px-5 sm:px-8 lg:px-12 pt-24 lg:pt-12 pb-40"
 }) => {
   return (

@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createBooking, getBookings, getClients, deleteBooking } from '../lib/api';
-import { TIME_SLOTS, getPeriod, formatPhone, getNextDays, isTimeOccupied, getLocalDateString } from '../lib/utils';
+import { TIME_SLOTS, getPeriod, formatPhone, getNextDays, isTimeOccupied } from '../lib/utils';
 import { useToast } from '../hooks/useToast';
 import { useServices } from '../hooks/useServices';
 import type { Service, Client, Booking } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import AdminNavbar from '../components/Admin/Navbar';
 import BottomTabs from '../components/Admin/BottomTabs';
 import BookingSearchModal from '../components/Admin/shared/BookingSearchModal';
 import BookingSummaryPanel from '../components/Admin/shared/BookingSummaryPanel';
@@ -43,7 +42,7 @@ const AdminBooking: React.FC = () => {
     if (location.state?.rescheduleBooking?.booking_date) {
       return location.state.rescheduleBooking.booking_date;
     }
-    return location.state?.date || getLocalDateString();
+    return location.state?.date || '';
   });
   
   const [selectedTime, setSelectedTime] = useState<string>(() => {
@@ -209,8 +208,8 @@ const AdminBooking: React.FC = () => {
       showError('Selecione ao menos um serviço.');
       return;
     }
-    if (currentStep === 3 && !selectedTime) {
-      showError('Selecione um horário.');
+    if (currentStep === 3 && (!selectedDate || !selectedTime)) {
+      showError('Selecione o dia e o horário.');
       return;
     }
     setCurrentStep(prev => prev + 1);
@@ -222,71 +221,86 @@ const AdminBooking: React.FC = () => {
       return newClient.name.trim() !== '' && newClient.phone.trim().length >= 8;
     }
     if (step === 2) return selectedServices.length > 0;
-    if (step === 3) return !!selectedTime;
+    if (step === 3) return !!selectedDate && !!selectedTime;
     return false;
   };
 
   return (
     <div className="h-screen lg:min-h-screen bg-[#121212] text-white font-sans selection:bg-[#C5A059]/30 flex flex-col relative overflow-hidden">
       
-      {/* Subtle Ambient Radial Glows */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-b from-[#C5A059]/5 via-transparent to-transparent rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-t from-white/[0.02] via-transparent to-transparent rounded-full blur-[120px] pointer-events-none" />
-      </div>
+      {/* DESKTOP LAYOUT */}
+      <div className="hidden lg:flex flex-col flex-1 relative z-10 overflow-visible w-full bg-[#0A0A0A]">
 
-      {/* DESKTOP LAYOUT - STAYS EXACTLY THE SAME */}
-      <div className="hidden lg:flex flex-col flex-1 relative z-10 overflow-visible w-full">
-        <AdminNavbar />
-
-        {/* Full Viewport Width Header with Full-length underline */}
-        <div className="w-full px-6 md:px-12 md:border-b md:border-white/[0.04] py-5 md:py-6 flex items-center justify-between shrink-0 sticky top-0 z-30">
+        {/* Premium Minimal Header */}
+        <div className="w-full px-10 py-5 flex items-center justify-between shrink-0 sticky top-0 z-30 bg-[#0A0A0A] border-b border-white/[0.04]">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => navigate('/admin')}
-              className="text-zinc-500 hover:text-white transition-all cursor-pointer mr-1.5 active:scale-95 group"
+              className="w-9 h-9 flex items-center justify-center border border-white/[0.06] text-zinc-400 hover:text-white hover:border-[#C5A059]/40 transition-all cursor-pointer"
             >
-              <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
+              <ArrowLeft size={16} />
             </button>
-            <h1 className="text-sm md:text-base font-bold tracking-[0.25em] text-white uppercase">
+            <h1 className="text-sm font-semibold tracking-[0.2em] text-white uppercase">
               {rescheduleBooking ? 'Reagendar Atendimento' : 'Novo Agendamento'}
             </h1>
           </div>
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#C5A059]/60" />
+            <span className="text-[9px] font-medium tracking-[0.15em] text-zinc-500 uppercase">Black Diamond</span>
+          </div>
         </div>
 
-        {/* DUAL CANVAS CONTAINER - Center aligned max-w-7xl */}
-        <main className="w-full max-w-7xl mx-auto px-6 md:px-12 pt-6 pb-28 lg:pb-16 flex-1 flex flex-col overflow-visible">
+        {/* Main Content Area */}
+        <main className="w-full max-w-7xl mx-auto px-10 pt-8 pb-16 flex-1 flex flex-col overflow-visible">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 xl:gap-16 items-start flex-1 overflow-visible h-full">
             
-            {/* LEFT SIDE: STEPPER CANVAS (lg:col-span-7 xl:col-span-8) */}
+            {/* LEFT SIDE: Booking Steps */}
             <div className="lg:col-span-7 xl:col-span-8 flex flex-col h-full justify-between overflow-visible">
               <div>
                 
-                {/* Stepper Navigation bar */}
+                {/* Premium Step Indicator */}
                 {!rescheduleBooking && (
-                  <div className="flex items-center gap-6 md:gap-8 border-b border-white/[0.04] pb-6 mb-10 overflow-x-auto scrollbar-hide">
+                  <div className="flex items-center justify-center gap-0 mb-10 px-4">
                     {[
                       { step: 1, num: '01', title: 'CLIENTE' },
                       { step: 2, num: '02', title: 'SERVIÇOS' },
                       { step: 3, num: '03', title: 'AGENDA' },
-                    ].map((s) => {
+                    ].map((s, idx) => {
                       const isActive = currentStep === s.step;
                       const isPassed = s.step < currentStep;
                       const canClick = s.step < currentStep || (s.step === 2 && selectedClient) || (s.step === 3 && selectedClient && selectedServices.length > 0);
                       
                       return (
-                        <button
-                          key={s.step}
-                          disabled={!canClick}
-                          onClick={() => setCurrentStep(s.step)}
-                          className={`flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
-                            isActive ? 'text-[#C5A059]' : isPassed ? 'text-white/80 hover:text-white' : 'text-zinc-600'
-                          }`}
-                        >
-                          <span className="text-[10px] font-black tracking-widest">{s.num}</span>
-                          <span className="text-xs font-bold uppercase tracking-wider">{s.title}</span>
-                          {isPassed && <Check size={11} className="text-[#C5A059]" />}
-                        </button>
+                        <React.Fragment key={s.step}>
+                          <button
+                            disabled={!canClick}
+                            onClick={() => setCurrentStep(s.step)}
+                            className="flex items-center gap-3 shrink-0 transition-all cursor-pointer group"
+                          >
+                            <div className={`w-8 h-8 flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
+                              isActive 
+                                ? 'bg-[#C5A059] text-black' 
+                                : isPassed 
+                                  ? 'bg-[#C5A059]/15 text-[#C5A059]' 
+                                  : 'bg-white/[0.03] text-zinc-600 border border-white/[0.04]'
+                            }`}>
+                              {isPassed ? <Check size={13} strokeWidth={3} /> : s.num}
+                            </div>
+                            <div className="flex flex-col items-start">
+                              <span className={`text-[10px] font-bold uppercase tracking-[0.15em] transition-all ${
+                                isActive ? 'text-[#C5A059]' : isPassed ? 'text-white/70' : 'text-zinc-600'
+                              }`}>{s.title}</span>
+                              <div className={`h-[1px] mt-1 transition-all duration-300 ${
+                                isActive ? 'w-full bg-[#C5A059]/40' : isPassed ? 'w-full bg-[#C5A059]/20' : 'w-0 bg-white/10'
+                              }`} />
+                            </div>
+                          </button>
+                          {idx < 2 && (
+                            <div className={`w-12 h-[1px] mx-3 transition-all duration-500 ${
+                              s.step < currentStep ? 'bg-[#C5A059]/30' : 'bg-white/[0.04]'
+                            }`} />
+                          )}
+                        </React.Fragment>
                       );
                     })}
                   </div>
@@ -305,8 +319,8 @@ const AdminBooking: React.FC = () => {
                         className="space-y-6 lg:space-y-8 h-full flex flex-col justify-between overflow-visible pr-1 scrollbar-hide"
                       >
                         <div className="space-y-2">
-                          <h2 className="text-3xl font-bold uppercase tracking-tight">CLIENTE</h2>
-                          <p className="text-zinc-500 text-sm font-medium">
+                          <h2 className="text-2xl font-bold uppercase tracking-tight">CLIENTE</h2>
+                          <p className="text-zinc-500 text-sm">
                             {selectedClient 
                               ? 'Cliente selecionado com sucesso.' 
                               : isManualEntry 
@@ -316,15 +330,15 @@ const AdminBooking: React.FC = () => {
                         </div>
 
                         {selectedClient ? (
-                          <div className="p-6 bg-white/[0.01] border border-white/[0.04] flex items-center justify-between transition-all group hover:border-[#C5A059]/30">
+                          <div className="p-6 bg-[#111111] border border-white/[0.06] flex items-center justify-between transition-all group hover:border-[#C5A059]/30">
                             <div className="flex items-center gap-5">
-                              <div className="w-14 h-14 bg-zinc-950 border border-white/[0.05] group-hover:border-[#C5A059]/30 flex items-center justify-center text-[#C5A059] text-xl font-black italic transition-all duration-300">
+                              <div className="w-12 h-12 bg-[#0A0A0A] border border-white/[0.08] flex items-center justify-center text-[#C5A059] text-lg font-bold transition-all duration-300">
                                 {selectedClient.name.charAt(0)}
                               </div>
                               <div>
                                 <span className="text-[8px] font-bold text-[#C5A059] tracking-[0.25em] uppercase block mb-1">CLIENTE CADASTRADO</span>
-                                <h3 className="text-xl font-bold text-white uppercase italic leading-none">{selectedClient.name}</h3>
-                                <p className="text-xs text-zinc-500 mt-2 font-medium">{selectedClient.phone}</p>
+                                <h3 className="text-lg font-bold text-white uppercase tracking-wide leading-none">{selectedClient.name}</h3>
+                                <p className="text-xs text-zinc-500 mt-2">{selectedClient.phone}</p>
                               </div>
                             </div>
                             <button
@@ -334,7 +348,7 @@ const AdminBooking: React.FC = () => {
                                 setSearchQuery('');
                                 setIsManualEntry(true);
                               }}
-                              className="text-[10px] font-bold uppercase tracking-widest text-[#C5A059] hover:text-white underline underline-offset-4 cursor-pointer"
+                              className="text-[10px] font-bold uppercase tracking-widest text-[#C5A059] hover:text-white transition-colors cursor-pointer"
                             >
                               Alterar
                             </button>
@@ -342,10 +356,10 @@ const AdminBooking: React.FC = () => {
                         ) : !isManualEntry ? (
                           multipleMatches.length > 0 ? (
                             <div className="space-y-4">
-                              <div className="p-4 bg-zinc-955 border border-white/[0.05] text-xs text-zinc-400 font-medium uppercase tracking-wider">
+                              <div className="p-4 bg-[#111111] border border-white/[0.06] text-xs text-zinc-400 uppercase tracking-wider">
                                 Múltiplos clientes encontrados. Selecione o correto abaixo:
                               </div>
-                              <div className="divide-y divide-white/[0.02] border border-white/[0.04] max-h-60 overflow-y-auto scrollbar-hide bg-[#0A0A0A]/40">
+                              <div className="divide-y divide-white/[0.04] border border-white/[0.06] max-h-60 overflow-y-auto scrollbar-hide bg-[#111111]">
                                 {multipleMatches.map(c => (
                                   <button
                                     key={c.id}
@@ -357,7 +371,7 @@ const AdminBooking: React.FC = () => {
                                     className="w-full text-left p-4 hover:bg-white/[0.02] transition-all flex items-center justify-between cursor-pointer group"
                                   >
                                     <div>
-                                      <p className="text-base font-bold text-zinc-300 group-hover:text-white uppercase italic leading-none">{c.name}</p>
+                                      <p className="text-base font-bold text-zinc-300 group-hover:text-white uppercase tracking-wide leading-none">{c.name}</p>
                                       <p className="text-xs text-zinc-600 group-hover:text-zinc-500 mt-1.5 transition-colors">{c.phone}</p>
                                     </div>
                                     <ChevronRight size={14} className="text-[#C5A059] group-hover:translate-x-0.5 transition-all" />
@@ -370,7 +384,7 @@ const AdminBooking: React.FC = () => {
                                   setMultipleMatches([]);
                                   setSearchQuery('');
                                 }}
-                                className="text-[10px] font-bold uppercase tracking-widest text-[#C5A059] hover:text-white underline underline-offset-4 cursor-pointer"
+                                className="text-[10px] font-bold uppercase tracking-widest text-[#C5A059] hover:text-white transition-colors cursor-pointer"
                               >
                                 Fazer nova busca
                               </button>
@@ -385,7 +399,7 @@ const AdminBooking: React.FC = () => {
                                     <input
                                       type="text"
                                       placeholder="Digite o número (ou nome)..."
-                                      className="w-full bg-white/[0.01] border border-white/[0.06] focus:border-[#C5A059] focus:bg-white/[0.03] py-4 pl-12 pr-4 text-base text-white outline-none transition-all placeholder:text-zinc-700 italic font-medium"
+                                      className="w-full bg-transparent border-b-2 border-white/[0.06] focus:border-[#C5A059] py-4 pl-12 pr-4 text-base text-white outline-none transition-all placeholder:text-zinc-700 font-medium"
                                       value={searchQuery}
                                       onChange={(e) => {
                                         const val = e.target.value;
@@ -407,7 +421,7 @@ const AdminBooking: React.FC = () => {
                                     type="button"
                                     onClick={handleSearch}
                                     disabled={!searchQuery.trim() || isSearchingClient}
-                                    className="px-8 bg-zinc-900 border border-white/[0.05] hover:border-[#C5A059]/30 hover:bg-zinc-850 text-[#C5A059] text-[10px] font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2 min-w-[120px] disabled:opacity-30 disabled:cursor-not-allowed"
+                                    className="px-8 bg-[#111111] border border-white/[0.06] hover:border-[#C5A059]/30 hover:bg-[#C5A059]/5 text-[#C5A059] text-[10px] font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2 min-w-[120px] disabled:opacity-30 disabled:cursor-not-allowed"
                                   >
                                     {isSearchingClient ? (
                                       <Loader2 size={12} className="animate-spin text-[#C5A059]" />
@@ -438,7 +452,7 @@ const AdminBooking: React.FC = () => {
                                 <input 
                                   type="text" 
                                   placeholder="Digite o nome completo"
-                                  className="w-full bg-white/[0.01] border border-white/[0.06] focus:border-[#C5A059] focus:bg-white/[0.03] px-4 py-3.5 text-base text-white outline-none transition-all placeholder:text-zinc-700 uppercase italic font-medium"
+                                  className="w-full bg-transparent border-b-2 border-white/[0.06] focus:border-[#C5A059] px-0 py-3.5 text-base text-white outline-none transition-all placeholder:text-zinc-700 font-medium"
                                   value={newClient.name}
                                   onChange={(e) => setNewClient({ ...newClient, name: e.target.value.toUpperCase() })}
                                 />
@@ -448,7 +462,7 @@ const AdminBooking: React.FC = () => {
                                 <input 
                                   type="tel" 
                                   placeholder="(00) 00000-0000"
-                                  className="w-full bg-white/[0.01] border border-white/[0.06] focus:border-[#C5A059] focus:bg-white/[0.03] px-4 py-3.5 text-base text-white outline-none transition-all placeholder:text-zinc-700 italic font-medium"
+                                  className="w-full bg-transparent border-b-2 border-white/[0.06] focus:border-[#C5A059] px-0 py-3.5 text-base text-white outline-none transition-all placeholder:text-zinc-700 font-medium"
                                   value={newClient.phone}
                                   onChange={(e) => setNewClient({ ...newClient, phone: formatPhone(e.target.value) })}
                                 />
@@ -467,7 +481,7 @@ const AdminBooking: React.FC = () => {
                                 </button>
                               </div>
                               
-                              <div className="pt-6 border-t border-white/[0.02]">
+                              <div className="pt-6 border-t border-white/[0.04]">
                                 <button
                                   type="button"
                                   onClick={handleNextStep}
@@ -493,8 +507,8 @@ const AdminBooking: React.FC = () => {
                         className="space-y-6 lg:space-y-8 h-full flex flex-col overflow-visible"
                       >
                         <div className="space-y-2">
-                          <h2 className="text-3xl font-bold uppercase tracking-tight">ESCOLHA OS SERVIÇOS</h2>
-                          <p className="text-zinc-500 text-sm font-medium">Selecione os serviços que farão parte do atendimento.</p>
+                          <h2 className="text-2xl font-bold uppercase tracking-tight">ESCOLHA OS SERVIÇOS</h2>
+                          <p className="text-zinc-500 text-sm">Selecione os serviços que farão parte do atendimento.</p>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pr-1 pb-0">
@@ -506,23 +520,23 @@ const AdminBooking: React.FC = () => {
                                 onClick={() => toggleService(service)}
                                 className={`p-5 border transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[140px] relative group select-none ${
                                   isSelected 
-                                    ? 'border-[#C5A059] bg-[#C5A059]/5 shadow-[0_0_20px_rgba(184,155,73,0.05)]' 
-                                    : 'border-white/[0.04] bg-white/[0.01] hover:border-zinc-700 hover:bg-white/[0.02]'
+                                    ? 'border-[#C5A059] bg-[#C5A059]/[0.04]' 
+                                    : 'border-white/[0.06] bg-[#111111] hover:border-white/[0.12]'
                                 }`}
                               >
                                 <div className="flex justify-between items-start gap-4">
                                   <div className="space-y-1 min-w-0">
-                                    <h3 className={`font-bold italic uppercase tracking-tight text-lg leading-none truncate ${isSelected ? 'text-[#C5A059]' : 'text-zinc-300 group-hover:text-white'}`}>
+                                    <h3 className={`font-bold uppercase tracking-tight text-base leading-none truncate ${isSelected ? 'text-[#C5A059]' : 'text-zinc-300 group-hover:text-white'}`}>
                                       {service.name}
                                     </h3>
                                   </div>
-                                  <div className={`w-4 h-4 border flex items-center justify-center transition-all shrink-0 ${isSelected ? 'border-[#C5A059] bg-transparent' : 'border-zinc-850 group-hover:border-zinc-700'}`}>
-                                    {isSelected && <Check size={10} className="text-[#C5A059] stroke-[4px]" />}
+                                  <div className={`w-4 h-4 border flex items-center justify-center transition-all shrink-0 ${isSelected ? 'border-[#C5A059] bg-transparent' : 'border-white/[0.08] group-hover:border-white/[0.15]'}`}>
+                                    {isSelected && <Check size={10} className="text-[#C5A059]" strokeWidth={3} />}
                                   </div>
                                 </div>
-                                <div className="flex justify-between items-end pt-4 border-t border-white/[0.02] mt-4">
-                                  <span className="text-zinc-500 text-[9px] font-black uppercase tracking-widest">Valor</span>
-                                  <span className={`font-black italic text-xl ${isSelected ? 'text-[#C5A059]' : 'text-white'}`}>
+                                <div className="flex justify-between items-end pt-4 border-t border-white/[0.04] mt-4">
+                                  <span className="text-zinc-600 text-[9px] font-bold uppercase tracking-widest">Valor</span>
+                                  <span className={`font-bold text-lg ${isSelected ? 'text-[#C5A059]' : 'text-white'}`}>
                                     R$ {Number(service.price).toFixed(0)}
                                   </span>
                                 </div>
@@ -531,7 +545,7 @@ const AdminBooking: React.FC = () => {
                           })}
                         </div>
 
-                        <div className="pt-6 border-t border-white/[0.02]">
+                        <div className="pt-6 border-t border-white/[0.04]">
                           <button
                             type="button"
                             onClick={handleNextStep}
@@ -554,10 +568,10 @@ const AdminBooking: React.FC = () => {
                         className="space-y-6 lg:space-y-10 h-full flex flex-col overflow-visible"
                       >
                         {rescheduleBooking ? (
-                          <div className="p-5 bg-white/[0.01] border border-[#C5A059]/25 flex flex-col gap-2 relative text-left">
-                            <span className="text-[8px] font-black text-[#C5A059] uppercase tracking-[0.25em]">REAGENDANDO ATENDIMENTO</span>
+                          <div className="p-5 bg-[#111111] border border-[#C5A059]/20 flex flex-col gap-2 relative text-left">
+                            <span className="text-[8px] font-bold text-[#C5A059] uppercase tracking-[0.25em]">REAGENDANDO ATENDIMENTO</span>
                             <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
-                              <h3 className="text-base font-bold text-white uppercase italic leading-none">{rescheduleBooking.clients?.name}</h3>
+                              <h3 className="text-base font-bold text-white uppercase tracking-wide leading-none">{rescheduleBooking.clients?.name}</h3>
                               <span className="text-zinc-600 hidden sm:inline">•</span>
                               <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{selectedServices.map(s => s.name).join(' + ')}</p>
                             </div>
@@ -567,14 +581,14 @@ const AdminBooking: React.FC = () => {
                           </div>
                         ) : (
                           <div className="space-y-2">
-                            <h2 className="text-3xl font-bold uppercase tracking-tight">ESCOLHA DATA E HORÁRIO</h2>
-                            <p className="text-zinc-500 text-sm font-medium">Defina o dia e horário do agendamento.</p>
+                            <h2 className="text-2xl font-bold uppercase tracking-tight">ESCOLHA DATA E HORÁRIO</h2>
+                            <p className="text-zinc-500 text-sm">Defina o dia e horário do agendamento.</p>
                           </div>
                         )}
 
                         <div className="space-y-3">
                           <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] block pl-0.5">Selecione o Dia</span>
-                          <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-2 px-2 border-b border-white/[0.02]">
+                          <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-2 px-2">
                             {nextDays.map(day => {
                               const isSelected = selectedDate === day.fullDate;
                               return (
@@ -582,10 +596,10 @@ const AdminBooking: React.FC = () => {
                                   key={day.fullDate}
                                   type="button"
                                   onClick={() => setSelectedDate(day.fullDate)}
-                                  className={`flex flex-col items-center gap-1 select-none cursor-pointer group shrink-0 border p-4 min-w-[75px] transition-all duration-300 ${
+                                  className={`flex flex-col items-center gap-1 select-none cursor-pointer group shrink-0 p-4 min-w-[75px] transition-all duration-300 border ${
                                     isSelected 
-                                      ? 'border-[#C5A059] bg-[#C5A059]/5 text-[#C5A059] shadow-[0_0_15px_rgba(184,155,73,0.05)]' 
-                                      : 'border-white/[0.04] bg-white/[0.01] text-zinc-500 hover:border-zinc-800 hover:text-white'
+                                      ? 'border-[#C5A059] bg-[#C5A059]/[0.04] text-[#C5A059]' 
+                                      : 'border-white/[0.06] bg-[#111111] text-zinc-500 hover:border-white/[0.12] hover:text-white'
                                   }`}
                                 >
                                   <span className="text-[9px] font-bold tracking-widest uppercase">{day.dayName}</span>
@@ -597,52 +611,56 @@ const AdminBooking: React.FC = () => {
                         </div>
 
                         <div className="space-y-8 pr-1 pb-0">
-                          {['Manhã', 'Tarde', 'Noite'].map((period) => {
-                            const periodSlots = TIME_SLOTS.filter(time => getPeriod(time) === period);
-                            if (periodSlots.length === 0) return null;
+                          {selectedDate ? (
+                            ['Manhã', 'Tarde', 'Noite'].map((period) => {
+                              const periodSlots = TIME_SLOTS.filter(time => getPeriod(time) === period);
+                              if (periodSlots.length === 0) return null;
 
-                            return (
-                              <div key={period} className="flex flex-col gap-3">
-                                <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] pl-0.5">
-                                  Turno da {period}
-                                </span>
-                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                                  {periodSlots.map(time => {
-                                    const occupied = isOccupied(time);
-                                    const isSelected = selectedTime === time;
-                                    return (
-                                      <button
-                                        key={time}
-                                        type="button"
-                                        disabled={occupied}
-                                        onClick={() => setSelectedTime(time)}
-                                        className={`py-4 border text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                                          occupied 
-                                            ? 'text-zinc-800/10 border-transparent cursor-not-allowed line-through opacity-20 bg-transparent' 
-                                            : isSelected 
-                                              ? 'text-[#C5A059] border-[#C5A059] bg-[#C5A059]/5 font-black shadow-[0_0_15px_rgba(184,155,73,0.05)]' 
-                                              : 'text-zinc-400 border-white/[0.04] hover:border-zinc-800 hover:text-white bg-transparent'
-                                        }`}
-                                      >
-                                        {time}
-                                      </button>
-                                    );
-                                  })}
+                              return (
+                                <div key={period} className="flex flex-col gap-3">
+                                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] pl-0.5">
+                                    Turno da {period}
+                                  </span>
+                                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                                    {periodSlots.map(time => {
+                                      const occupied = isOccupied(time);
+                                      const isSelected = selectedTime === time;
+                                      return (
+                                        <button
+                                          key={time}
+                                          type="button"
+                                          disabled={occupied}
+                                          onClick={() => setSelectedTime(time)}
+                                          className={`py-4 border text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                                            occupied 
+                                              ? 'text-zinc-800/10 border-transparent cursor-not-allowed line-through opacity-20 bg-transparent' 
+                                              : isSelected 
+                                                ? 'text-[#C5A059] border-[#C5A059] bg-[#C5A059]/[0.04] font-black' 
+                                                : 'text-zinc-400 border-white/[0.06] bg-[#111111] hover:border-white/[0.12] hover:text-white'
+                                          }`}
+                                        >
+                                          {time}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })}
+                              );
+                            })
+                          ) : (
+                            <p className="text-zinc-500 text-xs py-4 text-center">Selecione um dia da semana acima para ver os horários disponíveis.</p>
+                          )}
                         </div>
 
-                        <div className="pt-6 border-t border-white/[0.02]">
+                        <div className="pt-6 border-t border-white/[0.04]">
                           <button
                             type="button"
                             onClick={handleFinish}
                             disabled={isSubmitting || !selectedTime || !isStepValid(1) || !isStepValid(2) || !isStepValid(3)}
-                            className={`px-10 py-4 text-xs font-black uppercase tracking-[0.3em] transition-all duration-300 rounded-none cursor-pointer ${
+                            className={`px-10 py-4 text-xs font-bold uppercase tracking-[0.3em] transition-all duration-300 cursor-pointer ${
                               isSubmitting || !selectedTime || !isStepValid(1) || !isStepValid(2) || !isStepValid(3)
-                                ? 'bg-zinc-950 text-zinc-600 border border-white/[0.03] opacity-30 cursor-not-allowed'
-                                : 'bg-white text-black hover:bg-[#C5A059] hover:text-black shadow-[0_0_35px_rgba(255,255,255,0.03)] hover:shadow-[0_0_35px_rgba(184,155,73,0.15)] active:scale-[0.98]'
+                                ? 'bg-[#111111] text-zinc-600 border border-white/[0.04] opacity-30 cursor-not-allowed'
+                                : 'bg-white text-black hover:bg-[#C5A059] hover:text-black active:scale-[0.98]'
                             }`}
                           >
                             {isSubmitting ? 'CONFIRMANDO...' : rescheduleBooking ? 'CONFIRMAR REAGENDAMENTO' : 'FINALIZAR RESERVA'}
@@ -655,7 +673,7 @@ const AdminBooking: React.FC = () => {
               </div>
             </div>
 
-            {/* RIGHT SIDE: LUXURY LIVE SUMMARY PANEL */}
+            {/* RIGHT SIDE: Booking Summary Panel */}
             <BookingSummaryPanel
               selectedClient={selectedClient}
               newClient={newClient}
@@ -667,16 +685,16 @@ const AdminBooking: React.FC = () => {
           </div>
         </main>
 
-        {/* Subtle Luxury Mini Footer */}
-        <footer className="w-full max-w-7xl mx-auto px-6 md:px-12 pt-8 pb-8 mt-auto border-t border-white/[0.03] flex justify-center items-center gap-4 text-zinc-600 relative z-10">
-          <p className="text-[9px] font-bold uppercase tracking-[0.3em] font-sans">
-            © 2026 BLACK DIAMOND — TODOS OS DIREITOS RESERVADOS.
+        {/* Minimal Footer */}
+        <footer className="w-full max-w-7xl mx-auto px-10 pt-8 pb-8 mt-auto border-t border-white/[0.04] flex justify-center items-center gap-4 relative z-10">
+          <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-zinc-600">
+            © 2026 BLACK DIAMOND — TODOS OS DIREITOS RESERVADOS
           </p>
         </footer>
       </div>
 
       {/* MOBILE LAYOUT - APP-LIKE FIXED VIEWPORT */}
-      <div className="lg:hidden flex-1 flex flex-col relative z-10 overflow-hidden h-[calc(100dvh-72px)] bg-[#121212]">
+      <div className="lg:hidden flex-1 flex flex-col relative z-10 overflow-hidden h-[calc(100dvh-60px)] bg-[#121212]">
         {/* Custom Mobile Header */}
         <header className="px-6 py-5 flex items-center gap-4 shrink-0">
           <button 
@@ -952,29 +970,33 @@ const AdminBooking: React.FC = () => {
                 </div>
 
                 <div className="space-y-3 overflow-y-auto flex-1 scrollbar-hide pb-28">
-                  <div className="grid grid-cols-4 gap-2">
-                    {TIME_SLOTS.map(time => {
-                      const occupied = isOccupied(time);
-                      const isSelected = selectedTime === time;
-                      return (
-                        <button
-                          key={time}
-                          type="button"
-                          disabled={occupied}
-                          onClick={() => setSelectedTime(time)}
-                          className={`py-3 border text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer rounded-none ${
-                            occupied 
-                              ? 'text-zinc-800/10 border-transparent cursor-not-allowed line-through opacity-20 bg-transparent' 
-                              : isSelected 
-                                ? 'text-[#C5A059] border-[#C5A059] bg-[#C5A059]/5 font-black shadow-[0_0_15px_rgba(184,155,73,0.05)]' 
-                                : 'text-zinc-400 border-white/[0.04] hover:border-zinc-800 hover:text-white bg-transparent'
-                          }`}
-                        >
-                          {time}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  {selectedDate ? (
+                    <div className="grid grid-cols-4 gap-2">
+                      {TIME_SLOTS.map(time => {
+                        const occupied = isOccupied(time);
+                        const isSelected = selectedTime === time;
+                        return (
+                          <button
+                            key={time}
+                            type="button"
+                            disabled={occupied}
+                            onClick={() => setSelectedTime(time)}
+                            className={`py-3 border text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer rounded-none ${
+                              occupied 
+                                ? 'text-zinc-800/10 border-transparent cursor-not-allowed line-through opacity-20 bg-transparent' 
+                                : isSelected 
+                                  ? 'text-[#C5A059] border-[#C5A059] bg-[#C5A059]/5 font-black shadow-[0_0_15px_rgba(184,155,73,0.05)]' 
+                                  : 'text-zinc-400 border-white/[0.04] hover:border-zinc-800 hover:text-white bg-transparent'
+                            }`}
+                          >
+                            {time}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-zinc-500 text-xs py-6 text-center">Selecione um dia acima para ver os horários disponíveis.</p>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -983,7 +1005,7 @@ const AdminBooking: React.FC = () => {
 
         {/* Floating Action Button Footer */}
         {((currentStep === 1 && (selectedClient || newClient.name)) || selectedServices.length > 0) && (
-          <div className="absolute bottom-[72px] left-0 right-0 px-6 py-4 bg-gradient-to-t from-[#121212] via-[#121212]/98 to-transparent z-[90] flex flex-col items-center gap-2.5">
+          <div className="absolute bottom-[60px] left-0 right-0 px-6 py-4 bg-gradient-to-t from-[#121212] via-[#121212]/98 to-transparent z-[90] flex flex-col items-center gap-2.5">
             <button 
               onClick={() => currentStep < 3 ? handleNextStep() : handleFinish()}
               disabled={!isStepValid(currentStep) || isSubmitting}
@@ -993,7 +1015,7 @@ const AdminBooking: React.FC = () => {
                   : 'bg-white text-black hover:bg-[#C5A059] hover:text-black shadow-lg shadow-white/5'
               }`}
             >
-              <span>{isSubmitting ? 'CONFIRMANDO...' : rescheduleBooking ? 'CONFIRMAR REAGENDAMENTO' : currentStep < 3 ? 'AVANÇAR' : 'CONFIRMAR AGENDAMENTO'}</span>
+              <span>{isSubmitting ? 'CONFIRMANDO...' : rescheduleBooking ? 'CONFIRMAR REAGENDAMENTO' : currentStep < 3 ? 'CONTINUAR' : 'CONFIRMAR AGENDAMENTO'}</span>
               {!isSubmitting && <ChevronRight size={12} />}
             </button>
           </div>

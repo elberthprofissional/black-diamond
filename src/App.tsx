@@ -9,7 +9,6 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdminWeekly = lazy(() => import('./pages/AdminWeekly'));
 const AdminClients = lazy(() => import('./pages/AdminClients'));
 const AdminAvailableSlots = lazy(() => import('./pages/AdminAvailableSlots'));
-const AdminSettings = lazy(() => import('./pages/AdminSettings'));
 const AdminProfile = lazy(() => import('./pages/AdminProfile'));
 const AdminBooking = lazy(() => import('./pages/AdminBooking'));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -38,7 +37,6 @@ function App() {
             <Route path="/admin/weekly" element={<AuthGuard><AdminWeekly /></AuthGuard>} />
             <Route path="/admin/clients" element={<AuthGuard><AdminClients /></AuthGuard>} />
             <Route path="/admin/available" element={<AuthGuard><AdminAvailableSlots /></AuthGuard>} />
-            <Route path="/admin/settings" element={<AuthGuard><AdminSettings /></AuthGuard>} />
             <Route path="/admin/profile" element={<AuthGuard><AdminProfile /></AuthGuard>} />
             
             {/* Catch-all 404 Route */}

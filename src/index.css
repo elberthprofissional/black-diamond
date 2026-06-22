@@ -19,11 +19,9 @@
 @layer base {
   html {
     @apply scroll-smooth;
-    overscroll-behavior: contain;
   }
   body {
     @apply bg-[#0f0f0f] text-white font-sans antialiased selection:bg-gold-600 selection:text-white overflow-x-hidden;
-    overscroll-behavior-y: contain;
   }
   
   h1, h2, h3, h4, h5, h6 {

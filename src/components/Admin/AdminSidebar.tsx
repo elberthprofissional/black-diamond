@@ -3,27 +3,27 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users, ChevronDown, User, LogOut, Clock } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
-
+ 
 const AdminSidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const handleLogout = useAdminLogout();
-
+ 
   const isActive = (path: string) => location.pathname === path;
-
+ 
   const mainMenuItems = [
     { label: 'Agenda do Dia', path: '/admin', icon: Clock },
     { label: 'Agenda Semanal', path: '/admin/weekly', icon: Calendar },
     { label: 'Meus Clientes', path: '/admin/clients', icon: Users },
   ];
-
+ 
   return (
-    <aside className="hidden lg:flex flex-col w-[320px] h-screen fixed left-0 top-0 bg-[#0A0A0A] border-r border-white/5 z-[100] font-sans">
+    <aside className="hidden lg:flex flex-col w-[260px] h-screen fixed left-0 top-0 bg-[#0A0A0A] border-r border-white/5 z-[100] font-sans">
       
       {/* 1. BRANDING - HIGH END UTILITY */}
-      <div className="h-28 flex items-center px-10">
+      <div className="h-28 flex items-center px-6">
         <div 
           className="flex items-center gap-4 cursor-pointer" 
           onClick={() => navigate('/admin')}
@@ -38,7 +38,7 @@ const AdminSidebar: React.FC = () => {
           </div>
         </div>
       </div>
-
+ 
       {/* 2. NAVIGATION - SaaS STYLE */}
       <div className="flex-1 px-6 py-4 overflow-y-auto scrollbar-hide space-y-8">
         <div>
@@ -72,7 +72,7 @@ const AdminSidebar: React.FC = () => {
                   <span className={`text-[11px] font-bold tracking-wide ${active ? 'text-white' : 'text-zinc-500'}`}>
                     {item.label}
                   </span>
-
+ 
                   {active && (
                      <div className="ml-auto w-1 h-1 rounded-full bg-[#C5A059] shadow-[0_0_8px_#C5A059]" />
                   )}
@@ -82,7 +82,7 @@ const AdminSidebar: React.FC = () => {
           </nav>
         </div>
       </div>
-
+ 
       {/* 3. PROFILE & SYSTEM ACTIONS */}
       <div className="mt-auto border-t border-white/5 p-6">
         <div className="relative">
@@ -104,14 +104,14 @@ const AdminSidebar: React.FC = () => {
             </div>
             <ChevronDown size={14} className={`text-zinc-700 transition-transform duration-300 ${isProfileOpen ? 'rotate-180 text-white' : 'group-hover:text-zinc-400'}`} />
           </button>
-
+ 
           <AnimatePresence>
             {isProfileOpen && (
               <motion.div 
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute bottom-full left-0 right-0 mb-2 bg-[#0C0C0E] border border-white/5 p-1.5 rounded-xl shadow-2xl backdrop-blur-xl z-[120]"
+                className="absolute bottom-full left-0 right-0 mb-2 bg-[#0C0C0E] border border-white/5 p-1.5 rounded-xl shadow-2xl backdrop-blur-xl z-[120] space-y-0.5"
               >
                 <button 
                   onClick={() => { setIsProfileOpen(false); navigate('/admin/profile'); }}

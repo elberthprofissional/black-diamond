@@ -1,70 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, User, LogOut, Download, Check } from 'lucide-react';
+import { ChevronDown, User, LogOut } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-}
-
+ 
 const AdminNavbar: React.FC = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [showInstallConfirm, setShowInstallConfirm] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled] = useState(() => 
-    window.matchMedia('(display-mode: standalone)').matches || 
-    (navigator as unknown as { standalone?: boolean }).standalone === true
-  );
   const handleLogout = useAdminLogout();
-
-  useEffect(() => {
-    if (isInstalled) return;
-
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-  }, [isInstalled]);
-
-  const handleInstall = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setShowInstallConfirm(false);
-    }
-    setDeferredPrompt(null);
-  };
-
+ 
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 h-16 bg-[#0E0E0E]/90 backdrop-blur-md border-b border-white/[0.06] z-[100] px-6 lg:hidden">
         <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
-          {/* Logo & Brand */}
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate('/admin')}>
             <img src="/assets/logo.webp" alt="Logo" className="w-10 h-10 object-contain" />
             <span className="text-[11px] font-black uppercase tracking-[0.3em] text-white">Black Diamond</span>
           </div>
-
-          {/* Profile Dropdown */}
+ 
           <div className="relative">
-            <button 
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex items-center gap-2 group"
-            >
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center gap-2 group">
               <div className="w-8 h-8 rounded-full overflow-hidden border border-white/[0.08] group-hover:border-[#C5A059]/30 transition-all">
-                 <img src="/assets/barbeiro.webp" alt="Tato" className="w-full h-full object-cover" />
+                <img src="/assets/barbeiro.webp" alt="Tato" className="w-full h-full object-cover" />
               </div>
               <ChevronDown size={10} className={`text-zinc-600 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`} />
             </button>
-
+ 
             <AnimatePresence>
               {isMenuOpen && (
                 <>
@@ -74,24 +36,14 @@ const AdminNavbar: React.FC = () => {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.96 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-52 bg-[#161618] border border-white/[0.06] rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-50 overflow-hidden"
+                    className="absolute right-0 mt-2 w-48 bg-[#161618] border border-white/[0.06] rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-50 overflow-hidden"
                   >
-                    <div className="p-2">
+                    <div className="p-2 space-y-1">
                       <button 
                         onClick={() => { navigate('/admin/profile'); setIsMenuOpen(false); }}
                         className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-bold text-zinc-300 hover:text-white hover:bg-white/[0.04] rounded-lg transition-all"
                       >
                         <User size={13} className="text-zinc-500" /> Meu Perfil
-                      </button>
-                    </div>
-                    <div className="h-px bg-white/[0.04]" />
-                    <div className="p-2">
-                      <button 
-                        onClick={() => { setIsMenuOpen(false); setShowInstallConfirm(true); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-bold text-zinc-300 hover:text-white hover:bg-white/[0.04] rounded-lg transition-all"
-                      >
-                        {isInstalled ? <Check size={13} className="text-emerald-500" /> : <Download size={13} className="text-zinc-500" />}
-                        {isInstalled ? 'App Instalado' : 'Instalar App'}
                       </button>
                     </div>
                     <div className="h-px bg-white/[0.04]" />
@@ -111,78 +63,10 @@ const AdminNavbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* INSTALL CONFIRMATION MODAL */}
-      <AnimatePresence>
-        {showInstallConfirm && (
-          <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }}
-              onClick={() => setShowInstallConfirm(false)}
-              className="absolute inset-0 bg-black/60"
-            />
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.2 }}
-              className="relative z-10 w-full sm:w-[260px] bg-[#1A1A1A] sm:rounded-2xl rounded-t-2xl overflow-hidden"
-            >
-              {isInstalled ? (
-                <>
-                  <div className="p-5 text-center">
-                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-3">
-                      <Check size={16} className="text-emerald-500" />
-                    </div>
-                    <p className="text-[11px] text-zinc-300 font-medium">App já instalado</p>
-                    <p className="text-[9px] text-zinc-600 mt-1">Acesse pela tela inicial</p>
-                  </div>
-                  <div className="border-t border-white/[0.06]">
-                    <button 
-                      onClick={() => setShowInstallConfirm(false)}
-                      className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
-                    >
-                      Fechar
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="p-5 text-center">
-                    <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-3">
-                      <Download size={16} className="text-[#C5A059]" />
-                    </div>
-                    <p className="text-[11px] text-zinc-300 font-medium">Instalar aplicativo?</p>
-                    <p className="text-[9px] text-zinc-600 mt-1">Acesso rápido na tela inicial</p>
-                  </div>
-                  <div className="border-t border-white/[0.06]">
-                    <button 
-                      onClick={handleInstall}
-                      className="w-full py-3.5 text-[11px] font-bold text-[#C5A059] active:bg-white/[0.03] transition-colors cursor-pointer"
-                    >
-                      Instalar
-                    </button>
-                  </div>
-                  <div className="border-t border-white/[0.06]">
-                    <button 
-                      onClick={() => setShowInstallConfirm(false)}
-                      className="w-full py-3.5 text-[11px] font-bold text-zinc-400 active:bg-white/[0.03] transition-colors cursor-pointer"
-                    >
-                      Agora não
-                    </button>
-                  </div>
-                </>
-              )}
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
       {/* LOGOUT CONFIRMATION MODAL */}
       <AnimatePresence>
         {showLogoutConfirm && (
-          <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
             <motion.div 
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 
@@ -191,11 +75,11 @@ const AdminNavbar: React.FC = () => {
               className="absolute inset-0 bg-black/60"
             />
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="relative z-10 w-full sm:w-[260px] bg-[#1A1A1A] sm:rounded-2xl rounded-t-2xl overflow-hidden"
+              className="relative z-10 w-full max-w-[260px] bg-[#1A1A1A] rounded-2xl overflow-hidden"
             >
               <div className="p-5 text-center">
                 <p className="text-[11px] text-zinc-300 font-medium">Sair da conta?</p>
@@ -225,4 +109,3 @@ const AdminNavbar: React.FC = () => {
 };
 
 export default AdminNavbar;
-

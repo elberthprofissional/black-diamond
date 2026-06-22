@@ -1,10 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getBookings, getServices, getClients } from '../lib/api';
 import type { Booking, Service, Client } from '../types';
-import { Download, Check } from 'lucide-react';
+import { 
+  Download, 
+  Check, 
+  Eye, 
+  EyeOff, 
+  Clock, 
+  Calendar, 
+  Users, 
+  LogOut, 
+  TrendingUp,
+  Sparkles,
+  Scissors,
+  DollarSign,
+  UserPlus
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
 import { useAdminLogout } from '../hooks/useAdminLogout';
+import ToastNotification from '../components/Admin/shared/ToastNotification';
+import { useToast } from '../hooks/useToast';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -17,27 +34,36 @@ const AdminProfile: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'week' | 'month'>('week');
+  const [showBalance, setShowBalance] = useState(() => localStorage.getItem('barber_show_balance') !== 'false');
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled] = useState(() => 
+  const [isInstalled, setIsInstalled] = useState(() => 
     window.matchMedia('(display-mode: standalone)').matches || 
     (navigator as unknown as { standalone?: boolean }).standalone === true
   );
 
+  const navigate = useNavigate();
   const handleLogout = useAdminLogout();
+  const { toast, showSuccess, showError } = useToast();
+
+  useEffect(() => {
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+      setShowInstallPrompt(false);
+    };
+    window.addEventListener('appinstalled', handleAppInstalled);
+    return () => window.removeEventListener('appinstalled', handleAppInstalled);
+  }, []);
 
   useEffect(() => {
     if (isInstalled) return;
 
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (!isMobile) return;
-
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowInstallPrompt(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -49,7 +75,11 @@ const AdminProfile: React.FC = () => {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
+      setIsInstalled(true);
       setShowInstallPrompt(false);
+      showSuccess('Aplicativo instalado com sucesso!');
+    } else {
+      showError('Instalação cancelada.');
     }
     setDeferredPrompt(null);
   };
@@ -74,6 +104,13 @@ const AdminProfile: React.FC = () => {
     fetchData();
   }, []);
 
+  const toggleBalance = () => {
+    setShowBalance(prev => {
+      localStorage.setItem('barber_show_balance', String(!prev));
+      return !prev;
+    });
+  };
+
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfWeek = new Date(now);
@@ -90,23 +127,36 @@ const AdminProfile: React.FC = () => {
   let concluidosSemana = 0;
   const serviceCountsSemana: Record<string, number> = {};
 
-  bookings.forEach(b => {
+  (bookings || []).forEach(b => {
+    if (!b || !b.booking_date) return;
     const date = new Date(b.booking_date);
-    if (b.status !== 'cancelled') lucroTotal += Number(b.total_price);
+    if (isNaN(date.getTime())) return;
+
+    const price = Number(b.total_price || 0);
+
+    if (b.status !== 'cancelled') lucroTotal += price;
     if (date >= startOfMonth) {
       if (b.status === 'cancelled') canceladosMes++;
       else {
-        lucroMes += Number(b.total_price);
+        lucroMes += price;
         concluidosMes++;
-        b.service_ids?.forEach(id => { serviceCountsMes[id] = (serviceCountsMes[id] || 0) + 1; });
+        if (Array.isArray(b.service_ids)) {
+          b.service_ids.forEach(id => {
+            if (id) serviceCountsMes[id] = (serviceCountsMes[id] || 0) + 1;
+          });
+        }
       }
     }
     if (date >= startOfWeek) {
       if (b.status === 'cancelled') canceladosSemana++;
       else {
-        lucroSemana += Number(b.total_price);
+        lucroSemana += price;
         concluidosSemana++;
-        b.service_ids?.forEach(id => { serviceCountsSemana[id] = (serviceCountsSemana[id] || 0) + 1; });
+        if (Array.isArray(b.service_ids)) {
+          b.service_ids.forEach(id => {
+            if (id) serviceCountsSemana[id] = (serviceCountsSemana[id] || 0) + 1;
+          });
+        }
       }
     }
   });
@@ -115,132 +165,317 @@ const AdminProfile: React.FC = () => {
   const currentCancelados = timeRange === 'week' ? canceladosSemana : canceladosMes;
   
   const currentServiceCounts = timeRange === 'week' ? serviceCountsSemana : serviceCountsMes;
-  const topServices = services
+  const topServices = (services || [])
+    .filter(srv => srv && srv.id && srv.name)
     .map(srv => ({
       name: srv.name,
       count: currentServiceCounts[srv.id] || 0
     }))
     .sort((a, b) => b.count - a.count);
 
-  const clientesNovosMes = clients.filter(c => new Date(c.created_at) >= startOfMonth).length;
-  const clientesNovosSemana = clients.filter(c => new Date(c.created_at) >= startOfWeek).length;
+  const clientesNovosMes = (clients || []).filter(c => {
+    if (!c || !c.created_at) return false;
+    if (c.name === 'BLOQUEADO' || c.phone === '00000000000') return false;
+    const date = new Date(c.created_at);
+    return !isNaN(date.getTime()) && date >= startOfMonth;
+  }).length;
+
+  const clientesNovosSemana = (clients || []).filter(c => {
+    if (!c || !c.created_at) return false;
+    if (c.name === 'BLOQUEADO' || c.phone === '00000000000') return false;
+    const date = new Date(c.created_at);
+    return !isNaN(date.getTime()) && date >= startOfWeek;
+  }).length;
   const currentNovos = timeRange === 'week' ? clientesNovosSemana : clientesNovosMes;
 
+
+
   const greeting = new Date().getHours() < 12 ? 'Bom dia' : new Date().getHours() < 18 ? 'Boa tarde' : 'Boa noite';
+  const greetingMobile = new Date().getHours() < 12 ? 'Bom dia' : new Date().getHours() < 18 ? 'Boa tarde' : 'Boa noite';
 
   if (loading) return (
-    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center font-sans">
-      <div className="w-4 h-4 border-2 border-white/5 border-t-[#C5A059] rounded-full animate-spin" />
+    <div className="min-h-screen bg-[#000000] flex items-center justify-center font-sans">
+      <div className="w-5 h-5 border-2 border-white/5 border-t-[#C5A059] rounded-full animate-spin" />
     </div>
   );
 
+  const quickActions = [
+    { label: 'Hoje', icon: Clock, onClick: () => navigate('/admin') },
+    { label: 'Semana', icon: Calendar, onClick: () => navigate('/admin/weekly') },
+    { label: 'Clientes', icon: Users, onClick: () => navigate('/admin/clients') },
+    { label: 'Aplicativo', icon: Download, onClick: () => setShowInstallPrompt(true) },
+    { label: 'Sair', icon: LogOut, onClick: () => setShowLogoutConfirm(true) },
+  ];
+
   return (
     <AdminLayout 
-      wrapperClassName="min-h-screen bg-[#0A0A0A] text-white font-sans flex overflow-hidden selection:bg-[#C5A059]/30 relative"
-      innerClassName="flex-1 lg:ml-[320px] flex flex-col min-h-screen overflow-y-auto scrollbar-hide bg-[#0A0A0A] z-10"
-      mainClassName="flex-1 w-full px-5 sm:px-8 lg:px-12 pt-24 lg:pt-8 pb-28 space-y-5 text-left"
+      mainClassName="flex-1 w-full px-5 sm:px-8 lg:px-12 pt-20 lg:pt-8 pb-24 lg:pb-12 space-y-6 text-left max-w-7xl mx-auto font-sans"
     >
-          
-          {/* 1. HEADER - Perfil */}
-          <div className="flex items-center gap-4 py-2">
-            <div className="relative shrink-0">
-              <img 
-                src="/assets/barbeiro.webp"
-                alt="Tato" 
-                className="w-14 h-14 lg:w-16 lg:h-16 rounded-full object-cover" 
-              />
-              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#0A0A0A] rounded-full" />
-            </div>
-            <div className="flex-1">
-              <h1 className="text-base lg:text-lg font-bold text-white tracking-tight">{greeting}, Tato</h1>
-              <p className="text-[9px] text-zinc-500 uppercase tracking-widest mt-0.5">Barbeiro Administrador</p>
-            </div>
-            <button
-              onClick={() => setShowLogoutConfirm(true)}
-              className="px-3 py-1.5 text-[9px] font-bold text-zinc-500 hover:text-red-400 border border-white/[0.06] hover:border-red-500/20 rounded-lg uppercase tracking-wider transition-all cursor-pointer shrink-0"
-            >
-              Sair
-            </button>
+      
+      {/* ========================================================================= */}
+      {/* 1. DESKTOP LAYOUT (Original layout restored) */}
+      {/* ========================================================================= */}
+      <div className="hidden lg:flex flex-col gap-6">
+        
+        {/* Header */}
+        <div className="flex items-center gap-4 py-2 border-b border-white/5 pb-5">
+          <div className="relative shrink-0">
+            <img 
+              src="/assets/barbeiro.webp"
+              alt="Tato" 
+              className="w-16 h-16 rounded-full object-cover" 
+            />
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-[#0A0A0A] rounded-full" />
           </div>
-
-          {/* 1.5 INSTALAR APP (mobile only) */}
+          <div className="flex-1">
+            <h1 className="text-lg font-bold text-white tracking-tight">{greeting}, Tato</h1>
+            <p className="text-[9px] text-zinc-500 uppercase tracking-widest mt-0.5">Barbeiro Administrador</p>
+          </div>
           <button
-            onClick={() => setShowInstallPrompt(true)}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-[10px] font-bold text-zinc-400 hover:text-[#C5A059] hover:border-[#C5A059]/20 transition-all cursor-pointer lg:hidden"
+            onClick={() => setShowLogoutConfirm(true)}
+            className="px-3 py-1.5 text-[9px] font-bold text-zinc-500 hover:text-red-400 border border-white/[0.06] hover:border-red-500/20 rounded-lg uppercase tracking-wider transition-all cursor-pointer shrink-0"
           >
-            <Download size={13} />
-            {isInstalled ? 'App Instalado' : 'Instalar Aplicativo'}
+            Sair
           </button>
+        </div>
 
-          {/* 2. FATURAMENTO TOTAL */}
-          <div className="lg:bg-[#111111] lg:border lg:border-white/5 lg:rounded-2xl lg:p-5">
-            <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">Faturamento Total</span>
-            <p className="text-3xl font-black text-white tracking-tight">
-              <span className="text-sm font-bold text-[#C5A059] mr-1">R$</span>
-              {lucroTotal.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-            </p>
-          </div>
 
-          {/* 2. SWITCHER */}
-          <div className="flex items-center justify-between">
-            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Análise da Barbearia</span>
-            <div className="flex gap-4">
-              <button 
-                onClick={() => setTimeRange('week')}
-                className={`relative pb-2 text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${timeRange === 'week' ? 'text-[#C5A059]' : 'text-zinc-500 hover:text-zinc-300'}`}
-              >
-                {timeRange === 'week' && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#C5A059] rounded-full" />}
-                Semana
-              </button>
-              <button 
-                onClick={() => setTimeRange('month')}
-                className={`relative pb-2 text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${timeRange === 'month' ? 'text-[#C5A059]' : 'text-zinc-500 hover:text-zinc-300'}`}
-              >
-                {timeRange === 'month' && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#C5A059] rounded-full" />}
-                Mês
-              </button>
-            </div>
-          </div>
+        <p className="text-[11px] text-zinc-500">Aqui está o resumo da sua barbearia hoje.</p>
 
-          {/* 3. MÉTRICAS - 4 colunas */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="bg-[#111111] border border-white/5 rounded-xl p-4">
-              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">
-                {timeRange === 'week' ? 'Faturamento Semanal' : 'Faturamento Mensal'}
-              </span>
-              <p className="text-xl font-black text-[#C5A059] tracking-tight tabular-nums">
-                R$ {(timeRange === 'week' ? lucroSemana : lucroMes).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-              </p>
-            </div>
-            <div className="bg-[#111111] border border-white/5 rounded-xl p-4">
+        {/* Faturamento Total */}
+        <div className="bg-[#111111] border border-white/5 rounded-2xl p-5">
+          <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">Faturamento Total</span>
+          <p className="text-3xl font-black text-white tracking-tight">
+            <span className="text-sm font-bold text-[#C5A059] mr-1">R$</span>
+            {lucroTotal.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+          </p>
+        </div>
+
+        {/* Dashboard grid metrics - Semana + Mês */}
+        <div className="grid grid-cols-6 gap-3">
+          <div className="col-span-1 bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
+            <Scissors size={22} className="text-[#C5A059]/30" />
+            <div>
               <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">Atendimentos</span>
               <p className="text-xl font-black text-white tracking-tight tabular-nums">{currentConcluidos}</p>
             </div>
-            <div className="bg-[#111111] border border-white/5 rounded-xl p-4">
-              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">Novos Clientes</span>
+          </div>
+          <div className="col-span-2 bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
+            <DollarSign size={22} className="text-[#C5A059]/30" />
+            <div>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">Faturamento Semanal</span>
+              <p className="text-xl font-black text-[#C5A059] tracking-tight tabular-nums">
+                R$ {lucroSemana.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              </p>
+            </div>
+          </div>
+          <div className="col-span-2 bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
+            <DollarSign size={22} className="text-[#C5A059]/30" />
+            <div>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">Faturamento Mensal</span>
+              <p className="text-xl font-black text-[#C5A059] tracking-tight tabular-nums">
+                R$ {lucroMes.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              </p>
+            </div>
+          </div>
+          <div className="col-span-1 bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
+            <UserPlus size={22} className="text-[#C5A059]/30" />
+            <div>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">Clientes</span>
               <p className="text-xl font-black text-white tracking-tight tabular-nums">{currentNovos}</p>
             </div>
-            <div className="bg-[#111111] border border-white/5 rounded-xl p-4">
-              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">Cancelados</span>
-              <p className="text-xl font-black text-red-500/60 tracking-tight tabular-nums">{currentCancelados}</p>
+          </div>
+        </div>
+
+
+
+        {/* Services analytics */}
+        <div className="bg-[#111111] border border-white/5 rounded-2xl p-5">
+          <h2 className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4">Serviços mais vendidos no mês</h2>
+          {topServices.length > 0 && topServices.some(s => s.count > 0) ? (
+            <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+              {topServices.filter(s => s.count > 0).map((srv, idx) => {
+                const maxCount = Math.max(...topServices.map(s => s.count));
+                const percentage = maxCount > 0 ? (srv.count / maxCount) * 100 : 0;
+                return (
+                  <div key={idx} className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-zinc-300">{srv.name}</span>
+                      <span className="text-[10px] font-black text-[#C5A059] tabular-nums">{srv.count}x</span>
+                    </div>
+                    <div className="h-1 bg-white/[0.04] rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-[#C5A059] rounded-full transition-all duration-500" 
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-[9px] text-zinc-600 uppercase tracking-widest text-center py-6">Nenhum serviço no período</p>
+          )}
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 2. MOBILE LAYOUT (Nubank style layout, but customized with Site Dark & Gold Colors) */}
+      {/* ========================================================================= */}
+      <div className="lg:hidden flex flex-col gap-6 max-w-md mx-auto">
+        
+        {/* NUBANK STYLE HEADER - BLACK & GOLD */}
+        <div className="bg-[#161616] border border-white/5 px-6 pt-6 pb-8 rounded-b-[24px] text-white flex flex-col gap-6 relative overflow-hidden shadow-lg shadow-black/40">
+          
+          {/* Subtle gold decoration bubble background */}
+          <div className="absolute top-[-50px] right-[-50px] w-[150px] h-[150px] bg-[#C5A059]/5 rounded-full blur-2xl pointer-events-none" />
+          
+          <div className="flex items-center justify-between">
+            <div className="w-12 h-12 rounded-full overflow-hidden border border-white/[0.08] bg-white/[0.03] shrink-0">
+              <img 
+                src="/assets/barbeiro.webp"
+                alt="Tato" 
+                className="w-full h-full object-cover" 
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={toggleBalance} 
+                className="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center transition-all cursor-pointer text-zinc-400 hover:text-white"
+                aria-label={showBalance ? "Ocultar faturamento" : "Exibir faturamento"}
+              >
+                {showBalance ? <Eye size={20} /> : <EyeOff size={20} />}
+              </button>
             </div>
           </div>
 
-          {/* 4. Análise de Serviços */}
-          <div className="bg-[#111111] border border-white/5 rounded-2xl p-5">
-            <h2 className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4">Análise de Serviços</h2>
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold tracking-tight text-white">{greetingMobile}, Tato</h1>
+            <p className="text-[9px] text-[#C5A059] uppercase tracking-widest font-bold">Barbeiro Administrador</p>
+          </div>
+        </div>
+
+        <p className="text-[11px] text-zinc-500 px-1">Aqui está o resumo da sua barbearia hoje.</p>
+
+        {/* CONTA SECTION */}
+        <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 space-y-2 relative overflow-hidden">
+          <div className="space-y-1">
+            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Faturamento Total</p>
+            <div className="text-2xl font-bold text-white tracking-tight leading-none flex items-baseline">
+              {showBalance ? (
+                <>
+                  <span className="text-[#C5A059] font-bold text-sm mr-1">R$</span>
+                  <span>{lucroTotal.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                </>
+              ) : (
+                <span className="text-zinc-600 tracking-widest text-lg font-bold">••••</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* NUBANK STYLE HORIZONTAL ACTIONS ROW */}
+        <div className="space-y-2">
+          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest pl-1">Ações Rápidas</span>
+          <div className="flex gap-4 overflow-x-auto pb-2 -mx-5 px-5 scrollbar-hide snap-x">
+            {quickActions.map((action, idx) => {
+              const Icon = action.icon;
+              return (
+                <button 
+                  key={idx} 
+                  onClick={action.onClick}
+                  className="flex flex-col items-center gap-2 snap-center cursor-pointer shrink-0 group select-none"
+                >
+                  <div className="w-14 h-14 rounded-full bg-[#111111] hover:bg-[#161616] border border-white/5 group-hover:border-[#C5A059]/30 flex items-center justify-center text-zinc-400 group-hover:text-white transition-all">
+                    <Icon size={18} className="transition-transform group-hover:scale-110" />
+                  </div>
+                  <span className="text-[9px] font-bold text-zinc-500 group-hover:text-zinc-300 uppercase tracking-widest transition-colors">
+                    {action.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* SWITCHER FOR TIMEFRAME */}
+        <div className="flex items-center justify-between border-b border-white/[0.04] pb-2 pt-2">
+          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Resumo do Período</span>
+          <div className="flex gap-4">
+            <button 
+              onClick={() => setTimeRange('week')}
+              className={`relative pb-2 text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${timeRange === 'week' ? 'text-[#C5A059]' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+              {timeRange === 'week' && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#C5A059] rounded-full" />}
+              Semana
+            </button>
+            <button 
+              onClick={() => setTimeRange('month')}
+              className={`relative pb-2 text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${timeRange === 'month' ? 'text-[#C5A059]' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+              {timeRange === 'month' && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#C5A059] rounded-full" />}
+              Mês
+            </button>
+          </div>
+        </div>
+
+        {/* NUBANK STYLE FEATURES CARDS */}
+        <div className="space-y-4">
+          {/* Card 1: Resumo Financeiro */}
+          <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 space-y-4">
+            <div className="flex items-center gap-2 text-zinc-400">
+              <TrendingUp size={14} className="text-[#C5A059]" />
+              <span className="text-[10px] font-bold uppercase tracking-wider">Resultados da Barbearia</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 divide-x divide-white/[0.04]">
+              <div className="space-y-1">
+                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest block">Faturamento</span>
+                <div className="text-base font-bold text-[#C5A059] tabular-nums">
+                  {showBalance ? (
+                    `R$ ${(timeRange === 'week' ? lucroSemana : lucroMes).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+                  ) : (
+                    '••••'
+                  )}
+                </div>
+              </div>
+              <div className="space-y-1 pl-4">
+                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest block">Atendimentos</span>
+                <div className="text-base font-bold text-white tabular-nums">{currentConcluidos}</div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 divide-x divide-white/[0.04] pt-2 border-t border-white/[0.03]">
+              <div className="space-y-1">
+                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest block">Novos Clientes</span>
+                <div className="text-base font-bold text-white tabular-nums">{currentNovos}</div>
+              </div>
+              <div className="space-y-1 pl-4">
+                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest block">Cancelamentos</span>
+                <div className="text-base font-bold text-red-500/70 tabular-nums">{currentCancelados}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Análise de Serviços */}
+          <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 space-y-4">
+            <div className="flex items-center gap-2 text-zinc-400">
+              <Sparkles size={14} className="text-[#C5A059]" />
+              <span className="text-[10px] font-bold uppercase tracking-wider">Serviços Mais Vendidos</span>
+            </div>
+
             {topServices.length > 0 && topServices.some(s => s.count > 0) ? (
-              <div className="space-y-3">
+              <div className="space-y-3 pt-1">
                 {topServices.filter(s => s.count > 0).map((srv, idx) => {
                   const maxCount = Math.max(...topServices.map(s => s.count));
                   const percentage = maxCount > 0 ? (srv.count / maxCount) * 100 : 0;
                   return (
-                    <div key={idx} className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-zinc-300">{srv.name}</span>
-                        <span className="text-[10px] font-black text-[#C5A059] tabular-nums">{srv.count}x</span>
+                    <div key={idx} className="space-y-1">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-bold text-zinc-300">{srv.name}</span>
+                        <span className="font-bold text-[#C5A059] tabular-nums">{srv.count}x</span>
                       </div>
-                      <div className="h-1 bg-white/[0.04] rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-white/[0.03] rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-[#C5A059] rounded-full transition-all duration-500" 
                           style={{ width: `${percentage}%` }}
@@ -254,11 +489,13 @@ const AdminProfile: React.FC = () => {
               <p className="text-[9px] text-zinc-600 uppercase tracking-widest text-center py-6">Nenhum serviço no período</p>
             )}
           </div>
+        </div>
+      </div>
 
       {/* LOGOUT CONFIRMATION MODAL */}
       <AnimatePresence>
         {showLogoutConfirm && (
-          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
             <motion.div 
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 
@@ -267,11 +504,11 @@ const AdminProfile: React.FC = () => {
               className="absolute inset-0 bg-black/60"
             />
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-              className="relative z-10 w-full sm:w-[260px] bg-[#1A1A1A] sm:rounded-2xl rounded-t-2xl overflow-hidden"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="relative z-10 w-full max-w-[260px] bg-[#1A1A1A] border border-white/5 rounded-2xl overflow-hidden"
             >
               <div className="p-5 text-center">
                 <p className="text-[11px] text-zinc-300 font-medium">Sair da conta?</p>
@@ -313,7 +550,7 @@ const AdminProfile: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="relative z-10 w-full max-w-[280px] bg-[#1A1A1A] rounded-2xl overflow-hidden"
+              className="relative z-10 w-full max-w-[280px] bg-[#1A1A1A] border border-white/5 rounded-2xl overflow-hidden"
             >
               {isInstalled ? (
                 <>
@@ -382,7 +619,8 @@ const AdminProfile: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
-      
+
+      <ToastNotification toast={toast} />
     </AdminLayout>
   );
 };

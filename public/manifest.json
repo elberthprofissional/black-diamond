@@ -1,12 +1,14 @@
 {
   "name": "Black Diamond Barbearia",
   "short_name": "Black Diamond",
+  "id": "black-diamond-barbearia-pwa",
   "description": "Agendamento rápido e fácil na Black Diamond.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0A0A0A",
   "theme_color": "#0A0A0A",
   "orientation": "portrait",
+  "categories": ["beauty", "lifestyle", "business"],
   "icons": [
     {
       "src": "/assets/logo.webp",
@@ -19,6 +21,29 @@
       "sizes": "512x512",
       "type": "image/webp",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Agenda do Dia",
+      "short_name": "Agenda",
+      "url": "/admin",
+      "description": "Visualizar compromissos agendados para hoje",
+      "icons": [{ "src": "/assets/logo.webp", "sizes": "192x192" }]
+    },
+    {
+      "name": "Agenda Semanal",
+      "short_name": "Semanal",
+      "url": "/admin/weekly",
+      "description": "Ver a escala e agendamentos da semana",
+      "icons": [{ "src": "/assets/logo.webp", "sizes": "192x192" }]
+    },
+    {
+      "name": "Clientes",
+      "short_name": "Clientes",
+      "url": "/admin/clients",
+      "description": "Gerenciar banco de clientes",
+      "icons": [{ "src": "/assets/logo.webp", "sizes": "192x192" }]
     }
   ]
 }

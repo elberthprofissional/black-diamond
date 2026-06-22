@@ -9,10 +9,10 @@ export function useAdminLogout() {
     if (window.matchMedia('(display-mode: standalone)').matches) {
       window.close();
       setTimeout(() => {
-        navigate('/admin/login');
+        navigate('/admin/login', { replace: true });
       }, 100);
     } else {
-      navigate('/admin/login');
+      navigate('/admin/login', { replace: true });
     }
   };
 

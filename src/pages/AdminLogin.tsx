@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, EyeOff, Eye, ChevronRight } from 'lucide-react';
+import { EyeOff, Eye, ChevronRight, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../hooks/useToast';
 
@@ -14,6 +14,7 @@ const AdminLogin: React.FC = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { toast, showError } = useToast();
   const navigate = useNavigate();
+  const [isPWA, setIsPWA] = useState(false);
 
   // Se já houver uma sessão ativa, redireciona para o admin automaticamente
   useEffect(() => {
@@ -25,6 +26,27 @@ const AdminLogin: React.FC = () => {
     };
     checkSession();
   }, [navigate]);
+
+  // Detecta PWA e trava navegação de voltar caso esteja standalone
+  useEffect(() => {
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    setIsPWA(!!standalone);
+
+    if (standalone) {
+      // Adiciona uma entrada no histórico para consumir a primeira ação de voltar
+      window.history.pushState(null, '', window.location.href);
+
+      const handlePopState = () => {
+        // Empurra o estado de volta para travar o usuário na tela de login
+        window.history.pushState(null, '', window.location.href);
+      };
+
+      window.addEventListener('popstate', handlePopState);
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,30 +74,18 @@ const AdminLogin: React.FC = () => {
     }
   };
 
-  const [isStandalone] = useState(() => 
-    window.matchMedia('(display-mode: standalone)').matches ||
-    (navigator as unknown as { standalone?: boolean }).standalone === true
-  );
-
   return (
     <div className="h-screen w-full bg-[#0A0A0A] text-white flex relative overflow-hidden font-sans touch-none">
       
-      {/* --- TOP HEADER (Back Button Only) --- */}
-      {!isStandalone && (
-        <div className="absolute top-6 lg:top-10 left-4 lg:left-12 z-50 flex items-center gap-6">
-          <motion.button 
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            whileHover={{ x: 3 }}
-            onClick={() => navigate('/')}
-            className="flex items-center gap-3 text-zinc-600 hover:text-white transition-all group"
-          >
-            <div className="w-8 h-8 lg:rounded-full lg:border lg:border-white/5 flex items-center justify-center lg:group-hover:bg-white/5 transition-all">
-              <ArrowLeft size={18} className="lg:w-[14px] lg:h-[14px]" />
-            </div>
-          </motion.button>
-        </div>
+      {/* Voltar para Home (apenas no site, oculto no PWA) */}
+      {!isPWA && (
+        <button
+          onClick={() => navigate('/')}
+          className="absolute top-6 left-6 z-50 flex items-center gap-2 text-zinc-500 hover:text-white transition-colors cursor-pointer text-[10px] font-bold uppercase tracking-widest active:scale-95"
+        >
+          <ArrowLeft size={14} className="text-zinc-500 hover:text-white" />
+          <span>Voltar ao site</span>
+        </button>
       )}
 
       {/* --- DESKTOP SIDE IMAGE --- */}

@@ -1,20 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getClients, getBookings, deleteClient, updateClient, updateClientNotes } from '../lib/api';
+import { getClients, getBookings, deleteClient, updateClient, updateClientNotes, createClient } from '../lib/api';
 import { formatPhone } from '../lib/utils';
 import { useToast } from '../hooks/useToast';
 import AdminLayout from '../components/Admin/AdminLayout';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
-import { ArrowLeft, Search, Filter, ChevronDown, ChevronRight, User, Trash2, Pencil, X } from 'lucide-react';
+import { ArrowLeft, Search, ChevronRight, User, Trash2, Pencil, X, Plus } from 'lucide-react';
 import type { Client, ClientWithStats, BookingWithClient } from '../types';
 
 const AdminClients: React.FC = () => {
   const [clients, setClients] = useState<ClientWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [deletingClient, setDeletingClient] = useState<ClientWithStats | null>(null);
   const { toast, showSuccess, showError } = useToast();
   const [selectedClient, setSelectedClient] = useState<ClientWithStats | null>(null);
@@ -22,6 +20,7 @@ const AdminClients: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [editEmail, setEditEmail] = useState('');
   const [saving, setSaving] = useState(false);
   const [notesText, setNotesText] = useState('');
   const [isEditingNotes, setIsEditingNotes] = useState(false);
@@ -29,10 +28,21 @@ const AdminClients: React.FC = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [isCreatingClient, setIsCreatingClient] = useState(false);
+  const [newClientName, setNewClientName] = useState('');
+  const [newClientPhone, setNewClientPhone] = useState('');
+  const [newClientEmail, setNewClientEmail] = useState('');
+  const [newClientNotes, setNewClientNotes] = useState('');
+  const [isSavingClient, setIsSavingClient] = useState(false);
+
   const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [templates, setTemplates] = useState<string[]>(() => {
-    const saved = localStorage.getItem('barber_reminder_templates');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('barber_reminder_templates');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
   const [isCreatingTemplate, setIsCreatingTemplate] = useState(false);
   const [newTemplate, setNewTemplate] = useState('');
@@ -41,14 +51,19 @@ const AdminClients: React.FC = () => {
   const loadData = async () => {
     try {
       const [clientsData, bookingsData] = await Promise.all([getClients(), getBookings()]);
-      const enriched: ClientWithStats[] = clientsData
-        .filter((c: Client) => c.name !== 'BLOQUEADO' && c.phone !== '00000000000')
+      const enriched: ClientWithStats[] = (clientsData || [])
+        .filter((c: Client) => c && c.name && c.name !== 'BLOQUEADO' && c.phone !== '00000000000')
         .map((c: Client) => {
-          const cb = bookingsData.filter((b) => b.client_id === c.id && b.status !== 'cancelled');
-          const lb = cb.sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime())[0];
-          return { ...c, lastVisit: lb ? new Date(lb.booking_date).toLocaleDateString('pt-BR') : 'Nunca', totalSpent: cb.reduce((s, b) => s + Number(b.total_price || 0), 0), bookingsCount: cb.length };
+          const cb = (bookingsData || []).filter((b) => b && b.client_id === c.id && b.status !== 'cancelled');
+          const lb = [...cb].sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime())[0];
+          return { 
+            ...c, 
+            lastVisit: lb ? new Date(lb.booking_date).toLocaleDateString('pt-BR') : 'Nunca', 
+            totalSpent: cb.reduce((s, b) => s + Number(b.total_price || 0), 0), 
+            bookingsCount: cb.length 
+          };
         });
-      enriched.sort((a, b) => a.name.localeCompare(b.name));
+      enriched.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       setClients(enriched);
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
@@ -62,8 +77,7 @@ const AdminClients: React.FC = () => {
 
   const filteredClients = clients.filter(c => {
     const matchSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.phone.includes(searchTerm);
-    const matchLetter = selectedLetter ? c.name.toUpperCase().startsWith(selectedLetter) : true;
-    return matchSearch && matchLetter;
+    return matchSearch;
   });
 
   const openPanel = useCallback(async (client: ClientWithStats) => {
@@ -84,8 +98,8 @@ const AdminClients: React.FC = () => {
     if (!selectedClient || !editName.trim() || !editPhone.trim()) return;
     setSaving(true);
     try {
-      await updateClient(selectedClient.id, { name: editName.trim(), phone: editPhone.trim() });
-      setSelectedClient((p) => p ? { ...p, name: editName.trim(), phone: editPhone.trim() } : p);
+      await updateClient(selectedClient.id, { name: editName.trim(), phone: editPhone.trim(), email: editEmail.trim() || undefined });
+      setSelectedClient((p) => p ? { ...p, name: editName.trim(), phone: editPhone.trim(), email: editEmail.trim() || undefined } : p);
       setClients(prev => prev.map(c => c.id === selectedClient.id ? { ...c, name: editName.trim(), phone: editPhone.trim() } : c));
       setIsEditing(false);
     } catch { showError('Erro ao salvar.'); } finally { setSaving(false); }
@@ -95,6 +109,21 @@ const AdminClients: React.FC = () => {
     if (!selectedClient) return;
     setSavingNotes(true);
     try { await updateClientNotes(selectedClient.id, notesText.trim()); setSelectedClient((p) => p ? { ...p, notes: notesText.trim() } : p); } catch { showError('Erro ao salvar.'); } finally { setSavingNotes(false); }
+  };
+
+  const handleCreateClient = async () => {
+    if (!newClientName.trim() || !newClientPhone.trim()) return;
+    setIsSavingClient(true);
+    try {
+      const created = await createClient({ name: newClientName.trim(), phone: newClientPhone.trim(), email: newClientEmail.trim() || undefined, notes: newClientNotes.trim() || undefined });
+      setClients(prev => [...prev, { ...created, lastVisit: 'Nunca', totalSpent: 0, bookingsCount: 0 }].sort((a, b) => (a.name || '').localeCompare(b.name || '')));
+      setIsCreatingClient(false);
+      setNewClientName('');
+      setNewClientPhone('');
+      setNewClientEmail('');
+      setNewClientNotes('');
+      showSuccess('Cliente criado!');
+    } catch { showError('Erro ao criar cliente.'); } finally { setIsSavingClient(false); }
   };
 
   const confirmDelete = async () => {
@@ -126,9 +155,7 @@ const AdminClients: React.FC = () => {
 
   return (
     <AdminLayout
-      wrapperClassName="min-h-screen bg-[#0A0A0A] text-white font-sans flex overflow-hidden selection:bg-white/10"
-      innerClassName="flex-1 lg:ml-[320px] flex flex-col min-h-screen overflow-y-auto scrollbar-hide bg-[#0A0A0A] z-10"
-      mainClassName="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 pt-24 lg:pt-6 pb-28 space-y-5"
+      mainClassName="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 pt-28 lg:pt-6 pb-40 space-y-5"
     >
           
           {/* Header */}
@@ -146,28 +173,12 @@ const AdminClients: React.FC = () => {
           <div className="flex items-center gap-2">
             <div className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-xl flex items-center focus-within:border-white/10 transition-all">
               <div className="pl-4 pr-3"><Search size={15} className="text-zinc-600" /></div>
-              <input type="text" placeholder="Buscar por nome ou telefone..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-transparent py-3.5 text-xs font-medium text-white outline-none placeholder:text-zinc-600" />
+              <input type="text" placeholder="Pesquisar contatos..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-transparent py-3.5 text-xs font-medium text-white outline-none placeholder:text-zinc-600" />
             </div>
-            <div className="relative shrink-0">
-              <button onClick={() => setIsFilterOpen(!isFilterOpen)} className={`h-[46px] px-3.5 rounded-xl flex items-center justify-center gap-1.5 transition-all border border-white/[0.06] ${selectedLetter || isFilterOpen ? 'bg-white text-black border-transparent' : 'bg-white/[0.03] text-zinc-500 hover:text-white'}`}>
-                <Filter size={14} strokeWidth={selectedLetter ? 3 : 2} />
-                {selectedLetter ? <span className="text-[10px] font-bold uppercase">{selectedLetter}</span> : <span className="text-[10px] font-bold uppercase">A-Z</span>}
-                <ChevronDown size={12} className={`transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
-              </button>
-              <AnimatePresence>
-                {isFilterOpen && (
-                  <motion.div initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.96 }} className="absolute right-0 top-[calc(100%+6px)] w-56 bg-[#111111] border border-white/10 rounded-xl shadow-2xl p-1.5 z-[100] max-h-56 overflow-y-auto scrollbar-hide">
-                    <button onClick={() => { setSelectedLetter(null); setIsFilterOpen(false); }} className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${selectedLetter === null ? 'bg-white text-black' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}>Todos</button>
-                    <div className="my-1 h-px bg-white/5" />
-                    <div className="grid grid-cols-4 gap-0.5">
-                      {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map(l => (
-                        <button key={l} onClick={() => { setSelectedLetter(l); setIsFilterOpen(false); }} className={`text-center py-2 rounded-lg text-[10px] font-bold transition-colors ${selectedLetter === l ? 'bg-white text-black' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}>{l}</button>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <button onClick={() => setIsCreatingClient(true)} className="h-[46px] px-4 rounded-xl bg-[#C5A059] hover:bg-[#A68233] flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95">
+              <Plus size={16} strokeWidth={2.5} className="text-black" />
+              <span className="text-[10px] font-bold text-black uppercase tracking-wider hidden sm:block">Novo Cliente</span>
+            </button>
           </div>
 
           {/* Client List */}
@@ -185,21 +196,34 @@ const AdminClients: React.FC = () => {
             ) : (
               <>
                 {/* Mobile: list */}
-                <div className="lg:hidden space-y-0.5">
-                  {filteredClients.map((client, index) => (
-                    <React.Fragment key={client.id}>
-                      <div onClick={() => openPanel(client)} className="flex items-center gap-4 py-3.5 px-4 rounded-xl cursor-pointer hover:bg-white/[0.03] transition-all group">
-                        <div className="w-10 h-10 rounded-full bg-[#111111] border border-white/[0.08] flex items-center justify-center text-sm font-bold text-white uppercase shrink-0">
-                          {client.name.charAt(0)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-white truncate">{client.name}</p>
-                          <p className="text-[11px] text-zinc-500 mt-0.5">{client.phone}</p>
-                        </div>
-                        <ChevronRight size={14} className="text-zinc-700 shrink-0" />
+                <div className="lg:hidden space-y-4">
+                  {Object.entries(
+                    filteredClients.reduce((acc, client) => {
+                      const letter = client.name.charAt(0).toUpperCase();
+                      if (!acc[letter]) acc[letter] = [];
+                      acc[letter].push(client);
+                      return acc;
+                    }, {} as Record<string, ClientWithStats[]>)
+                  ).sort(([a], [b]) => a.localeCompare(b)).map(([letter, clients]) => (
+                    <div key={letter}>
+                      <div className="sticky top-16 z-10 px-4 py-1.5 bg-[#0A0A0A]">
+                        <span className="text-[10px] font-black text-[#C5A059] uppercase tracking-[0.2em]">{letter}</span>
                       </div>
-                      {index < filteredClients.length - 1 && <div className="ml-[68px] h-px bg-white/[0.04]" />}
-                    </React.Fragment>
+                      <div className="space-y-0.5">
+                        {clients.map((client) => (
+                          <div key={client.id} onClick={() => openPanel(client)} className="flex items-center gap-4 py-3 px-4 rounded-xl cursor-pointer hover:bg-white/[0.03] transition-all group">
+                            <div className="w-10 h-10 rounded-full bg-[#111111] border border-white/[0.08] flex items-center justify-center text-sm font-bold text-white uppercase shrink-0">
+                              {client.name.charAt(0)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-white truncate">{client.name}</p>
+                              <p className="text-[11px] text-zinc-500 mt-0.5">{client.phone}</p>
+                            </div>
+                            <ChevronRight size={14} className="text-zinc-700 shrink-0" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
 
@@ -246,18 +270,18 @@ const AdminClients: React.FC = () => {
                   </button>
                   <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.25em]">Dados do Cliente</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <button 
-                    onClick={() => { setEditName(selectedClient.name); setEditPhone(selectedClient.phone); setIsEditing(true); }} 
-                    className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/10 transition-all cursor-pointer"
+                    onClick={() => { setEditName(selectedClient.name); setEditPhone(selectedClient.phone); setEditEmail(selectedClient.email || ''); setIsEditing(true); }} 
+                    className="text-zinc-400 hover:text-white transition-all cursor-pointer"
                   >
-                    <Pencil size={12} />
+                    <Pencil size={14} />
                   </button>
                   <button 
                     onClick={() => setIsDeleteOpen(true)} 
-                    className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-[#C5A059] hover:border-[#C5A059]/20 transition-all cursor-pointer"
+                    className="text-zinc-400 hover:text-red-400 transition-all cursor-pointer"
                   >
-                    <Trash2 size={12} />
+                    <Trash2 size={14} />
                   </button>
                 </div>
               </div>
@@ -402,6 +426,10 @@ const AdminClients: React.FC = () => {
                   <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">WhatsApp</span>
                   <input type="text" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors tabular-nums" />
                 </div>
+                <div>
+                  <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Email <span className="text-zinc-700">(opcional)</span></span>
+                  <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="email@exemplo.com" className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-700" />
+                </div>
               </div>
               <div className="flex gap-2 mt-4">
                 <button onClick={() => setIsEditing(false)} className="flex-1 py-3 text-zinc-500 font-semibold text-xs hover:text-white transition-all cursor-pointer">Cancelar</button>
@@ -448,6 +476,48 @@ const AdminClients: React.FC = () => {
                     </div>
                   </div>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* NEW CLIENT MODAL */}
+      <AnimatePresence>
+        {isCreatingClient && (
+          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsCreatingClient(false)} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+            <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 30, stiffness: 300 }} className="relative z-10 w-full sm:w-[340px] bg-[#111111] border-t sm:border border-white/[0.06] sm:rounded-2xl rounded-t-2xl overflow-hidden">
+              <div className="px-6 pt-6 pb-5">
+                <div className="flex items-center justify-between mb-5">
+                  <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.2em]">Novo cliente</span>
+                  <button onClick={() => { setIsCreatingClient(false); setNewClientName(''); setNewClientPhone(''); setNewClientEmail(''); setNewClientNotes(''); }} className="w-7 h-7 rounded-full bg-white/[0.04] flex items-center justify-center text-zinc-600 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer">
+                    <X size={12} />
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Nome</span>
+                    <input type="text" value={newClientName} onChange={(e) => setNewClientName(e.target.value)} placeholder="Nome do cliente" className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-700" autoFocus />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">WhatsApp</span>
+                    <input type="text" value={newClientPhone} onChange={(e) => setNewClientPhone(e.target.value)} placeholder="00000000000" className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-700 tabular-nums" />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Email <span className="text-zinc-700">(opcional)</span></span>
+                    <input type="email" value={newClientEmail} onChange={(e) => setNewClientEmail(e.target.value)} placeholder="email@exemplo.com" className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-700" />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Anotações <span className="text-zinc-700">(opcional)</span></span>
+                    <textarea value={newClientNotes} onChange={(e) => setNewClientNotes(e.target.value)} placeholder="Ex: Prefere degradê baixo..." className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-700 resize-none h-16" />
+                  </div>
+                </div>
+              </div>
+              <div className="flex border-t border-white/[0.04]">
+                <button onClick={() => { setIsCreatingClient(false); setNewClientName(''); setNewClientPhone(''); setNewClientEmail(''); setNewClientNotes(''); }} className="flex-1 py-3.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider hover:text-white hover:bg-white/[0.02] transition-all cursor-pointer">Cancelar</button>
+                <div className="w-px bg-white/[0.04]" />
+                <button onClick={handleCreateClient} disabled={isSavingClient || !newClientName.trim() || !newClientPhone.trim()} className="flex-1 py-3.5 text-[10px] font-bold text-[#C5A059] uppercase tracking-wider hover:bg-[#C5A059]/10 transition-all cursor-pointer disabled:opacity-30">{isSavingClient ? '...' : 'Salvar'}</button>
               </div>
             </motion.div>
           </div>

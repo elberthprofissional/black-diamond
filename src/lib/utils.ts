@@ -33,10 +33,16 @@ export const getNextDays = () => {
   const days = [];
   const today = new Date();
   const currentDay = today.getDay();
+  const currentHour = today.getHours();
   
   const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
   const monday = new Date(today);
   monday.setDate(today.getDate() + mondayOffset);
+
+  // Se for sábado após as 18:00 (fechamento) ou se for domingo, a agenda abre para a próxima semana
+  if (currentDay === 0 || (currentDay === 6 && currentHour >= 18)) {
+    monday.setDate(monday.getDate() + 7);
+  }
 
   for (let i = 0; i < 6; i++) {
     const date = new Date(monday);

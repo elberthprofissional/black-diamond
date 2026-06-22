@@ -19,7 +19,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         const { data: { session } } = await supabase.auth.getSession();
         if (active) {
           if (!session) {
-            navigate('/admin/login');
+            navigate('/admin/login', { replace: true });
           } else {
             setChecking(false);
           }
@@ -28,7 +28,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
           if (active) {
             if (!session) {
-              navigate('/admin/login');
+              navigate('/admin/login', { replace: true });
             } else {
               setChecking(false);
             }
@@ -37,7 +37,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         unsubscribe = subscription.unsubscribe;
       } catch (err) {
         console.error('Error checking auth:', err);
-        if (active) navigate('/admin/login');
+        if (active) navigate('/admin/login', { replace: true });
       }
     };
     

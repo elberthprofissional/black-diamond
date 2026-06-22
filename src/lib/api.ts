@@ -155,7 +155,18 @@ export const deleteClient = async (id: string) => {
   if (error) throw error;
 };
 
-export const updateClient = async (id: string, data: { name: string; phone: string }) => {
+export const createClient = async (data: { name: string; phone: string; email?: string; notes?: string }) => {
+  const { data: newClient, error } = await supabase
+    .from('clients')
+    .insert(data)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return newClient;
+};
+
+export const updateClient = async (id: string, data: { name: string; phone: string; email?: string }) => {
   const { error } = await supabase
     .from('clients')
     .update(data)
@@ -169,6 +180,15 @@ export const updateClientNotes = async (id: string, notes: string) => {
     .from('clients')
     .update({ notes })
     .eq('id', id);
+  
+  if (error) throw error;
+};
+
+// Settings
+export const updateSetting = async (key: string, value: string) => {
+  const { error } = await supabase
+    .from('settings')
+    .upsert({ key, value, updated_at: new Date().toISOString() });
   
   if (error) throw error;
 };

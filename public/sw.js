@@ -36,6 +36,16 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
+  // Se for uma requisição de navegação de página (SPA), tenta a rede e em caso de falha retorna index.html do cache
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request).catch(() => {
+        return caches.match('/index.html');
+      })
+    );
+    return;
+  }
+
   e.respondWith(
     fetch(e.request)
       .then((response) => {
