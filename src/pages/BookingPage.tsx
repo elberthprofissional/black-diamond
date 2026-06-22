@@ -646,7 +646,7 @@ const BookingPage: React.FC = () => {
                       value={userInfo.email} 
                       onChange={e => setUserInfo({...userInfo, email: e.target.value})} 
                     />
-                    <p className="text-[9px] text-zinc-600 leading-relaxed">Você receberá um lembrete no email antes do horário agendado.</p>
+                    <p className="text-[9px] text-zinc-600 leading-relaxed">Pedimos seu email para enviar um lembrete antes do seu horário.</p>
                   </div>
                 </motion.div>
               )}

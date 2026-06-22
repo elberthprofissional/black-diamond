@@ -95,7 +95,7 @@ const AdminClients: React.FC = () => {
       return `Dia dos Pais, ${firstName}! 👨 Venha com o pai agendar! Horários disponíveis.`;
     }
 
-    return `Opa, ${firstName}! Vi que você não marcou horário faz um tempo. Temos horários disponíveis esta semana! Bora agendar?`;
+    return `Temos horários disponíveis esta semana! Bora agendar?`;
   };
 
   const markReminderSent = (clientId: string) => {
@@ -201,7 +201,7 @@ const AdminClients: React.FC = () => {
     if (/{nome}/gi.test(templateText)) {
       return templateText.replace(/{nome}/gi, firstName);
     }
-    return `Olá, ${firstName}! ${templateText}`;
+    return `${firstName}, ${templateText}`;
   };
 
   const sendWithTemplate = (template: string) => {
@@ -517,7 +517,7 @@ const AdminClients: React.FC = () => {
                     {/* Smart suggestion */}
                     {smartSuggestion && (
                       <div className="space-y-2">
-                        <span className="text-[8px] font-bold text-[#C5A059] uppercase tracking-widest block">Sugestão Inteligente</span>
+                        <span className="text-[8px] font-bold text-[#C5A059] uppercase tracking-widest block">Sugestão</span>
                         <div onClick={() => sendWithTemplate(smartSuggestion)} className="p-4 rounded-xl bg-[#C5A059]/[0.06] border border-[#C5A059]/20 cursor-pointer hover:border-[#C5A059]/40 transition-all">
                           <p className="text-[11px] text-zinc-200 leading-relaxed">{formatReminder(smartSuggestion, selectedClient.name)}</p>
                           <div className="flex items-center gap-1.5 mt-2.5">
