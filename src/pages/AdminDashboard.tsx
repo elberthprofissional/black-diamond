@@ -204,19 +204,6 @@ const AdminDashboard: React.FC = () => {
     return list;
   };
 
-  const morningSlots = TIME_SLOTS.filter(slot => {
-    const h = parseInt(slot.split(':')[0], 10);
-    return h < 12;
-  });
-  const afternoonSlots = TIME_SLOTS.filter(slot => {
-    const h = parseInt(slot.split(':')[0], 10);
-    return h >= 12 && h < 18;
-  });
-  const nightSlots = TIME_SLOTS.filter(slot => {
-    const h = parseInt(slot.split(':')[0], 10);
-    return h >= 18;
-  });
-
   const nextBooking = getNextBooking();
 
   return (
