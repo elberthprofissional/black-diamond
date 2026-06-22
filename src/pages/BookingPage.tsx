@@ -68,7 +68,8 @@ const BookingPage: React.FC = () => {
   const isStepDisabled = () => {
     if (step === 1) return selectedServices.length === 0;
     if (step === 2) return !selectedDate || !selectedTime;
-    if (step === 3) return !userInfo.name.trim() || userInfo.name.trim().length < 3 || userInfo.phone.replace(/\D/g, '').length < 10 || isSubmitting;
+    if (step === 3) return !userInfo.name.trim() || userInfo.name.trim().length < 3 || userInfo.phone.replace(/\D/g, '').length < 11;
+    if (step === 4) return isSubmitting;
     return false;
   };
 
@@ -97,7 +98,7 @@ const BookingPage: React.FC = () => {
                       `*Valor:* R$ ${totalPrice.toFixed(0)}`;
       
       window.open(`https://wa.me/5531980159559?text=${encodeURIComponent(message)}`, '_blank');
-      setStep(4); // Mover para tela de sucesso em vez de sair
+      setStep(5); // Mover para tela de sucesso em vez de sair
     } catch (error) {
       console.error(error);
       const message = error instanceof Error ? error.message : 'Erro ao realizar agendamento.';
@@ -127,7 +128,7 @@ const BookingPage: React.FC = () => {
 
             {/* Live Summary */}
             <div className="mt-auto">
-              {selectedServices.length > 0 && (
+              {selectedServices.length > 0 && step < 4 && (
                 <div className="bg-white/[0.04] rounded-2xl p-5 space-y-3 border border-white/[0.06]">
                   <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Resumo</p>
                   {selectedServices.map((s) => (
@@ -156,6 +157,15 @@ const BookingPage: React.FC = () => {
                   </div>
                 </div>
               )}
+              {step === 4 && (
+                <div className="bg-white/[0.04] rounded-2xl p-5 space-y-3 border border-white/[0.06]">
+                  <p className="text-[10px] font-bold text-[#C5A059] uppercase tracking-widest">Procedimento</p>
+                  <p className="text-[12px] text-zinc-400 leading-relaxed">
+                    Você será redirecionado para o WhatsApp com a mensagem do seu agendamento já formatada. 
+                    Basta enviar a mensagem na conversa para finalizar.
+                  </p>
+                </div>
+              )}
               <p className="text-[8px] text-zinc-600 mt-6">Precisa de ajuda? WhatsApp</p>
             </div>
           </div>
@@ -165,7 +175,7 @@ const BookingPage: React.FC = () => {
             {/* Header */}
             <div className="px-14 py-6 flex items-center justify-between">
               <div className="flex items-center gap-5">
-                {step > 1 && step < 4 && (
+                {step > 1 && step < 5 && (
                   <button 
                     onClick={() => setStep(step - 1)}
                     aria-label="Voltar para o passo anterior"
@@ -174,18 +184,18 @@ const BookingPage: React.FC = () => {
                     <ArrowLeft size={16} />
                   </button>
                 )}
-                {step < 4 && (
+                {step < 5 && (
                   <div>
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Passo {step} de 3</p>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Passo {step} de 4</p>
                     <h2 className="text-xl font-bold text-white mt-0.5">
-                      {step === 1 ? 'Escolha os serviços' : step === 2 ? 'Data e horário' : 'Seus dados'}
+                      {step === 1 ? 'Escolha os serviços' : step === 2 ? 'Data e horário' : step === 3 ? 'Seus dados' : 'Revisar agendamento'}
                     </h2>
                   </div>
                 )}
               </div>
               {/* Progress */}
               <div className="flex gap-1 w-40">
-                {[1, 2, 3].map((s) => (
+                {[1, 2, 3, 4].map((s) => (
                   <div key={s} className={`h-[2px] flex-1 rounded-full transition-all duration-500 ${
                     step === s ? 'bg-[#C5A059]' : step > s ? 'bg-[#C5A059]/30' : 'bg-white/[0.08]'
                   }`} />
@@ -328,7 +338,82 @@ const BookingPage: React.FC = () => {
                 )}
 
                 {step === 4 && (
-                  <motion.div key="d4" initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3 }} className="flex-1 flex flex-col items-center justify-center text-center max-w-lg mx-auto">
+                  <motion.div key="d4" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1 flex flex-col justify-center items-center">
+                    {/* Ticket container */}
+                    <div className="w-full max-w-[440px] bg-white/[0.02] border border-white/[0.08] rounded-3xl p-8 relative overflow-hidden backdrop-blur-md shadow-2xl">
+                      {/* Top gold accent line */}
+                      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#C5A059] to-transparent" />
+                      
+                      {/* Ticket Header */}
+                      <div className="text-center pb-6 border-b border-white/[0.06] mb-6">
+                        <span className="text-[9px] font-black tracking-[0.5em] text-[#C5A059] uppercase block mb-1">REVISÃO DA RESERVA</span>
+                        <h3 className="text-xl font-bold text-white tracking-tight">Confirme seus detalhes</h3>
+                      </div>
+
+                      {/* Ticket Info Grid */}
+                      <div className="space-y-4 text-left">
+                        {/* Cliente */}
+                        <div className="flex justify-between items-baseline py-1">
+                          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Cliente</span>
+                          <span className="text-[14px] font-semibold text-white truncate max-w-[240px]">{userInfo.name}</span>
+                        </div>
+
+                        {/* WhatsApp */}
+                        <div className="flex justify-between items-baseline py-1">
+                          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">WhatsApp</span>
+                          <span className="text-[14px] font-semibold text-white">{userInfo.phone}</span>
+                        </div>
+
+                        {/* Data e Hora */}
+                        <div className="flex justify-between items-baseline py-1">
+                          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Data & Horário</span>
+                          <span className="text-[14px] font-semibold text-[#C5A059]">
+                            {selectedDate.split('-').reverse().join('/')} às {selectedTime}
+                          </span>
+                        </div>
+
+                        {/* Serviços Selecionados */}
+                        <div className="border-t border-white/[0.06] pt-4 mt-2">
+                          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-2">Serviços</span>
+                          <div className="space-y-2">
+                            {selectedServices.map((s) => (
+                              <div key={`ticket-${s.id}`} className="flex justify-between items-center text-[13px]">
+                                <span className="text-zinc-400">{s.name}</span>
+                                <span className="font-medium text-white">R$ {Number(s.price).toFixed(0)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Duração total e Preço final */}
+                        <div className="border-t border-white/[0.06] pt-4 mt-4 flex items-center justify-between">
+                          <div>
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">Tempo total</span>
+                            <span className="text-xs text-zinc-400 font-medium">
+                              {selectedServices.reduce((sum, s) => sum + s.duration, 0)} minutos
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">Valor total</span>
+                            <span className="text-2xl font-black text-[#C5A059] tracking-tight">
+                              R$ {totalPrice.toFixed(0)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Ticket visual jagged footer effect / subtle card design */}
+                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex gap-1 justify-center opacity-30 pointer-events-none">
+                        {Array.from({ length: 15 }).map((_, i) => (
+                          <div key={i} className="w-3 h-3 bg-[#0E0E0E] rounded-full" />
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {step === 5 && (
+                  <motion.div key="d5" initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3 }} className="flex-1 flex flex-col items-center justify-center text-center max-w-lg mx-auto">
                     <div className="w-20 h-20 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-8">
                       <Check size={36} className="text-[#C5A059]" />
                     </div>
@@ -346,23 +431,24 @@ const BookingPage: React.FC = () => {
               </AnimatePresence>
 
               {/* Bottom Button */}
-              {step < 4 && (
-                <div className={`flex justify-end ${step === 3 ? 'pt-2' : 'pt-6'}`}>
+              {step < 5 && (
+                <div className={`flex justify-end ${step === 3 || step === 4 ? 'pt-2' : 'pt-6'}`}>
                   <button 
                     onClick={() => {
                       if (step === 1) setStep(2);
                       else if (step === 2) setStep(3);
+                      else if (step === 3) setStep(4);
                       else handleConfirm();
                     }}
                     disabled={isStepDisabled()}
-                    aria-label={step === 3 ? 'Confirmar e concluir agendamento' : 'Continuar para a próxima etapa'}
+                    aria-label={step === 4 ? 'Confirmar e concluir agendamento' : 'Continuar para a próxima etapa'}
                     className={`h-11 px-8 rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] transition-all duration-300 ${
                       !isStepDisabled()
                         ? 'bg-[#C5A059] text-black hover:bg-[#A68233] active:scale-95'
                         : 'bg-white/[0.04] text-zinc-600 cursor-not-allowed'
                     }`}
                   >
-                    {isSubmitting ? 'CONFIRMANDO...' : 'Continuar'}
+                    {isSubmitting ? 'CONFIRMANDO...' : step === 4 ? 'Confirmar Agendamento' : 'Continuar'}
                   </button>
                 </div>
               )}
@@ -394,17 +480,17 @@ const BookingPage: React.FC = () => {
             </button>
             <div className="flex-1">
               <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
-                Passo {step} de 3
+                Passo {step} de 4
               </p>
               <h1 className="text-sm font-bold text-white mt-0.5">
-                {step === 1 ? 'Escolha os serviços' : step === 2 ? 'Data e horário' : 'Seus dados'}
+                {step === 1 ? 'Escolha os serviços' : step === 2 ? 'Data e horário' : step === 3 ? 'Seus dados' : 'Revisar agendamento'}
               </h1>
             </div>
           </header>
 
           {/* Progress */}
           <div className="flex gap-1 px-5 py-3 shrink-0">
-            {[1, 2, 3].map((s) => (
+            {[1, 2, 3, 4].map((s) => (
               <div 
                 key={s} 
                 className={`h-0.5 flex-1 rounded-full transition-all duration-300 ${
@@ -543,52 +629,95 @@ const BookingPage: React.FC = () => {
                       value={userInfo.phone} 
                       onChange={e => setUserInfo({...userInfo, phone: formatPhone(e.target.value)})} 
                     />
-                    {userInfo.phone && userInfo.phone.replace(/\D/g, '').length < 10 && (
+                    {userInfo.phone && userInfo.phone.replace(/\D/g, '').length < 11 && (
                       <p className="text-[10px] text-red-400/80">Informe um WhatsApp válido</p>
                     )}
                   </div>
+                </motion.div>
+              )}
 
-                  {/* Summary */}
-                  {selectedServices.length > 0 && (
-                    <div className="mt-6 bg-[#111111] border border-white/[0.04] rounded-xl p-4 space-y-3">
-                      <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Resumo</p>
-                      {selectedServices.map(s => (
-                        <div key={s.id} className="flex justify-between items-center">
-                          <span className="text-xs text-zinc-300">{s.name}</span>
-                          <span className="text-xs font-bold text-[#C5A059]">R$ {Number(s.price).toFixed(0)}</span>
+              {step === 4 && (
+                <motion.div key="m4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-4 pb-4">
+                  {/* Ticket Container */}
+                  <div className="w-full bg-[#111111] border border-white/[0.06] rounded-2xl p-6 relative overflow-hidden shadow-xl">
+                    <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#C5A059] to-transparent" />
+                    
+                    <div className="text-center pb-4 border-b border-white/[0.04] mb-4">
+                      <span className="text-[9px] font-black tracking-[0.4em] text-[#C5A059] uppercase block mb-1">REVISÃO DA RESERVA</span>
+                      <h3 className="text-base font-bold text-white">Confirme as informações</h3>
+                    </div>
+
+                    <div className="space-y-3.5 text-sm">
+                      <div className="flex justify-between items-baseline py-0.5">
+                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Cliente</span>
+                        <span className="font-semibold text-white truncate max-w-[180px]">{userInfo.name}</span>
+                      </div>
+
+                      <div className="flex justify-between items-baseline py-0.5">
+                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">WhatsApp</span>
+                        <span className="font-semibold text-white">{userInfo.phone}</span>
+                      </div>
+
+                      <div className="flex justify-between items-baseline py-0.5">
+                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Data & Hora</span>
+                        <span className="font-semibold text-[#C5A059]">
+                          {selectedDate.split('-').reverse().join('/')} às {selectedTime}
+                        </span>
+                      </div>
+
+                      <div className="border-t border-white/[0.04] pt-3">
+                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-2">Serviços</span>
+                        <div className="space-y-2">
+                          {selectedServices.map(s => (
+                            <div key={`m-ticket-${s.id}`} className="flex justify-between items-center text-xs">
+                              <span className="text-zinc-400">{s.name}</span>
+                              <span className="font-medium text-white">R$ {Number(s.price).toFixed(0)}</span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                      <div className="border-t border-white/[0.04] pt-2 flex justify-between items-center">
-                        <span className="text-[10px] font-bold text-zinc-500 uppercase">Total</span>
-                        <span className="text-sm font-bold text-white">R$ {totalPrice.toFixed(0)}</span>
+                      </div>
+
+                      <div className="border-t border-white/[0.04] pt-3 flex justify-between items-end">
+                        <div>
+                          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Tempo total</span>
+                          <span className="text-xs text-zinc-400 font-medium">
+                            {selectedServices.reduce((sum, s) => sum + s.duration, 0)} minutos
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Valor total</span>
+                          <span className="text-xl font-black text-[#C5A059] tracking-tight">
+                            R$ {totalPrice.toFixed(0)}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
           {/* Footer Button */}
-          {step < 4 && (
+          {step < 5 && (
             <div className="fixed bottom-0 left-0 right-0 px-5 pb-6 pt-4 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent z-[100]">
               <button 
-                onClick={() => step < 3 ? setStep(step + 1) : handleConfirm()}
+                onClick={() => step < 4 ? setStep(step + 1) : handleConfirm()}
                 disabled={isStepDisabled()}
-                aria-label={step < 3 ? 'Continuar para a próxima etapa' : 'Confirmar e concluir agendamento'}
+                aria-label={step < 4 ? 'Continuar para a próxima etapa' : 'Confirmar e concluir agendamento'}
                 className={`w-full h-12 rounded-xl font-bold text-xs uppercase tracking-widest transition-all cursor-pointer ${
                   isStepDisabled()
                     ? 'bg-zinc-900 border border-white/[0.04] text-zinc-600 cursor-not-allowed'
                     : 'bg-[#C5A059] text-black hover:brightness-110 active:scale-[0.98]'
                 }`}
               >
-                {isSubmitting ? 'CONFIRMANDO...' : step < 3 ? 'Continuar' : 'Confirmar Agendamento'}
+                {isSubmitting ? 'CONFIRMANDO...' : step < 4 ? 'Continuar' : 'Confirmar Agendamento'}
               </button>
             </div>
           )}
 
           {/* Success Screen */}
-          {step === 4 && (
+          {step === 5 && (
             <div className="fixed inset-0 bg-[#050505] z-[200] flex flex-col items-center justify-center p-6 text-center">
               <motion.div 
                 initial={{ scale: 0.95, opacity: 0 }} 

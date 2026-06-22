@@ -54,21 +54,6 @@ export const createBooking = async (
   return Array.isArray(data) ? data : [data];
 };
 
-export const getOccupiedSlots = async (date: string) => {
-  const { data, error } = await supabase.rpc('get_occupied_slots', {
-    p_date: date
-  });
-
-  if (error) throw error;
-  return data || [];
-};
-
-export const getBusinessHours = async () => {
-  const { data, error } = await supabase.rpc('get_business_hours');
-  if (error) throw error;
-  return data || {};
-};
-
 export const getAvailableSlots = async (date: string) => {
   const { data, error } = await supabase.rpc('get_available_slots', {
     p_date: date
@@ -112,25 +97,6 @@ export const deleteBooking = async (id: string) => {
     .from('bookings')
     .delete()
     .eq('id', id);
-  
-  if (error) throw error;
-};
-
-export const clearAllBookings = async () => {
-  const { error } = await supabase
-    .from('bookings')
-    .delete()
-    .neq('id', '00000000-0000-0000-0000-000000000000');
-  
-  if (error) throw error;
-};
-
-export const clearWeekBookings = async (startDate: string, endDate: string) => {
-  const { error } = await supabase
-    .from('bookings')
-    .delete()
-    .gte('booking_date', startDate)
-    .lte('booking_date', endDate);
   
   if (error) throw error;
 };
@@ -183,15 +149,5 @@ export const updateClientNotes = async (id: string, notes: string) => {
   
   if (error) throw error;
 };
-
-// Settings
-export const updateSetting = async (key: string, value: string) => {
-  const { error } = await supabase
-    .from('settings')
-    .upsert({ key, value, updated_at: new Date().toISOString() });
-  
-  if (error) throw error;
-};
-
 
 

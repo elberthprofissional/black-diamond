@@ -191,7 +191,6 @@ const AdminProfile: React.FC = () => {
 
 
   const greeting = new Date().getHours() < 12 ? 'Bom dia' : new Date().getHours() < 18 ? 'Boa tarde' : 'Boa noite';
-  const greetingMobile = new Date().getHours() < 12 ? 'Bom dia' : new Date().getHours() < 18 ? 'Boa tarde' : 'Boa noite';
 
   if (loading) return (
     <div className="min-h-screen bg-[#000000] flex items-center justify-center font-sans">
@@ -350,12 +349,10 @@ const AdminProfile: React.FC = () => {
           </div>
 
           <div className="space-y-1">
-            <h1 className="text-xl font-bold tracking-tight text-white">{greetingMobile}, Tato</h1>
+            <h1 className="text-xl font-bold tracking-tight text-white">{greeting}, Tato</h1>
             <p className="text-[9px] text-[#C5A059] uppercase tracking-widest font-bold">Barbeiro Administrador</p>
           </div>
         </div>
-
-        <p className="text-[11px] text-zinc-500 px-1">Aqui está o resumo da sua barbearia hoje.</p>
 
         {/* CONTA SECTION */}
         <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 space-y-2 relative overflow-hidden">
@@ -425,7 +422,7 @@ const AdminProfile: React.FC = () => {
           <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 space-y-4">
             <div className="flex items-center gap-2 text-zinc-400">
               <TrendingUp size={14} className="text-[#C5A059]" />
-              <span className="text-[10px] font-bold uppercase tracking-wider">Resultados da Barbearia</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider">Análise da Barbearia</span>
             </div>
 
             <div className="grid grid-cols-2 gap-4 divide-x divide-white/[0.04]">

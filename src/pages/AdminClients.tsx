@@ -196,33 +196,17 @@ const AdminClients: React.FC = () => {
             ) : (
               <>
                 {/* Mobile: list */}
-                <div className="lg:hidden space-y-4">
-                  {Object.entries(
-                    filteredClients.reduce((acc, client) => {
-                      const letter = client.name.charAt(0).toUpperCase();
-                      if (!acc[letter]) acc[letter] = [];
-                      acc[letter].push(client);
-                      return acc;
-                    }, {} as Record<string, ClientWithStats[]>)
-                  ).sort(([a], [b]) => a.localeCompare(b)).map(([letter, clients]) => (
-                    <div key={letter}>
-                      <div className="sticky top-16 z-10 px-4 py-1.5 bg-[#0A0A0A]">
-                        <span className="text-[10px] font-black text-[#C5A059] uppercase tracking-[0.2em]">{letter}</span>
+                <div className="lg:hidden space-y-1">
+                  {filteredClients.map((client) => (
+                    <div key={client.id} onClick={() => openPanel(client)} className="flex items-center gap-4 py-3 px-4 rounded-xl cursor-pointer hover:bg-white/[0.03] transition-all group">
+                      <div className="w-10 h-10 rounded-full bg-[#111111] border border-white/[0.08] flex items-center justify-center text-sm font-bold text-white uppercase shrink-0">
+                        {client.name.charAt(0)}
                       </div>
-                      <div className="space-y-0.5">
-                        {clients.map((client) => (
-                          <div key={client.id} onClick={() => openPanel(client)} className="flex items-center gap-4 py-3 px-4 rounded-xl cursor-pointer hover:bg-white/[0.03] transition-all group">
-                            <div className="w-10 h-10 rounded-full bg-[#111111] border border-white/[0.08] flex items-center justify-center text-sm font-bold text-white uppercase shrink-0">
-                              {client.name.charAt(0)}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-white truncate">{client.name}</p>
-                              <p className="text-[11px] text-zinc-500 mt-0.5">{client.phone}</p>
-                            </div>
-                            <ChevronRight size={14} className="text-zinc-700 shrink-0" />
-                          </div>
-                        ))}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">{client.name}</p>
+                        <p className="text-[11px] text-zinc-500 mt-0.5">{client.phone}</p>
                       </div>
+                      <ChevronRight size={14} className="text-zinc-700 shrink-0" />
                     </div>
                   ))}
                 </div>
