@@ -4,7 +4,7 @@ import { getServices, createBooking, getBookings, getAvailableSlots } from '../l
 import { getNextDays, isTimeOccupied, formatPhone } from '../lib/utils';
 import type { Service } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Check, Clock, User, Scissors, Sparkles } from 'lucide-react';
+import { ArrowLeft, Check, User, Scissors, Sparkles } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
 
@@ -471,12 +471,19 @@ const BookingPage: React.FC = () => {
           
           {/* Header */}
           <header className="px-5 pt-5 pb-4 shrink-0 border-b border-white/[0.04]">
-            <div className="flex items-center justify-between">
-              <h1 className="text-base font-bold text-white flex items-center gap-2">
-                {step === 1 && <Scissors size={14} className="text-[#C5A059]" />}
-                {step === 1 ? 'Escolha os serviços' : step === 2 ? 'Data e horário' : step === 3 ? 'Seus dados' : 'Revisar agendamento'}
-              </h1>
-              <span className="text-[8px] font-black tracking-[0.3em] text-[#C5A059]/50 uppercase">BLACK DIAMOND</span>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => step > 1 ? setStep(step - 1) : navigate('/')}
+                className="text-zinc-500 hover:text-white transition-all cursor-pointer"
+              >
+                <ArrowLeft size={20} />
+              </button>
+              <div className="flex-1">
+                <h1 className="text-base font-bold text-white flex items-center gap-2">
+                  {step === 1 && <Scissors size={14} className="text-[#C5A059]" />}
+                  {step === 1 ? 'Escolha os serviços' : step === 2 ? 'Data e horário' : step === 3 ? 'Seus dados' : 'Revisar agendamento'}
+                </h1>
+              </div>
             </div>
           </header>
 
@@ -484,44 +491,51 @@ const BookingPage: React.FC = () => {
           <div className="flex-1 px-5 pt-5 pb-12">
             <AnimatePresence mode="wait">
               {step === 1 && (
-                <motion.div key="m1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-3 pb-4">
-                  {services.map(service => {
-                    const isSelected = selectedServices.some(s => s.id === service.id);
-                    return (
-                      <button 
-                        key={service.id} 
-                        onClick={() => toggleService(service)} 
-                        aria-label={`Selecionar serviço ${service.name}. Preço: R$ ${Number(service.price).toFixed(0)}. Duração: ${service.duration} minutos.`}
-                        className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 text-left relative overflow-hidden ${
-                          isSelected 
-                            ? 'bg-gradient-to-r from-[#C5A059]/[0.12] via-[#C5A059]/[0.08] to-[#C5A059]/[0.04] border border-[#C5A059]/40 shadow-[0_0_20px_rgba(197,160,89,0.15)]' 
-                            : 'bg-gradient-to-br from-[#111111] to-[#0a0a0a] border border-white/[0.06] hover:border-white/[0.12]'
-                        }`}
-                      >
-                        {isSelected && (
-                          <div className="absolute inset-0 bg-gradient-to-r from-[#C5A059]/5 via-transparent to-transparent animate-pulse" />
-                        )}
-                        <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all shrink-0 relative z-10 ${
-                          isSelected ? 'border-[#C5A059] bg-[#C5A059] shadow-[0_0_10px_rgba(197,160,89,0.4)]' : 'border-zinc-700'
-                        }`}>
-                          {isSelected && <Check size={12} className="text-black stroke-[3px]" />}
-                        </div>
-                        <div className="flex-1 min-w-0 relative z-10">
-                          <p className={`text-sm font-semibold ${isSelected ? 'text-[#C5A059]' : 'text-white'}`}>{service.name}</p>
-                        </div>
-                        <span className={`text-sm font-bold tabular-nums relative z-10 ${isSelected ? 'text-[#C5A059]' : 'text-zinc-400'}`}>
-                          R$ {Number(service.price).toFixed(0)}
-                        </span>
-                      </button>
-                    );
-                  })}
+                <motion.div key="m1" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3 }}>
+                  <div className="space-y-3">
+                    {services.map((service, index) => {
+                      const isSelected = selectedServices.some(s => s.id === service.id);
+                      return (
+                        <motion.button 
+                          key={service.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.06 }}
+                          onClick={() => toggleService(service)}
+                          className={`w-full text-left rounded-2xl transition-all duration-200 relative ${
+                            isSelected 
+                              ? 'bg-white/[0.05] border border-white/[0.1]' 
+                              : 'bg-[#0c0c0c] border border-white/[0.04]'
+                          }`}
+                        >
+                          <div className="px-5 py-[18px] flex items-center gap-4">
+                            <span className={`text-[11px] font-bold w-5 text-center shrink-0 ${isSelected ? 'text-[#C5A059]' : 'text-zinc-600'}`}>
+                              {String(index + 1).padStart(2, '0')}
+                            </span>
+                            <div className={`w-px h-5 shrink-0 ${isSelected ? 'bg-[#C5A059]/30' : 'bg-white/[0.06]'}`} />
+                            <p className="flex-1 text-[14px] font-semibold tracking-tight text-white">
+                              {service.name}
+                            </p>
+                            <span className={`text-[15px] font-bold tabular-nums shrink-0 ${isSelected ? 'text-[#C5A059]' : 'text-zinc-500'}`}>
+                              R$ {Number(service.price).toFixed(0)}
+                            </span>
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all shrink-0 ${
+                              isSelected ? 'bg-[#C5A059]' : 'border border-white/[0.1]'
+                            }`}>
+                              {isSelected && <Check size={10} className="text-black stroke-[3]" />}
+                            </div>
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
                 </motion.div>
               )}
 
               {step === 2 && (
-                <motion.div key="m2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-5">
+                <motion.div key="m2" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3 }} className="space-y-6">
                   {/* Date Picker */}
-                  <div className="flex overflow-x-auto gap-2.5 pb-3 scrollbar-hide -mx-5 px-5 snap-x shrink-0">
+                  <div className="flex overflow-x-auto gap-2.5 pb-2 scrollbar-hide -mx-5 px-5 snap-x shrink-0">
                     {nextDays.map(day => {
                       const isSelected = selectedDate === day.fullDate;
                       const monthNames = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
@@ -531,42 +545,29 @@ const BookingPage: React.FC = () => {
                           key={day.fullDate} 
                           onClick={() => setSelectedDate(day.fullDate)}
                           disabled={day.isPast}
-                          aria-label={`Selecionar data: dia ${day.dayNumber}, ${day.dayName}`}
-                          className={`min-w-[64px] py-4 snap-center flex flex-col items-center gap-1 rounded-2xl transition-all duration-300 ${
+                          className={`min-w-[62px] py-4 snap-center flex flex-col items-center gap-1 rounded-2xl transition-all duration-300 ${
                             day.isPast
-                              ? 'text-zinc-700 opacity-40 cursor-not-allowed'
+                              ? 'opacity-30 cursor-not-allowed'
                               : isSelected 
-                                ? 'bg-[#C5A059] text-black shadow-[0_0_20px_rgba(197,160,89,0.3)]' 
+                                ? 'bg-white/[0.06] border border-white/[0.1] text-white' 
                                 : day.isToday
-                                  ? 'bg-gradient-to-b from-[#C5A059]/10 to-[#C5A059]/5 border border-[#C5A059]/20 text-[#C5A059]'
-                                  : 'bg-[#111111] border border-white/[0.06] text-zinc-400 hover:border-white/[0.12]'
+                                  ? 'bg-white/[0.03] border border-white/[0.05] text-zinc-300'
+                                  : 'bg-white/[0.02] border border-white/[0.04] text-zinc-400'
                           }`}
                         >
-                          <span className={`text-[8px] font-bold uppercase tracking-widest ${isSelected ? 'text-black/50' : 'opacity-50'}`}>{day.dayName}</span>
-                          <span className="text-xl font-black">{day.dayNumber}</span>
-                          <span className={`text-[8px] font-bold uppercase ${isSelected ? 'text-black/50' : 'text-zinc-600'}`}>
-                            {monthNames[monthIndex]}
-                          </span>
+                          <span className="text-[8px] font-bold uppercase tracking-widest text-zinc-500">{day.dayName}</span>
+                          <span className="text-lg font-bold">{day.dayNumber}</span>
+                          <span className="text-[7px] font-bold uppercase text-zinc-600">{monthNames[monthIndex]}</span>
                         </button>
                       );
                     })}
                   </div>
 
                   {/* Time Slots */}
-                  <div className="pb-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
-                        <Clock size={11} className="text-[#C5A059]/60" />
-                        Horários disponíveis
-                      </p>
-                      {selectedDate && (
-                        <span className="text-[9px] font-bold text-[#C5A059] bg-[#C5A059]/10 px-2 py-1 rounded-full">
-                          {availableSlots.filter(t => !isTimeOccupied(t, existingBookings)).length} horários livres
-                        </span>
-                      )}
-                    </div>
+                  <div>
+                    <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Horários</p>
                     {selectedDate ? (
-                      <div className="grid grid-cols-3 gap-2.5">
+                      <div className="grid grid-cols-4 gap-2">
                         {availableSlots.map(time => {
                           const occupied = isTimeOccupied(time, existingBookings);
                           const isSelected = selectedTime === time;
@@ -576,23 +577,21 @@ const BookingPage: React.FC = () => {
                               type="button"
                               disabled={occupied}
                               onClick={() => setSelectedTime(time)}
-                              aria-label={`Selecionar horário: ${time}${occupied ? ' (indisponível)' : ''}`}
-                              className={`py-3.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 ${
+                              className={`py-3 rounded-xl text-[12px] font-bold transition-all duration-200 ${
                                 occupied 
                                   ? 'text-zinc-800 bg-transparent cursor-not-allowed line-through opacity-20' 
                                   : isSelected 
-                                    ? 'text-[#C5A059] bg-[#C5A059]/15 border border-[#C5A059]/40 shadow-[0_0_12px_rgba(197,160,89,0.15)]' 
-                                    : 'text-zinc-400 bg-[#111111] border border-white/[0.06] hover:border-[#C5A059]/20 hover:text-zinc-200'
+                                    ? 'bg-white/[0.06] border border-white/[0.1] text-white' 
+                                    : 'bg-white/[0.02] border border-white/[0.04] text-zinc-400 hover:text-zinc-200'
                               }`}
                             >
-                              {!occupied && <Clock size={10} className={isSelected ? 'text-[#C5A059]' : 'text-zinc-600'} />}
                               {time}
                             </button>
                           );
                         })}
                       </div>
                     ) : (
-                      <p className="text-zinc-500 text-xs py-6 text-center">Selecione um dia da semana acima para ver os horários disponíveis.</p>
+                      <p className="text-zinc-600 text-[11px] py-8 text-center">Selecione uma data acima</p>
                     )}
                   </div>
                 </motion.div>
@@ -619,7 +618,7 @@ const BookingPage: React.FC = () => {
                   </div>
                   <div className="space-y-3">
                     <label className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="#C5A059"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                       WhatsApp
                     </label>
                     <input 
@@ -635,7 +634,10 @@ const BookingPage: React.FC = () => {
                     )}
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[11px] font-semibold text-zinc-400">Email</label>
+                    <label className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C5A059" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                      Email <span className="text-zinc-600 font-normal">(opcional)</span>
+                    </label>
                     <input 
                       type="email" 
                       placeholder="seu@email.com" 
@@ -644,7 +646,7 @@ const BookingPage: React.FC = () => {
                       value={userInfo.email} 
                       onChange={e => setUserInfo({...userInfo, email: e.target.value})} 
                     />
-                    <p className="text-[9px] text-zinc-600 leading-relaxed">Usamos seu email apenas para enviar a confirmação do agendamento e lembretes antes do horário marcado.</p>
+                    <p className="text-[9px] text-zinc-600 leading-relaxed">Você receberá um lembrete no email antes do horário agendado.</p>
                   </div>
                 </motion.div>
               )}
@@ -784,8 +786,6 @@ const BookingPage: React.FC = () => {
       <style>{`
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #050505; }
       `}</style>
       <ToastNotification toast={toast} />
     </div>
