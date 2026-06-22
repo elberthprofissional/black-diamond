@@ -45,7 +45,7 @@ const AdminProfile: React.FC = () => {
 
   const navigate = useNavigate();
   const handleLogout = useAdminLogout();
-  const { toast, showSuccess, showError } = useToast();
+  const { toast, showSuccess } = useToast();
 
   useEffect(() => {
     const handleAppInstalled = () => {
@@ -566,10 +566,8 @@ const AdminProfile: React.FC = () => {
                   className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
                 >
                   Entendido
-                    </button>
-                  </div>
-                </>
-              )}
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

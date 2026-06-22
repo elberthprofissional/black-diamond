@@ -4,7 +4,7 @@ import { getServices, createBooking, getBookings, getAvailableSlots } from '../l
 import { getNextDays, isTimeOccupied, formatPhone } from '../lib/utils';
 import type { Service } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Check, Clock, User, Phone, CalendarDays, Scissors, Sparkles } from 'lucide-react';
+import { ArrowLeft, Check, Clock, User, Scissors, Sparkles } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
 
