@@ -4,7 +4,6 @@ import { getBookings, getServices, getClients } from '../lib/api';
 import type { Booking, Service, Client } from '../types';
 import { 
   Download, 
-  Check, 
   Eye, 
   EyeOff, 
   Clock, 
@@ -69,20 +68,6 @@ const AdminProfile: React.FC = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, [isInstalled]);
-
-  const handleInstall = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setIsInstalled(true);
-      setShowInstallPrompt(false);
-      showSuccess('Aplicativo instalado com sucesso!');
-    } else {
-      showError('Instalação cancelada.');
-    }
-    setDeferredPrompt(null);
-  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -198,11 +183,30 @@ const AdminProfile: React.FC = () => {
     </div>
   );
 
+  const handleInstallClick = () => {
+    if (isInstalled) {
+      showSuccess('Aplicativo já instalado!');
+      return;
+    }
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(({ outcome }) => {
+        if (outcome === 'accepted') {
+          setIsInstalled(true);
+          showSuccess('Aplicativo instalado com sucesso!');
+        }
+        setDeferredPrompt(null);
+      });
+      return;
+    }
+    setShowInstallPrompt(true);
+  };
+
   const quickActions = [
     { label: 'Hoje', icon: Clock, onClick: () => navigate('/admin') },
     { label: 'Semana', icon: Calendar, onClick: () => navigate('/admin/weekly') },
     { label: 'Clientes', icon: Users, onClick: () => navigate('/admin/clients') },
-    { label: 'Aplicativo', icon: Download, onClick: () => setShowInstallPrompt(true) },
+    { label: 'Aplicativo', icon: Download, onClick: handleInstallClick },
     { label: 'Sair', icon: LogOut, onClick: () => setShowLogoutConfirm(true) },
   ];
 
@@ -531,7 +535,7 @@ const AdminProfile: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* INSTALL APP PROMPT */}
+      {/* INSTALL APP PROMPT - iOS Safari fallback */}
       <AnimatePresence>
         {showInstallPrompt && (
           <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
@@ -549,65 +553,19 @@ const AdminProfile: React.FC = () => {
               transition={{ duration: 0.2 }}
               className="relative z-10 w-full max-w-[280px] bg-[#1A1A1A] border border-white/5 rounded-2xl overflow-hidden"
             >
-              {isInstalled ? (
-                <>
-                  <div className="p-5 text-center">
-                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-3">
-                      <Check size={16} className="text-emerald-500" />
-                    </div>
-                    <p className="text-[11px] text-zinc-300 font-medium">App já instalado</p>
-                    <p className="text-[9px] text-zinc-600 mt-1">Acesse pela tela inicial</p>
-                  </div>
-                  <div className="border-t border-white/[0.06]">
-                    <button 
-                      onClick={() => setShowInstallPrompt(false)}
-                      className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
-                    >
-                      Fechar
-                    </button>
-                  </div>
-                </>
-              ) : deferredPrompt ? (
-                <>
-                  <div className="p-5 text-center">
-                    <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-3">
-                      <Download size={16} className="text-[#C5A059]" />
-                    </div>
-                    <p className="text-[11px] text-zinc-300 font-medium">Instalar aplicativo?</p>
-                    <p className="text-[9px] text-zinc-600 mt-1">Acesso rápido na tela inicial</p>
-                  </div>
-                  <div className="border-t border-white/[0.06]">
-                    <button 
-                      onClick={handleInstall}
-                      className="w-full py-3.5 text-[11px] font-bold text-[#C5A059] active:bg-white/[0.03] transition-colors cursor-pointer"
-                    >
-                      Instalar
-                    </button>
-                  </div>
-                  <div className="border-t border-white/[0.06]">
-                    <button 
-                      onClick={() => setShowInstallPrompt(false)}
-                      className="w-full py-3.5 text-[11px] font-bold text-zinc-400 active:bg-white/[0.03] transition-colors cursor-pointer"
-                    >
-                      Agora não
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="p-5 text-center">
-                    <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-3">
-                      <Download size={16} className="text-[#C5A059]" />
-                    </div>
-                    <p className="text-[11px] text-zinc-300 font-medium">Instalar aplicativo</p>
-                    <p className="text-[9px] text-zinc-600 mt-1 max-w-[220px] mx-auto leading-relaxed">Toque em <strong className="text-white">Compartilhar</strong> e depois <strong className="text-white">"Adicionar à Tela de Início"</strong></p>
-                  </div>
-                  <div className="border-t border-white/[0.06]">
-                    <button 
-                      onClick={() => setShowInstallPrompt(false)}
-                      className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
-                    >
-                      Entendido
+              <div className="p-5 text-center">
+                <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-3">
+                  <Download size={16} className="text-[#C5A059]" />
+                </div>
+                <p className="text-[11px] text-zinc-300 font-medium">Instalar aplicativo</p>
+                <p className="text-[9px] text-zinc-600 mt-1 max-w-[220px] mx-auto leading-relaxed">Toque em <strong className="text-white">Compartilhar</strong> e depois <strong className="text-white">"Adicionar à Tela de Início"</strong></p>
+              </div>
+              <div className="border-t border-white/[0.06]">
+                <button 
+                  onClick={() => setShowInstallPrompt(false)}
+                  className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
+                >
+                  Entendido
                     </button>
                   </div>
                 </>
