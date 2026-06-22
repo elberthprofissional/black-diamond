@@ -471,20 +471,11 @@ const BookingPage: React.FC = () => {
           
           {/* Header */}
           <header className="px-5 pt-5 pb-4 shrink-0 border-b border-white/[0.04]">
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={() => step > 1 ? setStep(step - 1) : navigate('/')}
-                aria-label={step > 1 ? 'Voltar para a etapa anterior' : 'Voltar para a página inicial'}
-                className="text-zinc-500 hover:text-white transition-all cursor-pointer"
-              >
-                <ArrowLeft size={20} />
-              </button>
-              <div className="flex-1">
-                <h1 className="text-base font-bold text-white flex items-center gap-2">
-                  {step === 1 && <Scissors size={14} className="text-[#C5A059]" />}
-                  {step === 1 ? 'Escolha os serviços' : step === 2 ? 'Data e horário' : step === 3 ? 'Seus dados' : 'Revisar agendamento'}
-                </h1>
-              </div>
+            <div className="flex items-center justify-between">
+              <h1 className="text-base font-bold text-white flex items-center gap-2">
+                {step === 1 && <Scissors size={14} className="text-[#C5A059]" />}
+                {step === 1 ? 'Escolha os serviços' : step === 2 ? 'Data e horário' : step === 3 ? 'Seus dados' : 'Revisar agendamento'}
+              </h1>
               <span className="text-[8px] font-black tracking-[0.3em] text-[#C5A059]/50 uppercase">BLACK DIAMOND</span>
             </div>
           </header>
