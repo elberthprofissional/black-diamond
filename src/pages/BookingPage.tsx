@@ -4,7 +4,7 @@ import { getServices, createBooking, getBookings, getAvailableSlots } from '../l
 import { getNextDays, isTimeOccupied, formatPhone } from '../lib/utils';
 import type { Service } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check, Clock, User, Phone, CalendarDays, Scissors, Sparkles } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
 
@@ -470,42 +470,54 @@ const BookingPage: React.FC = () => {
         <div className="lg:hidden min-h-screen bg-[#050505] flex flex-col text-white font-sans relative pb-28">
           
           {/* Header */}
-          <header className="px-5 py-4 flex items-center gap-3 shrink-0 border-b border-white/[0.04]">
-            <button 
-              onClick={() => step > 1 ? setStep(step - 1) : navigate('/')}
-              aria-label={step > 1 ? 'Voltar para a etapa anterior' : 'Voltar para a página inicial'}
-              className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
-            >
-              <ArrowLeft size={16} />
-            </button>
-            <div className="flex-1">
-              <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
-                Passo {step} de 4
-              </p>
-              <h1 className="text-sm font-bold text-white mt-0.5">
-                {step === 1 ? 'Escolha os serviços' : step === 2 ? 'Data e horário' : step === 3 ? 'Seus dados' : 'Revisar agendamento'}
-              </h1>
+          <header className="px-5 pt-5 pb-4 shrink-0 border-b border-white/[0.04]">
+            <div className="flex items-center gap-3 mb-4">
+              <button 
+                onClick={() => step > 1 ? setStep(step - 1) : navigate('/')}
+                aria-label={step > 1 ? 'Voltar para a etapa anterior' : 'Voltar para a página inicial'}
+                className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
+              >
+                <ArrowLeft size={16} />
+              </button>
+              <div className="flex-1">
+                <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+                  Passo {step} de 4
+                </p>
+                <h1 className="text-sm font-bold text-white mt-0.5 flex items-center gap-2">
+                  {step === 1 && <Scissors size={14} className="text-[#C5A059]" />}
+                  {step === 1 ? 'Escolha os serviços' : step === 2 ? 'Data e horário' : step === 3 ? 'Seus dados' : 'Revisar agendamento'}
+                </h1>
+              </div>
+              <span className="text-[9px] font-black tracking-[0.3em] text-[#C5A059]/60 uppercase">BLACK DIAMOND</span>
+            </div>
+            
+            {/* Dot Progress Indicator */}
+            <div className="flex items-center justify-center gap-2 py-1">
+              {[1, 2, 3, 4].map((s) => (
+                <React.Fragment key={s}>
+                  <div 
+                    className={`w-2 h-2 rounded-full transition-all duration-500 ${
+                      step === s 
+                        ? 'bg-[#C5A059] scale-125 shadow-[0_0_8px_rgba(197,160,89,0.5)]' 
+                        : step > s 
+                          ? 'bg-[#C5A059]/60' 
+                          : 'bg-white/[0.12]'
+                    }`}
+                  />
+                  {s < 4 && (
+                    <div 
+                      className={`h-[1px] w-8 rounded-full transition-all duration-500 ${
+                        step > s ? 'bg-[#C5A059]/40' : 'bg-white/[0.08]'
+                      }`}
+                    />
+                  )}
+                </React.Fragment>
+              ))}
             </div>
           </header>
 
-          {/* Progress */}
-          <div className="flex gap-1 px-5 py-3 shrink-0">
-            {[1, 2, 3, 4].map((s) => (
-              <div 
-                key={s} 
-                className={`h-0.5 flex-1 rounded-full transition-all duration-300 ${
-                  step === s 
-                    ? 'bg-[#C5A059]' 
-                    : step > s 
-                      ? 'bg-[#C5A059]/40' 
-                      : 'bg-white/[0.06]'
-                }`}
-              />
-            ))}
-          </div>
-
           {/* Content */}
-          <div className="flex-1 px-5 pt-4 pb-12">
+          <div className="flex-1 px-5 pt-5 pb-12">
             <AnimatePresence mode="wait">
               {step === 1 && (
                 <motion.div key="m1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-3 pb-4">
@@ -516,21 +528,30 @@ const BookingPage: React.FC = () => {
                         key={service.id} 
                         onClick={() => toggleService(service)} 
                         aria-label={`Selecionar serviço ${service.name}. Preço: R$ ${Number(service.price).toFixed(0)}. Duração: ${service.duration} minutos.`}
-                        className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 text-left ${
+                        className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 text-left relative overflow-hidden ${
                           isSelected 
-                            ? 'bg-[#C5A059]/[0.06] border border-[#C5A059]/30' 
-                            : 'bg-[#111111] border border-white/[0.04] hover:border-white/[0.08]'
+                            ? 'bg-gradient-to-r from-[#C5A059]/[0.12] via-[#C5A059]/[0.08] to-[#C5A059]/[0.04] border border-[#C5A059]/40 shadow-[0_0_20px_rgba(197,160,89,0.15)]' 
+                            : 'bg-gradient-to-br from-[#111111] to-[#0a0a0a] border border-white/[0.06] hover:border-white/[0.12]'
                         }`}
                       >
-                        <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all shrink-0 ${
-                          isSelected ? 'border-[#C5A059] bg-[#C5A059]' : 'border-zinc-700'
+                        {isSelected && (
+                          <div className="absolute inset-0 bg-gradient-to-r from-[#C5A059]/5 via-transparent to-transparent animate-pulse" />
+                        )}
+                        <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all shrink-0 relative z-10 ${
+                          isSelected ? 'border-[#C5A059] bg-[#C5A059] shadow-[0_0_10px_rgba(197,160,89,0.4)]' : 'border-zinc-700'
                         }`}>
                           {isSelected && <Check size={12} className="text-black stroke-[3px]" />}
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 relative z-10">
                           <p className={`text-sm font-semibold ${isSelected ? 'text-[#C5A059]' : 'text-white'}`}>{service.name}</p>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <Clock size={10} className={isSelected ? 'text-[#C5A059]/70' : 'text-zinc-600'} />
+                            <span className={`text-[10px] font-medium ${isSelected ? 'text-[#C5A059]/70' : 'text-zinc-600'}`}>
+                              {service.duration} min
+                            </span>
+                          </div>
                         </div>
-                        <span className={`text-sm font-bold tabular-nums ${isSelected ? 'text-[#C5A059]' : 'text-zinc-400'}`}>
+                        <span className={`text-sm font-bold tabular-nums relative z-10 ${isSelected ? 'text-[#C5A059]' : 'text-zinc-400'}`}>
                           R$ {Number(service.price).toFixed(0)}
                         </span>
                       </button>
@@ -542,27 +563,32 @@ const BookingPage: React.FC = () => {
               {step === 2 && (
                 <motion.div key="m2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-5">
                   {/* Date Picker */}
-                  <div className="flex overflow-x-auto gap-1.5 pb-2 scrollbar-hide -mx-5 px-5 snap-x shrink-0">
+                  <div className="flex overflow-x-auto gap-2.5 pb-3 scrollbar-hide -mx-5 px-5 snap-x shrink-0">
                     {nextDays.map(day => {
                       const isSelected = selectedDate === day.fullDate;
+                      const monthNames = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+                      const monthIndex = parseInt(day.fullDate.split('-')[1]) - 1;
                       return (
                         <button 
                           key={day.fullDate} 
                           onClick={() => setSelectedDate(day.fullDate)}
                           disabled={day.isPast}
                           aria-label={`Selecionar data: dia ${day.dayNumber}, ${day.dayName}`}
-                          className={`min-w-[56px] py-3 snap-center flex flex-col items-center gap-0.5 rounded-lg transition-all ${
+                          className={`min-w-[64px] py-4 snap-center flex flex-col items-center gap-1 rounded-2xl transition-all duration-300 ${
                             day.isPast
                               ? 'text-zinc-700 opacity-40 cursor-not-allowed'
                               : isSelected 
-                                ? 'bg-[#C5A059] text-black' 
+                                ? 'bg-[#C5A059] text-black shadow-[0_0_20px_rgba(197,160,89,0.3)]' 
                                 : day.isToday
-                                  ? 'bg-white/[0.04] text-[#C5A059]'
-                                  : 'bg-white/[0.02] text-zinc-400'
+                                  ? 'bg-gradient-to-b from-[#C5A059]/10 to-[#C5A059]/5 border border-[#C5A059]/20 text-[#C5A059]'
+                                  : 'bg-[#111111] border border-white/[0.06] text-zinc-400 hover:border-white/[0.12]'
                           }`}
                         >
-                          <span className={`text-[8px] font-bold uppercase tracking-widest ${isSelected ? 'text-black/60' : 'opacity-50'}`}>{day.dayName}</span>
-                          <span className="text-lg font-black">{day.dayNumber}</span>
+                          <span className={`text-[8px] font-bold uppercase tracking-widest ${isSelected ? 'text-black/50' : 'opacity-50'}`}>{day.dayName}</span>
+                          <span className="text-xl font-black">{day.dayNumber}</span>
+                          <span className={`text-[8px] font-bold uppercase ${isSelected ? 'text-black/50' : 'text-zinc-600'}`}>
+                            {monthNames[monthIndex]}
+                          </span>
                         </button>
                       );
                     })}
@@ -570,9 +596,19 @@ const BookingPage: React.FC = () => {
 
                   {/* Time Slots */}
                   <div className="pb-4">
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Horários disponíveis</p>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+                        <Clock size={11} className="text-[#C5A059]/60" />
+                        Horários disponíveis
+                      </p>
+                      {selectedDate && (
+                        <span className="text-[9px] font-bold text-[#C5A059] bg-[#C5A059]/10 px-2 py-1 rounded-full">
+                          {availableSlots.filter(t => !isTimeOccupied(t, existingBookings)).length} horários livres
+                        </span>
+                      )}
+                    </div>
                     {selectedDate ? (
-                      <div className="grid grid-cols-4 gap-2">
+                      <div className="grid grid-cols-3 gap-2.5">
                         {availableSlots.map(time => {
                           const occupied = isTimeOccupied(time, existingBookings);
                           const isSelected = selectedTime === time;
@@ -583,14 +619,15 @@ const BookingPage: React.FC = () => {
                               disabled={occupied}
                               onClick={() => setSelectedTime(time)}
                               aria-label={`Selecionar horário: ${time}${occupied ? ' (indisponível)' : ''}`}
-                              className={`py-3 rounded-xl text-xs font-bold transition-all ${
+                              className={`py-3.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 ${
                                 occupied 
                                   ? 'text-zinc-800 bg-transparent cursor-not-allowed line-through opacity-20' 
                                   : isSelected 
-                                    ? 'text-[#C5A059] bg-[#C5A059]/10 border border-[#C5A059]/30' 
-                                    : 'text-zinc-400 bg-[#111111] border border-white/[0.04] hover:border-white/[0.08]'
+                                    ? 'text-[#C5A059] bg-[#C5A059]/15 border border-[#C5A059]/40 shadow-[0_0_12px_rgba(197,160,89,0.15)]' 
+                                    : 'text-zinc-400 bg-[#111111] border border-white/[0.06] hover:border-[#C5A059]/20 hover:text-zinc-200'
                               }`}
                             >
+                              {!occupied && <Clock size={10} className={isSelected ? 'text-[#C5A059]' : 'text-zinc-600'} />}
                               {time}
                             </button>
                           );
@@ -606,12 +643,15 @@ const BookingPage: React.FC = () => {
               {step === 3 && (
                 <motion.div key="m3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-4 pb-4">
                   <div className="space-y-3">
-                    <label className="text-[11px] font-semibold text-zinc-400">Nome completo</label>
+                    <label className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5">
+                      <User size={12} className="text-[#C5A059]/60" />
+                      Nome completo
+                    </label>
                     <input 
                       type="text" 
                       placeholder="Digite seu nome..." 
                       aria-label="Seu nome completo"
-                      className="w-full bg-[#111111] border border-white/[0.06] focus:border-[#C5A059]/50 rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-zinc-600" 
+                      className="w-full bg-[#111111] border border-white/[0.06] focus:border-[#C5A059]/50 focus:shadow-[0_0_16px_rgba(197,160,89,0.12)] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600" 
                       value={userInfo.name} 
                       onChange={e => setUserInfo({...userInfo, name: e.target.value})} 
                     />
@@ -620,12 +660,15 @@ const BookingPage: React.FC = () => {
                     )}
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[11px] font-semibold text-zinc-400">WhatsApp</label>
+                    <label className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5">
+                      <Phone size={12} className="text-[#C5A059]/60" />
+                      WhatsApp
+                    </label>
                     <input 
                       type="tel" 
                       placeholder="(00) 90000-0000" 
                       aria-label="Seu número de WhatsApp com DDD"
-                      className="w-full bg-[#111111] border border-white/[0.06] focus:border-[#C5A059]/50 rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-zinc-600" 
+                      className="w-full bg-[#111111] border border-white/[0.06] focus:border-[#C5A059]/50 focus:shadow-[0_0_16px_rgba(197,160,89,0.12)] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600" 
                       value={userInfo.phone} 
                       onChange={e => setUserInfo({...userInfo, phone: formatPhone(e.target.value)})} 
                     />
@@ -639,11 +682,14 @@ const BookingPage: React.FC = () => {
               {step === 4 && (
                 <motion.div key="m4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="space-y-4 pb-4">
                   {/* Ticket Container */}
-                  <div className="w-full bg-[#111111] border border-white/[0.06] rounded-2xl p-6 relative overflow-hidden shadow-xl">
+                  <div className="w-full bg-gradient-to-b from-[#111111] to-[#0a0a0a] border border-white/[0.06] rounded-2xl p-6 relative overflow-hidden shadow-xl">
                     <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#C5A059] to-transparent" />
                     
                     <div className="text-center pb-4 border-b border-white/[0.04] mb-4">
-                      <span className="text-[9px] font-black tracking-[0.4em] text-[#C5A059] uppercase block mb-1">REVISÃO DA RESERVA</span>
+                      <div className="flex items-center justify-center gap-2 mb-1">
+                        <Scissors size={14} className="text-[#C5A059]" />
+                        <span className="text-[9px] font-black tracking-[0.4em] text-[#C5A059] uppercase">REVISÃO DA RESERVA</span>
+                      </div>
                       <h3 className="text-base font-bold text-white">Confirme as informações</h3>
                     </div>
 
@@ -686,9 +732,12 @@ const BookingPage: React.FC = () => {
                         </div>
                         <div className="text-right">
                           <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Valor total</span>
-                          <span className="text-xl font-black text-[#C5A059] tracking-tight">
-                            R$ {totalPrice.toFixed(0)}
-                          </span>
+                          <div className="flex items-center gap-1.5 justify-end">
+                            <Sparkles size={14} className="text-[#C5A059]" />
+                            <span className="text-xl font-black text-[#C5A059] tracking-tight">
+                              R$ {totalPrice.toFixed(0)}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -705,10 +754,10 @@ const BookingPage: React.FC = () => {
                 onClick={() => step < 4 ? setStep(step + 1) : handleConfirm()}
                 disabled={isStepDisabled()}
                 aria-label={step < 4 ? 'Continuar para a próxima etapa' : 'Confirmar e concluir agendamento'}
-                className={`w-full h-12 rounded-xl font-bold text-xs uppercase tracking-widest transition-all cursor-pointer ${
+                className={`w-full h-12 rounded-xl font-bold text-xs uppercase tracking-widest transition-all duration-300 cursor-pointer ${
                   isStepDisabled()
-                    ? 'bg-zinc-900 border border-white/[0.04] text-zinc-600 cursor-not-allowed'
-                    : 'bg-[#C5A059] text-black hover:brightness-110 active:scale-[0.98]'
+                    ? 'bg-[#0a0a0a] border border-white/[0.04] text-zinc-700 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-[#C5A059] to-[#b8923f] text-black hover:brightness-110 active:scale-[0.98] shadow-[0_0_24px_rgba(197,160,89,0.25)]'
                 }`}
               >
                 {isSubmitting ? 'CONFIRMANDO...' : step < 4 ? 'Continuar' : 'Confirmar Agendamento'}
