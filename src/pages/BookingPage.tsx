@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Check, User, Scissors, Sparkles } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
+import PWAInstallBanner from '../components/PWAInstallBanner';
 
 const BookingPage: React.FC = () => {
   const { toast, showError } = useToast();
@@ -788,6 +789,7 @@ const BookingPage: React.FC = () => {
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
       <ToastNotification toast={toast} />
+      <PWAInstallBanner />
     </div>
   );
 };

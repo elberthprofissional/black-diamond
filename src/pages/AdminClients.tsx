@@ -6,7 +6,7 @@ import { formatPhone } from '../lib/utils';
 import { useToast } from '../hooks/useToast';
 import AdminLayout from '../components/Admin/AdminLayout';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
-import { ArrowLeft, Search, ChevronRight, User, Trash2, Pencil, X, Plus } from 'lucide-react';
+import { ArrowLeft, Search, ChevronRight, User, Trash2, Pencil, X, Plus, Bell } from 'lucide-react';
 import type { Client, ClientWithStats, BookingWithClient } from '../types';
 
 const AdminClients: React.FC = () => {
@@ -241,6 +241,10 @@ const AdminClients: React.FC = () => {
               <div className="pl-4 pr-3"><Search size={15} className="text-zinc-600" /></div>
               <input type="text" placeholder="Pesquisar contatos..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-transparent py-3.5 text-xs font-medium text-white outline-none placeholder:text-zinc-600" />
             </div>
+            <button onClick={() => navigate('/admin/reminders')} className="h-[46px] px-3.5 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] text-zinc-400 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95" title="Enviar Lembretes Coletivos">
+              <Bell size={14} className="text-zinc-400 group-hover:text-white" />
+              <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:block">Lembretes</span>
+            </button>
             <button onClick={() => setIsCreatingClient(true)} className="h-[46px] px-4 rounded-xl bg-[#C5A059] hover:bg-[#A68233] flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95">
               <Plus size={16} strokeWidth={2.5} className="text-black" />
               <span className="text-[10px] font-bold text-black uppercase tracking-wider hidden sm:block">Novo Cliente</span>

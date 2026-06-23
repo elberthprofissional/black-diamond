@@ -328,7 +328,7 @@ const AdminProfile: React.FC = () => {
       <div className="lg:hidden flex flex-col gap-6 max-w-md mx-auto">
         
         {/* NUBANK STYLE HEADER - BLACK & GOLD */}
-        <div className="bg-[#161616] border border-white/5 px-6 pt-6 pb-8 rounded-b-[24px] text-white flex flex-col gap-6 relative overflow-hidden shadow-lg shadow-black/40">
+        <div className="bg-[#161616] border-b border-white/5 px-6 pt-6 pb-8 -mx-5 -mt-4 text-white flex flex-col gap-6 relative overflow-hidden shadow-lg shadow-black/40">
           
           {/* Subtle gold decoration bubble background */}
           <div className="absolute top-[-50px] right-[-50px] w-[150px] h-[150px] bg-[#C5A059]/5 rounded-full blur-2xl pointer-events-none" />
@@ -359,8 +359,8 @@ const AdminProfile: React.FC = () => {
         </div>
 
         {/* CONTA SECTION */}
-        <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 space-y-2 relative overflow-hidden">
-          <div className="space-y-1">
+        <div className="px-1 py-1 space-y-1">
+          <div className="space-y-1.5">
             <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Faturamento Total</p>
             <div className="text-2xl font-bold text-white tracking-tight leading-none flex items-baseline">
               {showBalance ? (

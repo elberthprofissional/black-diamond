@@ -11,6 +11,7 @@ const AdminClients = lazy(() => import('./pages/AdminClients'));
 const AdminAvailableSlots = lazy(() => import('./pages/AdminAvailableSlots'));
 const AdminProfile = lazy(() => import('./pages/AdminProfile'));
 const AdminBooking = lazy(() => import('./pages/AdminBooking'));
+const AdminReminders = lazy(() => import('./pages/AdminReminders'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function LoadingFallback() {
@@ -36,6 +37,7 @@ function App() {
             <Route path="/admin/agendar" element={<AuthGuard><AdminBooking /></AuthGuard>} />
             <Route path="/admin/weekly" element={<AuthGuard><AdminWeekly /></AuthGuard>} />
             <Route path="/admin/clients" element={<AuthGuard><AdminClients /></AuthGuard>} />
+            <Route path="/admin/reminders" element={<AuthGuard><AdminReminders /></AuthGuard>} />
             <Route path="/admin/available" element={<AuthGuard><AdminAvailableSlots /></AuthGuard>} />
             <Route path="/admin/profile" element={<AuthGuard><AdminProfile /></AuthGuard>} />
             

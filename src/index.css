@@ -134,3 +134,34 @@
     padding-bottom: 0.85rem !important;
   }
 }
+
+/* ========================================================================= */
+/* 3. PWA NATIVE MOBILE OPTIMIZATIONS (iOS Notch & Safari Enhancements)     */
+/* ========================================================================= */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove 300ms delay on touch interactions */
+button, a, [role="button"] {
+  touch-action: manipulation;
+}
+
+/* iOS notch safe areas */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Prevent Safari automatic zoom when touching form inputs on mobile */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
