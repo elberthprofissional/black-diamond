@@ -700,7 +700,7 @@ const AdminBooking: React.FC = () => {
           <div className="px-5 py-4 flex items-center gap-3">
             <button 
               onClick={() => currentStep > 1 && !rescheduleBooking ? setCurrentStep(currentStep - 1) : navigate('/admin')}
-              className="w-9 h-9 flex items-center justify-center border border-white/[0.06] text-zinc-400 hover:text-white hover:border-[#C5A059]/40 transition-all active:scale-95 shrink-0 rounded-xl"
+              className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-white transition-all active:scale-95 shrink-0"
             >
               <ArrowLeft size={16} />
             </button>
@@ -789,19 +789,7 @@ const AdminBooking: React.FC = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="flex-1 flex flex-col space-y-5">
-                    {/* Search as pill button */}
-                    <button
-                      type="button"
-                      onClick={() => setIsSearchOpen(true)}
-                      className="w-full flex items-center gap-3 p-3.5 bg-[#111111] border border-white/[0.06] rounded-xl hover:border-white/[0.12] transition-all text-left"
-                    >
-                      <div className="w-9 h-9 bg-white/[0.03] rounded-lg flex items-center justify-center">
-                        <Search size={16} className="text-zinc-500" />
-                      </div>
-                      <span className="text-xs text-zinc-500 font-medium">Buscar cliente cadastrado...</span>
-                    </button>
-
+                  <div className="flex-1 flex flex-col space-y-4">
                     {isManualEntry ? (
                       <div className="space-y-4">
                         <div className="space-y-2">
@@ -1078,8 +1066,8 @@ const AdminBooking: React.FC = () => {
 
         {/* Fixed Bottom Button - ALWAYS visible */}
         <div 
-          className="fixed bottom-0 left-0 right-0 z-[90] bg-[#050505]/95 backdrop-blur-sm border-t border-white/[0.06]"
-          style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
+          className="fixed bottom-[60px] left-0 right-0 z-[90] bg-[#050505]/95 backdrop-blur-sm border-t border-white/[0.06]"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         >
           <div className="px-5 pt-3">
             <button 
