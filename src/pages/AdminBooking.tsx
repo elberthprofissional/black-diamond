@@ -694,58 +694,86 @@ const AdminBooking: React.FC = () => {
       </div>
 
       {/* MOBILE LAYOUT - APP-LIKE FIXED VIEWPORT */}
-      <div className="lg:hidden flex-1 flex flex-col relative z-10 overflow-hidden h-[calc(100dvh-60px)] bg-[#121212]">
-        {/* Custom Mobile Header */}
-        <header className="px-6 py-5 flex items-center gap-4 shrink-0">
-          <button 
-            onClick={() => currentStep > 1 && !rescheduleBooking ? setCurrentStep(currentStep - 1) : navigate('/admin')}
-            className="text-zinc-500 hover:text-white transition-all mr-1 active:scale-95 shrink-0"
-          >
-            <ArrowLeft size={18} />
-          </button>
-          <h1 className="text-xl font-bold text-white tracking-tighter uppercase italic leading-none">
-            {rescheduleBooking ? 'Reagendar Atendimento' : 'Novo Agendamento'}
-          </h1>
+      <div className="lg:hidden flex-1 flex flex-col relative z-10 overflow-hidden h-[calc(100dvh-60px)] bg-[#050505]">
+        {/* Sticky Header with Step Indicator */}
+        <header className="sticky top-0 z-30 bg-[#050505] border-b border-white/[0.06]">
+          <div className="px-5 py-4 flex items-center gap-3">
+            <button 
+              onClick={() => currentStep > 1 && !rescheduleBooking ? setCurrentStep(currentStep - 1) : navigate('/admin')}
+              className="w-9 h-9 flex items-center justify-center border border-white/[0.06] text-zinc-400 hover:text-white hover:border-[#C5A059]/40 transition-all active:scale-95 shrink-0 rounded-xl"
+            >
+              <ArrowLeft size={16} />
+            </button>
+            <h1 className="text-sm font-semibold tracking-[0.15em] text-white uppercase">
+              {rescheduleBooking ? 'Reagendar' : 'Novo Agendamento'}
+            </h1>
+          </div>
+          {/* 3-Segment Progress Bar */}
+          {!rescheduleBooking && (
+            <div className="px-5 pb-3 flex items-center gap-2">
+              {[
+                { step: 1, label: 'Cliente' },
+                { step: 2, label: 'Serviços' },
+                { step: 3, label: 'Data' },
+              ].map((s, idx) => {
+                const isActive = currentStep === s.step;
+                const isPassed = s.step < currentStep;
+                return (
+                  <React.Fragment key={s.step}>
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      <div className={`w-5 h-5 flex items-center justify-center text-[8px] font-bold rounded-full transition-all shrink-0 ${
+                        isActive 
+                          ? 'bg-[#C5A059] text-black' 
+                          : isPassed 
+                            ? 'bg-[#C5A059]/20 text-[#C5A059]' 
+                            : 'bg-white/[0.06] text-zinc-600'
+                      }`}>
+                        {isPassed ? <Check size={10} strokeWidth={3} /> : s.step}
+                      </div>
+                      <span className={`text-[9px] font-bold uppercase tracking-wider truncate transition-all ${
+                        isActive ? 'text-[#C5A059]' : isPassed ? 'text-white/50' : 'text-zinc-600'
+                      }`}>{s.label}</span>
+                    </div>
+                    {idx < 2 && (
+                      <div className={`h-[2px] flex-1 rounded-full transition-all duration-500 ${
+                        isPassed ? 'bg-[#C5A059]/30' : 'bg-white/[0.06]'
+                      }`} />
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          )}
         </header>
 
-        {/* Frozen Content Area */}
-        <div className="flex-1 overflow-hidden px-6 pt-5 pb-32 flex flex-col">
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-5 pt-5 pb-36 flex flex-col scrollbar-hide">
           <AnimatePresence mode="wait">
+            {/* STEP 1: CLIENTE */}
             {currentStep === 1 && (
               <motion.div
                 key="m-step-client"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-6 h-full flex flex-col overflow-hidden"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.25 }}
+                className="space-y-5 h-full flex flex-col"
               >
-                <div className="flex items-center justify-between shrink-0">
-                  <div className="space-y-1">
-                    <h2 className="text-xl font-bold text-white uppercase italic tracking-tight">Cliente</h2>
-                    <p className="text-xs text-zinc-500 font-light">Busque ou cadastre o cliente</p>
-                  </div>
-                  {!selectedClient && (
-                    <button
-                      type="button"
-                      onClick={() => setIsSearchOpen(true)}
-                      className="px-3 py-1.5 bg-white/[0.02] border border-white/[0.06] hover:bg-white hover:text-black rounded-lg text-[9px] font-bold uppercase tracking-[0.1em] text-zinc-400 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
-                    >
-                      <Search size={11} />
-                      <span>Buscar</span>
-                    </button>
-                  )}
+                <div className="space-y-1 shrink-0">
+                  <h2 className="text-lg font-bold text-white uppercase tracking-tight">Cliente</h2>
+                  <p className="text-xs text-zinc-500">Busque ou cadastre o cliente</p>
                 </div>
 
                 {selectedClient ? (
-                  <div className="p-5 border border-[#C5A059]/35 bg-[#C5A059]/5 flex items-center justify-between transition-all group rounded-none">
-                    <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 bg-zinc-950 border border-white/[0.05] flex items-center justify-center text-[#C5A059] text-base font-black italic">
+                  <div className="p-4 bg-[#111111] border border-[#C5A059]/30 rounded-2xl flex items-center justify-between">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-11 h-11 bg-[#050505] border border-white/[0.08] rounded-xl flex items-center justify-center text-[#C5A059] text-base font-bold">
                         {selectedClient.name.charAt(0)}
                       </div>
-                      <div>
-                        <span className="text-[8px] font-bold text-[#C5A059] tracking-widest uppercase block mb-0.5">CLIENTE CADASTRADO</span>
-                        <h3 className="text-base font-bold text-white uppercase italic leading-none">{selectedClient.name}</h3>
-                        <p className="text-[11px] text-zinc-555 mt-1.5 font-medium">{selectedClient.phone}</p>
+                      <div className="min-w-0">
+                        <span className="text-[8px] font-bold text-[#C5A059] tracking-widest uppercase block mb-0.5">CADASTRADO</span>
+                        <h3 className="text-sm font-bold text-white uppercase tracking-wide leading-none truncate">{selectedClient.name}</h3>
+                        <p className="text-[11px] text-zinc-500 mt-1">{selectedClient.phone}</p>
                       </div>
                     </div>
                     <button
@@ -755,165 +783,191 @@ const AdminBooking: React.FC = () => {
                         setSearchQuery('');
                         setIsManualEntry(true);
                       }}
-                      className="text-[9px] font-bold uppercase tracking-widest text-[#C5A059] hover:text-white underline underline-offset-4 cursor-pointer"
+                      className="text-[9px] font-bold uppercase tracking-widest text-[#C5A059] cursor-pointer px-2 py-1 shrink-0"
                     >
                       Alterar
                     </button>
                   </div>
                 ) : (
-                  <div className="flex-1 flex flex-col overflow-hidden">
-                    <div className="flex-1 overflow-hidden pr-1 scrollbar-hide pb-4 space-y-6">
-                      {isManualEntry ? (
-                        <div className="space-y-6">
-                          <div className="space-y-2.5">
-                            <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] ml-0.5">NOME DO CLIENTE</label>
-                            <input 
-                              type="text" 
-                              placeholder="DIGITE O NOME COMPLETO"
-                              className="w-full bg-transparent border-b border-white/[0.06] focus:border-[#C5A059] py-3 text-base text-white outline-none transition-all placeholder:text-zinc-800 uppercase italic font-bold tracking-wider"
-                              value={newClient.name}
-                              onChange={(e) => setNewClient({ ...newClient, name: e.target.value.toUpperCase() })}
-                            />
-                            {newClient.name.trim().length > 0 && newClient.name.trim().length < 3 && (
-                              <p className="text-[8px] text-zinc-700 uppercase tracking-widest ml-0.5 italic">Mínimo 3 caracteres</p>
-                            )}
-                          </div>
-                          <div className="space-y-2.5">
-                            <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] ml-0.5">TELEFONE (WHATSAPP)</label>
-                            <input 
-                              type="tel" 
-                              placeholder="(00) 00000-0000"
-                              className="w-full bg-transparent border-b border-white/[0.06] focus:border-[#C5A059] py-3 text-base text-white outline-none transition-all placeholder:text-zinc-800 italic font-bold tracking-wider"
-                              value={newClient.phone}
-                              onChange={(e) => setNewClient({ ...newClient, phone: formatPhone(e.target.value) })}
-                            />
-                            {newClient.phone.trim().length > 0 && newClient.phone.replace(/\D/g, '').length < 8 && (
-                              <p className="text-[8px] text-zinc-700 uppercase tracking-widest ml-0.5 italic">Telefone muito curto</p>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-6">
-                          <div className="space-y-3">
-                            <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] ml-0.5">WHATSAPP OU NOME</label>
-                            <div className="flex gap-2">
-                              <div className="relative flex-1">
-                                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
-                                <input
-                                  type="text"
-                                  placeholder="DIGITE PARA BUSCAR..."
-                                  className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-[#C5A059] py-3 pl-10 pr-3 text-sm text-white outline-none transition-all placeholder:text-zinc-800 italic font-bold uppercase tracking-wider"
-                                  value={searchQuery}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (/^\d/.test(val) || val === '') {
-                                      setSearchQuery(formatPhone(val));
-                                    } else {
-                                      setSearchQuery(val);
-                                    }
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault();
-                                      handleSearch();
-                                    }
-                                  }}
-                                />
-                              </div>
-                              <button
-                                type="button"
-                                onClick={handleSearch}
-                                disabled={!searchQuery.trim() || isSearchingClient}
-                                className="px-5 bg-zinc-900 border border-white/[0.04] text-[#C5A059] text-[9px] font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 min-w-[90px] disabled:opacity-30 disabled:cursor-not-allowed"
-                              >
-                                {isSearchingClient ? <Loader2 size={12} className="animate-spin text-[#C5A059]" /> : 'Buscar'}
-                              </button>
-                            </div>
-                          </div>
+                  <div className="flex-1 flex flex-col space-y-5">
+                    {/* Search as pill button */}
+                    <button
+                      type="button"
+                      onClick={() => setIsSearchOpen(true)}
+                      className="w-full flex items-center gap-3 p-3.5 bg-[#111111] border border-white/[0.06] rounded-xl hover:border-white/[0.12] transition-all text-left"
+                    >
+                      <div className="w-9 h-9 bg-white/[0.03] rounded-lg flex items-center justify-center">
+                        <Search size={16} className="text-zinc-500" />
+                      </div>
+                      <span className="text-xs text-zinc-500 font-medium">Buscar cliente cadastrado...</span>
+                    </button>
 
-                          {multipleMatches.length > 0 && (
-                            <div className="space-y-3">
-                              <div className="p-3 bg-zinc-950 border border-white/[0.03] text-[9px] text-zinc-400 font-bold uppercase tracking-wider">
-                                Selecione o cliente abaixo:
-                              </div>
-                              <div className="divide-y divide-white/[0.02] border border-white/[0.04] max-h-48 overflow-y-auto scrollbar-hide bg-[#121212]/40">
-                                {multipleMatches.map(c => (
-                                  <button
-                                    key={c.id}
-                                    type="button"
-                                    onClick={() => {
-                                      setSelectedClient(c);
-                                      setMultipleMatches([]);
-                                    }}
-                                    className="w-full text-left p-3.5 hover:bg-white/[0.02] transition-all flex items-center justify-between cursor-pointer group"
-                                  >
-                                    <div>
-                                      <p className="text-sm font-bold text-zinc-300 group-hover:text-white uppercase italic leading-none">{c.name}</p>
-                                      <p className="text-[10px] text-zinc-600 mt-1 transition-colors">{c.phone}</p>
-                                    </div>
-                                    <ChevronRight size={12} className="text-[#C5A059]" />
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
+                    {isManualEntry ? (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">NOME DO CLIENTE</label>
+                          <input 
+                            type="text" 
+                            placeholder="Nome completo"
+                            className="w-full bg-white/[0.03] border border-white/[0.06] focus:border-[#C5A059]/60 rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-zinc-700"
+                            value={newClient.name}
+                            onChange={(e) => setNewClient({ ...newClient, name: e.target.value.toUpperCase() })}
+                          />
+                          {newClient.name.trim().length > 0 && newClient.name.trim().length < 3 && (
+                            <p className="text-[9px] text-zinc-600 ml-1">Mínimo 3 caracteres</p>
                           )}
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">TELEFONE (WHATSAPP)</label>
+                          <input 
+                            type="tel" 
+                            placeholder="(00) 00000-0000"
+                            className="w-full bg-white/[0.03] border border-white/[0.06] focus:border-[#C5A059]/60 rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-zinc-700"
+                            value={newClient.phone}
+                            onChange={(e) => setNewClient({ ...newClient, phone: formatPhone(e.target.value) })}
+                          />
+                          {newClient.phone.trim().length > 0 && newClient.phone.replace(/\D/g, '').length < 8 && (
+                            <p className="text-[9px] text-zinc-600 ml-1">Telefone muito curto</p>
+                          )}
+                        </div>
 
-                          {/* Minimalist register switch link at the bottom */}
-                          <div className="pt-6 border-t border-white/[0.02] flex justify-center">
+                        <div className="pt-4 border-t border-white/[0.04]">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsManualEntry(false);
+                              setSearchQuery('');
+                            }}
+                            className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C5A059] transition-colors cursor-pointer"
+                          >
+                            Buscar Cliente Existente →
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">WHATSAPP OU NOME</label>
+                          <div className="flex gap-2">
+                            <div className="relative flex-1">
+                              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-600" />
+                              <input
+                                type="text"
+                                placeholder="Digite para buscar..."
+                                className="w-full bg-white/[0.03] border border-white/[0.06] focus:border-[#C5A059]/60 rounded-xl py-3 pl-10 pr-3 text-sm text-white outline-none transition-all placeholder:text-zinc-700"
+                                value={searchQuery}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (/^\d/.test(val) || val === '') {
+                                    setSearchQuery(formatPhone(val));
+                                  } else {
+                                    setSearchQuery(val);
+                                  }
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleSearch();
+                                  }
+                                }}
+                              />
+                            </div>
                             <button
                               type="button"
-                              onClick={() => {
-                                setIsManualEntry(true);
-                                setSearchQuery('');
-                              }}
-                              className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#C5A059] hover:underline transition-colors cursor-pointer"
+                              onClick={handleSearch}
+                              disabled={!searchQuery.trim() || isSearchingClient}
+                              className="px-5 bg-[#C5A059] text-black text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 min-w-[90px] disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
                             >
-                              ← Cadastrar Novo Cliente
+                              {isSearchingClient ? <Loader2 size={14} className="animate-spin" /> : 'Buscar'}
                             </button>
                           </div>
                         </div>
-                      )}
-                    </div>
+
+                        {multipleMatches.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Selecione o cliente:</p>
+                            <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-hide">
+                              {multipleMatches.map(c => (
+                                <button
+                                  key={c.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedClient(c);
+                                    setMultipleMatches([]);
+                                  }}
+                                  className="w-full text-left p-3.5 bg-[#111111] border border-white/[0.06] rounded-xl hover:border-[#C5A059]/30 transition-all flex items-center justify-between cursor-pointer"
+                                >
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-bold text-white uppercase tracking-wide truncate">{c.name}</p>
+                                    <p className="text-[10px] text-zinc-500 mt-0.5">{c.phone}</p>
+                                  </div>
+                                  <ChevronRight size={14} className="text-[#C5A059] shrink-0 ml-2" />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="pt-4 border-t border-white/[0.04]">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsManualEntry(true);
+                              setSearchQuery('');
+                            }}
+                            className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C5A059] transition-colors cursor-pointer"
+                          >
+                            ← Cadastrar Novo Cliente
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </motion.div>
             )}
 
+            {/* STEP 2: SERVIÇOS */}
             {currentStep === 2 && (
               <motion.div
                 key="m-step-services"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-6 h-full flex flex-col overflow-hidden"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.25 }}
+                className="space-y-5 h-full flex flex-col"
               >
                 <div className="space-y-1 shrink-0">
-                  <h2 className="text-xl font-bold text-white uppercase italic tracking-tight">Serviços</h2>
-                  <p className="text-xs text-zinc-500 font-light">Selecione os serviços desejados</p>
+                  <h2 className="text-lg font-bold text-white uppercase tracking-tight">Serviços</h2>
+                  <p className="text-xs text-zinc-500">Selecione os serviços desejados</p>
                 </div>
 
-                <div className="space-y-3 overflow-y-auto flex-1 scrollbar-hide pb-24">
+                <div className="space-y-2.5 overflow-y-auto flex-1 scrollbar-hide pb-4">
                   {services.map(service => {
                     const isSelected = selectedServices.some(s => s.id === service.id);
                     return (
                       <button 
                         key={service.id} 
                         onClick={() => toggleService(service)} 
-                        className={`w-full flex items-center justify-between p-4 transition-all duration-300 rounded-none border-b ${
+                        className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all duration-300 border ${
                           isSelected 
-                            ? 'bg-[#C5A059]/5 border-[#C5A059] shadow-[0_0_20px_rgba(184,155,73,0.02)]' 
-                            : 'bg-transparent border-white/[0.04] hover:border-zinc-800'
+                            ? 'bg-[#C5A059]/[0.06] border-[#C5A059]/40' 
+                            : 'bg-[#111111] border-white/[0.06] hover:border-white/[0.12]'
                         }`}
                       >
-                        <div className="flex items-center gap-3.5 text-left min-w-0">
-                          <div className={`w-4 h-4 border flex items-center justify-center transition-all shrink-0 ${isSelected ? 'border-[#C5A059]' : 'border-zinc-850'}`}>
-                            {isSelected && <Check size={10} className="text-[#C5A059] stroke-[4px]" />}
-                          </div>
-                          <div className="space-y-0.5 min-w-0">
-                            <p className={`text-sm font-bold italic uppercase tracking-tight ${isSelected ? 'text-[#C5A059]' : 'text-zinc-200'}`}>{service.name}</p>
-                          </div>
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
+                          isSelected ? 'border-[#C5A059] bg-[#C5A059]' : 'border-zinc-700'
+                        }`}>
+                          {isSelected && <Check size={12} className="text-black" strokeWidth={3} />}
                         </div>
-                        <span className={`font-black italic text-sm tracking-tight shrink-0 ${isSelected ? 'text-[#C5A059]' : 'text-zinc-500'}`}>R$ {Number(service.price).toFixed(0)}</span>
+                        <div className="flex-1 text-left min-w-0">
+                          <p className={`text-sm font-bold uppercase tracking-wide truncate ${isSelected ? 'text-[#C5A059]' : 'text-zinc-300'}`}>
+                            {service.name}
+                          </p>
+                        </div>
+                        <span className={`font-bold text-sm shrink-0 ${isSelected ? 'text-[#C5A059]' : 'text-zinc-500'}`}>
+                          R$ {Number(service.price).toFixed(0)}
+                        </span>
                       </button>
                     );
                   })}
@@ -921,18 +975,20 @@ const AdminBooking: React.FC = () => {
               </motion.div>
             )}
 
+            {/* STEP 3: DATA / HORÁRIO */}
             {currentStep === 3 && (
               <motion.div
                 key="m-step-calendar"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-6 h-full flex flex-col overflow-hidden"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.25 }}
+                className="space-y-5 h-full flex flex-col"
               >
                 {rescheduleBooking ? (
-                  <div className="p-4 bg-white/[0.01] border border-[#C5A059]/25 rounded-none flex flex-col gap-1 text-left shrink-0">
-                    <span className="text-[8px] font-black text-[#C5A059] uppercase tracking-[0.25em]">REAGENDANDO ATENDIMENTO</span>
-                    <h3 className="text-sm font-bold text-white uppercase italic leading-none">{rescheduleBooking.clients?.name}</h3>
+                  <div className="p-4 bg-[#111111] border border-[#C5A059]/20 rounded-2xl flex flex-col gap-1.5 shrink-0">
+                    <span className="text-[8px] font-bold text-[#C5A059] uppercase tracking-[0.25em]">REAGENDANDO ATENDIMENTO</span>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wide leading-none">{rescheduleBooking.clients?.name}</h3>
                     <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider truncate">{selectedServices.map(s => s.name).join(' + ')}</p>
                     <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5">
                       Original: {new Date(rescheduleBooking.booking_date.replace(/-/g, '/')).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })} às {rescheduleBooking.booking_time.slice(0, 5)}
@@ -940,62 +996,79 @@ const AdminBooking: React.FC = () => {
                   </div>
                 ) : (
                   <div className="space-y-1 shrink-0">
-                    <h2 className="text-xl font-bold text-white uppercase italic tracking-tight">Data e horário</h2>
-                    <p className="text-xs text-zinc-500 font-light">Selecione o melhor dia e horário</p>
+                    <h2 className="text-lg font-bold text-white uppercase tracking-tight">Data e horário</h2>
+                    <p className="text-xs text-zinc-500">Selecione o melhor dia e horário</p>
                   </div>
                 )}
 
-                {/* Elegant Date Picker */}
-                <div className="flex overflow-x-auto gap-3 pb-3 scrollbar-hide -mx-6 px-6 snap-x shrink-0 border-b border-white/[0.02]">
-                  {nextDays.map(day => {
-                    const isSelected = selectedDate === day.fullDate;
-                    return (
-                      <button 
-                        key={day.fullDate} 
-                        onClick={() => {
-                          setSelectedDate(day.fullDate);
-                          setSelectedTime('');
-                        }} 
-                        className={`min-w-[70px] py-3.5 transition-all duration-300 snap-center flex flex-col items-center gap-1 rounded-none border ${
-                          isSelected 
-                            ? 'bg-[#C5A059]/5 border-[#C5A059] text-[#C5A059] shadow-[0_0_15px_rgba(184,155,73,0.05)]' 
-                            : 'bg-transparent border-white/[0.04] text-zinc-500 hover:text-white'
-                        }`}
-                      >
-                        <span className="text-[8px] font-bold uppercase tracking-widest">{day.dayName}</span>
-                        <span className="text-xl font-black italic">{day.dayNumber}</span>
-                      </button>
-                    );
-                  })}
+                {/* Date Ribbon */}
+                <div className="space-y-2 shrink-0">
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">SELECIONE O DIA</span>
+                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1 snap-x">
+                    {nextDays.map(day => {
+                      const isSelected = selectedDate === day.fullDate;
+                      const monthAbbr = new Date(day.fullDate + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+                      return (
+                        <button 
+                          key={day.fullDate} 
+                          onClick={() => {
+                            setSelectedDate(day.fullDate);
+                            setSelectedTime('');
+                          }} 
+                          className={`min-w-[64px] py-3 transition-all duration-300 snap-center flex flex-col items-center gap-0.5 rounded-xl border ${
+                            isSelected 
+                              ? 'bg-[#C5A059]/10 border-[#C5A059]/50 text-[#C5A059]' 
+                              : 'bg-[#111111] border-white/[0.06] text-zinc-500 hover:text-white hover:border-white/[0.12]'
+                          }`}
+                        >
+                          <span className="text-[8px] font-bold uppercase tracking-widest opacity-60">{day.dayName}</span>
+                          <span className="text-xl font-bold text-white">{day.dayNumber}</span>
+                          <span className="text-[8px] font-bold uppercase tracking-wider opacity-50">{monthAbbr}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                <div className="space-y-3 overflow-y-auto flex-1 scrollbar-hide pb-28">
+                {/* Time Slots */}
+                <div className="space-y-4 overflow-y-auto flex-1 scrollbar-hide pb-4">
                   {selectedDate ? (
-                    <div className="grid grid-cols-4 gap-2">
-                      {TIME_SLOTS.map(time => {
-                        const occupied = isOccupied(time);
-                        const isSelected = selectedTime === time;
-                        return (
-                          <button
-                            key={time}
-                            type="button"
-                            disabled={occupied}
-                            onClick={() => setSelectedTime(time)}
-                            className={`py-3 border text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer rounded-none ${
-                              occupied 
-                                ? 'text-zinc-800/10 border-transparent cursor-not-allowed line-through opacity-20 bg-transparent' 
-                                : isSelected 
-                                  ? 'text-[#C5A059] border-[#C5A059] bg-[#C5A059]/5 font-black shadow-[0_0_15px_rgba(184,155,73,0.05)]' 
-                                  : 'text-zinc-400 border-white/[0.04] hover:border-zinc-800 hover:text-white bg-transparent'
-                            }`}
-                          >
-                            {time}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    ['Manhã', 'Tarde', 'Noite'].map((period) => {
+                      const periodSlots = TIME_SLOTS.filter(time => getPeriod(time) === period);
+                      if (periodSlots.length === 0) return null;
+                      return (
+                        <div key={period} className="space-y-2.5">
+                          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{period}</span>
+                          <div className="grid grid-cols-4 gap-2">
+                            {periodSlots.map(time => {
+                              const occupied = isOccupied(time);
+                              const isSelected = selectedTime === time;
+                              return (
+                                <button
+                                  key={time}
+                                  type="button"
+                                  disabled={occupied}
+                                  onClick={() => setSelectedTime(time)}
+                                  className={`py-3 rounded-xl border text-[11px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                                    occupied 
+                                      ? 'text-zinc-800 border-transparent cursor-not-allowed opacity-20 bg-transparent' 
+                                      : isSelected 
+                                        ? 'text-[#C5A059] border-[#C5A059]/50 bg-[#C5A059]/[0.08]' 
+                                        : 'text-zinc-400 border-white/[0.06] bg-[#111111] hover:border-white/[0.12] hover:text-white'
+                                  }`}
+                                >
+                                  {time}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })
                   ) : (
-                    <p className="text-zinc-500 text-xs py-6 text-center">Selecione um dia acima para ver os horários disponíveis.</p>
+                    <div className="py-10 text-center">
+                      <p className="text-zinc-600 text-xs">Selecione um dia acima para ver os horários.</p>
+                    </div>
                   )}
                 </div>
               </motion.div>
@@ -1003,23 +1076,26 @@ const AdminBooking: React.FC = () => {
           </AnimatePresence>
         </div>
 
-        {/* Floating Action Button Footer */}
-        {((currentStep === 1 && (selectedClient || newClient.name)) || selectedServices.length > 0) && (
-          <div className="absolute bottom-[60px] left-0 right-0 px-6 py-4 bg-gradient-to-t from-[#121212] via-[#121212]/98 to-transparent z-[90] flex flex-col items-center gap-2.5">
+        {/* Fixed Bottom Button - ALWAYS visible */}
+        <div 
+          className="fixed bottom-0 left-0 right-0 z-[90] bg-[#050505]/95 backdrop-blur-sm border-t border-white/[0.06]"
+          style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
+        >
+          <div className="px-5 pt-3">
             <button 
               onClick={() => currentStep < 3 ? handleNextStep() : handleFinish()}
               disabled={!isStepValid(currentStep) || isSubmitting}
-              className={`w-full h-12 rounded-none font-bold uppercase tracking-[0.2em] text-[10px] transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
+              className={`w-full h-12 rounded-xl font-bold uppercase tracking-[0.2em] text-[11px] transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
                 !isStepValid(currentStep)
-                  ? 'bg-zinc-950 border border-white/[0.03] text-zinc-700 cursor-not-allowed shadow-none'
-                  : 'bg-white text-black hover:bg-[#C5A059] hover:text-black shadow-lg shadow-white/5'
+                  ? 'bg-white/[0.04] border border-white/[0.04] text-zinc-700 cursor-not-allowed'
+                  : 'bg-[#C5A059] text-black hover:bg-[#C5A059]/90 shadow-lg shadow-[#C5A059]/20'
               }`}
             >
               <span>{isSubmitting ? 'CONFIRMANDO...' : rescheduleBooking ? 'CONFIRMAR REAGENDAMENTO' : currentStep < 3 ? 'CONTINUAR' : 'CONFIRMAR AGENDAMENTO'}</span>
-              {!isSubmitting && <ChevronRight size={12} />}
+              {!isSubmitting && <ChevronRight size={14} />}
             </button>
           </div>
-        )}
+        </div>
       </div>
 
       {/* SEARCH CLIENT MODAL */}
