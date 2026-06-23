@@ -4,7 +4,7 @@ import { getServices, createBooking, getBookings, getAvailableSlots } from '../l
 import { getNextDays, isTimeOccupied, formatPhone } from '../lib/utils';
 import type { Service } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Check, User, Scissors, Sparkles } from 'lucide-react';
+import { ArrowLeft, Check, User, Scissors } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
 
@@ -386,28 +386,15 @@ const BookingPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Duração total e Preço final */}
-                        <div className="border-t border-white/[0.06] pt-4 mt-4 flex items-center justify-between">
-                          <div>
-                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">Tempo total</span>
-                            <span className="text-xs text-zinc-400 font-medium">
-                              {selectedServices.reduce((sum, s) => sum + s.duration, 0)} minutos
-                            </span>
-                          </div>
+                        {/* Preço final */}
+                        <div className="border-t border-white/[0.06] pt-4 mt-4 flex items-center justify-end">
                           <div className="text-right">
-                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">Valor total</span>
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">Total</span>
                             <span className="text-2xl font-black text-[#C5A059] tracking-tight">
                               R$ {totalPrice.toFixed(0)}
                             </span>
                           </div>
                         </div>
-                      </div>
-
-                      {/* Ticket visual jagged footer effect / subtle card design */}
-                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex gap-1 justify-center opacity-30 pointer-events-none">
-                        {Array.from({ length: 15 }).map((_, i) => (
-                          <div key={i} className="w-3 h-3 bg-[#0E0E0E] rounded-full" />
-                        ))}
                       </div>
                     </div>
                   </motion.div>
@@ -719,29 +706,14 @@ const BookingPage: React.FC = () => {
                       </div>
 
                       <div className="border-t border-white/[0.04] pt-3 flex justify-between items-end">
-                        <div>
-                          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Tempo total</span>
-                          <span className="text-xs text-zinc-400 font-medium">
-                            {selectedServices.reduce((sum, s) => sum + s.duration, 0)} minutos
+                        <div />
+                        <div className="text-right">
+                          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Total</span>
+                          <span className="text-xl font-black text-[#C5A059] tracking-tight">
+                            R$ {totalPrice.toFixed(0)}
                           </span>
                         </div>
-                        <div className="text-right">
-                          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Valor total</span>
-                          <div className="flex items-center gap-1.5 justify-end">
-                            <Sparkles size={14} className="text-[#C5A059]" />
-                            <span className="text-xl font-black text-[#C5A059] tracking-tight">
-                              R$ {totalPrice.toFixed(0)}
-                            </span>
-                          </div>
-                        </div>
                       </div>
-                    </div>
-
-                    {/* Ticket visual jagged footer effect */}
-                    <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1 justify-center opacity-30 pointer-events-none">
-                      {Array.from({ length: 12 }).map((_, i) => (
-                        <div key={i} className="w-2.5 h-2.5 bg-[#050505] rounded-full" />
-                      ))}
                     </div>
                   </div>
                 </motion.div>
