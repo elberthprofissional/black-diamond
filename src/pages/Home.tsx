@@ -7,7 +7,7 @@ import Testimonials from '../components/TestimonialsSlider';
 import Gallery from '../components/Gallery';
 import Location from '../components/Location';
 import Footer from '../components/Footer';
-import PWAInstallBanner from '../components/PWAInstallBanner';
+
 import { useNavigate } from 'react-router-dom';
 
 const Home: React.FC = () => {
@@ -29,7 +29,7 @@ const Home: React.FC = () => {
         <Location />
       </main>
       <Footer />
-      <PWAInstallBanner />
+
     </>
   );
 };

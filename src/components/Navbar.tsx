@@ -34,10 +34,10 @@ const Navbar: React.FC<NavbarProps> = ({ onBookingClick }) => {
   };
 
   const navLinks = [
-    { label: 'O ESPAÇO', id: 'sobre' },
+    { label: 'SOBRE MIM', id: 'sobre' },
     { label: 'SERVIÇOS', id: 'servicos' },
     { label: 'GALERIA', id: 'galeria' },
-    { label: 'LOCALIZAÇÃO', id: 'localização' }
+    { label: 'ONDE ESTAMOS', id: 'localização' }
   ];
 
   return (

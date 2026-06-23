@@ -9,16 +9,11 @@ export const getPeriod = (time: string) => {
 
 export const formatPhone = (value: string) => {
   const digits = value.replace(/\D/g, '');
-  
-  // Auto-fill DD 31 (Minas Gerais)
   let d = digits;
-  if (d.length > 0 && !d.startsWith('31')) {
-    d = '31' + d;
-  }
   if (d.length > 11) d = d.slice(0, 11);
 
   if (d.length <= 2) return d;
-  if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 };
 

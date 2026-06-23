@@ -31,3 +31,8 @@ dist-ssr
 .env.test.local
 .env.production.local
 !.env.example
+
+# Automações locais contendo chaves sensíveis
+ATIVAR_EMAILS_E_LEMBRETES.sql
+MODELO_EMAILS_PREVIEW.txt
+

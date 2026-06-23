@@ -11,6 +11,9 @@ const AdminLogin: React.FC = () => {
   const supportPhone = import.meta.env.VITE_SUPPORT_WHATSAPP || '5531980159559';
   const [showPassword, setShowPassword] = useState(false);
   const [isForgotOpen, setIsForgotOpen] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState(import.meta.env.VITE_ADMIN_EMAIL || 'tato@gmail.com');
+  const [isSendingReset, setIsSendingReset] = useState(false);
+  const [isResetSent, setIsResetSent] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { toast, showError } = useToast();
   const navigate = useNavigate();
@@ -29,10 +32,10 @@ const AdminLogin: React.FC = () => {
 
   // Detecta PWA e trava navegação de voltar caso esteja standalone
   useEffect(() => {
-    const standalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
-    setIsPWA(!!standalone);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    setIsPWA(!!isStandalone);
 
-    if (standalone) {
+    if (isStandalone) {
       const handlePopState = () => {
         window.close();
       };
@@ -70,6 +73,27 @@ const AdminLogin: React.FC = () => {
     }
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recoveryEmail.trim()) {
+      showError('Digite seu e-mail.');
+      return;
+    }
+    setIsSendingReset(true);
+    
+    // Simulação do envio (Pre-configurado / Front-end Mock)
+    setTimeout(() => {
+      setIsSendingReset(false);
+      setIsResetSent(true);
+    }, 1500);
+  };
+
+  const handleCloseForgot = () => {
+    setIsForgotOpen(false);
+    setRecoveryEmail('');
+    setIsResetSent(false);
+  };
+
   return (
     <div className="h-screen w-full bg-[#0A0A0A] text-white flex relative overflow-hidden font-sans touch-none">
       
@@ -77,10 +101,9 @@ const AdminLogin: React.FC = () => {
       {!isPWA && (
         <button
           onClick={() => navigate('/')}
-          className="absolute top-6 left-6 z-50 flex items-center gap-2 text-zinc-500 hover:text-white transition-colors cursor-pointer text-[10px] font-bold uppercase tracking-widest active:scale-95"
+          className="absolute top-6 left-6 z-50 text-zinc-500 hover:text-white transition-colors cursor-pointer active:scale-95"
         >
-          <ArrowLeft size={14} className="text-zinc-500 hover:text-white" />
-          <span>Voltar ao site</span>
+          <ArrowLeft size={20} />
         </button>
       )}
 
@@ -226,7 +249,7 @@ const AdminLogin: React.FC = () => {
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setIsForgotOpen(false)}
+              onClick={handleCloseForgot}
               className="absolute inset-0 bg-black/80 backdrop-blur-md"
             />
             <motion.div 
@@ -235,38 +258,89 @@ const AdminLogin: React.FC = () => {
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-[#111111] border border-white/5 w-full max-w-sm relative z-10 overflow-hidden rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] p-8 text-center"
             >
-              <div className="space-y-6">
-                <div className="flex justify-center">
-                  <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center text-[#C5A059]">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+              {!isResetSent ? (
+                <div className="space-y-6">
+                  <div className="flex justify-center">
+                    <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center text-[#C5A059]">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="text-base font-bold text-white uppercase tracking-[0.15em]">Recuperar Acesso</h3>
+                    <p className="text-[9px] text-zinc-500 uppercase tracking-wider leading-relaxed max-w-[260px] mx-auto">
+                      Confirme o e-mail do administrador para enviar o link de redefinição.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleResetPassword} className="space-y-5 text-center">
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block text-left pl-1">E-mail do Administrador</label>
+                      <div className="w-full bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3.5 text-xs text-zinc-400 font-semibold select-none text-left break-all">
+                        {recoveryEmail}
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isSendingReset}
+                      className="w-full h-11 bg-white hover:bg-[#C5A059] text-black font-bold text-[9px] uppercase tracking-[0.25em] rounded-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(255,255,255,0.03)]"
+                    >
+                      {isSendingReset ? 'Enviando...' : 'Enviar link de recuperação'}
+                    </button>
+                  </form>
+
+                  <div className="border-t border-white/[0.04] pt-4 mt-2 space-y-3">
+                    <p className="text-[8px] text-zinc-600 uppercase tracking-widest">
+                      Não deu certo? Chame o suporte técnico:
+                    </p>
+                    <a 
+                      href={`https://wa.me/${supportPhone}?text=${encodeURIComponent('Olá! Tentei o reset de senha automático no painel do Black Diamond mas deu erro. Pode me ajudar com o reset? 💈')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={handleCloseForgot}
+                      className="w-full h-10 bg-transparent border border-white/5 hover:border-[#C5A059]/20 text-[#C5A059] hover:text-white font-bold text-[9px] uppercase tracking-[0.2em] rounded-xl active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center"
+                    >
+                      Chamar no WhatsApp
+                    </a>
+                    <button 
+                      type="button"
+                      onClick={handleCloseForgot}
+                      className="w-full h-8 text-zinc-600 font-bold text-[9px] uppercase tracking-[0.3em] hover:text-white transition-all cursor-pointer"
+                    >
+                      Voltar
+                    </button>
                   </div>
                 </div>
+              ) : (
+                <div className="space-y-6 py-4">
+                  <div className="flex justify-center">
+                    <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center text-[#C5A059] animate-pulse">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <h3 className="text-base font-bold text-white uppercase tracking-[0.15em]">Recuperar Acesso</h3>
-                  <p className="text-xs text-zinc-500 leading-relaxed max-w-[260px] mx-auto uppercase">
-                    Como este painel é de uso exclusivo do administrador da barbearia, para redefinir ou recuperar sua senha, entre em contato diretamente com o suporte técnico.
+                  <div className="space-y-2">
+                    <h3 className="text-base font-bold text-white uppercase tracking-[0.15em]">E-mail Enviado</h3>
+                    <p className="text-[10px] text-zinc-400 uppercase tracking-wider leading-relaxed max-w-[260px] mx-auto">
+                      Enviamos um link de redefinição de acesso para:
+                    </p>
+                    <p className="text-xs text-[#C5A059] font-bold break-all">
+                      {recoveryEmail}
+                    </p>
+                  </div>
+
+                  <p className="text-[9px] text-zinc-500 leading-relaxed max-w-[240px] mx-auto">
+                    Por favor, verifique a sua caixa de entrada (e pasta de spam) e siga as instruções contidas no e-mail para atualizar a sua senha.
                   </p>
-                </div>
 
-                <div className="flex flex-col gap-2 pt-2">
-                  <a 
-                    href={`https://wa.me/${supportPhone}?text=${encodeURIComponent('Olá! Esqueci minha senha de acesso ao painel do Black Diamond. Pode me ajudar com o reset? 💈')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => setIsForgotOpen(false)}
-                    className="w-full h-11 bg-[#C5A059] text-black font-bold text-[10px] uppercase tracking-[0.2em] rounded-xl hover:bg-[#A68233] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center"
+                  <button
+                    onClick={handleCloseForgot}
+                    className="w-full h-11 bg-white hover:bg-zinc-200 text-black font-bold text-[9px] uppercase tracking-[0.25em] rounded-xl active:scale-[0.98] transition-all flex items-center justify-center cursor-pointer"
                   >
-                    Chamar Suporte no WhatsApp
-                  </a>
-                  <button 
-                    onClick={() => setIsForgotOpen(false)}
-                    className="w-full h-10 text-zinc-500 font-bold text-[9px] uppercase tracking-[0.3em] hover:text-white transition-all cursor-pointer"
-                  >
-                    Voltar
+                    Entendido
                   </button>
                 </div>
-              </div>
+              )}
             </motion.div>
           </div>
         )}

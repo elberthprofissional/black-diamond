@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Users, ChevronDown, User, LogOut, Clock, Bell } from 'lucide-react';
+import { Calendar, Users, ChevronDown, User, LogOut, Clock, Camera } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
  
 const AdminSidebar: React.FC = () => {
@@ -17,8 +17,8 @@ const AdminSidebar: React.FC = () => {
     { label: 'Agenda do Dia', path: '/admin', icon: Clock },
     { label: 'Agenda Semanal', path: '/admin/weekly', icon: Calendar },
     { label: 'Meus Clientes', path: '/admin/clients', icon: Users },
-    { label: 'Central de Lembretes', path: '/admin/reminders', icon: Bell },
   ];
+
  
   return (
     <aside className="hidden lg:flex flex-col w-[260px] h-screen fixed left-0 top-0 bg-[#0A0A0A] border-r border-white/5 z-[100] font-sans">
@@ -93,12 +93,8 @@ const AdminSidebar: React.FC = () => {
               isProfileOpen ? 'bg-white/5' : 'hover:bg-white/[0.02]'
             }`}
           >
-            <div className="w-9 h-9 rounded-lg bg-zinc-900 border border-white/5 overflow-hidden flex-shrink-0">
-              <img 
-                src="/assets/barbeiro.webp"
-                alt="Tato" 
-                className="w-full h-full object-cover"
-              />
+            <div className="w-9 h-9 rounded-lg bg-zinc-900 border border-white/5 flex items-center justify-center text-zinc-500 flex-shrink-0">
+              <Camera size={16} className="stroke-[1.5]" />
             </div>
             <div className="text-left flex-1 min-w-0">
               <p className="text-[11px] font-bold text-white truncate">Tato</p>

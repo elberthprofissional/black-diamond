@@ -15,6 +15,7 @@ export interface Booking {
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   total_price: number;
   total_duration: number;
+  is_blocked?: boolean;
   notes?: string;
   created_at: string;
   clients?: {
@@ -43,4 +44,6 @@ export interface ClientWithStats extends Client {
   lastVisit: string;
   totalSpent: number;
   bookingsCount: number;
+  upcomingBooking?: { date: string; time: string } | null;
 }
+

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createBooking, updateBookingStatus } from '../lib/api';
+import { toggleSlotBlock, unblockDay } from '../lib/api';
 import { useToast } from './useToast';
 import type { BookingWithClient } from '../types';
 
@@ -12,19 +12,7 @@ export function useSlotBlocking() {
   const blockSlot = async (date: string, slot: string, onBlockComplete?: () => Promise<void> | void, customKey?: string) => {
     setBlockingSlot(customKey || slot);
     try {
-      await createBooking(
-        {
-          service_ids: [],
-          booking_date: date,
-          booking_time: slot,
-          total_price: 0,
-          total_duration: 0
-        },
-        {
-          name: 'BLOQUEADO',
-          phone: '00000000000'
-        }
-      );
+      await toggleSlotBlock(date, slot);
       if (onBlockComplete) {
         await onBlockComplete();
       }
@@ -37,9 +25,12 @@ export function useSlotBlocking() {
     }
   };
 
-  const unblockSlot = async (bookingId: string, onUnblockComplete?: () => Promise<void> | void) => {
+  const unblockSlot = async (_bookingId: string, onUnblockComplete?: () => Promise<void> | void) => {
     try {
-      await updateBookingStatus(bookingId, 'cancelled');
+      const booking = unblockingBooking;
+      if (booking) {
+        await toggleSlotBlock(booking.booking_date, booking.booking_time.slice(0, 5));
+      }
       setUnblockingBooking(null);
       if (onUnblockComplete) {
         await onUnblockComplete();
@@ -55,23 +46,9 @@ export function useSlotBlocking() {
     if (freeSlots.length === 0) return;
     setBlockingDay(true);
     try {
-      await Promise.all(
-        freeSlots.map(slot => 
-          createBooking(
-            {
-              service_ids: [],
-              booking_date: date,
-              booking_time: slot,
-              total_price: 0,
-              total_duration: 0
-            },
-            {
-              name: 'BLOQUEADO',
-              phone: '00000000000'
-            }
-          )
-        )
-      );
+      for (const slot of freeSlots) {
+        await toggleSlotBlock(date, slot);
+      }
       if (onComplete) {
         await onComplete();
       }
@@ -88,9 +65,10 @@ export function useSlotBlocking() {
     if (blockedBookings.length === 0) return;
     setBlockingDay(true);
     try {
-      await Promise.all(
-        blockedBookings.map(booking => updateBookingStatus(booking.id, 'cancelled'))
-      );
+      const date = blockedBookings[0]?.booking_date;
+      if (date) {
+        await unblockDay(date);
+      }
       if (onComplete) {
         await onComplete();
       }

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, User, LogOut } from 'lucide-react';
+import { ChevronDown, User, LogOut, Camera } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
  
 const AdminNavbar: React.FC = () => {
@@ -9,10 +9,38 @@ const AdminNavbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const handleLogout = useAdminLogout();
+
+  const [visible, setVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // If at the very top (or bounce on iOS), keep visible
+      if (currentScrollY <= 10) {
+        setVisible(true);
+        setLastScrollY(currentScrollY);
+        return;
+      }
+      
+      if (currentScrollY > lastScrollY) {
+        setVisible(false); // scrolling down
+        setIsMenuOpen(false); // close user dropdown menu
+      } else {
+        setVisible(true); // scrolling up
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
  
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 h-16 bg-[#0E0E0E]/90 backdrop-blur-md border-b border-white/[0.06] z-[100] px-6 lg:hidden">
+      <nav className={`fixed top-0 left-0 right-0 h-16 bg-[#0E0E0E]/90 backdrop-blur-md border-b border-white/[0.06] z-[100] px-6 lg:hidden transition-transform duration-300 ${visible ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate('/admin')}>
             <img src="/assets/logo.webp" alt="Logo" className="w-10 h-10 object-contain" />
@@ -21,8 +49,8 @@ const AdminNavbar: React.FC = () => {
  
           <div className="relative">
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-full overflow-hidden border border-white/[0.08] group-hover:border-[#C5A059]/30 transition-all">
-                <img src="/assets/barbeiro.webp" alt="Tato" className="w-full h-full object-cover" />
+              <div className="w-8 h-8 rounded-full border border-white/[0.08] group-hover:border-[#C5A059]/30 transition-all flex items-center justify-center text-zinc-500 bg-zinc-900">
+                <Camera size={14} className="stroke-[1.5]" />
               </div>
               <ChevronDown size={10} className={`text-zinc-600 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`} />
             </button>

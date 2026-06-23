@@ -313,9 +313,9 @@ const AdminBooking: React.FC = () => {
                     {currentStep === 1 && (
                       <motion.div
                         key="step-client"
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 10 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                         className="space-y-6 lg:space-y-8 h-full flex flex-col justify-between overflow-visible pr-1 scrollbar-hide"
                       >
                         <div className="space-y-2">
@@ -501,9 +501,9 @@ const AdminBooking: React.FC = () => {
                     {currentStep === 2 && (
                       <motion.div
                         key="step-services"
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 10 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                         className="space-y-6 lg:space-y-8 h-full flex flex-col overflow-visible"
                       >
                         <div className="space-y-2">
@@ -562,9 +562,9 @@ const AdminBooking: React.FC = () => {
                     {currentStep === 3 && (
                       <motion.div
                         key="step-calendar"
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 10 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                         className="space-y-6 lg:space-y-10 h-full flex flex-col overflow-visible"
                       >
                         {rescheduleBooking ? (

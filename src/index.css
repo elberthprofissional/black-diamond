@@ -10,10 +10,9 @@
   --color-dark-border: rgba(255, 255, 255, 0.05);
   --color-dark-muted: #737373;
 
-  --font-sans: "Plus Jakarta Sans", "Inter", sans-serif;
+  --font-sans: "Plus Jakarta Sans", sans-serif;
   --font-bebas: "Bebas Neue", sans-serif;
   --font-roboto: "Roboto", sans-serif;
-  --font-cinzel: "Cinzel", serif;
 }
 
 @layer base {

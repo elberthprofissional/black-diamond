@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     total_price DECIMAL(10,2) NOT NULL,
     total_duration INTEGER NOT NULL,
     status TEXT DEFAULT 'pending', -- pending, confirmed, cancelled, completed
+    is_blocked BOOLEAN DEFAULT FALSE,
     notes TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -288,6 +289,57 @@ BEGIN
         END IF;
         v_current := v_current + interval '1 hour';
     END LOOP;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Função para alternar bloqueio de um horário (usa is_blocked ao invés de fake bookings)
+CREATE OR REPLACE FUNCTION toggle_slot_block(
+    p_date date,
+    p_time time
+)
+RETURNS jsonb AS $$
+DECLARE
+    v_client_id uuid;
+    v_existing_id uuid;
+    v_result jsonb;
+BEGIN
+    -- Buscar booking existente nesse horário
+    SELECT b.id INTO v_existing_id
+    FROM bookings b
+    WHERE b.booking_date = p_date AND b.booking_time = p_time AND b.status != 'cancelled'
+    LIMIT 1;
+
+    IF v_existing_id IS NOT NULL THEN
+        -- Booking existe: alternar is_blocked
+        UPDATE bookings SET is_blocked = NOT is_blocked WHERE id = v_existing_id RETURNING id INTO v_existing_id;
+        SELECT jsonb_build_object('id', v_existing_id, 'blocked', (SELECT is_blocked FROM bookings WHERE id = v_existing_id)) INTO v_result;
+        RETURN v_result;
+    ELSE
+        -- Não existe: criar client BLOQUEADO se necessário e criar booking bloqueado
+        SELECT id INTO v_client_id FROM clients WHERE phone = '00000000000' LIMIT 1;
+        IF v_client_id IS NULL THEN
+            INSERT INTO clients (name, phone) VALUES ('BLOQUEADO', '00000000000') RETURNING id INTO v_client_id;
+        END IF;
+
+        INSERT INTO bookings (client_id, service_ids, booking_date, booking_time, total_price, total_duration, status, is_blocked)
+        VALUES (v_client_id, '{}', p_date, p_time, 0, 0, 'confirmed', true)
+        RETURNING id INTO v_existing_id;
+
+        RETURN jsonb_build_object('id', v_existing_id, 'blocked', true);
+    END IF;
+EXCEPTION
+    WHEN unique_violation THEN
+        RAISE EXCEPTION 'Este horário está em conflito. Tente novamente.';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Função para desbloquear todos os horários de um dia
+CREATE OR REPLACE FUNCTION unblock_day(p_date date)
+RETURNS void AS $$
+BEGIN
+    UPDATE bookings
+    SET is_blocked = FALSE, status = 'cancelled'
+    WHERE booking_date = p_date AND is_blocked = TRUE AND status != 'cancelled';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

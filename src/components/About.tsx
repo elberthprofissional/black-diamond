@@ -1,4 +1,5 @@
 import React from 'react';
+import { Camera } from 'lucide-react';
 
 const About: React.FC = () => {
   return (
@@ -20,14 +21,8 @@ const About: React.FC = () => {
 
               {/* Barber Photo - Mobile */}
               <div className="w-full lg:hidden relative">
-                <div className="relative rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl">
-                  <img 
-                    src="/assets/barbeiro.webp"
-                    alt="Tato" 
-                    loading="lazy"
-                    className="w-full h-auto object-cover object-top" 
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+                <div className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-white/[0.05] bg-white/[0.02] shadow-2xl flex flex-col items-center justify-center text-zinc-600">
+                  <Camera size={32} className="stroke-[1.5]" />
                 </div>
               </div>
               
@@ -46,14 +41,8 @@ const About: React.FC = () => {
 
             {/* Barber Photo - Desktop */}
             <div className="hidden lg:block w-full lg:w-1/2 relative">
-              <div className="relative rounded-3xl overflow-hidden border border-white/[0.05] shadow-2xl transition-all duration-700">
-                <img 
-                  src="/assets/barbeiro.webp"
-                  alt="Tato" 
-                  loading="lazy"
-                  className="w-full h-auto object-cover object-top" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#0a0a0a] via-transparent to-transparent opacity-30" />
+              <div className="relative aspect-[3/4] rounded-3xl overflow-hidden border border-white/[0.05] bg-white/[0.02] shadow-2xl flex flex-col items-center justify-center text-zinc-600">
+                <Camera size={48} className="stroke-[1.5]" />
               </div>
               <div className="absolute -bottom-8 -right-8 w-32 h-px bg-[#C5A059]/30" />
             </div>

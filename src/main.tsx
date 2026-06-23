@@ -22,4 +22,10 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// Captura o evento de instalação do PWA globalmente para uso no perfil do Admin
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  window.deferredPrompt = e as BeforeInstallPromptEvent;
+});
+
 

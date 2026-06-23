@@ -23,9 +23,7 @@ const Footer: React.FC = () => {
                 <span className="text-lg md:text-xl font-bebas tracking-widest text-[#D4AF37]">BLACK DIAMOND</span>
               </div>
             </div>
-            <p className="text-zinc-400 font-roboto font-light text-xs md:text-sm leading-relaxed max-w-xs">
-              Estética masculina de alto padrão desde 2026.
-            </p>
+
           </div>
 
           {/* Social & Contact Column (2nd) */}

@@ -59,7 +59,7 @@ export const getAvailableSlots = async (date: string) => {
     p_date: date
   });
   if (error) throw error;
-  return (data || []).map((item: { slot_time: string }) => item.slot_time);
+  return (data || []).map((item: { slot_time: string }) => item.slot_time.slice(0, 5));
 };
 
 export const getBookings = async (date?: string) => {
@@ -98,6 +98,22 @@ export const deleteBooking = async (id: string) => {
     .delete()
     .eq('id', id);
   
+  if (error) throw error;
+};
+
+export const toggleSlotBlock = async (date: string, time: string) => {
+  const { data, error } = await supabase.rpc('toggle_slot_block', {
+    p_date: date,
+    p_time: time
+  });
+  if (error) throw error;
+  return data;
+};
+
+export const unblockDay = async (date: string) => {
+  const { error } = await supabase.rpc('unblock_day', {
+    p_date: date
+  });
   if (error) throw error;
 };
 

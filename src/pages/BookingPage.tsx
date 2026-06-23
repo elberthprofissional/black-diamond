@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Check, User, Scissors, Sparkles } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
-import PWAInstallBanner from '../components/PWAInstallBanner';
+
 
 const BookingPage: React.FC = () => {
   const { toast, showError } = useToast();
@@ -471,7 +471,7 @@ const BookingPage: React.FC = () => {
         <div className="lg:hidden min-h-screen bg-[#050505] flex flex-col text-white font-sans relative pb-28">
           
           {/* Header */}
-          <header className="px-5 pt-5 pb-4 shrink-0 border-b border-white/[0.04]">
+          <header className="px-5 pt-5 pb-4 shrink-0 border-b border-white/[0.04] bg-[#050505]/80 backdrop-blur-md sticky top-0 z-50">
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => step > 1 ? setStep(step - 1) : navigate('/')}
@@ -481,10 +481,17 @@ const BookingPage: React.FC = () => {
               </button>
               <div className="flex-1">
                 <h1 className="text-base font-bold text-white flex items-center gap-2">
-                  {step === 1 && <Scissors size={14} className="text-[#C5A059]" />}
                   {step === 1 ? 'Escolha os serviços' : step === 2 ? 'Data e horário' : step === 3 ? 'Seus dados' : 'Revisar agendamento'}
                 </h1>
               </div>
+            </div>
+            {/* Mobile Progress Bar (4-segment like Instagram/Desktop) */}
+            <div className="flex gap-1.5 w-full mt-4">
+              {[1, 2, 3, 4].map((s) => (
+                <div key={`m-progress-${s}`} className={`h-[2px] flex-1 rounded-full transition-all duration-500 ${
+                  step === s ? 'bg-[#C5A059]' : step > s ? 'bg-[#C5A059]/30' : 'bg-white/[0.08]'
+                }`} />
+              ))}
             </div>
           </header>
 
@@ -499,32 +506,39 @@ const BookingPage: React.FC = () => {
                       return (
                         <motion.button 
                           key={service.id}
-                          initial={{ opacity: 0, y: 10 }}
+                          initial={{ opacity: 0, y: 12 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.06 }}
+                          transition={{ delay: index * 0.04, ease: "easeOut" }}
                           onClick={() => toggleService(service)}
-                          className={`w-full text-left rounded-2xl transition-all duration-200 relative ${
+                          className={`w-full text-left rounded-2xl py-4.5 px-5 border transition-all duration-300 relative overflow-hidden flex items-center justify-between gap-4 cursor-pointer select-none active:scale-[0.99] ${
                             isSelected 
-                              ? 'bg-white/[0.05] border border-white/[0.1]' 
-                              : 'bg-[#0c0c0c] border border-white/[0.04]'
+                              ? 'bg-gradient-to-br from-[#18140f] to-[#0f0d0a] border-[#C5A059]/50 shadow-[0_6px_30px_rgba(197,160,89,0.08)]' 
+                              : 'bg-[#0d0d0d] hover:bg-[#121212] border-white/[0.04]'
                           }`}
                         >
-                          <div className="px-5 py-[18px] flex items-center gap-4">
-                            <span className={`text-[11px] font-bold w-5 text-center shrink-0 ${isSelected ? 'text-[#C5A059]' : 'text-zinc-600'}`}>
-                              {String(index + 1).padStart(2, '0')}
-                            </span>
-                            <div className={`w-px h-5 shrink-0 ${isSelected ? 'bg-[#C5A059]/30' : 'bg-white/[0.06]'}`} />
-                            <p className="flex-1 text-[14px] font-semibold tracking-tight text-white">
-                              {service.name}
-                            </p>
-                            <span className={`text-[15px] font-bold tabular-nums shrink-0 ${isSelected ? 'text-[#C5A059]' : 'text-zinc-500'}`}>
+                          <div className="flex items-center gap-4 flex-1 min-w-0">
+                            {/* Checkbox */}
+                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all shrink-0 ${
+                              isSelected ? 'border-[#C5A059] bg-[#C5A059]' : 'border-white/20'
+                            }`}>
+                              {isSelected && <Check size={11} className="text-white stroke-[3px]" />}
+                            </div>
+                            {/* Name */}
+                            <div className="min-w-0">
+                              <p className={`text-[15px] font-bold tracking-tight transition-colors leading-tight ${
+                                isSelected ? 'text-[#C5A059]' : 'text-zinc-100'
+                              }`}>
+                                {service.name}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="shrink-0">
+                            <span className={`text-[15px] font-black tracking-tight tabular-nums transition-colors ${
+                              isSelected ? 'text-[#C5A059]' : 'text-zinc-300'
+                            }`}>
                               R$ {Number(service.price).toFixed(0)}
                             </span>
-                            <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all shrink-0 ${
-                              isSelected ? 'bg-[#C5A059]' : 'border border-white/[0.1]'
-                            }`}>
-                              {isSelected && <Check size={10} className="text-black stroke-[3]" />}
-                            </div>
                           </div>
                         </motion.button>
                       );
@@ -550,15 +564,23 @@ const BookingPage: React.FC = () => {
                             day.isPast
                               ? 'opacity-30 cursor-not-allowed'
                               : isSelected 
-                                ? 'bg-white/[0.06] border border-white/[0.1] text-white' 
+                                ? 'bg-[#C5A059] border border-[#C5A059] shadow-[0_4px_20px_rgba(197,160,89,0.25)]' 
                                 : day.isToday
-                                  ? 'bg-white/[0.03] border border-white/[0.05] text-zinc-300'
-                                  : 'bg-white/[0.02] border border-white/[0.04] text-zinc-400'
+                                  ? 'bg-[#C5A059]/10 border border-[#C5A059]/30'
+                                  : 'bg-[#0d0d0d] border border-white/[0.04]'
                           }`}
                         >
-                          <span className="text-[8px] font-bold uppercase tracking-widest text-zinc-500">{day.dayName}</span>
-                          <span className="text-lg font-bold">{day.dayNumber}</span>
-                          <span className="text-[7px] font-bold uppercase text-zinc-600">{monthNames[monthIndex]}</span>
+                          <span className={`text-[8px] font-bold uppercase tracking-widest ${
+                            isSelected ? 'text-black/60' : day.isToday ? 'text-[#C5A059]' : 'text-zinc-500'
+                          }`}>{day.dayName}</span>
+                          
+                          <span className={`text-lg font-black ${
+                            isSelected ? 'text-black' : day.isToday ? 'text-[#C5A059]' : 'text-white'
+                          }`}>{day.dayNumber}</span>
+                          
+                          <span className={`text-[7px] font-bold uppercase ${
+                            isSelected ? 'text-black/50' : 'text-zinc-600'
+                          }`}>{monthNames[monthIndex]}</span>
                         </button>
                       );
                     })}
@@ -578,12 +600,12 @@ const BookingPage: React.FC = () => {
                               type="button"
                               disabled={occupied}
                               onClick={() => setSelectedTime(time)}
-                              className={`py-3 rounded-xl text-[12px] font-bold transition-all duration-200 ${
+                              className={`py-3 rounded-xl text-[12px] font-bold transition-all duration-300 border ${
                                 occupied 
-                                  ? 'text-zinc-800 bg-transparent cursor-not-allowed line-through opacity-20' 
+                                  ? 'text-zinc-800 bg-transparent cursor-not-allowed line-through opacity-20 border-transparent' 
                                   : isSelected 
-                                    ? 'bg-white/[0.06] border border-white/[0.1] text-white' 
-                                    : 'bg-white/[0.02] border border-white/[0.04] text-zinc-400 hover:text-zinc-200'
+                                    ? 'bg-[#C5A059] border-[#C5A059] text-black shadow-[0_4px_16px_rgba(197,160,89,0.25)]' 
+                                    : 'bg-[#0d0d0d] border-white/[0.04] text-zinc-400 hover:text-zinc-200'
                               }`}
                             >
                               {time}
@@ -609,7 +631,7 @@ const BookingPage: React.FC = () => {
                       type="text" 
                       placeholder="Digite seu nome..." 
                       aria-label="Seu nome completo"
-                      className="w-full bg-[#111111] border border-white/[0.06] focus:border-[#C5A059]/50 focus:shadow-[0_0_16px_rgba(197,160,89,0.12)] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600" 
+                      className="w-full bg-[#0d0d0d] border border-white/[0.06] focus:border-[#C5A059] focus:shadow-[0_0_16px_rgba(197,160,89,0.15)] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600" 
                       value={userInfo.name} 
                       onChange={e => setUserInfo({...userInfo, name: e.target.value})} 
                     />
@@ -626,7 +648,7 @@ const BookingPage: React.FC = () => {
                       type="tel" 
                       placeholder="(00) 90000-0000" 
                       aria-label="Seu número de WhatsApp com DDD"
-                      className="w-full bg-[#111111] border border-white/[0.06] focus:border-[#C5A059]/50 focus:shadow-[0_0_16px_rgba(197,160,89,0.12)] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600" 
+                      className="w-full bg-[#0d0d0d] border border-white/[0.06] focus:border-[#C5A059] focus:shadow-[0_0_16px_rgba(197,160,89,0.15)] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600" 
                       value={userInfo.phone} 
                       onChange={e => setUserInfo({...userInfo, phone: formatPhone(e.target.value)})} 
                     />
@@ -643,7 +665,7 @@ const BookingPage: React.FC = () => {
                       type="email" 
                       placeholder="seu@email.com" 
                       aria-label="Seu email"
-                      className="w-full bg-[#111111] border border-white/[0.06] focus:border-[#C5A059]/50 focus:shadow-[0_0_16px_rgba(197,160,89,0.12)] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600" 
+                      className="w-full bg-[#0d0d0d] border border-white/[0.06] focus:border-[#C5A059] focus:shadow-[0_0_16px_rgba(197,160,89,0.15)] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600" 
                       value={userInfo.email} 
                       onChange={e => setUserInfo({...userInfo, email: e.target.value})} 
                     />
@@ -714,6 +736,13 @@ const BookingPage: React.FC = () => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Ticket visual jagged footer effect */}
+                    <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1 justify-center opacity-30 pointer-events-none">
+                      {Array.from({ length: 12 }).map((_, i) => (
+                        <div key={i} className="w-2.5 h-2.5 bg-[#050505] rounded-full" />
+                      ))}
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -722,7 +751,22 @@ const BookingPage: React.FC = () => {
 
           {/* Footer Button */}
           {step < 5 && (
-            <div className="fixed bottom-0 left-0 right-0 px-5 pb-6 pt-4 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent z-[100]">
+            <div className="fixed bottom-0 left-0 right-0 px-5 pb-6 pt-4 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent z-[100] border-t border-white/[0.03] backdrop-blur-md">
+              {/* Selected Services Info Summary */}
+              {selectedServices.length > 0 && step < 3 && (
+                <div className="flex justify-between items-center mb-3 text-xs bg-white/[0.02] border border-white/[0.04] px-4 py-2.5 rounded-xl backdrop-blur-sm shadow-[0_2px_12px_rgba(0,0,0,0.3)]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#C5A059] animate-pulse" />
+                    <span className="text-zinc-400 font-medium">
+                      {selectedServices.length} {selectedServices.length === 1 ? 'serviço selecionado' : 'serviços selecionados'}
+                    </span>
+                  </div>
+                  <span className="font-black text-[#C5A059]">
+                    R$ {totalPrice.toFixed(0)}
+                  </span>
+                </div>
+              )}
+
               <button 
                 onClick={() => step < 4 ? setStep(step + 1) : handleConfirm()}
                 disabled={isStepDisabled()}
@@ -789,7 +833,7 @@ const BookingPage: React.FC = () => {
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
       <ToastNotification toast={toast} />
-      <PWAInstallBanner />
+
     </div>
   );
 };

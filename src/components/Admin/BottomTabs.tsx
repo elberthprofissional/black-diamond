@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Clock, CalendarDays, Users, Bell } from 'lucide-react';
+import { Clock, CalendarDays, Users } from 'lucide-react';
 
 const BottomTabs: React.FC = () => {
   const navigate = useNavigate();
@@ -12,8 +12,8 @@ const BottomTabs: React.FC = () => {
     { label: 'Hoje', path: '/admin', icon: Clock },
     { label: 'Semana', path: '/admin/weekly', icon: CalendarDays },
     { label: 'Clientes', path: '/admin/clients', icon: Users },
-    { label: 'Lembretes', path: '/admin/reminders', icon: Bell },
   ];
+
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-[#0E0E0E]/90 backdrop-blur-md border-t border-white/[0.06] z-[100] lg:hidden pb-safe">

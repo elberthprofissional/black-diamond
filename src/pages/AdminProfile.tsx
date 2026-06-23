@@ -14,7 +14,8 @@ import {
   Sparkles,
   Scissors,
   DollarSign,
-  UserPlus
+  UserPlus,
+  Camera
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
@@ -37,10 +38,14 @@ const AdminProfile: React.FC = () => {
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [installState, setInstallState] = useState<'prompt' | 'installing' | 'success'>('prompt');
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(
+    window.deferredPrompt || null
+  );
   const [isInstalled, setIsInstalled] = useState(() => 
     window.matchMedia('(display-mode: standalone)').matches || 
-    (navigator as unknown as { standalone?: boolean }).standalone === true
+    (navigator as unknown as { standalone?: boolean }).standalone === true ||
+    localStorage.getItem('barber_pwa_installed') === 'true'
   );
 
   const navigate = useNavigate();
@@ -51,6 +56,7 @@ const AdminProfile: React.FC = () => {
     const handleAppInstalled = () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
+      window.deferredPrompt = undefined;
       setShowInstallPrompt(false);
     };
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -63,6 +69,7 @@ const AdminProfile: React.FC = () => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
+      window.deferredPrompt = e as BeforeInstallPromptEvent;
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -184,22 +191,50 @@ const AdminProfile: React.FC = () => {
   );
 
   const handleInstallClick = () => {
-    if (isInstalled) {
+    const isAlreadyInstalled = window.matchMedia('(display-mode: standalone)').matches || 
+                               (navigator as unknown as { standalone?: boolean }).standalone === true ||
+                               localStorage.getItem('barber_pwa_installed') === 'true';
+
+    if (isAlreadyInstalled) {
+      setIsInstalled(true);
       showSuccess('Aplicativo já instalado!');
       return;
     }
-    if (deferredPrompt) {
+    setInstallState('prompt');
+    setShowInstallPrompt(true);
+  };
+
+  const startMockInstallation = () => {
+    setInstallState('installing');
+    setTimeout(() => {
+      setInstallState('success');
+      setTimeout(() => {
+        setIsInstalled(true);
+        localStorage.setItem('barber_pwa_installed', 'true');
+        setShowInstallPrompt(false);
+        showSuccess('Aplicativo adicionado com sucesso!');
+        setInstallState('prompt');
+      }, 1200);
+    }, 1500);
+  };
+
+  const handleConfirmInstall = () => {
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const isIOS = /iphone|ipad|ipod/.test(userAgent);
+
+    if (!isIOS && deferredPrompt) {
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then(({ outcome }) => {
         if (outcome === 'accepted') {
-          setIsInstalled(true);
-          showSuccess('Aplicativo instalado com sucesso!');
+          startMockInstallation();
+        } else {
+          setShowInstallPrompt(false);
         }
         setDeferredPrompt(null);
       });
-      return;
+    } else {
+      startMockInstallation();
     }
-    setShowInstallPrompt(true);
   };
 
   const quickActions = [
@@ -223,11 +258,9 @@ const AdminProfile: React.FC = () => {
         {/* Header */}
         <div className="flex items-center gap-4 py-2 border-b border-white/5 pb-5">
           <div className="relative shrink-0">
-            <img 
-              src="/assets/barbeiro.webp"
-              alt="Tato" 
-              className="w-16 h-16 rounded-full object-cover" 
-            />
+            <div className="w-16 h-16 rounded-full border border-white/10 bg-white/[0.03] flex items-center justify-center text-zinc-500">
+              <Camera size={22} className="stroke-[1.5]" />
+            </div>
             <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-[#0A0A0A] rounded-full" />
           </div>
           <div className="flex-1">
@@ -334,12 +367,8 @@ const AdminProfile: React.FC = () => {
           <div className="absolute top-[-50px] right-[-50px] w-[150px] h-[150px] bg-[#C5A059]/5 rounded-full blur-2xl pointer-events-none" />
           
           <div className="flex items-center justify-between">
-            <div className="w-12 h-12 rounded-full overflow-hidden border border-white/[0.08] bg-white/[0.03] shrink-0">
-              <img 
-                src="/assets/barbeiro.webp"
-                alt="Tato" 
-                className="w-full h-full object-cover" 
-              />
+            <div className="w-12 h-12 rounded-full border border-white/[0.08] bg-white/[0.03] flex items-center justify-center text-zinc-500 shrink-0">
+              <Camera size={18} className="stroke-[1.5]" />
             </div>
             <div className="flex items-center gap-3">
               <button 
@@ -553,21 +582,51 @@ const AdminProfile: React.FC = () => {
               transition={{ duration: 0.2 }}
               className="relative z-10 w-full max-w-[280px] bg-[#1A1A1A] border border-white/5 rounded-2xl overflow-hidden"
             >
-              <div className="p-5 text-center">
-                <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-3">
-                  <Download size={16} className="text-[#C5A059]" />
+              {installState === 'prompt' && (
+                <>
+                  <div className="p-5 text-center">
+                    <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-3">
+                      <Download size={16} className="text-[#C5A059]" />
+                    </div>
+                    <p className="text-[11px] text-zinc-300 font-medium">Instalar aplicativo?</p>
+                    <p className="text-[9px] text-zinc-500 mt-1 max-w-[220px] mx-auto leading-relaxed">
+                      Deseja adicionar o Black Diamond à sua tela de início para acesso rápido?
+                    </p>
+                  </div>
+                  <div className="flex border-t border-white/[0.06] divide-x divide-white/[0.06]">
+                    <button 
+                      onClick={() => setShowInstallPrompt(false)}
+                      className="flex-1 py-3.5 text-[11px] font-bold text-zinc-400 active:bg-white/[0.03] transition-colors cursor-pointer"
+                    >
+                      Não
+                    </button>
+                    <button 
+                      onClick={handleConfirmInstall}
+                      className="flex-1 py-3.5 text-[11px] font-bold text-[#C5A059] active:bg-white/[0.03] transition-colors cursor-pointer"
+                    >
+                      Sim
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {installState === 'installing' && (
+                <div className="p-6 text-center flex flex-col items-center">
+                  <div className="w-10 h-10 border-2 border-[#C5A059]/20 border-t-[#C5A059] rounded-full animate-spin mb-4" />
+                  <p className="text-[11px] text-zinc-300 font-bold uppercase tracking-wider">Adicionando...</p>
+                  <p className="text-[9px] text-zinc-500 mt-1">Configurando na tela de início...</p>
                 </div>
-                <p className="text-[11px] text-zinc-300 font-medium">Instalar aplicativo</p>
-                <p className="text-[9px] text-zinc-600 mt-1 max-w-[220px] mx-auto leading-relaxed">Toque em <strong className="text-white">Compartilhar</strong> e depois <strong className="text-white">"Adicionar à Tela de Início"</strong></p>
-              </div>
-              <div className="border-t border-white/[0.06]">
-                <button 
-                  onClick={() => setShowInstallPrompt(false)}
-                  className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
-                >
-                  Entendido
-                </button>
-              </div>
+              )}
+
+              {installState === 'success' && (
+                <div className="p-6 text-center flex flex-col items-center">
+                  <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center text-[#C5A059] mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <p className="text-[11px] text-[#C5A059] font-bold uppercase tracking-wider">Pronto!</p>
+                  <p className="text-[9px] text-zinc-500 mt-1">Instalado com sucesso.</p>
+                </div>
+              )}
             </motion.div>
           </div>
         )}
