@@ -723,7 +723,7 @@ const BookingPage: React.FC = () => {
 
           {/* Footer Button */}
           {step < 5 && (
-            <div className="fixed bottom-0 left-0 right-0 px-5 pb-6 pt-4 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent z-[100] border-t border-white/[0.03] backdrop-blur-md">
+            <div className="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent z-[100] border-t border-white/[0.03] backdrop-blur-md" style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}>
               {/* Selected Services Info Summary */}
               {selectedServices.length > 0 && step < 3 && (
                 <div className="flex justify-between items-center mb-3 text-xs bg-white/[0.02] border border-white/[0.04] px-4 py-2.5 rounded-xl backdrop-blur-sm shadow-[0_2px_12px_rgba(0,0,0,0.3)]">
