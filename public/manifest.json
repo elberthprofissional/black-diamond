@@ -1,14 +1,14 @@
 {
-  "name": "Black Diamond Barbearia",
-  "short_name": "Black Diamond",
-  "id": "black-diamond-barbearia-pwa",
-  "description": "Agendamento rápido e fácil na Black Diamond.",
-  "start_url": "/",
+  "name": "Black Diamond Admin",
+  "short_name": "BD Admin",
+  "id": "black-diamond-admin-pwa",
+  "description": "Painel administrativo da Black Diamond Barbearia.",
+  "start_url": "/admin/login",
   "display": "standalone",
   "background_color": "#0A0A0A",
   "theme_color": "#0A0A0A",
   "orientation": "portrait",
-  "categories": ["beauty", "lifestyle", "business"],
+  "categories": ["business"],
   "icons": [
     {
       "src": "/assets/logo.webp",
@@ -35,7 +35,7 @@
       "name": "Novo Agendamento",
       "short_name": "Agendar",
       "url": "/admin/agendar",
-      "description": "Lançar um novo agendamento manual",
+      "description": "Lancar um novo agendamento manual",
       "icons": [{ "src": "/assets/logo.webp", "sizes": "192x192", "type": "image/webp" }]
     },
     {
@@ -43,13 +43,6 @@
       "short_name": "Clientes",
       "url": "/admin/clients",
       "description": "Gerenciar banco de clientes da barbearia",
-      "icons": [{ "src": "/assets/logo.webp", "sizes": "192x192", "type": "image/webp" }]
-    },
-    {
-      "name": "Central de Lembretes",
-      "short_name": "Lembretes",
-      "url": "/admin/reminders",
-      "description": "Fila inteligente de mensagens de terça e quinta",
       "icons": [{ "src": "/assets/logo.webp", "sizes": "192x192", "type": "image/webp" }]
     }
   ]

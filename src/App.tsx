@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AuthGuard from './components/Admin/AuthGuard';
+import PwaGuard from './components/PwaGuard';
 
 const Home = lazy(() => import('./pages/Home'));
 const BookingPage = lazy(() => import('./pages/BookingPage'));
@@ -28,8 +29,8 @@ function App() {
       <div className="min-h-screen bg-[#0f0f0f]">
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/agendar" element={<BookingPage />} />
+            <Route path="/" element={<PwaGuard><Home /></PwaGuard>} />
+            <Route path="/agendar" element={<PwaGuard><BookingPage /></PwaGuard>} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/reset-password" element={<AdminResetPassword />} />
             
