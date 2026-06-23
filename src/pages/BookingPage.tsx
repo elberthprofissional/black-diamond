@@ -483,7 +483,7 @@ const BookingPage: React.FC = () => {
           </header>
 
           {/* Content */}
-          <div className="flex-1 px-5 pt-5 pb-12">
+          <div className="flex-1 px-5 pt-5 pb-12 flex flex-col justify-center">
             <AnimatePresence mode="wait">
               {step === 1 && (
                 <motion.div key="m1" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3 }}>
@@ -535,7 +535,7 @@ const BookingPage: React.FC = () => {
               )}
 
               {step === 2 && (
-                <motion.div key="m2" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3 }} className="space-y-6">
+                <motion.div key="m2" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3 }} className="space-y-6 self-start">
                   {/* Date Picker */}
                   <div className="flex overflow-x-auto gap-2.5 pb-2 scrollbar-hide -mx-5 px-5 snap-x shrink-0">
                     {nextDays.map(day => {
