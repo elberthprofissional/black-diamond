@@ -34,10 +34,10 @@ const Hero: React.FC<HeroProps> = ({ onBookingClick }) => {
           
           <button 
             onClick={onBookingClick}
-            className="mt-4"
+            className="mt-4 group"
           >
-            <div className="px-10 py-5 bg-[#D4AF37] hover:brightness-110 transition-all duration-300 rounded-sm shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-              <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-black">
+            <div className="px-8 py-3.5 border border-[#D4AF37]/60 bg-transparent group-hover:bg-[#D4AF37]/10 transition-all duration-300">
+              <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.35em] text-[#D4AF37]">
                 Agende seu horário
               </span>
             </div>
