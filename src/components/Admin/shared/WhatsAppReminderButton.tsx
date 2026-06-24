@@ -26,7 +26,27 @@ const WhatsAppReminderButton: React.FC<WhatsAppReminderButtonProps> = ({
   const generateDefaultMessage = () => {
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
-    return `${greeting}, ${firstName}! Passando para lembrar do seu horário às ${time} hoje no Black Diamond. Confirmado? 💈`;
+
+    // Determina o dia relativo ou nome do dia
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const bookingDate = new Date(booking.booking_date + 'T12:00:00');
+    bookingDate.setHours(0, 0, 0, 0);
+
+    const diffTime = bookingDate.getTime() - today.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    let dayText = 'hoje';
+    if (diffDays === 1) {
+      dayText = 'amanhã';
+    } else if (diffDays > 1) {
+      const dayName = bookingDate.toLocaleDateString('pt-BR', { weekday: 'long' });
+      const isMasculine = dayName.startsWith('sáb') || dayName.startsWith('dom');
+      dayText = `${isMasculine ? 'neste' : 'nesta'} ${dayName}`;
+    }
+
+    return `${greeting}, ${firstName}! Passando para lembrar do seu horário às ${time} ${dayText} no Black Diamond. Confirmado? 💈`;
   };
 
   const handleClick = (e: React.MouseEvent) => {
