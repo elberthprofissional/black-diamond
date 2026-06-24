@@ -149,7 +149,7 @@ const AdminClients: React.FC = () => {
             bookingsCount: cb.length,
             upcomingBooking: upcoming ? {
               date: new Date(upcoming.booking_date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-              time: upcoming.booking_time.slice(0, 5)
+              time: (upcoming.booking_time || '').slice(0, 5)
             } : null
           };
         });
@@ -163,7 +163,7 @@ const AdminClients: React.FC = () => {
   }, []);
 
   const filteredClients = clients.filter(c => {
-    const matchSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.phone.includes(searchTerm);
+    const matchSearch = (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.phone || '').includes(searchTerm);
     
     let matchFilter = true;
     if (reminderFilter === 'pending') {

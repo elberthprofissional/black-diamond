@@ -7,7 +7,8 @@ export const getPeriod = (time: string) => {
   return 'Noite';
 };
 
-export const formatPhone = (value: string) => {
+export const formatPhone = (value: string | undefined | null) => {
+  if (!value) return '';
   const digits = value.replace(/\D/g, '');
   let d = digits;
   if (d.length > 11) d = d.slice(0, 11);

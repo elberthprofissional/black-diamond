@@ -117,89 +117,123 @@ const WhatsAppReminderButton: React.FC<WhatsAppReminderButtonProps> = ({
         {showLabel && <span>{label}</span>}
       </button>
 
-      {/* MODAL REMINDER PREVIEW */}
+      {/* DRAWER REMINDER PREVIEW */}
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center sm:p-4">
+          <div className="fixed inset-0 z-[250] flex justify-end flex-col sm:flex-row">
+            {/* Backdrop */}
             <motion.div 
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }}
-              onClick={() => setIsOpen(false)}
-              className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+              exit={{ opacity: 0 }} 
+              onClick={() => setIsOpen(false)} 
+              className="absolute inset-0 bg-black/75 backdrop-blur-sm" 
             />
+            {/* Drawer Panel */}
             <motion.div 
-              initial={{ opacity: 0, y: 50, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 50, scale: 0.95 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-              className="relative z-10 w-full sm:w-[400px] bg-[#161618] border border-white/5 sm:rounded-2xl rounded-t-2xl overflow-hidden shadow-2xl"
+              initial={{ y: '100%' }} 
+              animate={{ y: 0 }} 
+              exit={{ y: '100%' }} 
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }} 
+              className="relative w-full sm:w-[440px] h-[100dvh] sm:h-full mt-auto sm:mt-0 bg-[#0E0E0E] border-t sm:border-t-0 sm:border-l border-[#C5A059]/20 shadow-2xl overflow-y-auto scrollbar-hide flex flex-col text-white"
             >
               {/* Header */}
-              <div className="px-6 py-5 border-b border-white/[0.06] flex items-center justify-between">
-                <div>
-                  <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.25em] block">Ferramenta de Lembrete</span>
-                  <h3 className="text-sm font-bold text-white mt-1">Enviar para {clientName}</h3>
+              <div className="sticky top-0 bg-[#0E0E0E]/95 backdrop-blur-md z-10 px-6 py-5 flex items-center justify-between border-b border-white/[0.04] shrink-0">
+                <div className="text-left">
+                  <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.25em] block">
+                    Ferramenta de Lembrete
+                  </span>
+                  <p className="text-sm font-semibold text-zinc-100 mt-1">Agendamento de {clientName}</p>
                 </div>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="w-7 h-7 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-zinc-500 hover:text-white transition-all cursor-pointer"
+                <button 
+                  onClick={() => setIsOpen(false)} 
+                  className="w-9 h-9 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
               </div>
 
-              {/* Body */}
-              <div className="p-6 space-y-4 text-left">
-                {/* Selector */}
-                <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider pl-1">Modelo de Mensagem</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {templates.map(t => (
-                      <button
-                        key={t.id}
-                        type="button"
-                        onClick={() => handleTemplateChange(t.id)}
-                        className={`py-2 px-1 text-[9px] font-black uppercase tracking-wider rounded-lg border text-center transition-all cursor-pointer ${
-                          selectedTemplateId === t.id
-                            ? 'border-[#C5A059] bg-[#C5A059]/5 text-[#C5A059]'
-                            : 'border-white/5 bg-white/[0.02] text-zinc-500 hover:text-zinc-300'
-                        }`}
-                      >
-                        {t.id === 'confirm' ? 'Confirmar' : t.id === 'delay' ? 'Atraso' : 'Obrigado'}
-                      </button>
-                    ))}
+              {/* Scrollable Content */}
+              <div className="flex-grow overflow-y-auto p-6 bg-[#0E0E0E]">
+                <div className="w-full space-y-6 text-left">
+                  {/* Info Row */}
+                  <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.04] text-xs space-y-1.5">
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Horário:</span>
+                      <strong className="text-white">{time}</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Valor Total:</span>
+                      <strong className="text-[#C5A059] uppercase">
+                        R$ {Number(booking.total_price || 0).toFixed(0)}
+                      </strong>
+                    </div>
                   </div>
-                </div>
 
-                {/* Edit Message Area */}
-                <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider pl-1">Visualização da Mensagem</label>
-                  <textarea
-                    rows={4}
-                    value={messageText}
-                    onChange={(e) => setMessageText(e.target.value)}
-                    className="w-full bg-[#1e1e21] border border-white/5 rounded-xl p-3 text-xs text-zinc-200 outline-none focus:border-[#C5A059]/30 transition-all resize-none leading-relaxed"
-                  />
-                </div>
+                  {/* Templates Accordion */}
+                  <div className="space-y-3">
+                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider pl-1">Escolha um Modelo</span>
+                    
+                    {templates.map((t) => {
+                      const isExpanded = selectedTemplateId === t.id;
+                      return (
+                        <div 
+                          key={t.id}
+                          onClick={() => handleTemplateChange(t.id)}
+                          className={`p-4 rounded-xl border transition-all cursor-pointer text-left ${
+                            isExpanded 
+                              ? 'bg-white/[0.04] border-white/20 shadow-lg' 
+                              : 'bg-white/[0.01] border-white/[0.04] hover:border-white/10 hover:bg-white/[0.02]'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[10px] font-bold uppercase tracking-wider ${isExpanded ? 'text-[#C5A059]' : 'text-zinc-500'}`}>
+                              {t.title}
+                            </span>
+                            <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-colors ${
+                              isExpanded ? 'border-[#C5A059] bg-[#C5A059]' : 'border-zinc-700 bg-transparent'
+                            }`}>
+                              {isExpanded && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
+                            </div>
+                          </div>
 
-                {/* Actions */}
-                <div className="pt-2 space-y-2">
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={handleCopy}
-                      className="flex-1 py-3 border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] text-zinc-300 font-bold text-[9px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                    >
-                      {copied ? 'Copiado!' : 'Copiar Texto'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSend}
-                      className="flex-1 py-3 bg-[#C5A059] text-black font-bold text-[9px] uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                    >
-                      Enviar no Whats
-                    </button>
+                          <p className={`text-xs text-zinc-400 mt-2.5 leading-relaxed ${isExpanded ? '' : 'line-clamp-1'}`}>
+                            {t.text}
+                          </p>
+
+                          {isExpanded && (
+                            <div className="mt-4 pt-4 border-t border-white/[0.04] space-y-4" onClick={(e) => e.stopPropagation()}>
+                              <div className="space-y-1.5">
+                                <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Editar Mensagem</span>
+                                <textarea
+                                  rows={4}
+                                  value={messageText}
+                                  onChange={(e) => setMessageText(e.target.value)}
+                                  className="w-full bg-black/40 border border-white/[0.06] rounded-xl p-3.5 text-xs text-zinc-200 outline-none focus:border-[#C5A059]/30 transition-all resize-none leading-relaxed"
+                                />
+                              </div>
+
+                              <div className="flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={handleCopy}
+                                  className="flex-1 py-3 border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] text-zinc-300 font-bold text-[9px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                                >
+                                  {copied ? 'Copiado!' : 'Copiar Texto'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleSend}
+                                  className="flex-1 py-3 bg-[#C5A059] text-black font-bold text-[9px] uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                                >
+                                  Enviar no WhatsApp
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
