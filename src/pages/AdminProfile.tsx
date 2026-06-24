@@ -15,13 +15,15 @@ import {
   Scissors,
   DollarSign,
   UserPlus,
-  Camera
+  Camera,
+  Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
 import { useAdminLogout } from '../hooks/useAdminLogout';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
 import { useToast } from '../hooks/useToast';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -45,6 +47,7 @@ const AdminProfile: React.FC = () => {
   const navigate = useNavigate();
   const handleLogout = useAdminLogout();
   const { toast, showSuccess } = useToast();
+  const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
 
   useEffect(() => {
     const handleAppInstalled = () => {
@@ -226,10 +229,23 @@ const AdminProfile: React.FC = () => {
     }
   };
 
+  const handleToggleNotifications = async () => {
+    if (isSubscribed) {
+      await unsubscribe()
+      showSuccess('Notificações desativadas')
+    } else {
+      const success = await subscribe()
+      if (success) {
+        showSuccess('Notificações ativadas! Você receberá alertas de novos agendamentos.')
+      }
+    }
+  };
+
   const quickActions = [
     { label: 'Hoje', icon: Clock, onClick: () => navigate('/admin') },
     { label: 'Semana', icon: Calendar, onClick: () => navigate('/admin/weekly') },
     { label: 'Clientes', icon: Users, onClick: () => navigate('/admin/clients') },
+    { label: 'Notificar', icon: Bell, onClick: handleToggleNotifications, active: isSubscribed },
     { label: 'Aplicativo', icon: Download, onClick: handleInstallClick },
     { label: 'Sair', icon: LogOut, onClick: () => setShowLogoutConfirm(true) },
   ];
@@ -399,13 +415,18 @@ const AdminProfile: React.FC = () => {
           <div className="flex gap-4 overflow-x-auto pb-2 -mx-5 px-5 scrollbar-hide snap-x">
             {quickActions.map((action, idx) => {
               const Icon = action.icon;
+              const isActive = 'active' in action ? action.active : false;
               return (
                 <button 
                   key={idx} 
                   onClick={action.onClick}
                   className="flex flex-col items-center gap-2 snap-center cursor-pointer shrink-0 group select-none"
                 >
-                  <div className="w-14 h-14 rounded-full bg-[#111111] hover:bg-[#161616] border border-white/5 group-hover:border-[#C5A059]/30 flex items-center justify-center text-zinc-400 group-hover:text-white transition-all">
+                  <div className={`w-14 h-14 rounded-full border flex items-center justify-center transition-all ${
+                    isActive 
+                      ? 'bg-[#C5A059]/10 border-[#C5A059]/30 text-[#C5A059]' 
+                      : 'bg-[#111111] hover:bg-[#161616] border-white/5 group-hover:border-[#C5A059]/30 text-zinc-400 group-hover:text-white'
+                  }`}>
                     <Icon size={18} className="transition-transform group-hover:scale-110" />
                   </div>
                   <span className="text-[9px] font-bold text-zinc-500 group-hover:text-zinc-300 uppercase tracking-widest transition-colors">
