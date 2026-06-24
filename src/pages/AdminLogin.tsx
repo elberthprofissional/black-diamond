@@ -47,6 +47,25 @@ const AdminLogin: React.FC = () => {
     }
   }, []);
 
+  // Trava rolagem, arrastar e efeito de bounce (puxar para baixo) na tela de login
+  useEffect(() => {
+    document.documentElement.style.overscrollBehavior = 'none';
+    document.body.style.overscrollBehavior = 'none';
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
+    
+    return () => {
+      document.documentElement.style.overscrollBehavior = '';
+      document.body.style.overscrollBehavior = '';
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+    };
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
@@ -95,7 +114,7 @@ const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div className="h-screen w-full bg-[#0A0A0A] text-white flex relative overflow-hidden font-sans">
+    <div className="h-screen w-full bg-[#0A0A0A] text-white flex relative overflow-hidden font-sans select-none">
       
       {/* Voltar para Home (apenas no site, oculto no PWA) */}
       {!isPWA && (
