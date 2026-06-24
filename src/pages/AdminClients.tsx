@@ -10,6 +10,7 @@ import {
   ArrowLeft, 
   Search, 
   ChevronRight, 
+  ChevronDown,
   Trash2, 
   Pencil, 
   X, 
@@ -50,43 +51,28 @@ const AdminClients: React.FC = () => {
       return saved ? JSON.parse(saved) : {};
     } catch { return {}; }
   });
-  const [smartSuggestion, setSmartSuggestion] = useState('');
+
   const [templates, setTemplates] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem('barber_reminder_templates');
-      return saved ? JSON.parse(saved) : [];
+      const saved = localStorage.getItem('barber_reminder_templates_v2');
+      if (saved) return JSON.parse(saved);
+      const initial = [
+        "E aí! Beleza? 💈 Passando para lembrar de garantir seu horário para essa semana no Black Diamond. Não deixe para a última hora! Agende aqui: https://black-diamond-wheat.vercel.app/",
+        "Fala! O fim de semana está chegando e a agenda está lotando. 💈 Bora dar aquele trato no visual para o fim de semana? Garanta seu horário: https://black-diamond-wheat.vercel.app/",
+        "Olá! Tudo bem? Passando para lembrar de agendar seu horário conosco esta semana no Black Diamond! 💈 Garanta seu corte aqui: https://black-diamond-wheat.vercel.app/"
+      ];
+      localStorage.setItem('barber_reminder_templates_v2', JSON.stringify(initial));
+      return initial;
     } catch {
       return [];
     }
   });
-  const [isCreatingTemplate, setIsCreatingTemplate] = useState(false);
-  const [newTemplate, setNewTemplate] = useState('');
+  const [customReminderText, setCustomReminderText] = useState('');
+  const [reminderMode, setReminderMode] = useState<'list' | 'create'>('list');
+  const [expandedTemplateIdx, setExpandedTemplateIdx] = useState<number | null>(null);
 
-  // Integrated Reminder System templates
-  const [selectedTemplateType] = useState<'tuesday' | 'thursday' | 'custom'>(() => {
-    const today = new Date().getDay();
-    if (today === 4 || today === 5) return 'thursday';
-    return 'tuesday';
-  });
 
-  const defaultTemplates = {
-    tuesday: "E aí, {nome}! Beleza? 💈 Passando para lembrar de garantir seu horário para essa semana no Black Diamond. Não deixe para a última hora! Agende aqui: {link}",
-    thursday: "Fala, {nome}! O fim de semana está chegando e a agenda está lotando. 💈 Bora dar aquele trato no visual para o fim de semana? Garanta seu horário: {link}",
-    custom: "Olá, {nome}! Tudo bem? Passando para lembrar de agendar seu horário conosco esta semana no Black Diamond! 💈 Garanta seu corte aqui: {link}"
-  };
 
-  const [tuesdayTemplate, setTuesdayTemplate] = useState(() => 
-    localStorage.getItem('barber_reminder_tmpl_tuesday') || defaultTemplates.tuesday
-  );
-  const [thursdayTemplate, setThursdayTemplate] = useState(() => 
-    localStorage.getItem('barber_reminder_tmpl_thursday') || defaultTemplates.thursday
-  );
-  const [customTemplate, setCustomTemplate] = useState(() => 
-    localStorage.getItem('barber_reminder_tmpl_custom') || defaultTemplates.custom
-  );
-
-  const [isEditingTemplate, setIsEditingTemplate] = useState(false);
-  const [editingText, setEditingText] = useState('');
 
 
   // URL search params mapping for filters
@@ -116,48 +102,7 @@ const AdminClients: React.FC = () => {
     setSearchParams(searchParams);
   };
 
-  const getSmartSuggestion = (clientName: string): string => {
-    const firstName = clientName.split(' ')[0];
-    const now = new Date();
-    const month = now.getMonth();
-    const day = now.getDate();
 
-    if (month === 11 && day >= 15 && day <= 25) {
-      return `Feliz Natal, ${firstName}! 🎄 Aproveite o Natal pra se arrumar! Temos horários disponíveis esta semana. Bora agendar?`;
-    }
-    if (month === 1 && day >= 1 && day <= 10) {
-      return `Feliz Ano Novo, ${firstName}! 🎆 Comece o ano bem resolvido! Vamos agendar seu corte?`;
-    }
-    if (month === 1 && day >= 20 && day <= 28) {
-      return `E aí, ${firstName}! Carnaval tá chegando! 🎭 Bora deixar o visual afiado? Temos horários essa semana!`;
-    }
-    if (month === 2 && day >= 1 && day <= 10) {
-      return `Férias de Carnaval, ${firstName}! 🎉 Aproveita pra cuidar do visual. Vamos agendar?`;
-    }
-    if (month === 3 && day >= 1 && day <= 15) {
-      return `Páscoa, ${firstName}! 🐰 Aproveita o feriado pra se arrumar! Horários disponíveis esta semana.`;
-    }
-    if (month === 8 && day >= 1 && day <= 10) {
-      return `Patriota, ${firstName}! 🇧🇷 Dia da Pátria! Vamos agendar um corte especial?`;
-    }
-    if (month === 9 && day >= 25 && day <= 31) {
-      return `Dia das Crianças, ${firstName}! 👶 Leve o pequeno pra cortar também! Horários disponíveis.`;
-    }
-    if (month === 10 && day >= 15 && day <= 30) {
-      return `Black Friday, ${firstName}! 💰 Aproveite pra agendar com antecedência. Vamos marcar?`;
-    }
-    if (month === 4 && day >= 8 && day <= 12) {
-      return `Dia das Mães, ${firstName}! 👩 Agende-se pra ficar impecável! Horários disponíveis.`;
-    }
-    if (month === 5 && day >= 8 && day <= 15) {
-      return `Dia dos Namorados, ${firstName}! ❤️ Fique no ponto pra data! Bora agendar?`;
-    }
-    if (month === 10 && day >= 1 && day <= 10) {
-      return `Dia dos Pais, ${firstName}! 👨 Venha com o pai agendar! Horários disponíveis.`;
-    }
-
-    return `Temos horários disponíveis esta semana! Bora agendar?`;
-  };
 
   const markReminderSent = (clientId: string) => {
     const updated = { ...remindersSent, [clientId]: new Date().toISOString() };
@@ -249,20 +194,26 @@ const AdminClients: React.FC = () => {
     };
   }, [clients, isReminderRecent]);
 
+  const closeReminderModal = useCallback(() => {
+    setIsReminderOpen(false);
+    setCustomReminderText('');
+    setReminderMode('list');
+    setExpandedTemplateIdx(null);
+  }, []);
+
   const openPanel = useCallback(async (client: ClientWithStats) => {
     setSelectedClient(client);
     setNotesText(client.notes || '');
     setIsEditing(false);
     setIsEditingNotes(false);
-    setIsReminderOpen(false);
-    setSmartSuggestion(getSmartSuggestion(client.name));
+    closeReminderModal();
     try {
       const bookings = await getBookings();
       setPanelBookings(bookings.filter((b) => b.client_id === client.id).sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime()));
     } catch { setPanelBookings([]); }
-  }, []);
+  }, [closeReminderModal]);
 
-  const closePanel = () => { setSelectedClient(null); setIsEditing(false); setIsEditingNotes(false); setIsReminderOpen(false); setIsDeleteOpen(false); };
+  const closePanel = () => { setSelectedClient(null); setIsEditing(false); setIsEditingNotes(false); closeReminderModal(); setIsDeleteOpen(false); };
 
   const handleSaveEdit = async () => {
     if (!selectedClient || !editName.trim() || !editPhone.trim()) return;
@@ -304,65 +255,46 @@ const AdminClients: React.FC = () => {
   };
 
   // Reminder message formatting
-  const bookingLink = useMemo(() => {
-    return `${window.location.origin}/agendar`;
+  const formatReminder = useCallback((templateText: string) => {
+    return templateText;
   }, []);
-
-  const activeTemplateText = useMemo(() => {
-    if (selectedTemplateType === 'tuesday') return tuesdayTemplate;
-    if (selectedTemplateType === 'thursday') return thursdayTemplate;
-    return customTemplate;
-  }, [selectedTemplateType, tuesdayTemplate, thursdayTemplate, customTemplate]);
-
-  const formatReminder = useCallback((templateText: string, clientName: string) => {
-    const firstName = clientName.split(' ')[0];
-    let formatted = templateText;
-    if (/{nome}/gi.test(formatted)) {
-      formatted = formatted.replace(/{nome}/gi, firstName);
-    } else {
-      formatted = `${firstName}, ${formatted}`;
-    }
-    formatted = formatted.replace(/{link}/gi, bookingLink);
-    return formatted;
-  }, [bookingLink]);
 
   const sendWithTemplate = (template: string) => {
     if (!selectedClient?.phone) return;
-    const formattedText = formatReminder(template, selectedClient.name);
-    window.open(`https://wa.me/55${selectedClient.phone.replace(/\D/g, '')}?text=${encodeURIComponent(formattedText)}`, '_blank');
-    markReminderSent(selectedClient.id);
-    setIsReminderOpen(false);
-  };
-
-  const sendReminderDirectly = (client: ClientWithStats) => {
-    const formattedText = formatReminder(activeTemplateText, client.name);
+    const formattedText = formatReminder(template);
     
-    // Format phone number
-    let formattedPhone = client.phone.replace(/\D/g, '');
+    let formattedPhone = selectedClient.phone.replace(/\D/g, '');
     if (formattedPhone.length === 10 || formattedPhone.length === 11) {
       formattedPhone = '55' + formattedPhone;
     }
 
     window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(formattedText)}`, '_blank');
-    markReminderSent(client.id);
-    showSuccess(`Lembrete enviado para ${client.name.split(' ')[0]}!`);
+    markReminderSent(selectedClient.id);
+    closeReminderModal();
   };
 
-  const saveTemplate = () => { if (!newTemplate.trim()) return; const u = [newTemplate.trim(), ...templates]; setTemplates(u); localStorage.setItem('barber_reminder_templates', JSON.stringify(u)); setNewTemplate(''); setIsCreatingTemplate(false); };
+  const deleteTemplate = (indexToDelete: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = templates.filter((_, idx) => idx !== indexToDelete);
+    setTemplates(updated);
+    localStorage.setItem('barber_reminder_templates_v2', JSON.stringify(updated));
+    showSuccess('Modelo de lembrete excluído!');
+  };
 
-  const handleSaveTemplateConfig = () => {
-    if (selectedTemplateType === 'tuesday') {
-      setTuesdayTemplate(editingText);
-      localStorage.setItem('barber_reminder_tmpl_tuesday', editingText);
-    } else if (selectedTemplateType === 'thursday') {
-      setThursdayTemplate(editingText);
-      localStorage.setItem('barber_reminder_tmpl_thursday', editingText);
-    } else {
-      setCustomTemplate(editingText);
-      localStorage.setItem('barber_reminder_tmpl_custom', editingText);
-    }
-    setIsEditingTemplate(false);
-    showSuccess('Modelo de mensagem salvo com sucesso!');
+  const saveCustomTemplate = () => {
+    if (!customReminderText.trim()) return;
+    const text = customReminderText.trim();
+    const updated = [text, ...templates];
+    setTemplates(updated);
+    localStorage.setItem('barber_reminder_templates_v2', JSON.stringify(updated));
+    setCustomReminderText('');
+    showSuccess('Lembrete salvo nos modelos!');
+  };
+
+  const sendCustomReminderDirectly = () => {
+    if (!customReminderText.trim()) return;
+    sendWithTemplate(customReminderText.trim());
+    setCustomReminderText('');
   };
 
   const panelTotal = panelBookings.reduce((s, b) => s + Number(b.total_price), 0);
@@ -488,7 +420,8 @@ const AdminClients: React.FC = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              sendReminderDirectly(client);
+                              setSelectedClient(client);
+                              setIsReminderOpen(true);
                             }}
                             className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer active:scale-95 bg-[#C5A059] hover:bg-[#A68233] text-black"
                           >
@@ -529,7 +462,8 @@ const AdminClients: React.FC = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              sendReminderDirectly(client);
+                              setSelectedClient(client);
+                              setIsReminderOpen(true);
                             }}
                             className="px-3 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer bg-[#C5A059] hover:bg-[#A68233] text-black shadow-[0_2px_10px_rgba(197,160,89,0.1)]"
                           >
@@ -632,7 +566,7 @@ const AdminClients: React.FC = () => {
                     Enviar pelo WhatsApp
                   </a>
                   <button 
-                    onClick={() => setIsReminderOpen(true)} 
+                    onClick={() => { setIsReminderOpen(true); }} 
                     className="flex-1 h-10 border border-white/[0.06] bg-white/[0.02] text-zinc-300 font-bold text-[9px] uppercase tracking-wider rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     Enviar Lembrete
@@ -740,55 +674,163 @@ const AdminClients: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
-
-      {/* REMINDER MODAL */}
       <AnimatePresence>
         {isReminderOpen && selectedClient && (
-          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setIsReminderOpen(false); setIsCreatingTemplate(false); }} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-            <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 30, stiffness: 300 }} className="relative z-10 w-full sm:w-[380px] bg-[#111111] border-t sm:border border-white/[0.06] sm:rounded-2xl rounded-t-2xl overflow-hidden max-h-[85dvh] flex flex-col">
-              <div className="px-5 pt-5 pb-3 flex items-center justify-between border-b border-white/[0.04] shrink-0">
-                <div className="text-left">
-                  <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.25em] block">Enviar Lembrete</span>
-                  <p className="text-xs text-zinc-400 mt-0.5">{selectedClient.name}</p>
+          <div className="fixed inset-0 z-[250] flex justify-end flex-col sm:flex-row">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={closeReminderModal} 
+              className="absolute inset-0 bg-black/75 backdrop-blur-sm" 
+            />
+            {/* Drawer Panel */}
+            <motion.div 
+              initial={{ y: '100%' }} 
+              animate={{ y: 0 }} 
+              exit={{ y: '100%' }} 
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }} 
+              className="relative w-full sm:w-[440px] h-[100dvh] sm:h-full mt-auto sm:mt-0 bg-[#0E0E0E] border-t sm:border-t-0 sm:border-l border-[#C5A059]/20 shadow-2xl overflow-y-auto scrollbar-hide flex flex-col text-white"
+            >
+              {/* Header */}
+              <div className="sticky top-0 bg-[#0E0E0E]/95 backdrop-blur-md z-10 px-6 py-5 flex items-center justify-between border-b border-white/[0.04] shrink-0">
+                <div className="flex items-center gap-3">
+                  {reminderMode === 'create' && (
+                    <button 
+                      onClick={() => setReminderMode('list')}
+                      className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
+                    >
+                      <ArrowLeft size={14} />
+                    </button>
+                  )}
+                  <div className="text-left">
+                    <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.25em] block">
+                      {reminderMode === 'create' ? 'Mensagem Personalizada' : 'Enviar Lembrete'}
+                    </span>
+                    <p className="text-sm font-semibold text-zinc-100 mt-1">{selectedClient.name}</p>
+                  </div>
                 </div>
-                <button onClick={() => { setIsReminderOpen(false); setIsCreatingTemplate(false); }} className="w-7 h-7 rounded-full bg-white/[0.04] flex items-center justify-center text-zinc-600 hover:text-white transition-colors cursor-pointer">
-                  <X size={12} />
+                <button 
+                  onClick={closeReminderModal} 
+                  className="w-9 h-9 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
+                >
+                  <X size={16} />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-5 space-y-3">
-                {!isCreatingTemplate ? (
-                  <>
-                    {/* Create custom reminder */}
-                    <div onClick={() => setIsCreatingTemplate(true)} className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04] border-dashed cursor-pointer hover:border-white/[0.1] transition-all text-left">
-                      <span className="text-[11px] font-semibold text-zinc-500">Criar lembrete personalizado</span>
-                    </div>
+              {/* Scrollable Content */}
+              <div className="flex-grow overflow-y-auto p-6 bg-[#0E0E0E]">
+                <div className="w-full space-y-6 text-left">
+                  
+                  {reminderMode === 'list' ? (
+                    <>
+                      {/* Templates List */}
+                      <div className="space-y-2 sm:space-y-3">
+                        {/* Saved models at the top */}
+                        {templates.map((templateText, index) => {
+                          const isExpanded = expandedTemplateIdx === index;
+                          return (
+                            <div 
+                              key={`template-card-${index}`}
+                              onClick={() => setExpandedTemplateIdx(isExpanded ? null : index)}
+                              className={`p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left ${
+                                isExpanded 
+                                  ? 'bg-white/[0.04] border-white/20 shadow-lg' 
+                                  : 'bg-white/[0.01] border-white/[0.04] hover:border-white/10 hover:bg-white/[0.02]'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="text-[9px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Modelo #{index + 1}</span>
+                                <ChevronDown size={14} className={`text-zinc-500 transition-transform sm:w-4 sm:h-4 ${isExpanded ? 'rotate-180 text-white' : ''}`} />
+                              </div>
+                              
+                              <p className={`text-[11px] sm:text-xs text-zinc-400 leading-normal sm:leading-relaxed mt-2 sm:mt-3 whitespace-pre-wrap ${isExpanded ? '' : 'line-clamp-2'}`}>
+                                {templateText}
+                              </p>
 
-                    {/* Suggestion card */}
-                    {smartSuggestion && (
-                      <div onClick={() => sendWithTemplate(smartSuggestion)} className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] cursor-pointer hover:border-[#C5A059]/20 transition-all text-left">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Enviar lembrete</span>
-                        </div>
-                        <p className="text-[12px] text-zinc-300 leading-relaxed line-clamp-2">{formatReminder(smartSuggestion, selectedClient.name)}</p>
-                        <div className="flex items-center gap-1.5 mt-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="#C5A059"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                          <span className="text-[9px] font-bold text-[#C5A059] uppercase tracking-wider">Enviar pelo WhatsApp</span>
-                        </div>
+                              {isExpanded && (
+                                <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-white/[0.04] flex items-center justify-between">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteTemplate(index, e);
+                                      if (expandedTemplateIdx === index) {
+                                        setExpandedTemplateIdx(null);
+                                      }
+                                    }}
+                                    className="text-zinc-500 hover:text-red-400 text-[9px] sm:text-xs font-bold uppercase flex items-center gap-1 sm:gap-1.5 cursor-pointer transition-colors"
+                                    title="Excluir"
+                                  >
+                                    <Trash2 size={11} className="sm:w-3.5 sm:h-3.5" />
+                                    <span>Excluir</span>
+                                  </button>
+                                  
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      sendWithTemplate(templateText);
+                                    }}
+                                    className="px-3.5 py-1.5 sm:px-5 sm:py-2.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.04] text-white font-bold text-[9px] sm:text-[10px] uppercase tracking-wider sm:tracking-widest rounded-lg sm:rounded-xl flex items-center gap-1.5 sm:gap-2 cursor-pointer transition-all active:scale-95"
+                                  >
+                                    <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                                    </svg>
+                                    <span>Enviar</span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="space-y-3 text-left">
-                    <p className="text-[10px] text-zinc-500 font-bold">Use {'{nome}'} para incluir o primeiro nome do cliente automaticamente.</p>
-                    <textarea value={newTemplate} onChange={(e) => setNewTemplate(e.target.value)} placeholder="Ex: {nome}! Bora agendar seu corte pra esta semana?..." className="w-full bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-[#C5A059]/50 resize-none h-24 placeholder:text-zinc-700" autoFocus />
-                    <div className="flex gap-2">
-                      <button onClick={() => { setIsCreatingTemplate(false); setNewTemplate(''); }} className="flex-1 py-2.5 text-zinc-500 font-semibold text-xs hover:text-white transition-all cursor-pointer">Cancelar</button>
-                      <button onClick={saveTemplate} disabled={!newTemplate.trim()} className="flex-1 py-2.5 bg-[#C5A059] text-black font-semibold text-xs rounded-xl hover:bg-[#A68233] transition-all disabled:opacity-30 cursor-pointer">Salvar</button>
-                    </div>
-                  </div>
-                )}
+
+                      <button 
+                        onClick={() => {
+                          setCustomReminderText('');
+                          setReminderMode('create');
+                        }}
+                        className="w-full py-4 border border-[#C5A059]/20 hover:border-[#C5A059]/40 bg-[#C5A059]/[0.02] text-[#C5A059] font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-[#C5A059]/[0.05] active:scale-[0.98] transition-all cursor-pointer text-center"
+                      >
+                        + Escrever Personalizado
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {/* Mode: Create/Edit Template */}
+                      <div className="space-y-3 text-left">
+                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">Mensagem Personalizada</span>
+                        <textarea 
+                          value={customReminderText} 
+                          onChange={(e) => setCustomReminderText(e.target.value)} 
+                          placeholder="Escreva a mensagem de lembrete..." 
+                          className="w-full bg-black/40 border border-white/[0.06] rounded-2xl px-5 py-4 text-sm text-zinc-200 outline-none focus:border-[#C5A059]/30 resize-none h-48 placeholder:text-zinc-700 leading-relaxed focus:bg-white/[0.01] transition-all" 
+                        />
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                        <button 
+                          onClick={saveCustomTemplate} 
+                          disabled={!customReminderText.trim() || templates.includes(customReminderText.trim())} 
+                          className="w-full sm:flex-1 py-3 bg-white/[0.01] hover:bg-white/[0.04] border border-white/[0.08] text-zinc-400 disabled:opacity-20 hover:text-white font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer text-center active:scale-[0.98]"
+                        >
+                          Salvar nos Modelos
+                        </button>
+                        <button 
+                          onClick={sendCustomReminderDirectly} 
+                          disabled={!customReminderText.trim()} 
+                          className="w-full sm:flex-1 py-3 bg-[#C5A059] disabled:opacity-30 hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer text-center flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                        >
+                          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                          </svg>
+                          <span>Enviar no WhatsApp</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
+                  
+                </div>
               </div>
             </motion.div>
           </div>
@@ -837,86 +879,7 @@ const AdminClients: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* CONFIG MODAL */}
-      <AnimatePresence>
-        {isEditingTemplate && (
-          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
-              onClick={() => setIsEditingTemplate(false)} 
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm" 
-            />
-            <motion.div 
-              initial={{ y: '100%', opacity: 0 }} 
-              animate={{ y: 0, opacity: 1 }} 
-              exit={{ y: '100%', opacity: 0 }} 
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }} 
-              className="relative z-10 w-full sm:w-[420px] bg-[#111] border-t sm:border border-white/[0.06] sm:rounded-2xl rounded-t-2xl overflow-hidden p-6 text-left"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-left">
-                  <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.2em] block">Configuração</span>
-                  <h3 className="text-sm font-bold text-white mt-0.5">Editar Modelo de Mensagem</h3>
-                </div>
-                <button 
-                  onClick={() => setIsEditingTemplate(false)} 
-                  className="w-7 h-7 rounded-full bg-white/[0.04] flex items-center justify-center text-zinc-500 hover:text-white transition-all cursor-pointer"
-                >
-                  <X size={12} />
-                </button>
-              </div>
 
-              <div className="space-y-4">
-                <div className="text-left">
-                  <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block mb-1.5">
-                    Variáveis Disponíveis
-                  </label>
-                  <div className="flex gap-2">
-                    <span className="px-2 py-1 rounded bg-white/[0.03] border border-white/[0.05] text-[9px] font-mono text-zinc-400">
-                      {`{nome}`} - Nome do Cliente
-                    </span>
-                    <span className="px-2 py-1 rounded bg-white/[0.03] border border-white/[0.05] text-[9px] font-mono text-zinc-400">
-                      {`{link}`} - Link de Agendamento
-                    </span>
-                  </div>
-                </div>
-
-                <div className="text-left">
-                  <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block mb-1.5">
-                    Mensagem do Modelo
-                  </label>
-                  <textarea
-                    rows={5}
-                    value={editingText}
-                    onChange={(e) => setEditingText(e.target.value)}
-                    className="w-full bg-black/40 border border-white/5 rounded-xl p-3.5 text-xs text-zinc-200 outline-none focus:border-[#C5A059]/30 transition-all resize-none leading-relaxed text-left"
-                    placeholder="Escreva sua mensagem..."
-                  />
-                </div>
-              </div>
-
-              <div className="flex border-t border-white/[0.04] mt-5 -mx-6 -mb-6">
-                <button 
-                  onClick={() => setIsEditingTemplate(false)} 
-                  className="flex-1 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-wider hover:text-white hover:bg-white/[0.02] transition-all cursor-pointer text-center"
-                >
-                  Cancelar
-                </button>
-                <div className="w-px bg-white/[0.04]" />
-                <button 
-                  onClick={handleSaveTemplateConfig}
-                  disabled={!editingText.trim()}
-                  className="flex-1 py-4 text-[10px] font-bold text-[#C5A059] uppercase tracking-wider hover:bg-[#C5A059]/10 transition-all cursor-pointer text-center disabled:opacity-30"
-                >
-                  Salvar
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* Toast */}
       <ToastNotification toast={toast} />

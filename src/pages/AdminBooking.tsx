@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createBooking, getBookings, getClients, deleteBooking } from '../lib/api';
-import { TIME_SLOTS, getPeriod, formatPhone, getNextDays, isTimeOccupied } from '../lib/utils';
+import { TIME_SLOTS, formatPhone, getNextDays, isTimeOccupied } from '../lib/utils';
 import { useToast } from '../hooks/useToast';
 import { useServices } from '../hooks/useServices';
 import type { Service, Client, Booking } from '../types';
@@ -330,15 +330,15 @@ const AdminBooking: React.FC = () => {
                         </div>
 
                         {selectedClient ? (
-                          <div className="p-6 bg-[#111111] border border-white/[0.06] flex items-center justify-between transition-all group hover:border-[#C5A059]/30">
-                            <div className="flex items-center gap-5">
-                              <div className="w-12 h-12 bg-[#0A0A0A] border border-white/[0.08] flex items-center justify-center text-[#C5A059] text-lg font-bold transition-all duration-300">
+                          <div className="p-5 sm:p-6 bg-[#111111] border border-white/[0.06] flex items-center justify-between gap-4 min-w-0 transition-all group hover:border-[#C5A059]/30 rounded-xl">
+                            <div className="flex items-center gap-4 sm:gap-5 min-w-0 flex-1">
+                              <div className="w-12 h-12 bg-[#0A0A0A] border border-white/[0.08] flex items-center justify-center text-[#C5A059] text-lg font-bold transition-all duration-300 shrink-0">
                                 {selectedClient.name.charAt(0)}
                               </div>
-                              <div>
+                              <div className="min-w-0 flex-1">
                                 <span className="text-[8px] font-bold text-[#C5A059] tracking-[0.25em] uppercase block mb-1">CLIENTE CADASTRADO</span>
-                                <h3 className="text-lg font-bold text-white uppercase tracking-wide leading-none">{selectedClient.name}</h3>
-                                <p className="text-xs text-zinc-500 mt-2">{selectedClient.phone}</p>
+                                <h3 className="text-base sm:text-lg font-bold text-white uppercase tracking-wide leading-none truncate">{selectedClient.name}</h3>
+                                <p className="text-xs text-zinc-500 mt-2 truncate">{selectedClient.phone}</p>
                               </div>
                             </div>
                             <button
@@ -348,7 +348,7 @@ const AdminBooking: React.FC = () => {
                                 setSearchQuery('');
                                 setIsManualEntry(true);
                               }}
-                              className="text-[10px] font-bold uppercase tracking-widest text-[#C5A059] hover:text-white transition-colors cursor-pointer"
+                              className="text-[10px] font-bold uppercase tracking-widest text-[#C5A059] hover:text-white transition-all cursor-pointer px-3 py-1.5 shrink-0 bg-white/[0.03] border border-[#C5A059]/20 rounded-xl hover:bg-white/[0.08] hover:border-[#C5A059]/40 active:scale-95"
                             >
                               Alterar
                             </button>
@@ -610,43 +610,36 @@ const AdminBooking: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="space-y-8 pr-1 pb-0">
+                        <div className="space-y-4 pr-1 pb-0">
                           {selectedDate ? (
-                            ['Manhã', 'Tarde', 'Noite'].map((period) => {
-                              const periodSlots = TIME_SLOTS.filter(time => getPeriod(time) === period);
-                              if (periodSlots.length === 0) return null;
-
-                              return (
-                                <div key={period} className="flex flex-col gap-3">
-                                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] pl-0.5">
-                                    Turno da {period}
-                                  </span>
-                                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                                    {periodSlots.map(time => {
-                                      const occupied = isOccupied(time);
-                                      const isSelected = selectedTime === time;
-                                      return (
-                                        <button
-                                          key={time}
-                                          type="button"
-                                          disabled={occupied}
-                                          onClick={() => setSelectedTime(time)}
-                                          className={`py-4 border text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                                            occupied 
-                                              ? 'text-zinc-800/10 border-transparent cursor-not-allowed line-through opacity-20 bg-transparent' 
-                                              : isSelected 
-                                                ? 'text-[#C5A059] border-[#C5A059] bg-[#C5A059]/[0.04] font-black' 
-                                                : 'text-zinc-400 border-white/[0.06] bg-[#111111] hover:border-white/[0.12] hover:text-white'
-                                          }`}
-                                        >
-                                          {time}
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              );
-                            })
+                            <div className="flex flex-col gap-3">
+                              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] pl-0.5">
+                                Horários Disponíveis
+                              </span>
+                              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                                {TIME_SLOTS.map(time => {
+                                  const occupied = isOccupied(time);
+                                  const isSelected = selectedTime === time;
+                                  return (
+                                    <button
+                                      key={time}
+                                      type="button"
+                                      disabled={occupied}
+                                      onClick={() => setSelectedTime(time)}
+                                      className={`py-4 border text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                                        occupied 
+                                          ? 'text-zinc-800/10 border-transparent cursor-not-allowed line-through opacity-20 bg-transparent' 
+                                          : isSelected 
+                                            ? 'text-[#C5A059] border-[#C5A059] bg-[#C5A059]/[0.04] font-black' 
+                                            : 'text-zinc-400 border-white/[0.06] bg-[#111111] hover:border-white/[0.12] hover:text-white'
+                                      }`}
+                                    >
+                                      {time}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
                           ) : (
                             <p className="text-zinc-500 text-xs py-4 text-center">Selecione um dia da semana acima para ver os horários disponíveis.</p>
                           )}
@@ -765,15 +758,15 @@ const AdminBooking: React.FC = () => {
                 </div>
 
                 {selectedClient ? (
-                  <div className="p-4 bg-[#111111] border border-[#C5A059]/30 rounded-2xl flex items-center justify-between">
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-11 h-11 bg-[#050505] border border-white/[0.08] rounded-xl flex items-center justify-center text-[#C5A059] text-base font-bold">
+                  <div className="p-3.5 sm:p-4 bg-[#111111] border border-[#C5A059]/30 rounded-2xl flex items-center justify-between gap-3 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-11 h-11 bg-[#050505] border border-white/[0.08] rounded-xl flex items-center justify-center text-[#C5A059] text-base font-bold shrink-0">
                         {selectedClient.name.charAt(0)}
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <span className="text-[8px] font-bold text-[#C5A059] tracking-widest uppercase block mb-0.5">CADASTRADO</span>
                         <h3 className="text-sm font-bold text-white uppercase tracking-wide leading-none truncate">{selectedClient.name}</h3>
-                        <p className="text-[11px] text-zinc-500 mt-1">{selectedClient.phone}</p>
+                        <p className="text-[11px] text-zinc-500 mt-1 truncate">{selectedClient.phone}</p>
                       </div>
                     </div>
                     <button
@@ -783,7 +776,7 @@ const AdminBooking: React.FC = () => {
                         setSearchQuery('');
                         setIsManualEntry(true);
                       }}
-                      className="text-[9px] font-bold uppercase tracking-widest text-[#C5A059] cursor-pointer px-2 py-1 shrink-0"
+                      className="text-[9px] font-bold uppercase tracking-widest text-[#C5A059] cursor-pointer px-3 py-1.5 shrink-0 bg-white/[0.03] border border-[#C5A059]/20 rounded-xl hover:bg-white/[0.08] hover:border-[#C5A059]/40 hover:text-white transition-all duration-200 active:scale-95"
                     >
                       Alterar
                     </button>
@@ -1021,38 +1014,32 @@ const AdminBooking: React.FC = () => {
                 {/* Time Slots */}
                 <div className="space-y-4 overflow-y-auto flex-1 scrollbar-hide pb-4">
                   {selectedDate ? (
-                    ['Manhã', 'Tarde', 'Noite'].map((period) => {
-                      const periodSlots = TIME_SLOTS.filter(time => getPeriod(time) === period);
-                      if (periodSlots.length === 0) return null;
-                      return (
-                        <div key={period} className="space-y-2.5">
-                          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{period}</span>
-                          <div className="grid grid-cols-4 gap-2">
-                            {periodSlots.map(time => {
-                              const occupied = isOccupied(time);
-                              const isSelected = selectedTime === time;
-                              return (
-                                <button
-                                  key={time}
-                                  type="button"
-                                  disabled={occupied}
-                                  onClick={() => setSelectedTime(time)}
-                                  className={`py-3 rounded-xl border text-[11px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                                    occupied 
-                                      ? 'text-zinc-800 border-transparent cursor-not-allowed opacity-20 bg-transparent' 
-                                      : isSelected 
-                                        ? 'text-[#C5A059] border-[#C5A059]/50 bg-[#C5A059]/[0.08]' 
-                                        : 'text-zinc-400 border-white/[0.06] bg-[#111111] hover:border-white/[0.12] hover:text-white'
-                                  }`}
-                                >
-                                  {time}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })
+                    <div className="space-y-2.5">
+                      <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Horários Disponíveis</span>
+                      <div className="grid grid-cols-4 gap-2">
+                        {TIME_SLOTS.map(time => {
+                          const occupied = isOccupied(time);
+                          const isSelected = selectedTime === time;
+                          return (
+                            <button
+                              key={time}
+                              type="button"
+                              disabled={occupied}
+                              onClick={() => setSelectedTime(time)}
+                              className={`py-3 rounded-xl border text-[11px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                                occupied 
+                                  ? 'text-zinc-800 border-transparent cursor-not-allowed opacity-20 bg-transparent' 
+                                  : isSelected 
+                                    ? 'text-[#C5A059] border-[#C5A059]/50 bg-[#C5A059]/[0.08]' 
+                                    : 'text-zinc-400 border-white/[0.06] bg-[#111111] hover:border-white/[0.12] hover:text-white'
+                              }`}
+                            >
+                              {time}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   ) : (
                     <div className="py-10 text-center">
                       <p className="text-zinc-600 text-xs">Selecione um dia acima para ver os horários.</p>

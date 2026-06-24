@@ -2,8 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-             window.navigator.standalone === true ||
-             localStorage.getItem('barber_pwa_installed') === 'true';
+             (window.navigator as any).standalone === true;
 
 const PUBLIC_ROUTES = ['/', '/agendar'];
 

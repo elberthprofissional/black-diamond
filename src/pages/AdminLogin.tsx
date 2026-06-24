@@ -95,7 +95,7 @@ const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div className="h-screen w-full bg-[#0A0A0A] text-white flex relative overflow-hidden font-sans touch-none">
+    <div className="h-screen w-full bg-[#0A0A0A] text-white flex relative overflow-hidden font-sans">
       
       {/* Voltar para Home (apenas no site, oculto no PWA) */}
       {!isPWA && (
