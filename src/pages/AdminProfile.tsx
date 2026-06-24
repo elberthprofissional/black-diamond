@@ -42,21 +42,15 @@ const AdminProfile: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(
     window.deferredPrompt || null
   );
-  const [isInstalled, setIsInstalled] = useState(() => 
-    window.matchMedia('(display-mode: standalone)').matches || 
-    (navigator as unknown as { standalone?: boolean }).standalone === true ||
-    localStorage.getItem('barber_pwa_installed') === 'true'
-  );
-
   const navigate = useNavigate();
   const handleLogout = useAdminLogout();
   const { toast, showSuccess } = useToast();
 
   useEffect(() => {
     const handleAppInstalled = () => {
-      setIsInstalled(true);
       setDeferredPrompt(null);
       window.deferredPrompt = undefined;
+      localStorage.setItem('barber_pwa_installed', 'true');
       setShowInstallPrompt(false);
     };
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -64,8 +58,6 @@ const AdminProfile: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (isInstalled) return;
-
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -74,7 +66,7 @@ const AdminProfile: React.FC = () => {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-  }, [isInstalled]);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -192,11 +184,9 @@ const AdminProfile: React.FC = () => {
 
   const handleInstallClick = () => {
     const isAlreadyInstalled = window.matchMedia('(display-mode: standalone)').matches || 
-                               (navigator as unknown as { standalone?: boolean }).standalone === true ||
-                               localStorage.getItem('barber_pwa_installed') === 'true';
+                               (navigator as unknown as { standalone?: boolean }).standalone === true;
 
     if (isAlreadyInstalled) {
-      setIsInstalled(true);
       showSuccess('Aplicativo já instalado!');
       return;
     }
@@ -209,7 +199,6 @@ const AdminProfile: React.FC = () => {
     setTimeout(() => {
       setInstallState('success');
       setTimeout(() => {
-        setIsInstalled(true);
         localStorage.setItem('barber_pwa_installed', 'true');
         setShowInstallPrompt(false);
         showSuccess('Aplicativo adicionado com sucesso!');
