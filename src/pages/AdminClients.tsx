@@ -395,7 +395,12 @@ const AdminClients: React.FC = () => {
                 {/* Mobile: list */}
                 <div className="lg:hidden space-y-1">
                   {filteredClients.map((client) => (
-                    <div key={client.id} onClick={() => openPanel(client)} className="flex items-center gap-3 py-3.5 px-4 rounded-xl cursor-pointer bg-white/[0.01] border border-white/[0.03] hover:bg-white/[0.03] transition-all group">
+                    <button
+                      key={client.id}
+                      onClick={() => openPanel(client)}
+                      aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`}
+                      className="w-full flex items-center gap-3 py-3.5 px-4 rounded-xl cursor-pointer bg-white/[0.01] border border-white/[0.03] hover:bg-white/[0.03] transition-all group text-left"
+                    >
                       <div className="relative shrink-0">
                         <div className="w-10 h-10 rounded-full bg-[#111111] border border-white/[0.08] flex items-center justify-center text-sm font-bold text-white uppercase">
                           {client.name.charAt(0)}
@@ -410,7 +415,7 @@ const AdminClients: React.FC = () => {
                         <p className="text-sm font-semibold text-white truncate">{client.name}</p>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <span className="text-[11px] text-zinc-500">{formatPhone(client.phone)}</span>
-                          <span className="text-zinc-700">•</span>
+                          <span className="text-zinc-600">•</span>
                           <span className="text-[10px] text-zinc-500">Último: {client.lastVisit}</span>
                         </div>
                       </div>
@@ -428,16 +433,21 @@ const AdminClients: React.FC = () => {
                             Lembrar
                           </button>
                         )}
-                        <ChevronRight size={14} className="text-zinc-700 shrink-0" />
+                        <ChevronRight size={14} className="text-zinc-600 shrink-0" />
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
 
                 {/* Desktop: cards */}
                 <div className="hidden lg:grid grid-cols-2 gap-3">
                   {filteredClients.map((client) => (
-                    <div key={client.id} onClick={() => openPanel(client)} className="flex items-center gap-4 p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all cursor-pointer group">
+                    <button
+                      key={client.id}
+                      onClick={() => openPanel(client)}
+                      aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`}
+                      className="w-full flex items-center gap-4 p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all cursor-pointer group text-left"
+                    >
                       <div className="relative shrink-0">
                         <div className="w-12 h-12 rounded-xl bg-[#111111] border border-white/[0.08] flex items-center justify-center text-base font-bold text-white uppercase">
                           {client.name.charAt(0)}
@@ -473,9 +483,9 @@ const AdminClients: React.FC = () => {
                             Lembrar
                           </button>
                         )}
-                        <ChevronRight size={14} className="text-zinc-700 group-hover:text-zinc-400 transition-colors shrink-0" />
+                        <ChevronRight size={14} className="text-zinc-600 group-hover:text-zinc-400 transition-colors shrink-0" />
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </>
@@ -662,8 +672,8 @@ const AdminClients: React.FC = () => {
                   <input type="text" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors tabular-nums" />
                 </div>
                 <div>
-                  <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Email <span className="text-zinc-700">(opcional)</span></span>
-                  <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="email@exemplo.com" className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-700" />
+                  <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Email <span className="text-zinc-500">(opcional)</span></span>
+                  <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="email@exemplo.com" className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-600" />
                 </div>
               </div>
               <div className="flex gap-2 mt-4">
@@ -860,12 +870,12 @@ const AdminClients: React.FC = () => {
                     <input type="text" value={newClientPhone} onChange={(e) => setNewClientPhone(e.target.value)} placeholder="00000000000" className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-700 tabular-nums text-left" />
                   </div>
                   <div>
-                    <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Email <span className="text-zinc-700">(opcional)</span></span>
-                    <input type="email" value={newClientEmail} onChange={(e) => setNewClientEmail(e.target.value)} placeholder="email@exemplo.com" className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-700 text-left" />
+                    <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Email <span className="text-zinc-500">(opcional)</span></span>
+                    <input type="email" value={newClientEmail} onChange={(e) => setNewClientEmail(e.target.value)} placeholder="email@exemplo.com" className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-600 text-left" />
                   </div>
                   <div>
-                    <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Anotações <span className="text-zinc-700">(opcional)</span></span>
-                    <textarea value={newClientNotes} onChange={(e) => setNewClientNotes(e.target.value)} placeholder="Ex: Prefere degradê baixo..." className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-700 resize-none h-16 text-left" />
+                    <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Anotações <span className="text-zinc-500">(opcional)</span></span>
+                    <textarea value={newClientNotes} onChange={(e) => setNewClientNotes(e.target.value)} placeholder="Ex: Prefere degradê baixo..." className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-600 resize-none h-16 text-left" />
                   </div>
                 </div>
               </div>

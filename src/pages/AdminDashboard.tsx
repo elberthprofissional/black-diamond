@@ -129,7 +129,7 @@ const AdminDashboard: React.FC = () => {
       } catch (error) {
         console.error(error);
         // Fallback para slots padrão
-        setAvailableSlots(['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']);
+        setAvailableSlots(['08:30', '09:30', '10:30', '11:30', '13:30', '14:30', '15:30', '16:30', '17:30', '18:30']);
       }
     };
     loadAvailableSlots();
@@ -244,13 +244,14 @@ const AdminDashboard: React.FC = () => {
                   {filter === 'occupied' && (
                     <div className="space-y-2">
                       {occupiedBookings.length === 0 ? (
-                        <p className="text-zinc-700 text-[10px] uppercase tracking-widest text-center py-8">Nenhum agendamento</p>
+                        <p className="text-zinc-600 text-[10px] uppercase tracking-widest text-center py-8">Nenhum agendamento</p>
                       ) : (
                         occupiedBookings.map((booking) => (
-                          <div
+                          <button
                             key={booking.id}
                             onClick={() => setSelectedBooking(booking)}
-                            className={`flex items-center rounded-lg border cursor-pointer transition-all group ${
+                            aria-label={`Agendamento às ${booking.booking_time.slice(0, 5)} com ${booking.clients?.name}`}
+                            className={`w-full flex items-center rounded-lg border cursor-pointer transition-all group text-left ${
                               selectedBooking?.id === booking.id
                                 ? 'border-[#C5A059]/40 bg-[#C5A059]/5'
                                 : 'border-white/5 bg-[#111111] hover:border-white/10'
@@ -265,7 +266,7 @@ const AdminDashboard: React.FC = () => {
                               <WhatsAppReminderButton booking={booking} className="p-2.5 text-zinc-500 hover:text-emerald-500 transition-colors shrink-0" />
                             )}
                             <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-colors shrink-0 mr-1" />
-                          </div>
+                          </button>
                         ))
                       )}
                     </div>
@@ -288,7 +289,7 @@ const AdminDashboard: React.FC = () => {
                         </button>
                       )}
                       {freeSlots.length === 0 ? (
-                        <p className="text-zinc-700 text-[10px] uppercase tracking-widest text-center py-8">Nenhum horário livre</p>
+                        <p className="text-zinc-600 text-[10px] uppercase tracking-widest text-center py-8">Nenhum horário livre</p>
                       ) : (
                         freeSlots.map((slot) => (
                           <div key={`free-${slot}`} className="flex items-center bg-[#111111] border border-white/5 rounded-lg px-3 py-2.5">
@@ -331,7 +332,7 @@ const AdminDashboard: React.FC = () => {
                         </button>
                       )}
                       {blockedBookings.length === 0 ? (
-                        <p className="text-zinc-700 text-[10px] uppercase tracking-widest text-center py-8">Nenhum horário bloqueado</p>
+                        <p className="text-zinc-600 text-[10px] uppercase tracking-widest text-center py-8">Nenhum horário bloqueado</p>
                       ) : (
                         blockedBookings.map((booking) => (
                           <div key={`blocked-${booking.id}`} className="flex items-center bg-[#111111] border border-white/5 rounded-lg px-3 py-2.5">

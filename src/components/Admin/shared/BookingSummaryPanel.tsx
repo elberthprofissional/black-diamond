@@ -60,13 +60,13 @@ const BookingSummaryPanel: React.FC<BookingSummaryPanelProps> = ({
             <div className="border-t border-white/[0.02] pt-4 grid grid-cols-2 gap-4">
               <div>
                 <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.3em] block mb-1">Data</span>
-                <p className={`text-base font-bold italic leading-none ${selectedTime ? 'text-white' : 'text-zinc-700'}`}>
+                <p className={`text-base font-bold italic leading-none ${selectedTime ? 'text-white' : 'text-zinc-600'}`}>
                   {selectedTime ? selectedDate.split('-').reverse().join('/') : '--/--'}
                 </p>
               </div>
               <div>
                 <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.3em] block mb-1">Horário</span>
-                <p className={`text-base font-bold italic leading-none ${selectedTime ? 'text-[#C5A059]' : 'text-zinc-700'}`}>
+                <p className={`text-base font-bold italic leading-none ${selectedTime ? 'text-[#C5A059]' : 'text-zinc-600'}`}>
                   {selectedTime ? selectedTime : '--:--'}
                 </p>
               </div>

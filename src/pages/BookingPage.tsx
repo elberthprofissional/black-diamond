@@ -80,7 +80,7 @@ const BookingPage: React.FC = () => {
         } catch (error) { 
           console.error(error);
           // Fallback para slots padrão se a função falhar
-          setAvailableSlots(['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']);
+          setAvailableSlots(['08:30', '09:30', '10:30', '11:30', '13:30', '14:30', '15:30', '16:30', '17:30', '18:30']);
         }
       };
       loadBookings();
@@ -227,9 +227,14 @@ const BookingPage: React.FC = () => {
                 )}
               </div>
               {/* Progress */}
-              <div className="flex gap-1 w-40">
+              <div className="flex gap-1 w-40" role="list" aria-label="Progresso do agendamento">
                 {[1, 2, 3, 4].map((s) => (
-                  <div key={s} className={`h-[2px] flex-1 rounded-full transition-all duration-500 ${
+                  <div
+                    key={s}
+                    role="listitem"
+                    aria-current={step === s ? 'step' : undefined}
+                    aria-label={`Passo ${s}${step === s ? ' (atual)' : step > s ? ' (concluído)' : ''}`}
+                    className={`h-[2px] flex-1 rounded-full transition-all duration-500 ${
                     step === s ? 'bg-[#C5A059]' : step > s ? 'bg-[#C5A059]/30' : 'bg-white/[0.08]'
                   }`} />
                 ))}
@@ -525,7 +530,7 @@ const BookingPage: React.FC = () => {
                 };
 
                 return (
-                  <div key={`m-step-node-${s}`} className="flex flex-col items-center relative z-10 w-12">
+                  <div key={`m-step-node-${s}`} className="flex flex-col items-center relative z-10 w-12" aria-current={isActive ? 'step' : undefined}>
                     {/* Icon on Top */}
                     <div className="h-5 flex items-center justify-center mb-1">
                       {getStepIcon(s)}

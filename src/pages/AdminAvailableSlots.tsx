@@ -25,7 +25,7 @@ const AdminAvailableSlots: React.FC = () => {
         setAvailableSlots(slots);
       } catch (error) {
         console.error(error);
-        setAvailableSlots(['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']);
+        setAvailableSlots(['08:30', '09:30', '10:30', '11:30', '13:30', '14:30', '15:30', '16:30', '17:30', '18:30']);
       }
     };
     loadAvailableSlots();
@@ -67,7 +67,7 @@ const AdminAvailableSlots: React.FC = () => {
           </div>
         ) : freeSlots.length === 0 ? (
           <div className="py-24 text-center">
-            <p className="text-zinc-700 text-[10px] uppercase tracking-widest">Nenhum horário disponível</p>
+            <p className="text-zinc-600 text-[10px] uppercase tracking-widest">Nenhum horário disponível</p>
           </div>
         ) : (
           /* Grid de slots */

@@ -27,12 +27,15 @@ const FilterTabs: React.FC<FilterTabsProps> = ({
   ];
 
   return (
-    <div className="flex gap-4 sm:gap-6 w-full sm:w-auto">
+    <div className="flex gap-4 sm:gap-6 w-full sm:w-auto" role="tablist" aria-label="Filtros de agendamento">
       {tabs.map((f) => {
         const active = filter === f.value;
         return (
           <button
             key={f.value}
+            role="tab"
+            aria-selected={active}
+            aria-controls={`panel-${f.value}`}
             onClick={() => setFilter(f.value)}
             className={`relative pb-2 text-center text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer flex items-center gap-1.5 ${
               active ? 'text-[#C5A059]' : 'text-zinc-500 hover:text-zinc-300'

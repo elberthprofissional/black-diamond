@@ -253,14 +253,19 @@ const AdminWeekly: React.FC = () => {
                 {filter === 'occupied' && (
                   <div className="space-y-2">
                     {occupiedBookings.length === 0 ? (
-                      <p className="text-zinc-700 text-[10px] uppercase tracking-widest text-center py-8">Nenhum agendamento</p>
+                      <p className="text-zinc-600 text-[10px] uppercase tracking-widest text-center py-8">Nenhum agendamento</p>
                     ) : (
                       occupiedBookings.map((booking) => (
-                        <div key={booking.id} onClick={() => setSelectedBooking(booking)} className={`flex items-center bg-[#111111] border border-white/5 rounded-lg px-3 py-2.5 cursor-pointer transition-all hover:border-[#C5A059]/20`}>
+                        <button
+                          key={booking.id}
+                          onClick={() => setSelectedBooking(booking)}
+                          aria-label={`Agendamento às ${booking.booking_time.slice(0, 5)} com ${booking.clients?.name}`}
+                          className={`w-full flex items-center bg-[#111111] border border-white/5 rounded-lg px-3 py-2.5 cursor-pointer transition-all hover:border-[#C5A059]/20 text-left`}
+                        >
                           <span className="text-sm font-bold text-white tabular-nums w-12 shrink-0">{booking.booking_time.slice(0, 5)}</span>
                           <div className="w-px h-3.5 bg-white/[0.06] mx-3 shrink-0" />
                           <span className="text-[11px] font-bold text-zinc-300 truncate flex-1">{booking.clients?.name}</span>
-                        </div>
+                        </button>
                       ))
                     )}
                   </div>
@@ -283,7 +288,7 @@ const AdminWeekly: React.FC = () => {
                       </button>
                     )}
                     {freeSlots.length === 0 ? (
-                      <p className="text-zinc-700 text-[10px] uppercase tracking-widest text-center py-8">Nenhum horário livre</p>
+                      <p className="text-zinc-600 text-[10px] uppercase tracking-widest text-center py-8">Nenhum horário livre</p>
                     ) : (
                       freeSlots.map((slot) => (
                         <div key={`free-${slot}`} className="flex items-center bg-[#111111] border border-white/5 rounded-lg px-3 py-2.5">
@@ -315,7 +320,7 @@ const AdminWeekly: React.FC = () => {
                       </button>
                     )}
                     {blockedBookings.length === 0 ? (
-                      <p className="text-zinc-700 text-[10px] uppercase tracking-widest text-center py-8">Nenhum horário bloqueado</p>
+                      <p className="text-zinc-600 text-[10px] uppercase tracking-widest text-center py-8">Nenhum horário bloqueado</p>
                     ) : (
                       blockedBookings.map((booking) => (
                         <div key={`blocked-${booking.id}`} className="flex items-center bg-[#111111] border border-white/5 rounded-lg px-3 py-2.5">

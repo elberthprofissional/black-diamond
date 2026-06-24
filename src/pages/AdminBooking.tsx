@@ -275,6 +275,8 @@ const AdminBooking: React.FC = () => {
                           <button
                             disabled={!canClick}
                             onClick={() => setCurrentStep(s.step)}
+                            aria-current={isActive ? 'step' : undefined}
+                            aria-label={`Passo ${s.num}: ${s.title}${isActive ? ' (atual)' : isPassed ? ' (concluído)' : ''}`}
                             className="flex items-center gap-3 shrink-0 transition-all cursor-pointer group"
                           >
                             <div className={`w-8 h-8 flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
@@ -713,7 +715,7 @@ const AdminBooking: React.FC = () => {
                 const isPassed = s.step < currentStep;
                 return (
                   <React.Fragment key={s.step}>
-                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1" aria-current={isActive ? 'step' : undefined}>
                       <div className={`w-5 h-5 flex items-center justify-center text-[8px] font-bold rounded-full transition-all shrink-0 ${
                         isActive 
                           ? 'bg-[#C5A059] text-black' 

@@ -113,11 +113,11 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
               </div>
             ) : searchQuery.trim().length > 0 ? (
               <div className="py-12 text-center">
-                <p className="text-[9px] text-zinc-700 uppercase tracking-widest font-bold italic">Nenhum cliente encontrado</p>
+                <p className="text-[9px] text-zinc-500 uppercase tracking-widest font-bold italic">Nenhum cliente encontrado</p>
               </div>
             ) : (
               <div className="py-12 text-center">
-                <p className="text-[9px] text-zinc-700 uppercase tracking-widest font-bold italic">Digite para pesquisar...</p>
+                <p className="text-[9px] text-zinc-500 uppercase tracking-widest font-bold italic">Digite para pesquisar...</p>
               </div>
             )}
           </div>

@@ -16,20 +16,23 @@ const BottomTabs: React.FC = () => {
 
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#0E0E0E]/90 backdrop-blur-md border-t border-white/[0.06] z-[100] lg:hidden pb-safe">
-      <div className="flex items-center justify-around h-[60px] max-w-lg mx-auto px-4">
+    <nav className="fixed bottom-0 left-0 right-0 bg-[#0E0E0E]/90 backdrop-blur-md border-t border-white/[0.06] z-[100] lg:hidden pb-safe" aria-label="Navegação principal">
+      <div className="flex items-center justify-around h-[60px] max-w-lg mx-auto px-4" role="tablist">
         {tabs.map((tab) => {
           const active = isActive(tab.path);
           return (
             <button
               key={tab.path}
-              onClick={() => navigate(tab.path)}
+              role="tab"
+              aria-selected={active}
               aria-label={tab.label}
-              className={`flex items-center justify-center flex-1 h-full cursor-pointer transition-colors ${
+              onClick={() => navigate(tab.path)}
+              className={`flex flex-col items-center justify-center flex-1 h-full cursor-pointer transition-colors gap-1 ${
                 active ? 'text-[#C5A059]' : 'text-zinc-500'
               }`}
             >
               <tab.icon size={22} strokeWidth={active ? 2.2 : 1.6} />
+              <span className="text-[8px] font-bold uppercase tracking-wider">{tab.label}</span>
             </button>
           );
         })}

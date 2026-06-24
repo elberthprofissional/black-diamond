@@ -43,7 +43,7 @@ const AdminSidebar: React.FC = () => {
       {/* 2. NAVIGATION - SaaS STYLE */}
       <div className="flex-1 px-6 py-4 overflow-y-auto scrollbar-hide space-y-8">
         <div>
-          <span className="text-[9px] font-bold text-zinc-700 uppercase tracking-[0.3em] px-4 block mb-4">Menu Principal</span>
+          <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.3em] px-4 block mb-4">Menu Principal</span>
           <nav className="space-y-1">
             {mainMenuItems.map((item) => {
               const active = isActive(item.path);
@@ -67,7 +67,7 @@ const AdminSidebar: React.FC = () => {
                   
                   <Icon 
                     size={16} 
-                    className={`transition-colors ${active ? 'text-[#C5A059]' : 'text-zinc-700 group-hover:text-zinc-400'}`} 
+                    className={`transition-colors ${active ? 'text-[#C5A059]' : 'text-zinc-600 group-hover:text-zinc-400'}`} 
                   />
                   
                   <span className={`text-[11px] font-bold tracking-wide ${active ? 'text-white' : 'text-zinc-500'}`}>
@@ -99,7 +99,7 @@ const AdminSidebar: React.FC = () => {
             <div className="text-left flex-1 min-w-0">
               <p className="text-[11px] font-bold text-white truncate">Tato</p>
             </div>
-            <ChevronDown size={14} className={`text-zinc-700 transition-transform duration-300 ${isProfileOpen ? 'rotate-180 text-white' : 'group-hover:text-zinc-400'}`} />
+            <ChevronDown size={14} className={`text-zinc-600 transition-transform duration-300 ${isProfileOpen ? 'rotate-180 text-white' : 'group-hover:text-zinc-400'}`} />
           </button>
  
           <AnimatePresence>

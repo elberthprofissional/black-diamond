@@ -52,11 +52,13 @@ CREATE TABLE IF NOT EXISTS settings (
 
 -- Configurações padrão do horário de funcionamento
 INSERT INTO settings (key, value) VALUES
-    ('opening_time', '08:00'),
-    ('closing_time', '20:00'),
+    ('opening_time', '08:30'),
+    ('closing_time', '19:00'),
     ('lunch_start', '12:00'),
     ('lunch_end', '13:00'),
-    ('working_days', '1,2,3,4,5,6')
+    ('working_days', '1,2,3,4,5,6'),
+    ('saturday_opening', '08:00'),
+    ('saturday_closing', '18:00')
 ON CONFLICT (key) DO NOTHING;
 
 -- 6. TRAVA DE SEGURANÇA: IMPEDIR DUPLO AGENDAMENTO (CONFLITO DE HORÁRIO)
@@ -258,16 +260,25 @@ DECLARE
     v_lunch_start time;
     v_lunch_end time;
     v_current time;
+    v_day_of_week integer;
 BEGIN
-    -- Buscar configurações
-    v_opening := (SELECT value::time FROM settings WHERE key = 'opening_time');
-    v_closing := (SELECT value::time FROM settings WHERE key = 'closing_time');
+    v_day_of_week := EXTRACT(DOW FROM p_date); -- 0=Dom, 1=Seg, ..., 6=Sab
+
+    -- Seg-sex (1-5): 08:30-19:00 / Sabado (6): 08:00-18:00
+    IF v_day_of_week = 6 THEN
+        v_opening := (SELECT value::time FROM settings WHERE key = 'saturday_opening');
+        v_closing := (SELECT value::time FROM settings WHERE key = 'saturday_closing');
+    ELSE
+        v_opening := (SELECT value::time FROM settings WHERE key = 'opening_time');
+        v_closing := (SELECT value::time FROM settings WHERE key = 'closing_time');
+    END IF;
+
     v_lunch_start := (SELECT value::time FROM settings WHERE key = 'lunch_start');
     v_lunch_end := (SELECT value::time FROM settings WHERE key = 'lunch_end');
     
     -- Se não tiver configurações, usar padrão
-    IF v_opening IS NULL THEN v_opening := '08:00'::time; END IF;
-    IF v_closing IS NULL THEN v_closing := '20:00'::time; END IF;
+    IF v_opening IS NULL THEN v_opening := '08:30'::time; END IF;
+    IF v_closing IS NULL THEN v_closing := '19:00'::time; END IF;
     IF v_lunch_start IS NULL THEN v_lunch_start := '12:00'::time; END IF;
     IF v_lunch_end IS NULL THEN v_lunch_end := '13:00'::time; END IF;
     

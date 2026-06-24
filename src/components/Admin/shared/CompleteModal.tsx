@@ -35,7 +35,7 @@ const CompleteModal: React.FC<CompleteModalProps> = ({ booking, onConfirm, onCan
             </div>
             
             <div className="py-8 border-y border-white/[0.03]">
-              <span className="text-[8px] font-bold text-zinc-700 uppercase tracking-widest block mb-2 text-center">Cliente Selecionado</span>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest block mb-2 text-center">Cliente Selecionado</span>
               <p className="text-2xl font-black text-white uppercase tracking-tighter text-center">
                 {booking.clients?.name}
               </p>
