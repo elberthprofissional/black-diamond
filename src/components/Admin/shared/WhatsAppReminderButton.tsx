@@ -27,42 +27,18 @@ const WhatsAppReminderButton: React.FC<WhatsAppReminderButtonProps> = ({
   const firstName = clientName.split(' ')[0];
   const time = booking.booking_time?.slice(0, 5) || '00:00';
 
-  // Templates
-  const templates = [
-    {
-      id: 'confirm',
-      title: 'Lembrete de Confirmação',
-      text: `Fala, ${firstName}! Beleza? Passando para lembrar do seu horário às ${time} hoje no Black Diamond. Confirmado? 💈`
-    },
-    {
-      id: 'delay',
-      title: 'Alerta de Atraso',
-      text: `Fala, ${firstName}! Beleza? Notei que você está um pouco atrasado para o seu horário das ${time}. Está tudo bem? 💈`
-    },
-    {
-      id: 'thanks',
-      title: 'Agradecimento pós-corte',
-      text: `Fala, ${firstName}! Obrigado pela preferência hoje no Black Diamond. Espero que tenha gostado do corte! Até a próxima! 💈`
-    }
-  ];
-
-  const [selectedTemplateId, setSelectedTemplateId] = useState(templates[0].id);
-  const [messageText, setMessageText] = useState(templates[0].text);
-
-  const handleTemplateChange = (templateId: string) => {
-    setSelectedTemplateId(templateId);
-    const tmpl = templates.find(t => t.id === templateId);
-    if (tmpl) {
-      setMessageText(tmpl.text);
-    }
+  const generateDefaultMessage = () => {
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
+    return `${greeting}, ${firstName}! Passando para lembrar do seu horário às ${time} hoje no Black Diamond. Confirmado? 💈`;
   };
+
+  const [messageText, setMessageText] = useState(generateDefaultMessage);
 
   const handleOpenModal = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsOpen(true);
-    // Reinicia o texto para o template atual quando abre
-    const tmpl = templates.find(t => t.id === selectedTemplateId);
-    if (tmpl) setMessageText(tmpl.text);
+    setMessageText(generateDefaultMessage());
   };
 
   const handleCopy = async (e: React.MouseEvent) => {
@@ -170,70 +146,34 @@ const WhatsAppReminderButton: React.FC<WhatsAppReminderButtonProps> = ({
                     </div>
                   </div>
 
-                  {/* Templates Accordion */}
+                  {/* Message Editor Area */}
                   <div className="space-y-3">
-                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider pl-1">Escolha um Modelo</span>
-                    
-                    {templates.map((t) => {
-                      const isExpanded = selectedTemplateId === t.id;
-                      return (
-                        <div 
-                          key={t.id}
-                          onClick={() => handleTemplateChange(t.id)}
-                          className={`p-4 rounded-xl border transition-all cursor-pointer text-left ${
-                            isExpanded 
-                              ? 'bg-white/[0.04] border-white/20 shadow-lg' 
-                              : 'bg-white/[0.01] border-white/[0.04] hover:border-white/10 hover:bg-white/[0.02]'
-                          }`}
+                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider pl-1">Mensagem do Lembrete</span>
+                    <div className="bg-white/[0.01] border border-white/[0.04] p-4 sm:p-5 rounded-2xl space-y-4">
+                      <textarea
+                        rows={5}
+                        value={messageText}
+                        onChange={(e) => setMessageText(e.target.value)}
+                        className="w-full bg-black/40 border border-white/[0.06] rounded-xl p-3.5 text-xs text-zinc-200 outline-none focus:border-[#C5A059]/30 transition-all resize-none leading-relaxed focus:bg-white/[0.01]"
+                      />
+
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={handleCopy}
+                          className="flex-1 py-3 border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] text-zinc-300 font-bold text-[9px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
                         >
-                          <div className="flex items-center justify-between">
-                            <span className={`text-[10px] font-bold uppercase tracking-wider ${isExpanded ? 'text-[#C5A059]' : 'text-zinc-500'}`}>
-                              {t.title}
-                            </span>
-                            <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-colors ${
-                              isExpanded ? 'border-[#C5A059] bg-[#C5A059]' : 'border-zinc-700 bg-transparent'
-                            }`}>
-                              {isExpanded && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
-                            </div>
-                          </div>
-
-                          <p className={`text-xs text-zinc-400 mt-2.5 leading-relaxed ${isExpanded ? '' : 'line-clamp-1'}`}>
-                            {t.text}
-                          </p>
-
-                          {isExpanded && (
-                            <div className="mt-4 pt-4 border-t border-white/[0.04] space-y-4" onClick={(e) => e.stopPropagation()}>
-                              <div className="space-y-1.5">
-                                <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Editar Mensagem</span>
-                                <textarea
-                                  rows={4}
-                                  value={messageText}
-                                  onChange={(e) => setMessageText(e.target.value)}
-                                  className="w-full bg-black/40 border border-white/[0.06] rounded-xl p-3.5 text-xs text-zinc-200 outline-none focus:border-[#C5A059]/30 transition-all resize-none leading-relaxed"
-                                />
-                              </div>
-
-                              <div className="flex gap-2">
-                                <button
-                                  type="button"
-                                  onClick={handleCopy}
-                                  className="flex-1 py-3 border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] text-zinc-300 font-bold text-[9px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
-                                >
-                                  {copied ? 'Copiado!' : 'Copiar Texto'}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={handleSend}
-                                  className="flex-1 py-3 bg-[#C5A059] text-black font-bold text-[9px] uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
-                                >
-                                  Enviar no WhatsApp
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                          {copied ? 'Copiado!' : 'Copiar Texto'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSend}
+                          className="flex-1 py-3 bg-[#C5A059] text-black font-bold text-[9px] uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                        >
+                          Enviar no WhatsApp
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
