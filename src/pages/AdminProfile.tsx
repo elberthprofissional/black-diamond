@@ -234,9 +234,23 @@ const AdminProfile: React.FC = () => {
       await unsubscribe()
       showSuccess('Notificações desativadas')
     } else {
+      if (!import.meta.env.VITE_VAPID_PUBLIC_KEY) {
+        showError('Chave VAPID não configurada no servidor')
+        return
+      }
+      if (!('Notification' in window)) {
+        showError('Seu navegador não suporta notificações')
+        return
+      }
+      if (Notification.permission === 'denied') {
+        showError('Notificações bloqueadas. Permita nas configurações do navegador')
+        return
+      }
       const success = await subscribe()
       if (success) {
-        showSuccess('Notificações ativadas! Você receberá alertas de novos agendamentos.')
+        showSuccess('Notificações ativadas!')
+      } else {
+        showError('Erro ao ativar notificações')
       }
     }
   };
