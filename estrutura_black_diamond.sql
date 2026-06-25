@@ -15,6 +15,17 @@ CREATE EXTENSION IF NOT EXISTS pg_cron;
 -- 2. TABELAS
 -- =========================================================================
 
+-- Tabela de segredos (API keys)
+CREATE TABLE IF NOT EXISTS secrets (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Insere a chave Resend (substitua pelo valor real)
+INSERT INTO secrets (key, value) VALUES ('resend_api_key', 'SUA_CHAVE_AQUI')
+ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
+
 -- Tabela de serviços
 CREATE TABLE IF NOT EXISTS services (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -357,7 +368,7 @@ DECLARE
     v_payload text;
     v_resend_key text;
 BEGIN
-    v_resend_key := 're_s3wfFjVd_EtZYENfRautGcadaNJxGCEUv';
+    v_resend_key := (SELECT value FROM secrets WHERE key = 'resend_api_key');
 
     SELECT email, name INTO v_client_email, v_client_name
     FROM clients
@@ -436,7 +447,7 @@ DECLARE
     v_current_local_time time;
     v_current_local_date date;
 BEGIN
-    v_resend_key := 're_s3wfFjVd_EtZYENfRautGcadaNJxGCEUv';
+    v_resend_key := (SELECT value FROM secrets WHERE key = 'resend_api_key');
 
     v_current_local_date := (now() at time zone 'America/Sao_Paulo')::date;
     v_current_local_time := (now() at time zone 'America/Sao_Paulo')::time;
