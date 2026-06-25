@@ -46,7 +46,7 @@ const AdminProfile: React.FC = () => {
   );
   const navigate = useNavigate();
   const handleLogout = useAdminLogout();
-  const { toast, showSuccess } = useToast();
+  const { toast, showSuccess, showError } = useToast();
   const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
 
   useEffect(() => {
