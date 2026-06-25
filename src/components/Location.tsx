@@ -43,7 +43,7 @@ const Location: React.FC = () => {
                       Av. Brasílio da Gama, 139<br />
                       Bairro Tupi, BH 
                       <a 
-                        href="https://www.google.com/maps/search/Av.+Bras%C3%ADlio+da+Gama,+139+-+Tupi,+Belo+Horizonte+-+MG" 
+                        href="https://maps.app.goo.gl/Gz453umZQtWGYcvV8" 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="inline-block ml-2 text-[#D4AF37] text-[9px] font-bold uppercase tracking-widest hover:underline lg:hidden"
@@ -94,7 +94,7 @@ const Location: React.FC = () => {
 
               <div className="hidden lg:block">
                 <button 
-                  onClick={() => window.open('https://www.google.com/maps/search/Av.+Bras%C3%ADlio+da+Gama,+139+-+Tupi,+Belo+Horizonte+-+MG', '_blank')}
+                  onClick={() => window.open('https://maps.app.goo.gl/Gz453umZQtWGYcvV8', '_blank')}
                   className="w-full sm:w-auto px-8 py-4 border border-[#D4AF37]/30 text-[9px] font-black uppercase tracking-[0.3em] text-white flex items-center justify-center gap-3 hover:bg-[#D4AF37] hover:text-black transition-all duration-500"
                 >
                   Abrir no Google Maps
