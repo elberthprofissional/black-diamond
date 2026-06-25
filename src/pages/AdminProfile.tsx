@@ -11,6 +11,9 @@ import {
   Users, 
   LogOut, 
   TrendingUp,
+  Sparkles,
+  Scissors,
+  DollarSign,
   UserPlus,
   Camera,
   Bell
