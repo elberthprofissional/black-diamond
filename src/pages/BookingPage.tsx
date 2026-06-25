@@ -345,16 +345,16 @@ const BookingPage: React.FC = () => {
                 )}
 
                 {step === 3 && (
-                  <motion.div key="d3" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1 flex flex-col justify-center">
-                    <div className="max-w-lg mx-auto w-full">
-                      <div className="space-y-8">
-                        <div className="space-y-3">
+                  <motion.div key="d3" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1 flex items-center justify-center">
+                    <div className="w-full max-w-xl">
+                      <div className="space-y-10">
+                        <div className="space-y-4">
                           <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">Nome</label>
                           <input 
                             type="text" 
                             placeholder="Digite seu nome..." 
                             aria-label="Seu nome"
-                            className="w-full bg-white/[0.04] border border-white/[0.08] focus:border-[#C5A059]/50 rounded-xl px-5 py-5 text-[18px] text-white outline-none transition-all placeholder:text-zinc-700" 
+                            className="w-full bg-white/[0.04] border border-white/[0.08] focus:border-[#C5A059]/50 rounded-2xl px-6 py-6 text-[20px] text-white outline-none transition-all placeholder:text-zinc-700" 
                             value={userInfo.name} 
                             onChange={e => setUserInfo({...userInfo, name: e.target.value})} 
                           />
@@ -362,13 +362,13 @@ const BookingPage: React.FC = () => {
                             <p className="text-[11px] text-red-400/80">Mínimo 3 caracteres</p>
                           )}
                         </div>
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">WhatsApp</label>
                           <input 
                             type="tel" 
                             placeholder="(31) 90000-0000" 
                             aria-label="Seu número de WhatsApp com DDD"
-                            className="w-full bg-white/[0.04] border border-white/[0.08] focus:border-[#C5A059]/50 rounded-xl px-5 py-5 text-[18px] text-white outline-none transition-all placeholder:text-zinc-700" 
+                            className="w-full bg-white/[0.04] border border-white/[0.08] focus:border-[#C5A059]/50 rounded-2xl px-6 py-6 text-[20px] text-white outline-none transition-all placeholder:text-zinc-700" 
                             value={userInfo.phone} 
                             onChange={e => setUserInfo({...userInfo, phone: formatPhone(e.target.value)})} 
                           />
