@@ -64,14 +64,11 @@ export function usePushNotifications() {
       const endpoint = subscriptionJson.endpoint || ''
       const keys = subscriptionJson.keys as { p256dh?: string; auth?: string } | undefined
 
-      await fetch('/api/save-subscription', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          endpoint,
-          p256dh: keys?.p256dh || '',
-          auth: keys?.auth || '',
-        }),
+      const { supabase } = await import('../lib/supabase')
+      await supabase.rpc('save_push_subscription', {
+        p_endpoint: endpoint,
+        p_p256dh: keys?.p256dh || '',
+        p_auth: keys?.auth || '',
       })
 
       return true

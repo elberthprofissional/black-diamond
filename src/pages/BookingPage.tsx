@@ -119,7 +119,7 @@ const BookingPage: React.FC = () => {
           total_price: totalPrice,
           total_duration: totalDuration
         },
-        { name: userInfo.name, phone: userInfo.phone }
+        { name: userInfo.name, phone: userInfo.phone, email: userInfo.email || undefined }
       );
       
       const serviceNames = selectedServices.map(s => s.name).join(', ');
@@ -130,7 +130,7 @@ const BookingPage: React.FC = () => {
                       `⏰ *Horário:* ${selectedTime}\n` +
                       `💰 *Valor:* R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
       
-      window.open(`https://wa.me/5531980159559?text=${encodeURIComponent(message)}`, '_blank');
+      window.open(`https://wa.me/${import.meta.env.VITE_BARBER_WHATSAPP}?text=${encodeURIComponent(message)}`, '_blank');
       setStep(5); // Mover para tela de sucesso em vez de sair
     } catch (error) {
       console.error(error);

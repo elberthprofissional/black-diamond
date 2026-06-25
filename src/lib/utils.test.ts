@@ -129,9 +129,9 @@ describe('isTimeOccupied', () => {
 })
 
 describe('TIME_SLOTS', () => {
-  it('contem slots de 08:00 as 19:00', () => {
+  it('contem slots de 08:00 as 19:00 (1 em 1 hora)', () => {
     expect(TIME_SLOTS).toContain('08:00')
     expect(TIME_SLOTS).toContain('19:00')
-    expect(TIME_SLOTS).toHaveLength(23)
+    expect(TIME_SLOTS).toHaveLength(12)
   })
 })

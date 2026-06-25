@@ -8,10 +8,9 @@ import { useToast } from '../hooks/useToast';
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const supportPhone = import.meta.env.VITE_SUPPORT_WHATSAPP || '5531980159559';
   const [showPassword, setShowPassword] = useState(false);
   const [isForgotOpen, setIsForgotOpen] = useState(false);
-  const [recoveryEmail, setRecoveryEmail] = useState(import.meta.env.VITE_ADMIN_EMAIL || 'tato@gmail.com');
+  const [recoveryEmail, setRecoveryEmail] = useState(import.meta.env.VITE_ADMIN_EMAIL || 'elberthmayan2007@gmail.com');
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [isResetSent, setIsResetSent] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -100,11 +99,21 @@ const AdminLogin: React.FC = () => {
     }
     setIsSendingReset(true);
     
-    // Simulação do envio (Pre-configurado / Front-end Mock)
-    setTimeout(() => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(recoveryEmail.trim(), {
+        redirectTo: `${window.location.origin}/admin/reset-password`,
+      });
+
+      if (error) {
+        showError('Erro ao enviar e-mail. Tente novamente.');
+      } else {
+        setIsResetSent(true);
+      }
+    } catch {
+      showError('Erro ao enviar e-mail. Tente novamente.');
+    } finally {
       setIsSendingReset(false);
-      setIsResetSent(true);
-    }, 1500);
+    }
   };
 
   const handleCloseForgot = () => {
@@ -208,7 +217,7 @@ const AdminLogin: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-6 text-sm font-medium outline-none focus:border-[#C5A059]/30 transition-all lg:bg-transparent lg:border-0 lg:border-b lg:border-white/10 lg:rounded-none lg:px-0 lg:h-12 lg:font-light lg:text-lg lg:focus:border-[#C5A059] placeholder:text-zinc-700 lg:placeholder:text-zinc-800"
-                    placeholder="email@blackdiamond.com"
+                    placeholder="seu@email.com"
                     required
                   />
                   <div className="absolute bottom-0 left-6 right-6 lg:hidden h-[1px] bg-gradient-to-r from-transparent via-[#C5A059]/0 to-transparent group-focus-within:via-[#C5A059]/40 transition-all duration-500" />
@@ -265,7 +274,7 @@ const AdminLogin: React.FC = () => {
       {/* FORGOT PASSWORD MODAL */}
       <AnimatePresence>
         {isForgotOpen && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={handleCloseForgot}
@@ -275,90 +284,58 @@ const AdminLogin: React.FC = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-[#111111] border border-white/5 w-full max-w-sm relative z-10 overflow-hidden rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] p-8 text-center"
+              className="bg-[#111111] border border-white/10 w-full max-w-[400px] relative z-10 overflow-hidden rounded-2xl shadow-2xl"
             >
               {!isResetSent ? (
-                <div className="space-y-6">
-                  <div className="flex justify-center">
-                    <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center text-[#C5A059]">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
-                    </div>
+                <>
+                  <div className="p-6 sm:p-8 pb-5 sm:pb-6 text-center border-b border-white/5">
+                    <h2 className="text-base sm:text-lg font-semibold text-white mb-1">Encontre sua conta</h2>
+                    <p className="text-xs sm:text-sm text-zinc-400">Insira seu email para redefinir sua senha.</p>
                   </div>
-
-                  <div className="space-y-2">
-                    <h3 className="text-base font-bold text-white uppercase tracking-[0.15em]">Recuperar Acesso</h3>
-                    <p className="text-[9px] text-zinc-500 uppercase tracking-wider leading-relaxed max-w-[260px] mx-auto">
-                      Confirme o e-mail do administrador para enviar o link de redefinição.
-                    </p>
-                  </div>
-
-                  <form onSubmit={handleResetPassword} className="space-y-5 text-center">
-                    <div className="space-y-2">
-                      <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block text-left pl-1">E-mail do Administrador</label>
-                      <div className="w-full bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3.5 text-xs text-zinc-400 font-semibold select-none text-left break-all">
-                        {recoveryEmail}
-                      </div>
-                    </div>
+                  <div className="p-6 sm:p-8 space-y-3 sm:space-y-4">
+                    <input 
+                      type="email" 
+                      value={recoveryEmail}
+                      onChange={(e) => setRecoveryEmail(e.target.value)}
+                      className="w-full h-11 sm:h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white outline-none focus:border-[#C5A059]/50 transition-colors placeholder:text-zinc-500"
+                      placeholder="Insira seu email"
+                    />
                     <button
-                      type="submit"
-                      disabled={isSendingReset}
-                      className="w-full h-11 bg-white hover:bg-[#C5A059] text-black font-bold text-[9px] uppercase tracking-[0.25em] rounded-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(255,255,255,0.03)]"
+                      onClick={handleResetPassword}
+                      disabled={isSendingReset || !recoveryEmail.trim()}
+                      className="w-full h-11 bg-[#C5A059] hover:bg-[#b8923f] text-black font-semibold text-sm rounded-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSendingReset ? 'Enviando...' : 'Enviar link de recuperação'}
                     </button>
-                  </form>
-
-                  <div className="border-t border-white/[0.04] pt-4 mt-2 space-y-3">
-                    <p className="text-[8px] text-zinc-600 uppercase tracking-widest">
-                      Não deu certo? Chame o suporte técnico:
-                    </p>
-                    <a 
-                      href={`https://wa.me/${supportPhone}?text=${encodeURIComponent('Olá! Tentei o reset de senha automático no painel do Black Diamond mas deu erro. Pode me ajudar com o reset? 💈')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={handleCloseForgot}
-                      className="w-full h-10 bg-transparent border border-white/5 hover:border-[#C5A059]/20 text-[#C5A059] hover:text-white font-bold text-[9px] uppercase tracking-[0.2em] rounded-xl active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center"
-                    >
-                      Chamar no WhatsApp
-                    </a>
                     <button 
                       type="button"
                       onClick={handleCloseForgot}
-                      className="w-full h-8 text-zinc-600 font-bold text-[9px] uppercase tracking-[0.3em] hover:text-white transition-all cursor-pointer"
+                      className="w-full h-10 text-zinc-400 font-semibold text-sm hover:text-white transition-colors cursor-pointer"
                     >
-                      Voltar
+                      Voltar ao login
                     </button>
                   </div>
-                </div>
+                </>
               ) : (
-                <div className="space-y-6 py-4">
-                  <div className="flex justify-center">
-                    <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center text-[#C5A059] animate-pulse">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                <>
+                  <div className="p-6 sm:p-8 pb-5 sm:pb-6 text-center border-b border-white/5">
+                    <div className="w-14 sm:w-16 h-14 sm:h-16 mx-auto mb-4 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h3 className="text-base font-bold text-white uppercase tracking-[0.15em]">E-mail Enviado</h3>
-                    <p className="text-[10px] text-zinc-400 uppercase tracking-wider leading-relaxed max-w-[260px] mx-auto">
-                      Enviamos um link de redefinição de acesso para:
-                    </p>
-                    <p className="text-xs text-[#C5A059] font-bold break-all">
-                      {recoveryEmail}
+                    <h2 className="text-base sm:text-lg font-semibold text-white mb-1">Email enviado!</h2>
+                    <p className="text-xs sm:text-sm text-zinc-400">
+                      Enviamos um link de recuperação para <span className="font-medium text-white">{recoveryEmail}</span>. Verifique sua caixa de entrada.
                     </p>
                   </div>
-
-                  <p className="text-[9px] text-zinc-500 leading-relaxed max-w-[240px] mx-auto">
-                    Por favor, verifique a sua caixa de entrada (e pasta de spam) e siga as instruções contidas no e-mail para atualizar a sua senha.
-                  </p>
-
-                  <button
-                    onClick={handleCloseForgot}
-                    className="w-full h-11 bg-white hover:bg-zinc-200 text-black font-bold text-[9px] uppercase tracking-[0.25em] rounded-xl active:scale-[0.98] transition-all flex items-center justify-center cursor-pointer"
-                  >
-                    Entendido
-                  </button>
-                </div>
+                  <div className="p-6 sm:p-8">
+                    <button
+                      onClick={handleCloseForgot}
+                      className="w-full h-11 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-sm rounded-xl transition-all cursor-pointer"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                </>
               )}
             </motion.div>
           </div>

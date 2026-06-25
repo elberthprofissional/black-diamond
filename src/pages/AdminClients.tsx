@@ -164,31 +164,33 @@ const AdminClients: React.FC = () => {
 
   const filteredClients = clients.filter(c => {
     const matchSearch = (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.phone || '').includes(searchTerm);
-    
+    const matchBookings = c.bookingsCount >= 2;
+
     let matchFilter = true;
     if (reminderFilter === 'pending') {
       matchFilter = !c.upcomingBooking && !isReminderRecent(c.id);
     } else if (reminderFilter === 'sent') {
       matchFilter = !!c.upcomingBooking || isReminderRecent(c.id);
     }
-    
-    return matchSearch && matchFilter;
+
+    return matchSearch && matchFilter && matchBookings;
   });
 
   const counts = useMemo(() => {
+    const eligible = clients.filter(c => c.bookingsCount >= 2);
     let pending = 0;
     let sent = 0;
-    
-    clients.forEach(c => {
+
+    eligible.forEach(c => {
       if (c.upcomingBooking || isReminderRecent(c.id)) {
         sent++;
       } else {
         pending++;
       }
     });
-    
+
     return {
-      all: clients.length,
+      all: eligible.length,
       pending,
       sent
     };

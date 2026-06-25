@@ -29,11 +29,12 @@ export const getServices = async (): Promise<Service[]> => {
 // Bookings
 export const createBooking = async (
   bookingData: Omit<Booking, 'id' | 'created_at' | 'status' | 'client_id'>,
-  clientData: { name: string; phone: string }
+  clientData: { name: string; phone: string; email?: string }
 ) => {
   const { data, error } = await supabase.rpc('criar_agendamento', {
     p_cliente_nome: clientData.name,
     p_cliente_telefone: clientData.phone,
+    p_cliente_email: clientData.email || null,
     p_servicos: bookingData.service_ids,
     p_data: bookingData.booking_date,
     p_hora: bookingData.booking_time,
