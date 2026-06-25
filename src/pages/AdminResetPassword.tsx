@@ -131,7 +131,7 @@ const AdminResetPassword: React.FC = () => {
 
       <div className="flex-1 h-full flex flex-col items-center justify-center p-6 md:p-12 lg:p-24 relative bg-[#0A0A0A] sm:bg-[#121212]">
         
-        <div className="absolute inset-0 lg:hidden overflow-hidden hidden md:block">
+        <div className="absolute inset-0 hidden md:block lg:hidden overflow-hidden">
           <img 
             src="/assets/resetar_senha.webp"
             alt="Background" 

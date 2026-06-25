@@ -9,12 +9,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import BottomTabs from '../components/Admin/BottomTabs';
 import BookingSearchModal from '../components/Admin/shared/BookingSearchModal';
 import BookingSummaryPanel from '../components/Admin/shared/BookingSummaryPanel';
+import AdminLayout from '../components/Admin/AdminLayout';
 import { 
   ArrowLeft, 
   ChevronRight,
   Check,
   Loader2,
-  Search
+  Search,
+  User as UserIcon,
+  Scissors,
+  Calendar as CalendarIcon,
+  Phone,
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 
 const AdminBooking: React.FC = () => {
@@ -57,6 +64,13 @@ const AdminBooking: React.FC = () => {
   const [isSearchingClient, setIsSearchingClient] = useState(false);
   const [isManualEntry, setIsManualEntry] = useState(true);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -224,6 +238,513 @@ const AdminBooking: React.FC = () => {
     if (step === 3) return !!selectedDate && !!selectedTime;
     return false;
   };
+  
+  if (isDesktop) {
+    return (
+      <AdminLayout mainClassName="flex-1 w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 pt-24 lg:pt-8 pb-10">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between gap-4 pb-4 border-b border-white/5">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => navigate('/admin')}
+                className="w-8 h-8 flex items-center justify-center border border-white/[0.06] text-zinc-400 hover:text-white hover:border-[#C5A059]/40 transition-all rounded-lg"
+                aria-label="Voltar para a Agenda"
+              >
+                <ArrowLeft size={14} />
+              </button>
+              <div>
+                <h1 className="text-xl font-bold tracking-tight text-white uppercase italic">
+                  {rescheduleBooking ? 'Reagendar Reserva' : 'Novo Agendamento'}
+                </h1>
+                <p className="text-[9px] text-zinc-550 font-bold uppercase tracking-widest mt-0.5">
+                  workspace de agendamento administrativo
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-12 gap-6 items-stretch">
+            {/* Reschedule Banner */}
+            {rescheduleBooking && (
+              <div className="col-span-12 p-4 bg-[#C5A059]/[0.08] border border-[#C5A059]/30 rounded-2xl flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center text-[#C5A059]">
+                    <RefreshCw size={18} />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-black text-[#C5A059] tracking-[0.2em] uppercase block">Modo Reagendamento</span>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wide">
+                      Reagendando o cliente <span className="text-[#C5A059]">{rescheduleBooking.clients?.name}</span>
+                    </h3>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block">Original</span>
+                  <span className="text-xs font-bold text-zinc-300">
+                    {new Date(rescheduleBooking.booking_date.replace(/-/g, '/')).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} às {rescheduleBooking.booking_time.slice(0, 5)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* COLUMN 1: CLIENT SELECTION */}
+            <div className="col-span-12 lg:col-span-6 xl:col-span-3 bg-[#0C0C0C]/80 border border-white/[0.05] p-5 rounded-2xl flex flex-col justify-between min-h-[580px] backdrop-blur-xl relative">
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 pb-4 border-b border-white/[0.04]">
+                  <UserIcon size={18} className="text-[#C5A059] shrink-0" />
+                  <div>
+                    <h2 className="text-xs font-black tracking-[0.2em] text-white uppercase leading-none">CLIENTE</h2>
+                    <span className="text-[9px] font-bold tracking-[0.1em] text-zinc-500 uppercase">Identificação</span>
+                  </div>
+                </div>
+
+                {selectedClient ? (
+                  /* Selected Client Card */
+                  <div className="p-4 bg-[#111111]/60 border border-[#C5A059]/20 rounded-xl space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-lg flex items-center justify-center text-[#C5A059] text-base font-bold shrink-0">
+                        {selectedClient.name.charAt(0)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[8px] font-black text-[#C5A059] tracking-widest uppercase block mb-0.5">Cadastrado</span>
+                        <h3 className="text-sm font-bold text-white uppercase tracking-wide truncate">{selectedClient.name}</h3>
+                        <p className="text-xs text-zinc-400 mt-1 flex items-center gap-1">
+                          <Phone size={10} className="text-zinc-500" />
+                          {selectedClient.phone}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedClient(null);
+                        setSearchQuery('');
+                        setIsManualEntry(false);
+                      }}
+                      className="w-full py-2.5 bg-white/[0.02] border border-white/[0.06] hover:bg-[#C5A059]/5 hover:border-[#C5A059]/30 text-zinc-400 hover:text-[#C5A059] text-[9px] font-black uppercase tracking-[0.2em] rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <RefreshCw size={10} />
+                      Alterar Cliente
+                    </button>
+                  </div>
+                ) : (
+                  /* Form/Search Mode */
+                  <div className="space-y-4">
+                    {/* Mode Selector Tab */}
+                    <div className="flex bg-[#111111] p-1 rounded-xl border border-white/[0.04]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsManualEntry(true);
+                          setSearchQuery('');
+                          setMultipleMatches([]);
+                        }}
+                        className={`flex-1 py-2 text-[9px] font-black uppercase tracking-[0.15em] rounded-lg transition-all cursor-pointer ${
+                          isManualEntry 
+                            ? 'bg-[#C5A059] text-black shadow-md' 
+                            : 'text-zinc-500 hover:text-zinc-300'
+                        }`}
+                      >
+                        Novo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsManualEntry(false);
+                          setSearchQuery('');
+                          setMultipleMatches([]);
+                        }}
+                        className={`flex-1 py-2 text-[9px] font-black uppercase tracking-[0.15em] rounded-lg transition-all cursor-pointer ${
+                          !isManualEntry 
+                            ? 'bg-[#C5A059] text-black shadow-md' 
+                            : 'text-zinc-500 hover:text-zinc-300'
+                        }`}
+                      >
+                        Buscar
+                      </button>
+                    </div>
+
+                    {!isManualEntry ? (
+                      /* Search Form */
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-[8px] font-black text-zinc-550 uppercase tracking-[0.2em]">WhatsApp ou Nome</label>
+                          <div className="relative">
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-650" />
+                            <input
+                              type="text"
+                              placeholder="Buscar cliente..."
+                              className="w-full bg-[#111111] border border-white/[0.06] focus:border-[#C5A059] rounded-xl py-3 pl-9 pr-3 text-xs text-white outline-none transition-all placeholder:text-zinc-700"
+                              value={searchQuery}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (/^\d/.test(val) || val === '') {
+                                  setSearchQuery(formatPhone(val));
+                                } else {
+                                  setSearchQuery(val);
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleSearch();
+                                }
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleSearch}
+                          disabled={!searchQuery.trim() || isSearchingClient}
+                          className="w-full py-3 bg-[#111111] border border-[#C5A059]/20 hover:border-[#C5A059]/40 hover:bg-[#C5A059]/5 text-[#C5A059] text-[9px] font-black uppercase tracking-[0.2em] rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-30 cursor-pointer"
+                        >
+                          {isSearchingClient ? (
+                            <Loader2 size={12} className="animate-spin text-[#C5A059]" />
+                          ) : (
+                            'BUSCAR NO BANCO'
+                          )}
+                        </button>
+
+                        {/* Multiple Matches List */}
+                        {multipleMatches.length > 0 && (
+                          <div className="space-y-2 pt-2 border-t border-white/[0.04]">
+                            <span className="text-[8px] font-black text-zinc-550 uppercase tracking-[0.2em]">Resultados:</span>
+                            <div className="space-y-1.5 max-h-[150px] overflow-y-auto pr-1 scrollbar-hide">
+                              {multipleMatches.map(c => (
+                                <button
+                                  key={c.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedClient(c);
+                                    setMultipleMatches([]);
+                                  }}
+                                  className="w-full text-left p-2.5 bg-[#111111] border border-white/[0.04] rounded-lg hover:border-[#C5A059]/30 transition-all flex items-center justify-between cursor-pointer"
+                                >
+                                  <div className="min-w-0">
+                                    <p className="text-[11px] font-bold text-white uppercase truncate">{c.name}</p>
+                                    <p className="text-[9px] text-zinc-550 mt-0.5">{c.phone}</p>
+                                  </div>
+                                  <ChevronRight size={12} className="text-[#C5A059] shrink-0" />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => setIsSearchOpen(true)}
+                          className="w-full text-center text-[8px] font-black text-[#C5A059]/70 hover:text-[#C5A059] uppercase tracking-widest pt-2 flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <Search size={10} />
+                          Ver lista completa
+                        </button>
+                      </div>
+                    ) : (
+                      /* New Client Form */
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[8px] font-black text-zinc-550 uppercase tracking-[0.2em]">Nome Completo</label>
+                          <input
+                            type="text"
+                            placeholder="NOME DO CLIENTE"
+                            className="w-full bg-[#111111] border border-white/[0.06] focus:border-[#C5A059] rounded-xl px-4 py-3 text-xs text-white outline-none transition-all placeholder:text-zinc-700"
+                            value={newClient.name}
+                            onChange={(e) => setNewClient({ ...newClient, name: e.target.value.toUpperCase() })}
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-[8px] font-black text-zinc-550 uppercase tracking-[0.2em]">WhatsApp (com DDD)</label>
+                          <input
+                            type="tel"
+                            placeholder="(00) 00000-0000"
+                            className="w-full bg-[#111111] border border-white/[0.06] focus:border-[#C5A059] rounded-xl px-4 py-3 text-xs text-white outline-none transition-all placeholder:text-zinc-700"
+                            value={newClient.phone}
+                            onChange={(e) => setNewClient({ ...newClient, phone: formatPhone(e.target.value) })}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {((!selectedClient && isManualEntry) || selectedClient) && (
+                <div className="pt-4 border-t border-white/[0.04]">
+                  <div className="flex items-center gap-2 text-zinc-500">
+                    <AlertCircle size={12} className="shrink-0 text-zinc-550" />
+                    <p className="text-[9px] font-bold leading-normal">
+                      {selectedClient 
+                        ? 'Cliente selecionado.' 
+                        : 'Preencha o nome e o telefone para cadastrar o cliente na hora da reserva.'}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* COLUMN 2: SERVICES SELECTION */}
+            <div className="col-span-12 lg:col-span-6 xl:col-span-3 bg-[#0C0C0C]/80 border border-white/[0.05] p-5 rounded-2xl flex flex-col justify-between min-h-[580px] backdrop-blur-xl relative">
+              <div className="space-y-6 flex-1 flex flex-col min-h-0">
+                <div className="flex items-center gap-2 pb-4 border-b border-white/[0.04] shrink-0">
+                  <Scissors size={18} className="text-[#C5A059] shrink-0" />
+                  <div>
+                    <h2 className="text-xs font-black tracking-[0.2em] text-white uppercase leading-none">SERVIÇOS</h2>
+                    <span className="text-[9px] font-bold tracking-[0.1em] text-zinc-500 uppercase">Escolha múltiplos</span>
+                  </div>
+                  <span className="ml-auto bg-[#C5A059]/10 text-[#C5A059] px-2 py-0.5 rounded text-[9px] font-black tracking-wider">
+                    {selectedServices.length} SEL
+                  </span>
+                </div>
+
+                <div className="space-y-2 overflow-y-auto pr-1 scrollbar-hide flex-1 min-h-0">
+                  {services.map(service => {
+                    const isSelected = selectedServices.some(s => s.id === service.id);
+                    return (
+                      <button
+                        key={service.id}
+                        type="button"
+                        onClick={() => toggleService(service)}
+                        className={`w-full text-left p-3.5 rounded-xl border flex flex-col justify-between gap-2.5 transition-all relative cursor-pointer ${
+                          isSelected
+                            ? 'border-[#C5A059] bg-[#C5A059]/[0.04] shadow-[0_0_15px_rgba(197,160,89,0.04)]'
+                            : 'border-white/[0.04] bg-[#111111] hover:border-white/[0.1] hover:bg-white/[0.01]'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start w-full gap-2">
+                          <span className={`text-[11px] font-black uppercase tracking-wider leading-none truncate ${
+                            isSelected ? 'text-[#C5A059]' : 'text-zinc-300'
+                          }`}>
+                            {service.name}
+                          </span>
+                          <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-all ${
+                            isSelected ? 'border-[#C5A059] bg-[#C5A059]' : 'border-zinc-700'
+                          }`}>
+                            {isSelected && <Check size={10} className="text-black" strokeWidth={3.5} />}
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-end w-full pt-1.5 border-t border-white/[0.02]">
+                          <span className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest">
+                            Valor
+                          </span>
+                          <span className={`text-xs font-black ${
+                            isSelected ? 'text-[#C5A059]' : 'text-zinc-400'
+                          }`}>
+                            R$ {Number(service.price).toFixed(0)}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* COLUMN 3: DATE & TIME SELECTION */}
+            <div className="col-span-12 lg:col-span-6 xl:col-span-3 bg-[#0C0C0C]/80 border border-white/[0.05] p-5 rounded-2xl flex flex-col justify-between min-h-[580px] backdrop-blur-xl relative">
+              <div className="space-y-6 flex-1 flex flex-col min-h-0">
+                <div className="flex items-center gap-2 pb-4 border-b border-white/[0.04] shrink-0">
+                  <CalendarIcon size={18} className="text-[#C5A059] shrink-0" />
+                  <div>
+                    <h2 className="text-xs font-black tracking-[0.2em] text-white uppercase leading-none">AGENDA</h2>
+                    <span className="text-[9px] font-bold tracking-[0.1em] text-zinc-500 uppercase">Data e Horário</span>
+                  </div>
+                </div>
+
+                {/* Day Horizontal Ribbon Picker */}
+                <div className="shrink-0 space-y-2">
+                  <span className="text-[8px] font-black text-zinc-550 uppercase tracking-[0.2em] pl-0.5 block">Selecione o Dia</span>
+                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/[0.06] scrollbar-track-transparent snap-x -mx-1 px-1">
+                    {nextDays.map(day => {
+                      const isSelected = selectedDate === day.fullDate;
+                      const monthAbbr = new Date(day.fullDate + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+                      return (
+                        <button
+                          key={day.fullDate}
+                          type="button"
+                          onClick={() => {
+                            setSelectedDate(day.fullDate);
+                            setSelectedTime('');
+                          }}
+                          className={`min-w-[68px] py-3 rounded-xl border flex flex-col items-center gap-0.5 transition-all text-center snap-center cursor-pointer shrink-0 ${
+                            isSelected
+                              ? 'border-[#C5A059] bg-[#C5A059]/10 text-[#C5A059] font-black shadow-[0_0_15px_rgba(197,160,89,0.06)]'
+                              : 'border-white/[0.04] bg-[#111111] text-zinc-500 hover:text-white hover:border-white/[0.1]'
+                          }`}
+                        >
+                          <span className="text-[8px] font-black uppercase tracking-wider opacity-60 leading-none">{day.dayName}</span>
+                          <span className="text-base font-light leading-none my-0.5">{day.dayNumber}</span>
+                          <span className="text-[8px] font-bold uppercase tracking-wider opacity-45 leading-none">{monthAbbr}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Time Slots Selector */}
+                <div className="flex-1 min-h-0 flex flex-col space-y-2.5 pt-3 border-t border-white/[0.04]">
+                  <span className="text-[8px] font-black text-zinc-550 uppercase tracking-[0.2em] pl-0.5 block">Horários Disponíveis</span>
+                  {selectedDate ? (
+                    <div className="grid grid-cols-3 gap-1.5 overflow-y-auto pr-1 scrollbar-hide flex-1 min-h-0">
+                      {getTimeSlotsForDate(selectedDate).map(time => {
+                        const occupied = isOccupied(time);
+                        const isSelected = selectedTime === time;
+                        return (
+                          <button
+                            key={time}
+                            type="button"
+                            disabled={occupied}
+                            onClick={() => setSelectedTime(time)}
+                            className={`py-1.5 rounded-md border text-[10px] font-bold tracking-wider text-center transition-all cursor-pointer ${
+                              occupied
+                                ? 'text-zinc-800 border-transparent opacity-15 cursor-not-allowed line-through bg-transparent'
+                                : isSelected
+                                  ? 'text-[#C5A059] border-[#C5A059] bg-[#C5A059]/[0.03] font-black'
+                                  : 'text-zinc-500 border-white/[0.04] bg-transparent hover:border-white/10 hover:text-zinc-200'
+                            }`}
+                          >
+                            {time}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center text-center p-4 border border-dashed border-white/[0.04] rounded-xl">
+                      <p className="text-zinc-550 text-[10px] uppercase tracking-widest leading-relaxed">
+                        Selecione um dia da semana para listar os horários livres.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* COLUMN 4: BOOKING SUMMARY & SUBMIT */}
+            <div className="col-span-12 lg:col-span-6 xl:col-span-3 bg-[#0C0C0C]/90 border border-white/[0.08] p-5 rounded-2xl flex flex-col justify-between min-h-[580px] shadow-[0_15px_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
+              <div className="absolute -top-px left-8 right-8 h-px bg-gradient-to-r from-transparent via-[#C5A059] to-transparent" />
+              
+              <div className="space-y-6">
+                <div className="text-center pb-1">
+                  <h2 className="text-[10px] font-black tracking-[0.3em] text-[#C5A059] uppercase">RESUMO</h2>
+                </div>
+
+                <div className="space-y-4 pt-4 border-t border-white/[0.04]">
+                  {/* Client Summary */}
+                  <div className="space-y-1">
+                    <span className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em] block">Cliente</span>
+                    {selectedClient || newClient.name ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />
+                        <p className="text-sm font-bold text-white uppercase italic truncate">
+                          {selectedClient ? selectedClient.name : newClient.name}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-[10px] font-bold text-zinc-800 uppercase tracking-widest">—</p>
+                    )}
+                  </div>
+
+                  {/* Services Summary */}
+                  <div className="space-y-1.5 border-t border-white/[0.03] pt-3">
+                    <span className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em] block">Serviços</span>
+                    {selectedServices.length > 0 ? (
+                      <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1 scrollbar-hide">
+                        {selectedServices.map(s => (
+                          <div key={`desk-sum-${s.id}`} className="flex justify-between items-center text-[11px]">
+                            <span className="text-zinc-300 font-bold uppercase tracking-tight truncate max-w-[70%]">{s.name}</span>
+                            <span className="text-[#C5A059] font-black italic">R$ {Number(s.price).toFixed(0)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-[10px] font-bold text-zinc-800 uppercase tracking-widest">—</p>
+                    )}
+                  </div>
+
+                  {/* Date & Time Summary */}
+                  <div className="border-t border-white/[0.03] pt-3 grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em] block mb-1">Data</span>
+                      {selectedDate ? (
+                        <p className="text-xs font-black text-white italic">
+                          {selectedDate.split('-').reverse().join('/')}
+                        </p>
+                      ) : (
+                        <p className="text-zinc-700 font-bold text-[10px] tracking-widest">—</p>
+                      )}
+                    </div>
+                    <div>
+                      <span className="text-[8px] font-black text-zinc-550 uppercase tracking-[0.2em] block mb-1">Horário</span>
+                      {selectedTime ? (
+                        <p className="text-xs font-black text-[#C5A059] italic">
+                          {selectedTime}
+                        </p>
+                      ) : (
+                        <p className="text-zinc-700 font-bold text-[10px] tracking-widest">—</p>
+                      )}
+                    </div>
+                  </div>
+
+
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-white/[0.04] space-y-4 shrink-0">
+                <div className="flex justify-between items-end">
+                  <span className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em]">TOTAL</span>
+                  <p className="text-2xl font-black text-white italic tracking-tighter leading-none">
+                    <span className="text-[10px] font-bold text-[#C5A059] mr-0.5">R$</span>
+                    {totalPrice.toFixed(0)}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleFinish}
+                  disabled={isSubmitting || !selectedTime || !isStepValid(1) || !isStepValid(2) || !isStepValid(3)}
+                  className={`w-full py-4 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98] ${
+                    isSubmitting || !selectedTime || !isStepValid(1) || !isStepValid(2) || !isStepValid(3)
+                      ? 'bg-white/[0.02] border border-white/[0.04] text-zinc-700 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-[#C5A059] to-[#E5C07B] text-black hover:opacity-90 shadow-lg shadow-[#C5A059]/10'
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={12} className="animate-spin text-black" />
+                      <span>Confirmando...</span>
+                    </>
+                  ) : (
+                    <span>{rescheduleBooking ? 'Confirmar Reagendamento' : 'Finalizar Reserva'}</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <BookingSearchModal
+          isOpen={isSearchOpen}
+          onClose={() => { setIsSearchOpen(false); setMultipleMatches([]); }}
+          onSelectClient={(client) => {
+            setSelectedClient(client);
+            setMultipleMatches([]);
+            setIsSearchOpen(false);
+            setIsManualEntry(false);
+          }}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          multipleMatches={multipleMatches}
+          isSearchingClient={isSearchingClient}
+          onSearch={handleSearch}
+        />
+      </AdminLayout>
+    );
+  }
 
   return (
     <div className="h-screen lg:min-h-screen bg-[#121212] text-white font-sans selection:bg-[#C5A059]/30 flex flex-col relative overflow-hidden">
@@ -902,37 +1423,44 @@ const AdminBooking: React.FC = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.25 }}
-                className="space-y-5 h-full flex flex-col"
+                className="space-y-4 h-full flex flex-col"
               >
                 <div className="space-y-1 shrink-0">
                   <h2 className="text-lg font-bold text-white uppercase tracking-tight">Serviços</h2>
                   <p className="text-xs text-zinc-500">Selecione os serviços desejados</p>
                 </div>
 
-                <div className="space-y-2.5 overflow-y-auto flex-1 scrollbar-hide pb-4">
+                <div className="divide-y divide-white/[0.04] border-t border-b border-white/[0.04] overflow-y-auto flex-1 scrollbar-hide pb-4">
                   {services.map(service => {
                     const isSelected = selectedServices.some(s => s.id === service.id);
                     return (
                       <button 
                         key={service.id} 
                         onClick={() => toggleService(service)} 
-                        className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all duration-300 border ${
-                          isSelected 
-                            ? 'bg-[#C5A059]/[0.06] border-[#C5A059]/40' 
-                            : 'bg-[#111111] border-white/[0.06] hover:border-white/[0.12]'
-                        }`}
+                        className="w-full flex items-center justify-between py-4 px-1 bg-transparent transition-all active:opacity-70 text-left cursor-pointer"
                       >
-                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
-                          isSelected ? 'border-[#C5A059] bg-[#C5A059]' : 'border-zinc-700'
+                        <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                          {/* Minimalist Check Indicator */}
+                          <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                            {isSelected ? (
+                              <Check size={16} className="text-[#C5A059]" strokeWidth={3} />
+                            ) : (
+                              <div className="w-4 h-4 rounded-full border border-white/20" />
+                            )}
+                          </div>
+                          
+                          <div className="min-w-0 flex-1">
+                            <p className={`text-[13px] font-bold tracking-wide uppercase ${
+                              isSelected ? 'text-[#C5A059]' : 'text-zinc-200'
+                            }`}>
+                              {service.name}
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className={`font-black text-sm shrink-0 ${
+                          isSelected ? 'text-[#C5A059]' : 'text-zinc-400'
                         }`}>
-                          {isSelected && <Check size={12} className="text-black" strokeWidth={3} />}
-                        </div>
-                        <div className="flex-1 text-left min-w-0">
-                          <p className={`text-sm font-bold uppercase tracking-wide truncate ${isSelected ? 'text-[#C5A059]' : 'text-zinc-300'}`}>
-                            {service.name}
-                          </p>
-                        </div>
-                        <span className={`font-bold text-sm shrink-0 ${isSelected ? 'text-[#C5A059]' : 'text-zinc-500'}`}>
                           R$ {Number(service.price).toFixed(0)}
                         </span>
                       </button>
@@ -1039,8 +1567,8 @@ const AdminBooking: React.FC = () => {
 
         {/* Fixed Bottom Button - ALWAYS visible */}
         <div 
-          className="fixed bottom-[60px] left-0 right-0 z-[90] bg-[#050505]/95 backdrop-blur-sm border-t border-white/[0.06]"
-          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+          className="fixed left-0 right-0 z-[90] bg-[#050505]/95 backdrop-blur-sm border-t border-white/[0.06] pb-3"
+          style={{ bottom: 'calc(76px + env(safe-area-inset-bottom, 0px))' }}
         >
           <div className="px-5 pt-3">
             <button 

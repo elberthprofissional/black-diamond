@@ -11,9 +11,6 @@ import {
   Users, 
   LogOut, 
   TrendingUp,
-  Sparkles,
-  Scissors,
-  DollarSign,
   UserPlus,
   Camera,
   Bell
@@ -252,7 +249,7 @@ const AdminProfile: React.FC = () => {
 
   return (
     <AdminLayout 
-      mainClassName="flex-1 w-full px-5 sm:px-8 lg:px-12 pt-20 lg:pt-8 pb-24 lg:pb-12 space-y-6 text-left max-w-7xl mx-auto font-sans"
+      mainClassName="flex-1 w-full overflow-x-hidden px-0 sm:px-8 lg:px-12 pt-20 lg:pt-8 pb-24 lg:pb-12 space-y-6 text-left max-w-7xl mx-auto font-sans"
     >
       
       {/* ========================================================================= */}
@@ -270,7 +267,6 @@ const AdminProfile: React.FC = () => {
           </div>
           <div className="flex-1">
             <h1 className="text-lg font-bold text-white tracking-tight">{greeting}, Tato</h1>
-            <p className="text-[9px] text-zinc-500 uppercase tracking-widest mt-0.5">Barbeiro Administrador</p>
           </div>
           <button
             onClick={() => setShowLogoutConfirm(true)}
@@ -363,10 +359,10 @@ const AdminProfile: React.FC = () => {
       {/* ========================================================================= */}
       {/* 2. MOBILE LAYOUT (Nubank style layout, but customized with Site Dark & Gold Colors) */}
       {/* ========================================================================= */}
-      <div className="lg:hidden flex flex-col gap-6 max-w-md mx-auto">
+      <div className="lg:hidden w-full max-w-md mx-auto space-y-6">
         
         {/* NUBANK STYLE HEADER - BLACK & GOLD */}
-        <div className="bg-[#161616] border-b border-white/5 px-6 pt-6 pb-8 -mx-5 -mt-4 text-white flex flex-col gap-6 relative overflow-hidden shadow-lg shadow-black/40">
+        <div className="bg-[#161616] border-b border-white/5 px-6 pt-6 pb-8 -mt-4 text-white flex flex-col gap-6 relative overflow-hidden shadow-lg shadow-black/40">
           
           {/* Subtle gold decoration bubble background */}
           <div className="absolute top-[-50px] right-[-50px] w-[150px] h-[150px] bg-[#C5A059]/5 rounded-full blur-2xl pointer-events-none" />
@@ -388,12 +384,11 @@ const AdminProfile: React.FC = () => {
 
           <div className="space-y-1">
             <h1 className="text-xl font-bold tracking-tight text-white">{greeting}, Tato</h1>
-            <p className="text-[9px] text-[#C5A059] uppercase tracking-widest font-bold">Barbeiro Administrador</p>
           </div>
         </div>
 
         {/* CONTA SECTION */}
-        <div className="px-1 py-1 space-y-1">
+        <div className="px-5 py-1 space-y-1">
           <div className="space-y-1.5">
             <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Faturamento Total</p>
             <div className="text-2xl font-bold text-white tracking-tight leading-none flex items-baseline">
@@ -411,8 +406,8 @@ const AdminProfile: React.FC = () => {
 
         {/* NUBANK STYLE HORIZONTAL ACTIONS ROW */}
         <div className="space-y-2">
-          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest pl-1">Ações Rápidas</span>
-          <div className="flex gap-4 overflow-x-auto pb-2 -mx-5 px-5 scrollbar-hide snap-x">
+          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest pl-5">Ações Rápidas</span>
+          <div className="flex gap-4 overflow-x-auto pb-2 px-5 scrollbar-hide snap-x w-full">
             {quickActions.map((action, idx) => {
               const Icon = action.icon;
               const isActive = 'active' in action ? action.active : false;
@@ -439,7 +434,7 @@ const AdminProfile: React.FC = () => {
         </div>
 
         {/* SWITCHER FOR TIMEFRAME */}
-        <div className="flex items-center justify-between border-b border-white/[0.04] pb-2 pt-2">
+        <div className="flex items-center justify-between border-b border-white/[0.04] pb-2 pt-2 px-5">
           <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Resumo do Período</span>
           <div className="flex gap-4">
             <button 
@@ -460,7 +455,7 @@ const AdminProfile: React.FC = () => {
         </div>
 
         {/* NUBANK STYLE FEATURES CARDS */}
-        <div className="space-y-4">
+        <div className="space-y-4 px-5">
           {/* Card 1: Resumo Financeiro */}
           <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 space-y-4">
             <div className="flex items-center gap-2 text-zinc-400">
