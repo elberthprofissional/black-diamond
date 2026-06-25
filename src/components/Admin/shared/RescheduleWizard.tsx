@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getLocalDateString, TIME_SLOTS } from '../../../lib/utils';
+import { getLocalDateString, getTimeSlotsForDate } from '../../../lib/utils';
 import type { Service, Booking, BookingWithClient } from '../../../types';
 
 interface RescheduleWizardProps {
@@ -164,7 +164,7 @@ const RescheduleWizard: React.FC<RescheduleWizardProps> = ({
                   <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Novo Horário</span>
                   {!loadingSlots && (
                     <span className="text-[7px] font-bold text-[#C5A059] uppercase tracking-wider">
-                      {TIME_SLOTS.filter((slot: string) => {
+                      {getTimeSlotsForDate(rescheduleDate).filter((slot: string) => {
                         const occupied = rescheduleDate === selectedBooking.booking_date && slot === selectedBooking.booking_time.slice(0, 5)
                           ? false
                           : existingBookings.some(b => b.status !== 'cancelled' && b.booking_time.slice(0, 5) === slot);
@@ -180,7 +180,7 @@ const RescheduleWizard: React.FC<RescheduleWizardProps> = ({
                   </div>
                 ) : (
                   <div className="grid grid-cols-4 gap-2">
-                    {TIME_SLOTS.map((slot: string) => {
+                    {getTimeSlotsForDate(rescheduleDate).map((slot: string) => {
                       const occupied = rescheduleDate === selectedBooking.booking_date && slot === selectedBooking.booking_time.slice(0, 5)
                         ? false
                         : existingBookings.some(b => b.status !== 'cancelled' && b.booking_time.slice(0, 5) === slot);

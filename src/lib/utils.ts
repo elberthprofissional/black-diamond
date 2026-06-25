@@ -1,5 +1,17 @@
 export const TIME_SLOTS = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'];
 
+export const getTimeSlotsForDate = (dateStr: string): string[] => {
+  const date = new Date(dateStr + 'T12:00:00');
+  const dow = date.getDay();
+  const slots: string[] = [];
+  if (dow === 6) {
+    for (let h = 8; h < 18; h++) slots.push(`${String(h).padStart(2, '0')}:00`);
+  } else {
+    for (let h = 8; h < 19; h++) slots.push(`${String(h).padStart(2, '0')}:30`);
+  }
+  return slots;
+};
+
 export const getPeriod = (time: string) => {
   const hour = parseInt(time.split(':')[0], 10);
   if (hour < 12) return 'Manhã';

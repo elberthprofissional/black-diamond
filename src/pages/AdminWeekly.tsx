@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { updateBookingStatus, deleteBooking, createBooking, getBookings } from '../lib/api';
-import { TIME_SLOTS, getLocalDateString } from '../lib/utils';
+import { getTimeSlotsForDate, getLocalDateString } from '../lib/utils';
 import { useToast } from '../hooks/useToast';
 import { useBookings } from '../hooks/useBookings';
 import { useServices } from '../hooks/useServices';
@@ -180,7 +180,7 @@ const AdminWeekly: React.FC = () => {
   const dayBookings = bookings.filter(b => b.booking_date === selectedDateStr && b.status !== 'cancelled');
 
   const occupiedBookings = dayBookings.filter(b => b.status !== 'cancelled' && !b.is_blocked);
-  const freeSlots = TIME_SLOTS.filter(slot => !dayBookings.some(b => b.booking_time.slice(0, 5) === slot && b.status !== 'cancelled'));
+  const freeSlots = getTimeSlotsForDate(selectedDateStr).filter(slot => !dayBookings.some(b => b.booking_time.slice(0, 5) === slot && b.status !== 'cancelled'));
   const blockedBookings = dayBookings.filter(b => b.status !== 'cancelled' && b.is_blocked);
 
   const occupiedCount = occupiedBookings.length;

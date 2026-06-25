@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createBooking, getBookings, getClients, deleteBooking } from '../lib/api';
-import { TIME_SLOTS, formatPhone, getNextDays, isTimeOccupied } from '../lib/utils';
+import { getTimeSlotsForDate, formatPhone, getNextDays, isTimeOccupied } from '../lib/utils';
 import { useToast } from '../hooks/useToast';
 import { useServices } from '../hooks/useServices';
 import type { Service, Client, Booking } from '../types';
@@ -619,7 +619,7 @@ const AdminBooking: React.FC = () => {
                                 Horários Disponíveis
                               </span>
                               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                                {TIME_SLOTS.map(time => {
+                                {getTimeSlotsForDate(selectedDate).map(time => {
                                   const occupied = isOccupied(time);
                                   const isSelected = selectedTime === time;
                                   return (
@@ -1019,7 +1019,7 @@ const AdminBooking: React.FC = () => {
                     <div className="space-y-2.5">
                       <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Horários Disponíveis</span>
                       <div className="grid grid-cols-4 gap-2">
-                        {TIME_SLOTS.map(time => {
+                        {getTimeSlotsForDate(selectedDate).map(time => {
                           const occupied = isOccupied(time);
                           const isSelected = selectedTime === time;
                           return (
