@@ -250,6 +250,56 @@ const AdminBooking: React.FC = () => {
           </div>
         </div>
 
+        {/* Step Indicator Below Header */}
+        {!rescheduleBooking && (
+          <div className="w-full px-10 py-4 flex items-center justify-center gap-0 border-b border-white/[0.04] shrink-0">
+            {[
+              { step: 1, num: '01', title: 'CLIENTE' },
+              { step: 2, num: '02', title: 'SERVIÇOS' },
+              { step: 3, num: '03', title: 'AGENDA' },
+            ].map((s, idx) => {
+              const isActive = currentStep === s.step;
+              const isPassed = s.step < currentStep;
+              const canClick = s.step < currentStep || (s.step === 2 && selectedClient) || (s.step === 3 && selectedClient && selectedServices.length > 0);
+
+              return (
+                <React.Fragment key={s.step}>
+                  <button
+                    disabled={!canClick}
+                    onClick={() => setCurrentStep(s.step)}
+                    aria-current={isActive ? 'step' : undefined}
+                    aria-label={`Passo ${s.num}: ${s.title}${isActive ? ' (atual)' : isPassed ? ' (concluído)' : ''}`}
+                    className="flex items-center gap-3 shrink-0 transition-all cursor-pointer group"
+                  >
+                    <div className={`w-8 h-8 flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
+                      isActive
+                        ? 'bg-[#C5A059] text-black'
+                        : isPassed
+                          ? 'bg-[#C5A059]/15 text-[#C5A059]'
+                          : 'bg-white/[0.03] text-zinc-600 border border-white/[0.04]'
+                    }`}>
+                      {isPassed ? <Check size={13} strokeWidth={3} /> : s.num}
+                    </div>
+                    <div className="flex flex-col items-start">
+                      <span className={`text-[10px] font-bold uppercase tracking-[0.15em] transition-all ${
+                        isActive ? 'text-[#C5A059]' : isPassed ? 'text-white/70' : 'text-zinc-600'
+                      }`}>{s.title}</span>
+                      <div className={`h-[1px] mt-1 transition-all duration-300 ${
+                        isActive ? 'w-full bg-[#C5A059]/40' : isPassed ? 'w-full bg-[#C5A059]/20' : 'w-0 bg-white/10'
+                      }`} />
+                    </div>
+                  </button>
+                  {idx < 2 && (
+                    <div className={`w-12 h-[1px] mx-3 transition-all duration-500 ${
+                      s.step < currentStep ? 'bg-[#C5A059]/30' : 'bg-white/[0.04]'
+                    }`} />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        )}
+
         {/* Main Content Area */}
         <main className="w-full max-w-7xl mx-auto px-10 pt-8 pb-16 flex-1 flex flex-col overflow-visible">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 xl:gap-16 items-start flex-1 overflow-visible h-full">
@@ -257,56 +307,6 @@ const AdminBooking: React.FC = () => {
             {/* LEFT SIDE: Booking Steps */}
             <div className="lg:col-span-7 xl:col-span-8 flex flex-col h-full justify-between overflow-visible">
               <div>
-                
-                {/* Premium Step Indicator */}
-                {!rescheduleBooking && (
-                  <div className="flex items-center justify-center gap-0 mb-10 px-4">
-                    {[
-                      { step: 1, num: '01', title: 'CLIENTE' },
-                      { step: 2, num: '02', title: 'SERVIÇOS' },
-                      { step: 3, num: '03', title: 'AGENDA' },
-                    ].map((s, idx) => {
-                      const isActive = currentStep === s.step;
-                      const isPassed = s.step < currentStep;
-                      const canClick = s.step < currentStep || (s.step === 2 && selectedClient) || (s.step === 3 && selectedClient && selectedServices.length > 0);
-                      
-                      return (
-                        <React.Fragment key={s.step}>
-                          <button
-                            disabled={!canClick}
-                            onClick={() => setCurrentStep(s.step)}
-                            aria-current={isActive ? 'step' : undefined}
-                            aria-label={`Passo ${s.num}: ${s.title}${isActive ? ' (atual)' : isPassed ? ' (concluído)' : ''}`}
-                            className="flex items-center gap-3 shrink-0 transition-all cursor-pointer group"
-                          >
-                            <div className={`w-8 h-8 flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
-                              isActive 
-                                ? 'bg-[#C5A059] text-black' 
-                                : isPassed 
-                                  ? 'bg-[#C5A059]/15 text-[#C5A059]' 
-                                  : 'bg-white/[0.03] text-zinc-600 border border-white/[0.04]'
-                            }`}>
-                              {isPassed ? <Check size={13} strokeWidth={3} /> : s.num}
-                            </div>
-                            <div className="flex flex-col items-start">
-                              <span className={`text-[10px] font-bold uppercase tracking-[0.15em] transition-all ${
-                                isActive ? 'text-[#C5A059]' : isPassed ? 'text-white/70' : 'text-zinc-600'
-                              }`}>{s.title}</span>
-                              <div className={`h-[1px] mt-1 transition-all duration-300 ${
-                                isActive ? 'w-full bg-[#C5A059]/40' : isPassed ? 'w-full bg-[#C5A059]/20' : 'w-0 bg-white/10'
-                              }`} />
-                            </div>
-                          </button>
-                          {idx < 2 && (
-                            <div className={`w-12 h-[1px] mx-3 transition-all duration-500 ${
-                              s.step < currentStep ? 'bg-[#C5A059]/30' : 'bg-white/[0.04]'
-                            }`} />
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </div>
-                )}
 
                 {/* Animated Step Slides */}
                 <div className="relative flex-1 overflow-visible">
