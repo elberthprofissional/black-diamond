@@ -46,7 +46,7 @@ const Footer: React.FC = () => {
 
               {/* WhatsApp */}
               {(() => {
-                const rawPhone = import.meta.env.VITE_BARBER_WHATSAPP || '5531999553580';
+                const rawPhone = import.meta.env.VITE_BARBER_WHATSAPP || '5531980159559';
                 const formattedPhone = rawPhone.length === 13 
                   ? `(${rawPhone.slice(4, 6)}) ${rawPhone.slice(6, 11)}-${rawPhone.slice(11)}`
                   : rawPhone;
