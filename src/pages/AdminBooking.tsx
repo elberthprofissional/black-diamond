@@ -35,6 +35,8 @@ const AdminBooking: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [existingBookings, setExistingBookings] = useState<Booking[]>([]);
   const { showSuccess, showError } = useToast();
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [calendarUrl, setCalendarUrl] = useState('');
   
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [newClient, setNewClient] = useState({ name: '', phone: '' });
@@ -153,7 +155,7 @@ const AdminBooking: React.FC = () => {
       if (rescheduleBooking?.id) {
         await deleteBooking(rescheduleBooking.id);
       }
-      
+
       await createBooking(
         {
           service_ids: selectedServices.map(s => s.id),
@@ -164,8 +166,17 @@ const AdminBooking: React.FC = () => {
         },
         { name, phone }
       );
+
+      const serviceNames = selectedServices.map(s => s.name).join(', ');
+      const endDate = new Date(`${selectedDate}T${selectedTime}`);
+      endDate.setMinutes(endDate.getMinutes() + totalDuration);
+      const endDateTime = `${endDate.getFullYear()}${String(endDate.getMonth() + 1).padStart(2, '0')}${String(endDate.getDate()).padStart(2, '0')}T${String(endDate.getHours()).padStart(2, '0')}${String(endDate.getMinutes()).padStart(2, '0')}00`;
+      const startFormatted = `${selectedDate.split('-')[0]}${selectedDate.split('-')[1]}${selectedDate.split('-')[2]}T${selectedTime.replace(':', '')}00`;
+      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(name + ' - ' + serviceNames)}&dates=${startFormatted}/${endDateTime}&details=${encodeURIComponent('Black Diamond - ' + serviceNames + ' - R$ ' + totalPrice.toFixed(2))}`;
+
+      setCalendarUrl(url);
       showSuccess(rescheduleBooking?.id ? 'Agendamento reagendado com sucesso!' : 'Agendamento realizado!');
-      setTimeout(() => navigate('/admin'), 1500);
+      setShowCalendarModal(true);
     } catch (error) {
       showError(error instanceof Error ? error.message : 'Erro ao agendar.');
     } finally {
@@ -1605,6 +1616,37 @@ const AdminBooking: React.FC = () => {
       />
 
       <BottomTabs />
+
+      {/* GOOGLE CALENDAR MODAL */}
+      {showCalendarModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-6">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-[#111] border border-white/[0.08] rounded-2xl p-6 w-full max-w-sm text-center"
+          >
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+              <Check size={24} className="text-emerald-500" />
+            </div>
+            <h3 className="text-white font-bold text-base mb-1">Agendamento confirmado!</h3>
+            <p className="text-zinc-400 text-sm mb-6">Deseja adicionar no Google Agenda?</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setShowCalendarModal(false); navigate('/admin'); }}
+                className="flex-1 h-11 rounded-xl bg-white/[0.06] border border-white/[0.06] text-zinc-400 text-sm font-medium hover:bg-white/[0.1] transition-colors"
+              >
+                Não
+              </button>
+              <button
+                onClick={() => { window.open(calendarUrl, '_blank'); setShowCalendarModal(false); setTimeout(() => navigate('/admin'), 300); }}
+                className="flex-1 h-11 rounded-xl bg-[#C5A059] text-black text-sm font-bold hover:bg-[#C5A059]/90 transition-colors"
+              >
+                Sim
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

@@ -43,11 +43,12 @@ export const createBooking = async (
   });
 
   if (error) {
-    if (error.message && error.message.includes('Este horário acabou de ser preenchido')) {
+    const msg = error.message || '';
+    if (msg.includes('Este horário acabou de ser preenchido')) {
       throw new Error('Este horário acabou de ser preenchido. Por favor, escolha outro.');
     }
-    if (error.message && error.message.includes('limite de agendamentos')) {
-      throw new Error('Você já atingiu o limite de agendamentos para este dia. Máximo 3 por dia.');
+    if (msg.toLowerCase().includes('limite de 3 agendamentos')) {
+      throw new Error('Limite de 3 agendamentos por dia atingido para este telefone.');
     }
     throw error;
   }
