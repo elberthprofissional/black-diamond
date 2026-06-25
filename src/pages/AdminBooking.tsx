@@ -231,86 +231,68 @@ const AdminBooking: React.FC = () => {
       {/* DESKTOP LAYOUT */}
       <div className="hidden lg:flex flex-col flex-1 relative z-10 overflow-visible w-full bg-[#0A0A0A]">
 
-        {/* Premium Minimal Header */}
-        <div className="w-full px-10 py-5 flex items-center justify-between shrink-0 sticky top-0 z-30 bg-[#0A0A0A] border-b border-white/[0.04]">
+        {/* Header */}
+        <div className="w-full px-10 py-5 flex items-center justify-between shrink-0 sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-white/[0.04]">
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={() => navigate('/admin')}
-              className="w-9 h-9 flex items-center justify-center border border-white/[0.06] text-zinc-400 hover:text-white hover:border-[#C5A059]/40 transition-all cursor-pointer"
+              className="w-10 h-10 flex items-center justify-center border border-white/[0.06] text-zinc-400 hover:text-white hover:border-[#C5A059]/40 transition-all cursor-pointer rounded-xl"
             >
               <ArrowLeft size={16} />
             </button>
-            <h1 className="text-sm font-semibold tracking-[0.2em] text-white uppercase">
-              {rescheduleBooking ? 'Reagendar Atendimento' : 'Novo Agendamento'}
-            </h1>
+            <div>
+              <h1 className="text-sm font-bold tracking-[0.2em] text-white uppercase">
+                {rescheduleBooking ? 'Reagendar Atendimento' : 'Novo Agendamento'}
+              </h1>
+              <p className="text-[9px] font-medium tracking-[0.15em] text-zinc-600 uppercase mt-0.5">Black Diamond Barber</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#C5A059]/60" />
-            <span className="text-[9px] font-medium tracking-[0.15em] text-zinc-500 uppercase">Black Diamond</span>
-          </div>
-        </div>
-
-        {/* Step Indicator Below Header */}
-        {!rescheduleBooking && (
-          <div className="w-full px-10 py-4 flex items-center justify-center gap-0 border-b border-white/[0.04] shrink-0">
-            {[
-              { step: 1, num: '01', title: 'CLIENTE' },
-              { step: 2, num: '02', title: 'SERVIÇOS' },
-              { step: 3, num: '03', title: 'AGENDA' },
-            ].map((s, idx) => {
-              const isActive = currentStep === s.step;
-              const isPassed = s.step < currentStep;
-              const canClick = s.step < currentStep || (s.step === 2 && selectedClient) || (s.step === 3 && selectedClient && selectedServices.length > 0);
-
-              return (
-                <React.Fragment key={s.step}>
-                  <button
-                    disabled={!canClick}
-                    onClick={() => setCurrentStep(s.step)}
-                    aria-current={isActive ? 'step' : undefined}
-                    aria-label={`Passo ${s.num}: ${s.title}${isActive ? ' (atual)' : isPassed ? ' (concluído)' : ''}`}
-                    className="flex items-center gap-3 shrink-0 transition-all cursor-pointer group"
-                  >
-                    <div className={`w-8 h-8 flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
-                      isActive
-                        ? 'bg-[#C5A059] text-black'
-                        : isPassed
-                          ? 'bg-[#C5A059]/15 text-[#C5A059]'
-                          : 'bg-white/[0.03] text-zinc-600 border border-white/[0.04]'
-                    }`}>
-                      {isPassed ? <Check size={13} strokeWidth={3} /> : s.num}
-                    </div>
-                    <div className="flex flex-col items-start">
+          {!rescheduleBooking && (
+            <div className="flex items-center gap-6">
+              {[
+                { step: 1, num: '01', title: 'CLIENTE' },
+                { step: 2, num: '02', title: 'SERVIÇOS' },
+                { step: 3, num: '03', title: 'AGENDA' },
+              ].map((s, idx) => {
+                const isActive = currentStep === s.step;
+                const isPassed = s.step < currentStep;
+                const canClick = s.step < currentStep || (s.step === 2 && selectedClient) || (s.step === 3 && selectedClient && selectedServices.length > 0);
+                return (
+                  <React.Fragment key={s.step}>
+                    <button
+                      disabled={!canClick}
+                      onClick={() => setCurrentStep(s.step)}
+                      className="flex items-center gap-2.5 transition-all cursor-pointer group"
+                    >
+                      <div className={`w-7 h-7 flex items-center justify-center text-[9px] font-bold transition-all duration-300 rounded-lg ${
+                        isActive ? 'bg-[#C5A059] text-black' : isPassed ? 'bg-[#C5A059]/15 text-[#C5A059]' : 'bg-white/[0.03] text-zinc-600 border border-white/[0.04]'
+                      }`}>
+                        {isPassed ? <Check size={12} strokeWidth={3} /> : s.num}
+                      </div>
                       <span className={`text-[10px] font-bold uppercase tracking-[0.15em] transition-all ${
                         isActive ? 'text-[#C5A059]' : isPassed ? 'text-white/70' : 'text-zinc-600'
                       }`}>{s.title}</span>
-                      <div className={`h-[1px] mt-1 transition-all duration-300 ${
-                        isActive ? 'w-full bg-[#C5A059]/40' : isPassed ? 'w-full bg-[#C5A059]/20' : 'w-0 bg-white/10'
+                    </button>
+                    {idx < 2 && (
+                      <div className={`w-8 h-[1px] transition-all duration-500 ${
+                        s.step < currentStep ? 'bg-[#C5A059]/30' : 'bg-white/[0.04]'
                       }`} />
-                    </div>
-                  </button>
-                  {idx < 2 && (
-                    <div className={`w-12 h-[1px] mx-3 transition-all duration-500 ${
-                      s.step < currentStep ? 'bg-[#C5A059]/30' : 'bg-white/[0.04]'
-                    }`} />
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </div>
-        )}
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-        {/* Main Content Area */}
-        <main className="w-full max-w-7xl mx-auto px-10 pt-8 pb-16 flex-1 flex flex-col overflow-visible">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 xl:gap-16 items-start flex-1 overflow-visible h-full">
-            
-            {/* LEFT SIDE: Booking Steps */}
-            <div className="lg:col-span-7 xl:col-span-8 flex flex-col h-full justify-between overflow-visible">
-              <div>
+        {/* Main Content */}
+        <main className="w-full max-w-7xl mx-auto px-10 pt-10 pb-16 flex-1 flex flex-col overflow-visible">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-14 items-start flex-1 overflow-visible h-full">
 
-                {/* Animated Step Slides */}
-                <div className="relative flex-1 overflow-visible">
-                  <AnimatePresence mode="wait">
+            {/* LEFT: Steps */}
+            <div className="lg:col-span-7 xl:col-span-8 flex flex-col h-full overflow-visible">
+              <div className="relative flex-1 overflow-visible">
+                <AnimatePresence mode="wait">
                     {/* STEP 1: CLIENT IDENTIFICATION */}
                     {currentStep === 1 && (
                       <motion.div
@@ -663,12 +645,11 @@ const AdminBooking: React.FC = () => {
                         </div>
                       </motion.div>
                     )}
-                  </AnimatePresence>
-                </div>
+                </AnimatePresence>
               </div>
             </div>
 
-            {/* RIGHT SIDE: Booking Summary Panel */}
+            {/* RIGHT: Summary */}
             <BookingSummaryPanel
               selectedClient={selectedClient}
               newClient={newClient}
