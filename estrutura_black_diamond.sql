@@ -381,8 +381,8 @@ BEGIN
 
         v_html_body := '
           <div style="font-family: sans-serif; background-color: #0A0A0A; color: #FFFFFF; padding: 30px; border-radius: 16px; max-width: 500px; margin: auto; border: 1px solid #C5A059;">
-            <h2 style="color: #C5A059; border-bottom: 1px solid #222; padding-bottom: 15px; text-transform: uppercase; text-align: center; margin-top: 0; font-size: 18px; font-weight: bold; letter-spacing: 1px;">Tudo certo, ' || split_part(v_client_name, ' ', 1) || '! 🚀</h2>
-            <p style="font-size: 13px; line-height: 1.6; color: #d4d4d8; text-align: left;">Fala, ' || split_part(v_client_name, ' ', 1) || '! Beleza? Passando para avisar que seu horário na <strong>Black Diamond Barber</strong> já está reservado e confirmado.</p>
+            <h2 style="color: #C5A059; border-bottom: 1px solid #222; padding-bottom: 15px; text-transform: uppercase; text-align: center; margin-top: 0; font-size: 18px; font-weight: bold; letter-spacing: 1px;">Tudo certo, ' || split_part(v_client_name, ' ', 1) || '! 💈</h2>
+            <p style="font-size: 13px; line-height: 1.6; color: #d4d4d8; text-align: left;">Fala, ' || split_part(v_client_name, ' ', 1) || '! Beleza? Passando para avisar que seu horário na <strong>Black Diamond</strong> já está reservado e confirmado!</p>
             <div style="background-color: #111; padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid #333; color: #FFFFFF;">
               <p style="margin: 6px 0; font-size: 13px;">📅 <strong>Data:</strong> ' || v_date_formatted || '</p>
               <p style="margin: 6px 0; font-size: 13px;">⏰ <strong>Horário:</strong> ' || v_time_formatted || 'h</p>
