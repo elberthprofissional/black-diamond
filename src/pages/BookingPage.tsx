@@ -123,13 +123,18 @@ const BookingPage: React.FC = () => {
       );
       
       const serviceNames = selectedServices.map(s => s.name).join(', ');
-      const message = `*NOVO AGENDAMENTO - BLACK DIAMOND*\n\n` +
-                      `*Cliente:* ${userInfo.name}\n` +
-                      `*Serviço:* ${serviceNames}\n` +
-                      `*Data:* ${selectedDate.split('-').reverse().join('/')}\n` +
-                      `*Horário:* ${selectedTime}\n` +
-                      `*Valor:* R$ ${totalPrice.toFixed(2).replace('.', ',')}\n\n` +
-                      `📍 Av. Brasílio da Gama, 139 - Tupi, BH`;
+      const endDate = new Date(`${selectedDate}T${selectedTime}`);
+      endDate.setMinutes(endDate.getMinutes() + totalDuration);
+      const endDateTime = `${endDate.getFullYear()}${String(endDate.getMonth() + 1).padStart(2, '0')}${String(endDate.getDate()).padStart(2, '0')}T${String(endDate.getHours()).padStart(2, '0')}${String(endDate.getMinutes()).padStart(2, '0')}00`;
+      const startFormatted = `${selectedDate.split('-')[0]}${selectedDate.split('-')[1]}${selectedDate.split('-')[2]}T${selectedTime.replace(':', '')}00`;
+      const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(userInfo.name + ' - ' + serviceNames)}&dates=${startFormatted}/${endDateTime}&details=${encodeURIComponent('Black Diamond - ' + serviceNames + ' - R$ ' + totalPrice.toFixed(2))}`;
+      const message = `💎 *NOVO AGENDAMENTO - BLACK DIAMOND* 💎\n\n` +
+                      `📌 *Cliente:* ${userInfo.name}\n` +
+                      `✂️ *Serviço:* ${serviceNames}\n` +
+                      `📅 *Data:* ${selectedDate.split('-').reverse().join('/')}\n` +
+                      `⏰ *Horário:* ${selectedTime}\n` +
+                      `💰 *Valor:* R$ ${totalPrice.toFixed(2).replace('.', ',')}\n\n` +
+                      `📅 *Adicionar no Google Agenda:*\n${calendarUrl}`;
       
       window.open(`https://wa.me/${import.meta.env.VITE_BARBER_WHATSAPP || '5531980159559'}?text=${encodeURIComponent(message)}`, '_blank');
       setStep(5); // Mover para tela de sucesso em vez de sair
