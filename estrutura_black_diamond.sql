@@ -391,7 +391,7 @@ BEGIN
             <div style="font-size: 12px; color: #a1a1aa; line-height: 1.5; border-top: 1px solid #222; padding-top: 15px; margin-top: 15px; text-align: left;">
               📍 <strong>Endereço Black Diamond:</strong><br />
               Av. Brasílio da Gama, 139 - Bairro Tupi, BH<br />
-              <a href="https://maps.google.com/?q=Av.+Brasilio+da+Gama,+139+-+Bairro+Tupi,+BH" target="_blank" style="color: #C5A059; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 5px;">→ Como chegar no Google Maps</a>
+              <a href="https://maps.app.goo.gl/Gz453umZQtWGYcvV8" target="_blank" style="color: #C5A059; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 5px;">→ Como chegar no Google Maps</a>
             </div>
             <p style="font-size: 12px; color: #71717a; text-align: center; margin-top: 25px; line-height: 1.5;">Qualquer imprevisto ou se precisar reagendar, só entrar em contato com a gente.</p>
           </div>
@@ -478,7 +478,7 @@ BEGIN
                 <div style="font-size: 12px; color: #a1a1aa; line-height: 1.5; border-top: 1px solid #222; padding-top: 15px; margin-top: 15px; text-align: left;">
                   📍 <strong>Endereço Black Diamond:</strong><br />
                   Av. Brasílio da Gama, 139 - Bairro Tupi, BH<br />
-                  <a href="https://maps.google.com/?q=Av.+Brasilio+da+Gama,+139+-+Bairro+Tupi,+BH" target="_blank" style="color: #C5A059; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 5px;">→ Como chegar no Google Maps</a>
+                  <a href="https://maps.app.goo.gl/Gz453umZQtWGYcvV8" target="_blank" style="color: #C5A059; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 5px;">→ Como chegar no Google Maps</a>
                 </div>
               </div>
             ';
