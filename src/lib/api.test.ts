@@ -219,6 +219,7 @@ describe('createBooking', () => {
     expect(supabase.rpc).toHaveBeenCalledWith('criar_agendamento', {
       p_cliente_nome: 'Joao',
       p_cliente_telefone: '31999999999',
+      p_cliente_email: null,
       p_servicos: ['s1'],
       p_data: '2026-06-24',
       p_hora: '09:00',

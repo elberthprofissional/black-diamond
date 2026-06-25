@@ -60,6 +60,7 @@ describe('Fluxo completo de agendamento', () => {
     expect(supabase.rpc).toHaveBeenCalledWith('criar_agendamento', {
       p_cliente_nome: 'João Silva',
       p_cliente_telefone: '31999999999',
+      p_cliente_email: null,
       p_servicos: ['svc-1', 'svc-2'],
       p_data: '2026-06-25',
       p_hora: '09:00',
