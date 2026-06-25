@@ -232,65 +232,81 @@ const AdminBooking: React.FC = () => {
       <div className="hidden lg:flex flex-col flex-1 relative z-10 overflow-visible w-full bg-[#0A0A0A]">
 
         {/* Header */}
-        <div className="w-full px-10 py-5 flex items-center justify-between shrink-0 sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-white/[0.04]">
-          <div className="flex items-center gap-4">
+        <div className="w-full px-12 py-6 flex items-center justify-between shrink-0 sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-white/[0.04]">
+          <div className="flex items-center gap-5">
             <button
               onClick={() => navigate('/admin')}
-              className="w-10 h-10 flex items-center justify-center border border-white/[0.06] text-zinc-400 hover:text-white hover:border-[#C5A059]/40 transition-all cursor-pointer rounded-xl"
+              className="w-11 h-11 flex items-center justify-center border border-white/[0.08] text-zinc-400 hover:text-white hover:border-[#C5A059]/40 hover:bg-[#C5A059]/5 transition-all cursor-pointer rounded-2xl"
             >
-              <ArrowLeft size={16} />
+              <ArrowLeft size={18} />
             </button>
-            <div>
-              <h1 className="text-sm font-bold tracking-[0.2em] text-white uppercase">
+            <div className="flex flex-col gap-0.5">
+              <h1 className="text-lg font-black tracking-[0.15em] text-white uppercase">
                 {rescheduleBooking ? 'Reagendar Atendimento' : 'Novo Agendamento'}
               </h1>
-              <p className="text-[9px] font-medium tracking-[0.15em] text-zinc-600 uppercase mt-0.5">Black Diamond Barber</p>
+              <p className="text-[9px] font-bold tracking-[0.2em] text-zinc-600 uppercase">Black Diamond Barber</p>
             </div>
           </div>
-          {!rescheduleBooking && (
-            <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-[#C5A059]/70" />
+            <span className="text-[9px] font-bold tracking-[0.15em] text-zinc-500 uppercase">Sistema</span>
+          </div>
+        </div>
+
+        {/* Steps Progress */}
+        {!rescheduleBooking && (
+          <div className="w-full px-12 py-6 border-b border-white/[0.03] shrink-0">
+            <div className="max-w-3xl mx-auto flex items-center justify-between relative">
+              {/* Progress Line Background */}
+              <div className="absolute top-5 left-8 right-8 h-[2px] bg-white/[0.04]" />
+              {/* Progress Line Active */}
+              <div className="absolute top-5 left-8 h-[2px] bg-gradient-to-r from-[#C5A059] to-[#C5A059]/50 transition-all duration-700" style={{ width: `${((currentStep - 1) / 2) * (100 - 12)}%` }} />
+
               {[
-                { step: 1, num: '01', title: 'CLIENTE' },
-                { step: 2, num: '02', title: 'SERVIÇOS' },
-                { step: 3, num: '03', title: 'AGENDA' },
-              ].map((s, idx) => {
+                { step: 1, num: '01', title: 'CLIENTE', desc: 'Identificação' },
+                { step: 2, num: '02', title: 'SERVIÇOS', desc: 'Seleção' },
+                { step: 3, num: '03', title: 'AGENDA', desc: 'Data e Hora' },
+              ].map((s) => {
                 const isActive = currentStep === s.step;
                 const isPassed = s.step < currentStep;
                 const canClick = s.step < currentStep || (s.step === 2 && selectedClient) || (s.step === 3 && selectedClient && selectedServices.length > 0);
                 return (
-                  <React.Fragment key={s.step}>
-                    <button
-                      disabled={!canClick}
-                      onClick={() => setCurrentStep(s.step)}
-                      className="flex items-center gap-2.5 transition-all cursor-pointer group"
-                    >
-                      <div className={`w-7 h-7 flex items-center justify-center text-[9px] font-bold transition-all duration-300 rounded-lg ${
-                        isActive ? 'bg-[#C5A059] text-black' : isPassed ? 'bg-[#C5A059]/15 text-[#C5A059]' : 'bg-white/[0.03] text-zinc-600 border border-white/[0.04]'
-                      }`}>
-                        {isPassed ? <Check size={12} strokeWidth={3} /> : s.num}
-                      </div>
-                      <span className={`text-[10px] font-bold uppercase tracking-[0.15em] transition-all ${
-                        isActive ? 'text-[#C5A059]' : isPassed ? 'text-white/70' : 'text-zinc-600'
+                  <button
+                    key={s.step}
+                    disabled={!canClick}
+                    onClick={() => setCurrentStep(s.step)}
+                    className="flex flex-col items-center gap-2.5 relative z-10 transition-all cursor-pointer group"
+                  >
+                    <div className={`w-10 h-10 flex items-center justify-center text-[11px] font-black transition-all duration-500 rounded-2xl ${
+                      isActive
+                        ? 'bg-[#C5A059] text-black shadow-[0_0_20px_rgba(197,160,89,0.25)]'
+                        : isPassed
+                          ? 'bg-[#C5A059]/15 text-[#C5A059] border border-[#C5A059]/20'
+                          : 'bg-white/[0.03] text-zinc-600 border border-white/[0.05] group-hover:border-white/[0.1]'
+                    }`}>
+                      {isPassed ? <Check size={14} strokeWidth={3} /> : s.num}
+                    </div>
+                    <div className="text-center">
+                      <span className={`text-[10px] font-black uppercase tracking-[0.12em] block transition-all ${
+                        isActive ? 'text-[#C5A059]' : isPassed ? 'text-white/60' : 'text-zinc-600'
                       }`}>{s.title}</span>
-                    </button>
-                    {idx < 2 && (
-                      <div className={`w-8 h-[1px] transition-all duration-500 ${
-                        s.step < currentStep ? 'bg-[#C5A059]/30' : 'bg-white/[0.04]'
-                      }`} />
-                    )}
-                  </React.Fragment>
+                      <span className={`text-[8px] font-medium tracking-[0.1em] block mt-0.5 transition-all ${
+                        isActive ? 'text-[#C5A059]/60' : 'text-zinc-700'
+                      }`}>{s.desc}</span>
+                    </div>
+                  </button>
                 );
               })}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Main Content */}
-        <main className="w-full max-w-7xl mx-auto px-10 pt-10 pb-16 flex-1 flex flex-col overflow-visible">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-14 items-start flex-1 overflow-visible h-full">
+        <main className="w-full max-w-7xl mx-auto px-12 pt-10 pb-16 flex-1 flex flex-col overflow-visible">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start flex-1 overflow-visible h-full">
 
             {/* LEFT: Steps */}
-            <div className="lg:col-span-7 xl:col-span-8 flex flex-col h-full overflow-visible">
+            <div className="lg:col-span-8 flex flex-col h-full overflow-visible">
               <div className="relative flex-1 overflow-visible">
                 <AnimatePresence mode="wait">
                     {/* STEP 1: CLIENT IDENTIFICATION */}
