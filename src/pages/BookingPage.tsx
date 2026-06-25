@@ -122,13 +122,14 @@ const BookingPage: React.FC = () => {
         { name: userInfo.name, phone: userInfo.phone, email: userInfo.email || undefined }
       );
       
-      const message = `Fala, ${userInfo.name.split(' ')[0]}! Beleza? Passando para avisar que seu horário na *Black Diamond* já está reservado e confirmado! 💈\n\n` +
-                      `📅 *Data:* ${selectedDate.split('-').reverse().join('/')}\n` +
-                      `⏰ *Horário:* ${selectedTime}\n` +
-                      `💰 *Valor:* R$ ${totalPrice.toFixed(2).replace('.', ',')}\n\n` +
-                      `📍 *Endereço:* Av. Brasílio da Gama, 139 - Bairro Tupi, BH\n` +
-                      `🗺️ *Maps:* https://maps.app.goo.gl/Gz453umZQtWGYcvV8\n\n` +
-                      `Qualquer imprevisto ou se precisar reagendar, só entrar em contato com a gente!`;
+      const serviceNames = selectedServices.map(s => s.name).join(', ');
+      const message = `*NOVO AGENDAMENTO - BLACK DIAMOND*\n\n` +
+                      `*Cliente:* ${userInfo.name}\n` +
+                      `*Serviço:* ${serviceNames}\n` +
+                      `*Data:* ${selectedDate.split('-').reverse().join('/')}\n` +
+                      `*Horário:* ${selectedTime}\n` +
+                      `*Valor:* R$ ${totalPrice.toFixed(2).replace('.', ',')}\n\n` +
+                      `📍 Av. Brasílio da Gama, 139 - Tupi, BH`;
       
       window.open(`https://wa.me/${import.meta.env.VITE_BARBER_WHATSAPP || '5531980159559'}?text=${encodeURIComponent(message)}`, '_blank');
       setStep(5); // Mover para tela de sucesso em vez de sair
