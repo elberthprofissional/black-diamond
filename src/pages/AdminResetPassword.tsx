@@ -15,14 +15,29 @@ const AdminResetPassword: React.FC = () => {
   const [isPWA, setIsPWA] = useState(false);
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        return;
+      }
       if (!session) {
         showError('Link de recuperação inválido ou expirado.');
         setTimeout(() => navigate('/admin/login'), 2500);
       }
+    });
+
+    const timer = setTimeout(() => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+          showError('Link de recuperação inválido ou expirado.');
+          setTimeout(() => navigate('/admin/login'), 2500);
+        }
+      });
+    }, 3000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timer);
     };
-    void checkSession();
   }, [navigate, showError]);
 
   useEffect(() => {
