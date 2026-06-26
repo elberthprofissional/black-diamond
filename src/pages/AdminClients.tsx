@@ -633,13 +633,22 @@ const AdminClients: React.FC = () => {
       {/* DELETE PANEL MODAL */}
       <AnimatePresence>
         {isDeleteOpen && selectedClient && (
-          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !isDeleting && setIsDeleteOpen(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="relative z-10 w-full sm:max-w-xs bg-[#111] border-t sm:border border-white/[0.06] sm:rounded-2xl rounded-t-2xl p-5 space-y-4">
-              <p className="text-xs text-zinc-400 leading-relaxed">Excluir <span className="text-white font-semibold">{selectedClient.name}</span>? Essa ação não pode ser desfeita.</p>
-              <div className="flex gap-2">
-                <button onClick={() => setIsDeleteOpen(false)} disabled={isDeleting} className="flex-1 h-10 bg-white/[0.04] border border-white/[0.06] text-zinc-400 text-[10px] font-bold uppercase tracking-wider rounded-xl hover:bg-white/[0.06] transition-all cursor-pointer">Manter</button>
-                <button onClick={confirmDelete} disabled={isDeleting} className="flex-1 h-10 bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer">{isDeleting ? '...' : 'Excluir'}</button>
+          <div className="fixed inset-0 z-[250] flex items-center justify-center p-6">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !isDeleting && setIsDeleteOpen(false)} className="absolute inset-0 bg-black/60" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative z-10 w-full max-w-[280px] bg-[#111] border border-white/[0.06] rounded-2xl overflow-hidden"
+            >
+              <div className="p-5 text-center space-y-1">
+                <p className="text-sm font-semibold text-white">Excluir cliente?</p>
+                <p className="text-xs text-zinc-500">{selectedClient.name}</p>
+              </div>
+              <div className="flex border-t border-white/[0.04]">
+                <button onClick={() => setIsDeleteOpen(false)} disabled={isDeleting} className="flex-1 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider hover:text-white transition-colors cursor-pointer">Manter</button>
+                <div className="w-px bg-white/[0.04]" />
+                <button onClick={confirmDelete} disabled={isDeleting} className="flex-1 py-3 text-[10px] font-bold text-red-500 uppercase tracking-wider hover:bg-red-500/10 transition-colors cursor-pointer">{isDeleting ? '...' : 'Excluir'}</button>
               </div>
             </motion.div>
           </div>

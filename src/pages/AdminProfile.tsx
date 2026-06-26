@@ -293,8 +293,6 @@ const AdminProfile: React.FC = () => {
         </div>
 
 
-        <p className="text-[11px] text-zinc-500">Aqui está o resumo da sua barbearia hoje.</p>
-
         {/* Faturamento Total */}
         <div className="bg-[#111111] border border-white/5 rounded-2xl p-5">
           <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">Faturamento Total</span>
