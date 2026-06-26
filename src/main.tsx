@@ -12,13 +12,19 @@ createRoot(document.getElementById('root')!).render(
 // Registra o Service Worker para habilitar o PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((reg) => {
-        console.log('Service Worker registrado com sucesso:', reg.scope);
-      })
-      .catch((err) => {
-        console.error('Falha ao registrar o Service Worker:', err);
+    navigator.serviceWorker.register('/sw.js').then((reg) => {
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              newWorker.skipWaiting();
+              window.location.reload();
+            }
+          });
+        }
       });
+    }).catch(() => {});
   });
 }
 
