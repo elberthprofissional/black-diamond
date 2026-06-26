@@ -15,10 +15,10 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').then((reg) => {
       reg.addEventListener('updatefound', () => {
         const newWorker = reg.installing;
-        if (newWorker) {
+        if (newWorker && 'skipWaiting' in newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              newWorker.skipWaiting();
+              (newWorker as ServiceWorker).skipWaiting();
               window.location.reload();
             }
           });
