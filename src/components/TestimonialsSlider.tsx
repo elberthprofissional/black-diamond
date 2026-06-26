@@ -32,12 +32,12 @@ const Testimonials: React.FC = () => {
           </div>
         </div>
 
-        {/* Cards Slider/Grid */}
-        <div className="flex md:grid md:grid-cols-3 gap-6 mb-12 items-stretch overflow-x-auto md:overflow-visible pb-8 md:pb-0 snap-x snap-mandatory scrollbar-hide">
+        {/* Cards Slider */}
+        <div className="flex gap-5 mb-12 items-stretch overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0">
           {reviews.map((review, index) => (
             <div
               key={index}
-              className="bg-[#1a1a1a] border border-white/[0.02] p-6 md:p-8 rounded-xl flex flex-col gap-5 h-auto hover:border-[#D4AF37]/20 transition-all duration-500 min-w-[85vw] md:min-w-0 snap-center"
+              className="bg-[#1a1a1a] border border-white/[0.02] p-6 md:p-8 rounded-xl flex flex-col gap-5 h-auto hover:border-[#D4AF37]/20 transition-all duration-500 min-w-[80vw] md:min-w-[calc(33.333%-12px)] snap-center shrink-0"
             >
               {/* Header: Avatar, Name and Stars */}
               <div className="flex items-center gap-3 md:gap-4">
