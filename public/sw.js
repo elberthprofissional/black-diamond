@@ -1,4 +1,4 @@
-const CACHE_NAME = 'black-diamond-v3';
+const CACHE_NAME = 'black-diamond-v4';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -26,11 +26,6 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-function isStaticAsset(url) {
-  return /\.(js|css|woff2?|ttf|eot|webp|png|jpg|jpeg|gif|svg|ico)(\?|$)/.test(url) ||
-    url.includes('/assets/');
-}
-
 self.addEventListener('fetch', (e) => {
   if (!e.request.url.startsWith(self.location.origin)) return;
 
@@ -41,32 +36,14 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  if (isStaticAsset(e.request.url)) {
-    e.respondWith(
-      caches.match(e.request).then((cached) => {
-        if (cached) return cached;
-        return fetch(e.request).then((response) => {
-          if (response.status === 200 && e.request.method === 'GET') {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
-          }
-          return response;
-        });
-      })
-    );
-    return;
-  }
-
   e.respondWith(
-    fetch(e.request)
-      .then((response) => {
-        if (response.status === 200 && e.request.method === 'GET') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
-        }
-        return response;
-      })
-      .catch(() => caches.match(e.request))
+    fetch(e.request).then((response) => {
+      if (response.status === 200 && e.request.method === 'GET') {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+      }
+      return response;
+    }).catch(() => caches.match(e.request))
   );
 });
 
