@@ -33,7 +33,7 @@ const Hero: React.FC<HeroProps> = ({ onBookingClick }) => {
               <span className="text-5xl sm:text-7xl md:text-[8rem] font-bebas tracking-[0.2em] md:tracking-[0.3em] text-[#D4AF37] uppercase leading-none mt-1 md:-mt-2">DIAMOND</span>
             </h1>
             <p className="text-[14px] md:text-[20px] font-sans font-light tracking-wide text-zinc-400 max-w-md mt-6 leading-relaxed">
-              Onde o cuidado pessoal encontra a excelência. Mais que uma barbearia, o seu momento de recarregar as energias.
+              Excelência em cada detalhe. Um ambiente pensado para quem valoriza qualidade e conforto.
             </p>
           </div>
           

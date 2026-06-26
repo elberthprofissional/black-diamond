@@ -16,7 +16,7 @@ describe('Hero', () => {
 
   it('renderiza a descricao', () => {
     renderWithRouter(<Hero onBookingClick={vi.fn()} />)
-    expect(screen.getByText(/Onde o cuidado pessoal encontra a excelência/)).toBeInTheDocument()
+    expect(screen.getByText(/Excelência em cada detalhe/)).toBeInTheDocument()
   })
 
   it('renderiza botao de agendamento', () => {
