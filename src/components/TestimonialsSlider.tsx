@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { User, Star } from 'lucide-react';
 
 interface ReviewData {
-  client_name: string;
+  name: string;
   rating: number;
-  comment: string;
+  text: string;
 }
 
 const fallbackReviews = [

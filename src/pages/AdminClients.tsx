@@ -124,7 +124,7 @@ const AdminClients: React.FC = () => {
       todayISO.setHours(0, 0, 0, 0);
 
       const enriched: ClientWithStats[] = (clientsData || [])
-        .filter((c: Client) => c && c.name && c.name !== 'BLOQUEADO' && c.phone !== '00000000000' && !('is_blocked' in c))
+        .filter((c: Client) => c && c.name && c.name !== 'BLOQUEADO' && c.phone !== '00000000000' && !(c as Record<string, unknown>).is_blocked)
         .map((c: Client) => {
           const cb = (bookingsData || []).filter((b) => b && b.client_id === c.id && b.status !== 'cancelled');
           
@@ -243,7 +243,7 @@ const AdminClients: React.FC = () => {
       setNewClientEmail('');
       setNewClientNotes('');
       showSuccess('Cliente criado!');
-      loadData();
+      await loadData();
     } catch { showError('Erro ao criar cliente.'); } finally { setIsSavingClient(false); }
   };
 
