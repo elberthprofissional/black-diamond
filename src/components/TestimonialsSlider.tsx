@@ -1,42 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { User, Star } from 'lucide-react';
 
-interface ReviewData {
-  name: string;
-  rating: number;
-  text: string;
-}
-
-const fallbackReviews = [
-  { name: "YP TATTOO", text: "Barbearia super confortável, ambiente agradável, profissional qualificado e atencioso." },
-  { name: "HELBERT HENRIQUE", text: "Venezuelano mais fera de BH!! Tem o macete." },
-  { name: "MAIA STUDIO", text: "Único profissional que conseguiu cortar o cabelo do meu filho com paciência e excelência." }
+const reviews = [
+  { name: "YP TATTOO", rating: 5, text: "Barbearia super confortável, ambiente agradável, profissional qualificado e atencioso." },
+  { name: "HELBERT HENRIQUE", rating: 5, text: "Venezuelano mais fera de BH!! Tem o macete." },
+  { name: "MAIA STUDIO", rating: 5, text: "Único profissional que conseguiu cortar o cabelo do meu filho com paciência e excelência." }
 ];
 
 const Testimonials: React.FC = () => {
-  const [reviews, setReviews] = useState<ReviewData[]>([]);
-
-  useEffect(() => {
-    const loadReviews = async () => {
-      try {
-        const { getTopReviews } = await import('../lib/api');
-        const data = await getTopReviews(6);
-        if (data && data.length > 0) {
-          setReviews(data.map((r: { client_name: string; rating: number; comment: string }) => ({
-            name: r.client_name,
-            rating: r.rating,
-            text: r.comment || 'Excelente atendimento!',
-          })));
-        } else {
-          setReviews(fallbackReviews.map(r => ({ ...r, rating: 5 })));
-        }
-      } catch {
-        setReviews(fallbackReviews.map(r => ({ ...r, rating: 5 })));
-      }
-    };
-    loadReviews();
-  }, []);
-
   return (
     <section id="depoimentos" className="py-20 md:py-40 bg-[#141414] text-white overflow-hidden">
       <div className="container mx-auto px-6">
@@ -72,7 +43,7 @@ const Testimonials: React.FC = () => {
                   <span className="text-[12px] md:text-sm font-roboto font-bold text-white uppercase tracking-wider">{review.name}</span>
                   <div className="flex gap-0.5">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={12} className={`text-[#D4AF37] ${i < (review.rating || 5) ? 'fill-[#D4AF37]' : ''}`} />
+                      <Star key={i} size={12} className={`text-[#D4AF37] ${i < review.rating ? 'fill-[#D4AF37]' : ''}`} />
                     ))}
                   </div>
                 </div>
