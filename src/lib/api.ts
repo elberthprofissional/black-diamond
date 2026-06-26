@@ -133,9 +133,9 @@ export const getClients = async () => {
 export const deleteClient = async (id: string) => {
   const { error } = await supabase
     .from('clients')
-    .delete()
+    .update({ name: 'CLIENTE_EXCLUIDO', phone: '00000000000' })
     .eq('id', id);
-  
+
   if (error) throw error;
 };
 
