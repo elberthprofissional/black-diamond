@@ -14,7 +14,7 @@ const Hero: React.FC<HeroProps> = ({ onBookingClick }) => {
           alt="Black Diamond"
           loading="lazy"
           decoding="async"
-          className="w-full h-full object-cover opacity-50"
+          className="w-full h-full object-cover object-top sm:object-center opacity-50"
         />
         {/* Escurece o lado esquerdo intensamente e deixa o direito mais limpo */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-[#0f0f0f]/80 to-transparent" />
