@@ -150,11 +150,6 @@ const Testimonials: React.FC = () => {
             Ver todas as avaliações no Google
           </a>
         </div>
-
-        {/* Branding Footer */}
-        <div className="flex justify-center pt-8 mt-8 border-t border-white/[0.03]">
-           <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]/50" />
-        </div>
       </div>
     </section>
   );
