@@ -23,8 +23,7 @@ const AdminAvailableSlots: React.FC = () => {
       try {
         const slots = await getAvailableSlots(selectedDate);
         setAvailableSlots(slots);
-      } catch (error) {
-        console.error(error);
+      } catch {
         setAvailableSlots(['08:30', '09:30', '10:30', '11:30', '13:30', '14:30', '15:30', '16:30', '17:30', '18:30']);
       }
     };

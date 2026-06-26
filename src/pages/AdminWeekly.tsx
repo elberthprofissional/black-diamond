@@ -87,9 +87,7 @@ const AdminWeekly: React.FC = () => {
     try {
       const data = await getBookings(date);
       setExistingBookingsForReschedule(data || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
+    } catch { /* ignored */ } finally {
       setLoadingSlots(false);
     }
   };
@@ -142,9 +140,8 @@ const AdminWeekly: React.FC = () => {
       setIsRescheduling(false);
       setRescheduleStep(1);
       await loadData();
-    } catch (err) {
+    } catch {
       showError('Erro ao reagendar.');
-      console.error(err);
     } finally {
       setIsSavingReschedule(false);
     }

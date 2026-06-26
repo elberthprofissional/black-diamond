@@ -35,8 +35,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
           }
         });
         unsubscribe = subscription.unsubscribe;
-      } catch (err) {
-        console.error('Error checking auth:', err);
+      } catch {
         if (active) navigate('/admin/login', { replace: true });
       }
     };

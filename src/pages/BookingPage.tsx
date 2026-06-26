@@ -60,7 +60,9 @@ const BookingPage: React.FC = () => {
       try {
         const data = await getServices();
         setServices(data);
-      } catch (error) { console.error(error); }
+      } catch {
+        showError('Erro ao carregar serviços. Tente novamente.');
+      }
     };
     loadServices();
   }, []);
@@ -71,15 +73,15 @@ const BookingPage: React.FC = () => {
         try {
           const data = await getBookings(selectedDate);
           setExistingBookings(data);
-        } catch (error) { console.error(error); }
+        } catch {
+          showError('Erro ao carregar agendamentos.');
+        }
       };
       const loadAvailableSlots = async () => {
         try {
           const slots = await getAvailableSlots(selectedDate);
           setAvailableSlots(slots);
-        } catch (error) { 
-          console.error(error);
-          // Fallback para slots padrão se a função falhar
+        } catch {
           setAvailableSlots(['08:30', '09:30', '10:30', '11:30', '13:30', '14:30', '15:30', '16:30', '17:30', '18:30']);
         }
       };
@@ -139,7 +141,6 @@ const BookingPage: React.FC = () => {
       window.open(`https://wa.me/${import.meta.env.VITE_BARBER_WHATSAPP || '5531980159559'}?text=${encodeURIComponent(message)}`, '_blank');
       setStep(5); // Mover para tela de sucesso em vez de sair
     } catch (error) {
-      console.error(error);
       const message = error instanceof Error ? error.message : 'Erro ao realizar agendamento.';
       showError(message);
     } finally { setIsSubmitting(false); }
