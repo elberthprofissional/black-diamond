@@ -17,7 +17,7 @@ const BookingPage: React.FC = () => {
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
-  const [userInfo, setUserInfo] = useState({ name: '', phone: '', email: '' });
+  const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingBookings, setExistingBookings] = useState<{ booking_time: string; status: string }[]>([]);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
@@ -121,7 +121,7 @@ const BookingPage: React.FC = () => {
           total_price: totalPrice,
           total_duration: totalDuration
         },
-        { name: userInfo.name, phone: userInfo.phone, email: userInfo.email || undefined }
+        { name: userInfo.name, phone: userInfo.phone }
       );
       
       const serviceNames = selectedServices.map(s => s.name).join(', ');
@@ -765,19 +765,6 @@ const BookingPage: React.FC = () => {
                     )}
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C5A059" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                      Email <span className="text-zinc-600 font-normal">(opcional)</span>
-                    </label>
-                    <input 
-                      type="email" 
-                      placeholder="seu@email.com" 
-                      aria-label="Seu email"
-                      className="w-full bg-[#0d0d0d] border border-white/[0.06] focus:border-[#C5A059] focus:shadow-[0_0_16px_rgba(197,160,89,0.15)] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600" 
-                      value={userInfo.email} 
-                      onChange={e => setUserInfo({...userInfo, email: e.target.value})} 
-                    />
-                    <p className="text-[9px] text-zinc-600 leading-relaxed">Pedimos seu email para enviar um lembrete antes do seu horário.</p>
                   </div>
                 </motion.div>
               )}
