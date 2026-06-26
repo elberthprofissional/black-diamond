@@ -93,8 +93,8 @@ const AdminSidebar: React.FC = () => {
               isProfileOpen ? 'bg-white/5' : 'hover:bg-white/[0.02]'
             }`}
           >
-            <div className="w-9 h-9 rounded-lg bg-zinc-900 border border-white/5 flex items-center justify-center text-zinc-500 flex-shrink-0">
-              <Camera size={16} className="stroke-[1.5]" />
+            <div className="w-9 h-9 rounded-lg border border-white/5 overflow-hidden flex-shrink-0">
+              <img src="/assets/barbeiro.webp" alt="Tato" className="w-full h-full object-cover" />
             </div>
             <div className="text-left flex-1 min-w-0">
               <p className="text-[11px] font-bold text-white truncate">Tato</p>
