@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
 import { User, Star } from 'lucide-react';
 
 const reviews = [
@@ -16,13 +16,29 @@ const Testimonials: React.FC = () => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
-  const scrollLeft = useRef(0);
+  const scrollLeftVal = useRef(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const handleScroll = useCallback(() => {
+    if (!sliderRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
+    const cardWidth = (scrollWidth - clientWidth) / (reviews.length - 1);
+    const index = Math.round(scrollLeft / cardWidth);
+    setActiveIndex(Math.min(index, reviews.length - 1));
+  }, []);
+
+  const scrollToIndex = useCallback((index: number) => {
+    if (!sliderRef.current) return;
+    const { scrollWidth, clientWidth } = sliderRef.current;
+    const cardWidth = (scrollWidth - clientWidth) / (reviews.length - 1);
+    sliderRef.current.scrollTo({ left: cardWidth * index, behavior: 'smooth' });
+  }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!sliderRef.current) return;
     isDragging.current = true;
     startX.current = e.pageX - sliderRef.current.offsetLeft;
-    scrollLeft.current = sliderRef.current.scrollLeft;
+    scrollLeftVal.current = sliderRef.current.scrollLeft;
     sliderRef.current.style.cursor = 'grabbing';
     sliderRef.current.style.userSelect = 'none';
   }, []);
@@ -32,7 +48,7 @@ const Testimonials: React.FC = () => {
     e.preventDefault();
     const x = e.pageX - sliderRef.current.offsetLeft;
     const walk = (x - startX.current) * 1.5;
-    sliderRef.current.scrollLeft = scrollLeft.current - walk;
+    sliderRef.current.scrollLeft = scrollLeftVal.current - walk;
   }, []);
 
   const handleMouseUp = useCallback(() => {
@@ -65,11 +81,12 @@ const Testimonials: React.FC = () => {
         {/* Cards Slider */}
         <div
           ref={sliderRef}
-          className="flex gap-5 mb-12 items-stretch overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 scroll-smooth cursor-grab"
+          className="flex gap-5 mb-8 items-stretch overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 scroll-smooth cursor-grab"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
+          onScroll={handleScroll}
           onWheel={(e) => {
             if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
               e.currentTarget.scrollLeft += e.deltaY;
@@ -105,14 +122,22 @@ const Testimonials: React.FC = () => {
         </div>
 
         {/* Navigation Dots */}
-        <div className="flex justify-center gap-2 mt-6">
+        <div className="flex justify-center gap-2 mb-6">
           {reviews.map((_, index) => (
-            <div key={index} className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
+            <button
+              key={index}
+              onClick={() => scrollToIndex(index)}
+              className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                activeIndex === index
+                  ? 'bg-[#D4AF37] w-6'
+                  : 'bg-zinc-700 hover:bg-zinc-500'
+              }`}
+            />
           ))}
         </div>
 
         {/* Google Reviews Link */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center">
           <a
             href={GOOGLE_REVIEWS_URL}
             target="_blank"
@@ -127,7 +152,7 @@ const Testimonials: React.FC = () => {
         </div>
 
         {/* Branding Footer */}
-        <div className="flex justify-center pt-8 border-t border-white/[0.03]">
+        <div className="flex justify-center pt-8 mt-8 border-t border-white/[0.03]">
            <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]/50" />
         </div>
       </div>
