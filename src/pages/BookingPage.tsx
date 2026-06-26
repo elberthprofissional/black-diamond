@@ -138,7 +138,7 @@ const BookingPage: React.FC = () => {
                       `💰 *Valor:* R$ ${totalPrice.toFixed(2).replace('.', ',')}\n\n` +
                       `📅 *Adicionar no Google Agenda:*\n${calendarUrl}`;
       
-      window.open(`https://wa.me/${import.meta.env.VITE_BARBER_WHATSAPP || '5531980159559'}?text=${encodeURIComponent(message)}`, '_blank');
+      window.open(`https://wa.me/${import.meta.env.VITE_BARBER_WHATSAPP || '554399553590'}?text=${encodeURIComponent(message)}`, '_blank');
       setStep(5); // Mover para tela de sucesso em vez de sair
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erro ao realizar agendamento.';
