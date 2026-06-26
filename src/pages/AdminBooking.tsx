@@ -28,6 +28,9 @@ const AdminBooking: React.FC = () => {
   const nextDays = useMemo(() => getNextDays(), []);
   const location = useLocation();
   const navigate = useNavigate();
+  const searchParams = new URLSearchParams(location.search);
+  const prefilledClientName = searchParams.get('client');
+  const prefilledClientPhone = searchParams.get('phone');
   const rescheduleBooking = location.state?.rescheduleBooking;
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,6 +47,7 @@ const AdminBooking: React.FC = () => {
   
   const [currentStep, setCurrentStep] = useState(() => {
     if (location.state?.rescheduleBooking) return 3;
+    if (prefilledClientName && prefilledClientPhone) return 2;
     return 1;
   });
 
@@ -91,13 +95,20 @@ const AdminBooking: React.FC = () => {
             });
             setIsManualEntry(true);
           }
+        } else if (prefilledClientName && prefilledClientPhone) {
+          const match = clientsData.find(c => c.phone === prefilledClientPhone || c.name === prefilledClientName);
+          if (match) {
+            setSelectedClient(match);
+            setIsManualEntry(false);
+          } else {
+            setNewClient({ name: prefilledClientName, phone: prefilledClientPhone });
+            setIsManualEntry(true);
+          }
         }
-      } catch (error) {
-        console.error(error);
-      }
+      } catch { /* ignored */ }
     };
     fetchData();
-  }, [rescheduleBooking]);
+  }, [rescheduleBooking, prefilledClientName, prefilledClientPhone]);
 
   useEffect(() => {
     if (selectedDate) {
@@ -105,9 +116,7 @@ const AdminBooking: React.FC = () => {
         try {
           const data = await getBookings(selectedDate);
           setExistingBookings(data || []);
-        } catch (error) {
-          console.error(error);
-        }
+        } catch { /* ignored */ }
       };
       loadBookings();
     }
