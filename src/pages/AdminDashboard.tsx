@@ -159,9 +159,9 @@ const AdminDashboard: React.FC = () => {
                   <div className="flex flex-col items-start min-w-0 flex-1">
                     <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em]">Próximo Cliente</span>
                     {nextBooking ? (
-                      <div className="flex items-center justify-between w-full mt-0.5">
-                        <span className="text-sm font-black text-white uppercase tracking-tight truncate">{nextBooking.clients?.name?.split(' ').slice(0, 2).join(' ') ?? ''}</span>
-                        <span className="text-xs font-bold text-[#C5A059] tabular-nums shrink-0 ml-3">{nextBooking.booking_time.slice(0, 5)}</span>
+                      <div className="flex items-baseline gap-2.5 mt-0.5 min-w-0">
+                        <span className="text-[13px] font-bold text-white uppercase tracking-wide truncate">{nextBooking.clients?.name ?? ''}</span>
+                        <span className="text-[11px] font-semibold text-[#C5A059] tabular-nums shrink-0">{nextBooking.booking_time.slice(0, 5)}</span>
                       </div>
                     ) : (
                       <span className="text-xs font-medium text-zinc-600">Sem cliente para hoje</span>
