@@ -17,10 +17,10 @@ const Gallery: React.FC = () => {
 
   return (
     <section id="galeria" className="py-20 md:py-40 bg-[#0A0A0A] overflow-hidden">
-      <div className="container mx-auto px-6 mb-16 md:mb-32">
+      <div className="container mx-auto px-6 mb-10 md:mb-16">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-[#D4AF37] font-bebas text-[10px] md:text-xs tracking-[0.6em] uppercase mb-6">Galeria</h2>
-          <h3 className="text-4xl sm:text-6xl md:text-8xl font-bebas text-white mb-8 tracking-tight uppercase leading-none">
+          <h2 className="text-[#D4AF37] font-bebas text-[10px] md:text-xs tracking-[0.6em] uppercase mb-4">Galeria</h2>
+          <h3 className="text-4xl sm:text-6xl md:text-8xl font-bebas text-white mb-6 tracking-tight uppercase leading-none">
             MEUS <span className="text-[#D4AF37]">TRABALHOS</span>
           </h3>
           <div className="w-12 h-px bg-[#D4AF37]/30 mx-auto"></div>
@@ -31,15 +31,15 @@ const Gallery: React.FC = () => {
       <div className="relative flex overflow-x-hidden">
         <div className="flex animate-marquee whitespace-nowrap gap-4 md:gap-8 px-4">
           {displayImages.map((img, index) => (
-            <div 
+            <div
               key={`${img.alt}-${index}`}
-              className="relative w-[280px] md:w-[400px] aspect-[3/4] bg-[#1a1a1a] border border-white/[0.03] overflow-hidden flex-shrink-0 group"
+              className="relative w-[280px] md:w-[400px] h-[360px] md:h-[500px] bg-[#1a1a1a] border border-white/[0.03] overflow-hidden flex-shrink-0 group"
             >
-              <img 
-                src={img.src} 
+              <img
+                src={img.src}
                 alt={img.alt}
                 loading="lazy"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               {/* Minimal Frame overlay */}
               <div className="absolute inset-4 border border-white/[0.05] pointer-events-none" />
@@ -50,10 +50,15 @@ const Gallery: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-20 text-center">
-        <p className="text-[8px] md:text-[10px] font-medium text-zinc-600 uppercase tracking-[0.4em]">
-          Siga no Instagram <span className="text-[#D4AF37]">@blackdiamond</span>
-        </p>
+      <div className="mt-12 text-center">
+        <a
+          href="https://www.instagram.com/black.diamond.barbeariaa/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[8px] md:text-[10px] font-medium text-zinc-600 uppercase tracking-[0.4em] hover:text-[#D4AF37] transition-colors duration-300"
+        >
+          Para mais, siga no Instagram <span className="text-[#D4AF37]">@blackdiamond</span>
+        </a>
       </div>
 
       <style>{`
@@ -76,4 +81,3 @@ const Gallery: React.FC = () => {
 };
 
 export default Gallery;
-
