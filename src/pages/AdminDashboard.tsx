@@ -17,7 +17,7 @@ import WhatsAppReminderButton from '../components/Admin/shared/WhatsAppReminderB
 import RescheduleWizard from '../components/Admin/shared/RescheduleWizard';
 import BookingDetailPanel from '../components/Admin/shared/BookingDetailPanel';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Check } from 'lucide-react';
 
 import type { BookingWithClient } from '../types';
 
@@ -200,17 +200,20 @@ const AdminDashboard: React.FC = () => {
                         <p className="text-zinc-600 text-[10px] uppercase tracking-widest text-center py-8">Nenhum agendamento</p>
                       ) : (
                         occupiedBookings.map((booking) => (
-                          <button
+                          <div
                             key={booking.id}
-                            onClick={() => setSelectedBooking(booking)}
-                            aria-label={`Agendamento às ${booking.booking_time.slice(0, 5)} com ${booking.clients?.name}`}
-                            className={`w-full flex items-center rounded-lg border cursor-pointer transition-all group text-left ${
+                            className={`w-full flex items-center rounded-lg border cursor-pointer transition-all group ${
                               selectedBooking?.id === booking.id
                                 ? 'border-[#C5A059]/40 bg-[#C5A059]/5'
                                 : 'border-white/5 bg-[#111111] hover:border-white/10'
                             }`}
                           >
-                            <div className="flex-1 flex items-center gap-3 px-3 py-2.5 min-w-0">
+                            <div
+                              onClick={() => setSelectedBooking(booking)}
+                              role="button"
+                              aria-label={`Agendamento às ${booking.booking_time.slice(0, 5)} com ${booking.clients?.name}`}
+                              className="flex-1 flex items-center gap-3 px-3 py-2.5 min-w-0"
+                            >
                               <span className="text-sm font-bold text-zinc-500 tabular-nums w-10 shrink-0">{booking.booking_time.slice(0, 5)}</span>
                               <div className="w-px h-3.5 bg-white/10 shrink-0" />
                               <span className="text-[11px] font-medium text-zinc-200 truncate">{booking.clients?.name}</span>
@@ -218,8 +221,15 @@ const AdminDashboard: React.FC = () => {
                             {booking.clients?.phone && (
                               <WhatsAppReminderButton booking={booking} className="p-2.5 text-zinc-500 hover:text-emerald-500 transition-colors shrink-0" />
                             )}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setCompletingBooking(booking); }}
+                              className="p-2.5 text-zinc-500 hover:text-emerald-400 transition-colors shrink-0 cursor-pointer"
+                              aria-label="Concluir atendimento"
+                            >
+                              <Check size={15} strokeWidth={2.5} />
+                            </button>
                             <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-colors shrink-0 mr-1" />
-                          </button>
+                          </div>
                         ))
                       )}
                     </div>

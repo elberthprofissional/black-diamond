@@ -712,9 +712,9 @@ const AdminClients: React.FC = () => {
                     <p className="text-sm font-semibold text-zinc-100 mt-1">{selectedClient.name}</p>
                   </div>
                 </div>
-                <button 
-                  onClick={closeReminderModal} 
-                  className="w-9 h-9 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
+                <button
+                  onClick={closeReminderModal}
+                  className="text-zinc-400 hover:text-white transition-all cursor-pointer"
                 >
                   <X size={16} />
                 </button>
@@ -793,7 +793,7 @@ const AdminClients: React.FC = () => {
                         }}
                         className="w-full py-4 border border-[#C5A059]/20 hover:border-[#C5A059]/40 bg-[#C5A059]/[0.02] text-[#C5A059] font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-[#C5A059]/[0.05] active:scale-[0.98] transition-all cursor-pointer text-center"
                       >
-                        + Escrever Personalizado
+                        + Criar Lembrete
                       </button>
                     </>
                   ) : (
