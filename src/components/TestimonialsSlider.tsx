@@ -33,26 +33,7 @@ const Testimonials: React.FC = () => {
         </div>
 
         {/* Cards Slider */}
-        <div
-          className="flex gap-5 mb-12 items-stretch overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 cursor-grab active:cursor-grabbing"
-          onMouseDown={(e) => {
-            const el = e.currentTarget;
-            el.dataset.scrollLeft = String(el.scrollLeft);
-            el.dataset.startX = String(e.pageX);
-          }}
-          onMouseMove={(e) => {
-            const el = e.currentTarget;
-            if (el.dataset.startX === undefined) return;
-            const dx = e.pageX - Number(el.dataset.startX);
-            el.scrollLeft = Number(el.dataset.scrollLeft) - dx;
-          }}
-          onMouseUp={(e) => {
-            delete e.currentTarget.dataset.startX;
-          }}
-          onMouseLeave={(e) => {
-            delete e.currentTarget.dataset.startX;
-          }}
-        >
+        <div className="flex gap-5 mb-12 items-stretch overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 scroll-smooth">
           {reviews.map((review, index) => (
             <div
               key={index}
@@ -78,6 +59,13 @@ const Testimonials: React.FC = () => {
                 "{review.text}"
               </p>
             </div>
+          ))}
+        </div>
+
+        {/* Navigation Dots */}
+        <div className="flex justify-center gap-2 mt-6">
+          {reviews.map((_, index) => (
+            <div key={index} className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
           ))}
         </div>
 
