@@ -56,25 +56,25 @@ const Testimonials: React.FC = () => {
           {reviews.map((review, index) => (
             <div
               key={index}
-              className="bg-[#1a1a1a] border border-white/[0.02] p-6 md:p-8 rounded-2xl flex flex-col gap-5 h-auto hover:border-[#D4AF37]/20 transition-all duration-500 w-[75vw] md:w-[320px] snap-center shrink-0"
+              className="bg-[#1a1a1a] border border-white/[0.02] p-7 md:p-10 rounded-2xl flex flex-col gap-6 h-auto hover:border-[#D4AF37]/20 transition-all duration-500 w-[75vw] md:w-[340px] snap-center shrink-0"
             >
               {/* Header: Avatar, Name and Stars */}
-              <div className="flex items-center gap-3 md:gap-4">
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-[#222222] rounded-full shrink-0 flex items-center justify-center border border-white/5">
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 md:w-12 md:h-12 bg-[#222222] rounded-full shrink-0 flex items-center justify-center border border-white/5">
                   <User size={18} className="text-zinc-500" />
                 </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-[12px] md:text-sm font-roboto font-bold text-white uppercase tracking-wider">{review.name}</span>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[13px] md:text-sm font-roboto font-bold text-white tracking-wide">{review.name}</span>
                   <div className="flex gap-0.5">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={12} className={`text-[#D4AF37] ${i < review.rating ? 'fill-[#D4AF37]' : ''}`} />
+                      <Star key={i} size={13} className={`text-[#D4AF37] ${i < review.rating ? 'fill-[#D4AF37]' : ''}`} />
                     ))}
                   </div>
                 </div>
               </div>
 
               {/* Review Text */}
-              <p className="text-zinc-400 font-roboto font-light text-base md:text-xl leading-relaxed italic">
+              <p className="text-zinc-400 font-roboto font-light text-[15px] md:text-base leading-relaxed">
                 "{review.text}"
               </p>
             </div>
