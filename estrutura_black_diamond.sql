@@ -22,8 +22,8 @@ CREATE TABLE IF NOT EXISTS secrets (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Insere a chave Resend (substitua pelo valor real)
-INSERT INTO secrets (key, value) VALUES ('resend_api_key', 'SUA_CHAVE_AQUI')
+-- Insere a chave Resend (substitua pelo valor real no Supabase)
+INSERT INTO secrets (key, value) VALUES ('resend_api_key', 'SUA_CHAVE_RESEND_AQUI')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 -- Tabela de serviços
@@ -88,7 +88,8 @@ INSERT INTO settings (key, value) VALUES
     ('closing_time', '19:00'),
     ('saturday_opening', '08:00'),
     ('saturday_closing', '18:00'),
-    ('working_days', '1,2,3,4,5,6')
+    ('working_days', '1,2,3,4,5,6'),
+    ('admin_email', 'elberthmayan2007@gmail.com')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 -- =========================================================================
@@ -129,7 +130,25 @@ WHERE NOT EXISTS (
 );
 
 -- =========================================================================
--- 6. ROW LEVEL SECURITY (RLS)
+-- 6. FUNÇÃO HELPER: Verifica se o usuário é admin
+-- =========================================================================
+-- O email do admin é armazenado na tabela 'settings', não hardcoded nas policies.
+-- Para trocar o admin, basta atualizar: UPDATE settings SET value = 'novo@email.com' WHERE key = 'admin_email';
+
+DROP FUNCTION IF EXISTS is_admin();
+CREATE OR REPLACE FUNCTION is_admin()
+RETURNS boolean AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM settings
+    WHERE key = 'admin_email'
+    AND value = (auth.jwt() ->> 'email')
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
+
+-- =========================================================================
+-- 7. ROW LEVEL SECURITY (RLS)
 -- =========================================================================
 ALTER TABLE services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
@@ -138,7 +157,7 @@ ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- =========================================================================
--- 7. POLÍTICAS DE ACESSO
+-- 8. POLÍTICAS DE ACESSO (usando is_admin() - sem email hardcoded)
 -- =========================================================================
 
 -- Serviços: leitura pública, escrita admin
@@ -147,20 +166,20 @@ CREATE POLICY "Serviços leitura pública" ON services FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "Serviços gerenciamento admin" ON services;
 CREATE POLICY "Serviços gerenciamento admin" ON services FOR ALL TO authenticated
-USING ((auth.jwt() ->> 'email') = 'elberthmayan2007@gmail.com')
-WITH CHECK ((auth.jwt() ->> 'email') = 'elberthmayan2007@gmail.com');
+USING (is_admin())
+WITH CHECK (is_admin());
 
 -- Clientes: apenas admin
 DROP POLICY IF EXISTS "Clientes gerenciamento admin" ON clients;
 CREATE POLICY "Clientes gerenciamento admin" ON clients FOR ALL TO authenticated
-USING ((auth.jwt() ->> 'email') = 'elberthmayan2007@gmail.com')
-WITH CHECK ((auth.jwt() ->> 'email') = 'elberthmayan2007@gmail.com');
+USING (is_admin())
+WITH CHECK (is_admin());
 
 -- Agendamentos: apenas admin
 DROP POLICY IF EXISTS "Agendamentos gerenciamento admin" ON bookings;
 CREATE POLICY "Agendamentos gerenciamento admin" ON bookings FOR ALL TO authenticated
-USING ((auth.jwt() ->> 'email') = 'elberthmayan2007@gmail.com')
-WITH CHECK ((auth.jwt() ->> 'email') = 'elberthmayan2007@gmail.com');
+USING (is_admin())
+WITH CHECK (is_admin());
 
 -- Configurações: leitura pública, escrita admin
 DROP POLICY IF EXISTS "Configurações leitura pública" ON settings;
@@ -168,17 +187,17 @@ CREATE POLICY "Configurações leitura pública" ON settings FOR SELECT USING (t
 
 DROP POLICY IF EXISTS "Configurações gerenciamento admin" ON settings;
 CREATE POLICY "Configurações gerenciamento admin" ON settings FOR ALL TO authenticated
-USING ((auth.jwt() ->> 'email') = 'elberthmayan2007@gmail.com')
-WITH CHECK ((auth.jwt() ->> 'email') = 'elberthmayan2007@gmail.com');
+USING (is_admin())
+WITH CHECK (is_admin());
 
 -- Push subscriptions: apenas admin
 DROP POLICY IF EXISTS "Push subscriptions admin" ON push_subscriptions;
 CREATE POLICY "Push subscriptions admin" ON push_subscriptions FOR ALL TO authenticated
-USING ((auth.jwt() ->> 'email') = 'elberthmayan2007@gmail.com')
-WITH CHECK ((auth.jwt() ->> 'email') = 'elberthmayan2007@gmail.com');
+USING (is_admin())
+WITH CHECK (is_admin());
 
 -- =========================================================================
--- 8. FUNÇÕES RPC (SECURITY DEFINER)
+-- 9. FUNÇÕES RPC (SECURITY DEFINER)
 -- =========================================================================
 
 -- Criar agendamento (com email)
@@ -353,7 +372,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- =========================================================================
--- 9. EMAIL: CONFIRMAÇÃO IMEDIATA
+-- 10. EMAIL: CONFIRMAÇÃO IMEDIATA
 -- =========================================================================
 
 CREATE OR REPLACE FUNCTION enviar_email_confirmacao_imediata()
@@ -398,9 +417,9 @@ BEGIN
         ';
 
         v_payload := jsonb_build_object(
-            'from', 'Black Diamond <onboarding@resend.dev>',
-            'to', ARRAY[v_client_email],
-            'subject', 'Horário Confirmado - Black Diamond Barber',
+                'from', 'Black Diamond <elberthmayan2007@gmail.com>',
+                'to', ARRAY[v_client_email],
+                'subject', 'Horário Confirmado - Black Diamond Barber',
             'html', v_html_body
         )::text;
 
@@ -431,7 +450,7 @@ FOR EACH ROW
 EXECUTE FUNCTION enviar_email_confirmacao_imediata();
 
 -- =========================================================================
--- 10. LEMBRETE 30 MINUTOS ANTES
+-- 11. LEMBRETE 30 MINUTOS ANTES
 -- =========================================================================
 
 CREATE OR REPLACE FUNCTION enviar_lembretes_30_minutos()
@@ -484,7 +503,7 @@ BEGIN
             ';
 
             v_payload := jsonb_build_object(
-                'from', 'Black Diamond <onboarding@resend.dev>',
+                'from', 'Black Diamond <elberthmayan2007@gmail.com>',
                 'to', ARRAY[v_client_email],
                 'subject', 'Lembrete de Agendamento - Black Diamond Barber',
                 'html', v_html_body
@@ -514,7 +533,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- =========================================================================
--- 11. RESET SEMANAL AUTOMÁTICO
+-- 12. RESET SEMANAL AUTOMÁTICO
 -- =========================================================================
 
 CREATE OR REPLACE FUNCTION limpar_agendamentos_semana()
@@ -538,7 +557,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- =========================================================================
--- 12. CRON JOBS
+-- 13. CRON JOBS
 -- =========================================================================
 
 -- Lembrete: a cada 5 minutos
@@ -570,12 +589,269 @@ SELECT cron.schedule(
 );
 
 -- =========================================================================
--- 13. CRIAR USUÁRIO ADMIN
+-- 14. PUSH NOTIFICATIONS: DELETE SUBSCRIPTION
+-- =========================================================================
+
+CREATE OR REPLACE FUNCTION delete_push_subscription(p_endpoint text)
+RETURNS void AS $$
+BEGIN
+    DELETE FROM push_subscriptions WHERE endpoint = p_endpoint;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =========================================================================
+-- 15. PUSH NOTIFICATIONS: TRIGGER NOVO AGENDAMENTO
+-- =========================================================================
+
+CREATE OR REPLACE FUNCTION notificar_push_agendamento()
+RETURNS trigger AS $$
+DECLARE
+    v_client_name text;
+    v_service_names text;
+    v_date_formatted text;
+    v_time_formatted text;
+    v_payload text;
+    v_supabase_url text;
+    v_service_role_key text;
+BEGIN
+    IF NEW.is_blocked = TRUE THEN
+        RETURN NEW;
+    END IF;
+
+    SELECT c.name INTO v_client_name FROM clients c WHERE c.id = NEW.client_id;
+
+    SELECT string_agg(s.name, ', ') INTO v_service_names
+    FROM services s
+    WHERE s.id = ANY(NEW.service_ids);
+
+    v_date_formatted := to_char(NEW.booking_date, 'DD/MM/YYYY');
+    v_time_formatted := substring(NEW.booking_time::text from 1 for 5);
+
+    v_supabase_url := (SELECT value FROM secrets WHERE key = 'supabase_url');
+    v_service_role_key := (SELECT value FROM secrets WHERE key = 'supabase_service_role_key');
+
+    IF v_supabase_url IS NULL OR v_service_role_key IS NULL THEN
+        RETURN NEW;
+    END IF;
+
+    v_payload := jsonb_build_object(
+        'booking_id', NEW.id,
+        'client_name', COALESCE(v_client_name, 'Cliente'),
+        'service_names', COALESCE(v_service_names, 'Serviço'),
+        'booking_date', v_date_formatted,
+        'booking_time', v_time_formatted
+    )::text;
+
+    BEGIN
+        PERFORM status FROM http((
+            'POST',
+            v_supabase_url || '/functions/v1/send-push',
+            ARRAY[
+                http_header('Authorization', 'Bearer ' || v_service_role_key),
+                http_header('Content-Type', 'application/json')
+            ],
+            'application/json',
+            v_payload
+        )::http_request);
+    EXCEPTION WHEN OTHERS THEN
+        NULL;
+    END;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_notificar_push_agendamento ON bookings;
+CREATE TRIGGER trigger_notificar_push_agendamento
+AFTER INSERT ON bookings
+FOR EACH ROW
+EXECUTE FUNCTION notificar_push_agendamento();
+
+-- =========================================================================
+-- 16. PUSH NOTIFICATIONS: CLEANUP SUBSCRIPTIONS ANTIGAS
+-- =========================================================================
+
+CREATE OR REPLACE FUNCTION limpar_subscriptions_antigas()
+RETURNS void AS $$
+BEGIN
+    DELETE FROM push_subscriptions
+    WHERE created_at < NOW() - INTERVAL '90 days';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'limpar-push-subscriptions') THEN
+        PERFORM cron.unschedule('limpar-push-subscriptions');
+    END IF;
+END $$;
+
+SELECT cron.schedule(
+    'limpar-push-subscriptions',
+    '0 3 * * *',
+    $$ SELECT limpar_subscriptions_antigas() $$
+);
+
+-- =========================================================================
+-- 17. SECRETS DO SUPABASE (para a edge function)
+-- =========================================================================
+-- IMPORTANTE: Insira os secrets abaixo via SQL Editor OU pelo painel:
+-- Project Settings → Edge Functions → Secrets
+--
+-- Chaves necessárias:
+--   VAPID_PRIVATE_KEY = <chave_privada_vapid>
+--   VAPID_PUBLIC_KEY  = <chave_publica_vapid>
+--   VAPID_SUBJECT     = mailto:elberthmayan2007@gmail.com
+--
+-- Alternativamente, insira no banco (secrets table):
+INSERT INTO secrets (key, value) VALUES
+    ('supabase_url', 'https://dbukdhycfaibdshxnatt.supabase.co')
+ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
+
+-- O service_role_key NÃO deve ser armazenado no banco por segurança.
+-- Configure-o via: Project Settings → Edge Functions → Secrets
+-- Nome: SUPABASE_SERVICE_ROLE_KEY
+
+-- =========================================================================
+-- 18. CRIAR USUÁRIO ADMIN
 -- =========================================================================
 -- IMPORTANTE: Não crie via SQL. Use o painel do Supabase:
 -- 1. Authentication → Users → Add user
 -- 2. Email: elberthmayan2007@gmail.com
 -- 3. Defina uma senha
+
+-- =========================================================================
+-- 19. SISTEMA DE AVALIAÇÃO
+-- =========================================================================
+
+CREATE TABLE IF NOT EXISTS reviews (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE,
+    client_id UUID REFERENCES clients(id) ON DELETE CASCADE,
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Reviews leitura pública" ON reviews;
+CREATE POLICY "Reviews leitura pública" ON reviews FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Reviews inserção pública" ON reviews;
+CREATE POLICY "Reviews inserção pública" ON reviews FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Reviews admin gerencia" ON reviews;
+CREATE POLICY "Reviews admin gerencia" ON reviews FOR ALL TO authenticated
+USING (is_admin())
+WITH CHECK (is_admin());
+
+CREATE OR REPLACE FUNCTION get_average_rating()
+RETURNS jsonb AS $$
+DECLARE
+    v_result jsonb;
+BEGIN
+    SELECT jsonb_build_object(
+        'average', COALESCE(ROUND(AVG(rating)::numeric, 1), 0),
+        'total', COUNT(*)::integer
+    ) INTO v_result
+    FROM reviews;
+    RETURN v_result;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION get_top_reviews(p_limit integer DEFAULT 10)
+RETURNS TABLE(
+    id UUID,
+    client_name TEXT,
+    rating INTEGER,
+    comment TEXT,
+    created_at TIMESTAMPTZ
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT r.id, c.name, r.rating, r.comment, r.created_at
+    FROM reviews r
+    JOIN clients c ON c.id = r.client_id
+    WHERE r.rating >= 4
+    ORDER BY r.created_at DESC
+    LIMIT p_limit;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =========================================================================
+-- 20. AVALIAÇÃO: EMAIL PÓS-ATENDIMENTO
+-- =========================================================================
+
+CREATE OR REPLACE FUNCTION enviar_email_avaliacao()
+RETURNS trigger AS $$
+DECLARE
+    v_client_email text;
+    v_client_name text;
+    v_html_body text;
+    v_payload text;
+    v_resend_key text;
+BEGIN
+    IF NEW.status != 'completed' OR OLD.status = 'completed' THEN
+        RETURN NEW;
+    END IF;
+
+    v_resend_key := (SELECT value FROM secrets WHERE key = 'resend_api_key');
+
+    SELECT email, name INTO v_client_email, v_client_name
+    FROM clients WHERE id = NEW.client_id;
+
+    IF v_client_email IS NULL OR v_client_email = '' OR v_client_email NOT LIKE '%@%' THEN
+        RETURN NEW;
+    END IF;
+
+    v_html_body := '
+      <div style="font-family: sans-serif; background-color: #0A0A0A; color: #FFFFFF; padding: 30px; border-radius: 16px; max-width: 500px; margin: auto; border: 1px solid #C5A059;">
+        <h2 style="color: #C5A059; border-bottom: 1px solid #222; padding-bottom: 15px; text-transform: uppercase; text-align: center; margin-top: 0; font-size: 18px; font-weight: bold; letter-spacing: 1px;">Como foi seu atendimento? 💈</h2>
+        <p style="font-size: 13px; line-height: 1.6; color: #d4d4d8; text-align: left;">Fala, ' || split_part(v_client_name, ' ', 1) || '! Passando para saber como foi sua experiência no Black Diamond. Sua opinião é muito importante pra gente!</p>
+        <div style="text-align: center; margin: 25px 0;">
+          <a href="https://dbukdhycfaibdshxnatt.supabase.co/avaliar/' || NEW.id || '" style="display: inline-block; background-color: #C5A059; color: #0A0A0A; padding: 14px 30px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 14px; letter-spacing: 0.5px;">AVALIAR ATENDIMENTO</a>
+        </div>
+        <p style="font-size: 12px; color: #71717a; text-align: center; margin-top: 25px;">Obrigado pela preferência!</p>
+      </div>';
+
+    v_payload := jsonb_build_object(
+        'from', 'Black Diamond <elberthmayan2007@gmail.com>',
+        'to', ARRAY[v_client_email],
+        'subject', 'Como foi seu atendimento? - Black Diamond',
+        'html', v_html_body
+    )::text;
+
+    BEGIN
+        PERFORM status FROM http((
+            'POST',
+            'https://api.resend.com/emails',
+            ARRAY[
+                http_header('Authorization', 'Bearer ' || v_resend_key),
+                http_header('Content-Type', 'application/json')
+            ],
+            'application/json',
+            v_payload
+        )::http_request);
+    EXCEPTION WHEN OTHERS THEN
+        NULL;
+    END;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_enviar_email_avaliacao ON bookings;
+CREATE TRIGGER trigger_enviar_email_avaliacao
+AFTER UPDATE ON bookings
+FOR EACH ROW
+EXECUTE FUNCTION enviar_email_avaliacao();
+
+-- =========================================================================
+-- 21. GOOGLE CALENDAR: COLUNA NA TABELA BOOKINGS
+-- =========================================================================
+
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS google_event_id TEXT;
 
 -- =========================================================================
 -- PRONTO! Tudo configurado.

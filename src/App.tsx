@@ -1,10 +1,33 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import AuthGuard from './components/Admin/AuthGuard';
 import PwaGuard from './components/PwaGuard';
+import ErrorBoundary from './components/ErrorBoundary';
+
+const TITLES: Record<string, string> = {
+  '/': 'Black Diamond | Barbearia Premium',
+  '/agendar': 'Agendar Horário | Black Diamond',
+  '/admin': 'Painel Admin | Black Diamond',
+  '/admin/login': 'Login Admin | Black Diamond',
+  '/admin/agendar': 'Novo Agendamento | Black Diamond',
+  '/admin/weekly': 'Agenda Semanal | Black Diamond',
+  '/admin/clients': 'Clientes | Black Diamond',
+  '/admin/available': 'Horários Disponíveis | Black Diamond',
+  '/admin/profile': 'Perfil | Black Diamond',
+  '/admin/reset-password': 'Redefinir Senha | Black Diamond',
+};
+
+function TitleManager() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    document.title = TITLES[pathname] || 'Black Diamond';
+  }, [pathname]);
+  return null;
+}
 
 const Home = lazy(() => import('./pages/Home'));
 const BookingPage = lazy(() => import('./pages/BookingPage'));
+const RatingPage = lazy(() => import('./pages/RatingPage'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const AdminResetPassword = lazy(() => import('./pages/AdminResetPassword'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
@@ -26,11 +49,15 @@ function LoadingFallback() {
 function App() {
   return (
     <Router>
+      <a href="#main-content" className="skip-link">Pular para o conteúdo</a>
+      <TitleManager />
       <div className="min-h-screen bg-[#0f0f0f]">
+        <ErrorBoundary>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/" element={<PwaGuard><Home /></PwaGuard>} />
             <Route path="/agendar" element={<PwaGuard><BookingPage /></PwaGuard>} />
+            <Route path="/avaliar/:bookingId" element={<RatingPage />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/reset-password" element={<AdminResetPassword />} />
             
@@ -46,6 +73,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
+        </ErrorBoundary>
       </div>
     </Router>
   );

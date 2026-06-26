@@ -12,7 +12,7 @@ export const getServices = async (): Promise<Service[]> => {
   
   if (!data) return [];
   
-  // Deduplicate by name and filter out "Sobrancelha"
+  // Deduplicate by name
   const uniqueData: Service[] = [];
   const seenNames = new Set<string>();
   
@@ -61,7 +61,7 @@ export const getAvailableSlots = async (date: string) => {
     p_date: date
   });
   if (error) throw error;
-  return (data || []).map((item: { slot_time: string }) => item.slot_time.slice(0, 5));
+  return (data || []).map((item: { slot_time: string }) => (item?.slot_time ?? '').slice(0, 5));
 };
 
 export const getBookings = async (date?: string) => {
@@ -85,7 +85,7 @@ export const getBookings = async (date?: string) => {
   return data || [];
 };
 
-export const updateBookingStatus = async (id: string, status: string) => {
+export const updateBookingStatus = async (id: string, status: 'confirmed' | 'completed' | 'cancelled' | 'pending') => {
   const { error } = await supabase
     .from('bookings')
     .update({ status })
@@ -164,8 +164,29 @@ export const updateClientNotes = async (id: string, notes: string) => {
     .from('clients')
     .update({ notes })
     .eq('id', id);
-  
+
   if (error) throw error;
+};
+
+// Reviews
+export const submitReview = async (bookingId: string, clientId: string, rating: number, comment?: string) => {
+  const { error } = await supabase
+    .from('reviews')
+    .insert({ booking_id: bookingId, client_id: clientId, rating, comment: comment || null });
+
+  if (error) throw error;
+};
+
+export const getAverageRating = async () => {
+  const { data, error } = await supabase.rpc('get_average_rating');
+  if (error) throw error;
+  return data as { average: number; total: number };
+};
+
+export const getTopReviews = async (limit = 10) => {
+  const { data, error } = await supabase.rpc('get_top_reviews', { p_limit: limit });
+  if (error) throw error;
+  return data || [];
 };
 
 

@@ -58,8 +58,6 @@ export function usePushNotifications() {
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       })
 
-      setIsSubscribed(true)
-
       const subscriptionJson = subscription.toJSON()
       const endpoint = subscriptionJson.endpoint || ''
       const keys = subscriptionJson.keys as { p256dh?: string; auth?: string } | undefined
@@ -71,6 +69,7 @@ export function usePushNotifications() {
         p_auth: keys?.auth || '',
       })
 
+      setIsSubscribed(true)
       return true
     } catch (err) {
       console.error('Erro ao inscrever push:', err)
@@ -83,7 +82,10 @@ export function usePushNotifications() {
       const reg = await navigator.serviceWorker.ready
       const subscription = await reg.pushManager.getSubscription()
       if (subscription) {
+        const endpoint = subscription.endpoint
         await subscription.unsubscribe()
+        const { supabase } = await import('../lib/supabase')
+        await supabase.rpc('delete_push_subscription', { p_endpoint: endpoint })
         setIsSubscribed(false)
       }
     } catch (err) {

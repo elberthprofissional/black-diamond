@@ -442,11 +442,140 @@ Black Diamond/
 - Manutencao mensal (opcional)
 
 ### Proximos passos sugeridos
-- [ ] Notificacoes push via navegador
+- [x] Notificacoes push via navegador
 - [ ] API de WhatsApp (Evolution API) para lembretes automaticos
 - [ ] Grafico de faturamento mensal no dashboard
 - [ ] Integracao com Google Calendar
 
 ---
 
-*Documento gerado em Junho 2026. Versao do sistema: 2.0.1*
+## 15. Notificacoes Push (Web Push)
+
+### Visao Geral
+O sistema envia notificacoes push automaticamente ao criar um novo agendamento. O admin recebe a notificacao no celular/desktop mesmo com o app fechado.
+
+### Como funciona
+1. Admin ativa notificacoes em **Perfil > Notificar**
+2. O browser pede permissao e salva a subscription no Supabase
+3. Quando alguem agenda, o trigger `notificar_push_agendamento` dispara
+4. A edge function `send-push` envia a notificacao criptografada (VAPID) para todos os devices inscritos
+5. O service worker recebe o push e mostra a notificacao
+
+### Configuracao
+
+#### 1. Gerar chaves VAPID
+```bash
+npx web-push generate-vapid-keys
+```
+
+#### 2. Configurar `.env`
+```
+VITE_VAPID_PUBLIC_KEY=<chave_publica_gerada>
+```
+
+#### 3. Configurar secrets no Supabase (Edge Functions > Secrets)
+```
+VAPID_PRIVATE_KEY=<chave_privada_gerada>
+VAPID_PUBLIC_KEY=<chave_publica_gerada>
+VAPID_SUBJECT=mailto:elberthmayan2007@gmail.com
+SUPABASE_SERVICE_ROLE_KEY=<sua_service_role_key>
+```
+
+#### 4. Rodar SQL no Supabase Editor
+Execute as secoes 15, 16 e 17 do `estrutura_black_diamond.sql` para criar:
+- Funcao `delete_push_subscription`
+- Trigger `notificar_push_agendamento` (AFTER INSERT ON bookings)
+- Funcao `limpar_subscriptions_antigas` + cron diario
+- Secret `supabase_url` na tabela `secrets`
+
+#### 5. Deploy da edge function
+```bash
+supabase functions deploy send-push
+```
+
+### Arquivos envolvidos
+- `supabase/functions/send-push/index.ts` — Edge function que envia o push
+- `src/hooks/usePushNotifications.ts` — Hook React para subscribe/unsubscribe
+- `public/sw.js` — Service Worker que recebe e mostra a notificacao
+- `estrutura_black_diamond.sql` — Trigger, RPCs e cron jobs
+
+---
+
+## 16. Sistema de Avaliação
+
+### Visao Geral
+Após cada atendimento, o cliente recebe um email com link pra avaliar de 1 a 5 estrelas. Avaliações 4-5 redirecionam pro Google Maps.
+
+### Como funciona
+1. Admin clica "Concluir Atendimento"
+2. Trigger `enviar_email_avaliacao` envia email automaticamente
+3. Cliente abre `/avaliar/:bookingId` e avalia
+4. Avaliações ficam salvas na tabela `reviews`
+5. Dashboard mostra média de avaliação
+6. TestimonialsSlider usa avaliações reais
+
+### Configuracao
+Execute as secoes 19 e 20 do `estrutura_black_diamond.sql` para criar:
+- Tabela `reviews`
+- Funcoes `get_average_rating()` e `get_top_reviews()`
+- Trigger `enviar_email_avaliacao` (AFTER UPDATE ON bookings)
+
+### Importante: URL do link de avaliação
+O email usa `https://dbukdhycfaibdshxnatt.supabase.co/avaliar/:bookingId`. Para que funcione, configure no Supabase:
+- Authentication → URL Configuration → Redirect URLs: adicione `https://dbukdhycfaibdshxnatt.supabase.co/**`
+
+---
+
+## 17. Google Calendar Auto-Sync
+
+### Visao Geral
+Agendamentos são sincronizados automaticamente com o Google Calendar do barbeiro.
+
+### Como funciona
+1. Booking criado → cria evento no Google Calendar
+2. Booking cancelado → remove evento
+3. Booking reagendado → atualiza evento
+4. ID do evento salvo na coluna `google_event_id` da tabela bookings
+
+### Configuracao
+
+#### 1. Criar projeto no Google Cloud Console
+1. Acesse https://console.cloud.google.com
+2. Crie um novo projeto (ex: "Black Diamond Calendar")
+3. Ative a Google Calendar API
+
+#### 2. Criar OAuth 2.0 Credentials
+1. APIs & Services → Credentials → Create Credentials → OAuth 2.0 Client ID
+2. Application type: Web application
+3. Authorized redirect URIs: adicione `https://dbukdhycfaibdshxnatt.supabase.co/functions/v1/sync-google-calendar`
+4. Copie o Client ID e Client Secret
+
+#### 3. Obter Refresh Token
+1. Gere uma URL de autorização com seu Client ID
+2. Autorize uma vez (barbeiro clica no link)
+3. Copie o código de autorização
+4. Troque o código por refresh token usando a API OAuth
+5. Salve o refresh token
+
+#### 4. Configurar secrets no Supabase
+```bash
+supabase secrets set GOOGLE_CLIENT_ID=<seu_client_id>
+supabase secrets set GOOGLE_CLIENT_SECRET=<seu_client_secret>
+supabase secrets set GOOGLE_REFRESH_TOKEN=<seu_refresh_token>
+```
+
+#### 5. Rodar SQL
+Execute a secao 21 do `estrutura_black_diamond.sql` para adicionar a coluna `google_event_id` na tabela bookings.
+
+#### 6. Deploy da edge function
+```bash
+supabase functions deploy sync-google-calendar
+```
+
+### Arquivos envolvidos
+- `supabase/functions/sync-google-calendar/index.ts` — Edge function CRUD no Google Calendar
+- `estrutura_black_diamond.sql` — Coluna `google_event_id`
+
+---
+
+*Documento gerado em Junho 2026. Versao do sistema: 2.1.0*

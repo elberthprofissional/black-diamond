@@ -22,7 +22,6 @@ const AdminClients: React.FC = () => {
   const [clients, setClients] = useState<ClientWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [deletingClient, setDeletingClient] = useState<ClientWithStats | null>(null);
   const { toast, showSuccess, showError } = useToast();
   const [selectedClient, setSelectedClient] = useState<ClientWithStats | null>(null);
   const [panelBookings, setPanelBookings] = useState<BookingWithClient[]>([]);
@@ -155,7 +154,7 @@ const AdminClients: React.FC = () => {
         });
       enriched.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       setClients(enriched);
-    } catch (e) { console.error(e); } finally { setLoading(false); }
+    } catch { /* ignored */ } finally { setLoading(false); }
   };
 
   useEffect(() => {
@@ -164,7 +163,6 @@ const AdminClients: React.FC = () => {
 
   const filteredClients = clients.filter(c => {
     const matchSearch = (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.phone || '').includes(searchTerm);
-    const matchBookings = c.bookingsCount >= 2;
 
     let matchFilter = true;
     if (reminderFilter === 'pending') {
@@ -173,15 +171,14 @@ const AdminClients: React.FC = () => {
       matchFilter = !!c.upcomingBooking || isReminderRecent(c.id);
     }
 
-    return matchSearch && matchFilter && matchBookings;
+    return matchSearch && matchFilter;
   });
 
   const counts = useMemo(() => {
-    const eligible = clients.filter(c => c.bookingsCount >= 2);
     let pending = 0;
     let sent = 0;
 
-    eligible.forEach(c => {
+    clients.forEach(c => {
       if (c.upcomingBooking || isReminderRecent(c.id)) {
         sent++;
       } else {
@@ -190,7 +187,7 @@ const AdminClients: React.FC = () => {
     });
 
     return {
-      all: eligible.length,
+      all: clients.length,
       pending,
       sent
     };
@@ -397,9 +394,12 @@ const AdminClients: React.FC = () => {
                 {/* Mobile: list */}
                 <div className="lg:hidden space-y-1">
                   {filteredClients.map((client) => (
-                    <button
+                    <div
                       key={client.id}
                       onClick={() => openPanel(client)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openPanel(client); }}
                       aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`}
                       className="w-full flex items-center gap-3 py-3.5 px-4 rounded-xl cursor-pointer bg-white/[0.01] border border-white/[0.03] hover:bg-white/[0.03] transition-all group text-left"
                     >
@@ -437,16 +437,19 @@ const AdminClients: React.FC = () => {
                         )}
                         <ChevronRight size={14} className="text-zinc-600 shrink-0" />
                       </div>
-                    </button>
+                    </div>
                   ))}
                 </div>
 
                 {/* Desktop: cards */}
                 <div className="hidden lg:grid grid-cols-2 gap-3">
                   {filteredClients.map((client) => (
-                    <button
+                    <div
                       key={client.id}
                       onClick={() => openPanel(client)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openPanel(client); }}
                       aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`}
                       className="w-full flex items-center gap-4 p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all cursor-pointer group text-left"
                     >
@@ -487,7 +490,7 @@ const AdminClients: React.FC = () => {
                         )}
                         <ChevronRight size={14} className="text-zinc-600 group-hover:text-zinc-400 transition-colors shrink-0" />
                       </div>
-                    </button>
+                    </div>
                   ))}
                 </div>
               </>
@@ -615,26 +618,6 @@ const AdminClients: React.FC = () => {
                     )}
                   </AnimatePresence>
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* DELETE LIST MODAL */}
-      <AnimatePresence>
-        {deletingClient && (
-          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center sm:p-6">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDeletingClient(null)} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-            <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 30, stiffness: 300 }} className="relative z-10 w-full sm:max-w-sm bg-[#161618] sm:rounded-2xl rounded-t-2xl p-6 space-y-5">
-              <div className="flex justify-center"><div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-400"><Trash2 size={20} /></div></div>
-              <div className="text-center space-y-1">
-                <h3 className="text-base font-bold text-white">Excluir Cliente</h3>
-                <p className="text-sm text-zinc-500 leading-relaxed">Tem certeza? Os agendamentos de <span className="text-white font-semibold">{deletingClient.name}</span> também serão removidos.</p>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={async () => { try { await deleteClient(deletingClient.id); setDeletingClient(null); loadData(); showSuccess('Cliente excluído!'); } catch { showError('Erro ao excluir.'); } }} className="flex-1 h-11 bg-red-500 hover:bg-red-600 text-white font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all cursor-pointer">Excluir</button>
-                <button onClick={() => setDeletingClient(null)} className="flex-1 h-11 bg-white/[0.04] border border-white/[0.06] text-zinc-300 font-bold text-[10px] uppercase tracking-widest rounded-xl hover:bg-white/[0.07] transition-all cursor-pointer">Cancelar</button>
               </div>
             </motion.div>
           </div>

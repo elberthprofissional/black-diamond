@@ -47,3 +47,16 @@ export interface ClientWithStats extends Client {
   upcomingBooking?: { date: string; time: string } | null;
 }
 
+export interface Review {
+  id: string;
+  booking_id: string;
+  client_id: string;
+  rating: number;
+  comment?: string;
+  created_at: string;
+}
+
+export interface ReviewWithClient extends Review {
+  client_name: string;
+}
+

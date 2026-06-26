@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { updateBookingStatus, deleteBooking, getAvailableSlots, createBooking, getBookings } from '../lib/api';
+import { updateBookingStatus, deleteBooking, getAvailableSlots } from '../lib/api';
 import { getLocalDateString } from '../lib/utils';
 import { useToast } from '../hooks/useToast';
 import { useServices } from '../hooks/useServices';
 import { useBookings } from '../hooks/useBookings';
 import { useSlotBlocking } from '../hooks/useSlotBlocking';
+import { useReschedule } from '../hooks/useReschedule';
 import AdminLayout from '../components/Admin/AdminLayout';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
 import UnblockModal from '../components/Admin/shared/UnblockModal';
@@ -18,7 +19,7 @@ import BookingDetailPanel from '../components/Admin/shared/BookingDetailPanel';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 
-import type { BookingWithClient, Service, Booking } from '../types';
+import type { BookingWithClient } from '../types';
 
 const AdminDashboard: React.FC = () => {
   const selectedDate = getLocalDateString();
@@ -49,90 +50,42 @@ const AdminDashboard: React.FC = () => {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Rescheduling states
-  const [isRescheduling, setIsRescheduling] = useState(false);
-  const [rescheduleServices, setRescheduleServices] = useState<Service[]>([]);
-  const [rescheduleDate, setRescheduleDate] = useState('');
-  const [rescheduleTime, setRescheduleTime] = useState('');
-  const [existingBookingsForReschedule, setExistingBookingsForReschedule] = useState<Booking[]>([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
-  const [isSavingReschedule, setIsSavingReschedule] = useState(false);
-  const [rescheduleStep, setRescheduleStep] = useState(1);
-
-  const loadRescheduleSlots = async (date: string) => {
-    setLoadingSlots(true);
-    try {
-      const data = await getBookings(date);
-      setExistingBookingsForReschedule(data || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingSlots(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!isRescheduling || !rescheduleDate) return;
-    void loadRescheduleSlots(rescheduleDate);
-  }, [rescheduleDate, isRescheduling]);
-
-  const handleStartReschedule = () => {
-    if (!selectedBooking) return;
-    const initialServices = services.filter(s => selectedBooking.service_ids?.includes(s.id));
-    setRescheduleServices(initialServices);
-    setRescheduleDate(selectedBooking.booking_date);
-    setRescheduleTime(selectedBooking.booking_time.slice(0, 5));
-    setRescheduleStep(1);
-    setIsRescheduling(true);
-  };
+  const {
+    isRescheduling,
+    rescheduleServices, setRescheduleServices,
+    rescheduleDate, setRescheduleDate,
+    rescheduleTime, setRescheduleTime,
+    existingBookings: existingBookingsForReschedule,
+    loadingSlots,
+    isSaving: isSavingReschedule,
+    rescheduleStep, setRescheduleStep,
+    startReschedule: handleStartReschedule,
+    confirmReschedule: handleConfirmRescheduleRaw,
+    cancelReschedule,
+  } = useReschedule(
+    selectedBooking,
+    services,
+    () => { showSuccess('Agendamento reagendado com sucesso!'); loadData(); },
+    () => { setSelectedBooking(null); },
+    showError
+  );
 
   const handleConfirmReschedule = async () => {
-    if (!selectedBooking || rescheduleServices.length === 0 || !rescheduleDate || !rescheduleTime) return;
-    setIsSavingReschedule(true);
-    try {
-      await deleteBooking(selectedBooking.id);
-      
-      const totalPrice = rescheduleServices.reduce((sum, s) => sum + Number(s.price || 0), 0);
-      const totalDuration = rescheduleServices.reduce((sum, s) => sum + (s.duration || 0), 0);
-
-      await createBooking(
-        {
-          service_ids: rescheduleServices.map(s => s.id),
-          booking_date: rescheduleDate,
-          booking_time: rescheduleTime,
-          total_price: totalPrice,
-          total_duration: totalDuration
-        },
-        {
-          name: selectedBooking.clients?.name || '',
-          phone: selectedBooking.clients?.phone || ''
-        }
-      );
-
-      showSuccess('Agendamento reagendado com sucesso!');
-      setSelectedBooking(null);
-      setIsRescheduling(false);
-      await loadData();
-    } catch (err) {
-      showError('Erro ao reagendar.');
-      console.error(err);
-    } finally {
-      setIsSavingReschedule(false);
-    }
+    await handleConfirmRescheduleRaw();
   };
 
   useEffect(() => {
+    let active = true;
     const loadAvailableSlots = async () => {
       try {
         const slots = await getAvailableSlots(selectedDate);
-        setAvailableSlots(slots);
-      } catch (error) {
-        console.error(error);
-        // Fallback para slots padrão
-        setAvailableSlots(['08:30', '09:30', '10:30', '11:30', '13:30', '14:30', '15:30', '16:30', '17:30', '18:30']);
+        if (active) setAvailableSlots(slots);
+      } catch {
+        if (active) setAvailableSlots(['08:30', '09:30', '10:30', '11:30', '13:30', '14:30', '15:30', '16:30', '17:30', '18:30']);
       }
     };
     loadAvailableSlots();
+    return () => { active = false; };
   }, [selectedDate]);
 
   const handleComplete = async () => {
@@ -207,7 +160,7 @@ const AdminDashboard: React.FC = () => {
                     <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em]">Próximo Cliente</span>
                     {nextBooking ? (
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-black text-white uppercase tracking-tight truncate">{nextBooking.clients?.name.split(' ')[0]}</span>
+                        <span className="text-sm font-black text-white uppercase tracking-tight truncate">{nextBooking.clients?.name?.split(' ')[0] ?? ''}</span>
                         <span className="text-xs font-bold text-[#C5A059] tabular-nums">{nextBooking.booking_time.slice(0, 5)}</span>
                       </div>
                     ) : (
@@ -388,7 +341,7 @@ const AdminDashboard: React.FC = () => {
                   loadingSlots={loadingSlots}
                   isSaving={isSavingReschedule}
                   onConfirm={handleConfirmReschedule}
-                  onClose={() => { setSelectedBooking(null); setIsRescheduling(false); setRescheduleStep(1); }}
+                  onClose={() => { setSelectedBooking(null); cancelReschedule(); }}
                 />
               ) : (
                 <BookingDetailPanel
@@ -460,7 +413,7 @@ const AdminDashboard: React.FC = () => {
                   loadingSlots={loadingSlots}
                   isSaving={isSavingReschedule}
                   onConfirm={handleConfirmReschedule}
-                  onClose={() => { setSelectedBooking(null); setIsRescheduling(false); setRescheduleStep(1); }}
+                  onClose={() => { setSelectedBooking(null); cancelReschedule(); }}
                 />
               ) : (
                 <BookingDetailPanel

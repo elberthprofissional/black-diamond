@@ -1,6 +1,6 @@
 {
-  "name": "Black Diamond Admin",
-  "short_name": "BD Admin",
+  "name": "Black Diamond",
+  "short_name": "Black Diamond",
   "id": "black-diamond-admin-pwa",
   "description": "Painel administrativo da Black Diamond Barbearia.",
   "start_url": "/admin/login",

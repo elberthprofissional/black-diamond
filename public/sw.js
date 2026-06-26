@@ -1,4 +1,4 @@
-const CACHE_NAME = 'black-diamond-v1';
+const CACHE_NAME = 'black-diamond-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -7,6 +7,7 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (e) => {
+  self.skipWaiting();
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS).catch((err) => {
@@ -17,6 +18,7 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('activate', (e) => {
+  self.clients.claim();
   e.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(

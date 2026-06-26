@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getBookings, getServices, getClients } from '../lib/api';
+import { getBookings, getServices, getClients, getAverageRating } from '../lib/api';
 import type { Booking, Service, Client } from '../types';
 import { 
   Download, 
@@ -16,7 +16,8 @@ import {
   DollarSign,
   UserPlus,
   Camera,
-  Bell
+  Bell,
+  Star
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
@@ -37,6 +38,7 @@ const AdminProfile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'week' | 'month'>('week');
   const [showBalance, setShowBalance] = useState(() => localStorage.getItem('barber_show_balance') !== 'false');
+  const [ratingData, setRatingData] = useState<{ average: number; total: number }>({ average: 0, total: 0 });
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
@@ -82,9 +84,9 @@ const AdminProfile: React.FC = () => {
         setBookings(bookingsData || []);
         setServices(servicesData || []);
         setClients(clientsData || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
+        const rating = await getAverageRating();
+        setRatingData(rating);
+      } catch { /* ignored */ } finally {
         setLoading(false);
       }
     };
@@ -337,6 +339,14 @@ const AdminProfile: React.FC = () => {
             <div>
               <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">Clientes</span>
               <p className="text-xl font-black text-white tracking-tight tabular-nums">{currentNovos}</p>
+            </div>
+          </div>
+          <div className="col-span-1 bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
+            <Star size={22} className="text-[#C5A059]/30" />
+            <div>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">Avaliação</span>
+              <p className="text-xl font-black text-[#C5A059] tracking-tight tabular-nums">{ratingData.average > 0 ? ratingData.average.toFixed(1) : '—'}</p>
+              <span className="text-[7px] text-zinc-600">{ratingData.total} avaliações</span>
             </div>
           </div>
         </div>
