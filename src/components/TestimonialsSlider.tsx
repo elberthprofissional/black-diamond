@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import { User, Star } from 'lucide-react';
 
 const reviews = [
@@ -13,6 +13,36 @@ const reviews = [
 const GOOGLE_REVIEWS_URL = "https://share.google/5PpJUdD3F13WDI6Ux";
 
 const Testimonials: React.FC = () => {
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (!sliderRef.current) return;
+    isDragging.current = true;
+    startX.current = e.pageX - sliderRef.current.offsetLeft;
+    scrollLeft.current = sliderRef.current.scrollLeft;
+    sliderRef.current.style.cursor = 'grabbing';
+    sliderRef.current.style.userSelect = 'none';
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging.current || !sliderRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - sliderRef.current.offsetLeft;
+    const walk = (x - startX.current) * 1.5;
+    sliderRef.current.scrollLeft = scrollLeft.current - walk;
+  }, []);
+
+  const handleMouseUp = useCallback(() => {
+    isDragging.current = false;
+    if (sliderRef.current) {
+      sliderRef.current.style.cursor = 'grab';
+      sliderRef.current.style.userSelect = '';
+    }
+  }, []);
+
   return (
     <section id="depoimentos" className="py-20 md:py-40 bg-[#141414] text-white overflow-hidden">
       <div className="container mx-auto px-6">
@@ -34,7 +64,12 @@ const Testimonials: React.FC = () => {
 
         {/* Cards Slider */}
         <div
-          className="flex gap-5 mb-12 items-stretch overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 scroll-smooth"
+          ref={sliderRef}
+          className="flex gap-5 mb-12 items-stretch overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 scroll-smooth cursor-grab"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
           onWheel={(e) => {
             if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
               e.currentTarget.scrollLeft += e.deltaY;
