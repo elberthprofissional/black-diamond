@@ -103,7 +103,9 @@ const AdminProfile: React.FC = () => {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay());
+  const dayOfWeek = now.getDay();
+  const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  startOfWeek.setDate(now.getDate() - diffToMonday);
   startOfWeek.setHours(0, 0, 0, 0);
 
   let lucroTotal = 0;
@@ -118,7 +120,8 @@ const AdminProfile: React.FC = () => {
 
   (bookings || []).forEach(b => {
     if (!b || !b.booking_date) return;
-    const date = new Date(b.booking_date);
+    const parts = b.booking_date.split('-');
+    const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
     if (isNaN(date.getTime())) return;
 
     const price = Number(b.total_price || 0);
@@ -165,15 +168,15 @@ const AdminProfile: React.FC = () => {
   const clientesNovosMes = (clients || []).filter(c => {
     if (!c || !c.created_at) return false;
     if (c.name === 'BLOQUEADO' || c.phone === '00000000000') return false;
-    const date = new Date(c.created_at);
-    return !isNaN(date.getTime()) && date >= startOfMonth;
+    const d = new Date(c.created_at);
+    return !isNaN(d.getTime()) && d >= startOfMonth;
   }).length;
 
   const clientesNovosSemana = (clients || []).filter(c => {
     if (!c || !c.created_at) return false;
     if (c.name === 'BLOQUEADO' || c.phone === '00000000000') return false;
-    const date = new Date(c.created_at);
-    return !isNaN(date.getTime()) && date >= startOfWeek;
+    const d = new Date(c.created_at);
+    return !isNaN(d.getTime()) && d >= startOfWeek;
   }).length;
   const currentNovos = timeRange === 'week' ? clientesNovosSemana : clientesNovosMes;
 
