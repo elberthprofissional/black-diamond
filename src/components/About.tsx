@@ -20,8 +20,8 @@ const About: React.FC = () => {
 
               {/* Barber Photo - Mobile */}
               <div className="w-full lg:hidden relative">
-                <div className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl">
-                  <img src="/assets/barbeiro.webp" alt="Tato - Barbeiro" className="w-full h-full object-cover" loading="lazy" />
+                <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl">
+                  <img src="/assets/barbeiro.webp" alt="Tato - Barbeiro" className="w-full h-full object-cover object-top" loading="lazy" />
                 </div>
               </div>
               
@@ -41,7 +41,7 @@ const About: React.FC = () => {
             {/* Barber Photo - Desktop */}
             <div className="hidden lg:block w-full lg:w-1/2 relative">
               <div className="relative aspect-[3/4] rounded-3xl overflow-hidden border border-white/[0.05] shadow-2xl">
-                <img src="/assets/barbeiro.webp" alt="Tato - Barbeiro" className="w-full h-full object-cover" loading="lazy" />
+                <img src="/assets/barbeiro.webp" alt="Tato - Barbeiro" className="w-full h-full object-cover object-top" loading="lazy" />
               </div>
               <div className="absolute -bottom-8 -right-8 w-32 h-px bg-[#C5A059]/30" />
             </div>
