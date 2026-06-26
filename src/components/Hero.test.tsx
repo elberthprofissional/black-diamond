@@ -38,6 +38,6 @@ describe('Hero', () => {
     renderWithRouter(<Hero onBookingClick={vi.fn()} />)
     const img = screen.getByAltText('Black Diamond')
     expect(img).toBeInTheDocument()
-    expect(img).toHaveAttribute('src', '/assets/fundo-inicial.webp')
+    expect(img).toHaveAttribute('src', '/assets/hero-bg.webp')
   })
 })

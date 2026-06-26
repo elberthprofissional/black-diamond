@@ -277,7 +277,7 @@ const AdminProfile: React.FC = () => {
         <div className="flex items-center gap-4 py-2 border-b border-white/5 pb-5">
           <div className="relative shrink-0">
             <div className="w-16 h-16 rounded-full border border-white/10 overflow-hidden">
-              <img src="/assets/barbeiro.webp" alt="Tato" className="w-full h-full object-cover" />
+              <img src="/assets/tato.webp" alt="Tato" className="w-full h-full object-cover" />
             </div>
             <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-[#0A0A0A] rounded-full" />
           </div>
@@ -385,7 +385,7 @@ const AdminProfile: React.FC = () => {
           
           <div className="flex items-center justify-between">
             <div className="w-12 h-12 rounded-full border border-white/[0.08] overflow-hidden shrink-0">
-              <img src="/assets/barbeiro.webp" alt="Tato" className="w-full h-full object-cover" />
+              <img src="/assets/tato.webp" alt="Tato" className="w-full h-full object-cover" />
             </div>
             <div className="flex items-center gap-3">
               <button 

@@ -10,7 +10,7 @@ const Hero: React.FC<HeroProps> = ({ onBookingClick }) => {
       {/* Background Image with Asymmetrical Overlay */}
       <div className="absolute inset-0 z-0">
         <img
-          src="/assets/fundo.webp"
+          src="/assets/hero-bg.webp"
           alt="Black Diamond"
           loading="lazy"
           decoding="async"

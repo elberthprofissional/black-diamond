@@ -94,7 +94,7 @@ const AdminSidebar: React.FC = () => {
             }`}
           >
             <div className="w-9 h-9 rounded-lg border border-white/5 overflow-hidden flex-shrink-0">
-              <img src="/assets/barbeiro.webp" alt="Tato" className="w-full h-full object-cover" />
+              <img src="/assets/tato.webp" alt="Tato" className="w-full h-full object-cover" />
             </div>
             <div className="text-left flex-1 min-w-0">
               <p className="text-[11px] font-bold text-white truncate">Tato</p>

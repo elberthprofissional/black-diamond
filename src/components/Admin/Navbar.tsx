@@ -50,7 +50,7 @@ const AdminNavbar: React.FC = () => {
           <div className="relative">
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center gap-2 group">
               <div className="w-8 h-8 rounded-full border border-white/[0.08] group-hover:border-[#C5A059]/30 transition-all overflow-hidden">
-                <img src="/assets/barbeiro.webp" alt="Tato" className="w-full h-full object-cover" />
+                <img src="/assets/tato.webp" alt="Tato" className="w-full h-full object-cover" />
               </div>
               <ChevronDown size={10} className={`text-zinc-600 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`} />
             </button>
