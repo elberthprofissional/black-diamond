@@ -75,8 +75,12 @@ const Footer: React.FC = () => {
             <h4 className="text-white font-bebas text-base md:text-lg tracking-widest uppercase">Atendimento</h4>
             <div className="space-y-2">
               <div className="flex flex-col">
-                <span className="text-[#D4AF37] font-bebas text-[12px] md:text-sm tracking-wider uppercase">Segunda - Sábado</span>
-                <span className="text-zinc-400 font-roboto font-light text-xs md:text-sm">08:30 às 19:00</span>
+                <span className="text-[#D4AF37] font-bebas text-[12px] md:text-sm tracking-wider uppercase">Seg - Sex</span>
+                <span className="text-zinc-400 font-roboto font-light text-xs md:text-sm">08:30 - 19:00</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[#D4AF37] font-bebas text-[12px] md:text-sm tracking-wider uppercase">Sábado</span>
+                <span className="text-zinc-400 font-roboto font-light text-xs md:text-sm">08:00 - 18:00</span>
               </div>
             </div>
           </div>
