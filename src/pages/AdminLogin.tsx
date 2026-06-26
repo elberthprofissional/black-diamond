@@ -143,9 +143,11 @@ const AdminLogin: React.FC = () => {
           transition={{ duration: 2, ease: "easeOut" }}
           className="absolute inset-0"
         >
-          <img 
+          <img
             src="/assets/login.webp"
-            alt="Barbershop" 
+            alt="Barbershop"
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover grayscale opacity-20"
           />
         </motion.div>
@@ -177,9 +179,11 @@ const AdminLogin: React.FC = () => {
       <div className="flex-1 h-full flex flex-col items-center justify-center p-6 md:p-12 lg:p-24 relative bg-[#0A0A0A] sm:bg-[#121212]">
         
         <div className="absolute inset-0 hidden md:block lg:hidden overflow-hidden">
-          <img 
+          <img
             src="/assets/login.webp"
-            alt="Background" 
+            alt="Background"
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover grayscale opacity-10"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] via-[#0A0A0A]/80 to-[#0A0A0A]" />

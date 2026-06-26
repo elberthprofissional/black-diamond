@@ -1,5 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { MotionConfig } from 'framer-motion';
+import { useReducedMotion } from './hooks/useReducedMotion';
 import AuthGuard from './components/Admin/AuthGuard';
 import PwaGuard from './components/PwaGuard';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -47,8 +49,10 @@ function LoadingFallback() {
 }
 
 function App() {
+  const reducedMotion = useReducedMotion();
   return (
     <Router>
+      <MotionConfig reducedMotion={reducedMotion ? 'always' : 'never'}>
       <a href="#main-content" className="skip-link">Pular para o conteúdo</a>
       <TitleManager />
       <div className="min-h-screen bg-[#0f0f0f]">
@@ -60,7 +64,7 @@ function App() {
             <Route path="/avaliar/:bookingId" element={<RatingPage />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/reset-password" element={<AdminResetPassword />} />
-            
+
             {/* Protected Admin Routes */}
             <Route path="/admin" element={<AuthGuard><AdminDashboard /></AuthGuard>} />
             <Route path="/admin/agendar" element={<AuthGuard><AdminBooking /></AuthGuard>} />
@@ -68,13 +72,14 @@ function App() {
             <Route path="/admin/clients" element={<AuthGuard><AdminClients /></AuthGuard>} />
             <Route path="/admin/available" element={<AuthGuard><AdminAvailableSlots /></AuthGuard>} />
             <Route path="/admin/profile" element={<AuthGuard><AdminProfile /></AuthGuard>} />
-            
+
             {/* Catch-all 404 Route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
         </ErrorBoundary>
       </div>
+      </MotionConfig>
     </Router>
   );
 }

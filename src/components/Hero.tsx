@@ -9,9 +9,11 @@ const Hero: React.FC<HeroProps> = ({ onBookingClick }) => {
     <section id="home" className="relative min-h-[90vh] md:min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Asymmetrical Overlay */}
       <div className="absolute inset-0 z-0">
-        <img 
+        <img
           src="/assets/fundo-inicial.webp"
-          alt="Black Diamond" 
+          alt="Black Diamond"
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover opacity-50"
         />
         {/* Escurece o lado esquerdo intensamente e deixa o direito mais limpo */}
