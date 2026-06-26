@@ -131,9 +131,10 @@ export const getClients = async () => {
 };
 
 export const deleteClient = async (id: string) => {
+  const deletedPhone = `0000000000${Date.now().toString().slice(-6)}`;
   const { error } = await supabase
     .from('clients')
-    .update({ name: 'CLIENTE_EXCLUIDO', phone: '00000000000' })
+    .update({ name: 'CLIENTE_EXCLUIDO', phone: deletedPhone })
     .eq('id', id);
 
   if (error) throw error;
