@@ -53,7 +53,7 @@ function App() {
   return (
     <Router>
       <MotionConfig reducedMotion={reducedMotion ? 'always' : 'never'}>
-      <a href="#main-content" className="skip-link">Pular para o conteúdo</a>
+      <a href="#main-content" className="skip-link" tabIndex={-1} aria-hidden="true">Pular para o conteúdo</a>
       <TitleManager />
       <div className="min-h-screen bg-[#0f0f0f]">
         <ErrorBoundary>

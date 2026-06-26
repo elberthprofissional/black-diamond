@@ -22,9 +22,39 @@
   body {
     @apply bg-[#0f0f0f] text-white font-sans antialiased selection:bg-gold-600 selection:text-white overflow-x-hidden;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-sans tracking-tight;
+  }
+
+  /* Skip navigation link - only visible on focus */
+  .skip-link {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    z-index: 9999;
+    padding: 1rem 1.5rem;
+    background: #C5A059;
+    color: #000;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    transition: top 0.2s;
+  }
+  .skip-link:focus {
+    top: 0;
+  }
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -80,6 +110,9 @@
 
 /* Custom tuning for installed PWA standalone mode (keeps layout compact on tall screens) */
 @media (display-mode: standalone) {
+  .skip-link {
+    display: none !important;
+  }
   /* Reduce excessive vertical paddings for mobile viewports */
   .lg\:hidden .py-24, 
   .lg\:hidden .py-20, 
