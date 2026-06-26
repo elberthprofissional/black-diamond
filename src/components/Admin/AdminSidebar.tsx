@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Users, ChevronDown, User, LogOut, Clock, Camera } from 'lucide-react';
+import { Calendar, Users, ChevronDown, User, LogOut, Clock } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
  
 const AdminSidebar: React.FC = () => {

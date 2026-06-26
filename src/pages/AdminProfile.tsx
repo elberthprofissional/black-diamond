@@ -15,7 +15,6 @@ import {
   Scissors,
   DollarSign,
   UserPlus,
-  Camera,
   Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

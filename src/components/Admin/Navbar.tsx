@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, User, LogOut, Camera } from 'lucide-react';
+import { ChevronDown, User, LogOut } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
  
 const AdminNavbar: React.FC = () => {
