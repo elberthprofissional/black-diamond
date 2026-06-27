@@ -224,7 +224,7 @@ const AdminLogin: React.FC = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-6 text-sm font-medium outline-none focus:border-[#C5A059]/30 transition-all lg:bg-transparent lg:border-0 lg:border-b lg:border-white/10 lg:rounded-none lg:px-0 lg:h-12 lg:font-light lg:text-lg lg:focus:border-[#C5A059] placeholder:text-zinc-700 lg:placeholder:text-zinc-800"
+                    className="w-full h-14 bg-[#1a1a1a] border border-white/[0.08] rounded-2xl px-6 text-sm font-medium text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-all placeholder:text-zinc-600 lg:h-12 lg:font-light lg:text-lg"
                     placeholder="seu@email.com"
                     required
                   />
@@ -241,7 +241,7 @@ const AdminLogin: React.FC = () => {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-6 pr-14 text-sm font-medium outline-none focus:border-[#C5A059]/30 transition-all lg:bg-transparent lg:border-0 lg:border-b lg:border-white/10 lg:rounded-none lg:px-0 lg:pr-10 lg:h-12 lg:font-light lg:text-lg lg:focus:border-[#C5A059] placeholder:text-zinc-700 lg:placeholder:text-zinc-800"
+                    className="w-full h-14 bg-[#1a1a1a] border border-white/[0.08] rounded-2xl px-6 pr-14 text-sm font-medium text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-all placeholder:text-zinc-600 lg:h-12 lg:font-light lg:text-lg"
                     placeholder="••••••••"
                     required
                   />
@@ -250,7 +250,7 @@ const AdminLogin: React.FC = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                     aria-pressed={showPassword}
-                    className="absolute right-6 lg:right-0 top-1/2 -translate-y-1/2 text-zinc-700 hover:text-white transition-colors"
+                    className="absolute right-6 lg:right-4 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white transition-colors"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>

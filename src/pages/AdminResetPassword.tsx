@@ -190,7 +190,7 @@ const AdminResetPassword: React.FC = () => {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-6 pr-14 text-sm font-medium outline-none focus:border-[#C5A059]/30 transition-all lg:bg-white/[0.03] lg:border-white/10 lg:border lg:rounded-xl lg:px-5 lg:pr-14 lg:h-14 lg:font-light lg:text-base lg:focus:border-[#C5A059]/50 lg:focus:bg-white/[0.05] placeholder:text-zinc-700 lg:placeholder:text-zinc-600"
+                    className="w-full h-14 bg-[#1a1a1a] border border-white/[0.08] rounded-2xl px-6 pr-14 text-sm font-medium text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-all placeholder:text-zinc-600 lg:h-14 lg:font-light lg:text-base"
                     placeholder="Mínimo 6 caracteres"
                     required
                   />
@@ -199,7 +199,7 @@ const AdminResetPassword: React.FC = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                     aria-pressed={showPassword}
-                    className="absolute right-5 lg:right-4 top-1/2 -translate-y-1/2 text-zinc-700 hover:text-white transition-colors"
+                    className="absolute right-5 lg:right-4 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white transition-colors"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -215,7 +215,7 @@ const AdminResetPassword: React.FC = () => {
                     type={showPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-6 pr-14 text-sm font-medium outline-none focus:border-[#C5A059]/30 transition-all lg:bg-white/[0.03] lg:border-white/10 lg:border lg:rounded-xl lg:px-5 lg:pr-14 lg:h-14 lg:font-light lg:text-base lg:focus:border-[#C5A059]/50 lg:focus:bg-white/[0.05] placeholder:text-zinc-700 lg:placeholder:text-zinc-600"
+                    className="w-full h-14 bg-[#1a1a1a] border border-white/[0.08] rounded-2xl px-6 pr-14 text-sm font-medium text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-all placeholder:text-zinc-600 lg:h-14 lg:font-light lg:text-base"
                     placeholder="Repita a nova senha"
                     required
                   />
@@ -224,7 +224,7 @@ const AdminResetPassword: React.FC = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                     aria-pressed={showPassword}
-                    className="absolute right-5 lg:right-4 top-1/2 -translate-y-1/2 text-zinc-700 hover:text-white transition-colors"
+                    className="absolute right-5 lg:right-4 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white transition-colors"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
