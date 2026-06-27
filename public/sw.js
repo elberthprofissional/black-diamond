@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v5';
+const CACHE_VERSION = 'v6';
 const API_CACHE = 'api-v1';
 
 self.addEventListener('install', (e) => {
@@ -9,7 +9,7 @@ self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.filter((key) => key !== API_CACHE && !key.startsWith(CACHE_VERSION)).map((key) => caches.delete(key))
+        keys.map((key) => caches.delete(key))
       );
     }).then(() => self.clients.claim())
   );
@@ -28,15 +28,16 @@ self.addEventListener('fetch', (e) => {
 
   if (url.pathname.startsWith('/assets/') || url.pathname.endsWith('.webp') || url.pathname.endsWith('.woff2')) {
     e.respondWith(
-      caches.match(e.request).then((cached) => {
-        const fetched = fetch(e.request).then((response) => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_VERSION).then((cache) => cache.put(e.request, clone));
-          }
-          return response;
-        }).catch(() => cached);
-        return cached || fetched;
+      caches.open(CACHE_VERSION).then((cache) => {
+        return cache.match(e.request).then((cached) => {
+          if (cached) return cached;
+          return fetch(e.request).then((response) => {
+            if (response.ok) {
+              cache.put(e.request, response.clone());
+            }
+            return response;
+          });
+        });
       })
     );
     return;
@@ -48,8 +49,7 @@ self.addEventListener('fetch', (e) => {
         return cache.match(e.request).then((cached) => {
           const fetched = fetch(e.request).then((response) => {
             if (response.ok) {
-              const clone = response.clone();
-              cache.put(e.request, clone);
+              cache.put(e.request, response.clone());
             }
             return response;
           }).catch(() => cached);
