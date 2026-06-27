@@ -746,18 +746,13 @@ const AdminBooking: React.FC = () => {
 
         <BookingSearchModal
           isOpen={isSearchOpen}
-          onClose={() => { setIsSearchOpen(false); setMultipleMatches([]); }}
+          onClose={() => { setIsSearchOpen(false); }}
           onSelectClient={(client) => {
             setSelectedClient(client);
-            setMultipleMatches([]);
             setIsSearchOpen(false);
             setIsManualEntry(false);
           }}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          multipleMatches={multipleMatches}
-          isSearchingClient={isSearchingClient}
-          onSearch={handleSearch}
+          clients={clients}
         />
       </AdminLayout>
     );
@@ -1607,18 +1602,13 @@ const AdminBooking: React.FC = () => {
       {/* SEARCH CLIENT MODAL */}
       <BookingSearchModal
         isOpen={isSearchOpen}
-        onClose={() => { setIsSearchOpen(false); setMultipleMatches([]); }}
+        onClose={() => { setIsSearchOpen(false); }}
         onSelectClient={(client) => {
           setSelectedClient(client);
-          setMultipleMatches([]);
           setIsSearchOpen(false);
           setIsManualEntry(false);
         }}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        multipleMatches={multipleMatches}
-        isSearchingClient={isSearchingClient}
-        onSearch={handleSearch}
+        clients={clients}
       />
 
       <BottomTabs />
