@@ -28,7 +28,6 @@ const AdminClients: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
-  const [editEmail, setEditEmail] = useState('');
   const [saving, setSaving] = useState(false);
   const [notesText, setNotesText] = useState('');
   const [isEditingNotes, setIsEditingNotes] = useState(false);
@@ -218,8 +217,8 @@ const AdminClients: React.FC = () => {
     if (!selectedClient || !editName.trim() || !editPhone.trim()) return;
     setSaving(true);
     try {
-      await updateClient(selectedClient.id, { name: editName.trim(), phone: editPhone.trim(), email: editEmail.trim() || undefined });
-      setSelectedClient((p) => p ? { ...p, name: editName.trim(), phone: editPhone.trim(), email: editEmail.trim() || undefined } : p);
+      await updateClient(selectedClient.id, { name: editName.trim(), phone: editPhone.trim() });
+      setSelectedClient((p) => p ? { ...p, name: editName.trim(), phone: editPhone.trim() } : p);
       setClients(prev => prev.map(c => c.id === selectedClient.id ? { ...c, name: editName.trim(), phone: editPhone.trim() } : c));
       setIsEditing(false);
     } catch { showError('Erro ao salvar.'); } finally { setSaving(false); }
@@ -505,7 +504,7 @@ const AdminClients: React.FC = () => {
             onNotesChange={setNotesText}
             onToggleEditNotes={() => { if (isEditingNotes) { setIsEditingNotes(false); setNotesText(selectedClient.notes || ''); } else { setIsEditingNotes(true); } }}
             onSaveNotes={handleSaveNotes}
-            onEdit={() => { setEditName(selectedClient.name); setEditPhone(selectedClient.phone); setEditEmail(selectedClient.email || ''); setIsEditing(true); }}
+            onEdit={() => { setEditName(selectedClient.name); setEditPhone(selectedClient.phone); setIsEditing(true); }}
             onDelete={() => setIsDeleteOpen(true)}
             onReminder={() => setIsReminderOpen(true)}
             onClose={closePanel}
@@ -544,10 +543,6 @@ const AdminClients: React.FC = () => {
                 <div>
                   <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">WhatsApp</span>
                   <input type="text" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors tabular-nums" />
-                </div>
-                <div>
-                  <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Email <span className="text-zinc-500">(opcional)</span></span>
-                  <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="email@exemplo.com" className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-600" />
                 </div>
               </div>
               <div className="flex gap-2 mt-4">
