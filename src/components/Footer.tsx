@@ -105,8 +105,8 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Footer Bottom */}
-        <div className="pt-8 border-t border-white/[0.05] flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-[9px] md:text-[10px] font-roboto font-light text-zinc-500 uppercase tracking-[0.4em] text-center md:text-left">
+        <div className="pt-8 border-t border-white/[0.05] flex flex-col items-center gap-3">
+          <p className="text-[9px] md:text-[10px] font-roboto font-light text-zinc-500 uppercase tracking-[0.4em] text-center">
             © 2026 Black Diamond — Todos os direitos reservados.
           </p>
 
@@ -122,7 +122,7 @@ const Footer: React.FC = () => {
           <Link
             to="/admin"
             aria-label="Acesso restrito para administradores"
-            className="group flex items-center gap-3 px-4 py-2 bg-[#141414] border border-white/5 rounded-full hover:border-[#D4AF37]/50 hover:bg-[#D4AF37]/5 transition-all duration-500"
+            className="group flex items-center gap-3 px-4 py-2 bg-[#141414] border border-white/5 rounded-full hover:border-[#D4AF37]/50 hover:bg-[#D4AF37]/5 transition-all duration-500 mt-3"
           >
             <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] shadow-[0_0_10px_rgba(212,175,55,0.8)]" />
             <span className="text-[10px] font-bebas uppercase tracking-[0.1em] text-zinc-400 group-hover:text-[#D4AF37] transition-colors">Acesso Restrito</span>
