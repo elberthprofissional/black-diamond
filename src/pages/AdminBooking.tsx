@@ -316,7 +316,6 @@ const AdminBooking: React.FC = () => {
                   <UserIcon size={18} className="text-[#C5A059] shrink-0" />
                   <div>
                     <h2 className="text-xs font-black tracking-[0.2em] text-white uppercase leading-none">CLIENTE</h2>
-                    <span className="text-[9px] font-bold tracking-[0.1em] text-zinc-500 uppercase">Identificação</span>
                   </div>
                 </div>
 
@@ -515,7 +514,6 @@ const AdminBooking: React.FC = () => {
                   <Scissors size={18} className="text-[#C5A059] shrink-0" />
                   <div>
                     <h2 className="text-xs font-black tracking-[0.2em] text-white uppercase leading-none">SERVIÇOS</h2>
-                    <span className="text-[9px] font-bold tracking-[0.1em] text-zinc-500 uppercase">Escolha múltiplos</span>
                   </div>
                   <span className="ml-auto bg-[#C5A059]/10 text-[#C5A059] px-2 py-0.5 rounded text-[9px] font-black tracking-wider">
                     {selectedServices.length} SEL
@@ -572,7 +570,6 @@ const AdminBooking: React.FC = () => {
                   <CalendarIcon size={18} className="text-[#C5A059] shrink-0" />
                   <div>
                     <h2 className="text-xs font-black tracking-[0.2em] text-white uppercase leading-none">AGENDA</h2>
-                    <span className="text-[9px] font-bold tracking-[0.1em] text-zinc-500 uppercase">Data e Horário</span>
                   </div>
                 </div>
 
