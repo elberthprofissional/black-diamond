@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { updateBookingStatus, deleteBooking, getAvailableSlots } from '../lib/api';
-import { getLocalDateString } from '../lib/utils';
+import { getLocalDateString, getTimeSlotsForDate } from '../lib/utils';
 import { useToast } from '../hooks/useToast';
 import { useServices } from '../hooks/useServices';
 import { useBookings } from '../hooks/useBookings';
@@ -81,7 +81,7 @@ const AdminDashboard: React.FC = () => {
         const slots = await getAvailableSlots(selectedDate);
         if (active) setAvailableSlots(slots);
       } catch {
-        if (active) setAvailableSlots(['08:30', '09:30', '10:30', '11:30', '13:30', '14:30', '15:30', '16:30', '17:30', '18:30']);
+        if (active) setAvailableSlots(getTimeSlotsForDate(selectedDate));
       }
     };
     loadAvailableSlots();

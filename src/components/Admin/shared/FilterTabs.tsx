@@ -12,7 +12,7 @@ interface FilterTabsProps {
   blockedCount?: number;
 }
 
-const FilterTabs: React.FC<FilterTabsProps> = ({ 
+const FilterTabs: React.FC<FilterTabsProps> = React.memo(({ 
   filter, 
   setFilter, 
   layoutId,
@@ -61,6 +61,8 @@ const FilterTabs: React.FC<FilterTabsProps> = ({
       })}
     </div>
   );
-};
+});
+
+FilterTabs.displayName = 'FilterTabs';
 
 export default FilterTabs;

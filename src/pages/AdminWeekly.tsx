@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { updateBookingStatus, deleteBooking, createBooking, getBookings } from '../lib/api';
+import { updateBookingStatus, deleteBooking } from '../lib/api';
 import { getTimeSlotsForDate, getLocalDateString } from '../lib/utils';
 import { useToast } from '../hooks/useToast';
 import { useBookings } from '../hooks/useBookings';
 import { useServices } from '../hooks/useServices';
 import { useSlotBlocking } from '../hooks/useSlotBlocking';
+import { useReschedule } from '../hooks/useReschedule';
 import AdminLayout from '../components/Admin/AdminLayout';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
 import UnblockModal from '../components/Admin/shared/UnblockModal';
@@ -15,7 +16,7 @@ import ToastNotification from '../components/Admin/shared/ToastNotification';
 import RescheduleWizard from '../components/Admin/shared/RescheduleWizard';
 import BookingDetailPanel from '../components/Admin/shared/BookingDetailPanel';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { BookingWithClient, Service, Booking } from '../types';
+import type { BookingWithClient } from '../types';
 
 const AdminWeekly: React.FC = () => {
   const { bookings, loading, refetch: loadData } = useBookings();
@@ -73,78 +74,32 @@ const AdminWeekly: React.FC = () => {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  const [isRescheduling, setIsRescheduling] = useState(false);
-  const [rescheduleServices, setRescheduleServices] = useState<Service[]>([]);
-  const [rescheduleDate, setRescheduleDate] = useState('');
-  const [rescheduleTime, setRescheduleTime] = useState('');
-  const [existingBookingsForReschedule, setExistingBookingsForReschedule] = useState<Booking[]>([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
-  const [isSavingReschedule, setIsSavingReschedule] = useState(false);
-  const [rescheduleStep, setRescheduleStep] = useState(1);
-
-  const loadRescheduleSlots = async (date: string) => {
-    setLoadingSlots(true);
-    try {
-      const data = await getBookings(date);
-      setExistingBookingsForReschedule(data || []);
-    } catch { /* ignored */ } finally {
-      setLoadingSlots(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!isRescheduling || !rescheduleDate) return;
-    void loadRescheduleSlots(rescheduleDate);
-  }, [rescheduleDate, isRescheduling]);
-
-  const handleStartReschedule = () => {
-    if (!selectedBooking) return;
-    const initialServices = services.filter(s => selectedBooking.service_ids?.includes(s.id));
-    setRescheduleServices(initialServices);
-    setRescheduleDate(selectedBooking.booking_date);
-    setRescheduleTime(selectedBooking.booking_time.slice(0, 5));
-    setRescheduleStep(1);
-    setIsRescheduling(true);
-  };
-
-  const handleCloseReschedule = () => {
-    setIsRescheduling(false);
-    setRescheduleStep(1);
-  };
+  const {
+    isRescheduling,
+    rescheduleServices,
+    setRescheduleServices,
+    rescheduleDate,
+    setRescheduleDate,
+    rescheduleTime,
+    setRescheduleTime,
+    existingBookings: existingBookingsForReschedule,
+    loadingSlots,
+    isSaving: isSavingReschedule,
+    rescheduleStep,
+    setRescheduleStep,
+    startReschedule: handleStartReschedule,
+    confirmReschedule: handleConfirmRescheduleRaw,
+    cancelReschedule,
+  } = useReschedule(
+    selectedBooking,
+    services,
+    () => { showSuccess('Agendamento reagendado com sucesso!'); loadData(); },
+    () => { setSelectedBooking(null); },
+    showError
+  );
 
   const handleConfirmReschedule = async () => {
-    if (!selectedBooking || rescheduleServices.length === 0 || !rescheduleDate || !rescheduleTime) return;
-    setIsSavingReschedule(true);
-    try {
-      await deleteBooking(selectedBooking.id);
-      
-      const totalPrice = rescheduleServices.reduce((sum, s) => sum + Number(s.price || 0), 0);
-      const totalDuration = rescheduleServices.reduce((sum, s) => sum + (s.duration || 0), 0);
-
-      await createBooking(
-        {
-          service_ids: rescheduleServices.map(s => s.id),
-          booking_date: rescheduleDate,
-          booking_time: rescheduleTime,
-          total_price: totalPrice,
-          total_duration: totalDuration
-        },
-        {
-          name: selectedBooking.clients?.name || '',
-          phone: selectedBooking.clients?.phone || ''
-        }
-      );
-
-      showSuccess('Agendamento reagendado com sucesso!');
-      setSelectedBooking(null);
-      setIsRescheduling(false);
-      setRescheduleStep(1);
-      await loadData();
-    } catch {
-      showError('Erro ao reagendar.');
-    } finally {
-      setIsSavingReschedule(false);
-    }
+    await handleConfirmRescheduleRaw();
   };
 
   const handleBlockSlot = async (date: string, slot: string) => {
@@ -185,6 +140,43 @@ const AdminWeekly: React.FC = () => {
   const blockedCount = blockedBookings.length;
 
   const dayLabel = selectedDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  const renderRescheduleOrDetail = () => {
+    if (!selectedBooking) return null;
+    if (isRescheduling) {
+      return (
+        <RescheduleWizard
+          selectedBooking={selectedBooking}
+          services={services}
+          step={rescheduleStep}
+          setStep={setRescheduleStep}
+          rescheduleServices={rescheduleServices}
+          setRescheduleServices={setRescheduleServices}
+          rescheduleDate={rescheduleDate}
+          setRescheduleDate={setRescheduleDate}
+          rescheduleTime={rescheduleTime}
+          setRescheduleTime={setRescheduleTime}
+          existingBookings={existingBookingsForReschedule}
+          loadingSlots={loadingSlots}
+          isSaving={isSavingReschedule}
+          onConfirm={handleConfirmReschedule}
+          onClose={() => { setSelectedBooking(null); cancelReschedule(); }}
+        />
+      );
+    }
+    return (
+      <BookingDetailPanel
+        booking={selectedBooking}
+        services={services}
+        onClose={() => setSelectedBooking(null)}
+        onComplete={() => { setCompletingBooking(selectedBooking); }}
+        onReschedule={handleStartReschedule}
+        onDelete={() => setBookingToDelete(selectedBooking)}
+      />
+    );
+  };
+
+  const closePanel = () => { setSelectedBooking(null); cancelReschedule(); };
 
   return (
     <AdminLayout
@@ -341,7 +333,7 @@ const AdminWeekly: React.FC = () => {
             <div className="fixed inset-0 z-[200] flex justify-end">
               <motion.div 
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                onClick={() => setSelectedBooking(null)}
+                onClick={closePanel}
                 className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               />
               <motion.div
@@ -351,34 +343,7 @@ const AdminWeekly: React.FC = () => {
                 transition={{ type: 'spring', damping: 30, stiffness: 300 }}
                 className="relative w-[400px] h-full bg-[#0E0E0E] border-l border-white/[0.06] shadow-2xl overflow-hidden flex flex-col"
               >
-                {isRescheduling ? (
-                  <RescheduleWizard
-                    selectedBooking={selectedBooking}
-                    services={services}
-                    step={rescheduleStep}
-                    setStep={setRescheduleStep}
-                    rescheduleServices={rescheduleServices}
-                    setRescheduleServices={setRescheduleServices}
-                    rescheduleDate={rescheduleDate}
-                    setRescheduleDate={setRescheduleDate}
-                    rescheduleTime={rescheduleTime}
-                    setRescheduleTime={setRescheduleTime}
-                    existingBookings={existingBookingsForReschedule}
-                    loadingSlots={loadingSlots}
-                    isSaving={isSavingReschedule}
-                    onConfirm={handleConfirmReschedule}
-                    onClose={handleCloseReschedule}
-                  />
-                ) : (
-                  <BookingDetailPanel
-                    booking={selectedBooking}
-                    services={services}
-                    onClose={() => setSelectedBooking(null)}
-                    onComplete={() => { setCompletingBooking(selectedBooking); }}
-                    onReschedule={handleStartReschedule}
-                    onDelete={() => setBookingToDelete(selectedBooking)}
-                  />
-                )}
+                {renderRescheduleOrDetail()}
               </motion.div>
             </div>
           )}
@@ -392,7 +357,7 @@ const AdminWeekly: React.FC = () => {
             <div className="fixed inset-0 z-[200] flex flex-col justify-end">
               <motion.div 
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                onClick={() => setSelectedBooking(null)}
+                onClick={closePanel}
                 className="absolute inset-0 bg-black/90 backdrop-blur-md"
               />
               <motion.div 
@@ -402,34 +367,7 @@ const AdminWeekly: React.FC = () => {
                 transition={{ type: "spring", damping: 30, stiffness: 300 }} 
                 className="relative w-full h-[100dvh] bg-[#0f0f0f] z-10 flex flex-col text-left overflow-hidden"
               >
-                {isRescheduling ? (
-                  <RescheduleWizard
-                    selectedBooking={selectedBooking}
-                    services={services}
-                    step={rescheduleStep}
-                    setStep={setRescheduleStep}
-                    rescheduleServices={rescheduleServices}
-                    setRescheduleServices={setRescheduleServices}
-                    rescheduleDate={rescheduleDate}
-                    setRescheduleDate={setRescheduleDate}
-                    rescheduleTime={rescheduleTime}
-                    setRescheduleTime={setRescheduleTime}
-                    existingBookings={existingBookingsForReschedule}
-                    loadingSlots={loadingSlots}
-                    isSaving={isSavingReschedule}
-                    onConfirm={handleConfirmReschedule}
-                    onClose={handleCloseReschedule}
-                  />
-                ) : (
-                  <BookingDetailPanel
-                    booking={selectedBooking}
-                    services={services}
-                    onClose={() => setSelectedBooking(null)}
-                    onComplete={() => { setCompletingBooking(selectedBooking); }}
-                    onReschedule={handleStartReschedule}
-                    onDelete={() => setBookingToDelete(selectedBooking)}
-                  />
-                )}
+                {renderRescheduleOrDetail()}
               </motion.div>
             </div>
           )}

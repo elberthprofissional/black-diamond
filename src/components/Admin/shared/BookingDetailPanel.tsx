@@ -11,7 +11,7 @@ interface BookingDetailPanelProps {
   onDelete: () => void;
 }
 
-const BookingDetailPanel: React.FC<BookingDetailPanelProps> = ({
+const BookingDetailPanel: React.FC<BookingDetailPanelProps> = React.memo(({
   booking,
   services,
   onClose,
@@ -115,6 +115,8 @@ const BookingDetailPanel: React.FC<BookingDetailPanelProps> = ({
       </div>
     </>
   );
-};
+});
+
+BookingDetailPanel.displayName = 'BookingDetailPanel';
 
 export default BookingDetailPanel;

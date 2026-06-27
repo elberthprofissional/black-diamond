@@ -119,6 +119,16 @@ export const unblockDay = async (date: string) => {
   if (error) throw error;
 };
 
+export const getBookingsForStats = async () => {
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('id, client_id, booking_date, booking_time, total_price, status')
+    .order('booking_date', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+};
+
 // Clients
 export const getClients = async () => {
   const { data, error } = await supabase

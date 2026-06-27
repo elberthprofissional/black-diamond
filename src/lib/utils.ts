@@ -57,7 +57,7 @@ export const getNextDays = () => {
     date.setDate(monday.getDate() + i);
     
     const isToday = date.toDateString() === today.toDateString();
-    const isPast = date < today && !isToday;
+    const isPast = date.toDateString() < today.toDateString() && !isToday;
 
     days.push({
       fullDate: getLocalDateString(date),

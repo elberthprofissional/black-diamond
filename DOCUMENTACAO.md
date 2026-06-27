@@ -1,6 +1,6 @@
 # DOCUMENTACAO — BLACK DIAMOND
 
-Sistema completo de agendamento online para barbearias, com painel administrativo, PWA e integração WhatsApp.
+Sistema completo de agendamento online para barbearias, com painel administrativo, PWA, notificacoes push e integracao com Google Calendar.
 
 ---
 
@@ -14,12 +14,15 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 6. [Seguranca](#6-seguranca)
 7. [Setup e Desenvolvimento](#7-setup-e-desenvolvimento)
 8. [Deploy na Vercel](#8-deploy-na-vercel)
-9. [Integracao com Email (Resend)](#9-integracao-com-email-resend)
+9. [CI/CD (GitHub Actions)](#9-cicd-github-actions)
 10. [Recuperacao de Senha](#10-recuperacao-de-senha)
 11. [Variaveis de Ambiente](#11-variaveis-de-ambiente)
 12. [Estrutura de Pastas](#12-estrutura-de-pastas)
 13. [Troubleshooting](#13-troubleshooting)
 14. [Notas de Negocio](#14-notas-de-negocio)
+15. [Notificacoes Push (Web Push)](#15-notificacoes-push-web-push)
+16. [Sistema de Avaliacao](#16-sistema-de-avaliacao)
+17. [Google Calendar Auto-Sync](#17-google-calendar-auto-sync)
 
 ---
 
@@ -28,12 +31,14 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 **Black Diamond** e um sistema de agendamento premium para barbearias, construido com o conceito de **Quiet Luxury** (luxo silencioso). O cliente agenda pelo site, e o barbeiro gerencia tudo por um painel administrativo completo — sem custo de infraestrutura.
 
 ### Publico-alvo
-- Barbearias e estetos que querem presença digital profissional
+- Barbearias e estetos que querem presenca digital profissional
 - Barbeiros que precisam organizar agenda, clientes e faturamento
 
 ### Principais diferencias
 - Agendamento online em 4 etapas com confirmacao via WhatsApp
 - Painel admin com agenda do dia, semana, clientes e relatorios
+- Notificacoes push para agendamentos em tempo real
+- Sincronizacao automatica com Google Calendar
 - PWA instalavel na tela inicial do celular
 - Custo operacional zero (Vercel + Supabase Free Tier)
 
@@ -51,6 +56,8 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 | Roteamento | React Router DOM | 7.x |
 | Backend/Banco | Supabase (PostgreSQL) | ^2.108 |
 | Hospedagem | Vercel | Gratis |
+| Testes | Vitest + Testing Library | Vitest 4.x |
+| CI/CD | GitHub Actions | Gratis |
 
 ---
 
@@ -63,6 +70,8 @@ Cliente (Browser)
 Vercel (SPA estatica)
   ↓ API REST (PostgREST)
 Supabase (PostgreSQL + RLS + Auth)
+  ↓ Web Push (VAPID)
+Service Worker → Notificacao no celular do admin
 ```
 
 ### Como funciona o agendamento
@@ -70,7 +79,8 @@ Supabase (PostgreSQL + RLS + Auth)
 2. O frontend chama a RPC `criar_agendamento` no Supabase
 3. A RPC verifica conflitos, cria o client (se novo) e insere o booking
 4. O frontend redireciona pro WhatsApp com a mensagem formatada
-5. O barbeiro ve o agendamento no painel admin em tempo real
+5. Um trigger dispara notificacao push para o admin
+6. O booking e sincronizado com o Google Calendar
 
 ### Bloqueio de horarios
 - O sistema usa a coluna `is_blocked` na tabela `bookings`
@@ -80,8 +90,30 @@ Supabase (PostgreSQL + RLS + Auth)
 ### Componentes compartilhados
 - `RescheduleWizard` — Wizard de 3 steps para reagendamento
 - `BookingDetailPanel` — Painel de detalhe do agendamento
+- `BookingSearchModal` — Modal de busca de clientes
+- `BookingSummaryPanel` — Painel de resumo do agendamento
 - `FilterTabs` — Abas de filtro (ocupados/livres/bloqueados)
 - `ToastNotification` — Sistema de notificacoes
+- `CompleteModal` / `DeleteModal` / `UnblockModal` — Modais de acao
+
+### Componentes de agendamento (Booking)
+- `ServiceStep` — Selecao de servicos (desktop + mobile)
+- `DateTimeStep` — Date picker + time grid (desktop + mobile)
+- `DataStep` — Formulario nome + WhatsApp
+- `ReviewStep` — Card de resumo do agendamento
+- `SuccessStep` — Tela de confirmacao
+
+### Hooks customizados
+- `useBookings` — Carregamento de bookings com cache
+- `useServices` — Carregamento de servicos com cache module-level
+- `useSlotBlocking` — Bloqueio/desbloqueio de horarios
+- `useReschedule` — Logica de reagendamento (delete + recriar)
+- `useToast` — Sistema de notificacoes toast
+- `usePushNotifications` — Inscricao/cancelamento de Web Push
+- `useReducedMotion` — Respeita preferencia de movimento do usuario
+- `useModalA11y` — Acessibilidade de modais (Escape, focus trap)
+- `useConnectionStatus` — Monitora conectividade com o Supabase
+- `useAdminLogout` — Logout seguro do admin
 
 ---
 
@@ -92,8 +124,14 @@ Supabase (PostgreSQL + RLS + Auth)
 - Calendario semanal com slots disponiveis em tempo real
 - Formulario de dados com validacao de WhatsApp
 - Revisao antes de confirmar
-- Redirecionamento pro WhatsApp com mensagem formatada
+- Redirecionamento pro WhatsApp com mensagem formatada e link pro Google Calendar
 - Tela de sucesso com resumo do agendamento
+- Layout responsivo desktop/mobile com drag-to-scroll no date picker
+
+### Avaliacao (`/avaliar/:bookingId`)
+- Apos concluir atendimento, cliente avalia de 1 a 5 estrelas
+- Avaliacoes 4-5 redirecionam pro Google Maps
+- Avaliacoes reais alimentam o TestimonialsSlider na home
 
 ### Area do Admin (`/admin`)
 
@@ -104,7 +142,7 @@ Supabase (PostgreSQL + RLS + Auth)
 | `/admin/agendar` | Agendamento manual com busca de cliente |
 | `/admin/clients` | Gestao de clientes com lembretes WhatsApp |
 | `/admin/available` | Visualizacao de horarios disponiveis |
-| `/admin/profile` | Relatorios, faturamento, instalacao PWA, logout |
+| `/admin/profile` | Relatorios, faturamento, instalacao PWA, notificacoes, logout |
 | `/admin/login` | Login do administrador |
 | `/admin/reset-password` | Redefinicao de senha |
 
@@ -112,14 +150,17 @@ Supabase (PostgreSQL + RLS + Auth)
 - **Dashboard do dia:** Proximo cliente, lucro do dia, filtros por ocupados/livres/bloqueados
 - **Agenda semanal:** Navegacao por 6 dias, bloqueio/desbloqueio de dia inteiro
 - **Agendamento manual:** Busca por WhatsApp/nome, selecao de servicos, data/hora
-- **Gestao de clientes:** CRUD, notas, historico, lembretes via WhatsApp
+- **Gestao de clientes:** CRUD, notas, historico, lembretes via WhatsApp, filtros por status de lembrete
 - **Reagendamento:** Wizard de 3 steps (servicos, data/hora, revisao)
 - **Relatorios:** Faturamento semanal/mensal, servicos mais vendidos, novos clientes
+- **Notificacoes Push:** Ativacao/desativacao de notificacoes no navegador
 - **PWA:** Instalacao na tela inicial com guia visual
 
 ---
 
 ## 5. Schema do Banco de Dados
+
+Schema completo: `estrutura_black_diamond.sql`
 
 ### Tabelas
 
@@ -138,12 +179,27 @@ id UUID PK, name TEXT, phone TEXT UNIQUE, email TEXT, notes TEXT, created_at TIM
 id UUID PK, client_id UUID FK, service_ids UUID[], booking_date DATE,
 booking_time TIME, total_price DECIMAL, total_duration INTEGER,
 status TEXT (pending/confirmed/cancelled/completed), is_blocked BOOLEAN,
-notes TEXT, created_at TIMESTAMPTZ
+notes TEXT, google_event_id TEXT, created_at TIMESTAMPTZ
 ```
 
 **settings** — Configuracoes (horarios de funcionamento)
 ```sql
 key TEXT PK, value TEXT, updated_at TIMESTAMPTZ
+```
+
+**reviews** — Avaliacoes de clientes
+```sql
+id UUID PK, booking_id UUID FK, client_id UUID FK, rating INTEGER, comment TEXT, created_at TIMESTAMPTZ
+```
+
+**push_subscriptions** — Inscricoes de notificacao push
+```sql
+id UUID PK, endpoint TEXT, p256dh TEXT, auth TEXT, user_agent TEXT, created_at TIMESTAMPTZ
+```
+
+**secrets** — Chaves de API (VAPID, Google, etc.)
+```sql
+key TEXT PK, value TEXT, created_at TIMESTAMPTZ
 ```
 
 ### Indexes
@@ -159,9 +215,17 @@ key TEXT PK, value TEXT, updated_at TIMESTAMPTZ
 | `get_business_hours` | Retorna configuracoes de horario como JSON |
 | `toggle_slot_block` | Alterna bloqueio de um horario (usa is_blocked) |
 | `unblock_day` | Desbloqueia todos os horarios de um dia |
+| `save_push_subscription` | Salva inscricao push do admin |
+| `delete_push_subscription` | Remove inscricao push |
+| `get_average_rating` | Retorna media e total de avaliacoes |
+| `get_top_reviews` | Retorna melhores avaliacoes |
 
-### View
+### Views
 - `faturamento_diario` — Calcula faturamento por data (security_invoker)
+
+### Triggers
+- `notificar_push_agendamento` — AFTER INSERT ON bookings, envia push notification
+- `limpar_subscriptions_antigas` — Cron diario que remove inscricoes antigas
 
 ---
 
@@ -169,22 +233,23 @@ key TEXT PK, value TEXT, updated_at TIMESTAMPTZ
 
 ### RLS (Row Level Security)
 - **services/settings:** Leitura publica, escrita apenas admin autenticado
-- **clients/bookings:** Leitura e escrita apenas admin com email `tato@gmail.com`
+- **clients/bookings:** Leitura e escrita apenas admin com email configurado nas policies
+- **reviews:** Leitura publica, insercao publica, gerenciamento admin
+- **push_subscriptions:** Apenas admin autenticado
 
-> **IMPORTANTE:** O email do admin esta hardcoded nas policies do SQL. Se o barbeiro tiver outro email, altere no `supabase_schema.sql` antes de rodar.
+> **IMPORTANTE:** O email do admin esta hardcoded nas policies do SQL. Se o barbeiro tiver outro email, altere no `estrutura_black_diamond.sql` antes de rodar.
 
 ### Protecoes implementadas
 - **Rate limit:** Max 3 agendamentos por telefone por dia
 - **Double-booking:** Index unique impede dois agendamentos no mesmo horario
 - **SQL injection:** Todas as consultas usam PostgREST parametrizado
 - **XSS:** React escapa inputs automaticamente
-- **CSP:** Headers de Content-Security-Policy configurados no vercel.json
-- **X-Frame-Options:** DENY (impede iframe)
-- **X-Content-Type-Options:** nosniff
+- **Modais:** Hook `useModalA11y` com Escape-to-close, focus trap e restauracao de foco
+- **Acessibilidade:** Skip link, aria-labels, aria-modal em todos os modais
 
 ### Headers de seguranca (vercel.json)
 ```
-Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' ...
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com; ...
 X-Frame-Options: DENY
 X-Content-Type-Options: nosniff
 Referrer-Policy: strict-origin-when-cross-origin
@@ -197,7 +262,7 @@ Permissions-Policy: camera=(), microphone=(), geolocation=()
 
 ### Pre-requisitos
 - Node.js 18+
-- npm ou yarn
+- npm
 - Conta no Supabase (gratis)
 - Conta no Vercel (gratis, para deploy)
 
@@ -211,7 +276,7 @@ npm install
 ### Passo 2: Configurar Supabase
 1. Crie um projeto no [supabase.com](https://supabase.com)
 2. Acesse o SQL Editor
-3. Cole e execute o conteudo de `supabase_schema.sql`
+3. Cole e execute o conteudo de `estrutura_black_diamond.sql`
 4. Acesse Authentication > Users e crie o usuario admin
 
 ### Passo 3: Configurar variaveis de ambiente
@@ -220,7 +285,7 @@ Copie `.env.example` para `.env` e preencha:
 VITE_SUPABASE_URL=https://seu-projeto.supabase.co
 VITE_SUPABASE_ANON_KEY=sua_chave_anon
 VITE_BARBER_WHATSAPP=5531999999999
-VITE_SUPPORT_WHATSAPP=5531980159559
+VITE_VAPID_PUBLIC_KEY=sua_chave_publica_vapid
 ```
 
 ### Passo 4: Rodar
@@ -230,10 +295,12 @@ npm run dev
 
 ### Comandos uteis
 ```bash
-npm run dev      # Desenvolvimento
-npm run build    # Build de producao
-npm run lint     # Verificar erros de codigo
-npm run preview  # Preview do build
+npm run dev        # Desenvolvimento
+npm run build      # Build de producao
+npm run lint       # Verificar erros de codigo
+npm run preview    # Preview do build
+npm run test       # Rodar testes (watch mode)
+npm run test:run   # Rodar testes uma vez
 ```
 
 ---
@@ -246,7 +313,7 @@ npm run preview  # Preview do build
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
    - `VITE_BARBER_WHATSAPP`
-   - `VITE_SUPPORT_WHATSAPP`
+   - `VITE_VAPID_PUBLIC_KEY`
 4. Clique em Deploy
 5. A Vercel gera um link HTTPS automatico
 
@@ -254,46 +321,23 @@ npm run preview  # Preview do build
 - Adicione o dominio da Vercel nos **Redirect URLs** do Supabase (Authentication > URL Configuration)
 - Ex: `https://seu-app.vercel.app/**`
 
-### Script SQL para rodar apos o primeiro deploy
-```sql
-ALTER TABLE bookings ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN DEFAULT FALSE;
-```
-
 ---
 
-## 9. Integracao com Email (Resend)
+## 9. CI/CD (GitHub Actions)
 
-Para enviar emails de confirmacao e lembretes automaticamente.
+O projeto ja possui um pipeline de CI configurado em `.github/workflows/ci.yml`.
 
-### Passo 1: Criar conta no Resend
-1. Acesse [resend.com](https://resend.com) e crie conta gratuita
-2. Crie uma API Key com permissao Full Access
-3. Copie a chave (comeca com `re_...`)
+### O que roda automaticamente
+Toda vez que ha um push ou PR pra branch `main`:
+1. **Lint** — Verifica erros de codigo (`npm run lint`)
+2. **Test** — Executa todos os testes (`npm run test:run`)
+3. **Type Check** — Verifica tipos TypeScript (`npx tsc --noEmit`)
+4. **Build** — Verifica se o projeto compila (`npm run build`)
 
-### Passo 2: Criar Edge Function no Supabase
-Crie o arquivo `supabase/functions/send-email/index.ts` com a funcao que:
-1. Recebe o payload do webhook (booking criado)
-2. Busca o email do cliente no banco
-3. Monta o corpo do email em HTML com identidade visual Black Diamond
-4. Envia via API do Resend
-
-### Passo 3: Configurar variavel de ambiente
-No Supabase (Project Settings > Edge Functions), adicione:
-- Nome: `RESEND_API_KEY`
-- Valor: sua chave do Resend
-
-### Passo 4: Criar Webhook
-No Supabase (Database > Webhooks):
-- Name: `send_booking_email_trigger`
-- Table: `bookings`
-- Events: Insert
-- Type: Supabase Edge Function
-- Function: `send-email`
-
-### Limites do plano gratuito
-- 3.000 emails/mes
-- Remetente: `onboarding@resend.dev` (pode ir pra spam no primeiro envio)
-- Para envio profissional, compre um dominio e configure no Resend
+### Como funciona
+- Push/PR na branch `main` → workflow executa automaticamente
+- Se qualquer etapa falhar, o deploy nao e feito
+- Os testes rodam em ambiente isolado (Ubuntu, Node 20)
 
 ---
 
@@ -311,9 +355,6 @@ No Supabase (Database > Webhooks):
 2. Authentication > URL Configuration > Redirect URLs — adicione:
    - `https://seu-dominio.com/admin/reset-password`
 
-### Template HTML do email
-O template usa a identidade visual do Black Diamond (fundo #0A0A0A, dourado #C5A059). Verifique o template completo no painel do Supabase apos configurar.
-
 ---
 
 ## 11. Variaveis de Ambiente
@@ -323,7 +364,7 @@ O template usa a identidade visual do Black Diamond (fundo #0A0A0A, dourado #C5A
 | `VITE_SUPABASE_URL` | URL do projeto Supabase | Sim |
 | `VITE_SUPABASE_ANON_KEY` | Chave anon/public do Supabase | Sim |
 | `VITE_BARBER_WHATSAPP` | Numero WhatsApp do barbeiro (formato: 5531999999999) | Sim |
-| `VITE_SUPPORT_WHATSAPP` | Numero WhatsApp de suporte tecnico | Nao |
+| `VITE_VAPID_PUBLIC_KEY` | Chave publica VAPID para notificacoes push | Sim |
 
 ---
 
@@ -331,67 +372,90 @@ O template usa a identidade visual do Black Diamond (fundo #0A0A0A, dourado #C5A
 
 ```
 Black Diamond/
+├── .github/
+│   └── workflows/
+│       └── ci.yml              # Pipeline de CI/CD
 ├── public/
-│   ├── assets/          # Imagens (logo, galeria, fundos)
-│   ├── manifest.json    # Configuracao PWA
-│   └── sw.js            # Service Worker (cache offline)
+│   ├── assets/                 # Imagens (logo, galeria, fundos)
+│   ├── manifest.json           # Configuracao PWA
+│   └── sw.js                   # Service Worker (cache offline)
 ├── src/
 │   ├── components/
-│   │   ├── Admin/       # Componentes do painel admin
+│   │   ├── Admin/              # Componentes do painel admin
 │   │   │   ├── AdminLayout.tsx
 │   │   │   ├── AdminSidebar.tsx
 │   │   │   ├── AuthGuard.tsx
 │   │   │   ├── BottomTabs.tsx
 │   │   │   ├── Navbar.tsx
-│   │   │   └── shared/  # Componentes compartilhados
+│   │   │   └── shared/         # Componentes compartilhados
 │   │   │       ├── BookingDetailPanel.tsx
-│   │   │       ├── RescheduleWizard.tsx
-│   │   │       ├── FilterTabs.tsx
-│   │   │       ├── ToastNotification.tsx
-│   │   │       ├── WhatsAppReminderButton.tsx
+│   │   │       ├── BookingSearchModal.tsx
+│   │   │       ├── BookingSummaryPanel.tsx
 │   │   │       ├── CompleteModal.tsx
 │   │   │       ├── DeleteModal.tsx
-│   │   │       └── UnblockModal.tsx
-│   │   ├── Hero.tsx
+│   │   │       ├── FilterTabs.tsx
+│   │   │       ├── RescheduleWizard.tsx
+│   │   │       ├── ToastNotification.tsx
+│   │   │       ├── UnblockModal.tsx
+│   │   │       └── WhatsAppReminderButton.tsx
+│   │   ├── Booking/            # Componentes de agendamento
+│   │   │   ├── DataStep.tsx
+│   │   │   ├── DateTimeStep.tsx
+│   │   │   ├── ReviewStep.tsx
+│   │   │   ├── ServiceStep.tsx
+│   │   │   └── SuccessStep.tsx
 │   │   ├── About.tsx
-│   │   ├── Services.tsx
-│   │   ├── Gallery.tsx
-│   │   ├── Location.tsx
+│   │   ├── ErrorBoundary.tsx
 │   │   ├── Footer.tsx
+│   │   ├── Gallery.tsx
+│   │   ├── Hero.tsx
+│   │   ├── Location.tsx
 │   │   ├── Navbar.tsx
-│   │   ├── TestimonialsSlider.tsx
-│   │   └── ConnectionBanner.tsx
+│   │   ├── PwaGuard.tsx
+│   │   ├── Services.tsx
+│   │   └── TestimonialsSlider.tsx
 │   ├── hooks/
 │   │   ├── useAdminLogout.ts
 │   │   ├── useBookings.ts
 │   │   ├── useConnectionStatus.ts
+│   │   ├── useModalA11y.ts
+│   │   ├── usePushNotifications.ts
+│   │   ├── useReducedMotion.ts
+│   │   ├── useReschedule.ts
 │   │   ├── useServices.ts
 │   │   ├── useSlotBlocking.ts
 │   │   └── useToast.ts
 │   ├── lib/
-│   │   ├── api.ts       # Funcoes de API (CRUD)
-│   │   ├── supabase.ts  # Cliente Supabase
-│   │   └── utils.ts     # Utilitarios (formatPhone, dates, slots)
+│   │   ├── api.ts              # Funcoes de API (CRUD)
+│   │   ├── supabase.ts         # Cliente Supabase
+│   │   └── utils.ts            # Utilitarios (formatPhone, dates, slots)
 │   ├── pages/
-│   │   ├── Home.tsx
-│   │   ├── BookingPage.tsx
-│   │   ├── AdminLogin.tsx
-│   │   ├── AdminResetPassword.tsx
-│   │   ├── AdminDashboard.tsx
-│   │   ├── AdminWeekly.tsx
+│   │   ├── AdminAvailableSlots.tsx
 │   │   ├── AdminBooking.tsx
 │   │   ├── AdminClients.tsx
-│   │   ├── AdminAvailableSlots.tsx
+│   │   ├── AdminDashboard.tsx
+│   │   ├── AdminLogin.tsx
 │   │   ├── AdminProfile.tsx
-│   │   └── NotFound.tsx
+│   │   ├── AdminResetPassword.tsx
+│   │   ├── AdminWeekly.tsx
+│   │   ├── BookingPage.tsx
+│   │   ├── Home.tsx
+│   │   ├── NotFound.tsx
+│   │   └── RatingPage.tsx
+│   ├── test/
+│   │   └── setup.ts
 │   ├── types/
-│   │   └── index.ts     # Definicao de tipos TypeScript
-│   ├── App.tsx           # Roteamento principal
-│   ├── main.tsx          # Entry point + Service Worker
-│   ├── index.css         # Estilos globais + Tailwind
-│   └── vite-env.d.ts     # Tipos globais (Window, Navigator)
-├── supabase_schema.sql   # Schema completo do banco
-├── vercel.json           # Configuracao de deploy + headers
+│   │   └── index.ts            # Definicao de tipos TypeScript
+│   ├── App.tsx                 # Roteamento principal
+│   ├── index.css               # Estilos globais + Tailwind
+│   ├── main.tsx                # Entry point + Service Worker
+│   └── vite-env.d.ts           # Tipos globais (Window, Navigator)
+├── supabase/
+│   └── functions/
+│       ├── send-push/          # Edge function de notificacao push
+│       └── sync-google-calendar/ # Edge function de sync com Google Calendar
+├── estrutura_black_diamond.sql # Schema completo do banco
+├── vercel.json                 # Configuracao de deploy + headers de seguranca
 ├── package.json
 ├── vite.config.ts
 ├── tsconfig.json
@@ -403,11 +467,8 @@ Black Diamond/
 ## 13. Troubleshooting
 
 ### "Nenhum agendamento aparece no admin"
-- Verifique se o email do usuario logado e igual ao configurado nas RLS policies (`tato@gmail.com`)
+- Verifique se o email do usuario logado e igual ao configurado nas RLS policies
 - Verifique se o RLS esta ativo no Supabase
-
-### "Horarios aparecem com segundos (08:00:00)"
-- Ja corrigido no codigo. Se persistir, limpe o cache do navegador
 
 ### "Servico nao carrega"
 - Verifique as variaveis de ambiente no `.env`
@@ -419,12 +480,19 @@ Black Diamond/
 
 ### "Build falha"
 - Rode `npm run lint` para ver erros
+- Rode `npm run test:run` para verificar testes
 - Verifique se todas as dependencias estao instaladas (`npm install`)
 
 ### "Reset de senha nao envia email"
 - Configure o SMTP no Supabase (Authentication > Email Templates)
 - Verifique o Redirect URL em Authentication > URL Configuration
 - O template de email precisa do link `{{ .ConfirmationURL }}`
+
+### "Notificacoes push nao funcionam"
+- Verifique se `VITE_VAPID_PUBLIC_KEY` esta configurada no `.env`
+- Verifique se as chaves VAPID estao configuradas nos Secrets do Supabase
+- Verifique se a edge function `send-push` esta deployada
+- So funciona em HTTPS (producao)
 
 ---
 
@@ -433,7 +501,8 @@ Black Diamond/
 ### Custo de operacao
 - Hospedagem (Vercel): R$ 0,00
 - Banco de dados (Supabase Free): R$ 0,00
-- Email (Resend Free): R$ 0,00 (ate 3.000/mes)
+- Notificacoes push (Web Push): R$ 0,00
+- Google Calendar API: R$ 0,00
 - Dominio: ~R$ 40,00/ano (opcional)
 
 ### O que cobrar do cliente
@@ -441,11 +510,20 @@ Black Diamond/
 - Compra do dominio anual (se aplicavel)
 - Manutencao mensal (opcional)
 
-### Proximos passos sugeridos
+### Funcionalidades implementadas
+- [x] Agendamento online 4 steps
+- [x] Painel admin completo
 - [x] Notificacoes push via navegador
+- [x] Integracao com Google Calendar
+- [x] Sistema de avaliacoes
+- [x] PWA instalavel
+- [x] CI/CD com GitHub Actions
+- [x] Headers de seguranca (CSP, X-Frame-Options, etc.)
+
+### Possiveis melhorias futuras
 - [ ] API de WhatsApp (Evolution API) para lembretes automaticos
 - [ ] Grafico de faturamento mensal no dashboard
-- [ ] Integracao com Google Calendar
+- [ ] Environment promotion (dev → staging → prod)
 
 ---
 
@@ -477,16 +555,11 @@ VITE_VAPID_PUBLIC_KEY=<chave_publica_gerada>
 ```
 VAPID_PRIVATE_KEY=<chave_privada_gerada>
 VAPID_PUBLIC_KEY=<chave_publica_gerada>
-VAPID_SUBJECT=mailto:elberthmayan2007@gmail.com
+VAPID_SUBJECT=mailto:seu-email@gmail.com
 SUPABASE_SERVICE_ROLE_KEY=<sua_service_role_key>
 ```
 
-#### 4. Rodar SQL no Supabase Editor
-Execute as secoes 15, 16 e 17 do `estrutura_black_diamond.sql` para criar:
-- Funcao `delete_push_subscription`
-- Trigger `notificar_push_agendamento` (AFTER INSERT ON bookings)
-- Funcao `limpar_subscriptions_antigas` + cron diario
-- Secret `supabase_url` na tabela `secrets`
+#### 4. Rodar SQL no Supabase Execute as secoes de push do `estrutura_black_diamond.sql`
 
 #### 5. Deploy da edge function
 ```bash
@@ -501,35 +574,35 @@ supabase functions deploy send-push
 
 ---
 
-## 16. Sistema de Avaliação
+## 16. Sistema de Avaliacao
 
 ### Visao Geral
-Após cada atendimento, o cliente recebe um email com link pra avaliar de 1 a 5 estrelas. Avaliações 4-5 redirecionam pro Google Maps.
+Apos cada atendimento, o cliente recebe um email com link pra avaliar de 1 a 5 estrelas. Avaliacoes 4-5 redirecionam pro Google Maps.
 
 ### Como funciona
 1. Admin clica "Concluir Atendimento"
 2. Trigger `enviar_email_avaliacao` envia email automaticamente
 3. Cliente abre `/avaliar/:bookingId` e avalia
-4. Avaliações ficam salvas na tabela `reviews`
-5. Dashboard mostra média de avaliação
-6. TestimonialsSlider usa avaliações reais
+4. Avaliacoes ficam salvas na tabela `reviews`
+5. Dashboard mostra media de avaliacao
+6. TestimonialsSlider usa avaliacoes reais
 
 ### Configuracao
-Execute as secoes 19 e 20 do `estrutura_black_diamond.sql` para criar:
+Execute as secoes de reviews do `estrutura_black_diamond.sql` para criar:
 - Tabela `reviews`
 - Funcoes `get_average_rating()` e `get_top_reviews()`
 - Trigger `enviar_email_avaliacao` (AFTER UPDATE ON bookings)
 
-### Importante: URL do link de avaliação
-O email usa `https://dbukdhycfaibdshxnatt.supabase.co/avaliar/:bookingId`. Para que funcione, configure no Supabase:
-- Authentication → URL Configuration → Redirect URLs: adicione `https://dbukdhycfaibdshxnatt.supabase.co/**`
+### URL do link de avaliacao
+Configure no Supabase:
+- Authentication > URL Configuration > Redirect URLs: adicione `https://seu-supabase-id.supabase.co/**`
 
 ---
 
 ## 17. Google Calendar Auto-Sync
 
 ### Visao Geral
-Agendamentos são sincronizados automaticamente com o Google Calendar do barbeiro.
+Agendamentos sao sincronizados automaticamente com o Google Calendar do barbeiro.
 
 ### Como funciona
 1. Booking criado → cria evento no Google Calendar
@@ -547,14 +620,14 @@ Agendamentos são sincronizados automaticamente com o Google Calendar do barbeir
 #### 2. Criar OAuth 2.0 Credentials
 1. APIs & Services → Credentials → Create Credentials → OAuth 2.0 Client ID
 2. Application type: Web application
-3. Authorized redirect URIs: adicione `https://dbukdhycfaibdshxnatt.supabase.co/functions/v1/sync-google-calendar`
+3. Authorized redirect URIs: adicione a URL da edge function
 4. Copie o Client ID e Client Secret
 
 #### 3. Obter Refresh Token
-1. Gere uma URL de autorização com seu Client ID
+1. Gere uma URL de autorizacao com seu Client ID
 2. Autorize uma vez (barbeiro clica no link)
-3. Copie o código de autorização
-4. Troque o código por refresh token usando a API OAuth
+3. Copie o codigo de autorizacao
+4. Troque o codigo por refresh token usando a API OAuth
 5. Salve o refresh token
 
 #### 4. Configurar secrets no Supabase
@@ -565,7 +638,7 @@ supabase secrets set GOOGLE_REFRESH_TOKEN=<seu_refresh_token>
 ```
 
 #### 5. Rodar SQL
-Execute a secao 21 do `estrutura_black_diamond.sql` para adicionar a coluna `google_event_id` na tabela bookings.
+Execute a secao de `google_event_id` do `estrutura_black_diamond.sql` para adicionar a coluna na tabela bookings.
 
 #### 6. Deploy da edge function
 ```bash
@@ -578,4 +651,4 @@ supabase functions deploy sync-google-calendar
 
 ---
 
-*Documento gerado em Junho 2026. Versao do sistema: 2.1.0*
+*Documento atualizado em Junho 2026. Versao do sistema: 2.1.0*

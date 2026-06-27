@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, ChevronRight, Loader2 } from 'lucide-react';
 import { formatPhone } from '../../../lib/utils';
+import { useModalA11y } from '../../../hooks/useModalA11y';
 import type { Client } from '../../../types';
 
 interface BookingSearchModalProps {
@@ -25,6 +26,9 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
   isSearchingClient,
   onSearch
 }) => {
+  const handleClose = () => { onClose(); setSearchQuery(''); };
+  const { dialogRef } = useModalA11y(isOpen, handleClose);
+
   if (!isOpen) return null;
 
   return (
@@ -34,10 +38,11 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={() => { onClose(); setSearchQuery(''); }}
+          onClick={handleClose}
           className="absolute inset-0 bg-black/60 backdrop-blur-sm hidden lg:block"
         />
         <motion.div
+          ref={dialogRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title-search"
@@ -53,7 +58,7 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
               <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Pesquise por nome ou whatsapp</p>
             </div>
             <button
-              onClick={() => { onClose(); setSearchQuery(''); }}
+              onClick={handleClose}
               aria-label="Fechar busca"
               className="w-8 h-8 rounded-lg hover:bg-white/5 text-zinc-500 hover:text-white transition-all flex items-center justify-center cursor-pointer text-sm"
             >
@@ -125,7 +130,7 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
           <div className="px-5 pb-8 lg:pb-6 pt-2 shrink-0">
             <div className="flex gap-2">
               <button
-                onClick={() => { onClose(); setSearchQuery(''); }}
+                onClick={handleClose}
                 aria-label="Cancelar busca"
                 className="flex-1 h-10 bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.05] text-zinc-400 hover:text-white text-[9px] font-bold uppercase tracking-widest rounded-xl transition-all cursor-pointer"
               >

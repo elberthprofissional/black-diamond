@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { isTimeOccupied, getLocalDateString } from '../lib/utils';
+import { isTimeOccupied, getLocalDateString, getTimeSlotsForDate } from '../lib/utils';
 import { useBookings } from '../hooks/useBookings';
 import { useSlotBlocking } from '../hooks/useSlotBlocking';
 import { useToast } from '../hooks/useToast';
@@ -24,7 +24,7 @@ const AdminAvailableSlots: React.FC = () => {
         const slots = await getAvailableSlots(selectedDate);
         setAvailableSlots(slots);
       } catch {
-        setAvailableSlots(['08:30', '09:30', '10:30', '11:30', '13:30', '14:30', '15:30', '16:30', '17:30', '18:30']);
+        setAvailableSlots(getTimeSlotsForDate(selectedDate));
       }
     };
     loadAvailableSlots();

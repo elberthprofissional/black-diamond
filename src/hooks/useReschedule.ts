@@ -72,6 +72,9 @@ export function useReschedule(
   const cancelReschedule = () => {
     setIsRescheduling(false);
     setRescheduleStep(1);
+    setRescheduleServices([]);
+    setRescheduleDate('');
+    setRescheduleTime('');
   };
 
   return {

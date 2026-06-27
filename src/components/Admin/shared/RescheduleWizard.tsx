@@ -27,6 +27,7 @@ const getNext14Days = () => {
   for (let i = 0; i < 14; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
+    if (d.getDay() === 0) continue;
     list.push({
       dateStr: getLocalDateString(d),
       dayNum: String(d.getDate()).padStart(2, '0'),

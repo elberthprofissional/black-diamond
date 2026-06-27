@@ -159,15 +159,15 @@ describe('createClient', () => {
 })
 
 describe('deleteClient', () => {
-  it('deleta cliente por id', async () => {
+  it('deleta cliente por id (soft delete)', async () => {
     const mockChain = {
-      delete: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
       eq: vi.fn().mockResolvedValue({ error: null }),
     }
     vi.mocked(supabase.from).mockReturnValue(mockChain as ReturnType<typeof supabase.from>)
 
     await deleteClient('client-1')
-    expect(mockChain.delete).toHaveBeenCalled()
+    expect(mockChain.update).toHaveBeenCalled()
     expect(mockChain.eq).toHaveBeenCalledWith('id', 'client-1')
   })
 })

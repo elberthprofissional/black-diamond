@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getClients, getBookings, deleteClient, updateClient, updateClientNotes, createClient } from '../lib/api';
+import { getClients, getBookings, getBookingsForStats, deleteClient, updateClient, updateClientNotes, createClient } from '../lib/api';
 import { formatPhone } from '../lib/utils';
 import { useToast } from '../hooks/useToast';
 import AdminLayout from '../components/Admin/AdminLayout';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
+import ClientPanel from '../components/Admin/shared/ClientPanel';
 import { 
   ArrowLeft, 
   Search, 
   ChevronRight, 
   ChevronDown,
   Trash2, 
-  Pencil, 
   X, 
   Plus
 } from 'lucide-react';
@@ -118,13 +118,13 @@ const AdminClients: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [clientsData, bookingsData] = await Promise.all([getClients(), getBookings()]);
+      const [clientsData, bookingsData] = await Promise.all([getClients(), getBookingsForStats()]);
       
       const todayISO = new Date();
       todayISO.setHours(0, 0, 0, 0);
 
       const enriched: ClientWithStats[] = (clientsData || [])
-        .filter((c: Client) => c && c.name && c.name !== 'BLOQUEADO' && c.phone !== '00000000000' && !(c as unknown as Record<string, unknown>).is_blocked)
+        .filter((c: Client) => c && c.name && c.name !== 'BLOQUEADO' && c.name !== 'CLIENTE EXCLUIDO' && c.phone !== '00000000000' && !(c as unknown as Record<string, unknown>).is_blocked)
         .map((c: Client) => {
           const cb = (bookingsData || []).filter((b) => b && b.client_id === c.id && b.status !== 'cancelled');
           
@@ -253,21 +253,15 @@ const AdminClients: React.FC = () => {
     try { await deleteClient(selectedClient.id); setClients(prev => prev.filter(c => c.id !== selectedClient.id)); closePanel(); showSuccess('Cliente excluído!'); } catch { showError('Erro ao excluir.'); } finally { setIsDeleting(false); setIsDeleteOpen(false); }
   };
 
-  // Reminder message formatting
-  const formatReminder = useCallback((templateText: string) => {
-    return templateText;
-  }, []);
-
   const sendWithTemplate = (template: string) => {
     if (!selectedClient?.phone) return;
-    const formattedText = formatReminder(template);
     
     let formattedPhone = selectedClient.phone.replace(/\D/g, '');
     if (formattedPhone.length === 10 || formattedPhone.length === 11) {
       formattedPhone = '55' + formattedPhone;
     }
 
-    window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(formattedText)}`, '_blank');
+    window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(template)}`, '_blank');
     markReminderSent(selectedClient.id);
     closeReminderModal();
   };
@@ -500,133 +494,22 @@ const AdminClients: React.FC = () => {
       {/* CLIENT PANEL */}
       <AnimatePresence>
         {selectedClient && (
-          <div className="fixed inset-0 z-[200] flex justify-end flex-col sm:flex-row">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closePanel} className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="relative w-full sm:w-[440px] h-[100dvh] sm:h-full mt-auto sm:mt-0 bg-[#0E0E0E] border-t sm:border-t-0 sm:border-l border-[#C5A059]/20 shadow-2xl overflow-y-auto scrollbar-hide flex flex-col text-left"
-            >
-              {/* Header */}
-              <div className="sticky top-0 bg-[#0E0E0E]/95 backdrop-blur-md z-10 px-6 py-4 border-b border-white/[0.04] flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <button 
-                    onClick={closePanel} 
-                    className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
-                  >
-                    <X size={16} />
-                  </button>
-                  <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.25em]">Dados do Cliente</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button 
-                    onClick={() => { setEditName(selectedClient.name); setEditPhone(selectedClient.phone); setEditEmail(selectedClient.email || ''); setIsEditing(true); }} 
-                    className="text-zinc-400 hover:text-white transition-all cursor-pointer"
-                  >
-                    <Pencil size={14} />
-                  </button>
-                  <button 
-                    onClick={() => setIsDeleteOpen(true)} 
-                    className="text-zinc-400 hover:text-red-400 transition-all cursor-pointer"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="px-6 py-6 space-y-6 flex-1">
-                {/* Avatar + Name */}
-                <div className="flex items-center gap-4 bg-white/[0.01] border border-white/[0.03] p-4 rounded-xl">
-                  <div className="w-12 h-12 bg-[#111111] border border-white/[0.08] rounded-xl flex items-center justify-center text-lg font-bold text-white uppercase shrink-0">
-                    {selectedClient.name.charAt(0)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h2 className="text-base font-black text-white uppercase tracking-tight truncate">{selectedClient.name}</h2>
-                    <p className="text-xs text-zinc-500 mt-0.5">{formatPhone(selectedClient.phone)}</p>
-                    <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest mt-1">Membro desde {new Date(selectedClient.created_at).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}</p>
-                  </div>
-                </div>
-
-                {/* Stats Container */}
-                <div className="bg-[#121212] border border-white/[0.03] rounded-xl p-4 space-y-3">
-                  <div className="flex justify-between items-center px-2 py-1">
-                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Total de Visitas</span>
-                    <span className="text-sm font-black text-[#C5A059]">
-                      {panelBookings.length} {panelBookings.length === 1 ? 'visita' : 'visitas'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center px-2">
-                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Valor Faturado</span>
-                    <span className="text-sm font-black text-white">R$ {panelTotal.toFixed(0)}</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-3 border-t border-white/[0.04] px-2">
-                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Última Visita</span>
-                    <span className="text-xs font-bold text-white uppercase">
-                      {panelLast ? panelLast.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Nunca'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-2">
-                  <a
-                    href={`https://wa.me/55${selectedClient.phone?.replace(/\D/g, '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 h-10 border border-white/[0.06] bg-white/[0.02] text-zinc-300 font-bold text-[9px] uppercase tracking-wider rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer flex items-center justify-center"
-                  >
-                    WhatsApp
-                  </a>
-                  <button
-                    onClick={() => { setIsReminderOpen(true); }}
-                    className="flex-1 h-10 border border-white/[0.06] bg-white/[0.02] text-zinc-300 font-bold text-[9px] uppercase tracking-wider rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    Enviar Lembrete
-                  </button>
-                  <button
-                    onClick={() => { navigate(`/admin/agendar?client=${encodeURIComponent(selectedClient.name)}&phone=${encodeURIComponent(selectedClient.phone)}`); }}
-                    className="flex-1 h-10 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[9px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    <Plus size={12} strokeWidth={3} />
-                    Agendar
-                  </button>
-                </div>
-
-                {/* Notes */}
-                <div className="space-y-3 pt-2">
-                  <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.04]">
-                    <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-[#C5A059]">Anotações</h3>
-                    <button onClick={() => { if (isEditingNotes) { setIsEditingNotes(false); setNotesText(selectedClient.notes || ''); } else { setIsEditingNotes(true); } }} className="text-[9px] font-bold uppercase tracking-wider text-zinc-500 hover:text-white transition-colors cursor-pointer">
-                      {isEditingNotes ? 'Cancelar' : notesText.trim() ? 'Editar' : '+ Adicionar'}
-                    </button>
-                  </div>
-
-                  {notesText.trim() ? (
-                    <div className="space-y-1.5 pl-3 border-l border-[#C5A059]/20 my-2 text-left">
-                      {notesText.split('\n').map((line, idx) => (
-                        <p key={idx} className="text-xs text-zinc-300 leading-relaxed">{line}</p>
-                      ))}
-                    </div>
-                  ) : !isEditingNotes ? (
-                    <p className="text-[10px] text-zinc-600 italic">Nenhuma anotação registrada.</p>
-                  ) : null}
-
-                  <AnimatePresence>
-                    {isEditingNotes && (
-                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-2 overflow-hidden">
-                        <textarea value={notesText} onChange={(e) => setNotesText(e.target.value)} placeholder="Ex: Prefere degradê baixo..." className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-xs text-white placeholder:text-zinc-700 outline-none focus:border-[#C5A059]/30 resize-none h-20" autoFocus />
-                        <button onClick={async () => { await handleSaveNotes(); setIsEditingNotes(false); }} disabled={savingNotes} className="w-full py-2.5 bg-[#C5A059] text-black text-[10px] font-bold uppercase tracking-wider rounded-xl cursor-pointer active:scale-95 transition-all">
-                          {savingNotes ? '...' : 'Salvar'}
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-            </motion.div>
-          </div>
+          <ClientPanel
+            client={selectedClient}
+            panelBookings={panelBookings}
+            panelTotal={panelTotal}
+            panelLast={panelLast}
+            notesText={notesText}
+            isEditingNotes={isEditingNotes}
+            savingNotes={savingNotes}
+            onNotesChange={setNotesText}
+            onToggleEditNotes={() => { if (isEditingNotes) { setIsEditingNotes(false); setNotesText(selectedClient.notes || ''); } else { setIsEditingNotes(true); } }}
+            onSaveNotes={handleSaveNotes}
+            onEdit={() => { setEditName(selectedClient.name); setEditPhone(selectedClient.phone); setEditEmail(selectedClient.email || ''); setIsEditing(true); }}
+            onDelete={() => setIsDeleteOpen(true)}
+            onReminder={() => setIsReminderOpen(true)}
+            onClose={closePanel}
+          />
         )}
       </AnimatePresence>
 
@@ -635,7 +518,7 @@ const AdminClients: React.FC = () => {
         {isDeleteOpen && selectedClient && (
           <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !isDeleting && setIsDeleteOpen(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="relative z-10 w-full sm:max-w-xs bg-[#111] border-t sm:border border-white/[0.06] sm:rounded-2xl rounded-t-2xl p-5 space-y-4">
+            <motion.div role="dialog" aria-modal="true" aria-label="Excluir cliente" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="relative z-10 w-full sm:max-w-xs bg-[#111] border-t sm:border border-white/[0.06] sm:rounded-2xl rounded-t-2xl p-5 space-y-4">
               <p className="text-xs text-zinc-400 leading-relaxed">Excluir <span className="text-white font-semibold">{selectedClient.name}</span>? Essa ação não pode ser desfeita.</p>
               <div className="flex gap-2">
                 <button onClick={() => setIsDeleteOpen(false)} disabled={isDeleting} className="flex-1 h-10 bg-white/[0.04] border border-white/[0.06] text-zinc-400 text-[10px] font-bold uppercase tracking-wider rounded-xl hover:bg-white/[0.06] transition-all cursor-pointer">Manter</button>
@@ -651,7 +534,7 @@ const AdminClients: React.FC = () => {
         {isEditing && selectedClient && (
           <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsEditing(false)} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-[#0A0A0A] border border-white/10 w-full max-w-sm relative z-10 rounded-2xl shadow-2xl p-5">
+            <motion.div role="dialog" aria-modal="true" aria-label="Editar cliente" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-[#0A0A0A] border border-white/10 w-full max-w-sm relative z-10 rounded-2xl shadow-2xl p-5">
               <h3 className="text-sm font-semibold text-white mb-4">Editar Cliente</h3>
               <div className="space-y-3">
                 <div>
@@ -843,7 +726,7 @@ const AdminClients: React.FC = () => {
         {isCreatingClient && (
           <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsCreatingClient(false)} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-            <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 30, stiffness: 300 }} className="relative z-10 w-full max-h-[85vh] sm:w-[340px] sm:max-h-none bg-[#111111] border-t sm:border border-white/[0.06] sm:rounded-2xl rounded-t-2xl overflow-hidden flex flex-col">
+            <motion.div role="dialog" aria-modal="true" aria-label="Criar novo cliente" initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 30, stiffness: 300 }} className="relative z-10 w-full max-h-[85vh] sm:w-[340px] sm:max-h-none bg-[#111111] border-t sm:border border-white/[0.06] sm:rounded-2xl rounded-t-2xl overflow-hidden flex flex-col">
               <div className="px-6 pt-6 pb-5 text-left">
                 <div className="flex items-center justify-between mb-5">
                   <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.2em]">Novo cliente</span>

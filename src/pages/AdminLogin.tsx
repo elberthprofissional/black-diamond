@@ -4,13 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { EyeOff, Eye, ChevronRight, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../hooks/useToast';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isForgotOpen, setIsForgotOpen] = useState(false);
-  const [recoveryEmail, setRecoveryEmail] = useState(import.meta.env.VITE_ADMIN_EMAIL || 'elberthmayan2007@gmail.com');
+  const [recoveryEmail, setRecoveryEmail] = useState(import.meta.env.VITE_ADMIN_EMAIL || '');
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [isResetSent, setIsResetSent] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -121,6 +122,8 @@ const AdminLogin: React.FC = () => {
     setRecoveryEmail('');
     setIsResetSent(false);
   };
+
+  const { dialogRef } = useModalA11y(isForgotOpen, handleCloseForgot);
 
   return (
     <div className="h-screen w-full bg-[#0A0A0A] text-white flex relative overflow-hidden font-sans select-none">
@@ -285,6 +288,10 @@ const AdminLogin: React.FC = () => {
               className="absolute inset-0 bg-black/80 backdrop-blur-md"
             />
             <motion.div 
+              ref={dialogRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Recuperação de senha"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
