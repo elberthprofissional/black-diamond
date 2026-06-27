@@ -15,14 +15,15 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 7. [Setup e Desenvolvimento](#7-setup-e-desenvolvimento)
 8. [Deploy na Vercel](#8-deploy-na-vercel)
 9. [CI/CD (GitHub Actions)](#9-cicd-github-actions)
-10. [Recuperacao de Senha](#10-recuperacao-de-senha)
-11. [Variaveis de Ambiente](#11-variaveis-de-ambiente)
-12. [Estrutura de Pastas](#12-estrutura-de-pastas)
-13. [Troubleshooting](#13-troubleshooting)
-14. [Notas de Negocio](#14-notas-de-negocio)
-15. [Notificacoes Push (Web Push)](#15-notificacoes-push-web-push)
-16. [Sistema de Avaliacao](#16-sistema-de-avaliacao)
-17. [Google Calendar Auto-Sync](#17-google-calendar-auto-sync)
+10. [Staging (Ambiente de Teste)](#10-staging-ambiente-de-teste)
+11. [Recuperacao de Senha](#11-recuperacao-de-senha)
+12. [Variaveis de Ambiente](#12-variaveis-de-ambiente)
+13. [Estrutura de Pastas](#13-estrutura-de-pastas)
+14. [Troubleshooting](#14-troubleshooting)
+15. [Notas de Negocio](#15-notas-de-negocio)
+16. [Notificacoes Push (Web Push)](#16-notificacoes-push-web-push)
+17. [Sistema de Avaliacao](#17-sistema-de-avaliacao)
+18. [Google Calendar Auto-Sync](#18-google-calendar-auto-sync)
 
 ---
 
@@ -341,7 +342,51 @@ Toda vez que ha um push ou PR pra branch `main`:
 
 ---
 
-## 10. Recuperacao de Senha
+## 10. Staging (Ambiente de Teste)
+
+### O que e
+Staging e uma COPIA do site que so o desenvolvedor acessa pra testar antes de liberar pros clientes.
+
+| Ambiente | Branch | URL | Quem usa |
+|----------|--------|-----|----------|
+| Producao | `main` | `black-diamond.vercel.app` | Clientes |
+| Staging | `staging` | `black-diamond-teste.vercel.app` | Desenvolvedor |
+
+### Como funciona no dia a dia
+
+#### Quando quer TESTAR algo antes de liberar:
+```bash
+git checkout staging
+git merge main
+git push
+```
+O Vercel deploya automaticamente em `black-diamond-teste.vercel.app`. Tu testa la.
+
+#### Quando ta tudo OK e quer liberar pros clientes:
+Nao precisa fazer nada! Se o staging veio da main, o site de producao ja ta atualizado.
+
+#### Quando quer mudar algo NOVO e arriscado:
+```bash
+git checkout staging
+# Mexe no codigo...
+git add .
+git commit -m "descreva a mudanca"
+git push
+```
+Testa no staging. Se tiver ok:
+```bash
+git checkout main
+git merge staging
+git push
+```
+Agora ta liberado pros clientes.
+
+### Regra simples
+> **NUNCA mexa direto na main pra testar coisa nova.** Sempre testa no staging primeiro. Se der errado no staging, ninguem ve. Se der errado na main, o barbeiro reclama.
+
+---
+
+## 11. Recuperacao de Senha
 
 ### Fluxo
 1. Admin clica "Esqueceu a senha?" no login
@@ -357,7 +402,7 @@ Toda vez que ha um push ou PR pra branch `main`:
 
 ---
 
-## 11. Variaveis de Ambiente
+## 12. Variaveis de Ambiente
 
 | Variavel | Descricao | Obrigatorio |
 |----------|-----------|-------------|
@@ -368,7 +413,7 @@ Toda vez que ha um push ou PR pra branch `main`:
 
 ---
 
-## 12. Estrutura de Pastas
+## 13. Estrutura de Pastas
 
 ```
 Black Diamond/
@@ -464,7 +509,7 @@ Black Diamond/
 
 ---
 
-## 13. Troubleshooting
+## 14. Troubleshooting
 
 ### "Nenhum agendamento aparece no admin"
 - Verifique se o email do usuario logado e igual ao configurado nas RLS policies
@@ -496,7 +541,7 @@ Black Diamond/
 
 ---
 
-## 14. Notas de Negocio
+## 15. Notas de Negocio
 
 ### Custo de operacao
 - Hospedagem (Vercel): R$ 0,00
@@ -527,7 +572,7 @@ Black Diamond/
 
 ---
 
-## 15. Notificacoes Push (Web Push)
+## 16. Notificacoes Push (Web Push)
 
 ### Visao Geral
 O sistema envia notificacoes push automaticamente ao criar um novo agendamento. O admin recebe a notificacao no celular/desktop mesmo com o app fechado.
@@ -574,7 +619,7 @@ supabase functions deploy send-push
 
 ---
 
-## 16. Sistema de Avaliacao
+## 17. Sistema de Avaliacao
 
 ### Visao Geral
 Apos cada atendimento, o cliente recebe um email com link pra avaliar de 1 a 5 estrelas. Avaliacoes 4-5 redirecionam pro Google Maps.
@@ -599,7 +644,7 @@ Configure no Supabase:
 
 ---
 
-## 17. Google Calendar Auto-Sync
+## 18. Google Calendar Auto-Sync
 
 ### Visao Geral
 Agendamentos sao sincronizados automaticamente com o Google Calendar do barbeiro.
