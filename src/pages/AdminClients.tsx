@@ -222,13 +222,13 @@ const AdminClients: React.FC = () => {
       setSelectedClient((p) => p ? { ...p, name: editName.trim(), phone: editPhone.trim(), email: editEmail.trim() || undefined } : p);
       setClients(prev => prev.map(c => c.id === selectedClient.id ? { ...c, name: editName.trim(), phone: editPhone.trim() } : c));
       setIsEditing(false);
-    } catch (err) {  showError('Erro ao salvar.'); } finally { setSaving(false); }
+    } catch { showError('Erro ao salvar.'); } finally { setSaving(false); }
   };
 
   const handleSaveNotes = async () => {
     if (!selectedClient) return;
     setSavingNotes(true);
-    try { await updateClientNotes(selectedClient.id, notesText.trim()); setSelectedClient((p) => p ? { ...p, notes: notesText.trim() } : p); } catch (err) {  showError('Erro ao salvar.'); } finally { setSavingNotes(false); }
+    try { await updateClientNotes(selectedClient.id, notesText.trim()); setSelectedClient((p) => p ? { ...p, notes: notesText.trim() } : p); } catch { showError('Erro ao salvar.'); } finally { setSavingNotes(false); }
   };
 
   const handleCreateClient = async () => {
@@ -244,13 +244,13 @@ const AdminClients: React.FC = () => {
       setNewClientNotes('');
       showSuccess('Cliente criado!');
       await loadData();
-    } catch (err) {  showError('Erro ao criar cliente.'); } finally { setIsSavingClient(false); }
+    } catch { showError('Erro ao criar cliente.'); } finally { setIsSavingClient(false); }
   };
 
   const confirmDelete = async () => {
     if (!selectedClient) return;
     setIsDeleting(true);
-    try { await deleteClient(selectedClient.id); setClients(prev => prev.map(c => c.id === selectedClient.id ? { ...c, name: 'CLIENTE EXCLUIDO' } : c)); closePanel(); showSuccess('Cliente exclu+�do!'); } catch (err) {  showError('Erro ao excluir.'); } finally { setIsDeleting(false); setIsDeleteOpen(false); }
+    try { await deleteClient(selectedClient.id); setClients(prev => prev.filter(c => c.id !== selectedClient.id)); closePanel(); showSuccess('Cliente exclu+�do!'); } catch { showError('Erro ao excluir.'); } finally { setIsDeleting(false); setIsDeleteOpen(false); }
   };
 
   // Reminder message formatting
