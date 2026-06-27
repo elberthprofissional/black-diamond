@@ -121,7 +121,7 @@ const BookingPage: React.FC = () => {
                 <span className="text-[9px] font-black tracking-[0.4em] text-[#C5A059] uppercase">BLACK DIAMOND</span>
                 <span className="text-[9px] text-zinc-600">Barbearia</span>
               </div>
-              <p className="text-[9px] text-zinc-600">© 2025 Black Diamond. Todos os direitos reservados.</p>
+              <p className="text-[9px] text-zinc-600">© 2026 Black Diamond. Todos os direitos reservados.</p>
             </div>
           </div>
         </div>
