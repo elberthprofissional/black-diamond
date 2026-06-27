@@ -10,8 +10,7 @@ import {
   LogOut, 
   Bell,
   Scissors,
-  DollarSign,
-  UserPlus
+  DollarSign
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
@@ -296,15 +295,22 @@ const AdminProfile: React.FC = () => {
         </div>
 
         {/* Dashboard grid metrics - Semana + Mês */}
-        <div className="grid grid-cols-6 gap-3">
-          <div className="col-span-1 bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
+          <div className="bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
             <Scissors size={22} className="text-[#C5A059]/30" />
             <div>
               <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">Atendimentos</span>
               <p className="text-xl font-black text-white tracking-tight tabular-nums">{currentConcluidos}</p>
             </div>
           </div>
-          <div className="col-span-2 bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
+          <div className="bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
+            <span className="text-[#C5A059]/30 text-lg font-black">✕</span>
+            <div>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">Cancelados</span>
+              <p className="text-xl font-black text-red-500/70 tracking-tight tabular-nums">{currentCancelados}</p>
+            </div>
+          </div>
+          <div className="col-span-2 lg:col-span-2 bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
             <DollarSign size={22} className="text-[#C5A059]/30" />
             <div>
               <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">Faturamento Semanal</span>
@@ -313,20 +319,13 @@ const AdminProfile: React.FC = () => {
               </p>
             </div>
           </div>
-          <div className="col-span-2 bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
+          <div className="col-span-2 lg:col-span-2 bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
             <DollarSign size={22} className="text-[#C5A059]/30" />
             <div>
               <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">Faturamento Mensal</span>
               <p className="text-xl font-black text-[#C5A059] tracking-tight tabular-nums">
                 R$ {lucroMes.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </p>
-            </div>
-          </div>
-          <div className="col-span-1 bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
-            <UserPlus size={22} className="text-[#C5A059]/30" />
-            <div>
-              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">Clientes</span>
-              <p className="text-xl font-black text-white tracking-tight tabular-nums">{currentNovos}</p>
             </div>
           </div>
         </div>

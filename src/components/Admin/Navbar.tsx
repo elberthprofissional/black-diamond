@@ -48,7 +48,7 @@ const AdminNavbar: React.FC = () => {
           </div>
  
           <div className="relative">
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center gap-2 group">
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-expanded={isMenuOpen} aria-haspopup="true" className="flex items-center gap-2 group">
               <div className="w-8 h-8 rounded-full border border-white/[0.08] group-hover:border-[#C5A059]/30 transition-all overflow-hidden">
                 <img src="/assets/tato.webp" alt="Tato" className="w-full h-full object-cover" />
               </div>
@@ -94,7 +94,7 @@ const AdminNavbar: React.FC = () => {
       {/* LOGOUT CONFIRMATION MODAL */}
       <AnimatePresence>
         {showLogoutConfirm && (
-          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Confirmar saída">
             <motion.div 
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 

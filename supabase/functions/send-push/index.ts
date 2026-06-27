@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 import * as webpush from "https://esm.sh/web-push@3.6.7"
 
@@ -13,11 +12,13 @@ interface PushSubscription {
   id?: string
 }
 
-webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
+if (VAPID_PRIVATE_KEY && VAPID_PUBLIC_KEY) {
+  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
+}
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method !== "POST") {
-    return new Response("Method not allowed", { status: 405 })
+    return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: { "Content-Type": "application/json" } })
   }
 
   if (!VAPID_PRIVATE_KEY || !VAPID_PUBLIC_KEY) {
@@ -65,8 +66,8 @@ serve(async (req) => {
           return true
         } catch (err: unknown) {
           const status = (err as { statusCode?: number }).statusCode
-          if (status === 410) {
-            await supabase.from("push_subscriptions").delete().eq("id", sub.id ?? "")
+          if (status === 410 && sub.id) {
+            await supabase.from("push_subscriptions").delete().eq("id", sub.id)
           }
           return false
         }
@@ -80,8 +81,8 @@ serve(async (req) => {
       status: 200,
       headers: { "Content-Type": "application/json" },
     })
-  } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
+  } catch {
+    return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     })

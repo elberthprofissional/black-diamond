@@ -42,7 +42,6 @@ export function usePushNotifications() {
 
   const subscribe = useCallback(async () => {
     if (!VAPID_PUBLIC_KEY) {
-      console.warn('VITE_VAPID_PUBLIC_KEY não configurada')
       return false
     }
 
@@ -71,8 +70,7 @@ export function usePushNotifications() {
 
       setIsSubscribed(true)
       return true
-    } catch (err) {
-      console.error('Erro ao inscrever push:', err)
+    } catch {
       return false
     }
   }, [])
@@ -88,8 +86,8 @@ export function usePushNotifications() {
         await supabase.rpc('delete_push_subscription', { p_endpoint: endpoint })
         setIsSubscribed(false)
       }
-    } catch (err) {
-      console.error('Erro ao cancelar inscrição push:', err)
+    } catch {
+      // silent
     }
   }, [])
 

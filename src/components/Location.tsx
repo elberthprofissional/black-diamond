@@ -27,6 +27,7 @@ const Location: React.FC = () => {
                   style={{ border: 0 }} 
                   allowFullScreen={true} 
                   loading="lazy" 
+                  title="Localização da Black Diamond no Google Maps"
                   className="absolute inset-0"
                 ></iframe>
               </div>

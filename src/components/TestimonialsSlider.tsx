@@ -81,6 +81,9 @@ const Testimonials: React.FC = () => {
         {/* Cards Slider */}
         <div
           ref={sliderRef}
+          role="region"
+          aria-roledescription="carousel"
+          aria-label="Depoimentos de clientes"
           className="flex gap-5 mb-8 items-stretch overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 scroll-smooth cursor-grab"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -96,6 +99,9 @@ const Testimonials: React.FC = () => {
           {reviews.map((review, index) => (
             <div
               key={index}
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`Depoimento ${index + 1} de ${reviews.length}`}
               className="bg-[#1a1a1a] border border-white/[0.02] p-7 md:p-10 rounded-2xl flex flex-col gap-6 h-auto hover:border-[#D4AF37]/20 transition-all duration-500 w-[75vw] md:w-[340px] snap-center shrink-0"
             >
               {/* Header: Avatar, Name and Stars */}
@@ -122,10 +128,13 @@ const Testimonials: React.FC = () => {
         </div>
 
         {/* Navigation Dots */}
-        <div className="flex justify-center gap-2 mb-6">
+        <div className="flex justify-center gap-2 mb-6" role="tablist" aria-label="Navegação dos depoimentos">
           {reviews.map((_, index) => (
             <button
               key={index}
+              role="tab"
+              aria-selected={activeIndex === index}
+              aria-label={`Ir para depoimento ${index + 1}`}
               onClick={() => scrollToIndex(index)}
               className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
                 activeIndex === index

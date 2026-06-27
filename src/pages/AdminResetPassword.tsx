@@ -32,7 +32,7 @@ const AdminResetPassword: React.FC = () => {
           setTimeout(() => navigate('/admin/login'), 2500);
         }
       });
-    }, 3000);
+    }, 8000);
 
     return () => {
       subscription.unsubscribe();
@@ -83,7 +83,7 @@ const AdminResetPassword: React.FC = () => {
     try {
       const { error } = await supabase.auth.updateUser({ password: password.trim() });
       if (error) {
-        showError('Erro ao atualizar a senha: ' + error.message);
+        showError('Erro ao atualizar a senha. Tente novamente.');
       } else {
         showSuccess('Senha alterada com sucesso!');
         setTimeout(() => navigate('/admin'), 1500);

@@ -109,9 +109,18 @@ const Footer: React.FC = () => {
           <p className="text-[9px] md:text-[10px] font-roboto font-light text-zinc-500 uppercase tracking-[0.4em] text-center md:text-left">
             © 2026 Black Diamond — Todos os direitos reservados.
           </p>
-          
-          <Link 
-            to="/admin" 
+
+          <a
+            href="https://wa.me/5531980159559"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[8px] md:text-[9px] font-roboto font-light text-zinc-600 hover:text-zinc-400 uppercase tracking-[0.3em] transition-colors"
+          >
+            Criado por Elberth Mayan
+          </a>
+
+          <Link
+            to="/admin"
             aria-label="Acesso restrito para administradores"
             className="group flex items-center gap-3 px-4 py-2 bg-[#141414] border border-white/5 rounded-full hover:border-[#D4AF37]/50 hover:bg-[#D4AF37]/5 transition-all duration-500"
           >

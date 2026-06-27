@@ -23,6 +23,14 @@ CREATE TABLE IF NOT EXISTS secrets (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Segredos: NINGUÉM acessa via client (apenas edge functions com service_role)
+DROP POLICY IF EXISTS "Secrets no access" ON secrets;
+CREATE POLICY "Secrets no access" ON secrets
+    FOR ALL
+    TO authenticated
+    USING (false)
+    WITH CHECK (false);
+
 -- Tabela de serviços
 CREATE TABLE IF NOT EXISTS services (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -143,6 +151,7 @@ ALTER TABLE services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE secrets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 
@@ -186,17 +195,28 @@ CREATE POLICY "Push subscriptions admin" ON push_subscriptions FOR ALL TO authen
 USING (is_admin())
 WITH CHECK (is_admin());
 
--- Reviews: leitura pública, inserção pública, admin gerencia
+-- Reviews: leitura pública, admin gerencia
 DROP POLICY IF EXISTS "Reviews leitura pública" ON reviews;
 CREATE POLICY "Reviews leitura pública" ON reviews FOR SELECT USING (true);
-
-DROP POLICY IF EXISTS "Reviews inserção pública" ON reviews;
-CREATE POLICY "Reviews inserção pública" ON reviews FOR INSERT WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Reviews admin gerencia" ON reviews;
 CREATE POLICY "Reviews admin gerencia" ON reviews FOR ALL TO authenticated
 USING (is_admin())
 WITH CHECK (is_admin());
+
+-- Reviews: inserção apenas para bookings concluídos (sem review duplicado)
+DROP POLICY IF EXISTS "Reviews inserção pública" ON reviews;
+CREATE POLICY "Reviews inserção pública" ON reviews FOR INSERT
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM bookings b
+        WHERE b.id = reviews.booking_id
+        AND b.status = 'completed'
+        AND NOT EXISTS (
+            SELECT 1 FROM reviews r WHERE r.booking_id = reviews.booking_id
+        )
+    )
+);
 
 -- =========================================================================
 -- 8. FUNÇÃO HELPER: Verifica se o usuário é admin
@@ -204,11 +224,7 @@ WITH CHECK (is_admin());
 CREATE OR REPLACE FUNCTION is_admin()
 RETURNS boolean AS $$
 BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM settings
-    WHERE key = 'admin_email'
-    AND value = (auth.jwt() ->> 'email')
-  );
+  RETURN (auth.jwt() ->> 'email') = 'aguirrestarlyn645@gmail.com';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
 

@@ -198,10 +198,6 @@ const BookingPage: React.FC = () => {
         </div>
       </main>
 
-      <style>{`
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
       <ToastNotification toast={toast} />
     </div>
   );

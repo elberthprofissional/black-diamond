@@ -18,7 +18,13 @@ if ('serviceWorker' in navigator) {
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'activated') {
-              window.location.reload();
+              const toast = document.createElement('div');
+              toast.id = 'sw-update-toast';
+              toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:#111;color:#C5A059;padding:12px 24px;border-radius:12px;border:1px solid rgba(197,160,89,0.2);font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;box-shadow:0 20px 50px rgba(0,0,0,0.8);';
+              toast.textContent = 'Atualização disponível — Toque para recarregar';
+              toast.onclick = () => window.location.reload();
+              document.body.appendChild(toast);
+              setTimeout(() => toast.remove(), 10000);
             }
           });
         }

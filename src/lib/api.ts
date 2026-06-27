@@ -61,7 +61,7 @@ export const getAvailableSlots = async (date: string) => {
     p_date: date
   });
   if (error) throw error;
-  return (data || []).map((item: { slot_time: string }) => (item?.slot_time ?? '').slice(0, 5));
+  return (data || []).map((item: { slot_time: string }) => (item?.slot_time ?? '').slice(0, 5)).filter(Boolean);
 };
 
 export const getBookings = async (date?: string) => {
@@ -117,6 +117,41 @@ export const unblockDay = async (date: string) => {
     p_date: date
   });
   if (error) throw error;
+};
+
+export const autoCompleteExpiredBookings = async (date: string): Promise<number> => {
+  const { data: bookings, error } = await supabase
+    .from('bookings')
+    .select('id, booking_time, total_duration, status')
+    .eq('booking_date', date)
+    .in('status', ['confirmed', 'pending'])
+    .eq('is_blocked', false);
+
+  if (error || !bookings || bookings.length === 0) return 0;
+
+  const now = new Date();
+  const currentTimeMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const expiredIds: string[] = [];
+
+  for (const booking of bookings) {
+    const [hours, minutes] = booking.booking_time.slice(0, 5).split(':').map(Number);
+    const bookingEndMinutes = hours * 60 + minutes + (booking.total_duration || 60);
+
+    if (currentTimeMinutes >= bookingEndMinutes) {
+      expiredIds.push(booking.id);
+    }
+  }
+
+  if (expiredIds.length === 0) return 0;
+
+  const { error: updateError } = await supabase
+    .from('bookings')
+    .update({ status: 'completed' })
+    .in('id', expiredIds);
+
+  if (updateError) return 0;
+  return expiredIds.length;
 };
 
 export const getBookingsForStats = async () => {
@@ -181,6 +216,7 @@ export const updateClientNotes = async (id: string, notes: string) => {
 
 // Reviews
 export const submitReview = async (bookingId: string, clientId: string, rating: number, comment?: string) => {
+  if (rating < 1 || rating > 5) throw new Error('Avaliação deve ser entre 1 e 5');
   const { error } = await supabase
     .from('reviews')
     .insert({ booking_id: bookingId, client_id: clientId, rating, comment: comment || null });
@@ -191,6 +227,7 @@ export const submitReview = async (bookingId: string, clientId: string, rating: 
 export const getAverageRating = async () => {
   const { data, error } = await supabase.rpc('get_average_rating');
   if (error) throw error;
+  if (!data) return { average: 0, total: 0 };
   return data as { average: number; total: number };
 };
 

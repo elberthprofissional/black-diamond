@@ -14,14 +14,15 @@ const ServiceStep: React.FC<ServiceStepProps> = React.memo(({ services, selected
 
   if (layout === 'desktop') {
     return (
-      <div className="space-y-2">
+          <div className="space-y-2" role="group" aria-label="Serviços disponíveis">
         {services.map((service) => {
           const selected = isSelected(service.id);
           return (
             <button 
               key={service.id}
               onClick={() => onToggle(service)}
-              aria-label={`Selecionar serviço ${service.name}. Preço: R$ ${Number(service.price).toFixed(0)}. Duração: ${service.duration} minutos.`}
+              aria-pressed={selected}
+              aria-label={`Serviço ${service.name}. Preço: R$ ${Number(service.price).toFixed(0)}. Duração: ${service.duration} minutos. ${selected ? 'Selecionado' : 'Não selecionado'}`}
               className={`w-full flex items-center gap-5 px-6 py-5 rounded-xl transition-all duration-200 text-left group ${
                 selected ? 'bg-[#C5A059]/[0.06]' : 'hover:bg-white/[0.03]'
               }`}
@@ -45,13 +46,14 @@ const ServiceStep: React.FC<ServiceStepProps> = React.memo(({ services, selected
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" role="group" aria-label="Serviços disponíveis">
       {services.map((service, index) => {
         const selected = isSelected(service.id);
         return (
           <button 
             key={service.id}
             onClick={() => onToggle(service)}
+            aria-pressed={selected}
             className={`w-full text-left rounded-2xl p-5 border transition-all duration-200 flex items-center justify-between gap-4 cursor-pointer select-none ${
               selected 
                 ? 'bg-[#12100d] border-[#C5A059]' 

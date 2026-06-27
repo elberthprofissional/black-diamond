@@ -17,8 +17,7 @@ export function useSlotBlocking() {
         await onBlockComplete();
       }
       showSuccess(`Horário ${slot} bloqueado com sucesso!`);
-    } catch (error) {
-      console.error(error);
+    } catch {
       showError('Erro ao bloquear horário.');
     } finally {
       setBlockingSlot(null);
@@ -36,8 +35,7 @@ export function useSlotBlocking() {
         await onUnblockComplete();
       }
       showSuccess('Horário liberado com sucesso!');
-    } catch (error) {
-      console.error(error);
+    } catch {
       showError('Erro ao desbloquear horário.');
     }
   };
@@ -53,8 +51,7 @@ export function useSlotBlocking() {
         await onComplete();
       }
       showSuccess('Dia bloqueado com sucesso!');
-    } catch (error) {
-      console.error(error);
+    } catch {
       showError('Erro ao bloquear o dia.');
     } finally {
       setBlockingDay(false);
@@ -73,8 +70,7 @@ export function useSlotBlocking() {
         await onComplete();
       }
       showSuccess('Dia liberado com sucesso!');
-    } catch (error) {
-      console.error(error);
+    } catch {
       showError('Erro ao liberar o dia.');
     } finally {
       setBlockingDay(false);

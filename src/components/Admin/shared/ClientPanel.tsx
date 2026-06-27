@@ -70,7 +70,7 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
         <div className="px-6 py-6 space-y-6 flex-1">
           <div className="flex items-center gap-4 bg-white/[0.01] border border-white/[0.03] p-4 rounded-xl">
             <div className="w-12 h-12 bg-[#111111] border border-white/[0.08] rounded-xl flex items-center justify-center text-lg font-bold text-white uppercase shrink-0">
-              {client.name.charAt(0)}
+              {client.name?.charAt(0) || '?'}
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="text-base font-black text-white uppercase tracking-tight truncate">{client.name}</h2>
@@ -100,7 +100,7 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
 
           <div className="flex gap-2">
             <a
-              href={`https://wa.me/55${client.phone?.replace(/\D/g, '')}`}
+              href={`https://wa.me/${client.phone?.replace(/\D/g, '').startsWith('55') ? '' : '55'}${client.phone?.replace(/\D/g, '')}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 h-10 border border-white/[0.06] bg-white/[0.02] text-zinc-300 font-bold text-[9px] uppercase tracking-wider rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer flex items-center justify-center"

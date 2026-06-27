@@ -1,3 +1,5 @@
+const CACHE_VERSION = 'v2';
+
 self.addEventListener('install', () => {
   self.skipWaiting();
 });
@@ -5,7 +7,9 @@ self.addEventListener('install', () => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
-      return Promise.all(keys.map((key) => caches.delete(key)));
+      return Promise.all(
+        keys.filter((key) => !key.startsWith(CACHE_VERSION)).map((key) => caches.delete(key))
+      );
     }).then(() => self.clients.claim())
   );
 });
@@ -18,10 +22,10 @@ self.addEventListener('fetch', (e) => {
   }
 });
 
-self.addEventListener('push', (e) => {
+self.addEventListener('push', async (e) => {
   let data = { title: 'Black Diamond', body: 'Nova notificação', icon: '/assets/logo.webp' };
   if (e.data) {
-    try { data = e.data.json(); } catch { data.body = e.data.text(); }
+    try { data = e.data.json(); } catch { data.body = await e.data.text(); }
   }
   e.waitUntil(
     self.registration.showNotification(data.title, {
@@ -46,7 +50,7 @@ self.addEventListener('notificationclick', (e) => {
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
       for (const client of windowClients) {
-        if (client.url.includes('/admin') && 'focus' in client) return client.focus();
+        if (new URL(client.url).pathname.startsWith('/admin') && 'focus' in client) return client.focus();
       }
       if (clients.openWindow) return clients.openWindow(e.notification.data || '/admin');
     })

@@ -21,10 +21,13 @@ const Services: React.FC<ServicesProps> = ({ onBookingClick }) => {
           {loading ? (
             <div className="text-center py-20 text-zinc-900 font-bebas uppercase tracking-[0.4em] text-xs">Sincronizando sistema...</div>
           ) : (
-            <div className="space-y-0">
+            <div className="space-y-0" role="list" aria-label="Lista de serviços">
               {services.map((service) => (
                 <div 
                   key={service.id}
+                  role="listitem"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onBookingClick(); } }}
                   className="group py-8 md:py-12 flex items-center justify-between border-b border-white/[0.03] cursor-pointer hover:border-[#D4AF37]/30 transition-all duration-700"
                   onClick={onBookingClick}
                 >

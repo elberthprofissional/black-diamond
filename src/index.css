@@ -76,6 +76,28 @@
   animation: slow-zoom 20s ease-in-out infinite alternate;
 }
 
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(-50% - 1rem)); }
+}
+
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+
+@media (min-width: 768px) {
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(calc(-50% - 2rem)); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+}
+
 .bg-gold-gradient {
   background: linear-gradient(135deg, #D4AF37 0%, #ffedd5 50%, #D4AF37 100%);
 }

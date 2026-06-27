@@ -28,11 +28,14 @@ const Gallery: React.FC = () => {
       </div>
 
       {/* Infinite Scroll Container */}
-      <div className="relative flex overflow-x-hidden">
-        <div className="flex animate-marquee whitespace-nowrap gap-4 md:gap-8 px-4">
+      <div className="relative flex overflow-x-hidden" role="region" aria-label="Galeria de trabalhos" aria-roledescription="carrossel">
+        <div className="flex animate-marquee whitespace-nowrap gap-4 md:gap-8 px-4" aria-live="off">
           {displayImages.map((img, index) => (
             <div
               key={`${img.alt}-${index}`}
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`Foto ${img.alt}`}
               className="relative w-[280px] md:w-[400px] h-[360px] md:h-[500px] bg-[#1a1a1a] border border-white/[0.03] overflow-hidden flex-shrink-0 group"
             >
               <img
@@ -60,22 +63,6 @@ const Gallery: React.FC = () => {
           Para mais, siga no Instagram <span className="text-[#D4AF37]">@blackdiamond</span>
         </a>
       </div>
-
-      <style>{`
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(calc(-50% - 1rem)); }
-        }
-        .animate-marquee {
-          animation: marquee 40s linear infinite;
-        }
-        @media (min-width: 768px) {
-          @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(calc(-50% - 2rem)); }
-          }
-        }
-      `}</style>
     </section>
   );
 };

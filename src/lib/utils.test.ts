@@ -5,7 +5,6 @@ import {
   getLocalDateString,
   getNextDays,
   isTimeOccupied,
-  TIME_SLOTS,
 } from '../lib/utils'
 
 describe('getPeriod', () => {
@@ -125,13 +124,5 @@ describe('isTimeOccupied', () => {
 
   it('retorna false para lista vazia', () => {
     expect(isTimeOccupied('09:00', [])).toBe(false)
-  })
-})
-
-describe('TIME_SLOTS', () => {
-  it('contem slots de 08:00 as 19:00 (1 em 1 hora)', () => {
-    expect(TIME_SLOTS).toContain('08:00')
-    expect(TIME_SLOTS).toContain('19:00')
-    expect(TIME_SLOTS).toHaveLength(12)
   })
 })

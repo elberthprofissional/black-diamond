@@ -42,7 +42,7 @@ const BookingSummaryPanel: React.FC<BookingSummaryPanelProps> = ({
             </div>
 
             <div className="space-y-2 border-t border-white/[0.02] pt-4">
-              <span className="text-[8px] font-bold text-zinc-555 uppercase tracking-[0.3em] block mb-2">Serviços</span>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.3em] block mb-2">Serviços</span>
               {selectedServices.length > 0 ? (
                 <div className="space-y-3 max-h-40 overflow-y-auto pr-1 scrollbar-hide">
                   {selectedServices.map(s => (

@@ -74,7 +74,7 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
                 placeholder="Digite o nome ou número..."
                 autoFocus
                 aria-label="Campo de pesquisa de cliente por nome ou número de whatsapp"
-                className="w-full bg-[#151515] border border-white/5 focus:border-[#C5A059]/30 rounded-xl py-3 pl-10 pr-4 text-xs font-semibold text-white outline-none transition-all placeholder:text-zinc-700 uppercase tracking-wider"
+                className="w-full bg-[#151515] border border-white/5 focus:border-[#C5A059]/30 rounded-xl py-3 pl-10 pr-4 text-xs font-semibold text-white outline-none transition-all placeholder:text-zinc-700 uppercase tracking-wider overflow-hidden text-ellipsis"
                 value={searchQuery}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -108,9 +108,9 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
                     aria-label={`Selecionar cliente ${c.name}`}
                     className="w-full text-left py-3.5 flex items-center justify-between cursor-pointer group"
                   >
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-zinc-300 group-hover:text-white uppercase tracking-wider transition-colors">{c.name}</p>
-                      <p className="text-[10px] text-zinc-500 mt-1 font-mono tracking-tight">{c.phone}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-zinc-300 group-hover:text-white uppercase tracking-wider transition-colors truncate">{c.name}</p>
+                      <p className="text-[10px] text-zinc-500 mt-1 font-mono tracking-tight truncate">{c.phone}</p>
                     </div>
                     <ChevronRight size={14} className="text-zinc-800 group-hover:text-[#C5A059] transition-colors" />
                   </button>

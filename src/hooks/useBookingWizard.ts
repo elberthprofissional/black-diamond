@@ -1,14 +1,15 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getServices, createBooking, getAvailableSlots, getBookings } from '../lib/api';
+import { createBooking, getAvailableSlots, getBookings } from '../lib/api';
 import { getNextDays, formatPhone, getTimeSlotsForDate } from '../lib/utils';
+import { useServices } from './useServices';
 import type { Service } from '../types';
 
 export function useBookingWizard(showError: (msg: string) => void) {
   const nextDays = useMemo(() => getNextDays(), []);
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [services, setServices] = useState<Service[]>([]);
+  const { services } = useServices();
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
@@ -44,38 +45,21 @@ export function useBookingWizard(showError: (msg: string) => void) {
   }, [isDragging, startX, scrollLeft]);
 
   useEffect(() => {
-    const loadServices = async () => {
-      try {
-        const data = await getServices();
-        setServices(data);
-      } catch {
-        showError('Erro ao carregar serviços. Tente novamente.');
-      }
-    };
-    loadServices();
-  }, [showError]);
-
-  useEffect(() => {
     setSelectedTime('');
     if (selectedDate) {
-      const loadBookings = async () => {
+      const loadData = async () => {
         try {
-          const data = await getBookings(selectedDate);
-          setExistingBookings(data);
+          const [bookingsData, slotsData] = await Promise.all([
+            getBookings(selectedDate),
+            getAvailableSlots(selectedDate).catch(() => getTimeSlotsForDate(selectedDate))
+          ]);
+          setExistingBookings(bookingsData);
+          setAvailableSlots(slotsData);
         } catch {
-          showError('Erro ao carregar agendamentos.');
+          showError('Erro ao carregar dados.');
         }
       };
-      const loadAvailableSlots = async () => {
-        try {
-          const slots = await getAvailableSlots(selectedDate);
-          setAvailableSlots(slots);
-        } catch {
-          setAvailableSlots(getTimeSlotsForDate(selectedDate));
-        }
-      };
-      loadBookings();
-      loadAvailableSlots();
+      loadData();
     }
   }, [selectedDate, showError]);
 

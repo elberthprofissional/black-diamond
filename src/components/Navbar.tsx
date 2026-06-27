@@ -66,7 +66,7 @@ const Navbar: React.FC<NavbarProps> = ({ onBookingClick }) => {
           </div>
 
           {/* Desktop Links */}
-          <div className="hidden lg:flex items-center space-x-12" role="tablist">
+          <nav className="hidden lg:flex items-center space-x-12" aria-label="Menu de navegação">
             {navLinks.map((item) => (
               <button 
                 key={item.id}
@@ -77,7 +77,7 @@ const Navbar: React.FC<NavbarProps> = ({ onBookingClick }) => {
                 {item.label}
               </button>
             ))}
-          </div>
+          </nav>
 
           <div className="flex items-center gap-4">
             <button 

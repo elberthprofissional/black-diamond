@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getBookings } from '../lib/api';
+import { getBookings, autoCompleteExpiredBookings } from '../lib/api';
 import type { BookingWithClient } from '../types';
 
 export function useBookings(date?: string) {
@@ -13,6 +13,18 @@ export function useBookings(date?: string) {
     try {
       const data = await getBookings(date);
       setBookings((data || []) as BookingWithClient[]);
+
+      if (date) {
+        autoCompleteExpiredBookings(date).then((count) => {
+          if (count > 0) {
+            setBookings(prev => prev.map(b =>
+              b.status !== 'completed' && b.status !== 'cancelled'
+                ? { ...b, status: 'completed' as const }
+                : b
+            ));
+          }
+        });
+      }
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch bookings'));
     } finally {

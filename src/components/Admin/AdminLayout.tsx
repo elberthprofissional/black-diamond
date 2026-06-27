@@ -21,7 +21,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
       <AdminSidebar />
       <div className={innerClassName}>
         <AdminNavbar />
-        <main className={mainClassName}>
+        <main id="main-content" className={mainClassName}>
           {children}
         </main>
       </div>

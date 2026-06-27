@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Star, Check, ExternalLink } from 'lucide-react';
+import { Star, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const RatingPage: React.FC = () => {
@@ -55,8 +55,6 @@ const RatingPage: React.FC = () => {
     }
   };
 
-  const googleReviewUrl = 'https://search.google.com/local/writereview?placeid=YOUR_PLACE_ID';
-
   if (submitted) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-6">
@@ -73,21 +71,6 @@ const RatingPage: React.FC = () => {
             <h1 className="text-2xl font-bold text-white">Obrigado!</h1>
             <p className="text-zinc-500">Sua avaliação foi registrada com sucesso.</p>
           </div>
-
-          {rating >= 4 && (
-            <div className="bg-[#111] border border-white/[0.06] rounded-2xl p-6 space-y-4">
-              <p className="text-sm text-zinc-400">Gostou do atendimento? Avalie-nos no Google!</p>
-              <a
-                href={googleReviewUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-zinc-200 transition-all"
-              >
-                Avaliar no Google
-                <ExternalLink size={14} />
-              </a>
-            </div>
-          )}
 
           <p className="text-xs text-zinc-600">Black Diamond — Barbearia Premium</p>
         </motion.div>

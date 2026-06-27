@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const GOOGLE_CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID") ?? ""
@@ -25,13 +24,15 @@ async function getAccessToken(): Promise<string> {
     }),
   })
 
+  if (!response.ok) throw new Error("Failed to refresh Google access token")
   const data = await response.json()
+  if (!data.access_token) throw new Error("No access token in Google response")
   return data.access_token
 }
 
 async function createEvent(accessToken: string, event: CalendarEvent): Promise<string | null> {
   const response = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/${GOOGLE_CALENDAR_ID}/events`,
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(GOOGLE_CALENDAR_ID)}/events`,
     {
       method: "POST",
       headers: {
@@ -49,7 +50,7 @@ async function createEvent(accessToken: string, event: CalendarEvent): Promise<s
 
 async function updateEvent(accessToken: string, eventId: string, event: CalendarEvent): Promise<boolean> {
   const response = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/${GOOGLE_CALENDAR_ID}/events/${eventId}`,
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(GOOGLE_CALENDAR_ID)}/events/${eventId}`,
     {
       method: "PUT",
       headers: {
@@ -65,7 +66,7 @@ async function updateEvent(accessToken: string, eventId: string, event: Calendar
 
 async function deleteEvent(accessToken: string, eventId: string): Promise<boolean> {
   const response = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/${GOOGLE_CALENDAR_ID}/events/${eventId}`,
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(GOOGLE_CALENDAR_ID)}/events/${eventId}`,
     {
       method: "DELETE",
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -75,9 +76,17 @@ async function deleteEvent(accessToken: string, eventId: string): Promise<boolea
   return response.ok || response.status === 404
 }
 
-serve(async (req) => {
+function parseBrazilDateTime(dateStr: string, timeStr: string): Date {
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const [hours, minutes] = timeStr.split(':').map(Number)
+  const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0))
+  utcDate.setMinutes(utcDate.getMinutes() + 3)
+  return utcDate
+}
+
+Deno.serve(async (req) => {
   if (req.method !== "POST") {
-    return new Response("Method not allowed", { status: 405 })
+    return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: { "Content-Type": "application/json" } })
   }
 
   if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_REFRESH_TOKEN) {
@@ -93,12 +102,12 @@ serve(async (req) => {
     const accessToken = await getAccessToken()
 
     if (action === "create") {
-      const startDate = new Date(`${booking_date}T${booking_time}`)
+      const startDate = parseBrazilDateTime(booking_date, booking_time)
       const endDate = new Date(startDate.getTime() + (total_duration || 60) * 60000)
 
       const event: CalendarEvent = {
         summary: `${client_name} - ${service_names}`,
-        description: `Black Diamond - ${service_names}\nCliente: ${client_name}\nDuração: ${total_duration || 60}min`,
+        description: `Black Diamond - ${service_names}\nCliente: ${client_name}\nDuracao: ${total_duration || 60}min`,
         start: { dateTime: startDate.toISOString(), timeZone: "America/Sao_Paulo" },
         end: { dateTime: endDate.toISOString(), timeZone: "America/Sao_Paulo" },
       }
@@ -120,12 +129,12 @@ serve(async (req) => {
     }
 
     if (action === "update" && google_event_id) {
-      const startDate = new Date(`${booking_date}T${booking_time}`)
+      const startDate = parseBrazilDateTime(booking_date, booking_time)
       const endDate = new Date(startDate.getTime() + (total_duration || 60) * 60000)
 
       const event: CalendarEvent = {
         summary: `${client_name} - ${service_names}`,
-        description: `Black Diamond - ${service_names}\nCliente: ${client_name}\nDuração: ${total_duration || 60}min`,
+        description: `Black Diamond - ${service_names}\nCliente: ${client_name}\nDuracao: ${total_duration || 60}min`,
         start: { dateTime: startDate.toISOString(), timeZone: "America/Sao_Paulo" },
         end: { dateTime: endDate.toISOString(), timeZone: "America/Sao_Paulo" },
       }
@@ -157,8 +166,8 @@ serve(async (req) => {
       status: 400,
       headers: { "Content-Type": "application/json" },
     })
-  } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
+  } catch {
+    return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     })

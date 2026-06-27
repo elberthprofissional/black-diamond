@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -15,7 +16,6 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
 
     const checkAuth = async () => {
       try {
-        const { supabase } = await import('../../lib/supabase');
         const { data: { session } } = await supabase.auth.getSession();
         if (active) {
           if (!session) {

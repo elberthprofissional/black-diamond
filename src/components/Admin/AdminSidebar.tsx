@@ -52,6 +52,7 @@ const AdminSidebar: React.FC = () => {
                 <button
                   key={item.path}
                   onClick={() => navigate(item.path)}
+                  aria-current={active ? 'page' : undefined}
                   className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all group relative ${
                     active 
                       ? 'bg-white/5 text-white' 
@@ -89,6 +90,8 @@ const AdminSidebar: React.FC = () => {
         <div className="relative">
           <button 
             onClick={() => setIsProfileOpen(!isProfileOpen)}
+            aria-expanded={isProfileOpen}
+            aria-haspopup="true"
             className={`w-full flex items-center gap-3 p-2 rounded-xl transition-all group ${
               isProfileOpen ? 'bg-white/5' : 'hover:bg-white/[0.02]'
             }`}
@@ -131,7 +134,7 @@ const AdminSidebar: React.FC = () => {
       {/* LOGOUT CONFIRMATION MODAL */}
       <AnimatePresence>
         {showLogoutConfirm && (
-          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Confirmar saída">
             <motion.div 
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 

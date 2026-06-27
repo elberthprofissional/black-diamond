@@ -314,9 +314,9 @@ const AdminClients: React.FC = () => {
 
           {/* Search & Actions */}
           <div className="flex items-center gap-2">
-            <div className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-xl flex items-center focus-within:border-white/10 transition-all">
-              <div className="pl-4 pr-3"><Search size={15} className="text-zinc-600" /></div>
-              <input type="text" placeholder="Pesquisar contatos..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-transparent py-3.5 text-xs font-medium text-white outline-none placeholder:text-zinc-600 text-left" />
+            <div className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-xl flex items-center focus-within:border-white/10 transition-all overflow-hidden">
+              <div className="pl-4 pr-3 shrink-0"><Search size={15} className="text-zinc-600" /></div>
+              <input type="text" placeholder="Pesquisar contatos..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-transparent py-3.5 text-xs font-medium text-white outline-none placeholder:text-zinc-600 text-left overflow-hidden text-ellipsis" />
             </div>
             <button onClick={() => setIsCreatingClient(true)} className="h-[46px] px-4 rounded-xl bg-[#C5A059] hover:bg-[#A68233] flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95">
               <Plus size={16} strokeWidth={2.5} className="text-black" />
@@ -408,10 +408,10 @@ const AdminClients: React.FC = () => {
                       </div>
                       <div className="flex-1 min-w-0 text-left">
                         <p className="text-sm font-semibold text-white truncate">{client.name}</p>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-[11px] text-zinc-500">{formatPhone(client.phone)}</span>
-                          <span className="text-zinc-600">•</span>
-                          <span className="text-[10px] text-zinc-500">Último: {client.lastVisit}</span>
+                        <div className="flex items-center gap-1.5 mt-0.5 overflow-hidden">
+                          <span className="text-[11px] text-zinc-500 truncate">{formatPhone(client.phone)}</span>
+                          <span className="text-zinc-600 shrink-0">•</span>
+                          <span className="text-[10px] text-zinc-500 truncate">Último: {client.lastVisit}</span>
                         </div>
                       </div>
                       
