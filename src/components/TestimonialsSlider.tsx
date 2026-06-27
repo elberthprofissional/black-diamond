@@ -1,7 +1,14 @@
-import React, { useRef, useCallback, useState } from 'react';
+import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { User, Star } from 'lucide-react';
+import { getTopReviews } from '../lib/api';
 
-const reviews = [
+interface Review {
+  name: string;
+  rating: number;
+  text: string;
+}
+
+const FALLBACK_REVIEWS: Review[] = [
   { name: "YP TATTOO", rating: 5, text: "Barbearia super confortável, ambiente agradável, profissional qualificado e atencioso." },
   { name: "HELBERT HENRIQUE", rating: 5, text: "Venezuelano mais fera de BH!! Tem o macete." },
   { name: "MAIA STUDIO", rating: 5, text: "Único profissional que conseguiu cortar o cabelo do meu filho com paciência e excelência." },
@@ -18,6 +25,21 @@ const Testimonials: React.FC = () => {
   const startX = useRef(0);
   const scrollLeftVal = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [reviews, setReviews] = useState<Review[]>(FALLBACK_REVIEWS);
+
+  useEffect(() => {
+    getTopReviews(10)
+      .then((data) => {
+        if (data && data.length > 0) {
+          setReviews(data.map((r: { client_name?: string; rating: number; comment?: string }) => ({
+            name: r.client_name || 'Cliente',
+            rating: r.rating,
+            text: r.comment || ''
+          })));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleScroll = useCallback(() => {
     if (!sliderRef.current) return;
@@ -25,14 +47,14 @@ const Testimonials: React.FC = () => {
     const cardWidth = (scrollWidth - clientWidth) / (reviews.length - 1);
     const index = Math.round(scrollLeft / cardWidth);
     setActiveIndex(Math.min(index, reviews.length - 1));
-  }, []);
+  }, [reviews.length]);
 
   const scrollToIndex = useCallback((index: number) => {
     if (!sliderRef.current) return;
     const { scrollWidth, clientWidth } = sliderRef.current;
     const cardWidth = (scrollWidth - clientWidth) / (reviews.length - 1);
     sliderRef.current.scrollTo({ left: cardWidth * index, behavior: 'smooth' });
-  }, []);
+  }, [reviews.length]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!sliderRef.current) return;

@@ -217,10 +217,11 @@ const AdminLogin: React.FC = () => {
             <div className="space-y-4 lg:space-y-10">
               {/* Email */}
               <div className="space-y-2 lg:space-y-4">
-                <label className="text-[9px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0">E-mail</label>
+                <label htmlFor="login-email" className="text-[9px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0">E-mail</label>
                 <div className="relative group">
-                  <input 
-                    type="email" 
+                  <input
+                    id="login-email"
+                    type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-6 text-sm font-medium outline-none focus:border-[#C5A059]/30 transition-all lg:bg-transparent lg:border-0 lg:border-b lg:border-white/10 lg:rounded-none lg:px-0 lg:h-12 lg:font-light lg:text-lg lg:focus:border-[#C5A059] placeholder:text-zinc-700 lg:placeholder:text-zinc-800"
@@ -233,9 +234,10 @@ const AdminLogin: React.FC = () => {
 
               {/* Password */}
               <div className="space-y-2 lg:space-y-4">
-                <label className="text-[9px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0">Senha</label>
+                <label htmlFor="login-password" className="text-[9px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0">Senha</label>
                 <div className="relative group">
-                  <input 
+                  <input
+                    id="login-password"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -243,9 +245,11 @@ const AdminLogin: React.FC = () => {
                     placeholder="••••••••"
                     required
                   />
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    aria-pressed={showPassword}
                     className="absolute right-6 lg:right-0 top-1/2 -translate-y-1/2 text-zinc-700 hover:text-white transition-colors"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}

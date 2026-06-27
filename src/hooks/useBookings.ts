@@ -17,13 +17,19 @@ export function useBookings(date?: string) {
       if (date) {
         autoCompleteExpiredBookings(date).then((count) => {
           if (count > 0) {
-            setBookings(prev => prev.map(b =>
-              b.status !== 'completed' && b.status !== 'cancelled'
-                ? { ...b, status: 'completed' as const }
-                : b
-            ));
+            setBookings(prev => {
+              const hasExpired = prev.some(b =>
+                b.status !== 'completed' && b.status !== 'cancelled'
+              );
+              if (!hasExpired) return prev;
+              return prev.map(b =>
+                b.status !== 'completed' && b.status !== 'cancelled'
+                  ? { ...b, status: 'completed' as const }
+                  : b
+              );
+            });
           }
-        });
+        }).catch(() => {});
       }
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch bookings'));

@@ -54,10 +54,11 @@ const AdminClients: React.FC = () => {
     try {
       const saved = localStorage.getItem('barber_reminder_templates_v2');
       if (saved) return JSON.parse(saved);
+      const siteUrl = window.location.origin;
       const initial = [
-        "E aí! Beleza? 💈 Passando para lembrar de garantir seu horário para essa semana no Black Diamond. Não deixe para a última hora! Agende aqui: https://black-diamond-wheat.vercel.app/",
-        "Fala! O fim de semana está chegando e a agenda está lotando. 💈 Bora dar aquele trato no visual para o fim de semana? Garanta seu horário: https://black-diamond-wheat.vercel.app/",
-        "Olá! Tudo bem? Passando para lembrar de agendar seu horário conosco esta semana no Black Diamond! 💈 Garanta seu corte aqui: https://black-diamond-wheat.vercel.app/"
+        `E aí! Beleza? 💈 Passando para lembrar de garantir seu horário para essa semana no Black Diamond. Não deixe para a última hora! Agende aqui: ${siteUrl}`,
+        `Fala! O fim de semana está chegando e a agenda está lotando. 💈 Bora dar aquele trato no visual para o fim de semana? Garanta seu horário: ${siteUrl}`,
+        `Olá! Tudo bem? Passando para lembrar de agendar seu horário conosco esta semana no Black Diamond! 💈 Garanta seu corte aqui: ${siteUrl}`
       ];
       localStorage.setItem('barber_reminder_templates_v2', JSON.stringify(initial));
       return initial;

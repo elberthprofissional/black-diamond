@@ -183,19 +183,22 @@ const AdminResetPassword: React.FC = () => {
             <div className="space-y-4 lg:space-y-8">
               
               <div className="space-y-2 lg:space-y-3">
-                <label className="text-[9px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0">Nova Senha</label>
+                <label htmlFor="reset-password" className="text-[9px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0">Nova Senha</label>
                 <div className="relative group">
-                  <input 
-                    type={showPassword ? "text" : "password"} 
+                  <input
+                    id="reset-password"
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-6 pr-14 text-sm font-medium outline-none focus:border-[#C5A059]/30 transition-all lg:bg-white/[0.03] lg:border-white/10 lg:border lg:rounded-xl lg:px-5 lg:pr-14 lg:h-14 lg:font-light lg:text-base lg:focus:border-[#C5A059]/50 lg:focus:bg-white/[0.05] placeholder:text-zinc-700 lg:placeholder:text-zinc-600"
                     placeholder="Mínimo 6 caracteres"
                     required
                   />
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    aria-pressed={showPassword}
                     className="absolute right-5 lg:right-4 top-1/2 -translate-y-1/2 text-zinc-700 hover:text-white transition-colors"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -205,19 +208,22 @@ const AdminResetPassword: React.FC = () => {
               </div>
 
               <div className="space-y-2 lg:space-y-3">
-                <label className="text-[9px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0">Confirmar Senha</label>
+                <label htmlFor="reset-confirm-password" className="text-[9px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0">Confirmar Senha</label>
                 <div className="relative group">
-                  <input 
-                    type={showPassword ? "text" : "password"} 
+                  <input
+                    id="reset-confirm-password"
+                    type={showPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-6 pr-14 text-sm font-medium outline-none focus:border-[#C5A059]/30 transition-all lg:bg-white/[0.03] lg:border-white/10 lg:border lg:rounded-xl lg:px-5 lg:pr-14 lg:h-14 lg:font-light lg:text-base lg:focus:border-[#C5A059]/50 lg:focus:bg-white/[0.05] placeholder:text-zinc-700 lg:placeholder:text-zinc-600"
                     placeholder="Repita a nova senha"
                     required
                   />
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    aria-pressed={showPassword}
                     className="absolute right-5 lg:right-4 top-1/2 -translate-y-1/2 text-zinc-700 hover:text-white transition-colors"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}

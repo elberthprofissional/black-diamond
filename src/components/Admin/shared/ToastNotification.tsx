@@ -7,7 +7,7 @@ interface ToastNotificationProps {
 
 const ToastNotification: React.FC<ToastNotificationProps> = ({ toast }) => {
   return (
-    <div aria-live="assertive" aria-atomic="true" className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[250]">
+    <div aria-live="polite" aria-atomic="true" className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[250]">
       <AnimatePresence>
         {toast && (
           <motion.div

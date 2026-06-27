@@ -71,7 +71,10 @@ export function useBookingWizard(showError: (msg: string) => void) {
     );
   }, []);
 
-  const totalPrice = selectedServices.reduce((sum, s) => sum + Number(s.price), 0);
+  const totalPrice = useMemo(
+    () => selectedServices.reduce((sum, s) => sum + Number(s.price), 0),
+    [selectedServices]
+  );
 
   const isStepDisabled = useMemo(() => {
     if (step === 1) return selectedServices.length === 0;

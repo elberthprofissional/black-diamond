@@ -2,14 +2,14 @@ import React from 'react';
 
 const Gallery: React.FC = () => {
   const images = [
-    { src: '/assets/gallery/corte-1.webp', alt: 'Corte 1' },
-    { src: '/assets/gallery/corte-2.webp', alt: 'Corte 2' },
-    { src: '/assets/gallery/corte-3.webp', alt: 'Corte 3' },
-    { src: '/assets/gallery/corte-4.webp', alt: 'Corte 4' },
-    { src: '/assets/gallery/corte-5.webp', alt: 'Corte 5' },
-    { src: '/assets/gallery/corte-6.webp', alt: 'Corte 6' },
-    { src: '/assets/gallery/corte-7.webp', alt: 'Corte 7' },
-    { src: '/assets/gallery/corte-8.webp', alt: 'Corte 8' },
+    { src: '/assets/gallery/corte-1.webp', alt: 'Corte de cabelo masculino estilo fade' },
+    { src: '/assets/gallery/corte-2.webp', alt: 'Corte degradê com acabamento na navalha' },
+    { src: '/assets/gallery/corte-3.webp', alt: 'Corte social com pente 2' },
+    { src: '/assets/gallery/corte-4.webp', alt: 'Corte infantil com acabamento perfeito' },
+    { src: '/assets/gallery/corte-5.webp', alt: 'Barba feita com navalha e navalha' },
+    { src: '/assets/gallery/corte-6.webp', alt: 'Corte combo com barba e sobrancelha' },
+    { src: '/assets/gallery/corte-7.webp', alt: 'Pigmentação capilar e design de barba' },
+    { src: '/assets/gallery/corte-8.webp', alt: 'Visual completo Black Diamond' },
   ];
 
   // Double the images for infinite scroll effect

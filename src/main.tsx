@@ -9,7 +9,6 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-// Registra o Service Worker para habilitar o PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then((registration) => {
@@ -29,14 +28,13 @@ if ('serviceWorker' in navigator) {
           });
         }
       });
-    }).catch(() => {});
+    }).catch((err) => {
+      console.warn('Service Worker registration failed:', err);
+    });
   });
 }
 
-// Captura o evento de instalação do PWA globalmente para uso no perfil do Admin
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   window.deferredPrompt = e as BeforeInstallPromptEvent;
 });
-
-

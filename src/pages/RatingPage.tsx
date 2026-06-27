@@ -95,6 +95,7 @@ const RatingPage: React.FC = () => {
                 onClick={() => { setRating(star); setError(''); }}
                 onMouseEnter={() => setHoveredStar(star)}
                 onMouseLeave={() => setHoveredStar(0)}
+                aria-label={`${star} ${star === 1 ? 'estrela' : 'estrelas'}`}
                 className="transition-transform hover:scale-110 cursor-pointer"
               >
                 <Star
@@ -124,10 +125,11 @@ const RatingPage: React.FC = () => {
           )}
 
           <div>
-            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2">
+            <label htmlFor="review-comment" className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2">
               Comentário <span className="text-zinc-600 font-normal">(opcional)</span>
             </label>
             <textarea
+              id="review-comment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Conte como foi sua experiência..."

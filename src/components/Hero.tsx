@@ -14,7 +14,7 @@ const Hero: React.FC<HeroProps> = ({ onBookingClick }) => {
           <img
             src="/assets/hero-bg.webp"
             alt="Black Diamond"
-            loading="lazy"
+            loading="eager"
             decoding="async"
             className="w-full h-full object-cover object-center opacity-50"
           />
