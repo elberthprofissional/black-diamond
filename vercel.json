@@ -5,36 +5,11 @@
   },
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!assets/|sw\\.js|manifest\\.json|favicon\\.ico|robots\\.txt|sitemap\\.xml).*)",
       "destination": "/index.html"
     }
   ],
   "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.supabase.co; frame-src https://www.google.com https://maps.google.com https://*.google.com; frame-ancestors 'none';"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=()"
-        }
-      ]
-    },
     {
       "source": "/assets/(.*)",
       "headers": [
@@ -45,7 +20,7 @@
       ]
     },
     {
-      "source": "/manifest.json",
+      "source": "/sw.js",
       "headers": [
         {
           "key": "Cache-Control",
@@ -54,7 +29,7 @@
       ]
     },
     {
-      "source": "/sw.js",
+      "source": "/manifest.json",
       "headers": [
         {
           "key": "Cache-Control",
