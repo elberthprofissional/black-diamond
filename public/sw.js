@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const API_CACHE = 'api-v1';
 
 self.addEventListener('install', (e) => {
