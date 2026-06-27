@@ -16,7 +16,6 @@ const AdminSidebar: React.FC = () => {
   const mainMenuItems = [
     { label: 'Agenda do Dia', path: '/admin', icon: Clock },
     { label: 'Agenda Semanal', path: '/admin/weekly', icon: Calendar },
-    { label: 'Horários', path: '/admin/available', icon: Clock },
     { label: 'Meus Clientes', path: '/admin/clients', icon: Users },
   ];
 

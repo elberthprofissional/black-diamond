@@ -14,7 +14,7 @@ const TITLES: Record<string, string> = {
   '/admin/agendar': 'Novo Agendamento | Black Diamond',
   '/admin/weekly': 'Agenda Semanal | Black Diamond',
   '/admin/clients': 'Clientes | Black Diamond',
-  '/admin/available': 'Horários Disponíveis | Black Diamond',
+
   '/admin/profile': 'Perfil | Black Diamond',
   '/admin/reset-password': 'Redefinir Senha | Black Diamond',
 };
@@ -35,7 +35,6 @@ const AdminResetPassword = lazy(() => import('./pages/AdminResetPassword'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdminWeekly = lazy(() => import('./pages/AdminWeekly'));
 const AdminClients = lazy(() => import('./pages/AdminClients'));
-const AdminAvailableSlots = lazy(() => import('./pages/AdminAvailableSlots'));
 const AdminProfile = lazy(() => import('./pages/AdminProfile'));
 const AdminBooking = lazy(() => import('./pages/AdminBooking'));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -70,7 +69,6 @@ function App() {
             <Route path="/admin/agendar" element={<AuthGuard><AdminBooking /></AuthGuard>} />
             <Route path="/admin/weekly" element={<AuthGuard><AdminWeekly /></AuthGuard>} />
             <Route path="/admin/clients" element={<AuthGuard><AdminClients /></AuthGuard>} />
-            <Route path="/admin/available" element={<AuthGuard><AdminAvailableSlots /></AuthGuard>} />
             <Route path="/admin/profile" element={<AuthGuard><AdminProfile /></AuthGuard>} />
 
             {/* Catch-all 404 Route */}

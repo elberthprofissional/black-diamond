@@ -11,7 +11,6 @@ const BottomTabs: React.FC = () => {
   const tabs = [
     { label: 'Hoje', path: '/admin', icon: Clock },
     { label: 'Semana', path: '/admin/weekly', icon: CalendarDays },
-    { label: 'Horários', path: '/admin/available', icon: Clock },
     { label: 'Clientes', path: '/admin/clients', icon: Users },
   ];
 
