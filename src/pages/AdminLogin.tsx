@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { EyeOff, Eye, ChevronRight, ArrowLeft } from 'lucide-react';
+import { EyeOff, Eye, ChevronRight, ArrowLeft, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../hooks/useToast';
 import { useModalA11y } from '../hooks/useModalA11y';
@@ -303,6 +303,9 @@ const AdminLogin: React.FC = () => {
             >
               {!isResetSent ? (
                 <>
+                  <button onClick={handleCloseForgot} className="absolute top-4 right-4 z-10 text-zinc-500 hover:text-white transition-colors cursor-pointer" aria-label="Fechar">
+                    <X size={16} />
+                  </button>
                   <div className="p-6 sm:p-8 pb-5 sm:pb-6 text-center border-b border-white/5">
                     <h2 className="text-base sm:text-lg font-semibold text-white mb-1">Encontre sua conta</h2>
                     <p className="text-xs sm:text-sm text-zinc-400">Insira seu email para redefinir sua senha.</p>
@@ -312,7 +315,7 @@ const AdminLogin: React.FC = () => {
                       type="email" 
                       value={recoveryEmail}
                       onChange={(e) => setRecoveryEmail(e.target.value)}
-                      className="w-full h-11 sm:h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white outline-none focus:border-[#C5A059]/50 transition-colors placeholder:text-zinc-500"
+                      className="w-full h-11 sm:h-12 bg-[#1a1a1a] border border-white/[0.08] rounded-xl px-4 text-sm text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-colors placeholder:text-zinc-600"
                       placeholder="Insira seu email"
                     />
                     <button
@@ -322,17 +325,13 @@ const AdminLogin: React.FC = () => {
                     >
                       {isSendingReset ? 'Enviando...' : 'Enviar link de recuperação'}
                     </button>
-                    <button 
-                      type="button"
-                      onClick={handleCloseForgot}
-                      className="w-full h-10 text-zinc-400 font-semibold text-sm hover:text-white transition-colors cursor-pointer"
-                    >
-                      Voltar ao login
-                    </button>
                   </div>
                 </>
               ) : (
                 <>
+                  <button onClick={handleCloseForgot} className="absolute top-4 right-4 z-10 text-zinc-500 hover:text-white transition-colors cursor-pointer" aria-label="Fechar">
+                    <X size={16} />
+                  </button>
                   <div className="p-6 sm:p-8 pb-5 sm:pb-6 text-center border-b border-white/5">
                     <div className="w-14 sm:w-16 h-14 sm:h-16 mx-auto mb-4 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -341,14 +340,6 @@ const AdminLogin: React.FC = () => {
                     <p className="text-xs sm:text-sm text-zinc-400">
                       Enviamos um link de recuperação para <span className="font-medium text-white">{recoveryEmail}</span>. Verifique sua caixa de entrada.
                     </p>
-                  </div>
-                  <div className="p-6 sm:p-8">
-                    <button
-                      onClick={handleCloseForgot}
-                      className="w-full h-11 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-sm rounded-xl transition-all cursor-pointer"
-                    >
-                      Fechar
-                    </button>
                   </div>
                 </>
               )}
