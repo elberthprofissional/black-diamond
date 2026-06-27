@@ -269,10 +269,10 @@ const AdminBooking: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/admin')}
-                className="w-8 h-8 flex items-center justify-center border border-white/[0.06] text-zinc-400 hover:text-white hover:border-[#C5A059]/40 transition-all rounded-lg"
+                className="text-zinc-400 hover:text-white transition-all cursor-pointer"
                 aria-label="Voltar para a Agenda"
               >
-                <ArrowLeft size={14} />
+                <ArrowLeft size={18} />
               </button>
               <div>
                 <h1 className="text-xl font-bold tracking-tight text-white uppercase italic">
@@ -777,9 +777,9 @@ const AdminBooking: React.FC = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate('/admin')}
-              className="w-9 h-9 flex items-center justify-center border border-white/[0.08] text-zinc-400 hover:text-white hover:border-[#C5A059]/40 transition-all cursor-pointer rounded-xl"
+              className="text-zinc-400 hover:text-white transition-all cursor-pointer"
             >
-              <ArrowLeft size={15} />
+              <ArrowLeft size={18} />
             </button>
             <div className="flex items-center gap-3">
               <h1 className="text-xs font-bold tracking-[0.2em] text-white uppercase">
