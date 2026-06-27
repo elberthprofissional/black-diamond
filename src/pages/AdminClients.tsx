@@ -860,11 +860,7 @@ const AdminClients: React.FC = () => {
                     <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">WhatsApp</span>
                     <input type="text" value={newClientPhone} onChange={(e) => setNewClientPhone(e.target.value)} placeholder="00000000000" className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-700 tabular-nums text-left" />
                   </div>
-                  <div>
-                    <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Email <span className="text-zinc-500">(opcional)</span></span>
-                    <input type="email" value={newClientEmail} onChange={(e) => setNewClientEmail(e.target.value)} placeholder="email@exemplo.com" className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-600 text-left" />
-                  </div>
-                  <div>
+                                    <div>
                     <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Anotações <span className="text-zinc-500">(opcional)</span></span>
                     <textarea value={newClientNotes} onChange={(e) => setNewClientNotes(e.target.value)} placeholder="Ex: Prefere degradê baixo..." className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-600 resize-none h-16 text-left" />
                   </div>
