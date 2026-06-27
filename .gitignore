@@ -36,3 +36,7 @@ dist-ssr
 ATIVAR_EMAILS_E_LEMBRETES.sql
 MODELO_EMAILS_PREVIEW.txt
 
+# Local tooling
+.mimocode/
+supabase/.temp/
+

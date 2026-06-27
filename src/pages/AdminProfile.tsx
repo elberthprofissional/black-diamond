@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getBookings, getServices, getClients } from '../lib/api';
 import type { Booking, Service, Client } from '../types';
@@ -161,14 +161,14 @@ const AdminProfile: React.FC = () => {
 
   const clientesNovosMes = (clients || []).filter(c => {
     if (!c || !c.created_at) return false;
-    if (c.name === 'BLOQUEADO' || c.name === 'CLIENTE_EXCLUIDO' || c.phone === '00000000000') return false;
+    if (c.name === 'BLOQUEADO' || c.name === 'CLIENTE EXCLUIDO' || c.phone === '00000000000') return false;
     const d = new Date(c.created_at);
     return !isNaN(d.getTime()) && d >= startOfMonth;
   }).length;
 
   const clientesNovosSemana = (clients || []).filter(c => {
     if (!c || !c.created_at) return false;
-    if (c.name === 'BLOQUEADO' || c.name === 'CLIENTE_EXCLUIDO' || c.phone === '00000000000') return false;
+    if (c.name === 'BLOQUEADO' || c.name === 'CLIENTE EXCLUIDO' || c.phone === '00000000000') return false;
     const d = new Date(c.created_at);
     return !isNaN(d.getTime()) && d >= startOfWeek;
   }).length;
