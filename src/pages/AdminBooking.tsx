@@ -418,45 +418,6 @@ const AdminBooking: React.FC = () => {
 
                         <button
                           type="button"
-                          onClick={handleSearch}
-                          disabled={!searchQuery.trim() || isSearchingClient}
-                          className="w-full py-3 bg-[#111111] border border-[#C5A059]/20 hover:border-[#C5A059]/40 hover:bg-[#C5A059]/5 text-[#C5A059] text-[9px] font-black uppercase tracking-[0.2em] rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-30 cursor-pointer"
-                        >
-                          {isSearchingClient ? (
-                            <Loader2 size={12} className="animate-spin text-[#C5A059]" />
-                          ) : (
-                            'Buscar'
-                          )}
-                        </button>
-
-                        {/* Multiple Matches List */}
-                        {multipleMatches.length > 0 && (
-                          <div className="space-y-2 pt-2 border-t border-white/[0.04]">
-                            <span className="text-[8px] font-black text-zinc-550 uppercase tracking-[0.2em]">Resultados:</span>
-                            <div className="space-y-1.5 max-h-[150px] overflow-y-auto pr-1 scrollbar-hide">
-                              {multipleMatches.map(c => (
-                                <button
-                                  key={c.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedClient(c);
-                                    setMultipleMatches([]);
-                                  }}
-                                  className="w-full text-left p-2.5 bg-[#111111] border border-white/[0.04] rounded-lg hover:border-[#C5A059]/30 transition-all flex items-center justify-between cursor-pointer"
-                                >
-                                  <div className="min-w-0">
-                                    <p className="text-[11px] font-bold text-white uppercase truncate">{c.name}</p>
-                                    <p className="text-[9px] text-zinc-550 mt-0.5">{c.phone}</p>
-                                  </div>
-                                  <ChevronRight size={12} className="text-[#C5A059] shrink-0" />
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        <button
-                          type="button"
                           onClick={() => setIsSearchOpen(true)}
                           className="w-full text-center text-[8px] font-black text-[#C5A059]/70 hover:text-[#C5A059] uppercase tracking-widest pt-2 flex items-center justify-center gap-1.5 cursor-pointer"
                         >
