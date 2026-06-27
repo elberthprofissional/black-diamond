@@ -20,8 +20,8 @@ const Location: React.FC = () => {
             {/* Map Column */}
             <div className="w-full relative aspect-video lg:aspect-square max-h-[400px]">
               <div className="w-full h-full bg-[#1a1a1a] border border-white/[0.03] overflow-hidden shadow-2xl">
-                <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3752.9849031916665!2d-43.9202011!3d-19.840591699999997!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xa685e76e58e90f%3A0xf899efab3913f3f7!2sBarbearia%20Black%20Diamond!5e0!3m2!1spt-BR!2sbr!4v1781307318513!5m2!1spt-BR!2sbr" 
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d60047.792673869924!2d-43.9588257!3d-19.8405012!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xa685e76e58e90f%3A0xf899efab3913f3f7!2sBarbearia%20Black%20Diamond!5e0!3m2!1spt-BR!2sbr!4v1782578430638!5m2!1spt-BR!2sbr"
                   width="100%" 
                   height="100%" 
                   style={{ border: 0 }} 
