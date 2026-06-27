@@ -856,8 +856,8 @@ const AdminClients: React.FC = () => {
               <div className="px-6 pt-6 pb-5 text-left">
                 <div className="flex items-center justify-between mb-5">
                   <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.2em]">Novo cliente</span>
-                  <button onClick={() => { setIsCreatingClient(false); setNewClientName(''); setNewClientPhone(''); setNewClientEmail(''); setNewClientNotes(''); }} className="w-7 h-7 rounded-full bg-white/[0.04] flex items-center justify-center text-zinc-600 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer">
-                    <X size={12} />
+                  <button onClick={() => { setIsCreatingClient(false); setNewClientName(''); setNewClientPhone(''); setNewClientEmail(''); setNewClientNotes(''); }} className="text-zinc-600 hover:text-white transition-all cursor-pointer">
+                    <X size={14} />
                   </button>
                 </div>
                 <div className="space-y-4">
