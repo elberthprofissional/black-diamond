@@ -20,16 +20,25 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
   const [query, setQuery] = useState('');
   const { dialogRef } = useModalA11y(isOpen, onClose);
 
+  const filteredClients = useMemo(() => {
+    return clients.filter(c =>
+      c && c.name &&
+      c.name !== 'CLIENTE EXCLUIDO' &&
+      c.name !== 'BLOQUEADO' &&
+      c.phone !== '00000000000'
+    );
+  }, [clients]);
+
   const results = useMemo(() => {
     const term = query.trim().toLowerCase();
-    if (!term) return clients;
+    if (!term) return filteredClients;
     const isPhone = /^\d/.test(term);
     if (isPhone) {
       const digits = term.replace(/\D/g, '');
-      return clients.filter(c => c.phone.replace(/\D/g, '').includes(digits));
+      return filteredClients.filter(c => c.phone.replace(/\D/g, '').includes(digits));
     }
-    return clients.filter(c => c.name.toLowerCase().includes(term));
-  }, [query, clients]);
+    return filteredClients.filter(c => c.name.toLowerCase().includes(term));
+  }, [query, filteredClients]);
 
   if (!isOpen) return null;
 
