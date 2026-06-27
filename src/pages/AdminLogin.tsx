@@ -303,7 +303,7 @@ const AdminLogin: React.FC = () => {
             >
               {!isResetSent ? (
                 <>
-                  <button onClick={handleCloseForgot} className="absolute top-4 right-4 z-10 text-zinc-500 hover:text-white transition-colors cursor-pointer" aria-label="Fechar">
+                  <button onClick={handleCloseForgot} className="absolute top-4 left-4 z-10 text-zinc-500 hover:text-white transition-colors cursor-pointer" aria-label="Fechar">
                     <X size={16} />
                   </button>
                   <div className="p-6 sm:p-8 pb-5 sm:pb-6 text-center border-b border-white/5">
@@ -311,8 +311,8 @@ const AdminLogin: React.FC = () => {
                     <p className="text-xs sm:text-sm text-zinc-400">Insira seu email para redefinir sua senha.</p>
                   </div>
                   <div className="p-6 sm:p-8 space-y-3 sm:space-y-4">
-                    <input 
-                      type="email" 
+                    <input
+                      type="email"
                       value={recoveryEmail}
                       onChange={(e) => setRecoveryEmail(e.target.value)}
                       className="w-full h-11 sm:h-12 bg-[#1a1a1a] border border-white/[0.08] rounded-xl px-4 text-sm text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-colors placeholder:text-zinc-600"
@@ -329,7 +329,7 @@ const AdminLogin: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <button onClick={handleCloseForgot} className="absolute top-4 right-4 z-10 text-zinc-500 hover:text-white transition-colors cursor-pointer" aria-label="Fechar">
+                  <button onClick={handleCloseForgot} className="absolute top-4 left-4 z-10 text-zinc-500 hover:text-white transition-colors cursor-pointer" aria-label="Fechar">
                     <X size={16} />
                   </button>
                   <div className="p-6 sm:p-8 pb-5 sm:pb-6 text-center border-b border-white/5">
