@@ -390,7 +390,7 @@ const AdminBooking: React.FC = () => {
                       /* Search Form */
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <label className="text-[8px] font-black text-zinc-550 uppercase tracking-[0.2em]">WhatsApp ou Nome</label>
+                          <label className="text-[8px] font-black text-zinc-550 uppercase tracking-[0.2em]">Telefone ou Nome</label>
                           <div className="relative">
                             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-650" />
                             <input
@@ -432,7 +432,7 @@ const AdminBooking: React.FC = () => {
                           <label className="text-[8px] font-black text-zinc-550 uppercase tracking-[0.2em]">Nome Completo</label>
                           <input
                             type="text"
-                            placeholder="NOME DO CLIENTE"
+                            placeholder="Insira o nome do cliente"
                             className="w-full bg-[#111111] border border-white/[0.06] focus:border-[#C5A059] rounded-xl px-4 py-3 text-xs text-white outline-none transition-all placeholder:text-zinc-700"
                             value={newClient.name}
                             onChange={(e) => setNewClient({ ...newClient, name: e.target.value.toUpperCase() })}
@@ -440,7 +440,7 @@ const AdminBooking: React.FC = () => {
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-[8px] font-black text-zinc-550 uppercase tracking-[0.2em]">WhatsApp (com DDD)</label>
+                          <label className="text-[8px] font-black text-zinc-550 uppercase tracking-[0.2em]">Telefone</label>
                           <input
                             type="tel"
                             placeholder="(00) 00000-0000"
@@ -874,7 +874,7 @@ const AdminBooking: React.FC = () => {
                           ) : (
                             <div className="space-y-6">
                               <div className="space-y-3">
-                                <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] ml-0.5">WHATSAPP OU NOME DO CLIENTE</label>
+                                <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] ml-0.5">TELEFONE OU NOME DO CLIENTE</label>
                                 <div className="flex gap-3">
                                   <div className="relative flex-1">
                                     <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-700" />
