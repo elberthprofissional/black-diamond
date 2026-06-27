@@ -425,7 +425,7 @@ const AdminBooking: React.FC = () => {
                           {isSearchingClient ? (
                             <Loader2 size={12} className="animate-spin text-[#C5A059]" />
                           ) : (
-                            'BUSCAR NO BANCO'
+                            'Buscar'
                           )}
                         </button>
 
