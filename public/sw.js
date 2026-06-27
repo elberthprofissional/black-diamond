@@ -3,11 +3,10 @@ self.addEventListener('install', () => {
 });
 
 self.addEventListener('activate', (e) => {
-  self.clients.claim();
   e.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(keys.map((key) => caches.delete(key)));
-    })
+    }).then(() => self.clients.claim())
   );
 });
 

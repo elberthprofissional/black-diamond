@@ -124,7 +124,7 @@ const AdminClients: React.FC = () => {
       todayISO.setHours(0, 0, 0, 0);
 
       const enriched: ClientWithStats[] = (clientsData || [])
-        .filter((c: Client) => c && c.name && c.name !== 'BLOQUEADO' && c.name !== 'CLIENTE_EXCLUIDO' && c.phone !== '00000000000' && !(c as unknown as Record<string, unknown>).is_blocked)
+        .filter((c: Client) => c && c.name && c.name !== 'BLOQUEADO' && c.name !== 'CLIENTE EXCLUIDO' && c.phone !== '00000000000' && !(c as unknown as Record<string, unknown>).is_blocked)
         .map((c: Client) => {
           const cb = (bookingsData || []).filter((b) => b && b.client_id === c.id && b.status !== 'cancelled');
           
