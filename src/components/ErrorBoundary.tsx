@@ -2,6 +2,7 @@ import React from 'react';
 
 interface Props {
   children: React.ReactNode;
+  fallback?: React.ReactNode;
 }
 
 interface State {
@@ -25,6 +26,10 @@ class ErrorBoundary extends React.Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
       return (
         <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-6" role="alert" aria-live="assertive">
           <div className="max-w-md w-full text-center space-y-6">
