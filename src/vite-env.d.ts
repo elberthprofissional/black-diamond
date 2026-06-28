@@ -19,6 +19,7 @@ interface ImportMetaEnv {
   readonly VITE_BARBER_WHATSAPP: string;
   readonly VITE_VAPID_PUBLIC_KEY: string;
   readonly VITE_ADMIN_EMAIL: string;
+  readonly VITE_ADMIN_NAME: string;
 }
 
 interface ImportMeta {

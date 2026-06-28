@@ -96,6 +96,7 @@ Service Worker → Notificacao no celular do admin
 - `FilterTabs` — Abas de filtro (ocupados/livres/bloqueados)
 - `ToastNotification` — Sistema de notificacoes
 - `CompleteModal` / `DeleteModal` / `UnblockModal` — Modais de acao
+- `DashboardHeader` — Card de proximo cliente e lucro do dia
 
 ### Componentes de agendamento (Booking)
 - `ServiceStep` — Selecao de servicos (desktop + mobile)
@@ -203,8 +204,14 @@ id UUID PK, endpoint TEXT, p256dh TEXT, auth TEXT, user_agent TEXT, created_at T
 key TEXT PK, value TEXT, created_at TIMESTAMPTZ
 ```
 
+**admin_users** — Lista de administradores
+```sql
+user_id UUID PK (FK para auth.users), created_at TIMESTAMPTZ
+```
+
 ### Indexes
 - `idx_no_double_booking` — Unique em (booking_date, booking_time) WHERE status != 'cancelled'
+- `idx_bookings_client_id` — Index em (client_id) para queries por cliente
 
 ### RPCs (Funcoes Seguras)
 
@@ -234,11 +241,23 @@ key TEXT PK, value TEXT, created_at TIMESTAMPTZ
 
 ### RLS (Row Level Security)
 - **services/settings:** Leitura publica, escrita apenas admin autenticado
-- **clients/bookings:** Leitura e escrita apenas admin com email configurado nas policies
+- **clients/bookings:** Leitura e escrita apenas admin autenticado
 - **reviews:** Leitura publica, insercao publica, gerenciamento admin
 - **push_subscriptions:** Apenas admin autenticado
+- **admin_users:** Apenas admin pode ver/modificar a lista de admins
 
-> **IMPORTANTE:** O email do admin esta hardcoded nas policies do SQL. Se o barbeiro tiver outro email, altere no `estrutura_black_diamond.sql` antes de rodar.
+### Gerenciamento de Admins
+O sistema usa a tabela `admin_users` para controlar quem e admin. Para adicionar/remover admins, use os comandos SQL:
+```sql
+-- Listar admins
+SELECT au.user_id, u.email FROM admin_users au JOIN auth.users u ON u.id = au.user_id;
+
+-- Adicionar admin
+INSERT INTO admin_users (user_id) SELECT id FROM auth.users WHERE email = 'NOVO_EMAIL';
+
+-- Remover admin
+DELETE FROM admin_users WHERE user_id = 'UUID_DO_ADMIN';
+```
 
 ### Protecoes implementadas
 - **Rate limit:** Max 3 agendamentos por telefone por dia
@@ -437,6 +456,7 @@ Black Diamond/
 │   │   │       ├── BookingSearchModal.tsx
 │   │   │       ├── BookingSummaryPanel.tsx
 │   │   │       ├── CompleteModal.tsx
+│   │   │       ├── DashboardHeader.tsx
 │   │   │       ├── DeleteModal.tsx
 │   │   │       ├── FilterTabs.tsx
 │   │   │       ├── RescheduleWizard.tsx
@@ -512,7 +532,7 @@ Black Diamond/
 ## 14. Troubleshooting
 
 ### "Nenhum agendamento aparece no admin"
-- Verifique se o email do usuario logado e igual ao configurado nas RLS policies
+- Verifique se o usuario esta na tabela `admin_users` (SELECT * FROM admin_users)
 - Verifique se o RLS esta ativo no Supabase
 
 ### "Servico nao carrega"
@@ -696,4 +716,4 @@ supabase functions deploy sync-google-calendar
 
 ---
 
-*Documento atualizado em Junho 2026. Versao do sistema: 2.1.0*
+*Documento atualizado em Junho 2026. Versao do sistema: 2.2.0*

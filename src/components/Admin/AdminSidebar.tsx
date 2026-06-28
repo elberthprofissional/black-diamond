@@ -100,7 +100,7 @@ const AdminSidebar: React.FC = () => {
               <img src="/assets/tato.webp" alt="Tato" className="w-full h-full object-cover" />
             </div>
             <div className="text-left flex-1 min-w-0">
-              <p className="text-[11px] font-bold text-white truncate">Tato</p>
+              <p className="text-[11px] font-bold text-white truncate">{import.meta.env.VITE_ADMIN_NAME || 'Admin'}</p>
             </div>
             <ChevronDown size={14} className={`text-zinc-600 transition-transform duration-300 ${isProfileOpen ? 'rotate-180 text-white' : 'group-hover:text-zinc-400'}`} />
           </button>

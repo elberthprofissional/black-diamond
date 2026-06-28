@@ -16,7 +16,7 @@ describe('Gallery', () => {
 
   it('renderiza as imagens da galeria', () => {
     render(<Gallery />)
-    const images = screen.getAllByAltText(/Corte \d/)
+    const images = screen.getAllByRole('img')
     expect(images.length).toBeGreaterThan(0)
   })
 

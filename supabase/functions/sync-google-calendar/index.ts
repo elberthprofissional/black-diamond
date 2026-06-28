@@ -4,12 +4,19 @@ const GOOGLE_CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID") ?? ""
 const GOOGLE_CLIENT_SECRET = Deno.env.get("GOOGLE_CLIENT_SECRET") ?? ""
 const GOOGLE_REFRESH_TOKEN = Deno.env.get("GOOGLE_REFRESH_TOKEN") ?? ""
 const GOOGLE_CALENDAR_ID = Deno.env.get("GOOGLE_CALENDAR_ID") ?? "primary"
+const FUNCTION_SECRET = Deno.env.get("FUNCTION_SECRET") ?? ""
 
 interface CalendarEvent {
   summary: string
   description: string
   start: { dateTime: string; timeZone: string }
   end: { dateTime: string; timeZone: string }
+}
+
+function verifyAuth(req: Request): boolean {
+  if (!FUNCTION_SECRET) return true
+  const auth = req.headers.get("Authorization")
+  return auth === `Bearer ${FUNCTION_SECRET}`
 }
 
 async function getAccessToken(): Promise<string> {
@@ -87,6 +94,10 @@ function parseBrazilDateTime(dateStr: string, timeStr: string): Date {
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: { "Content-Type": "application/json" } })
+  }
+
+  if (!verifyAuth(req)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } })
   }
 
   if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_REFRESH_TOKEN) {

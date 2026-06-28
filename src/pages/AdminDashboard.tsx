@@ -5,6 +5,7 @@ import { useBookings } from '../hooks/useBookings';
 import { useSlotBlocking } from '../hooks/useSlotBlocking';
 import { useBookingManagement } from '../hooks/useBookingManagement';
 import AdminLayout from '../components/Admin/AdminLayout';
+import DashboardHeader from '../components/Admin/shared/DashboardHeader';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
 import OccupiedPanel from '../components/Admin/shared/OccupiedPanel';
 import FreePanel from '../components/Admin/shared/FreePanel';
@@ -16,7 +17,6 @@ import ToastNotification from '../components/Admin/shared/ToastNotification';
 import RescheduleWizard from '../components/Admin/shared/RescheduleWizard';
 import BookingDetailPanel from '../components/Admin/shared/BookingDetailPanel';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
   const selectedDate = getLocalDateString();
@@ -83,27 +83,11 @@ const AdminDashboard: React.FC = () => {
     <AdminLayout mainClassName="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-8 pb-40 transition-all duration-300 max-w-5xl">
       <div className="space-y-5">
         <div className="space-y-5">
-          <div className="hidden lg:flex items-center justify-between gap-4 pb-3 border-b border-white/5">
-            <h1 className="text-2xl font-bold tracking-tight text-white uppercase italic">Agenda do Dia</h1>
-          </div>
-          <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
-            <button onClick={() => nextBooking && m.setSelectedBooking(nextBooking)} className="bg-[#111111] border border-white/5 py-3 px-4 rounded-2xl flex items-center gap-3 min-w-0 group hover:border-[#C5A059]/20 hover:bg-white/[0.01] transition-all cursor-pointer">
-              <div className="flex flex-col items-start min-w-0 flex-1">
-                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em]">Próximo Cliente</span>
-                {nextBooking ? (
-                  <div className="flex items-baseline gap-2.5 mt-0.5 min-w-0">
-                    <span className="text-[13px] font-bold text-white uppercase tracking-wide truncate">{nextBooking.clients?.name ?? ''}</span>
-                    <span className="text-[11px] font-semibold text-[#C5A059] tabular-nums shrink-0">{nextBooking.booking_time.slice(0, 5)}</span>
-                  </div>
-                ) : <span className="text-xs font-medium text-zinc-600">Sem cliente para hoje</span>}
-              </div>
-              <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-[#C5A059] transition-colors shrink-0" />
-            </button>
-            <div className="bg-[#111111] border border-white/5 py-3 px-4 rounded-2xl flex flex-col items-start">
-              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em]">Lucro do Dia</span>
-              <span className="text-sm font-black text-[#C5A059] tabular-nums">R$ {dailyRevenue.toFixed(0)}</span>
-            </div>
-          </div>
+          <DashboardHeader
+            nextBooking={nextBooking}
+            dailyRevenue={dailyRevenue}
+            onSelectNext={() => nextBooking && m.setSelectedBooking(nextBooking)}
+          />
 
           <div className="flex border-b border-white/[0.04] pb-1 pt-1 justify-start">
             <FilterTabs filter={m.filter} setFilter={m.setFilter} layoutId="dailyFilter" occupiedCount={occupiedBookings.length} freeCount={freeSlots.length} blockedCount={blockedBookings.length} />

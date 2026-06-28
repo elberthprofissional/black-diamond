@@ -4,6 +4,7 @@ import * as webpush from "https://esm.sh/web-push@3.6.7"
 const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY") ?? ""
 const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY") ?? ""
 const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "mailto:elberthmayan2007@gmail.com"
+const FUNCTION_SECRET = Deno.env.get("FUNCTION_SECRET") ?? ""
 
 interface PushSubscription {
   endpoint: string
@@ -16,9 +17,19 @@ if (VAPID_PRIVATE_KEY && VAPID_PUBLIC_KEY) {
   webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
 }
 
+function verifyAuth(req: Request): boolean {
+  if (!FUNCTION_SECRET) return true
+  const auth = req.headers.get("Authorization")
+  return auth === `Bearer ${FUNCTION_SECRET}`
+}
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: { "Content-Type": "application/json" } })
+  }
+
+  if (!verifyAuth(req)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } })
   }
 
   if (!VAPID_PRIVATE_KEY || !VAPID_PUBLIC_KEY) {

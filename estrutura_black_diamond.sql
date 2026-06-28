@@ -219,12 +219,35 @@ WITH CHECK (
 );
 
 -- =========================================================================
--- 8. FUNÇÃO HELPER: Verifica se o usuário é admin
+-- 8. TABELA DE ADMINS + FUNÇÃO HELPER
 -- =========================================================================
+
+-- Tabela de administradores (substitui email hardcoded)
+CREATE TABLE IF NOT EXISTS admin_users (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RLS: apenas admin pode ver/modificar a lista de admins
+ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Admin users apenas admin" ON admin_users;
+CREATE POLICY "Admin users apenas admin" ON admin_users FOR ALL TO authenticated
+USING (is_admin())
+WITH CHECK (is_admin());
+
+-- Inserir o admin atual (substitua o email se necessário)
+INSERT INTO admin_users (user_id)
+SELECT id FROM auth.users WHERE email = 'aguirrestarlyn645@gmail.com'
+ON CONFLICT DO NOTHING;
+
+-- Função is_admin: verifica se o usuario esta na tabela admin_users
 CREATE OR REPLACE FUNCTION is_admin()
 RETURNS boolean AS $$
 BEGIN
-  RETURN (auth.jwt() ->> 'email') = 'aguirrestarlyn645@gmail.com';
+  RETURN EXISTS (
+    SELECT 1 FROM admin_users WHERE user_id = auth.uid()
+  );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
 
@@ -497,8 +520,15 @@ SELECT cron.schedule(
 -- 1. Authentication → Users → Add user
 -- 2. Email: elberthmayan2007@gmail.com
 -- 3. Defina uma senha
+-- O admin ja e inserido automaticamente na tabela admin_users (secao 8)
+
+-- =========================================================================
+-- 14. GERENCIAR ADMINS (COMANDOS UTEIS)
+-- =========================================================================
+-- Listar admins:      SELECT au.user_id, u.email FROM admin_users au JOIN auth.users u ON u.id = au.user_id;
+-- Adicionar admin:    INSERT INTO admin_users (user_id) SELECT id FROM auth.users WHERE email = 'NOVO_EMAIL';
+-- Remover admin:      DELETE FROM admin_users WHERE user_id = 'UUID_DO_ADMIN';
 
 -- =========================================================================
 -- PRONTO! Tudo configurado.
--- Sistema de emails removido. Notificações via Push Notification.
 -- =========================================================================

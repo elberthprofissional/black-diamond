@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --color-gold-600: #D4AF37; /* Gold Destaque */
-  --color-gold-hover: #B8952E;
-  
+  --color-gold: #C5A059;
+  --color-gold-hover: #A68233;
+  --color-gold-bright: #D4AF37;
+
   --color-dark-pure: #0f0f0f;
   --color-dark-card: #1a1a1a;
   --color-dark-card-light: #1f1f1f;
@@ -20,7 +21,7 @@
     @apply scroll-smooth;
   }
   body {
-    @apply bg-[#0f0f0f] text-white font-sans antialiased selection:bg-gold-600 selection:text-white overflow-x-hidden;
+    @apply bg-[#0f0f0f] text-white font-sans antialiased selection:bg-gold selection:text-white overflow-x-hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -34,7 +35,7 @@
     left: 0;
     z-index: 9999;
     padding: 1rem 1.5rem;
-    background: #C5A059;
+    background: var(--color-gold);
     color: #000;
     font-weight: 700;
     font-size: 12px;
@@ -99,11 +100,11 @@
 }
 
 .bg-gold-gradient {
-  background: linear-gradient(135deg, #D4AF37 0%, #ffedd5 50%, #D4AF37 100%);
+  background: linear-gradient(135deg, var(--color-gold-bright) 0%, #ffedd5 50%, var(--color-gold-bright) 100%);
 }
 
 .text-gold-gradient {
-  background: linear-gradient(135deg, #D4AF37 0%, #ffedd5 50%, #D4AF37 100%);
+  background: linear-gradient(135deg, var(--color-gold-bright) 0%, #ffedd5 50%, var(--color-gold-bright) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -115,7 +116,7 @@
   background: #000;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #D4AF37;
+  background: var(--color-gold-bright);
   border-radius: 10px;
 }
 
@@ -127,18 +128,18 @@
   background: #0A0A0A;
 }
 ::-webkit-scrollbar-thumb {
-  background: #C5A059;
+  background: var(--color-gold);
   border-radius: 10px;
   border: 2px solid #0A0A0A;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #D4AF37;
+  background: var(--color-gold-bright);
 }
 
 /* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #C5A059 #0A0A0A;
+  scrollbar-color: var(--color-gold) #0A0A0A;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */

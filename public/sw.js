@@ -52,8 +52,18 @@ self.addEventListener('fetch', (e) => {
               cache.put(e.request, response.clone());
             }
             return response;
-          }).catch(() => cached);
-          return cached || fetched;
+          }).catch(() => cached || new Response('{"error":"offline"}', { status: 503, headers: { 'Content-Type': 'application/json' } }));
+
+          if (cached) {
+            e.waitUntil(fetched.then((response) => {
+              if (response.ok) {
+                cache.put(e.request, response.clone());
+              }
+            }).catch(() => {}));
+            return cached;
+          }
+
+          return fetched;
         });
       })
     );

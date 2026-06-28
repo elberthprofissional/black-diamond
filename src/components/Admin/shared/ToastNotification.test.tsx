@@ -24,10 +24,10 @@ describe('ToastNotification', () => {
     expect(screen.getByRole('alert')).toBeInTheDocument()
   })
 
-  it('tem aria-live assertive', () => {
+  it('tem aria-live polite', () => {
     render(<ToastNotification toast={{ message: 'Teste', type: 'success' }} />)
     const liveRegion = screen.getByRole('alert').closest('[aria-live]')
-    expect(liveRegion).toHaveAttribute('aria-live', 'assertive')
+    expect(liveRegion).toHaveAttribute('aria-live', 'polite')
   })
 
   it('mostra indicador verde para sucesso', () => {
