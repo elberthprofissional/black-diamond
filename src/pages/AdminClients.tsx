@@ -126,7 +126,8 @@ const AdminClients: React.FC = () => {
               time: (upcoming.booking_time || '').slice(0, 5)
             } : null
           };
-        });
+        })
+        .filter((c) => c.bookingsCount >= 2);
       enriched.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       setClients(enriched);
     } catch { /* ignored */ } finally { setLoading(false); }
