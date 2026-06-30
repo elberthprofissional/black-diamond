@@ -1,12 +1,11 @@
 -- =========================================================================
 -- CRON LEMBRETE PRO BARBEIRO
 -- Roda no SQL Editor do Supabase.
--- Antes de rodar, configure as variáveis abaixo com seus valores reais.
 -- =========================================================================
 
--- 1. Configurar as variáveis de app (substitua os valores)
-ALTER DATABASE SET "app.settings.supabase_url" = 'SUA_URL_SUPABASE';
-ALTER DATABASE SET "app.settings.service_role_key" = 'SUA_SERVICE_ROLE_KEY';
+-- 1. Configurar as variáveis de app (substitua AQUI a service_role_key)
+ALTER DATABASE SET "app.settings.supabase_url" = 'https://dbukdhycfaibdshxnatt.supabase.co';
+ALTER DATABASE SET "app.settings.service_role_key" = 'COLE_SUA_SERVICE_ROLE_KEY_AQUI';
 
 -- 2. Garantir que a extensão http existe
 CREATE EXTENSION IF NOT EXISTS http;
