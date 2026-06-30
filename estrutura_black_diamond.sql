@@ -97,10 +97,10 @@ CREATE TABLE IF NOT EXISTS reviews (
 -- =========================================================================
 -- 3. CONFIGURAÇÕES PADRÃO
 -- =========================================================================
--- Seg-sex: 08:30-19:00 / Sábado: 08:00-18:00 / Sem almoço
+-- Seg-sex: 08:00-19:00 / Sábado: 08:00-18:00 / Sem almoço
 
 INSERT INTO settings (key, value) VALUES
-    ('opening_time', '08:30'),
+    ('opening_time', '08:00'),
     ('closing_time', '19:00'),
     ('saturday_opening', '08:00'),
     ('saturday_closing', '18:00'),
