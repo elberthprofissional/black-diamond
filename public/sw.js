@@ -1,5 +1,5 @@
 const CACHE_VERSION = 'v7';
-const API_CACHE = 'api-v1';
+const API_CACHE = 'api-v2';
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
