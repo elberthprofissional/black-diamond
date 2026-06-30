@@ -50,7 +50,7 @@ export function useBookingWizard(showError: (msg: string) => void) {
       const loadData = async () => {
         try {
           const [bookingsData, slotsData] = await Promise.all([
-            getBookings(selectedDate),
+            getBookings(selectedDate).catch(() => []),
             getAvailableSlots(selectedDate).catch(() => getTimeSlotsForDate(selectedDate))
           ]);
           setExistingBookings(bookingsData);

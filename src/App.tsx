@@ -8,7 +8,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ConnectionStatusBanner from './components/ConnectionStatusBanner';
 
 const TITLES: Record<string, string> = {
-  '/': 'Black Diamond | Barbearia Premium',
+  '/': 'BLACK DIAMOND',
   '/agendar': 'Agendar Horário | Black Diamond',
   '/admin': 'Painel Admin | Black Diamond',
   '/admin/login': 'Login Admin | Black Diamond',

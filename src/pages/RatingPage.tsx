@@ -72,7 +72,7 @@ const RatingPage: React.FC = () => {
             <p className="text-zinc-500">Sua avaliação foi registrada com sucesso.</p>
           </div>
 
-          <p className="text-xs text-zinc-600">Black Diamond — Barbearia Premium</p>
+          <p className="text-xs text-zinc-600">Black Diamond</p>
         </motion.div>
       </div>
     );
