@@ -19,6 +19,56 @@ const BookingDetailPanel: React.FC<BookingDetailPanelProps> = React.memo(({
   onReschedule,
   onDelete,
 }) => {
+  const isBlocked = booking.is_blocked || booking.clients?.name === 'BLOQUEADO';
+
+  if (isBlocked) {
+    return (
+      <>
+        <div className="sticky top-0 bg-[#0E0E0E]/95 backdrop-blur-md z-10 px-6 py-4 border-b border-white/[0.04] flex items-center justify-between">
+          <span className="text-[9px] font-black text-red-400 uppercase tracking-[0.25em]">Horário Bloqueado</span>
+          <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors cursor-pointer p-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div className="px-6 py-6 space-y-6 flex-1 text-left overflow-y-auto scrollbar-hide">
+          <div className="flex items-center gap-4 bg-red-500/[0.04] border border-red-500/10 p-4 rounded-xl">
+            <div className="w-12 h-12 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-center shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-bold text-white">Horário Indisponível</h3>
+              <p className="text-[11px] text-zinc-500 mt-0.5">Este horário foi bloqueado e não aceita agendamentos.</p>
+            </div>
+          </div>
+
+          <div className="bg-[#121212] border border-white/[0.03] rounded-xl p-4 space-y-3">
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Data</span>
+              <span className="text-xs font-bold text-white uppercase">
+                {new Date(booking.booking_date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })}
+              </span>
+            </div>
+            <div className="h-px bg-white/[0.04]" />
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Horário</span>
+              <span className="text-xs font-bold text-red-400">{booking.booking_time?.slice(0, 5)}</span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <button
+              onClick={() => { onDelete(); onClose(); }}
+              className="w-full h-11 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 font-black text-[10px] uppercase tracking-[0.25em] transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 rounded-xl"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+              Desbloquear Horário
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <div className="sticky top-0 bg-[#0E0E0E]/95 backdrop-blur-md z-10 px-6 py-4 border-b border-white/[0.04] flex items-center justify-between">
