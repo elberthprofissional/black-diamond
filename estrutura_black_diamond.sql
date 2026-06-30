@@ -513,6 +513,65 @@ SELECT cron.schedule(
     $$ SELECT limpar_agendamentos_semana() $$
 );
 
+-- Lembrete pro barbeiro: terça, quarta e quinta às 8:00 BRT (11:00 UTC)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'lembrete-barbeiro-terca') THEN
+        PERFORM cron.unschedule('lembrete-barbeiro-terca');
+    END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'lembrete-barbeiro-quarta') THEN
+        PERFORM cron.unschedule('lembrete-barbeiro-quarta');
+    END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'lembrete-barbeiro-quinta') THEN
+        PERFORM cron.unschedule('lembrete-barbeiro-quinta');
+    END IF;
+END $$;
+
+SELECT cron.schedule(
+    'lembrete-barbeiro-terca',
+    '0 11 * * 2',
+    $$
+    SELECT net.http_post(
+        url := current_setting('app.settings.supabase_url') || '/functions/v1/send-barber-reminder',
+        headers := jsonb_build_object(
+            'Content-Type', 'application/json',
+            'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key')
+        ),
+        body := '{}'::jsonb
+    );
+    $$
+);
+
+SELECT cron.schedule(
+    'lembrete-barbeiro-quarta',
+    '0 11 * * 3',
+    $$
+    SELECT net.http_post(
+        url := current_setting('app.settings.supabase_url') || '/functions/v1/send-barber-reminder',
+        headers := jsonb_build_object(
+            'Content-Type', 'application/json',
+            'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key')
+        ),
+        body := '{}'::jsonb
+    );
+    $$
+);
+
+SELECT cron.schedule(
+    'lembrete-barbeiro-quinta',
+    '0 11 * * 4',
+    $$
+    SELECT net.http_post(
+        url := current_setting('app.settings.supabase_url') || '/functions/v1/send-barber-reminder',
+        headers := jsonb_build_object(
+            'Content-Type', 'application/json',
+            'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key')
+        ),
+        body := '{}'::jsonb
+    );
+    $$
+);
+
 -- =========================================================================
 -- 13. CRIAR USUÁRIO ADMIN
 -- =========================================================================
