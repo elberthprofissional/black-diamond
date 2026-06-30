@@ -138,9 +138,9 @@ const AdminClients: React.FC = () => {
     const matchSearch = (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.phone || '').includes(searchTerm);
     let matchFilter = true;
     if (reminderFilter === 'pending') {
-      matchFilter = !c.upcomingBooking && !isReminderRecent(c.id);
+      matchFilter = !isReminderRecent(c.id);
     } else if (reminderFilter === 'sent') {
-      matchFilter = !!c.upcomingBooking || isReminderRecent(c.id);
+      matchFilter = isReminderRecent(c.id);
     }
     return matchSearch && matchFilter;
   });
@@ -149,7 +149,7 @@ const AdminClients: React.FC = () => {
     let pending = 0;
     let sent = 0;
     clients.forEach(c => {
-      if (c.upcomingBooking || isReminderRecent(c.id)) { sent++; } else { pending++; }
+      if (isReminderRecent(c.id)) { sent++; } else { pending++; }
     });
     return { all: clients.length, pending, sent };
   }, [clients, isReminderRecent]);
@@ -279,7 +279,7 @@ const AdminClients: React.FC = () => {
         ) : filteredClients.length === 0 ? (
           <div className="py-16 text-center flex flex-col items-center justify-center">
             <p className="text-[11px] text-zinc-500 max-w-xs mx-auto leading-relaxed">
-              {searchTerm ? "Nenhum cliente atende a esses filtros de pesquisa." : reminderFilter === 'pending' ? "Todos os clientes já receberam lembrete recentemente ou já possuem agendamento!" : reminderFilter === 'sent' ? "Nenhum lembrete enviado recentemente." : "Nenhum cliente cadastrado."}
+              {searchTerm ? "Nenhum cliente atende a esses filtros de pesquisa." : reminderFilter === 'pending' ? "Todos os clientes já foram lembrados recentemente!" : reminderFilter === 'sent' ? "Nenhum lembrete enviado recentemente." : "Nenhum cliente cadastrado."}
             </p>
           </div>
         ) : (
@@ -289,7 +289,7 @@ const AdminClients: React.FC = () => {
                 <div key={client.id} onClick={() => openPanel(client)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openPanel(client); }} aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`} className="w-full flex items-center gap-3 py-3.5 px-4 rounded-xl cursor-pointer bg-white/[0.01] border border-white/[0.03] hover:bg-white/[0.03] transition-all group text-left">
                   <div className="relative shrink-0">
                     <div className="w-10 h-10 rounded-full bg-[#111111] border border-white/[0.08] flex items-center justify-center text-sm font-bold text-white uppercase">{client.name.charAt(0)}</div>
-                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0A0A0A] ${client.upcomingBooking || isReminderRecent(client.id) ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0A0A0A] ${isReminderRecent(client.id) ? 'bg-emerald-500' : 'bg-red-500'}`} />
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-sm font-semibold text-white truncate">{client.name}</p>
@@ -314,7 +314,7 @@ const AdminClients: React.FC = () => {
                 <div key={client.id} onClick={() => openPanel(client)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openPanel(client); }} aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`} className="w-full flex items-center gap-4 p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all cursor-pointer group text-left">
                   <div className="relative shrink-0">
                     <div className="w-12 h-12 rounded-xl bg-[#111111] border border-white/[0.08] flex items-center justify-center text-base font-bold text-white uppercase">{client.name.charAt(0)}</div>
-                    <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0A0A0A] ${client.upcomingBooking || isReminderRecent(client.id) ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                    <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0A0A0A] ${isReminderRecent(client.id) ? 'bg-emerald-500' : 'bg-red-500'}`} />
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-sm font-semibold text-white truncate">{client.name}</p>
