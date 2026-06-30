@@ -33,6 +33,7 @@ interface BookingPageMobileProps {
   goNext: () => void;
   goBack: () => void;
   navigate: (path: string) => void;
+  nextDays: { fullDate: string; dayName: string; dayNumber: number; isToday: boolean; isPast: boolean }[];
 }
 
 const stepIcons = [Scissors, Clock, Check, Check];
@@ -43,7 +44,7 @@ const BookingPageMobile: React.FC<BookingPageMobileProps> = ({
   userInfo, totalPrice, isStepDisabled, isSubmitting, availableSlots,
   existingBookings, dateContainerRef, handleMouseDown, handleMouseLeave,
   handleMouseUp, handleMouseMove, toggleService, setSelectedDate,
-  setSelectedTime, setUserInfo, goNext, goBack, navigate,
+  setSelectedTime, setUserInfo, goNext, goBack, navigate, nextDays,
 }) => {
   return (
     <div className="lg:hidden min-h-screen bg-[#050505] flex flex-col text-white font-sans relative pb-28 overflow-x-hidden">
@@ -90,7 +91,7 @@ const BookingPageMobile: React.FC<BookingPageMobileProps> = ({
               <ServiceStep services={services} selectedServices={selectedServices} onToggle={toggleService} layout="mobile" />
             </motion.div>
           )}
-          {step === 2 && <motion.div key="m2" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3 }} className="space-y-6 w-full"><DateTimeStep nextDays={[]} selectedDate={selectedDate} selectedTime={selectedTime} onSelectDate={setSelectedDate} onSelectTime={setSelectedTime} availableSlots={availableSlots} existingBookings={existingBookings} layout="mobile" dateContainerRef={dateContainerRef} onMouseDown={handleMouseDown} onMouseLeave={handleMouseLeave} onMouseUp={handleMouseUp} onMouseMove={handleMouseMove} /></motion.div>}
+          {step === 2 && <motion.div key="m2" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3 }} className="space-y-6 w-full"><DateTimeStep nextDays={nextDays} selectedDate={selectedDate} selectedTime={selectedTime} onSelectDate={setSelectedDate} onSelectTime={setSelectedTime} availableSlots={availableSlots} existingBookings={existingBookings} layout="mobile" dateContainerRef={dateContainerRef} onMouseDown={handleMouseDown} onMouseLeave={handleMouseLeave} onMouseUp={handleMouseUp} onMouseMove={handleMouseMove} /></motion.div>}
           {step === 3 && <motion.div key="m3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}><DataStep name={userInfo.name} phone={userInfo.phone} onNameChange={v => setUserInfo({...userInfo, name: v})} onPhoneChange={v => setUserInfo({...userInfo, phone: v})} layout="mobile" /></motion.div>}
           {step === 4 && <motion.div key="m4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}><ReviewStep userName={userInfo.name} userPhone={userInfo.phone} selectedDate={selectedDate} selectedTime={selectedTime} selectedServices={selectedServices} totalPrice={totalPrice} layout="mobile" /></motion.div>}
         </AnimatePresence>

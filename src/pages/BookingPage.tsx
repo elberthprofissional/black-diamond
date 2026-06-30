@@ -33,6 +33,7 @@ const BookingPage: React.FC = () => {
     setUserInfo: w.setUserInfo,
     goNext: w.goNext,
     goBack: w.goBack,
+    nextDays: w.nextDays,
   };
 
   return (
