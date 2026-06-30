@@ -70,7 +70,7 @@ const AdminWeekly: React.FC = () => {
     return m.isRescheduling ? (
       <RescheduleWizard selectedBooking={m.selectedBooking} services={m.services} step={m.rescheduleStep} setStep={m.setRescheduleStep} rescheduleServices={m.rescheduleServices} setRescheduleServices={m.setRescheduleServices} rescheduleDate={m.rescheduleDate} setRescheduleDate={m.setRescheduleDate} rescheduleTime={m.rescheduleTime} setRescheduleTime={m.setRescheduleTime} existingBookings={m.existingBookingsForReschedule} loadingSlots={m.loadingSlots} isSaving={m.isSavingReschedule} onConfirm={m.handleConfirmReschedule} onClose={() => { m.setSelectedBooking(null); m.cancelReschedule(); }} />
     ) : (
-      <BookingDetailPanel booking={m.selectedBooking} services={m.services} onClose={() => m.setSelectedBooking(null)} onComplete={() => m.setCompletingBooking(m.selectedBooking)} onReschedule={m.handleStartReschedule} onDelete={() => m.setBookingToDelete(m.selectedBooking)} />
+      <BookingDetailPanel booking={m.selectedBooking} services={m.services} onClose={() => m.setSelectedBooking(null)} onComplete={() => m.setCompletingBooking(m.selectedBooking)} onReschedule={m.handleStartReschedule} onDelete={() => m.setBookingToDelete(m.selectedBooking)} onUnblock={() => { setUnblockingBooking(m.selectedBooking); m.setSelectedBooking(null); }} />
     );
   };
 
