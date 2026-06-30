@@ -90,6 +90,16 @@ export function useBookingWizard(showError: (msg: string) => void) {
     if (isSubmitting || !selectedTime || !userInfo.name || !userInfo.phone || selectedServices.length === 0) return;
     setIsSubmitting(true);
     try {
+      const serviceNames = selectedServices.map(s => s.name).join(', ');
+      const message = `*NOVO AGENDAMENTO - BLACK DIAMOND*\n\n` +
+                      `*Cliente:* ${userInfo.name}\n` +
+                      `*Serviço:* ${serviceNames}\n` +
+                      `*Data:* ${selectedDate.split('-').reverse().join('/')}\n` +
+                      `*Horário:* ${selectedTime}\n` +
+                      `*Valor:* R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
+
+      window.open(`https://wa.me/${import.meta.env.VITE_BARBER_WHATSAPP || '554399553590'}?text=${encodeURIComponent(message)}`, '_blank');
+
       const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
       await createBooking(
         {
