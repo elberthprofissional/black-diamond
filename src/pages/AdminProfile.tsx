@@ -169,11 +169,16 @@ const AdminProfile: React.FC = () => {
 
   const isIOS = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone === true;
+  const isIOSChrome = isIOS && window.navigator.userAgent.includes('CriOS');
+  const isIOSNotInstalled = isIOS && !isStandalone;
 
   const handleInstallClick = () => {
     if (isStandalone) {
       showSuccess('Aplicativo já instalado!');
       return;
+    }
+    if (isIOSChrome) {
+      showError('No iPhone, abra este link pelo Safari primeiro');
     }
     setShowInstallPrompt(true);
   };
@@ -201,6 +206,15 @@ const AdminProfile: React.FC = () => {
       await unsubscribe()
       showSuccess('Notificações desativadas')
     } else {
+      if (isIOSChrome) {
+        showError('Chrome no iPhone não suporta notificações. Abra pelo Safari e instale na tela de início')
+        return
+      }
+      if (isIOSNotInstalled) {
+        showError('Instale o app pela tela de início primeiro (via Safari). Depois ative as notificações')
+        setShowInstallPrompt(true)
+        return
+      }
       if (!import.meta.env.VITE_VAPID_PUBLIC_KEY) {
         showError('Chave VAPID não configurada no servidor')
         return
@@ -453,13 +467,28 @@ const AdminProfile: React.FC = () => {
               transition={{ type: 'spring', damping: 30, stiffness: 400 }}
               className="relative z-10 w-full sm:max-w-[340px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
             >
-              {isIOS ? (
-                // iOS: step-by-step guide
+              {isIOSChrome ? (
+                // iOS Chrome: redirect to Safari
+                <>
+                  <div className="px-6 pt-6 pb-4">
+                    <p className="text-[15px] font-semibold text-white">Chrome não suporta no iPhone</p>
+                    <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
+                      No iPhone, o app só funciona pelo <strong className="text-white">Safari</strong>. Abra este link no Safari e repita o processo.
+                    </p>
+                  </div>
+                  <div className="px-6 pb-5">
+                    <p className="text-[10px] text-zinc-600 leading-relaxed">
+                      Copie o link e cole no Safari, ou toque em "Abrir no Safari" se disponível.
+                    </p>
+                  </div>
+                </>
+              ) : isIOS ? (
+                // iOS Safari: step-by-step guide
                 <>
                   <div className="px-6 pt-6 pb-4">
                     <p className="text-[15px] font-semibold text-white">Instalar na tela de início</p>
                     <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
-                      No iPhone, abra este site no <strong className="text-white">Safari</strong> e siga os passos:
+                      No iPhone, siga os passos abaixo pelo <strong className="text-white">Safari</strong>:
                     </p>
                   </div>
                   <div className="px-6 pb-5 space-y-3">
@@ -482,9 +511,12 @@ const AdminProfile: React.FC = () => {
                       <p className="text-[12px] text-zinc-400 leading-relaxed">Toque em <strong className="text-zinc-300">Adicionar</strong> no canto superior direito</p>
                     </div>
                   </div>
-                  <div className="px-6 pb-5">
-                    <p className="text-[10px] text-zinc-600 leading-relaxed">
-                      Depois de instalado, as notificações ficam disponíveis no iOS 16.4+.
+                  <div className="px-6 pb-5 space-y-2">
+                    <p className="text-[10px] text-zinc-500 leading-relaxed">
+                      Depois de instalado, o app aparece na tela de início. As notificações ficam disponíveis no iOS 16.4+.
+                    </p>
+                    <p className="text-[10px] text-[#C5A059]/70 leading-relaxed font-semibold">
+                      IMPORTANTE: Não use Chrome no iPhone. O Chrome não suporta instalação de apps no iOS.
                     </p>
                   </div>
                 </>

@@ -18,9 +18,21 @@ export function usePushNotifications() {
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [permission, setPermission] = useState<NotificationPermission>('default')
   const [loading, setLoading] = useState(true)
+  const [isSupported, setIsSupported] = useState(true)
 
   useEffect(() => {
+    const isIOS = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase())
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone === true
+
+    // iOS only supports push when installed as PWA (standalone)
+    if (isIOS && !isStandalone) {
+      setIsSupported(false)
+      setLoading(false)
+      return
+    }
+
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      setIsSupported(false)
       setLoading(false)
       return
     }
@@ -90,5 +102,5 @@ export function usePushNotifications() {
     }
   }, [])
 
-  return { isSubscribed, permission, loading, subscribe, unsubscribe }
+  return { isSubscribed, permission, loading, isSupported, subscribe, unsubscribe }
 }
