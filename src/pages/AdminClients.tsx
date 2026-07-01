@@ -361,7 +361,13 @@ const AdminClients: React.FC = () => {
                 <div key={client.id} onClick={() => openPanel(client)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openPanel(client); }} aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`} className={`w-full flex items-center gap-3 py-3.5 px-4 rounded-xl cursor-pointer border transition-all group text-left ${needsReminder ? 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05]' : 'bg-white/[0.01] border-white/[0.03] hover:bg-white/[0.03]'}`}>
                   <div className="relative shrink-0">
                     <div className="w-10 h-10 rounded-full bg-[#111111] border border-white/[0.08] flex items-center justify-center text-sm font-bold text-white uppercase">{client.name.charAt(0)}</div>
-                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0A0A0A] ${needsReminder ? 'bg-red-500' : 'bg-emerald-500'}`} />
+                    {client.is_mensalista ? (
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0A0A0A] bg-[#C5A059] flex items-center justify-center">
+                        <svg width="6" height="6" viewBox="0 0 24 24" fill="white"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14v2H5v-2z"/></svg>
+                      </div>
+                    ) : (
+                      <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0A0A0A] ${needsReminder ? 'bg-red-500' : 'bg-emerald-500'}`} />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-sm font-semibold text-white truncate">{client.name}</p>
@@ -388,7 +394,13 @@ const AdminClients: React.FC = () => {
                 <div key={client.id} onClick={() => openPanel(client)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openPanel(client); }} aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`} className={`w-full flex items-center gap-4 p-5 rounded-2xl border transition-all cursor-pointer group text-left ${needsReminder ? 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05] hover:border-white/[0.08]' : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.08]'}`}>
                   <div className="relative shrink-0">
                     <div className="w-12 h-12 rounded-xl bg-[#111111] border border-white/[0.08] flex items-center justify-center text-base font-bold text-white uppercase">{client.name.charAt(0)}</div>
-                    <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0A0A0A] ${needsReminder ? 'bg-red-500' : 'bg-emerald-500'}`} />
+                    {client.is_mensalista ? (
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0A0A0A] bg-[#C5A059] flex items-center justify-center">
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="white"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14v2H5v-2z"/></svg>
+                      </div>
+                    ) : (
+                      <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0A0A0A] ${needsReminder ? 'bg-red-500' : 'bg-emerald-500'}`} />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-sm font-semibold text-white truncate">{client.name}</p>
