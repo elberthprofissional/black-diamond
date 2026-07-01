@@ -116,7 +116,7 @@ const Footer: React.FC = () => {
             rel="noopener noreferrer"
             className="text-[8px] md:text-[9px] font-roboto font-light text-zinc-600 hover:text-zinc-400 uppercase tracking-[0.3em] transition-colors"
           >
-            Criado por Elberth Mayan
+            desenvolvimento
           </a>
 
           <Link
