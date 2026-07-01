@@ -257,15 +257,17 @@ const AdminProfile: React.FC = () => {
       <div className="hidden lg:flex flex-col gap-6">
         
         {/* Header */}
-        <div className="flex items-center gap-4 py-2 border-b border-white/5 pb-5">
-          <div className="relative shrink-0">
-            <div className="w-16 h-16 rounded-full border border-white/10 overflow-hidden">
-              <img src="/assets/tato.webp" alt="Tato" className="w-full h-full object-cover" />
+        <div className="flex flex-col gap-4 py-2 border-b border-white/5 pb-5">
+          <div className="flex items-center gap-4">
+            <div className="relative shrink-0">
+              <div className="w-16 h-16 rounded-full border border-white/10 overflow-hidden">
+                <img src="/assets/tato.webp" alt="Tato" className="w-full h-full object-cover" />
+              </div>
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-[#0A0A0A] rounded-full" />
             </div>
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-[#0A0A0A] rounded-full" />
-          </div>
-          <div className="flex-1">
-            <h1 className="text-lg font-bold text-white tracking-tight">{greeting}, Tato</h1>
+            <div className="flex-1">
+              <h1 className="text-lg font-bold text-white tracking-tight">{greeting}, Tato</h1>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <button
