@@ -109,6 +109,8 @@ export function useBookingWizard(showError: (msg: string) => void) {
     } finally { setIsSubmitting(false); }
   }, [isSubmitting, selectedTime, userInfo, selectedServices, selectedDate, totalPrice, showError]);
 
+  const barberPhone = import.meta.env.VITE_BARBER_WHATSAPP || '';
+
   const handleCalendarChoice = useCallback((wantsReminder: boolean) => {
     if (wantsReminder) {
       const serviceNames = selectedServices.map(s => s.name).join(' + ');
@@ -116,8 +118,23 @@ export function useBookingWizard(showError: (msg: string) => void) {
       generateIcsFile(serviceNames, selectedDate, selectedTime, totalDuration);
     }
     setShowCalendarModal(false);
+
+    if (barberPhone) {
+      const serviceNames = selectedServices.map(s => s.name).join(', ');
+      const formattedDate = selectedDate.split('-').reverse().join('/');
+      const message = `*NOVO AGENDAMENTO - BLACK DIAMOND*\n\n*Cliente:* ${userInfo.name.trim()}\n*Servico:* ${serviceNames}\n*Data:* ${formattedDate}\n*Horario:* ${selectedTime}\n*Valor:* R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
+      const url = `https://wa.me/${barberPhone}?text=${encodeURIComponent(message)}`;
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
     setStep(5);
-  }, [selectedServices, selectedDate, selectedTime]);
+  }, [selectedServices, selectedDate, selectedTime, userInfo, totalPrice, barberPhone]);
 
   const goNext = useCallback(() => {
     if (step < 4) setStep(step + 1);

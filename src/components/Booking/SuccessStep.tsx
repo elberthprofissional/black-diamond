@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Check, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Service } from '../../types';
@@ -29,21 +29,6 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ selectedDate, selectedTime, t
   const whatsappUrl = barberPhone
     ? `https://wa.me/${barberPhone}?text=${encodeURIComponent(message)}`
     : '';
-
-  useEffect(() => {
-    if (whatsappUrl) {
-      const timer = setTimeout(() => {
-        const link = document.createElement('a');
-        link.href = whatsappUrl;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }, 1200);
-      return () => clearTimeout(timer);
-    }
-  }, [whatsappUrl]);
 
   if (layout === 'desktop') {
     return (
