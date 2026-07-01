@@ -64,12 +64,3 @@ export interface ReviewWithClient extends Review {
   client_name: string;
 }
 
-export interface Expense {
-  id: string;
-  description: string;
-  amount: number;
-  expense_date: string;
-  category: string;
-  created_at: string;
-}
-
