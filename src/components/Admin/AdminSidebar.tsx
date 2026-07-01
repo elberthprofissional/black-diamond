@@ -59,25 +59,14 @@ const AdminSidebar: React.FC = () => {
                       : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.02]'
                   }`}
                 >
-                  {active && (
-                    <motion.div 
-                      layoutId="activeIndicator"
-                      className="absolute left-0 w-1 h-4 bg-[#C5A059] rounded-r-full"
-                    />
-                  )}
-                  
-                  <Icon 
-                    size={16} 
-                    className={`transition-colors ${active ? 'text-[#C5A059]' : 'text-zinc-600 group-hover:text-zinc-400'}`} 
+                  <Icon
+                    size={16}
+                    className={`transition-colors ${active ? 'text-[#C5A059]' : 'text-zinc-600 group-hover:text-zinc-400'}`}
                   />
-                  
+
                   <span className={`text-[11px] font-bold tracking-wide ${active ? 'text-white' : 'text-zinc-500'}`}>
                     {item.label}
                   </span>
- 
-                  {active && (
-                     <div className="ml-auto w-1 h-1 rounded-full bg-[#C5A059] shadow-[0_0_8px_#C5A059]" />
-                  )}
                 </button>
               );
             })}
