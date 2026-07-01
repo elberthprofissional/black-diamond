@@ -7,7 +7,7 @@ import { useToast } from '../hooks/useToast';
 import { getErrorMessage } from '../lib/utils';
 import type { Expense } from '../types';
 
-const CATEGORY_CONFIG: Record<string, { icon: React.FC<{ size?: number }>; color: string }> = {
+const CATEGORY_CONFIG: Record<string, { icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>; color: string }> = {
   'Produtos': { icon: ShoppingBag, color: '#C5A059' },
   'Aluguel': { icon: Home, color: '#ef4444' },
   'Equipamentos': { icon: Wrench, color: '#3b82f6' },
