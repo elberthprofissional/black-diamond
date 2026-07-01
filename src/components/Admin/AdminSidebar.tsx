@@ -59,6 +59,13 @@ const AdminSidebar: React.FC = () => {
                       : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.02]'
                   }`}
                 >
+                  {active && (
+                    <motion.div
+                      layoutId="activeIndicator"
+                      className="absolute left-0 w-1 h-4 bg-[#C5A059] rounded-r-full"
+                    />
+                  )}
+
                   <Icon
                     size={16}
                     className={`transition-colors ${active ? 'text-[#C5A059]' : 'text-zinc-600 group-hover:text-zinc-400'}`}
