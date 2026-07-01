@@ -1,52 +1,30 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, ChevronLeft, ChevronRight, Trash2, Home, Pencil, Check, X } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Trash2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
-import AddExpenseModal from '../components/Admin/shared/AddExpenseModal';
-import { getExpenses, createExpense, deleteExpense, getFixedExpenses, updateFixedExpense, getBookingsForStats } from '../lib/api';
+import { getExpenses, createExpense, deleteExpense } from '../lib/api';
 import { useToast } from '../hooks/useToast';
 import { getErrorMessage } from '../lib/utils';
 import type { Expense } from '../types';
 
-interface BookingForFinance {
-  booking_date: string;
-  total_price: number;
-  status: string;
-}
-
-interface FixedExpense {
-  id: string;
-  description: string;
-  amount: number;
-  category: string;
-}
-
 const AdminExpenses: React.FC = () => {
   const { showSuccess, showError } = useToast();
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([]);
-  const [bookings, setBookings] = useState<BookingForFinance[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [newDesc, setNewDesc] = useState('');
+  const [newAmount, setNewAmount] = useState('');
   const [saving, setSaving] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [editingFixed, setEditingFixed] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState('');
 
   const loadData = async () => {
     try {
-      const [expData, fixedData, bookingsData] = await Promise.all([
-        getExpenses(currentMonth),
-        getFixedExpenses(),
-        getBookingsForStats()
-      ]);
-      setExpenses(expData);
-      setFixedExpenses(fixedData);
-      setBookings(bookingsData || []);
+      const data = await getExpenses(currentMonth);
+      setExpenses(data);
     } catch (error) {
       showError(getErrorMessage(error));
     } finally {
@@ -56,12 +34,25 @@ const AdminExpenses: React.FC = () => {
 
   useEffect(() => { loadData(); }, [currentMonth]);
 
-  const handleSave = async (data: { description: string; amount: number; expense_date: string; category: string }) => {
+  const handleAdd = async () => {
+    if (!newDesc.trim() || !newAmount.trim()) return;
+    const amount = parseFloat(newAmount.replace(',', '.'));
+    if (isNaN(amount) || amount <= 0) return;
+
     setSaving(true);
     try {
-      await createExpense(data);
-      setIsModalOpen(false);
-      showSuccess('Despesa registrada!');
+      const today = new Date();
+      const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      await createExpense({
+        description: newDesc.trim(),
+        amount,
+        expense_date: dateStr,
+        category: 'Gasto'
+      });
+      setNewDesc('');
+      setNewAmount('');
+      setIsAdding(false);
+      showSuccess('Anotado!');
       await loadData();
     } catch (error) {
       showError(getErrorMessage(error));
@@ -75,7 +66,7 @@ const AdminExpenses: React.FC = () => {
     try {
       await deleteExpense(deleteConfirmId);
       setExpenses(prev => prev.filter(e => e.id !== deleteConfirmId));
-      showSuccess('Excluída!');
+      showSuccess('Apagado!');
     } catch (error) {
       showError(getErrorMessage(error));
     } finally {
@@ -83,37 +74,7 @@ const AdminExpenses: React.FC = () => {
     }
   };
 
-  const handleSaveFixed = async (id: string) => {
-    const newAmount = parseFloat(editValue.replace(',', '.'));
-    if (isNaN(newAmount) || newAmount <= 0) return;
-    try {
-      await updateFixedExpense(id, newAmount);
-      setFixedExpenses(prev => prev.map(f => f.id === id ? { ...f, amount: newAmount } : f));
-      setEditingFixed(null);
-      showSuccess('Atualizado!');
-    } catch (error) {
-      showError(getErrorMessage(error));
-    }
-  };
-
-  const calcFaturamento = (monthKey: string) => {
-    const [y, m] = monthKey.split('-').map(Number);
-    const start = new Date(y, m - 1, 1);
-    const end = new Date(y, m, 0, 23, 59, 59);
-    return bookings
-      .filter(b => {
-        if (!b.booking_date || b.status === 'cancelled') return false;
-        const d = new Date(b.booking_date + 'T12:00:00');
-        return d >= start && d <= end;
-      })
-      .reduce((sum, b) => sum + Number(b.total_price || 0), 0);
-  };
-
-  const faturamentoMes = useMemo(() => calcFaturamento(currentMonth), [bookings, currentMonth]);
-  const totalGastos = useMemo(() => expenses.reduce((sum, e) => sum + Number(e.amount), 0), [expenses]);
-  const aluguel = useMemo(() => fixedExpenses.find(f => f.category === 'Aluguel')?.amount || 0, [fixedExpenses]);
-  const totalSaidas = totalGastos + aluguel;
-  const lucro = faturamentoMes - totalSaidas;
+  const total = useMemo(() => expenses.reduce((sum, e) => sum + Number(e.amount), 0), [expenses]);
 
   const navigateMonth = (dir: number) => {
     const [y, m] = currentMonth.split('-').map(Number);
@@ -129,10 +90,10 @@ const AdminExpenses: React.FC = () => {
 
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-black text-white uppercase tracking-wider">Financeiro</h1>
-          <button onClick={() => setIsModalOpen(true)} className="h-10 px-4 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-wider rounded-xl flex items-center gap-1.5 transition-all cursor-pointer active:scale-95">
+          <h1 className="text-lg font-black text-white uppercase tracking-wider">Gastos</h1>
+          <button onClick={() => setIsAdding(true)} className="h-10 px-4 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-wider rounded-xl flex items-center gap-1.5 transition-all cursor-pointer active:scale-95">
             <Plus size={14} strokeWidth={2.5} />
-            Novo Gasto
+            Novo
           </button>
         </div>
 
@@ -147,110 +108,101 @@ const AdminExpenses: React.FC = () => {
           </button>
         </div>
 
-        {/* RESUMO - 3 numeros simples */}
-        <div className="bg-white/[0.02] border border-white/[0.04] rounded-2xl p-5 space-y-4">
-          {/* Entrou */}
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Entrou</span>
-            <span className="text-lg font-black text-emerald-400">R$ {faturamentoMes.toFixed(0)}</span>
-          </div>
-          <div className="h-px bg-white/[0.04]" />
-          {/* Saiu */}
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Saiu</span>
-            <span className="text-lg font-black text-red-400">R$ {totalSaidas.toFixed(0)}</span>
-          </div>
-          <div className="h-px bg-white/[0.04]" />
-          {/* Lucro */}
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Lucro</span>
-            <span className={`text-2xl font-black ${lucro >= 0 ? 'text-[#C5A059]' : 'text-red-400'}`}>R$ {lucro.toFixed(0)}</span>
-          </div>
-        </div>
-
-        {/* FIXO - Aluguel */}
-        {fixedExpenses.filter(f => f.category === 'Aluguel').length > 0 && (
-          <div className="space-y-2">
-            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">Fixo</p>
-            {fixedExpenses.filter(f => f.category === 'Aluguel').map((fixed) => (
-              <div key={fixed.id} className="flex items-center gap-3 bg-white/[0.02] border border-white/[0.04] rounded-xl px-4 py-3">
-                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
-                  <Home size={14} className="text-red-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[12px] font-semibold text-white">Aluguel</p>
-                  <p className="text-[10px] text-zinc-600">Todo mês</p>
-                </div>
-                {editingFixed === fixed.id ? (
-                  <div className="flex items-center gap-1">
-                    <input type="text" value={editValue} onChange={(e) => setEditValue(e.target.value.replace(/[^0-9.,]/g, ''))} className="w-20 bg-white/[0.06] border border-white/[0.1] rounded-lg px-2 py-1 text-[12px] text-white text-right outline-none" autoFocus onKeyDown={(e) => { if (e.key === 'Enter') handleSaveFixed(fixed.id); if (e.key === 'Escape') setEditingFixed(null); }} />
-                    <button onClick={() => handleSaveFixed(fixed.id)} className="w-6 h-6 rounded-md bg-[#C5A059]/10 flex items-center justify-center text-[#C5A059] cursor-pointer"><Check size={12} /></button>
-                    <button onClick={() => setEditingFixed(null)} className="w-6 h-6 rounded-md bg-white/[0.04] flex items-center justify-center text-zinc-500 cursor-pointer"><X size={12} /></button>
-                  </div>
-                ) : (
-                  <button onClick={() => { setEditingFixed(fixed.id); setEditValue(Number(fixed.amount).toFixed(0)); }} className="flex items-center gap-1 text-[12px] font-bold text-white tabular-nums cursor-pointer hover:text-[#C5A059] transition-colors">
-                    R$ {Number(fixed.amount).toFixed(0)}
-                    <Pencil size={10} className="text-zinc-600" />
+        {/* Formulario novo gasto */}
+        <AnimatePresence>
+          {isAdding && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-bold text-[#C5A059] uppercase tracking-wider">Novo gasto</span>
+                  <button onClick={() => { setIsAdding(false); setNewDesc(''); setNewAmount(''); }} className="text-zinc-600 hover:text-white cursor-pointer">
+                    <X size={14} />
                   </button>
-                )}
+                </div>
+                <input
+                  type="text"
+                  placeholder="O que gastou?"
+                  value={newDesc}
+                  onChange={(e) => setNewDesc(e.target.value)}
+                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/50 transition-colors placeholder:text-zinc-700"
+                  autoFocus
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
+                />
+                <input
+                  type="text"
+                  placeholder="Quanto?"
+                  value={newAmount}
+                  onChange={(e) => setNewAmount(e.target.value.replace(/[^0-9.,]/g, ''))}
+                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/50 transition-colors placeholder:text-zinc-700 tabular-nums"
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
+                />
+                <button
+                  onClick={handleAdd}
+                  disabled={saving || !newDesc.trim() || !newAmount.trim()}
+                  className="w-full h-11 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.98]"
+                >
+                  {saving ? '...' : 'Anotar'}
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Lista de gastos */}
+        {loading ? (
+          <div className="py-12 flex justify-center">
+            <div className="w-5 h-5 border-2 border-zinc-800 border-t-[#C5A059] rounded-full animate-spin" />
+          </div>
+        ) : expenses.length === 0 && !isAdding ? (
+          <div className="py-16 text-center bg-white/[0.01] rounded-2xl border border-dashed border-white/[0.04]">
+            <p className="text-[11px] text-zinc-600 mb-3">Nenhum gasto anotado.</p>
+            <button onClick={() => setIsAdding(true)} className="text-[10px] font-bold text-[#C5A059] uppercase tracking-wider cursor-pointer hover:text-[#A68233] transition-colors">
+              Anotar primeiro gasto →
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-1">
+            {expenses.map((expense) => (
+              <div key={expense.id} className="flex items-center gap-3 py-3 px-3 bg-white/[0.02] rounded-xl group hover:bg-white/[0.04] transition-colors">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold text-white truncate">{expense.description}</p>
+                  <p className="text-[10px] text-zinc-600">
+                    {new Date(expense.expense_date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                  </p>
+                </div>
+                <span className="text-[13px] font-bold text-white tabular-nums shrink-0">R$ {Number(expense.amount).toFixed(0)}</span>
+                <button onClick={() => setDeleteConfirmId(expense.id)} className="text-zinc-700 hover:text-red-400 transition-all cursor-pointer shrink-0 p-1 opacity-0 group-hover:opacity-100">
+                  <Trash2 size={13} />
+                </button>
               </div>
             ))}
           </div>
         )}
 
-        {/* GASTOS */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">Gastos</p>
-            {expenses.length > 0 && (
-              <span className="text-[10px] text-zinc-600">R$ {totalGastos.toFixed(0)}</span>
-            )}
+        {/* Total */}
+        {expenses.length > 0 && (
+          <div className="flex items-center justify-between py-4 px-4 bg-white/[0.02] border border-white/[0.04] rounded-2xl">
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Total</span>
+            <span className="text-xl font-black text-white">R$ {total.toFixed(0)}</span>
           </div>
-          
-          {loading ? (
-            <div className="py-12 flex justify-center">
-              <div className="w-5 h-5 border-2 border-zinc-800 border-t-[#C5A059] rounded-full animate-spin" />
-            </div>
-          ) : expenses.length === 0 ? (
-            <div className="py-12 text-center bg-white/[0.01] rounded-2xl border border-dashed border-white/[0.04]">
-              <p className="text-[11px] text-zinc-600">Nenhum gasto este mês.</p>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {expenses.map((expense) => (
-                <div key={expense.id} className="flex items-center gap-3 py-3 px-3 bg-white/[0.02] rounded-xl group hover:bg-white/[0.04] transition-colors">
-                  <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center shrink-0">
-                    <span className="text-[10px] font-bold text-zinc-500">{expense.category?.charAt(0) || '?'}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-semibold text-white truncate">{expense.description}</p>
-                    <p className="text-[10px] text-zinc-600">
-                      {new Date(expense.expense_date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
-                    </p>
-                  </div>
-                  <span className="text-[12px] font-bold text-white tabular-nums shrink-0">R$ {Number(expense.amount).toFixed(0)}</span>
-                  <button onClick={() => setDeleteConfirmId(expense.id)} className="text-zinc-700 hover:text-red-400 transition-all cursor-pointer shrink-0 p-1 opacity-0 group-hover:opacity-100">
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        )}
       </div>
-
-      <AddExpenseModal isOpen={isModalOpen} onSave={handleSave} onCancel={() => setIsModalOpen(false)} saving={saving} />
 
       <AnimatePresence>
         {deleteConfirmId && (
           <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDeleteConfirmId(null)} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
             <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 30, stiffness: 300 }} className="relative z-10 w-full sm:w-[300px] bg-[#111111] border-t sm:border border-white/[0.06] sm:rounded-2xl rounded-t-2xl p-6 text-center">
-              <p className="text-[13px] font-bold text-white mb-1">Excluir gasto?</p>
-              <p className="text-[11px] text-zinc-500 mb-5">Não pode ser desfeito.</p>
+              <p className="text-[13px] font-bold text-white mb-1">Apagar?</p>
+              <p className="text-[11px] text-zinc-500 mb-5">Essa anotaçãosome pra sempre.</p>
               <div className="flex gap-2">
                 <button onClick={() => setDeleteConfirmId(null)} className="flex-1 h-10 border border-white/[0.06] rounded-xl text-[10px] font-bold text-zinc-400 uppercase tracking-wider hover:text-white transition-all cursor-pointer">Cancelar</button>
-                <button onClick={handleDelete} className="flex-1 h-10 bg-red-500/10 border border-red-500/20 rounded-xl text-[10px] font-bold text-red-400 uppercase tracking-wider hover:bg-red-500/20 transition-all cursor-pointer">Excluir</button>
+                <button onClick={handleDelete} className="flex-1 h-10 bg-red-500/10 border border-red-500/20 rounded-xl text-[10px] font-bold text-red-400 uppercase tracking-wider hover:bg-red-500/20 transition-all cursor-pointer">Apagar</button>
               </div>
             </motion.div>
           </div>
