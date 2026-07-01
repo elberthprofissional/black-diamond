@@ -21,6 +21,7 @@ import {
   MobileServicesStep,
   MobileDateTimeStep,
 } from '../components/Admin/booking';
+import { useIsDesktop } from '../hooks/useIsDesktop';
 import { ArrowLeft } from 'lucide-react';
 
 const STEPS = [
@@ -75,13 +76,7 @@ const AdminBooking: React.FC = () => {
   const [isSearchingClient, setIsSearchingClient] = useState(false);
   const [isManualEntry, setIsManualEntry] = useState(true);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
-
-  useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const isDesktop = useIsDesktop();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -97,7 +92,7 @@ const AdminBooking: React.FC = () => {
           if (match) { setSelectedClient(match); setIsManualEntry(false); }
           else { setNewClient({ name: prefilledClientName, phone: prefilledClientPhone }); setIsManualEntry(true); }
         }
-      } catch (e) { console.error('Erro ao buscar clientes:', e); }
+      } catch (e) { console.error('Erro ao buscar clientes:', e); showError('Erro ao carregar clientes.'); }
     };
     fetchData();
   }, [rescheduleBooking, prefilledClientName, prefilledClientPhone]);
@@ -108,7 +103,7 @@ const AdminBooking: React.FC = () => {
         try {
           const data = await getBookings(selectedDate);
           setExistingBookings(data || []);
-        } catch (e) { console.error('Erro ao buscar bookings:', e); }
+        } catch (e) { console.error('Erro ao buscar bookings:', e); showError('Erro ao carregar agendamentos.'); }
       };
       loadBookings();
     }

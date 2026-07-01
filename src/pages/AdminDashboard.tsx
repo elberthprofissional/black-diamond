@@ -21,7 +21,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const AdminDashboard: React.FC = () => {
   const selectedDate = getLocalDateString();
   const { bookings, loading, refetch: loadData } = useBookings(selectedDate);
-  const m = useBookingManagement(loadData);
+  const mgmt = useBookingManagement(loadData);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
 
   const {
@@ -69,15 +69,15 @@ const AdminDashboard: React.FC = () => {
   const nextBooking = getNextBooking();
 
   const renderDetailPanel = () => {
-    if (!m.selectedBooking) return null;
-    return m.isRescheduling ? (
-      <RescheduleWizard selectedBooking={m.selectedBooking} services={m.services} step={m.rescheduleStep} setStep={m.setRescheduleStep} rescheduleServices={m.rescheduleServices} setRescheduleServices={m.setRescheduleServices} rescheduleDate={m.rescheduleDate} setRescheduleDate={m.setRescheduleDate} rescheduleTime={m.rescheduleTime} setRescheduleTime={m.setRescheduleTime} existingBookings={m.existingBookingsForReschedule} loadingSlots={m.loadingSlots} isSaving={m.isSavingReschedule} onConfirm={m.handleConfirmReschedule} onClose={() => { m.setSelectedBooking(null); m.cancelReschedule(); }} />
+    if (!mgmt.selectedBooking) return null;
+    return mgmt.isRescheduling ? (
+      <RescheduleWizard selectedBooking={mgmt.selectedBooking} services={mgmt.services} step={mgmt.rescheduleStep} setStep={mgmt.setRescheduleStep} rescheduleServices={mgmt.rescheduleServices} setRescheduleServices={mgmt.setRescheduleServices} rescheduleDate={mgmt.rescheduleDate} setRescheduleDate={mgmt.setRescheduleDate} rescheduleTime={mgmt.rescheduleTime} setRescheduleTime={mgmt.setRescheduleTime} existingBookings={mgmt.existingBookingsForReschedule} loadingSlots={mgmt.loadingSlots} isSaving={mgmt.isSavingReschedule} onConfirm={mgmt.handleConfirmReschedule} onClose={() => { mgmt.setSelectedBooking(null); mgmt.cancelReschedule(); }} />
     ) : (
-      <BookingDetailPanel booking={m.selectedBooking} services={m.services} onClose={() => m.setSelectedBooking(null)} onComplete={() => m.setCompletingBooking(m.selectedBooking)} onReschedule={m.handleStartReschedule} onDelete={() => m.setBookingToDelete(m.selectedBooking)} />
+      <BookingDetailPanel booking={mgmt.selectedBooking} services={mgmt.services} onClose={() => mgmt.setSelectedBooking(null)} onComplete={() => mgmt.setCompletingBooking(mgmt.selectedBooking)} onReschedule={mgmt.handleStartReschedule} onDelete={() => mgmt.setBookingToDelete(mgmt.selectedBooking)} />
     );
   };
 
-  const closePanel = () => { m.setSelectedBooking(null); m.cancelReschedule(); };
+  const closePanel = () => { mgmt.setSelectedBooking(null); mgmt.cancelReschedule(); };
 
   return (
     <AdminLayout mainClassName="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-8 pb-40 transition-all duration-300 max-w-5xl">
@@ -86,11 +86,11 @@ const AdminDashboard: React.FC = () => {
           <DashboardHeader
             nextBooking={nextBooking}
             dailyRevenue={dailyRevenue}
-            onSelectNext={() => nextBooking && m.setSelectedBooking(nextBooking)}
+            onSelectNext={() => nextBooking && mgmt.setSelectedBooking(nextBooking)}
           />
 
           <div className="flex border-b border-white/[0.04] pb-1 pt-1 justify-start">
-            <FilterTabs filter={m.filter} setFilter={m.setFilter} layoutId="dailyFilter" occupiedCount={occupiedBookings.length} freeCount={freeSlots.length} blockedCount={blockedBookings.length} />
+            <FilterTabs filter={mgmt.filter} setFilter={mgmt.setFilter} layoutId="dailyFilter" occupiedCount={occupiedBookings.length} freeCount={freeSlots.length} blockedCount={blockedBookings.length} />
           </div>
 
           {loading ? (
@@ -100,13 +100,13 @@ const AdminDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="pt-2">
-              {m.filter === 'occupied' && (
-                <OccupiedPanel bookings={occupiedBookings} selectedId={m.selectedBooking?.id ?? null} onSelect={m.setSelectedBooking} onComplete={(b) => m.setCompletingBooking(b)} />
+              {mgmt.filter === 'occupied' && (
+                <OccupiedPanel bookings={occupiedBookings} selectedId={mgmt.selectedBooking?.id ?? null} onSelect={mgmt.setSelectedBooking} onComplete={(b) => mgmt.setCompletingBooking(b)} />
               )}
-              {m.filter === 'free' && (
+              {mgmt.filter === 'free' && (
                 <FreePanel freeSlots={freeSlots} selectedDate={selectedDate} blockingSlot={blockingSlot} blockingDay={blockingDay} onBlockSlot={handleBlockSlot} onBlockDay={() => blockEntireDay(selectedDate, freeSlots, loadData)} />
               )}
-              {m.filter === 'blocked' && (
+              {mgmt.filter === 'blocked' && (
                 <BlockedPanel blockedBookings={blockedBookings} blockingDay={blockingDay} onUnblock={(b) => setUnblockingBooking(b)} onUnblockDay={() => unblockEntireDay(blockedBookings, loadData)} />
               )}
             </div>
@@ -114,15 +114,15 @@ const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      {m.isDesktop && <AnimatePresence>{m.selectedBooking && <div className="fixed inset-0 z-[200] flex justify-end"><motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closePanel} className="absolute inset-0 bg-black/60 backdrop-blur-sm" /><motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 30, stiffness: 300 }} className="relative w-[400px] h-full bg-[#0E0E0E] border-l border-white/[0.06] shadow-2xl overflow-hidden flex flex-col">{renderDetailPanel()}</motion.div></div>}</AnimatePresence>}
+      {mgmt.isDesktop && <AnimatePresence>{mgmt.selectedBooking && <div className="fixed inset-0 z-[200] flex justify-end"><motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closePanel} className="absolute inset-0 bg-black/60 backdrop-blur-sm" /><motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 30, stiffness: 300 }} className="relative w-[400px] h-full bg-[#0E0E0E] border-l border-white/[0.06] shadow-2xl overflow-hidden flex flex-col">{renderDetailPanel()}</motion.div></div>}</AnimatePresence>}
 
-      <CompleteModal booking={m.completingBooking} onConfirm={m.handleComplete} onCancel={() => m.setCompletingBooking(null)} />
+      <CompleteModal booking={mgmt.completingBooking} onConfirm={mgmt.handleComplete} onCancel={() => mgmt.setCompletingBooking(null)} />
       <UnblockModal booking={unblockingBooking} onConfirm={confirmUnblock} onCancel={() => setUnblockingBooking(null)} />
-      <DeleteModal booking={m.bookingToDelete} onConfirm={m.confirmDelete} onCancel={() => m.setBookingToDelete(null)} />
+      <DeleteModal booking={mgmt.bookingToDelete} onConfirm={mgmt.confirmDelete} onCancel={() => mgmt.setBookingToDelete(null)} />
 
-      {!m.isDesktop && <AnimatePresence>{m.selectedBooking && <div className="fixed inset-0 z-[200] flex flex-col justify-end"><motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closePanel} className="absolute inset-0 bg-black/90 backdrop-blur-md" /><motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 30, stiffness: 300 }} className="relative w-full h-[100dvh] bg-[#0f0f0f] z-10 flex flex-col text-left overflow-hidden">{renderDetailPanel()}</motion.div></div>}</AnimatePresence>}
+      {!mgmt.isDesktop && <AnimatePresence>{mgmt.selectedBooking && <div className="fixed inset-0 z-[200] flex flex-col justify-end"><motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closePanel} className="absolute inset-0 bg-black/90 backdrop-blur-md" /><motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 30, stiffness: 300 }} className="relative w-full h-[100dvh] bg-[#0f0f0f] z-10 flex flex-col text-left overflow-hidden">{renderDetailPanel()}</motion.div></div>}</AnimatePresence>}
 
-      <ToastNotification toast={m.toast} />
+      <ToastNotification toast={mgmt.toast} />
     </AdminLayout>
   );
 };

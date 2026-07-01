@@ -24,7 +24,7 @@ export function useReschedule(
     setLoadingSlots(true);
     getBookings(rescheduleDate)
       .then(data => { if (active) setExistingBookings(data || []); })
-      .catch((e) => console.error('Erro ao buscar bookings para reagendamento:', e))
+      .catch((e) => { console.error('Erro ao buscar bookings para reagendamento:', e); showError('Erro ao carregar horários.'); })
       .finally(() => { if (active) setLoadingSlots(false); });
     return () => { active = false; };
   }, [rescheduleDate, isRescheduling]);

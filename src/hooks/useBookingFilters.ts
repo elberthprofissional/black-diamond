@@ -1,14 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useIsDesktop } from './useIsDesktop';
 
 export function useBookingFilters() {
   const [filter, setFilter] = useState<'occupied' | 'free' | 'blocked'>('occupied');
-  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
-
-  useEffect(() => {
-    const check = () => setIsDesktop(window.innerWidth >= 1024);
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
+  const isDesktop = useIsDesktop();
 
   return { filter, setFilter, isDesktop };
 }

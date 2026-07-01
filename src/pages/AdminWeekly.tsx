@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const AdminWeekly: React.FC = () => {
   const { bookings, loading, refetch: loadData } = useBookings();
-  const m = useBookingManagement(loadData);
+  const mgmt = useBookingManagement(loadData);
   const navigate = useNavigate();
   const today = new Date();
 
@@ -90,15 +90,15 @@ const AdminWeekly: React.FC = () => {
   const dayLabel = selectedDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
 
   const renderDetailPanel = () => {
-    if (!m.selectedBooking) return null;
-    return m.isRescheduling ? (
-      <RescheduleWizard selectedBooking={m.selectedBooking} services={m.services} step={m.rescheduleStep} setStep={m.setRescheduleStep} rescheduleServices={m.rescheduleServices} setRescheduleServices={m.setRescheduleServices} rescheduleDate={m.rescheduleDate} setRescheduleDate={m.setRescheduleDate} rescheduleTime={m.rescheduleTime} setRescheduleTime={m.setRescheduleTime} existingBookings={m.existingBookingsForReschedule} loadingSlots={m.loadingSlots} isSaving={m.isSavingReschedule} onConfirm={m.handleConfirmReschedule} onClose={() => { m.setSelectedBooking(null); m.cancelReschedule(); }} />
+    if (!mgmt.selectedBooking) return null;
+    return mgmt.isRescheduling ? (
+      <RescheduleWizard selectedBooking={mgmt.selectedBooking} services={mgmt.services} step={mgmt.rescheduleStep} setStep={mgmt.setRescheduleStep} rescheduleServices={mgmt.rescheduleServices} setRescheduleServices={mgmt.setRescheduleServices} rescheduleDate={mgmt.rescheduleDate} setRescheduleDate={mgmt.setRescheduleDate} rescheduleTime={mgmt.rescheduleTime} setRescheduleTime={mgmt.setRescheduleTime} existingBookings={mgmt.existingBookingsForReschedule} loadingSlots={mgmt.loadingSlots} isSaving={mgmt.isSavingReschedule} onConfirm={mgmt.handleConfirmReschedule} onClose={() => { mgmt.setSelectedBooking(null); mgmt.cancelReschedule(); }} />
     ) : (
-      <BookingDetailPanel booking={m.selectedBooking} services={m.services} onClose={() => m.setSelectedBooking(null)} onComplete={() => m.setCompletingBooking(m.selectedBooking)} onReschedule={m.handleStartReschedule} onDelete={() => m.setBookingToDelete(m.selectedBooking)} onUnblock={() => { setUnblockingBooking(m.selectedBooking); m.setSelectedBooking(null); }} />
+      <BookingDetailPanel booking={mgmt.selectedBooking} services={mgmt.services} onClose={() => mgmt.setSelectedBooking(null)} onComplete={() => mgmt.setCompletingBooking(mgmt.selectedBooking)} onReschedule={mgmt.handleStartReschedule} onDelete={() => mgmt.setBookingToDelete(mgmt.selectedBooking)} onUnblock={() => { setUnblockingBooking(mgmt.selectedBooking); mgmt.setSelectedBooking(null); }} />
     );
   };
 
-  const closePanel = () => { m.setSelectedBooking(null); m.cancelReschedule(); };
+  const closePanel = () => { mgmt.setSelectedBooking(null); mgmt.cancelReschedule(); };
 
   return (
     <AdminLayout mainClassName="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-8 pb-40">
@@ -122,17 +122,17 @@ const AdminWeekly: React.FC = () => {
         </div>
 
         <div className="flex border-b border-white/[0.04] pb-1 pt-1 justify-start">
-          <FilterTabs filter={m.filter} setFilter={m.setFilter} layoutId="weeklyFilter" occupiedCount={occupiedBookings.length} freeCount={freeSlots.length} blockedCount={blockedBookings.length} />
+          <FilterTabs filter={mgmt.filter} setFilter={mgmt.setFilter} layoutId="weeklyFilter" occupiedCount={occupiedBookings.length} freeCount={freeSlots.length} blockedCount={blockedBookings.length} />
         </div>
 
         {loading ? (
           <div className="py-20 text-center"><div className="w-5 h-5 border-2 border-zinc-800 border-t-zinc-400 rounded-full animate-spin mx-auto" /></div>
         ) : (
           <div className="pt-2">
-            {m.filter === 'occupied' && (
+            {mgmt.filter === 'occupied' && (
               <div className="space-y-2">
                 {occupiedBookings.length === 0 ? <p className="text-zinc-600 text-[10px] uppercase tracking-widest text-center py-8">Nenhum agendamento</p> : occupiedBookings.map((booking) => (
-                  <button key={booking.id} onClick={() => m.setSelectedBooking(booking)} aria-label={`Agendamento às ${booking.booking_time.slice(0, 5)} com ${booking.clients?.name}`} className={`w-full flex items-center bg-[#111111] border border-white/5 rounded-lg px-3 py-2.5 cursor-pointer transition-all hover:border-[#C5A059]/20 text-left`}>
+                  <button key={booking.id} onClick={() => mgmt.setSelectedBooking(booking)} aria-label={`Agendamento às ${booking.booking_time.slice(0, 5)} com ${booking.clients?.name}`} className={`w-full flex items-center bg-[#111111] border border-white/5 rounded-lg px-3 py-2.5 cursor-pointer transition-all hover:border-[#C5A059]/20 text-left`}>
                     <span className="text-sm font-bold text-white tabular-nums w-12 shrink-0">{booking.booking_time.slice(0, 5)}</span>
                     <div className="w-px h-3.5 bg-white/[0.06] mx-3 shrink-0" />
                     <span className="text-[11px] font-bold text-zinc-300 truncate flex-1">{booking.clients?.name}</span>
@@ -140,7 +140,7 @@ const AdminWeekly: React.FC = () => {
                 ))}
               </div>
             )}
-            {m.filter === 'free' && (
+            {mgmt.filter === 'free' && (
               <div className="space-y-2">
                 {freeSlots.length > 0 && <button onClick={() => blockEntireDay(selectedDateStr, freeSlots, loadData)} disabled={blockingDay} className="group w-full mb-4 py-3.5 px-4 bg-zinc-900/30 hover:bg-red-500/[0.04] border border-white/[0.04] hover:border-red-500/20 text-zinc-400 hover:text-red-400 rounded-xl text-[9px] font-bold uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2">{blockingDay ? <div className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" /> : <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>}Bloquear Dia Inteiro</button>}
                 {freeSlots.length === 0 ? <p className="text-zinc-600 text-[10px] uppercase tracking-widest text-center py-8">Nenhum horário livre</p> : freeSlots.map((slot) => (
@@ -154,7 +154,7 @@ const AdminWeekly: React.FC = () => {
                 ))}
               </div>
             )}
-            {m.filter === 'blocked' && (
+            {mgmt.filter === 'blocked' && (
               <div className="space-y-2">
                 {blockedBookings.length > 0 && <button onClick={() => unblockEntireDay(blockedBookings, loadData)} disabled={blockingDay} className="group w-full mb-4 py-3.5 px-4 bg-zinc-900/30 hover:bg-emerald-500/[0.04] border border-white/[0.04] hover:border-emerald-500/20 text-zinc-400 hover:text-emerald-400 rounded-xl text-[9px] font-bold uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2">{blockingDay ? <div className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" /> : <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>}Liberar Dia Inteiro</button>}
                 {blockedBookings.length === 0 ? <p className="text-zinc-600 text-[10px] uppercase tracking-widest text-center py-8">Nenhum horário bloqueado</p> : blockedBookings.map((booking) => (
@@ -169,15 +169,15 @@ const AdminWeekly: React.FC = () => {
         )}
       </div>
 
-      {m.isDesktop && <AnimatePresence>{m.selectedBooking && <div className="fixed inset-0 z-[200] flex justify-end"><motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closePanel} className="absolute inset-0 bg-black/60 backdrop-blur-sm" /><motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 30, stiffness: 300 }} className="relative w-[400px] h-full bg-[#0E0E0E] border-l border-white/[0.06] shadow-2xl overflow-hidden flex flex-col">{renderDetailPanel()}</motion.div></div>}</AnimatePresence>}
+      {mgmt.isDesktop && <AnimatePresence>{mgmt.selectedBooking && <div className="fixed inset-0 z-[200] flex justify-end"><motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closePanel} className="absolute inset-0 bg-black/60 backdrop-blur-sm" /><motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 30, stiffness: 300 }} className="relative w-[400px] h-full bg-[#0E0E0E] border-l border-white/[0.06] shadow-2xl overflow-hidden flex flex-col">{renderDetailPanel()}</motion.div></div>}</AnimatePresence>}
 
       <UnblockModal booking={unblockingBooking} onConfirm={confirmUnblock} onCancel={() => setUnblockingBooking(null)} />
-      <CompleteModal booking={m.completingBooking} onConfirm={m.handleComplete} onCancel={() => m.setCompletingBooking(null)} />
-      <DeleteModal booking={m.bookingToDelete} onConfirm={m.confirmDelete} onCancel={() => m.setBookingToDelete(null)} />
+      <CompleteModal booking={mgmt.completingBooking} onConfirm={mgmt.handleComplete} onCancel={() => mgmt.setCompletingBooking(null)} />
+      <DeleteModal booking={mgmt.bookingToDelete} onConfirm={mgmt.confirmDelete} onCancel={() => mgmt.setBookingToDelete(null)} />
 
-      {!m.isDesktop && <AnimatePresence>{m.selectedBooking && <div className="fixed inset-0 z-[200] flex flex-col justify-end"><motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closePanel} className="absolute inset-0 bg-black/90 backdrop-blur-md" /><motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 30, stiffness: 300 }} className="relative w-full h-[100dvh] bg-[#0f0f0f] z-10 flex flex-col text-left overflow-hidden">{renderDetailPanel()}</motion.div></div>}</AnimatePresence>}
+      {!mgmt.isDesktop && <AnimatePresence>{mgmt.selectedBooking && <div className="fixed inset-0 z-[200] flex flex-col justify-end"><motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closePanel} className="absolute inset-0 bg-black/90 backdrop-blur-md" /><motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 30, stiffness: 300 }} className="relative w-full h-[100dvh] bg-[#0f0f0f] z-10 flex flex-col text-left overflow-hidden">{renderDetailPanel()}</motion.div></div>}</AnimatePresence>}
 
-      <ToastNotification toast={m.toast} />
+      <ToastNotification toast={mgmt.toast} />
     </AdminLayout>
   );
 };
