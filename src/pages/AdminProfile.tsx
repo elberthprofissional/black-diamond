@@ -411,6 +411,38 @@ const AdminProfile: React.FC = () => {
               </button>
             )}
           </div>
+
+          {/* Notifications */}
+          <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
+            <button
+              onClick={handleToggleNotifications}
+              className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
+            >
+              <div className="text-left">
+                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">Notificações</span>
+                <span className={`text-[13px] ${isSubscribed ? 'text-[#C5A059]' : 'text-white'}`}>
+                  {isSubscribed ? 'Ativadas' : 'Desativadas'}
+                </span>
+              </div>
+              <div className={`w-10 h-6 rounded-full transition-all relative ${isSubscribed ? 'bg-[#C5A059]' : 'bg-zinc-700'}`}>
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isSubscribed ? 'left-5' : 'left-1'}`} />
+              </div>
+            </button>
+          </div>
+
+          {/* Clear data */}
+          <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
+            <button
+              onClick={() => setShowResetConfirm(true)}
+              className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
+            >
+              <div className="text-left">
+                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">Dados</span>
+                <span className="text-[13px] text-red-400">Limpar todos os dados</span>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
         </div>
       )}
 
@@ -441,22 +473,6 @@ const AdminProfile: React.FC = () => {
             </button>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleToggleNotifications}
-              className={`px-3 py-1.5 text-[9px] font-bold border rounded-lg uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
-                isSubscribed
-                  ? 'text-[#C5A059] border-[#C5A059]/30 bg-[#C5A059]/5'
-                  : 'text-zinc-500 border-white/[0.06] hover:text-white hover:border-white/[0.12]'
-              }`}
-            >
-              {isSubscribed ? 'Notificando' : 'Notificar'}
-            </button>
-            <button
-              onClick={() => setShowResetConfirm(true)}
-              className="px-3 py-1.5 text-[9px] font-bold text-zinc-500 hover:text-red-400 border border-white/[0.06] hover:border-red-500/20 rounded-lg uppercase tracking-wider transition-all cursor-pointer shrink-0"
-            >
-              Limpar
-            </button>
           </div>
         </div>
 
