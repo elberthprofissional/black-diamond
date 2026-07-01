@@ -11,7 +11,7 @@ const Services: React.FC<ServicesProps> = ({ onBookingClick }) => {
 
   const handleMensalistaClick = () => {
     if (barberPhone) {
-      const msg = `Oi! Tenho interesse no *Plano Mensal* da Black Diamond. Pode me passar mais informações?`;
+      const msg = `Opa! Me interessei pelo plano mensal. Quanto custa e o que tá incluído?`;
       const url = `https://wa.me/${barberPhone}?text=${encodeURIComponent(msg)}`;
       window.open(url, '_blank');
     }
