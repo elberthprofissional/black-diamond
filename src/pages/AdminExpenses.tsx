@@ -123,26 +123,13 @@ const AdminExpenses: React.FC = () => {
 
   const [year, month] = currentMonth.split('-').map(Number);
 
-  // Agrupar gastos por categoria
-  const gastosPorCategoria = useMemo(() => {
-    const map = new Map<string, number>();
-    expenses.forEach(e => {
-      const cat = e.category || 'Outros';
-      map.set(cat, (map.get(cat) || 0) + Number(e.amount));
-    });
-    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
-  }, [expenses]);
-
   return (
     <AdminLayout>
-      <div className="space-y-5">
+      <div className="space-y-4">
 
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-black text-white uppercase tracking-wider">Financeiro</h1>
-            <p className="text-[10px] text-zinc-600 mt-0.5">{expenses.length} gasto{expenses.length !== 1 ? 's' : ''} este mês</p>
-          </div>
+          <h1 className="text-lg font-black text-white uppercase tracking-wider">Financeiro</h1>
           <button onClick={() => setIsModalOpen(true)} className="h-10 px-4 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-wider rounded-xl flex items-center gap-1.5 transition-all cursor-pointer active:scale-95">
             <Plus size={14} strokeWidth={2.5} />
             Novo Gasto
@@ -160,52 +147,31 @@ const AdminExpenses: React.FC = () => {
           </button>
         </div>
 
-        {/* RESUMO SIMPLIFICADO - 2 cards grandes */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* RESUMO - 3 numeros simples */}
+        <div className="bg-white/[0.02] border border-white/[0.04] rounded-2xl p-5 space-y-4">
           {/* Entrou */}
-          <div className="bg-emerald-500/[0.06] border border-emerald-500/20 rounded-2xl p-4">
-            <p className="text-[9px] font-bold text-emerald-400/70 uppercase tracking-wider mb-2">Entrou</p>
-            <p className="text-2xl font-black text-emerald-400">R$ {faturamentoMes.toFixed(0)}</p>
-            <p className="text-[10px] text-zinc-600 mt-1">Agendamentos</p>
-          </div>
-
-          {/* Saiu */}
-          <div className="bg-red-500/[0.06] border border-red-500/20 rounded-2xl p-4">
-            <p className="text-[9px] font-bold text-red-400/70 uppercase tracking-wider mb-2">Saiu</p>
-            <p className="text-2xl font-black text-red-400">R$ {totalSaidas.toFixed(0)}</p>
-            <p className="text-[10px] text-zinc-600 mt-1">{expenses.length} gasto{expenses.length !== 1 ? 's' : ''}</p>
-          </div>
-        </div>
-
-        {/* LUCRO - Card grande */}
-        <div className={`rounded-2xl p-4 border ${
-          lucro >= 0 
-            ? 'bg-[#C5A059]/[0.08] border-[#C5A059]/30' 
-            : 'bg-red-500/[0.08] border-red-500/30'
-        }`}>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Lucro Líquido</p>
-              <p className={`text-3xl font-black ${lucro >= 0 ? 'text-[#C5A059]' : 'text-red-400'}`}>
-                R$ {lucro.toFixed(0)}
-              </p>
-            </div>
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-              lucro >= 0 ? 'bg-[#C5A059]/10' : 'bg-red-500/10'
-            }`}>
-              {lucro >= 0 ? (
-                <span className="text-xl">💰</span>
-              ) : (
-                <span className="text-xl">📉</span>
-              )}
-            </div>
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Entrou</span>
+            <span className="text-lg font-black text-emerald-400">R$ {faturamentoMes.toFixed(0)}</span>
+          </div>
+          <div className="h-px bg-white/[0.04]" />
+          {/* Saiu */}
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Saiu</span>
+            <span className="text-lg font-black text-red-400">R$ {totalSaidas.toFixed(0)}</span>
+          </div>
+          <div className="h-px bg-white/[0.04]" />
+          {/* Lucro */}
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Lucro</span>
+            <span className={`text-2xl font-black ${lucro >= 0 ? 'text-[#C5A059]' : 'text-red-400'}`}>R$ {lucro.toFixed(0)}</span>
           </div>
         </div>
 
-        {/* FIXOS (Aluguel) */}
+        {/* FIXO - Aluguel */}
         {fixedExpenses.filter(f => f.category === 'Aluguel').length > 0 && (
           <div className="space-y-2">
-            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">Fixo Mensal</p>
+            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">Fixo</p>
             {fixedExpenses.filter(f => f.category === 'Aluguel').map((fixed) => (
               <div key={fixed.id} className="flex items-center gap-3 bg-white/[0.02] border border-white/[0.04] rounded-xl px-4 py-3">
                 <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
@@ -232,30 +198,12 @@ const AdminExpenses: React.FC = () => {
           </div>
         )}
 
-        {/* RESUMO POR CATEGORIA */}
-        {gastosPorCategoria.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">Por Categoria</p>
-            <div className="space-y-1.5">
-              {gastosPorCategoria.map(([cat, total]) => (
-                <div key={cat} className="flex items-center justify-between py-2 px-3 bg-white/[0.02] rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-[#C5A059]" />
-                    <span className="text-[11px] font-medium text-zinc-300">{cat}</span>
-                  </div>
-                  <span className="text-[11px] font-bold text-white tabular-nums">R$ {total.toFixed(0)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* LISTA DE GASTOS */}
+        {/* GASTOS */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">Detalhado</p>
+            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">Gastos</p>
             {expenses.length > 0 && (
-              <span className="text-[9px] text-zinc-600">R$ {totalGastos.toFixed(0)} em gastos variáveis</span>
+              <span className="text-[10px] text-zinc-600">R$ {totalGastos.toFixed(0)}</span>
             )}
           </div>
           
@@ -264,9 +212,8 @@ const AdminExpenses: React.FC = () => {
               <div className="w-5 h-5 border-2 border-zinc-800 border-t-[#C5A059] rounded-full animate-spin" />
             </div>
           ) : expenses.length === 0 ? (
-            <div className="py-16 text-center bg-white/[0.01] rounded-2xl border border-dashed border-white/[0.04]">
-              <p className="text-[11px] text-zinc-600 mb-1">Nenhum gasto este mês</p>
-              <p className="text-[10px] text-zinc-700">Registre gastos clicando em "Novo Gasto"</p>
+            <div className="py-12 text-center bg-white/[0.01] rounded-2xl border border-dashed border-white/[0.04]">
+              <p className="text-[11px] text-zinc-600">Nenhum gasto este mês.</p>
             </div>
           ) : (
             <div className="space-y-1">
@@ -279,7 +226,6 @@ const AdminExpenses: React.FC = () => {
                     <p className="text-[12px] font-semibold text-white truncate">{expense.description}</p>
                     <p className="text-[10px] text-zinc-600">
                       {new Date(expense.expense_date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
-                      {expense.category && <span className="text-zinc-700"> · {expense.category}</span>}
                     </p>
                   </div>
                   <span className="text-[12px] font-bold text-white tabular-nums shrink-0">R$ {Number(expense.amount).toFixed(0)}</span>
