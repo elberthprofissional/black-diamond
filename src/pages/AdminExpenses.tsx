@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, ChevronLeft, ChevronRight, Trash2, X } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
+import AddExpenseModal from '../components/Admin/shared/AddExpenseModal';
 import { getExpenses, createExpense, deleteExpense } from '../lib/api';
 import { useToast } from '../hooks/useToast';
 import { getErrorMessage } from '../lib/utils';
@@ -11,9 +12,7 @@ const AdminExpenses: React.FC = () => {
   const { showSuccess, showError } = useToast();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAdding, setIsAdding] = useState(false);
-  const [newDesc, setNewDesc] = useState('');
-  const [newAmount, setNewAmount] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
@@ -34,25 +33,14 @@ const AdminExpenses: React.FC = () => {
 
   useEffect(() => { loadData(); }, [currentMonth]);
 
-  const handleAdd = async () => {
-    if (!newDesc.trim() || !newAmount.trim()) return;
-    const amount = parseFloat(newAmount.replace(',', '.'));
-    if (isNaN(amount) || amount <= 0) return;
-
+  const handleSave = async (items: { description: string; amount: number; expense_date: string; category: string }[]) => {
     setSaving(true);
     try {
-      const today = new Date();
-      const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      await createExpense({
-        description: newDesc.trim(),
-        amount,
-        expense_date: dateStr,
-        category: 'Gasto'
-      });
-      setNewDesc('');
-      setNewAmount('');
-      setIsAdding(false);
-      showSuccess('Anotado!');
+      for (const item of items) {
+        await createExpense(item);
+      }
+      setIsModalOpen(false);
+      showSuccess(items.length > 1 ? `${items.length} gastos anotados!` : 'Anotado!');
       await loadData();
     } catch (error) {
       showError(getErrorMessage(error));
@@ -91,7 +79,7 @@ const AdminExpenses: React.FC = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-black text-white uppercase tracking-wider">Gastos</h1>
-          <button onClick={() => setIsAdding(true)} className="h-10 px-4 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-wider rounded-xl flex items-center gap-1.5 transition-all cursor-pointer active:scale-95">
+          <button onClick={() => setIsModalOpen(true)} className="h-10 px-4 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-wider rounded-xl flex items-center gap-1.5 transition-all cursor-pointer active:scale-95">
             <Plus size={14} strokeWidth={2.5} />
             Novo
           </button>
@@ -108,60 +96,15 @@ const AdminExpenses: React.FC = () => {
           </button>
         </div>
 
-        {/* Formulario novo gasto */}
-        <AnimatePresence>
-          {isAdding && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 space-y-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold text-[#C5A059] uppercase tracking-wider">Novo gasto</span>
-                  <button onClick={() => { setIsAdding(false); setNewDesc(''); setNewAmount(''); }} className="text-zinc-600 hover:text-white cursor-pointer">
-                    <X size={14} />
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  placeholder="O que gastou?"
-                  value={newDesc}
-                  onChange={(e) => setNewDesc(e.target.value)}
-                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/50 transition-colors placeholder:text-zinc-700"
-                  autoFocus
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
-                />
-                <input
-                  type="text"
-                  placeholder="Quanto?"
-                  value={newAmount}
-                  onChange={(e) => setNewAmount(e.target.value.replace(/[^0-9.,]/g, ''))}
-                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/50 transition-colors placeholder:text-zinc-700 tabular-nums"
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
-                />
-                <button
-                  onClick={handleAdd}
-                  disabled={saving || !newDesc.trim() || !newAmount.trim()}
-                  className="w-full h-11 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.98]"
-                >
-                  {saving ? '...' : 'Anotar'}
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Lista de gastos */}
         {loading ? (
           <div className="py-12 flex justify-center">
             <div className="w-5 h-5 border-2 border-zinc-800 border-t-[#C5A059] rounded-full animate-spin" />
           </div>
-        ) : expenses.length === 0 && !isAdding ? (
+        ) : expenses.length === 0 ? (
           <div className="py-16 text-center bg-white/[0.01] rounded-2xl border border-dashed border-white/[0.04]">
-            <p className="text-[11px] text-zinc-600 mb-3">Nenhum gasto anotado.</p>
-            <button onClick={() => setIsAdding(true)} className="text-[10px] font-bold text-[#C5A059] uppercase tracking-wider cursor-pointer hover:text-[#A68233] transition-colors">
+            <p className="text-[11px] text-zinc-600 mb-3">Nenhum gasto este mês.</p>
+            <button onClick={() => setIsModalOpen(true)} className="text-[10px] font-bold text-[#C5A059] uppercase tracking-wider cursor-pointer hover:text-[#A68233] transition-colors">
               Anotar primeiro gasto →
             </button>
           </div>
@@ -193,13 +136,20 @@ const AdminExpenses: React.FC = () => {
         )}
       </div>
 
+      <AddExpenseModal
+        isOpen={isModalOpen}
+        onSave={handleSave}
+        onCancel={() => setIsModalOpen(false)}
+        saving={saving}
+      />
+
       <AnimatePresence>
         {deleteConfirmId && (
           <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDeleteConfirmId(null)} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
             <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 30, stiffness: 300 }} className="relative z-10 w-full sm:w-[300px] bg-[#111111] border-t sm:border border-white/[0.06] sm:rounded-2xl rounded-t-2xl p-6 text-center">
               <p className="text-[13px] font-bold text-white mb-1">Apagar?</p>
-              <p className="text-[11px] text-zinc-500 mb-5">Essa anotaçãosome pra sempre.</p>
+              <p className="text-[11px] text-zinc-500 mb-5">Essa anotação some pra sempre.</p>
               <div className="flex gap-2">
                 <button onClick={() => setDeleteConfirmId(null)} className="flex-1 h-10 border border-white/[0.06] rounded-xl text-[10px] font-bold text-zinc-400 uppercase tracking-wider hover:text-white transition-all cursor-pointer">Cancelar</button>
                 <button onClick={handleDelete} className="flex-1 h-10 bg-red-500/10 border border-red-500/20 rounded-xl text-[10px] font-bold text-red-400 uppercase tracking-wider hover:bg-red-500/20 transition-all cursor-pointer">Apagar</button>
