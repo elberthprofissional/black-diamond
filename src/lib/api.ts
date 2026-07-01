@@ -243,7 +243,7 @@ export const deleteClient = async (id: string) => {
   if (error) throw error;
 };
 
-export const createClient = async (data: { name: string; phone: string; email?: string; notes?: string }) => {
+export const createClient = async (data: { name: string; phone: string; email?: string; notes?: string; manually_added?: boolean }) => {
   const { data: existing } = await supabase
     .from('clients')
     .select('id')

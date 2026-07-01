@@ -128,7 +128,7 @@ const AdminClients: React.FC = () => {
             } : null
           };
         })
-        .filter((c) => c.bookingsCount >= 2);
+        .filter((c) => c.bookingsCount >= 2 || c.manually_added);
       enriched.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       setClients(enriched);
     } catch { /* ignored */ } finally { setLoading(false); }
@@ -223,7 +223,7 @@ const AdminClients: React.FC = () => {
         return;
       }
 
-      const created = await createClient({ name, phone, email: newClientEmail.trim() || undefined, notes: newClientNotes.trim() || undefined });
+      const created = await createClient({ name, phone, email: newClientEmail.trim() || undefined, notes: newClientNotes.trim() || undefined, manually_added: true });
       setClients(prev => [...prev, { ...created, lastVisit: 'Nunca', totalSpent: 0, bookingsCount: 0, upcomingBooking: null }].sort((a, b) => (a.name || '').localeCompare(b.name || '')));
       setIsCreatingClient(false);
       setNewClientName(''); setNewClientPhone(''); setNewClientEmail(''); setNewClientNotes(''); setNewClientError('');

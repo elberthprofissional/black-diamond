@@ -39,6 +39,7 @@ export interface Client {
   notes?: string;
   is_favorite?: boolean;
   is_mensalista?: boolean;
+  manually_added?: boolean;
   created_at: string;
 }
 
