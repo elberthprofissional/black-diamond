@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Pencil, Trash2, Plus } from 'lucide-react';
+import { X, Pencil, Trash2, Plus, Crown } from 'lucide-react';
 import { formatPhone } from '../../../lib/utils';
 import type { ClientWithStats, BookingWithClient } from '../../../types';
 
@@ -20,6 +20,7 @@ interface ClientPanelProps {
   onDelete: () => void;
   onReminder: () => void;
   onClose: () => void;
+  onToggleMensalista: () => void;
 }
 
 const ClientPanel: React.FC<ClientPanelProps> = ({
@@ -37,6 +38,7 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
   onDelete,
   onReminder,
   onClose,
+  onToggleMensalista,
 }) => {
   const navigate = useNavigate();
 
@@ -73,7 +75,15 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
               {client.name?.charAt(0) || '?'}
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="text-base font-black text-white uppercase tracking-tight truncate">{client.name}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-black text-white uppercase tracking-tight truncate">{client.name}</h2>
+                {client.is_mensalista && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-full shrink-0">
+                    <Crown size={10} className="text-[#C5A059]" />
+                    <span className="text-[8px] font-bold text-[#C5A059] uppercase">Mensalista</span>
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-zinc-500 mt-0.5">{formatPhone(client.phone)}</p>
               <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest mt-1">Membro desde {new Date(client.created_at).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}</p>
             </div>
@@ -121,6 +131,18 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
               Agendar
             </button>
           </div>
+
+          <button
+            onClick={onToggleMensalista}
+            className={`w-full h-10 border rounded-xl font-bold text-[9px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              client.is_mensalista
+                ? 'border-[#C5A059]/30 bg-[#C5A059]/10 text-[#C5A059] hover:bg-[#C5A059]/20'
+                : 'border-white/[0.06] bg-white/[0.02] text-zinc-400 hover:bg-white/[0.04] hover:text-white'
+            }`}
+          >
+            <Crown size={12} />
+            {client.is_mensalista ? 'Remover Mensalista' : 'Tornar Mensalista'}
+          </button>
 
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.04]">

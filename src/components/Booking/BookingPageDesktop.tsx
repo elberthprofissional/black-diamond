@@ -33,6 +33,8 @@ interface BookingPageDesktopProps {
   goNext: () => void;
   goBack: () => void;
   nextDays: { fullDate: string; dayName: string; dayNumber: number; isToday: boolean; isPast: boolean }[];
+  isMensalista: boolean;
+  clientLookupLoading: boolean;
 }
 
 const BookingPageDesktop: React.FC<BookingPageDesktopProps> = ({
@@ -40,6 +42,7 @@ const BookingPageDesktop: React.FC<BookingPageDesktopProps> = ({
   userInfo, totalPrice, isStepDisabled, isSubmitting, availableSlots,
   existingBookings, toggleService, setSelectedDate,
   setSelectedTime, setUserInfo, goNext, goBack, nextDays,
+  isMensalista, clientLookupLoading,
 }) => {
   return (
     <div className="hidden lg:flex min-h-screen bg-[#0E0E0E] text-white">
@@ -49,6 +52,12 @@ const BookingPageDesktop: React.FC<BookingPageDesktopProps> = ({
           <span className="text-[10px] font-black tracking-[0.5em] text-[#C5A059] uppercase">BLACK DIAMOND</span>
           <h1 className="text-3xl font-bold mt-6 leading-tight">Agendamento<br />Online</h1>
           <p className="text-sm text-zinc-500 mt-3 leading-relaxed">Escolha seus serviços, horário e confirme. Rápido e fácil.</p>
+          {isMensalista && (
+            <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-full">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />
+              <span className="text-[10px] font-bold text-[#C5A059] uppercase tracking-wider">Mensalista</span>
+            </div>
+          )}
         </div>
         <div className="mt-auto">
           {selectedServices.length > 0 && step < 4 && (
@@ -117,9 +126,9 @@ const BookingPageDesktop: React.FC<BookingPageDesktopProps> = ({
 
         <div className="flex-1 overflow-y-auto px-14 pt-10 pb-6 flex flex-col">
           <AnimatePresence mode="wait">
-            {step === 1 && <motion.div key="d1" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1"><ServiceStep services={services} selectedServices={selectedServices} onToggle={toggleService} layout="desktop" /></motion.div>}
-            {step === 2 && <motion.div key="d2" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1"><DateTimeStep nextDays={nextDays} selectedDate={selectedDate} selectedTime={selectedTime} onSelectDate={setSelectedDate} onSelectTime={setSelectedTime} availableSlots={availableSlots} existingBookings={existingBookings} layout="desktop" /></motion.div>}
-            {step === 3 && <motion.div key="d3" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1"><DataStep name={userInfo.name} phone={userInfo.phone} onNameChange={v => setUserInfo({...userInfo, name: v})} onPhoneChange={v => setUserInfo({...userInfo, phone: v})} layout="desktop" /></motion.div>}
+            {step === 1 && <motion.div key="d1" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1"><DataStep name={userInfo.name} phone={userInfo.phone} onNameChange={v => setUserInfo({...userInfo, name: v})} onPhoneChange={v => setUserInfo({...userInfo, phone: v})} layout="desktop" isMensalista={isMensalista} clientLookupLoading={clientLookupLoading} /></motion.div>}
+            {step === 2 && <motion.div key="d2" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1"><ServiceStep services={services} selectedServices={selectedServices} onToggle={toggleService} layout="desktop" /></motion.div>}
+            {step === 3 && <motion.div key="d3" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1"><DateTimeStep nextDays={nextDays} selectedDate={selectedDate} selectedTime={selectedTime} onSelectDate={setSelectedDate} onSelectTime={setSelectedTime} availableSlots={availableSlots} existingBookings={existingBookings} layout="desktop" /></motion.div>}
             {step === 4 && <motion.div key="d4" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1"><ReviewStep userName={userInfo.name} userPhone={userInfo.phone} selectedDate={selectedDate} selectedTime={selectedTime} selectedServices={selectedServices} totalPrice={totalPrice} layout="desktop" /></motion.div>}
             {step === 5 && <motion.div key="d5" initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3 }} className="flex-1"><SuccessStep selectedDate={selectedDate} selectedTime={selectedTime} totalPrice={totalPrice} selectedServices={selectedServices} clientName={userInfo.name} layout="desktop" /></motion.div>}
           </AnimatePresence>

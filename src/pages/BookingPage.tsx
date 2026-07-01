@@ -36,6 +36,8 @@ const BookingPage: React.FC = () => {
     goNext: w.goNext,
     goBack: w.goBack,
     nextDays: w.nextDays,
+    isMensalista: w.isMensalista,
+    clientLookupLoading: w.clientLookupLoading,
   };
 
   return (

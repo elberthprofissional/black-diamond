@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createBooking, getAvailableSlots, getBookings } from '../lib/api';
+import { createBooking, getAvailableSlots, getBookings, getClientByPhone } from '../lib/api';
 import { getNextDays, formatPhone, getTimeSlotsForDate, getErrorMessage, generateIcsFile } from '../lib/utils';
 import { useServices } from './useServices';
 import type { Service } from '../types';
 
+const MENSALISTA_EXCLUDED_SERVICES = ['Corte de Cabelo'];
+
 export function useBookingWizard(showError: (msg: string) => void) {
-  const nextDays = useMemo(() => getNextDays(), []);
+  const allNextDays = useMemo(() => getNextDays(), []);
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const { services } = useServices();
@@ -18,6 +20,8 @@ export function useBookingWizard(showError: (msg: string) => void) {
   const [existingBookings, setExistingBookings] = useState<{ booking_time: string; status: string }[]>([]);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [isMensalista, setIsMensalista] = useState(false);
+  const [clientLookupLoading, setClientLookupLoading] = useState(false);
 
   const dateContainerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -44,6 +48,62 @@ export function useBookingWizard(showError: (msg: string) => void) {
     const walk = (x - startX) * 1.5;
     el.scrollLeft = scrollLeft - walk;
   }, [isDragging, startX, scrollLeft]);
+
+  // Lookup client by phone when phone has 11 digits
+  useEffect(() => {
+    const phone = userInfo.phone.replace(/\D/g, '');
+    if (phone.length < 11) {
+      setIsMensalista(false);
+      return;
+    }
+
+    let cancelled = false;
+    setClientLookupLoading(true);
+
+    getClientByPhone(phone)
+      .then((client) => {
+        if (!cancelled) {
+          setIsMensalista(!!client?.is_mensalista);
+          if (client?.name && !userInfo.name.trim()) {
+            setUserInfo(prev => ({ ...prev, name: client.name }));
+          }
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setIsMensalista(false);
+      })
+      .finally(() => {
+        if (!cancelled) setClientLookupLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [userInfo.phone]);
+
+  // Reset selected services when mensalista status changes
+  useEffect(() => {
+    if (isMensalista && selectedServices.length > 0) {
+      const allowed = selectedServices.filter(s => !MENSALISTA_EXCLUDED_SERVICES.includes(s.name));
+      if (allowed.length !== selectedServices.length) {
+        setSelectedServices(allowed);
+      }
+    }
+  }, [isMensalista]);
+
+  // Filter services for mensalista
+  const filteredServices = useMemo(() => {
+    if (!isMensalista) return services;
+    return services.filter(s => !MENSALISTA_EXCLUDED_SERVICES.includes(s.name));
+  }, [services, isMensalista]);
+
+  // Filter days for mensalista (MON-THU only)
+  const filteredNextDays = useMemo(() => {
+    if (!isMensalista) return allNextDays;
+    return allNextDays.filter(d => {
+      const date = new Date(d.fullDate + 'T12:00:00');
+      const dow = date.getDay();
+      return dow >= 1 && dow <= 4; // MON=1, THU=4
+    });
+  }, [allNextDays, isMensalista]);
 
   useEffect(() => {
     setSelectedTime('');
@@ -77,15 +137,16 @@ export function useBookingWizard(showError: (msg: string) => void) {
     [selectedServices]
   );
 
+  // Inverted steps: 1=Data, 2=Services, 3=DateTime, 4=Review
   const isStepDisabled = useMemo(() => {
-    if (step === 1) return selectedServices.length === 0;
-    if (step === 2) return !selectedDate || !selectedTime;
-    if (step === 3) return !userInfo.name.trim() || userInfo.name.trim().length < 3 || userInfo.phone.replace(/\D/g, '').length < 11;
+    if (step === 1) return !userInfo.name.trim() || userInfo.name.trim().length < 3 || userInfo.phone.replace(/\D/g, '').length < 11;
+    if (step === 2) return selectedServices.length === 0;
+    if (step === 3) return !selectedDate || !selectedTime;
     if (step === 4) return isSubmitting;
     return false;
   }, [step, selectedServices, selectedDate, selectedTime, userInfo, isSubmitting]);
 
-  const stepTitle = step === 1 ? 'Escolha os serviços' : step === 2 ? 'Data e horário' : step === 3 ? 'Seus dados' : 'Revisar agendamento';
+  const stepTitle = step === 1 ? 'Seus dados' : step === 2 ? 'Escolha os serviços' : step === 3 ? 'Data e horário' : 'Revisar agendamento';
 
   const handleConfirm = useCallback(async () => {
     if (isSubmitting || !selectedTime || !userInfo.name || !userInfo.phone || selectedServices.length === 0) return;
@@ -123,11 +184,12 @@ export function useBookingWizard(showError: (msg: string) => void) {
     if (barberPhone) {
       const serviceNames = selectedServices.map(s => s.name).join(', ');
       const formattedDate = selectedDate.split('-').reverse().join('/');
-      const msg = `*NOVO AGENDAMENTO - BLACK DIAMOND*\n\n*Cliente:* ${userInfo.name.trim()}\n*Servico:* ${serviceNames}\n*Data:* ${formattedDate}\n*Horario:* ${selectedTime}\n*Valor:* R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
+      const mensalistaTag = isMensalista ? ' [MENSALISTA]' : '';
+      const msg = `*NOVO AGENDAMENTO - BLACK DIAMOND*\n\n*Cliente:* ${userInfo.name.trim()}${mensalistaTag}\n*Servico:* ${serviceNames}\n*Data:* ${formattedDate}\n*Horario:* ${selectedTime}\n*Valor:* R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
       const waUrl = `https://wa.me/${barberPhone}?text=${encodeURIComponent(msg)}`;
       setTimeout(() => { window.open(waUrl, '_blank'); }, 200);
     }
-  }, [selectedServices, selectedDate, selectedTime, userInfo, totalPrice, barberPhone]);
+  }, [selectedServices, selectedDate, selectedTime, userInfo, totalPrice, barberPhone, isMensalista]);
 
   const goNext = useCallback(() => {
     if (step < 4) setStep(step + 1);
@@ -142,7 +204,7 @@ export function useBookingWizard(showError: (msg: string) => void) {
 
   return {
     step, setStep,
-    services,
+    services: filteredServices,
     selectedServices, toggleService,
     selectedDate, setSelectedDate,
     selectedTime, setSelectedTime,
@@ -154,8 +216,10 @@ export function useBookingWizard(showError: (msg: string) => void) {
     handleMouseDown, handleMouseLeave, handleMouseUp, handleMouseMove,
     totalPrice, isStepDisabled, stepTitle,
     handleConfirm, goNext, goBack,
-    navigate, nextDays,
+    navigate, nextDays: filteredNextDays,
     formatPhoneValue,
     showCalendarModal, handleCalendarChoice,
+    isMensalista,
+    clientLookupLoading,
   };
 }

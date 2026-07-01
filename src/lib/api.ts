@@ -304,6 +304,27 @@ export const toggleClientFavorite = async (id: string, isFavorite: boolean) => {
   if (error) throw error;
 };
 
+export const toggleClientMensalista = async (id: string, isMensalista: boolean) => {
+  const { error } = await supabase
+    .from('clients')
+    .update({ is_mensalista: isMensalista })
+    .eq('id', id);
+
+  if (error) throw error;
+};
+
+export const getClientByPhone = async (phone: string) => {
+  const { data, error } = await supabase
+    .from('clients')
+    .select('id, name, phone, is_mensalista')
+    .eq('phone', phone)
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+};
+
 // Reviews
 export const submitReview = async (bookingId: string, clientId: string, rating: number, comment?: string) => {
   if (rating < 1 || rating > 5) throw new Error('Avaliação deve ser entre 1 e 5');

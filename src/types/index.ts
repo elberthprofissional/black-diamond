@@ -38,6 +38,7 @@ export interface Client {
   email?: string;
   notes?: string;
   is_favorite?: boolean;
+  is_mensalista?: boolean;
   created_at: string;
 }
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getClients, getBookings, getBookingsForStats, deleteClient, updateClient, updateClientNotes, createClient } from '../lib/api';
+import { getClients, getBookings, getBookingsForStats, deleteClient, updateClient, updateClientNotes, createClient, toggleClientMensalista } from '../lib/api';
 import { formatPhone, getErrorMessage } from '../lib/utils';
 import { useToast } from '../hooks/useToast';
 import AdminLayout from '../components/Admin/AdminLayout';
@@ -239,6 +239,17 @@ const AdminClients: React.FC = () => {
     try { await deleteClient(selectedClient.id); setClients(prev => prev.filter(c => c.id !== selectedClient.id)); closePanel(); showSuccess('Cliente excluído!'); } catch (error) { showError(getErrorMessage(error)); } finally { setIsDeleting(false); setIsDeleteOpen(false); }
   };
 
+  const handleToggleMensalista = async () => {
+    if (!selectedClient) return;
+    try {
+      const newValue = !selectedClient.is_mensalista;
+      await toggleClientMensalista(selectedClient.id, newValue);
+      setSelectedClient(prev => prev ? { ...prev, is_mensalista: newValue } : prev);
+      setClients(prev => prev.map(c => c.id === selectedClient.id ? { ...c, is_mensalista: newValue } : c));
+      showSuccess(newValue ? 'Cliente agora é mensalista!' : 'Mensalidade removida.');
+    } catch (error) { showError(getErrorMessage(error)); }
+  };
+
   const sendWithTemplate = (template: string) => {
     if (!selectedClient?.phone) return;
     let formattedPhone = selectedClient.phone.replace(/\D/g, '');
@@ -399,6 +410,7 @@ const AdminClients: React.FC = () => {
             onDelete={() => setIsDeleteOpen(true)}
             onReminder={() => setIsReminderOpen(true)}
             onClose={closePanel}
+            onToggleMensalista={handleToggleMensalista}
           />
         )}
       </AnimatePresence>
