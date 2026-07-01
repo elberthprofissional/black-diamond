@@ -318,6 +318,13 @@ const AdminProfile: React.FC = () => {
                     }}
                   />
                   <button
+                    onClick={() => setEditingName(false)}
+                    className="w-12 flex items-center justify-center bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer"
+                    aria-label="Cancelar"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  </button>
+                  <button
                     onClick={async () => {
                       if (nameInput.trim()) {
                         const ok = await updateBarberName(nameInput);
@@ -370,6 +377,13 @@ const AdminProfile: React.FC = () => {
                       if (e.key === 'Escape') setEditingPhone(false);
                     }}
                   />
+                  <button
+                    onClick={() => setEditingPhone(false)}
+                    className="w-12 flex items-center justify-center bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer"
+                    aria-label="Cancelar"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  </button>
                   <button
                     onClick={async () => {
                       const digits = phoneInput.replace(/\D/g, '');
