@@ -73,6 +73,7 @@ const ReminderModal: React.FC<ReminderModalProps> = ({
                 {mode === 'create' && (
                   <button
                     onClick={() => setMode('list')}
+                    aria-label="Voltar para lista de modelos"
                     className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
                   >
                     <ArrowLeft size={14} />
@@ -87,6 +88,7 @@ const ReminderModal: React.FC<ReminderModalProps> = ({
               </div>
               <button
                 onClick={handleClose}
+                aria-label="Fechar lembrete"
                 className="text-zinc-400 hover:text-white transition-all cursor-pointer"
               >
                 <X size={16} />
@@ -104,7 +106,12 @@ const ReminderModal: React.FC<ReminderModalProps> = ({
                           <div
                             key={`template-card-${index}`}
                             onClick={() => setExpandedIdx(isExpanded ? null : index)}
-                            className={`p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left ${
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedIdx(isExpanded ? null : index); } }}
+                            role="button"
+                            tabIndex={0}
+                            aria-expanded={isExpanded}
+                            aria-label={`Modelo ${index + 1}`}
+                            className={`p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left outline-none focus-visible:ring-2 focus-visible:ring-[#C5A059]/50 ${
                               isExpanded
                                 ? 'bg-white/[0.04] border-white/20 shadow-lg'
                                 : 'bg-white/[0.01] border-white/[0.04] hover:border-white/10 hover:bg-white/[0.02]'
@@ -170,6 +177,7 @@ const ReminderModal: React.FC<ReminderModalProps> = ({
                         value={customText}
                         onChange={(e) => setCustomText(e.target.value)}
                         placeholder="Escreva a mensagem de lembrete..."
+                        aria-label="Mensagem personalizada de lembrete"
                         className="w-full bg-black/40 border border-white/[0.06] rounded-2xl px-5 py-4 text-sm text-zinc-200 outline-none focus:border-[#C5A059]/30 resize-none h-48 placeholder:text-zinc-700 leading-relaxed focus:bg-white/[0.01] transition-all"
                       />
                     </div>

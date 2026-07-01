@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 
 const Gallery: React.FC = () => {
+  const [isPaused, setIsPaused] = useState(false);
+  const handlePause = useCallback(() => setIsPaused(true), []);
+  const handleResume = useCallback(() => setIsPaused(false), []);
   const images = [
     { src: '/assets/gallery/corte-1.webp', alt: 'Corte de cabelo masculino estilo fade' },
     { src: '/assets/gallery/corte-2.webp', alt: 'Corte degradê com acabamento na navalha' },
@@ -28,8 +31,22 @@ const Gallery: React.FC = () => {
       </div>
 
       {/* Infinite Scroll Container */}
-      <div className="relative flex overflow-x-hidden" role="region" aria-label="Galeria de trabalhos" aria-roledescription="carrossel">
-        <div className="flex animate-marquee whitespace-nowrap gap-4 md:gap-8 px-4" aria-live="off">
+      <div
+        className="relative flex overflow-x-hidden"
+        role="region"
+        tabIndex={0}
+        aria-label="Galeria de trabalhos (passe o mouse para pausar)"
+        aria-roledescription="carrossel"
+        onMouseEnter={handlePause}
+        onMouseLeave={handleResume}
+        onFocus={handlePause}
+        onBlur={handleResume}
+      >
+        <div
+          className="flex animate-marquee whitespace-nowrap gap-4 md:gap-8 px-4"
+          aria-live="off"
+          style={{ animationPlayState: isPaused ? 'paused' : 'running' }}
+        >
           {displayImages.map((img, index) => (
             <div
               key={`${img.alt}-${index}`}

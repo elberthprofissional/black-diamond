@@ -19,7 +19,7 @@ const OccupiedPanel: React.FC<OccupiedPanelProps> = ({ bookings, selectedId, onS
     <div className="space-y-2">
       {bookings.map((booking) => (
         <div key={booking.id} className={`w-full flex items-center rounded-lg border cursor-pointer transition-all group ${selectedId === booking.id ? 'border-[#C5A059]/40 bg-[#C5A059]/5' : 'border-white/5 bg-[#111111] hover:border-white/10'}`}>
-          <div onClick={() => onSelect(booking)} role="button" aria-label={`Agendamento às ${booking.booking_time.slice(0, 5)} com ${booking.clients?.name}`} className="flex-1 flex items-center gap-3 px-3 py-2.5 min-w-0">
+          <div onClick={() => onSelect(booking)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(booking); } }} role="button" tabIndex={0} aria-label={`Agendamento às ${booking.booking_time.slice(0, 5)} com ${booking.clients?.name}`} className="flex-1 flex items-center gap-3 px-3 py-2.5 min-w-0 outline-none focus-visible:ring-2 focus-visible:ring-[#C5A059]/50 rounded">
             <span className="text-sm font-bold text-zinc-500 tabular-nums w-10 shrink-0">{booking.booking_time.slice(0, 5)}</span>
             <div className="w-px h-3.5 bg-white/10 shrink-0" />
             <span className="text-[11px] font-medium text-zinc-200 truncate">{booking.clients?.name}</span>

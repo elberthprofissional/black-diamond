@@ -54,16 +54,16 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
       >
         <div className="sticky top-0 bg-[#0E0E0E]/95 backdrop-blur-md z-10 px-6 py-4 border-b border-white/[0.04] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors cursor-pointer">
+            <button onClick={onClose} aria-label="Fechar painel" className="text-zinc-500 hover:text-white transition-colors cursor-pointer">
               <X size={16} />
             </button>
             <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.25em]">Dados do Cliente</span>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={onEdit} className="text-zinc-400 hover:text-white transition-all cursor-pointer">
+            <button onClick={onEdit} aria-label="Editar cliente" className="text-zinc-400 hover:text-white transition-all cursor-pointer">
               <Pencil size={14} />
             </button>
-            <button onClick={onDelete} className="text-zinc-400 hover:text-red-400 transition-all cursor-pointer">
+            <button onClick={onDelete} aria-label="Excluir cliente" className="text-zinc-400 hover:text-red-400 transition-all cursor-pointer">
               <Trash2 size={14} />
             </button>
           </div>

@@ -80,7 +80,9 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
             <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
             <input
               type="text"
+              id="booking-search"
               placeholder="Digite o nome ou número..."
+              aria-label="Buscar cliente por nome ou WhatsApp"
               autoFocus
               className="w-full bg-[#151515] border border-white/5 focus:border-[#C5A059]/30 rounded-xl py-3 pl-10 pr-4 text-xs font-semibold text-white outline-none transition-all placeholder:text-zinc-700 uppercase tracking-wider"
               value={query}

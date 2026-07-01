@@ -81,6 +81,18 @@ const Testimonials: React.FC = () => {
     }
   }, []);
 
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      const next = Math.min(activeIndex + 1, reviews.length - 1);
+      scrollToIndex(next);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const prev = Math.max(activeIndex - 1, 0);
+      scrollToIndex(prev);
+    }
+  }, [activeIndex, reviews.length, scrollToIndex]);
+
   return (
     <section id="depoimentos" className="py-20 md:py-40 bg-[#141414] text-white overflow-hidden">
       <div className="container mx-auto px-6">
@@ -104,14 +116,16 @@ const Testimonials: React.FC = () => {
         <div
           ref={sliderRef}
           role="region"
+          tabIndex={0}
           aria-roledescription="carousel"
-          aria-label="Depoimentos de clientes"
-          className="flex gap-5 mb-8 items-stretch overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 scroll-smooth cursor-grab"
+          aria-label="Depoimentos de clientes (use setas para navegar)"
+          className="flex gap-5 mb-8 items-stretch overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 scroll-smooth cursor-grab outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/50 rounded-lg"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
           onScroll={handleScroll}
+          onKeyDown={handleKeyDown}
           onWheel={(e) => {
             if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
               e.currentTarget.scrollLeft += e.deltaY;

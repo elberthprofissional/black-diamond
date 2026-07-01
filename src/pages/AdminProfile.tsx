@@ -270,6 +270,7 @@ const AdminProfile: React.FC = () => {
             </div>
             <button
               onClick={() => setShowLogoutConfirm(true)}
+              aria-label="Sair da conta"
               className="w-8 h-8 flex items-center justify-center text-zinc-500 hover:text-red-400 border border-white/[0.06] hover:border-red-500/20 rounded-lg transition-all cursor-pointer shrink-0"
             >
               <LogOut size={14} />
@@ -558,9 +559,11 @@ const AdminProfile: React.FC = () => {
               <div className="px-6 pb-5">
                 <input
                   type="text"
+                  id="reset-confirm"
                   value={resetText}
                   onChange={(e) => setResetText(e.target.value.toUpperCase())}
                   placeholder="Digite LIMPAR para confirmar"
+                  aria-label="Digite LIMPAR para confirmar a limpeza dos dados"
                   className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-red-500/40 focus:ring-1 focus:ring-red-500/10 transition-all placeholder:text-zinc-600"
                   autoFocus
                   onKeyDown={(e) => { if (e.key === 'Enter' && resetText === 'LIMPAR') handleResetData(); }}

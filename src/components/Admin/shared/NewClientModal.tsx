@@ -55,6 +55,7 @@ const NewClientModal: React.FC<NewClientModalProps> = ({
                 <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.2em]">Novo cliente</span>
                 <button
                   onClick={onCancel}
+                  aria-label="Fechar"
                   className="text-zinc-600 hover:text-white transition-all cursor-pointer"
                 >
                   <X size={14} />
@@ -65,10 +66,12 @@ const NewClientModal: React.FC<NewClientModalProps> = ({
                   <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Nome</span>
                   <input
                     type="text"
+                    id="new-client-name"
                     value={name}
                     onChange={(e) => onNameChange(e.target.value.toUpperCase())}
                     placeholder="Nome do cliente"
                     maxLength={100}
+                    aria-label="Nome do cliente"
                     className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-700 text-left"
                     autoFocus
                   />
@@ -77,9 +80,11 @@ const NewClientModal: React.FC<NewClientModalProps> = ({
                   <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">WhatsApp</span>
                   <input
                     type="text"
+                    id="new-client-phone"
                     value={phone}
                     onChange={(e) => onPhoneChange(e.target.value)}
                     placeholder="00000000000"
+                    aria-label="WhatsApp do cliente"
                     className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-700 tabular-nums text-left"
                   />
                 </div>
@@ -101,6 +106,7 @@ const NewClientModal: React.FC<NewClientModalProps> = ({
                     onChange={(e) => onNotesChange(e.target.value)}
                     placeholder="Ex: Prefere degradê baixo..."
                     maxLength={500}
+                    aria-label="Anotações do cliente"
                     className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-600 resize-none h-16 text-left"
                   />
                 </div>

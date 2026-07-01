@@ -48,8 +48,10 @@ const EditClientModal: React.FC<EditClientModalProps> = ({
                 <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Nome</span>
                 <input
                   type="text"
+                  id="edit-client-name"
                   value={name}
                   onChange={(e) => onNameChange(e.target.value)}
+                  aria-label="Nome do cliente"
                   className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors"
                 />
               </div>
@@ -57,8 +59,10 @@ const EditClientModal: React.FC<EditClientModalProps> = ({
                 <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">WhatsApp</span>
                 <input
                   type="text"
+                  id="edit-client-phone"
                   value={phone}
                   onChange={(e) => onPhoneChange(e.target.value)}
+                  aria-label="WhatsApp do cliente"
                   className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors tabular-nums"
                 />
               </div>
