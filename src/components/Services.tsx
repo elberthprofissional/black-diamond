@@ -7,6 +7,15 @@ interface ServicesProps {
 
 const Services: React.FC<ServicesProps> = ({ onBookingClick }) => {
   const { services, loading } = useServices();
+  const barberPhone = import.meta.env.VITE_BARBER_WHATSAPP || '';
+
+  const handleMensalistaClick = () => {
+    if (barberPhone) {
+      const msg = `Oi! Tenho interesse no *Plano Mensal* da Black Diamond. Pode me passar mais informações?`;
+      const url = `https://wa.me/${barberPhone}?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+    }
+  };
 
   return (
     <section id="servicos" className="py-24 md:py-60 bg-[#0A0A0A]">
@@ -53,14 +62,14 @@ const Services: React.FC<ServicesProps> = ({ onBookingClick }) => {
                   <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
                   <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.3em]">Plano Mensal</span>
                 </div>
-                <h3 className="text-xl md:text-2xl font-bebas text-white uppercase tracking-wider">Acesso ilimitado a todos os serviços</h3>
+                <h3 className="text-xl md:text-2xl font-bebas text-white uppercase tracking-wider">Corte toda semana por um valor único</h3>
                 <p className="text-sm text-zinc-500 leading-relaxed max-w-lg">
-                  Barba, sobrancelha, pezinho e mais. Agende quantas vezes quiser por mês.
-                  <span className="text-zinc-400"> Consulte valores na barbearia.</span>
+                  Acesse todos os serviços da barbearia com um plano mensal.
+                  <span className="text-zinc-400"> Venha conhecer!</span>
                 </p>
               </div>
               <button
-                onClick={onBookingClick}
+                onClick={handleMensalistaClick}
                 className="shrink-0 px-8 py-3.5 border border-[#D4AF37]/40 text-[#D4AF37] font-bold text-[10px] uppercase tracking-[0.2em] rounded-xl hover:bg-[#D4AF37]/10 transition-all cursor-pointer"
               >
                 Saiba mais
