@@ -128,6 +128,7 @@ const AdminClients: React.FC = () => {
             } : null
           };
         })
+        .filter((c) => c.bookingsCount >= 2);
       enriched.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       setClients(enriched);
     } catch { /* ignored */ } finally { setLoading(false); }
@@ -227,7 +228,6 @@ const AdminClients: React.FC = () => {
       setIsCreatingClient(false);
       setNewClientName(''); setNewClientPhone(''); setNewClientEmail(''); setNewClientNotes(''); setNewClientError('');
       showSuccess('Cliente criado com sucesso!');
-      await loadData();
     } catch (error) {
       setNewClientError(getErrorMessage(error));
     } finally { setIsSavingClient(false); }

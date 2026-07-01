@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Check } from 'lucide-react';
+import React from 'react';
+import { Check, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Service } from '../../types';
 
@@ -30,19 +30,6 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ selectedDate, selectedTime, t
     ? `https://wa.me/${barberPhone}?text=${encodeURIComponent(message)}`
     : '';
 
-  useEffect(() => {
-    if (whatsappUrl) {
-      const timer = setTimeout(() => {
-        try {
-          window.open(whatsappUrl, '_blank');
-        } catch {
-          // popup bloqueado no mobile, ignora
-        }
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [whatsappUrl]);
-
   if (layout === 'desktop') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-center max-w-lg mx-auto">
@@ -68,6 +55,17 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ selectedDate, selectedTime, t
         </div>
 
         <div className="flex gap-3">
+          {whatsappUrl && (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-12 px-6 border border-emerald-500/30 text-emerald-500 font-bold text-[10px] uppercase tracking-widest rounded-2xl hover:bg-emerald-500/10 transition-all cursor-pointer flex items-center gap-2"
+            >
+              <MessageCircle size={14} />
+              Enviar ao barbeiro
+            </a>
+          )}
           <button
             onClick={() => navigate('/')}
             aria-label="Voltar para a página inicial"
@@ -108,6 +106,17 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ selectedDate, selectedTime, t
         </div>
 
         <div className="space-y-3">
+          {whatsappUrl && (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full h-12 border border-emerald-500/30 text-emerald-500 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-emerald-500/10 transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              <MessageCircle size={14} />
+              Enviar ao barbeiro
+            </a>
+          )}
           <button
             onClick={() => navigate('/')}
             aria-label="Voltar para a página inicial"
