@@ -17,6 +17,7 @@ const TITLES: Record<string, string> = {
   '/admin/clients': 'Clientes | Black Diamond',
 
   '/admin/profile': 'Perfil | Black Diamond',
+  '/admin/expenses': 'Investimentos | Black Diamond',
   '/admin/reset-password': 'Redefinir Senha | Black Diamond',
 };
 
@@ -38,6 +39,7 @@ const AdminWeekly = lazy(() => import('./pages/AdminWeekly'));
 const AdminClients = lazy(() => import('./pages/AdminClients'));
 const AdminProfile = lazy(() => import('./pages/AdminProfile'));
 const AdminBooking = lazy(() => import('./pages/AdminBooking'));
+const AdminExpenses = lazy(() => import('./pages/AdminExpenses'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function LoadingFallback() {
@@ -78,6 +80,7 @@ function App() {
             <Route path="/admin/agendar" element={<AuthGuard><AdminBooking /></AuthGuard>} />
             <Route path="/admin/weekly" element={<AuthGuard><AdminWeekly /></AuthGuard>} />
             <Route path="/admin/clients" element={<AuthGuard><AdminClients /></AuthGuard>} />
+            <Route path="/admin/expenses" element={<AuthGuard><AdminExpenses /></AuthGuard>} />
             <Route path="/admin/profile" element={<AuthGuard><AdminProfile /></AuthGuard>} />
 
             {/* Catch-all 404 Route */}

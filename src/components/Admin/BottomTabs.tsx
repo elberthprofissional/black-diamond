@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Clock, CalendarDays, Users } from 'lucide-react';
+import { Clock, CalendarDays, Users, DollarSign } from 'lucide-react';
 
 const BottomTabs: React.FC = () => {
   const navigate = useNavigate();
@@ -12,6 +12,7 @@ const BottomTabs: React.FC = () => {
     { label: 'Hoje', path: '/admin', icon: Clock },
     { label: 'Semana', path: '/admin/weekly', icon: CalendarDays },
     { label: 'Clientes', path: '/admin/clients', icon: Users },
+    { label: 'Financeiro', path: '/admin/expenses', icon: DollarSign },
   ];
 
   return (

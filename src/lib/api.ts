@@ -348,4 +348,30 @@ export const getTopReviews = async (limit = 10) => {
   return data || [];
 };
 
+// Expenses
+export const getExpenses = async (month?: string) => {
+  let query = supabase.from('expenses').select('*').order('expense_date', { ascending: false });
+  if (month) {
+    query = query.gte('expense_date', `${month}-01`).lt('expense_date', `${month}-32`);
+  }
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+};
+
+export const createExpense = async (data: { description: string; amount: number; expense_date: string; category: string }) => {
+  const { data: newExpense, error } = await supabase
+    .from('expenses')
+    .insert(data)
+    .select()
+    .single();
+  if (error) throw error;
+  return newExpense;
+};
+
+export const deleteExpense = async (id: string) => {
+  const { error } = await supabase.from('expenses').delete().eq('id', id);
+  if (error) throw error;
+};
+
 
