@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, EyeOff, TrendingUp, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, TrendingUp } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 interface QuickAction {
@@ -48,8 +48,8 @@ const ProfileMobile: React.FC<ProfileMobileProps> = ({
           <div className="w-12 h-12 rounded-full border border-white/[0.08] overflow-hidden shrink-0">
             <img src="/assets/tato.webp" alt="Tato" className="w-full h-full object-cover" />
           </div>
-          <button 
-            onClick={toggleBalance} 
+          <button
+            onClick={toggleBalance}
             className="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center transition-all cursor-pointer text-zinc-400 hover:text-white"
             aria-label={showBalance ? "Ocultar faturamento" : "Exibir faturamento"}
           >
@@ -82,14 +82,14 @@ const ProfileMobile: React.FC<ProfileMobileProps> = ({
             const Icon = action.icon;
             const isActive = 'active' in action ? action.active : false;
             return (
-              <button 
-                key={idx} 
+              <button
+                key={idx}
                 onClick={action.onClick}
                 className="flex flex-col items-center gap-2 snap-center cursor-pointer shrink-0 group select-none"
               >
                 <div className={`w-14 h-14 rounded-full border flex items-center justify-center transition-all ${
-                  isActive 
-                    ? 'bg-[#C5A059]/10 border-[#C5A059]/30 text-[#C5A059]' 
+                  isActive
+                    ? 'bg-[#C5A059]/10 border-[#C5A059]/30 text-[#C5A059]'
                     : 'bg-[#111111] hover:bg-[#161616] border-white/5 group-hover:border-[#C5A059]/30 text-zinc-400 group-hover:text-white'
                 }`}>
                   <Icon size={18} className="transition-transform group-hover:scale-110" />
@@ -106,14 +106,14 @@ const ProfileMobile: React.FC<ProfileMobileProps> = ({
       <div className="flex items-center justify-between border-b border-white/[0.04] pb-2 pt-2 px-5">
         <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Resumo do Período</span>
         <div className="flex gap-4">
-          <button 
+          <button
             onClick={() => setTimeRange('week')}
             className={`relative pb-2 text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${timeRange === 'week' ? 'text-[#C5A059]' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             {timeRange === 'week' && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#C5A059] rounded-full" />}
             Semana
           </button>
-          <button 
+          <button
             onClick={() => setTimeRange('month')}
             className={`relative pb-2 text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${timeRange === 'month' ? 'text-[#C5A059]' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
@@ -155,7 +155,6 @@ const ProfileMobile: React.FC<ProfileMobileProps> = ({
 
         <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 space-y-4">
           <div className="flex items-center gap-2 text-zinc-400">
-            <Sparkles size={14} className="text-[#C5A059]" />
             <span className="text-[10px] font-bold uppercase tracking-wider">Serviços Mais Vendidos</span>
           </div>
           {topServices.length > 0 && topServices.some(s => s.count > 0) ? (

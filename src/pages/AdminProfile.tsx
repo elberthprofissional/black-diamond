@@ -1,17 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getBookings, getServices, getClients } from '../lib/api';
+import { getBookings, getServices, getClients, deleteAllClients } from '../lib/api';
+import { getErrorMessage } from '../lib/utils';
 import type { Booking, Service, Client } from '../types';
-import { 
-  Download, 
-  Clock, 
-  Calendar, 
-  Users, 
-  LogOut, 
-  Bell,
-  Scissors,
-  DollarSign
-} from 'lucide-react';
+import { Download, LogOut, Bell, Scissors, DollarSign, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
 import { useAdminLogout } from '../hooks/useAdminLogout';
@@ -30,11 +21,12 @@ const AdminProfile: React.FC = () => {
   const [showBalance, setShowBalance] = useState(() => localStorage.getItem('barber_show_balance') !== 'false');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-  const [installState, setInstallState] = useState<'prompt' | 'installing' | 'success'>('prompt');
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(
     window.deferredPrompt || null
   );
-  const navigate = useNavigate();
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetText, setResetText] = useState('');
+  const [resetting, setResetting] = useState(false);
   const handleLogout = useAdminLogout();
   const { toast, showSuccess, showError } = useToast();
   const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
@@ -61,23 +53,22 @@ const AdminProfile: React.FC = () => {
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [bookingsData, servicesData, clientsData] = await Promise.all([
-          getBookings(),
-          getServices(),
-          getClients()
-        ]);
-        setBookings(bookingsData || []);
-        setServices(servicesData || []);
-        setClients(clientsData || []);
-      } catch { /* ignored */ } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+  const loadData = async () => {
+    try {
+      const [bookingsData, servicesData, clientsData] = await Promise.all([
+        getBookings(),
+        getServices(),
+        getClients()
+      ]);
+      setBookings(bookingsData || []);
+      setServices(servicesData || []);
+      setClients(clientsData || []);
+    } catch { /* ignored */ } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { loadData(); }, []);
 
   const toggleBalance = () => {
     setShowBalance(prev => {
@@ -176,48 +167,33 @@ const AdminProfile: React.FC = () => {
     </div>
   );
 
-  const handleInstallClick = () => {
-    const isAlreadyInstalled = window.matchMedia('(display-mode: standalone)').matches || 
-                               (navigator as unknown as { standalone?: boolean }).standalone === true;
+  const isIOS = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone === true;
 
-    if (isAlreadyInstalled) {
+  const handleInstallClick = () => {
+    if (isStandalone) {
       showSuccess('Aplicativo já instalado!');
       return;
     }
-    setInstallState('prompt');
     setShowInstallPrompt(true);
   };
 
-  const startMockInstallation = () => {
-    setInstallState('installing');
-    setTimeout(() => {
-      setInstallState('success');
-      setTimeout(() => {
-        localStorage.setItem('barber_pwa_installed', 'true');
-        setShowInstallPrompt(false);
-        showSuccess('Aplicativo adicionado com sucesso!');
-        setInstallState('prompt');
-      }, 1200);
-    }, 1500);
-  };
-
-  const handleConfirmInstall = () => {
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    const isIOS = /iphone|ipad|ipod/.test(userAgent);
-
-    if (!isIOS && deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(({ outcome }) => {
-        if (outcome === 'accepted') {
-          startMockInstallation();
-        } else {
-          setShowInstallPrompt(false);
-        }
-        setDeferredPrompt(null);
-      });
-    } else {
-      startMockInstallation();
+  const handleConfirmInstall = async () => {
+    if (isIOS) {
+      // iOS: just close the modal, guide is shown
+      setShowInstallPrompt(false);
+      return;
     }
+
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        showSuccess('Aplicativo instalado!');
+      }
+      setDeferredPrompt(null);
+    }
+    setShowInstallPrompt(false);
   };
 
   const handleToggleNotifications = async () => {
@@ -247,13 +223,28 @@ const AdminProfile: React.FC = () => {
   };
 
   const quickActions = [
-    { label: 'Hoje', icon: Clock, onClick: () => navigate('/admin') },
-    { label: 'Semana', icon: Calendar, onClick: () => navigate('/admin/weekly') },
-    { label: 'Clientes', icon: Users, onClick: () => navigate('/admin/clients') },
     { label: 'Notificar', icon: Bell, onClick: handleToggleNotifications, active: isSubscribed },
+    { label: 'Limpar', icon: Trash2, onClick: () => setShowResetConfirm(true) },
     { label: 'Aplicativo', icon: Download, onClick: handleInstallClick },
     { label: 'Sair', icon: LogOut, onClick: () => setShowLogoutConfirm(true) },
   ];
+
+  const handleResetData = async () => {
+    setResetting(true);
+    try {
+      // deleteAllClients deletes all bookings first, then soft-deletes clients
+      await deleteAllClients();
+      showSuccess('Dados limpos com sucesso!');
+      setShowResetConfirm(false);
+      setResetText('');
+      await loadData();
+    } catch (error) {
+      console.error('Reset error:', error);
+      showError(getErrorMessage(error));
+    } finally {
+      setResetting(false);
+    }
+  };
 
   return (
     <AdminLayout 
@@ -423,69 +414,161 @@ const AdminProfile: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* INSTALL APP PROMPT - iOS Safari fallback */}
+      {/* INSTALL APP PROMPT */}
       <AnimatePresence>
         {showInstallPrompt && (
-          <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
+          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowInstallPrompt(false)}
-              className="absolute inset-0 bg-black/60"
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="relative z-10 w-full max-w-[280px] bg-[#1A1A1A] border border-white/5 rounded-2xl overflow-hidden"
+            <motion.div
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+              className="relative z-10 w-full sm:max-w-[340px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
             >
-              {installState === 'prompt' && (
+              {isIOS ? (
+                // iOS: step-by-step guide
                 <>
-                  <div className="p-5 text-center">
-                    <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-3">
-                      <Download size={16} className="text-[#C5A059]" />
-                    </div>
-                    <p className="text-[11px] text-zinc-300 font-medium">Instalar aplicativo?</p>
-                    <p className="text-[9px] text-zinc-500 mt-1 max-w-[220px] mx-auto leading-relaxed">
-                      Deseja adicionar o Black Diamond à sua tela de início para acesso rápido?
+                  <div className="px-6 pt-6 pb-4">
+                    <p className="text-[15px] font-semibold text-white">Instalar na tela de início</p>
+                    <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
+                      No iPhone, abra este site no <strong className="text-white">Safari</strong> e siga os passos:
                     </p>
                   </div>
-                  <div className="flex border-t border-white/[0.06] divide-x divide-white/[0.06]">
-                    <button 
-                      onClick={() => setShowInstallPrompt(false)}
-                      className="flex-1 py-3.5 text-[11px] font-bold text-zinc-400 active:bg-white/[0.03] transition-colors cursor-pointer"
-                    >
-                      Não
-                    </button>
-                    <button 
-                      onClick={handleConfirmInstall}
-                      className="flex-1 py-3.5 text-[11px] font-bold text-[#C5A059] active:bg-white/[0.03] transition-colors cursor-pointer"
-                    >
-                      Sim
-                    </button>
+                  <div className="px-6 pb-5 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-[#C5A059]/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-[10px] font-bold text-[#C5A059]">1</span>
+                      </div>
+                      <p className="text-[12px] text-zinc-400 leading-relaxed">Toque no ícone de <strong className="text-zinc-300">Compartilhar</strong> (quadrado com seta pra cima)</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-[#C5A059]/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-[10px] font-bold text-[#C5A059]">2</span>
+                      </div>
+                      <p className="text-[12px] text-zinc-400 leading-relaxed">Role pra baixo e toque em <strong className="text-zinc-300">"Adicionar à Tela de Início"</strong></p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-[#C5A059]/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-[10px] font-bold text-[#C5A059]">3</span>
+                      </div>
+                      <p className="text-[12px] text-zinc-400 leading-relaxed">Toque em <strong className="text-zinc-300">Adicionar</strong> no canto superior direito</p>
+                    </div>
+                  </div>
+                  <div className="px-6 pb-5">
+                    <p className="text-[10px] text-zinc-600 leading-relaxed">
+                      Depois de instalado, as notificações ficam disponíveis no iOS 16.4+.
+                    </p>
+                  </div>
+                </>
+              ) : (
+                // Android / Desktop: native install
+                <>
+                  <div className="px-6 pt-6 pb-4">
+                    <p className="text-[15px] font-semibold text-white">Instalar aplicativo</p>
+                    <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
+                      Adicione o Black Diamond à sua tela de início para acesso rápido.
+                    </p>
                   </div>
                 </>
               )}
 
-              {installState === 'installing' && (
-                <div className="p-6 text-center flex flex-col items-center">
-                  <div className="w-10 h-10 border-2 border-[#C5A059]/20 border-t-[#C5A059] rounded-full animate-spin mb-4" />
-                  <p className="text-[11px] text-zinc-300 font-bold uppercase tracking-wider">Adicionando...</p>
-                  <p className="text-[9px] text-zinc-500 mt-1">Configurando na tela de início...</p>
-                </div>
-              )}
+              <div className="flex border-t border-white/[0.06]">
+                <button
+                  onClick={() => setShowInstallPrompt(false)}
+                  className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
+                >
+                  {isIOS ? 'Entendi' : 'Cancelar'}
+                </button>
+                {!isIOS && (
+                  <>
+                    <div className="w-px bg-white/[0.06]" />
+                    <button
+                      onClick={handleConfirmInstall}
+                      className="flex-1 py-4 text-[13px] font-semibold text-[#C5A059] hover:text-[#A68233] active:bg-white/[0.03] transition-all cursor-pointer"
+                    >
+                      Instalar
+                    </button>
+                  </>
+                )}
+              </div>
 
-              {installState === 'success' && (
-                <div className="p-6 text-center flex flex-col items-center">
-                  <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center text-[#C5A059] mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  </div>
-                  <p className="text-[11px] text-[#C5A059] font-bold uppercase tracking-wider">Pronto!</p>
-                  <p className="text-[9px] text-zinc-500 mt-1">Instalado com sucesso.</p>
-                </div>
-              )}
+              {/* Mobile drag indicator */}
+              <div className="sm:hidden flex justify-center pb-3 pt-1">
+                <div className="w-10 h-1 rounded-full bg-white/10" />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* RESET DATA CONFIRM MODAL */}
+      <AnimatePresence>
+        {showResetConfirm && (
+          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => { setShowResetConfirm(false); setResetText(''); }}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+              className="relative z-10 w-full sm:max-w-[340px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
+            >
+              {/* Header */}
+              <div className="px-6 pt-6 pb-4">
+                <p className="text-[15px] font-semibold text-white">Limpar dados</p>
+                <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
+                  Todos os dados da barbearia vão ser apagados permanentemente.
+                </p>
+              </div>
+
+              {/* Input */}
+              <div className="px-6 pb-5">
+                <input
+                  type="text"
+                  value={resetText}
+                  onChange={(e) => setResetText(e.target.value.toUpperCase())}
+                  placeholder="Digite LIMPAR para confirmar"
+                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-red-500/40 focus:ring-1 focus:ring-red-500/10 transition-all placeholder:text-zinc-600"
+                  autoFocus
+                  onKeyDown={(e) => { if (e.key === 'Enter' && resetText === 'LIMPAR') handleResetData(); }}
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex border-t border-white/[0.06]">
+                <button
+                  onClick={() => { setShowResetConfirm(false); setResetText(''); }}
+                  className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <div className="w-px bg-white/[0.06]" />
+                <button
+                  onClick={handleResetData}
+                  disabled={resetText !== 'LIMPAR' || resetting}
+                  className="flex-1 py-4 text-[13px] font-semibold text-red-500 hover:text-red-400 active:bg-white/[0.03] transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                >
+                  {resetting ? '...' : 'Limpar'}
+                </button>
+              </div>
+
+              {/* Mobile drag indicator */}
+              <div className="sm:hidden flex justify-center pb-3 pt-1">
+                <div className="w-10 h-1 rounded-full bg-white/10" />
+              </div>
             </motion.div>
           </div>
         )}

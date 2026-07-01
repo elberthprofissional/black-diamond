@@ -1,5 +1,5 @@
-import React from 'react';
-import { Check, Calendar } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Service } from '../../types';
 
@@ -8,20 +8,36 @@ interface SuccessStepProps {
   selectedTime: string;
   totalPrice: number;
   selectedServices: Service[];
+  clientName: string;
   layout: 'desktop' | 'mobile';
 }
 
-const SuccessStep: React.FC<SuccessStepProps> = ({ selectedDate, selectedTime, totalPrice, selectedServices, layout }) => {
+const SuccessStep: React.FC<SuccessStepProps> = ({ selectedDate, selectedTime, totalPrice, selectedServices, clientName, layout }) => {
   const navigate = useNavigate();
   const formattedDate = selectedDate.split('-').reverse().join('/');
-
-  const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
   const serviceNames = selectedServices.map(s => s.name).join(', ');
-  const endDate = new Date(`${selectedDate}T${selectedTime}`);
-  endDate.setMinutes(endDate.getMinutes() + totalDuration);
-  const endDateTime = `${endDate.getFullYear()}${String(endDate.getMonth() + 1).padStart(2, '0')}${String(endDate.getDate()).padStart(2, '0')}T${String(endDate.getHours()).padStart(2, '0')}${String(endDate.getMinutes()).padStart(2, '0')}00`;
-  const startFormatted = `${selectedDate.split('-')[0]}${selectedDate.split('-')[1]}${selectedDate.split('-')[2]}T${selectedTime.replace(':', '')}00`;
-  const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Black Diamond - ' + serviceNames)}&dates=${startFormatted}/${endDateTime}&details=${encodeURIComponent('Black Diamond - ' + serviceNames + ' - R$ ' + totalPrice.toFixed(2))}`;
+
+  const barberPhone = import.meta.env.VITE_BARBER_WHATSAPP || '';
+  const message = `*NOVO AGENDAMENTO - BLACK DIAMOND*
+
+*Cliente:* ${clientName.trim()}
+*Servico:* ${serviceNames.trim()}
+*Data:* ${formattedDate.trim()}
+*Horario:* ${selectedTime.trim()}
+*Valor:* R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
+
+  const whatsappUrl = barberPhone
+    ? `https://wa.me/${barberPhone}?text=${encodeURIComponent(message)}`
+    : '';
+
+  useEffect(() => {
+    if (whatsappUrl) {
+      const timer = setTimeout(() => {
+        window.open(whatsappUrl, '_blank');
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [whatsappUrl]);
 
   if (layout === 'desktop') {
     return (
@@ -48,13 +64,6 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ selectedDate, selectedTime, t
         </div>
 
         <div className="flex gap-3">
-          <button
-            onClick={() => window.open(calendarUrl, '_blank')}
-            className="h-12 px-6 border border-[#C5A059]/30 text-[#C5A059] font-bold text-[10px] uppercase tracking-widest rounded-2xl hover:bg-[#C5A059]/10 transition-all cursor-pointer flex items-center gap-2"
-          >
-            <Calendar size={14} />
-            Google Agenda
-          </button>
           <button
             onClick={() => navigate('/')}
             aria-label="Voltar para a página inicial"
@@ -95,13 +104,6 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ selectedDate, selectedTime, t
         </div>
 
         <div className="space-y-3">
-          <button
-            onClick={() => window.open(calendarUrl, '_blank')}
-            className="w-full h-12 border border-[#C5A059]/30 text-[#C5A059] font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-[#C5A059]/10 transition-all cursor-pointer flex items-center justify-center gap-2"
-          >
-            <Calendar size={14} />
-            Adicionar ao Google Agenda
-          </button>
           <button
             onClick={() => navigate('/')}
             aria-label="Voltar para a página inicial"

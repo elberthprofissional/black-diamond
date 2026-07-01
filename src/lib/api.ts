@@ -7,23 +7,17 @@ export const getServices = async (): Promise<Service[]> => {
     .from('services')
     .select('*')
     .order('name', { ascending: true });
-  
+
   if (error) throw error;
-  
   if (!data) return [];
-  
+
   // Deduplicate by name
-  const uniqueData: Service[] = [];
-  const seenNames = new Set<string>();
-  
-  for (const service of data) {
-    if (!seenNames.has(service.name)) {
-      seenNames.add(service.name);
-      uniqueData.push(service);
-    }
-  }
-  
-  return uniqueData;
+  const seen = new Set<string>();
+  return data.filter(s => {
+    if (seen.has(s.name)) return false;
+    seen.add(s.name);
+    return true;
+  });
 };
 
 // Bookings
@@ -31,9 +25,17 @@ export const createBooking = async (
   bookingData: Omit<Booking, 'id' | 'created_at' | 'status' | 'client_id'>,
   clientData: { name: string; phone: string; email?: string }
 ) => {
+  // Client-side validation before hitting the RPC
+  if (!clientData.name.trim()) throw new Error('Informe seu nome.');
+  if (clientData.phone.replace(/\D/g, '').length < 10) throw new Error('Informe um telefone válido com DDD.');
+  if (bookingData.service_ids.length === 0) throw new Error('Selecione pelo menos um serviço.');
+  if (!bookingData.booking_date) throw new Error('Selecione uma data.');
+  if (!bookingData.booking_time) throw new Error('Selecione um horário.');
+  if (bookingData.total_price <= 0) throw new Error('O preço total deve ser maior que zero.');
+
   const { data, error } = await supabase.rpc('criar_agendamento', {
-    p_cliente_nome: clientData.name,
-    p_cliente_telefone: clientData.phone,
+    p_cliente_nome: clientData.name.trim(),
+    p_cliente_telefone: clientData.phone.replace(/\D/g, ''),
     p_cliente_email: clientData.email || null,
     p_servicos: bookingData.service_ids,
     p_data: bookingData.booking_date,
@@ -44,15 +46,15 @@ export const createBooking = async (
 
   if (error) {
     const msg = error.message || '';
-    if (msg.includes('Este horário acabou de ser preenchido')) {
+    if (msg.includes('preenchido') || msg.includes('unique_violation')) {
       throw new Error('Este horário acabou de ser preenchido. Por favor, escolha outro.');
     }
     if (msg.toLowerCase().includes('limite de 3 agendamentos')) {
       throw new Error('Limite de 3 agendamentos por dia atingido para este telefone.');
     }
-    throw error;
+    throw new Error(msg || 'Erro ao criar agendamento. Tente novamente.');
   }
-  
+
   return Array.isArray(data) ? data : [data];
 };
 
@@ -129,8 +131,14 @@ export const autoCompleteExpiredBookings = async (date: string): Promise<number>
 
   if (error || !bookings || bookings.length === 0) return 0;
 
-  const now = new Date();
-  const currentTimeMinutes = now.getHours() * 60 + now.getMinutes();
+  // Use Intl to get the current time in the user's local timezone,
+  // consistent with how booking times are interpreted (local business hours).
+  const nowStr = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit', minute: '2-digit', hour12: false,
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  }).format(new Date());
+  const [nowH, nowM] = nowStr.split(':').map(Number);
+  const currentTimeMinutes = nowH * 60 + nowM;
 
   const expiredIds: string[] = [];
 
@@ -170,13 +178,63 @@ export const getClients = async () => {
     .from('clients')
     .select('*')
     .order('name', { ascending: true });
-  
   if (error) throw error;
   return data || [];
 };
 
+// Data reset
+export const completeAllActiveBookings = async (): Promise<number> => {
+  const { data, error } = await supabase
+    .from('bookings')
+    .update({ status: 'completed' })
+    .in('status', ['confirmed', 'pending'])
+    .eq('is_blocked', false)
+    .select('id');
+  if (error) throw error;
+  return data?.length || 0;
+};
+
+export const deleteAllBookings = async (): Promise<number> => {
+  const { data, error } = await supabase
+    .from('bookings')
+    .delete()
+    .gte('created_at', '1970-01-01')
+    .select('id');
+  if (error) throw error;
+  return data?.length || 0;
+};
+
+export const deleteAllClients = async (): Promise<number> => {
+  // First delete all bookings to avoid FK issues
+  const { error: bookingError } = await supabase
+    .from('bookings')
+    .delete()
+    .gte('created_at', '1970-01-01');
+  if (bookingError) throw bookingError;
+
+  // Then soft-delete all real clients (each with unique phone using their own ID)
+  const { data: clients, error: fetchError } = await supabase
+    .from('clients')
+    .select('id')
+    .not('name', 'in', '("BLOQUEADO","CLIENTE EXCLUIDO")')
+    .neq('phone', '00000000000');
+  if (fetchError) throw fetchError;
+  if (!clients || clients.length === 0) return 0;
+
+  for (const client of clients) {
+    const { error } = await supabase
+      .from('clients')
+      .update({ name: 'CLIENTE EXCLUIDO', phone: `DELETED_${client.id}` })
+      .eq('id', client.id);
+    if (error) throw error;
+  }
+
+  return clients.length;
+};
 export const deleteClient = async (id: string) => {
-  const deletedPhone = `DELETED_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  // Use the client's own UUID in the deleted phone to guarantee uniqueness,
+  // even under concurrent deletes (phone has a UNIQUE constraint).
+  const deletedPhone = `DELETED_${id}`;
   const { error } = await supabase
     .from('clients')
     .update({ name: 'CLIENTE EXCLUIDO', phone: deletedPhone })
@@ -186,6 +244,17 @@ export const deleteClient = async (id: string) => {
 };
 
 export const createClient = async (data: { name: string; phone: string; email?: string; notes?: string }) => {
+  const { data: existing } = await supabase
+    .from('clients')
+    .select('id')
+    .eq('phone', data.phone)
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) {
+    throw new Error('Este telefone já está cadastrado para outro cliente.');
+  }
+
   const { data: newClient, error } = await supabase
     .from('clients')
     .insert(data)
@@ -197,6 +266,18 @@ export const createClient = async (data: { name: string; phone: string; email?: 
 };
 
 export const updateClient = async (id: string, data: { name: string; phone: string; email?: string }) => {
+  const { data: existing } = await supabase
+    .from('clients')
+    .select('id')
+    .eq('phone', data.phone)
+    .neq('id', id)
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) {
+    throw new Error('Este telefone já está cadastrado para outro cliente.');
+  }
+
   const { error } = await supabase
     .from('clients')
     .update(data)
@@ -209,6 +290,15 @@ export const updateClientNotes = async (id: string, notes: string) => {
   const { error } = await supabase
     .from('clients')
     .update({ notes })
+    .eq('id', id);
+
+  if (error) throw error;
+};
+
+export const toggleClientFavorite = async (id: string, isFavorite: boolean) => {
+  const { error } = await supabase
+    .from('clients')
+    .update({ is_favorite: isFavorite })
     .eq('id', id);
 
   if (error) throw error;

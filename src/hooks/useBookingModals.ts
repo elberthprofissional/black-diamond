@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { updateBookingStatus, deleteBooking } from '../lib/api';
 import { useToast } from './useToast';
+import { getErrorMessage } from '../lib/utils';
 import type { BookingWithClient } from '../types';
 
 export function useBookingModals(loadData: () => Promise<void>) {
@@ -16,8 +17,8 @@ export function useBookingModals(loadData: () => Promise<void>) {
       setCompletingBooking(null);
       loadData();
       showSuccess('Atendimento concluído!');
-    } catch {
-      showError('Erro ao finalizar agendamento.');
+    } catch (error) {
+      showError(getErrorMessage(error));
     }
   };
 
@@ -30,8 +31,8 @@ export function useBookingModals(loadData: () => Promise<void>) {
       await deleteBooking(id);
       await loadData();
       showSuccess('Agendamento excluído!');
-    } catch {
-      showError('Erro ao excluir.');
+    } catch (error) {
+      showError(getErrorMessage(error));
     }
   };
 

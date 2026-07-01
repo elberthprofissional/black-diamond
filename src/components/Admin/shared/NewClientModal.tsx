@@ -8,6 +8,7 @@ interface NewClientModalProps {
   phone: string;
   notes: string;
   saving: boolean;
+  error: string;
   onNameChange: (name: string) => void;
   onPhoneChange: (phone: string) => void;
   onNotesChange: (notes: string) => void;
@@ -21,6 +22,7 @@ const NewClientModal: React.FC<NewClientModalProps> = ({
   phone,
   notes,
   saving,
+  error,
   onNameChange,
   onPhoneChange,
   onNotesChange,
@@ -80,6 +82,15 @@ const NewClientModal: React.FC<NewClientModalProps> = ({
                     className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-700 tabular-nums text-left"
                   />
                 </div>
+                {error && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-[11px] text-red-400 bg-red-500/[0.08] border border-red-500/20 rounded-lg px-3 py-2"
+                  >
+                    {error}
+                  </motion.p>
+                )}
                 <div>
                   <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">
                     Anotações <span className="text-zinc-500">(opcional)</span>

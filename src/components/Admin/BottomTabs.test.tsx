@@ -21,9 +21,9 @@ describe('BottomTabs', () => {
 
   it('renderiza labels visiveis', () => {
     renderWithRouter()
-    expect(screen.getByText('Hoje')).toBeInTheDocument()
-    expect(screen.getByText('Semana')).toBeInTheDocument()
-    expect(screen.getByText('Clientes')).toBeInTheDocument()
+    expect(screen.getByLabelText('Hoje')).toBeInTheDocument()
+    expect(screen.getByLabelText('Semana')).toBeInTheDocument()
+    expect(screen.getByLabelText('Clientes')).toBeInTheDocument()
   })
 
   it('tem role="tablist" no container', () => {

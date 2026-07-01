@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getClients, getBookings, getBookingsForStats, deleteClient, updateClient, updateClientNotes, createClient } from '../lib/api';
-import { formatPhone } from '../lib/utils';
+import { getClients, getBookings, getBookingsForStats, deleteClient, updateClient, updateClientNotes, createClient, toggleClientFavorite } from '../lib/api';
+import { formatPhone, getErrorMessage } from '../lib/utils';
 import { useToast } from '../hooks/useToast';
 import AdminLayout from '../components/Admin/AdminLayout';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
@@ -16,6 +16,7 @@ import type { Client, ClientWithStats, BookingWithClient } from '../types';
 
 const AdminClients: React.FC = () => {
   const [clients, setClients] = useState<ClientWithStats[]>([]);
+  const [allClients, setAllClients] = useState<ClientWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const { toast, showSuccess, showError } = useToast();
@@ -36,6 +37,7 @@ const AdminClients: React.FC = () => {
   const [newClientEmail, setNewClientEmail] = useState('');
   const [newClientNotes, setNewClientNotes] = useState('');
   const [isSavingClient, setIsSavingClient] = useState(false);
+  const [newClientError, setNewClientError] = useState('');
   const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [remindersSent, setRemindersSent] = useState<Record<string, string>>(() => {
     try {
@@ -127,9 +129,22 @@ const AdminClients: React.FC = () => {
             } : null
           };
         })
-        .filter((c) => c.bookingsCount >= 2);
       enriched.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       setClients(enriched);
+
+      const allEnriched: ClientWithStats[] = (clientsData || [])
+        .filter((c: Client) => c && c.name && c.name !== 'BLOQUEADO' && c.name !== 'CLIENTE EXCLUIDO' && c.phone !== '00000000000' && !(c as unknown as Record<string, unknown>).is_blocked)
+        .map((c: Client) => {
+          const cb = (bookingsData || []).filter((b) => b && b.client_id === c.id && b.status !== 'cancelled');
+          return {
+            ...c,
+            lastVisit: 'Nunca',
+            totalSpent: cb.reduce((s, b) => s + Number(b.total_price || 0), 0),
+            bookingsCount: cb.length,
+            upcomingBooking: null
+          };
+        });
+      setAllClients(allEnriched);
     } catch { /* ignored */ } finally { setLoading(false); }
   };
 
@@ -177,32 +192,66 @@ const AdminClients: React.FC = () => {
       setSelectedClient((p) => p ? { ...p, name: editName.trim(), phone: editPhone.trim() } : p);
       setClients(prev => prev.map(c => c.id === selectedClient.id ? { ...c, name: editName.trim(), phone: editPhone.trim() } : c));
       setIsEditing(false);
-    } catch { showError('Erro ao salvar.'); } finally { setSaving(false); }
+    } catch (error) { showError(getErrorMessage(error)); } finally { setSaving(false); }
   };
 
   const handleSaveNotes = async () => {
     if (!selectedClient) return;
     setSavingNotes(true);
-    try { await updateClientNotes(selectedClient.id, notesText.trim()); setSelectedClient((p) => p ? { ...p, notes: notesText.trim() } : p); } catch { showError('Erro ao salvar.'); } finally { setSavingNotes(false); }
+    try { await updateClientNotes(selectedClient.id, notesText.trim()); setSelectedClient((p) => p ? { ...p, notes: notesText.trim() } : p); } catch (error) { showError(getErrorMessage(error)); } finally { setSavingNotes(false); }
   };
 
   const handleCreateClient = async () => {
     if (!newClientName.trim() || !newClientPhone.trim()) return;
+    setNewClientError('');
     setIsSavingClient(true);
     try {
-      const created = await createClient({ name: newClientName.trim(), phone: newClientPhone.trim(), email: newClientEmail.trim() || undefined, notes: newClientNotes.trim() || undefined });
+      const phone = newClientPhone.trim();
+      const name = newClientName.trim();
+
+      const { supabase } = await import('../lib/supabase');
+
+      const { data: existingPhone } = await supabase
+        .from('clients')
+        .select('id, name')
+        .eq('phone', phone)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingPhone) {
+        setNewClientError(`Este telefone já está cadastrado para "${existingPhone.name}".`);
+        setIsSavingClient(false);
+        return;
+      }
+
+      const { data: existingName } = await supabase
+        .from('clients')
+        .select('id')
+        .ilike('name', name)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingName) {
+        setNewClientError('Este nome já está sendo usado por outro cliente.');
+        setIsSavingClient(false);
+        return;
+      }
+
+      const created = await createClient({ name, phone, email: newClientEmail.trim() || undefined, notes: newClientNotes.trim() || undefined });
       setClients(prev => [...prev, { ...created, lastVisit: 'Nunca', totalSpent: 0, bookingsCount: 0, upcomingBooking: null }].sort((a, b) => (a.name || '').localeCompare(b.name || '')));
       setIsCreatingClient(false);
-      setNewClientName(''); setNewClientPhone(''); setNewClientEmail(''); setNewClientNotes('');
-      showSuccess('Cliente criado!');
+      setNewClientName(''); setNewClientPhone(''); setNewClientEmail(''); setNewClientNotes(''); setNewClientError('');
+      showSuccess('Cliente criado com sucesso!');
       await loadData();
-    } catch { showError('Erro ao criar cliente.'); } finally { setIsSavingClient(false); }
+    } catch (error) {
+      setNewClientError(getErrorMessage(error));
+    } finally { setIsSavingClient(false); }
   };
 
   const confirmDelete = async () => {
     if (!selectedClient) return;
     setIsDeleting(true);
-    try { await deleteClient(selectedClient.id); setClients(prev => prev.filter(c => c.id !== selectedClient.id)); closePanel(); showSuccess('Cliente excluído!'); } catch { showError('Erro ao excluir.'); } finally { setIsDeleting(false); setIsDeleteOpen(false); }
+    try { await deleteClient(selectedClient.id); setClients(prev => prev.filter(c => c.id !== selectedClient.id)); closePanel(); showSuccess('Cliente excluído!'); } catch (error) { showError(getErrorMessage(error)); } finally { setIsDeleting(false); setIsDeleteOpen(false); }
   };
 
   const sendWithTemplate = (template: string) => {
@@ -286,11 +335,13 @@ const AdminClients: React.FC = () => {
         ) : (
           <>
             <div className="lg:hidden space-y-1">
-              {filteredClients.map((client) => (
-                <div key={client.id} onClick={() => openPanel(client)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openPanel(client); }} aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`} className="w-full flex items-center gap-3 py-3.5 px-4 rounded-xl cursor-pointer bg-white/[0.01] border border-white/[0.03] hover:bg-white/[0.03] transition-all group text-left">
+              {filteredClients.map((client) => {
+                const needsReminder = !isReminderRecent(client.id);
+                return (
+                <div key={client.id} onClick={() => openPanel(client)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openPanel(client); }} aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`} className={`w-full flex items-center gap-3 py-3.5 px-4 rounded-xl cursor-pointer border transition-all group text-left ${needsReminder ? 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05]' : 'bg-white/[0.01] border-white/[0.03] hover:bg-white/[0.03]'}`}>
                   <div className="relative shrink-0">
                     <div className="w-10 h-10 rounded-full bg-[#111111] border border-white/[0.08] flex items-center justify-center text-sm font-bold text-white uppercase">{client.name.charAt(0)}</div>
-                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0A0A0A] ${isReminderRecent(client.id) ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0A0A0A] ${needsReminder ? 'bg-red-500' : 'bg-emerald-500'}`} />
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-sm font-semibold text-white truncate">{client.name}</p>
@@ -301,21 +352,23 @@ const AdminClients: React.FC = () => {
                     </div>
                   </div>
                   <div className="shrink-0 flex items-center gap-2">
-                    {!client.upcomingBooking && !isReminderRecent(client.id) && (
-                      <button onClick={(e) => { e.stopPropagation(); setSelectedClient(client); setIsReminderOpen(true); }} className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer active:scale-95 bg-[#C5A059] hover:bg-[#A68233] text-black">Lembrar</button>
+                    {needsReminder && (
+                      <button onClick={(e) => { e.stopPropagation(); setSelectedClient(client); setIsReminderOpen(true); }} className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer active:scale-95 bg-white/[0.06] hover:bg-white/[0.1] text-zinc-400 hover:text-white border border-white/[0.08]">Lembrar</button>
                     )}
                     <ChevronRight size={14} className="text-zinc-600 shrink-0" />
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
 
             <div className="hidden lg:grid grid-cols-2 gap-3">
-              {filteredClients.map((client) => (
-                <div key={client.id} onClick={() => openPanel(client)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openPanel(client); }} aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`} className="w-full flex items-center gap-4 p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all cursor-pointer group text-left">
+              {filteredClients.map((client) => {
+                const needsReminder = !isReminderRecent(client.id);
+                return (
+                <div key={client.id} onClick={() => openPanel(client)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openPanel(client); }} aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`} className={`w-full flex items-center gap-4 p-5 rounded-2xl border transition-all cursor-pointer group text-left ${needsReminder ? 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05] hover:border-white/[0.08]' : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.08]'}`}>
                   <div className="relative shrink-0">
                     <div className="w-12 h-12 rounded-xl bg-[#111111] border border-white/[0.08] flex items-center justify-center text-base font-bold text-white uppercase">{client.name.charAt(0)}</div>
-                    <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0A0A0A] ${isReminderRecent(client.id) ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                    <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0A0A0A] ${needsReminder ? 'bg-red-500' : 'bg-emerald-500'}`} />
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-sm font-semibold text-white truncate">{client.name}</p>
@@ -325,8 +378,8 @@ const AdminClients: React.FC = () => {
                     </div>
                   </div>
                   <div className="shrink-0 flex items-center gap-3">
-                    {!client.upcomingBooking && !isReminderRecent(client.id) && (
-                      <button onClick={(e) => { e.stopPropagation(); setSelectedClient(client); setIsReminderOpen(true); }} className="px-3 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer bg-[#C5A059] hover:bg-[#A68233] text-black shadow-[0_2px_10px_rgba(197,160,89,0.1)]">
+                    {needsReminder && (
+                      <button onClick={(e) => { e.stopPropagation(); setSelectedClient(client); setIsReminderOpen(true); }} className="px-3 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer bg-white/[0.06] hover:bg-white/[0.1] text-zinc-400 hover:text-white border border-white/[0.08]">
                         <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                         Lembrar
                       </button>
@@ -334,7 +387,7 @@ const AdminClients: React.FC = () => {
                     <ChevronRight size={14} className="text-zinc-600 group-hover:text-zinc-400 transition-colors shrink-0" />
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           </>
         )}
@@ -396,11 +449,12 @@ const AdminClients: React.FC = () => {
         phone={newClientPhone}
         notes={newClientNotes}
         saving={isSavingClient}
-        onNameChange={setNewClientName}
-        onPhoneChange={setNewClientPhone}
+        error={newClientError}
+        onNameChange={(v) => { setNewClientName(v); setNewClientError(''); }}
+        onPhoneChange={(v) => { setNewClientPhone(v); setNewClientError(''); }}
         onNotesChange={setNewClientNotes}
         onSave={handleCreateClient}
-        onCancel={() => { setIsCreatingClient(false); setNewClientName(''); setNewClientPhone(''); setNewClientEmail(''); setNewClientNotes(''); }}
+        onCancel={() => { setIsCreatingClient(false); setNewClientName(''); setNewClientPhone(''); setNewClientEmail(''); setNewClientNotes(''); setNewClientError(''); }}
       />
 
       <ToastNotification toast={toast} />

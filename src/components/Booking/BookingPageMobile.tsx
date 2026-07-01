@@ -114,7 +114,7 @@ const BookingPageMobile: React.FC<BookingPageMobileProps> = ({
         </div>
       )}
 
-      {step === 5 && <SuccessStep selectedDate={selectedDate} selectedTime={selectedTime} totalPrice={totalPrice} selectedServices={selectedServices} layout="mobile" />}
+      {step === 5 && <SuccessStep selectedDate={selectedDate} selectedTime={selectedTime} totalPrice={totalPrice} selectedServices={selectedServices} clientName={userInfo.name} layout="mobile" />}
     </div>
   );
 };

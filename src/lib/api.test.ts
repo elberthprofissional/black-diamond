@@ -105,8 +105,8 @@ describe('createBooking', () => {
 
     await expect(
       createBooking(
-        { service_ids: [], booking_date: '2026-07-01', booking_time: '10:00', total_price: 0, total_duration: 0 },
-        { name: 'Test', phone: '000' }
+        { service_ids: ['s1'], booking_date: '2026-07-01', booking_time: '10:00', total_price: 35, total_duration: 40 },
+        { name: 'Test', phone: '31999999999' }
       )
     ).rejects.toThrow('Este horário acabou de ser preenchido')
   })
@@ -119,10 +119,37 @@ describe('createBooking', () => {
 
     await expect(
       createBooking(
-        { service_ids: [], booking_date: '2026-07-01', booking_time: '10:00', total_price: 0, total_duration: 0 },
-        { name: 'Test', phone: '000' }
+        { service_ids: ['s1'], booking_date: '2026-07-01', booking_time: '10:00', total_price: 35, total_duration: 40 },
+        { name: 'Test', phone: '31999999999' }
       )
     ).rejects.toThrow('Limite de 3 agendamentos por dia')
+  })
+
+  it('valida nome vazio no client-side', async () => {
+    await expect(
+      createBooking(
+        { service_ids: ['s1'], booking_date: '2026-07-01', booking_time: '10:00', total_price: 35, total_duration: 40 },
+        { name: '  ', phone: '31999999999' }
+      )
+    ).rejects.toThrow('Informe seu nome')
+  })
+
+  it('valida telefone curto no client-side', async () => {
+    await expect(
+      createBooking(
+        { service_ids: ['s1'], booking_date: '2026-07-01', booking_time: '10:00', total_price: 35, total_duration: 40 },
+        { name: 'Test', phone: '3199' }
+      )
+    ).rejects.toThrow('telefone válido')
+  })
+
+  it('valida servicos vazios no client-side', async () => {
+    await expect(
+      createBooking(
+        { service_ids: [], booking_date: '2026-07-01', booking_time: '10:00', total_price: 35, total_duration: 40 },
+        { name: 'Test', phone: '31999999999' }
+      )
+    ).rejects.toThrow('pelo menos um serviço')
   })
 })
 

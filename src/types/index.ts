@@ -37,6 +37,7 @@ export interface Client {
   phone: string;
   email?: string;
   notes?: string;
+  is_favorite?: boolean;
   created_at: string;
 }
 

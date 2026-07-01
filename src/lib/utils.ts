@@ -75,3 +75,88 @@ export const isTimeOccupied = (time: string, bookings: { booking_time: string; s
     return bookingTime === time && b.status !== 'cancelled';
   });
 };
+
+const ERROR_MESSAGES: Record<string, string> = {
+  'Failed to fetch': 'Sem conexão com o servidor. Verifique sua internet.',
+  'NetworkError': 'Erro de rede. Tente novamente.',
+  'invalid input': 'Dados inválidos. Verifique os campos.',
+  'permission denied': 'Sem permissão para esta ação.',
+  'JWT expired': 'Sessão expirada. Faça login novamente.',
+  'new row violates row-level security': 'Sem permissão para esta ação.',
+  'row-level security': 'Sem permissão para esta ação.',
+  'violates foreign key': 'Erro de integridade dos dados.',
+  'duplicate key': 'Este telefone já está cadastrado para outro cliente.',
+  'unique_violation': 'Este telefone já está cadastrado para outro cliente.',
+};
+
+export const generateIcsFile = (
+  serviceName: string,
+  date: string,
+  time: string,
+  duration: number
+) => {
+  const [year, month, day] = date.split('-').map(Number);
+  const [hours, minutes] = time.split(':').map(Number);
+
+  const startDate = new Date(year, month - 1, day, hours, minutes);
+  const endDate = new Date(startDate.getTime() + duration * 60000);
+
+  const formatIcsDate = (d: Date) => {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+  };
+
+  const now = new Date();
+  const uid = `${Date.now()}-${Math.random().toString(36).slice(2)}@blackdiamond`;
+
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Black Diamond//Barbearia//PT',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `UID:${uid}`,
+    `DTSTAMP:${formatIcsDate(now)}`,
+    `DTSTART;TZID=America/Sao_Paulo:${formatIcsDate(startDate)}`,
+    `DTEND;TZID=America/Sao_Paulo:${formatIcsDate(endDate)}`,
+    `SUMMARY:${serviceName} - Black Diamond`,
+    'DESCRIPTION:Seu agendamento na Black Diamond Barbearia.',
+    'BEGIN:VALARM',
+    'TRIGGER:-PT30M',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Lembrete do seu agendamento',
+    'END:VALARM',
+    'BEGIN:VALARM',
+    'TRIGGER:-P1D',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Seu agendamento é amanhã',
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `BlackDiamond-${serviceName.replace(/\s+/g, '-')}.ics`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+export const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    const msg = error.message;
+    if (msg.includes('horário acabou de ser preenchido')) return 'Este horário acabou de ser preenchido. Escolha outro.';
+    if (msg.includes('Limite de 3 agendamentos')) return 'Limite de 3 agendamentos por dia atingido.';
+    if (msg.includes('Informe')) return msg; // client-side validation messages
+    for (const [key, value] of Object.entries(ERROR_MESSAGES)) {
+      if (msg.toLowerCase().includes(key.toLowerCase())) return value;
+    }
+    return msg || 'Erro inesperado. Tente novamente.';
+  }
+  return 'Erro inesperado. Tente novamente.';
+};

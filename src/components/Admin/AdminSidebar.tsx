@@ -86,45 +86,60 @@ const AdminSidebar: React.FC = () => {
       </div>
  
       {/* 3. PROFILE & SYSTEM ACTIONS */}
-      <div className="mt-auto border-t border-white/5 p-6">
+      <div className="mt-auto border-t border-white/5 p-4">
         <div className="relative">
-          <button 
+          <button
             onClick={() => setIsProfileOpen(!isProfileOpen)}
             aria-expanded={isProfileOpen}
             aria-haspopup="true"
-            className={`w-full flex items-center gap-3 p-2 rounded-xl transition-all group ${
-              isProfileOpen ? 'bg-white/5' : 'hover:bg-white/[0.02]'
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+              isProfileOpen ? 'bg-white/[0.06]' : 'hover:bg-white/[0.03]'
             }`}
           >
-            <div className="w-9 h-9 rounded-lg border border-white/5 overflow-hidden flex-shrink-0">
-              <img src="/assets/tato.webp" alt="Tato" className="w-full h-full object-cover" />
+            <div className="relative shrink-0">
+              <div className="w-9 h-9 rounded-full border border-white/[0.08] overflow-hidden">
+                <img src="/assets/tato.webp" alt="Tato" className="w-full h-full object-cover" />
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#0A0A0A] rounded-full" />
             </div>
             <div className="text-left flex-1 min-w-0">
-              <p className="text-[11px] font-bold text-white truncate">{import.meta.env.VITE_ADMIN_NAME || 'Admin'}</p>
+              <p className="text-[11px] font-bold text-white truncate leading-none">{import.meta.env.VITE_ADMIN_NAME || 'Admin'}</p>
             </div>
-            <ChevronDown size={14} className={`text-zinc-600 transition-transform duration-300 ${isProfileOpen ? 'rotate-180 text-white' : 'group-hover:text-zinc-400'}`} />
+            <ChevronDown size={14} className={`text-zinc-600 transition-transform duration-200 shrink-0 ${isProfileOpen ? 'rotate-180' : ''}`} />
           </button>
- 
+
           <AnimatePresence>
             {isProfileOpen && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              <motion.div
+                initial={{ opacity: 0, y: 8, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute bottom-full left-0 right-0 mb-2 bg-[#0C0C0E] border border-white/5 p-1.5 rounded-xl shadow-2xl backdrop-blur-xl z-[120] space-y-0.5"
+                exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+                className="absolute bottom-full left-0 right-0 mb-2 bg-[#141416] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-[120] overflow-hidden"
               >
-                <button 
-                  onClick={() => { setIsProfileOpen(false); navigate('/admin/profile'); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-all text-[10px] font-bold uppercase tracking-widest"
-                >
-                  <User size={14} className="text-zinc-600" /> Meu Perfil
-                </button>
-                <button 
-                  onClick={() => { setIsProfileOpen(false); setShowLogoutConfirm(true); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 text-red-500/70 hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-all text-[10px] font-bold uppercase tracking-widest"
-                >
-                  <LogOut size={14} /> Sair
-                </button>
+                {/* Menu items */}
+                <div className="p-1.5">
+                  <button
+                    onClick={() => { setIsProfileOpen(false); navigate('/admin/profile'); }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all"
+                  >
+                    <User size={14} className="text-zinc-500 shrink-0" />
+                    <span className="text-[11px] font-medium">Meu Perfil</span>
+                  </button>
+                </div>
+
+                {/* Divider + Logout */}
+                <div className="border-t border-white/[0.05] p-1.5">
+                  <button
+                    onClick={() => { setIsProfileOpen(false); setShowLogoutConfirm(true); }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/[0.06] transition-all"
+                  >
+                    <LogOut size={14} className="shrink-0" />
+                    <span className="text-[11px] font-medium">Sair</span>
+                  </button>
+                </div>
+
+
               </motion.div>
             )}
           </AnimatePresence>

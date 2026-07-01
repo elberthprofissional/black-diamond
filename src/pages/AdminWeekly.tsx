@@ -59,10 +59,34 @@ const AdminWeekly: React.FC = () => {
 
   const selectedDate = weekDays[selectedDayIndex];
   const selectedDateStr = getLocalDateString(selectedDate);
+  const isToday = selectedDate.toDateString() === today.toDateString();
+  const currentHour = today.getHours();
+  const currentMinutes = today.getHours() * 60 + today.getMinutes();
+
   const dayBookings = bookings.filter(b => b.booking_date === selectedDateStr && b.status !== 'cancelled');
-  const occupiedBookings = dayBookings.filter(b => b.status !== 'cancelled' && !b.is_blocked);
-  const freeSlots = getTimeSlotsForDate(selectedDateStr).filter(slot => !dayBookings.some(b => b.booking_time.slice(0, 5) === slot && b.status !== 'cancelled'));
-  const blockedBookings = dayBookings.filter(b => b.status !== 'cancelled' && b.is_blocked);
+  const occupiedBookings = dayBookings.filter(b => {
+    if (b.status === 'cancelled') return false;
+    if (b.is_blocked) return false;
+    if (!isToday) return true;
+    // Keep bookings that are in progress or upcoming
+    const [h, m] = b.booking_time.slice(0, 5).split(':').map(Number);
+    const bookingEndMinutes = h * 60 + m + (b.total_duration || 60);
+    return bookingEndMinutes > currentMinutes;
+  });
+  const freeSlots = getTimeSlotsForDate(selectedDateStr).filter(slot => {
+    if (dayBookings.some(b => b.booking_time.slice(0, 5) === slot && b.status !== 'cancelled')) return false;
+    if (!isToday) return true;
+    // Hide past free slots
+    const slotHour = parseInt(slot.split(':')[0], 10);
+    return slotHour >= currentHour;
+  });
+  const blockedBookings = dayBookings.filter(b => {
+    if (b.status === 'cancelled') return false;
+    if (!b.is_blocked) return false;
+    if (!isToday) return true;
+    const slotHour = parseInt(b.booking_time.slice(0, 5).split(':')[0], 10);
+    return slotHour >= currentHour;
+  });
   const dayLabel = selectedDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
 
   const renderDetailPanel = () => {

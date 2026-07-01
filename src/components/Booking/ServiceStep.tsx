@@ -14,11 +14,11 @@ const ServiceStep: React.FC<ServiceStepProps> = React.memo(({ services, selected
 
   if (layout === 'desktop') {
     return (
-          <div className="space-y-2" role="group" aria-label="Serviços disponíveis">
+      <div className="space-y-2" role="group" aria-label="Serviços disponíveis">
         {services.map((service) => {
           const selected = isSelected(service.id);
           return (
-            <button 
+            <button
               key={service.id}
               onClick={() => onToggle(service)}
               aria-pressed={selected}
@@ -46,42 +46,31 @@ const ServiceStep: React.FC<ServiceStepProps> = React.memo(({ services, selected
   }
 
   return (
-    <div className="space-y-3" role="group" aria-label="Serviços disponíveis">
-      {services.map((service, index) => {
+    <div className="bg-white/[0.02] rounded-2xl overflow-hidden divide-y divide-white/[0.04]" role="group" aria-label="Serviços disponíveis">
+      {services.map((service) => {
         const selected = isSelected(service.id);
         return (
-          <button 
+          <button
             key={service.id}
             onClick={() => onToggle(service)}
             aria-pressed={selected}
-            className={`w-full text-left rounded-2xl p-5 border transition-all duration-200 flex items-center justify-between gap-4 cursor-pointer select-none ${
-              selected 
-                ? 'bg-[#12100d] border-[#C5A059]' 
-                : 'bg-[#080808] border-white/[0.04] hover:bg-[#0c0c0c]'
+            className={`w-full flex items-center gap-4 px-5 py-4 text-left transition-all cursor-pointer ${
+              selected ? 'bg-[#C5A059]/[0.04]' : 'hover:bg-white/[0.02]'
             }`}
-            style={{ animationDelay: `${index * 40}ms` }}
           >
-            <div className="flex items-center gap-4 flex-1 min-w-0">
-              <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all shrink-0 ${
-                selected ? 'border-[#C5A059] bg-[#C5A059]' : 'border-white/20'
-              }`}>
-                {selected && <Check size={11} className="text-white stroke-[3px]" />}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className={`text-[15px] font-bold tracking-tight transition-colors leading-tight ${
-                  selected ? 'text-[#C5A059]' : 'text-zinc-100'
-                }`}>
-                  {service.name}
-                </p>
-              </div>
+            <div className={`w-[18px] h-[18px] rounded-full border-[1.5px] flex items-center justify-center transition-all shrink-0 ${
+              selected ? 'border-[#C5A059] bg-[#C5A059]' : 'border-white/15'
+            }`}>
+              {selected && <Check size={10} className="text-white stroke-[3]" />}
             </div>
-            <div className="shrink-0">
-              <span className={`text-[15px] font-black tracking-tight tabular-nums transition-colors ${
-                selected ? 'text-[#C5A059]' : 'text-zinc-200'
-              }`}>
-                R$ {Number(service.price).toFixed(0)}
-              </span>
+            <div className="flex-1 min-w-0">
+              <p className={`text-[13px] font-medium transition-colors ${selected ? 'text-[#C5A059]' : 'text-zinc-200'}`}>
+                {service.name}
+              </p>
             </div>
+            <span className={`text-[13px] font-semibold tabular-nums transition-colors ${selected ? 'text-[#C5A059]' : 'text-zinc-400'}`}>
+              R$ {Number(service.price).toFixed(0)}
+            </span>
           </button>
         );
       })}

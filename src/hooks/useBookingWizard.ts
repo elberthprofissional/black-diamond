@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createBooking, getAvailableSlots, getBookings } from '../lib/api';
-import { getNextDays, formatPhone, getTimeSlotsForDate } from '../lib/utils';
+import { getNextDays, formatPhone, getTimeSlotsForDate, getErrorMessage, generateIcsFile } from '../lib/utils';
 import { useServices } from './useServices';
 import type { Service } from '../types';
 
@@ -17,6 +17,7 @@ export function useBookingWizard(showError: (msg: string) => void) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingBookings, setExistingBookings] = useState<{ booking_time: string; status: string }[]>([]);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
 
   const dateContainerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -102,12 +103,21 @@ export function useBookingWizard(showError: (msg: string) => void) {
         { name: userInfo.name, phone: userInfo.phone }
       );
 
-      setStep(5);
+      setShowCalendarModal(true);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao realizar agendamento.';
-      showError(message);
+      showError(getErrorMessage(error));
     } finally { setIsSubmitting(false); }
   }, [isSubmitting, selectedTime, userInfo, selectedServices, selectedDate, totalPrice, showError]);
+
+  const handleCalendarChoice = useCallback((wantsReminder: boolean) => {
+    if (wantsReminder) {
+      const serviceNames = selectedServices.map(s => s.name).join(' + ');
+      const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
+      generateIcsFile(serviceNames, selectedDate, selectedTime, totalDuration);
+    }
+    setShowCalendarModal(false);
+    setStep(5);
+  }, [selectedServices, selectedDate, selectedTime]);
 
   const goNext = useCallback(() => {
     if (step < 4) setStep(step + 1);
@@ -136,5 +146,6 @@ export function useBookingWizard(showError: (msg: string) => void) {
     handleConfirm, goNext, goBack,
     navigate, nextDays,
     formatPhoneValue,
+    showCalendarModal, handleCalendarChoice,
   };
 }
