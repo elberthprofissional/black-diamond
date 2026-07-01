@@ -270,9 +270,9 @@ const AdminProfile: React.FC = () => {
             </div>
             <button
               onClick={() => setShowLogoutConfirm(true)}
-              className="px-3 py-1.5 text-[9px] font-bold text-zinc-500 hover:text-red-400 border border-white/[0.06] hover:border-red-500/20 rounded-lg uppercase tracking-wider transition-all cursor-pointer shrink-0"
+              className="w-8 h-8 flex items-center justify-center text-zinc-500 hover:text-red-400 border border-white/[0.06] hover:border-red-500/20 rounded-lg transition-all cursor-pointer shrink-0"
             >
-              Sair
+              <LogOut size={14} />
             </button>
           </div>
           <div className="flex items-center gap-2">
