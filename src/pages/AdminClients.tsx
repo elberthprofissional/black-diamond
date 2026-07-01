@@ -199,13 +199,33 @@ const AdminClients: React.FC = () => {
 
       const { data: existingPhone } = await supabase
         .from('clients')
-        .select('id, name')
+        .select('id, name, manually_added')
         .eq('phone', phone)
         .limit(1)
         .maybeSingle();
 
       if (existingPhone) {
-        setNewClientError(`Este telefone já está cadastrado para "${existingPhone.name}".`);
+        if (existingPhone.manually_added) {
+          setNewClientError(`Este telefone já está cadastrado para "${existingPhone.name}".`);
+          setIsSavingClient(false);
+          return;
+        }
+
+        const { error: updateErr } = await supabase
+          .from('clients')
+          .update({ manually_added: true })
+          .eq('id', existingPhone.id);
+
+        if (updateErr) {
+          setNewClientError(getErrorMessage(updateErr));
+          setIsSavingClient(false);
+          return;
+        }
+
+        setIsCreatingClient(false);
+        setNewClientName(''); setNewClientPhone(''); setNewClientEmail(''); setNewClientNotes(''); setNewClientError('');
+        showSuccess(`${existingPhone.name} adicionado com sucesso!`);
+        await loadData();
         setIsSavingClient(false);
         return;
       }
