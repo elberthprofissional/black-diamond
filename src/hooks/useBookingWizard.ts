@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createBooking, getAvailableSlots, getBookings, getClientByPhone } from '../lib/api';
-import { getNextDays, formatPhone, getTimeSlotsForDate, getErrorMessage, generateIcsFile } from '../lib/utils';
+import { getNextDays, formatPhone, getTimeSlotsForDate, getErrorMessage, generateGoogleCalendarUrl } from '../lib/utils';
 import { useServices } from './useServices';
 import type { Service } from '../types';
 
@@ -176,7 +176,8 @@ export function useBookingWizard(showError: (msg: string) => void) {
     if (wantsReminder) {
       const serviceNames = selectedServices.map(s => s.name).join(' + ');
       const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
-      generateIcsFile(serviceNames, selectedDate, selectedTime, totalDuration);
+      const gcalUrl = generateGoogleCalendarUrl(serviceNames, selectedDate, selectedTime, totalDuration);
+      window.open(gcalUrl, '_blank');
     }
     setShowCalendarModal(false);
     setStep(5);

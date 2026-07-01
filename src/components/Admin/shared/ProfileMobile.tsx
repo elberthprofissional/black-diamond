@@ -11,6 +11,7 @@ interface QuickAction {
 
 interface ProfileMobileProps {
   greeting: string;
+  barberName: string;
   showBalance: boolean;
   toggleBalance: () => void;
   lucroTotal: number;
@@ -27,6 +28,7 @@ interface ProfileMobileProps {
 
 const ProfileMobile: React.FC<ProfileMobileProps> = ({
   greeting,
+  barberName,
   showBalance,
   toggleBalance,
   lucroTotal,
@@ -57,7 +59,7 @@ const ProfileMobile: React.FC<ProfileMobileProps> = ({
           </button>
         </div>
         <div className="space-y-1">
-          <h1 className="text-xl font-bold tracking-tight text-white">{greeting}, Tato</h1>
+          <h1 className="text-xl font-bold tracking-tight text-white">{greeting}, {barberName}</h1>
         </div>
       </div>
 

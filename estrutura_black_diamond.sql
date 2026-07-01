@@ -104,7 +104,8 @@ INSERT INTO settings (key, value) VALUES
     ('closing_time', '19:00'),
     ('saturday_opening', '08:00'),
     ('saturday_closing', '18:00'),
-    ('working_days', '1,2,3,4,5,6')
+    ('working_days', '1,2,3,4,5,6'),
+    ('barber_name', 'Admin')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 -- =========================================================================

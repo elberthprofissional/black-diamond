@@ -69,25 +69,24 @@ const BookingPage: React.FC = () => {
                 <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-4">
                   <Calendar size={20} className="text-[#C5A059]" />
                 </div>
-                <p className="text-[15px] font-semibold text-white">Receber lembrete?</p>
+                <p className="text-[15px] font-semibold text-white">Adicionar ao calendário?</p>
                 <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
-                  Ative e receba uma notificação antes do seu horário.
+                  Abre o Google Calendar com seu horário já preenchido.
                 </p>
               </div>
 
-              <div className="flex border-t border-white/[0.06] mt-4">
-                <button
-                  onClick={() => w.handleCalendarChoice(false)}
-                  className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
-                >
-                  Não
-                </button>
-                <div className="w-px bg-white/[0.06]" />
+              <div className="px-6 pb-4 space-y-2">
                 <button
                   onClick={() => w.handleCalendarChoice(true)}
-                  className="flex-1 py-4 text-[13px] font-semibold text-[#C5A059] hover:text-[#A68233] active:bg-white/[0.03] transition-all cursor-pointer"
+                  className="w-full py-3.5 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[11px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer"
                 >
-                  Sim
+                  Adicionar ao Google Calendar
+                </button>
+                <button
+                  onClick={() => w.handleCalendarChoice(false)}
+                  className="w-full py-3.5 text-[12px] font-medium text-zinc-500 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
+                >
+                  Pular
                 </button>
               </div>
 

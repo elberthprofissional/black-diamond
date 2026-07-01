@@ -9,6 +9,7 @@ import { useAdminLogout } from '../hooks/useAdminLogout';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
 import { useToast } from '../hooks/useToast';
 import { usePushNotifications } from '../hooks/usePushNotifications';
+import { useBarberName } from '../hooks/useBarberName';
 import ProfileMobile from '../components/Admin/shared/ProfileMobile';
 
 
@@ -30,6 +31,9 @@ const AdminProfile: React.FC = () => {
   const handleLogout = useAdminLogout();
   const { toast, showSuccess, showError } = useToast();
   const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
+  const { barberName, updateBarberName } = useBarberName();
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState('');
 
   useEffect(() => {
     const handleAppInstalled = () => {
@@ -280,7 +284,7 @@ const AdminProfile: React.FC = () => {
               <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-[#0A0A0A] rounded-full" />
             </div>
             <div className="flex-1">
-              <h1 className="text-lg font-bold text-white tracking-tight">{greeting}, Tato</h1>
+              <h1 className="text-lg font-bold text-white tracking-tight">{greeting}, {barberName}</h1>
             </div>
             <button
               onClick={() => setShowLogoutConfirm(true)}
@@ -300,6 +304,12 @@ const AdminProfile: React.FC = () => {
               }`}
             >
               {isSubscribed ? 'Notificando' : 'Notificar'}
+            </button>
+            <button
+              onClick={() => { setNameInput(barberName); setEditingName(true); }}
+              className="px-3 py-1.5 text-[9px] font-bold text-zinc-500 hover:text-white border border-white/[0.06] hover:border-white/[0.12] rounded-lg uppercase tracking-wider transition-all cursor-pointer shrink-0"
+            >
+              Nome
             </button>
             <button
               onClick={() => setShowResetConfirm(true)}
@@ -393,6 +403,7 @@ const AdminProfile: React.FC = () => {
       {/* ========================================================================= */}
       <ProfileMobile
         greeting={greeting}
+        barberName={barberName}
         showBalance={showBalance}
         toggleBalance={toggleBalance}
         lucroTotal={lucroTotal}
@@ -602,6 +613,83 @@ const AdminProfile: React.FC = () => {
               </div>
 
               {/* Mobile drag indicator */}
+              <div className="sm:hidden flex justify-center pb-3 pt-1">
+                <div className="w-10 h-1 rounded-full bg-white/10" />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* EDIT NAME MODAL */}
+      <AnimatePresence>
+        {editingName && (
+          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setEditingName(false)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+              className="relative z-10 w-full sm:max-w-[340px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
+            >
+              <div className="px-6 pt-6 pb-4">
+                <p className="text-[15px] font-semibold text-white">Alterar nome</p>
+                <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
+                  Esse nome aparece no menu lateral e nas saudações.
+                </p>
+              </div>
+
+              <div className="px-6 pb-5">
+                <input
+                  type="text"
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  placeholder="Nome do barbeiro"
+                  aria-label="Nome do barbeiro"
+                  maxLength={30}
+                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#C5A059]/40 focus:ring-1 focus:ring-[#C5A059]/10 transition-all placeholder:text-zinc-600"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && nameInput.trim()) {
+                      updateBarberName(nameInput).then(ok => {
+                        if (ok) { showSuccess('Nome alterado!'); setEditingName(false); }
+                        else showError('Erro ao alterar nome');
+                      });
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="flex border-t border-white/[0.06]">
+                <button
+                  onClick={() => setEditingName(false)}
+                  className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <div className="w-px bg-white/[0.06]" />
+                <button
+                  onClick={async () => {
+                    if (nameInput.trim()) {
+                      const ok = await updateBarberName(nameInput);
+                      if (ok) { showSuccess('Nome alterado!'); setEditingName(false); }
+                      else showError('Erro ao alterar nome');
+                    }
+                  }}
+                  disabled={!nameInput.trim()}
+                  className="flex-1 py-4 text-[13px] font-semibold text-[#C5A059] hover:text-[#A68233] active:bg-white/[0.03] transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                >
+                  Salvar
+                </button>
+              </div>
+
               <div className="sm:hidden flex justify-center pb-3 pt-1">
                 <div className="w-10 h-1 rounded-full bg-white/10" />
               </div>

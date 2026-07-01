@@ -89,6 +89,31 @@ const ERROR_MESSAGES: Record<string, string> = {
   'unique_violation': 'Este telefone já está cadastrado para outro cliente.',
 };
 
+export const generateGoogleCalendarUrl = (
+  serviceName: string,
+  date: string,
+  time: string,
+  duration: number
+): string => {
+  const [year, month, day] = date.split('-').map(Number);
+  const [hours, minutes] = time.split(':').map(Number);
+
+  const startDate = new Date(year, month - 1, day, hours, minutes);
+  const endDate = new Date(startDate.getTime() + duration * 60000);
+
+  const formatGCalDate = (d: Date) => {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(hours)}${pad(minutes)}00`;
+  };
+
+  const title = `${serviceName} - Black Diamond`;
+  const details = `Seu agendamento na Black Diamond Barbearia.\n\nServiço: ${serviceName}\nHorário: ${time}\nDuração: ${duration} minutos`;
+  const start = formatGCalDate(startDate);
+  const end = formatGCalDate(endDate);
+
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(details)}`;
+};
+
 export const generateIcsFile = (
   serviceName: string,
   date: string,

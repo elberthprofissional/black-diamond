@@ -10,6 +10,7 @@ vi.mock('../lib/api', () => ({
   createBooking: vi.fn(),
   getAvailableSlots: vi.fn(),
   getBookings: vi.fn(),
+  getClientByPhone: vi.fn().mockResolvedValue(null),
 }))
 
 vi.mock('../lib/utils', () => ({
@@ -45,13 +46,13 @@ describe('useBookingWizard', () => {
 
   it('stepTitle muda por step', () => {
     const { result } = renderHook(() => useBookingWizard(mockShowError))
-    expect(result.current.stepTitle).toBe('Escolha os serviços')
+    expect(result.current.stepTitle).toBe('Seus dados')
 
     act(() => result.current.setStep(2))
-    expect(result.current.stepTitle).toBe('Data e horário')
+    expect(result.current.stepTitle).toBe('Escolha os serviços')
 
     act(() => result.current.setStep(3))
-    expect(result.current.stepTitle).toBe('Seus dados')
+    expect(result.current.stepTitle).toBe('Data e horário')
 
     act(() => result.current.setStep(4))
     expect(result.current.stepTitle).toBe('Revisar agendamento')
@@ -77,15 +78,15 @@ describe('useBookingWizard', () => {
     expect(result.current.totalPrice).toBe(62)
   })
 
-  it('isStepDisabled retorna true no step 1 sem servicos', () => {
+  it('isStepDisabled retorna true no step 1 sem dados', () => {
     const { result } = renderHook(() => useBookingWizard(mockShowError))
     expect(result.current.isStepDisabled).toBe(true)
   })
 
-  it('isStepDisabled retorna false no step 1 com servicos', () => {
+  it('isStepDisabled retorna false no step 1 com dados validos', () => {
     const { result } = renderHook(() => useBookingWizard(mockShowError))
 
-    act(() => result.current.toggleService({ id: 's1', name: 'Corte', price: 35, duration: 40 }))
+    act(() => result.current.setUserInfo({ name: 'Joao Silva', phone: '31999999999' }))
 
     expect(result.current.isStepDisabled).toBe(false)
   })
@@ -93,7 +94,7 @@ describe('useBookingWizard', () => {
   it('goNext avanca step', () => {
     const { result } = renderHook(() => useBookingWizard(mockShowError))
 
-    act(() => result.current.toggleService({ id: 's1', name: 'Corte', price: 35, duration: 40 }))
+    act(() => result.current.setUserInfo({ name: 'Joao Silva', phone: '31999999999' }))
     act(() => result.current.goNext())
     expect(result.current.step).toBe(2)
   })

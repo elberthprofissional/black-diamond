@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users, ChevronDown, User, LogOut, Clock } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
+import { useBarberName } from '../../hooks/useBarberName';
  
 const AdminSidebar: React.FC = () => {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ const AdminSidebar: React.FC = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const handleLogout = useAdminLogout();
+  const { barberName } = useBarberName();
  
   const isActive = (path: string) => location.pathname === path;
  
@@ -99,7 +101,7 @@ const AdminSidebar: React.FC = () => {
               <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#0A0A0A] rounded-full" />
             </div>
             <div className="text-left flex-1 min-w-0">
-              <p className="text-[11px] font-bold text-white truncate leading-none">{import.meta.env.VITE_ADMIN_NAME || 'Admin'}</p>
+              <p className="text-[11px] font-bold text-white truncate leading-none">{barberName}</p>
             </div>
             <ChevronDown size={14} className={`text-zinc-600 transition-transform duration-200 shrink-0 ${isProfileOpen ? 'rotate-180' : ''}`} />
           </button>

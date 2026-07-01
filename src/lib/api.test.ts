@@ -2,13 +2,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 let queryResult: { data: unknown; error: unknown } = { data: [], error: null }
 const mockRpc = vi.fn()
+const mockFrom = vi.fn()
 
 function createQueryBuilder() {
   const builder = {
     select: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
+    neq: vi.fn().mockReturnThis(),
     in: vi.fn().mockReturnThis(),
+    not: vi.fn().mockReturnThis(),
+    gte: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockImplementation(() => Promise.resolve(queryResult)),
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
     delete: vi.fn().mockReturnThis(),
@@ -22,19 +28,25 @@ let queryBuilder = createQueryBuilder()
 
 vi.mock('./supabase', () => ({
   supabase: {
-    from: vi.fn(() => {
-      queryBuilder = createQueryBuilder()
-      return queryBuilder
-    }),
+    from: mockFrom,
     rpc: mockRpc,
   },
 }))
+
+mockFrom.mockImplementation(() => {
+  queryBuilder = createQueryBuilder()
+  return queryBuilder
+})
 
 const { getServices, createBooking, getAvailableSlots, getBookings, updateBookingStatus, deleteBooking, toggleSlotBlock, unblockDay, getClients, deleteClient, createClient, updateClient, submitReview, getAverageRating, getTopReviews, autoCompleteExpiredBookings } = await import('./api')
 
 beforeEach(() => {
   vi.clearAllMocks()
   queryResult = { data: [], error: null }
+  mockFrom.mockImplementation(() => {
+    queryBuilder = createQueryBuilder()
+    return queryBuilder
+  })
 })
 
 describe('getServices', () => {
@@ -246,10 +258,19 @@ describe('deleteClient', () => {
 
 describe('createClient', () => {
   it('cria novo cliente', async () => {
-    queryResult = {
-      data: { id: 'c1', name: 'Novo', phone: '123' },
-      error: null,
-    }
+    let fromCallCount = 0
+    mockFrom.mockImplementation(() => {
+      fromCallCount++
+      const builder = createQueryBuilder()
+      if (fromCallCount === 1) {
+        // Duplicate check: no existing client
+        builder.maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+      } else {
+        // Insert: return created client
+        builder.single = vi.fn().mockResolvedValue({ data: { id: 'c1', name: 'Novo', phone: '123' }, error: null })
+      }
+      return builder
+    })
     const result = await createClient({ name: 'Novo', phone: '123' })
     expect(result.name).toBe('Novo')
   })
