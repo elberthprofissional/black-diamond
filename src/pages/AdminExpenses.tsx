@@ -1,12 +1,23 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, ChevronLeft, ChevronRight, Trash2, ShoppingBag, Home, Wrench, Settings, Zap, MoreHorizontal, Check, X } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Trash2, ShoppingBag, Home, Wrench, Settings, Zap, MoreHorizontal, Check, X, Repeat } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
 import AddExpenseModal from '../components/Admin/shared/AddExpenseModal';
-import { getExpenses, createExpense, deleteExpense } from '../lib/api';
+import AddRecurringModal from '../components/Admin/shared/AddRecurringModal';
+import { getExpenses, createExpense, deleteExpense, getRecurringExpenses, deleteRecurringExpense, autoCreateRecurringExpenses } from '../lib/api';
 import { useToast } from '../hooks/useToast';
 import { getErrorMessage } from '../lib/utils';
 import type { Expense } from '../types';
+
+interface RecurringExpense {
+  id: string;
+  description: string;
+  amount: number;
+  day_of_month: number;
+  category: string;
+  active: boolean;
+  created_at: string;
+}
 
 const CATEGORY_CONFIG: Record<string, { icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>; color: string }> = {
   'Produtos': { icon: ShoppingBag, color: '#C5A059' },
@@ -22,8 +33,10 @@ const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
 const AdminExpenses: React.FC = () => {
   const { showSuccess, showError } = useToast();
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [recurringExpenses, setRecurringExpenses] = useState<RecurringExpense[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRecurringModalOpen, setIsRecurringModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
@@ -33,11 +46,16 @@ const AdminExpenses: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'single' | 'bulk'; id?: string }>({ type: 'bulk' });
+  const [showRecurring, setShowRecurring] = useState(false);
 
   const loadData = async () => {
     try {
-      const data = await getExpenses(currentMonth);
-      setExpenses(data);
+      const [expData, recData] = await Promise.all([
+        getExpenses(currentMonth),
+        getRecurringExpenses()
+      ]);
+      setExpenses(expData);
+      setRecurringExpenses(recData);
     } catch (error) {
       showError(getErrorMessage(error));
     } finally {
@@ -51,6 +69,18 @@ const AdminExpenses: React.FC = () => {
     if (!selectMode) setSelectedIds(new Set());
   }, [selectMode]);
 
+  // Auto-create recurring expenses when month loads
+  useEffect(() => {
+    if (!loading && recurringExpenses.length > 0) {
+      const [y, m] = currentMonth.split('-').map(Number);
+      autoCreateRecurringExpenses(y, m).then((created) => {
+        if (created && Array.isArray(created) && created.length > 0) {
+          loadData();
+        }
+      }).catch(() => {});
+    }
+  }, [loading, recurringExpenses.length, currentMonth]);
+
   const handleSave = async (data: { description: string; amount: number; expense_date: string; category: string }) => {
     setSaving(true);
     try {
@@ -63,6 +93,12 @@ const AdminExpenses: React.FC = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSaveRecurring = async () => {
+    setIsRecurringModalOpen(false);
+    showSuccess('Despesa recorrente criada!');
+    await loadData();
   };
 
   const confirmDelete = async () => {
@@ -83,6 +119,16 @@ const AdminExpenses: React.FC = () => {
       showError(getErrorMessage(error));
     } finally {
       setDeleteConfirmOpen(false);
+    }
+  };
+
+  const handleDeleteRecurring = async (id: string) => {
+    try {
+      await deleteRecurringExpense(id);
+      setRecurringExpenses(prev => prev.filter(e => e.id !== id));
+      showSuccess('Despesa recorrente removida!');
+    } catch (error) {
+      showError(getErrorMessage(error));
     }
   };
 
@@ -216,6 +262,53 @@ const AdminExpenses: React.FC = () => {
           </div>
         )}
 
+        {/* Recurring expenses toggle */}
+        <button
+          onClick={() => setShowRecurring(!showRecurring)}
+          className="w-full flex items-center justify-between px-4 py-3 bg-white/[0.02] border border-white/[0.04] rounded-xl hover:bg-white/[0.03] transition-all cursor-pointer"
+        >
+          <div className="flex items-center gap-2">
+            <Repeat size={14} className="text-[#C5A059]" />
+            <span className="text-[11px] font-bold text-white uppercase tracking-wider">Despesas Recorrentes</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-zinc-500">{recurringExpenses.length} ativa(s)</span>
+            <ChevronRight size={14} className={`text-zinc-500 transition-transform ${showRecurring ? 'rotate-90' : ''}`} />
+          </div>
+        </button>
+
+        {showRecurring && (
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">Recorrentes</p>
+              <button onClick={() => setIsRecurringModalOpen(true)} className="text-[9px] font-bold text-[#C5A059] uppercase tracking-wider hover:text-[#A68233] transition-colors cursor-pointer">+ Adicionar</button>
+            </div>
+            {recurringExpenses.length === 0 ? (
+              <p className="text-[10px] text-zinc-600 italic py-2">Nenhuma despesa recorrente configurada.</p>
+            ) : (
+              recurringExpenses.map((rec) => {
+                const config = CATEGORY_CONFIG[rec.category] || CATEGORY_CONFIG['Outros'];
+                const Icon = config.icon;
+                return (
+                  <div key={rec.id} className="flex items-center gap-3 bg-[#C5A059]/[0.03] border border-[#C5A059]/10 rounded-xl px-4 py-3 group">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${config.color}15` }}>
+                      <Icon size={14} style={{ color: config.color }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-semibold text-white truncate">{rec.description}</p>
+                      <p className="text-[9px] text-zinc-500">Dia {rec.day_of_month} de cada mês</p>
+                    </div>
+                    <span className="text-[11px] font-bold text-[#C5A059] tabular-nums shrink-0">R$ {Number(rec.amount).toFixed(0)}</span>
+                    <button onClick={() => handleDeleteRecurring(rec.id)} className="text-zinc-600 hover:text-red-400 transition-all cursor-pointer opacity-0 group-hover:opacity-100 shrink-0">
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
         {/* Expense list */}
         <div className="space-y-2">
           {loading ? (
@@ -268,6 +361,7 @@ const AdminExpenses: React.FC = () => {
       </div>
 
       <AddExpenseModal isOpen={isModalOpen} onSave={handleSave} onCancel={() => setIsModalOpen(false)} saving={saving} />
+      <AddRecurringModal isOpen={isRecurringModalOpen} onSave={handleSaveRecurring} onCancel={() => setIsRecurringModalOpen(false)} saving={saving} />
 
       {/* Delete confirmation modal */}
       <AnimatePresence>

@@ -374,4 +374,32 @@ export const deleteExpense = async (id: string) => {
   if (error) throw error;
 };
 
+// Recurring Expenses
+export const getRecurringExpenses = async () => {
+  const { data, error } = await supabase.rpc('get_recurring_expenses');
+  if (error) throw error;
+  return data || [];
+};
+
+export const createRecurringExpense = async (data: { description: string; amount: number; day_of_month: number; category: string }) => {
+  const { data: newExpense, error } = await supabase
+    .from('recurring_expenses')
+    .insert(data)
+    .select()
+    .single();
+  if (error) throw error;
+  return newExpense;
+};
+
+export const deleteRecurringExpense = async (id: string) => {
+  const { error } = await supabase.from('recurring_expenses').delete().eq('id', id);
+  if (error) throw error;
+};
+
+export const autoCreateRecurringExpenses = async (year: number, month: number) => {
+  const { data, error } = await supabase.rpc('auto_create_recurring_expenses', { p_year: year, p_month: month });
+  if (error) throw error;
+  return data || [];
+};
+
 
