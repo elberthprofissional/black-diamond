@@ -267,12 +267,30 @@ const AdminProfile: React.FC = () => {
           <div className="flex-1">
             <h1 className="text-lg font-bold text-white tracking-tight">{greeting}, Tato</h1>
           </div>
-          <button
-            onClick={() => setShowLogoutConfirm(true)}
-            className="px-3 py-1.5 text-[9px] font-bold text-zinc-500 hover:text-red-400 border border-white/[0.06] hover:border-red-500/20 rounded-lg uppercase tracking-wider transition-all cursor-pointer shrink-0"
-          >
-            Sair
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleToggleNotifications}
+              className={`px-3 py-1.5 text-[9px] font-bold border rounded-lg uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+                isSubscribed
+                  ? 'text-[#C5A059] border-[#C5A059]/30 bg-[#C5A059]/5'
+                  : 'text-zinc-500 border-white/[0.06] hover:text-white hover:border-white/[0.12]'
+              }`}
+            >
+              {isSubscribed ? 'Notificando' : 'Notificar'}
+            </button>
+            <button
+              onClick={() => setShowResetConfirm(true)}
+              className="px-3 py-1.5 text-[9px] font-bold text-zinc-500 hover:text-red-400 border border-white/[0.06] hover:border-red-500/20 rounded-lg uppercase tracking-wider transition-all cursor-pointer shrink-0"
+            >
+              Limpar
+            </button>
+            <button
+              onClick={() => setShowLogoutConfirm(true)}
+              className="px-3 py-1.5 text-[9px] font-bold text-zinc-500 hover:text-red-400 border border-white/[0.06] hover:border-red-500/20 rounded-lg uppercase tracking-wider transition-all cursor-pointer shrink-0"
+            >
+              Sair
+            </button>
+          </div>
         </div>
 
 
