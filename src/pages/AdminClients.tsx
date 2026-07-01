@@ -243,7 +243,11 @@ const AdminClients: React.FC = () => {
     if (!selectedClient?.phone) return;
     let formattedPhone = selectedClient.phone.replace(/\D/g, '');
     if (formattedPhone.length === 10 || formattedPhone.length === 11) { formattedPhone = '55' + formattedPhone; }
-    window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(template)}`, '_blank');
+    try {
+      window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(template)}`, '_blank');
+    } catch {
+      // popup bloqueado no mobile
+    }
     markReminderSent(selectedClient.id);
     setIsReminderOpen(false);
   };

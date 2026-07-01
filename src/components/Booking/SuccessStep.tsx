@@ -33,7 +33,11 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ selectedDate, selectedTime, t
   useEffect(() => {
     if (whatsappUrl) {
       const timer = setTimeout(() => {
-        window.open(whatsappUrl, '_blank');
+        try {
+          window.open(whatsappUrl, '_blank');
+        } catch {
+          // popup bloqueado no mobile, ignora
+        }
       }, 1500);
       return () => clearTimeout(timer);
     }
