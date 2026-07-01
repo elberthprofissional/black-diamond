@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getClients, getBookings, getBookingsForStats, deleteClient, updateClient, updateClientNotes, createClient, toggleClientFavorite } from '../lib/api';
+import { getClients, getBookings, getBookingsForStats, deleteClient, updateClient, updateClientNotes, createClient } from '../lib/api';
 import { formatPhone, getErrorMessage } from '../lib/utils';
 import { useToast } from '../hooks/useToast';
 import AdminLayout from '../components/Admin/AdminLayout';
@@ -16,7 +16,6 @@ import type { Client, ClientWithStats, BookingWithClient } from '../types';
 
 const AdminClients: React.FC = () => {
   const [clients, setClients] = useState<ClientWithStats[]>([]);
-  const [allClients, setAllClients] = useState<ClientWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const { toast, showSuccess, showError } = useToast();
@@ -131,20 +130,6 @@ const AdminClients: React.FC = () => {
         })
       enriched.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       setClients(enriched);
-
-      const allEnriched: ClientWithStats[] = (clientsData || [])
-        .filter((c: Client) => c && c.name && c.name !== 'BLOQUEADO' && c.name !== 'CLIENTE EXCLUIDO' && c.phone !== '00000000000' && !(c as unknown as Record<string, unknown>).is_blocked)
-        .map((c: Client) => {
-          const cb = (bookingsData || []).filter((b) => b && b.client_id === c.id && b.status !== 'cancelled');
-          return {
-            ...c,
-            lastVisit: 'Nunca',
-            totalSpent: cb.reduce((s, b) => s + Number(b.total_price || 0), 0),
-            bookingsCount: cb.length,
-            upcomingBooking: null
-          };
-        });
-      setAllClients(allEnriched);
     } catch { /* ignored */ } finally { setLoading(false); }
   };
 
