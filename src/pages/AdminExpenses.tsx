@@ -126,9 +126,9 @@ const AdminExpenses: React.FC = () => {
           <div>
             <h1 className="text-lg font-black text-white uppercase tracking-wider">Investimentos</h1>
             <p className="text-xs text-zinc-500 mt-0.5">
-              Fixo: <span className="font-bold text-red-400">R$ {totalFixo.toFixed(0)}</span>
+              Aluguel: <span className="font-bold text-red-400">R$ {totalFixo.toFixed(0)}</span>
               <span className="text-zinc-600 mx-1.5">|</span>
-              Variável: <span className="font-bold text-[#C5A059]">R$ {total.toFixed(0)}</span>
+              Outros: <span className="font-bold text-[#C5A059]">R$ {total.toFixed(0)}</span>
             </p>
           </div>
           <button onClick={() => setIsModalOpen(true)} className="h-10 px-4 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-wider rounded-xl flex items-center gap-1.5 transition-all cursor-pointer active:scale-95">
@@ -151,7 +151,7 @@ const AdminExpenses: React.FC = () => {
         {/* Fixed expenses (Aluguel) */}
         {fixedExpenses.length > 0 && (
           <div className="space-y-2">
-            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">Fixos</p>
+            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">Aluguel</p>
             {fixedExpenses.map((fixed) => (
               <div key={fixed.id} className="flex items-center gap-3 bg-white/[0.02] border border-white/[0.04] rounded-xl px-4 py-3">
                 <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
@@ -187,7 +187,7 @@ const AdminExpenses: React.FC = () => {
 
         {/* Variable expenses */}
         <div className="space-y-1">
-          <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">Variáveis</p>
+          <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">Outros Gastos</p>
           {loading ? (
             <div className="py-12 flex justify-center">
               <div className="w-5 h-5 border-2 border-zinc-800 border-t-[#C5A059] rounded-full animate-spin" />
