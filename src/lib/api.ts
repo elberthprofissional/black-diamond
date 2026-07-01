@@ -2,6 +2,8 @@ import { supabase } from './supabase';
 import type { Service, Booking } from '../types';
 
 // Services
+
+/** Busca todos os serviços cadastrados, deduplicados por nome. */
 export const getServices = async (): Promise<Service[]> => {
   const { data, error } = await supabase
     .from('services')
@@ -21,6 +23,8 @@ export const getServices = async (): Promise<Service[]> => {
 };
 
 // Bookings
+
+/** Cria um agendamento via RPC, criando o cliente automaticamente se necessário. Valida campos obrigatórios no client-side. */
 export const createBooking = async (
   bookingData: Omit<Booking, 'id' | 'created_at' | 'status' | 'client_id'>,
   clientData: { name: string; phone: string; email?: string }
@@ -58,6 +62,7 @@ export const createBooking = async (
   return Array.isArray(data) ? data : [data];
 };
 
+/** Busca horários disponíveis para uma data via RPC, excluindo slots ocupados e bloqueados. */
 export const getAvailableSlots = async (date: string) => {
   const { data, error } = await supabase.rpc('get_available_slots', {
     p_date: date
@@ -66,6 +71,7 @@ export const getAvailableSlots = async (date: string) => {
   return (data || []).map((item: { slot_time: string }) => (item?.slot_time ?? '').slice(0, 5)).filter(Boolean);
 };
 
+/** Busca agendamentos, opcionalmente filtrados por data. Retorna bookings com dados do cliente. */
 export const getBookings = async (date?: string) => {
   let query = supabase
     .from('bookings')
@@ -87,6 +93,7 @@ export const getBookings = async (date?: string) => {
   return data || [];
 };
 
+/** Atualiza o status de um agendamento (confirmed, completed, cancelled, pending). */
 export const updateBookingStatus = async (id: string, status: 'confirmed' | 'completed' | 'cancelled' | 'pending') => {
   const { error } = await supabase
     .from('bookings')
@@ -96,6 +103,7 @@ export const updateBookingStatus = async (id: string, status: 'confirmed' | 'com
   if (error) throw error;
 };
 
+/** Exclui permanentemente um agendamento pelo ID. */
 export const deleteBooking = async (id: string) => {
   const { error } = await supabase
     .from('bookings')
@@ -105,6 +113,7 @@ export const deleteBooking = async (id: string) => {
   if (error) throw error;
 };
 
+/** Alterna o bloqueio de um horário específico via RPC. */
 export const toggleSlotBlock = async (date: string, time: string) => {
   const { data, error } = await supabase.rpc('toggle_slot_block', {
     p_date: date,
@@ -114,6 +123,7 @@ export const toggleSlotBlock = async (date: string, time: string) => {
   return data;
 };
 
+/** Desbloqueia todos os horários de um dia via RPC. */
 export const unblockDay = async (date: string) => {
   const { error } = await supabase.rpc('unblock_day', {
     p_date: date
@@ -121,6 +131,7 @@ export const unblockDay = async (date: string) => {
   if (error) throw error;
 };
 
+/** Marca como concluídos os agendamentos cujo horário já passou. Retorna a quantidade de bookings atualizados. */
 export const autoCompleteExpiredBookings = async (date: string): Promise<number> => {
   const { data: bookings, error } = await supabase
     .from('bookings')
@@ -162,6 +173,7 @@ export const autoCompleteExpiredBookings = async (date: string): Promise<number>
   return expiredIds.length;
 };
 
+/** Busca todos os bookings (sem filtro de data) para cálculo de estatísticas. */
 export const getBookingsForStats = async () => {
   const { data, error } = await supabase
     .from('bookings')
@@ -173,6 +185,8 @@ export const getBookingsForStats = async () => {
 };
 
 // Clients
+
+/** Busca todos os clientes cadastrados, ordenados por nome. */
 export const getClients = async () => {
   const { data, error } = await supabase
     .from('clients')
@@ -183,6 +197,8 @@ export const getClients = async () => {
 };
 
 // Data reset
+
+/** Marca todos os agendamentos ativos como concluídos (usado no reset de dados). */
 export const completeAllActiveBookings = async (): Promise<number> => {
   const { data, error } = await supabase
     .from('bookings')
@@ -194,6 +210,7 @@ export const completeAllActiveBookings = async (): Promise<number> => {
   return data?.length || 0;
 };
 
+/** Exclui todos os agendamentos permanentemente. */
 export const deleteAllBookings = async (): Promise<number> => {
   const { data, error } = await supabase
     .from('bookings')
@@ -204,6 +221,7 @@ export const deleteAllBookings = async (): Promise<number> => {
   return data?.length || 0;
 };
 
+/** Soft-deleta todos os clientes (substitui nome/telefone) e exclui seus agendamentos. */
 export const deleteAllClients = async (): Promise<number> => {
   // First delete all bookings to avoid FK issues
   const { error: bookingError } = await supabase
@@ -231,6 +249,7 @@ export const deleteAllClients = async (): Promise<number> => {
 
   return clients.length;
 };
+/** Soft-deleta um cliente substituindo nome e telefone (mantém integridade referencial). */
 export const deleteClient = async (id: string) => {
   // Use the client's own UUID in the deleted phone to guarantee uniqueness,
   // even under concurrent deletes (phone has a UNIQUE constraint).
@@ -243,6 +262,7 @@ export const deleteClient = async (id: string) => {
   if (error) throw error;
 };
 
+/** Cria um novo cliente. Verifica duplicidade de telefone antes de inserir. */
 export const createClient = async (data: { name: string; phone: string; email?: string; notes?: string; manually_added?: boolean }) => {
   const { data: existing } = await supabase
     .from('clients')
@@ -265,6 +285,7 @@ export const createClient = async (data: { name: string; phone: string; email?: 
   return newClient;
 };
 
+/** Atualiza dados de um cliente. Verifica se o telefone não pertence a outro cliente. */
 export const updateClient = async (id: string, data: { name: string; phone: string; email?: string }) => {
   const { data: existing } = await supabase
     .from('clients')
@@ -286,6 +307,7 @@ export const updateClient = async (id: string, data: { name: string; phone: stri
   if (error) throw error;
 };
 
+/** Atualiza as notas de um cliente. */
 export const updateClientNotes = async (id: string, notes: string) => {
   const { error } = await supabase
     .from('clients')
@@ -295,6 +317,7 @@ export const updateClientNotes = async (id: string, notes: string) => {
   if (error) throw error;
 };
 
+/** Alterna o status de favorito de um cliente. */
 export const toggleClientFavorite = async (id: string, isFavorite: boolean) => {
   const { error } = await supabase
     .from('clients')
@@ -304,6 +327,7 @@ export const toggleClientFavorite = async (id: string, isFavorite: boolean) => {
   if (error) throw error;
 };
 
+/** Alterna o status de mensalista de um cliente. */
 export const toggleClientMensalista = async (id: string, isMensalista: boolean) => {
   const { error } = await supabase
     .from('clients')
@@ -313,6 +337,7 @@ export const toggleClientMensalista = async (id: string, isMensalista: boolean) 
   if (error) throw error;
 };
 
+/** Busca um cliente pelo número de telefone. */
 export const getClientByPhone = async (phone: string) => {
   const { data, error } = await supabase
     .from('clients')
@@ -326,6 +351,8 @@ export const getClientByPhone = async (phone: string) => {
 };
 
 // Reviews
+
+/** Submete uma avaliação (1-5 estrelas) para um agendamento. */
 export const submitReview = async (bookingId: string, clientId: string, rating: number, comment?: string) => {
   if (rating < 1 || rating > 5) throw new Error('Avaliação deve ser entre 1 e 5');
   const { error } = await supabase
@@ -335,6 +362,7 @@ export const submitReview = async (bookingId: string, clientId: string, rating: 
   if (error) throw error;
 };
 
+/** Retorna a média e total de avaliações via RPC. */
 export const getAverageRating = async () => {
   const { data, error } = await supabase.rpc('get_average_rating');
   if (error) throw error;
@@ -342,6 +370,7 @@ export const getAverageRating = async () => {
   return data as { average: number; total: number };
 };
 
+/** Retorna as melhores avaliações para exibição no slider. */
 export const getTopReviews = async (limit = 10) => {
   const { data, error } = await supabase.rpc('get_top_reviews', { p_limit: limit });
   if (error) throw error;
@@ -349,6 +378,8 @@ export const getTopReviews = async (limit = 10) => {
 };
 
 // Expenses
+
+/** Busca despesas, opcionalmente filtradas por mês (formato YYYY-MM). */
 export const getExpenses = async (month?: string) => {
   let query = supabase.from('expenses').select('*').order('expense_date', { ascending: false });
   if (month) {
@@ -359,6 +390,7 @@ export const getExpenses = async (month?: string) => {
   return data || [];
 };
 
+/** Cria uma nova despesa variável. */
 export const createExpense = async (data: { description: string; amount: number; expense_date: string; category: string }) => {
   const { data: newExpense, error } = await supabase
     .from('expenses')
@@ -369,18 +401,22 @@ export const createExpense = async (data: { description: string; amount: number;
   return newExpense;
 };
 
+/** Exclui uma despesa pelo ID. */
 export const deleteExpense = async (id: string) => {
   const { error } = await supabase.from('expenses').delete().eq('id', id);
   if (error) throw error;
 };
 
 // Recurring Expenses
+
+/** Busca despesas recorrentes (ex: internet, streaming) via RPC. */
 export const getRecurringExpenses = async () => {
   const { data, error } = await supabase.rpc('get_recurring_expenses');
   if (error) throw error;
   return data || [];
 };
 
+/** Cria uma nova despesa recorrente. */
 export const createRecurringExpense = async (data: { description: string; amount: number; day_of_month: number; category: string }) => {
   const { data: newExpense, error } = await supabase
     .from('recurring_expenses')
@@ -391,11 +427,13 @@ export const createRecurringExpense = async (data: { description: string; amount
   return newExpense;
 };
 
+/** Exclui uma despesa recorrente pelo ID. */
 export const deleteRecurringExpense = async (id: string) => {
   const { error } = await supabase.from('recurring_expenses').delete().eq('id', id);
   if (error) throw error;
 };
 
+/** Cria automaticamente despesas recorrentes para um mês/ano específico. */
 export const autoCreateRecurringExpenses = async (year: number, month: number) => {
   const { data, error } = await supabase.rpc('auto_create_recurring_expenses', { p_year: year, p_month: month });
   if (error) throw error;
@@ -403,12 +441,15 @@ export const autoCreateRecurringExpenses = async (year: number, month: number) =
 };
 
 // Fixed Expenses (Aluguel, etc)
+
+/** Busca despesas fixas ativas (aluguel, condomínio, etc). */
 export const getFixedExpenses = async () => {
   const { data, error } = await supabase.from('fixed_expenses').select('*').eq('active', true).order('category');
   if (error) throw error;
   return data || [];
 };
 
+/** Atualiza o valor de uma despesa fixa. */
 export const updateFixedExpense = async (id: string, amount: number) => {
   const { error } = await supabase.from('fixed_expenses').update({ amount }).eq('id', id);
   if (error) throw error;

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Star, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { supabase } from '../lib/supabase';
 
 const RatingPage: React.FC = () => {
   const { bookingId } = useParams<{ bookingId: string }>();
@@ -22,8 +23,6 @@ const RatingPage: React.FC = () => {
     setError('');
 
     try {
-      const { supabase } = await import('../lib/supabase');
-
       const { data: booking } = await supabase
         .from('bookings')
         .select('client_id')

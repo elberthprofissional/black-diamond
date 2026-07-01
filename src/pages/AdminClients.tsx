@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useDeferredValue } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getClients, getBookings, getBookingsForStats, deleteClient, updateClient, updateClientNotes, createClient, toggleClientMensalista } from '../lib/api';
 import { formatPhone, getErrorMessage } from '../lib/utils';
+import { supabase } from '../lib/supabase';
 import { useToast } from '../hooks/useToast';
 import AdminLayout from '../components/Admin/AdminLayout';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
@@ -37,8 +38,6 @@ const AdminClients: React.FC = () => {
   const [newClientNotes, setNewClientNotes] = useState('');
   const [isSavingClient, setIsSavingClient] = useState(false);
   const [newClientError, setNewClientError] = useState('');
-  const [inactiveClients, setInactiveClients] = useState<ClientWithStats[]>([]);
-  const [showCleanup, setShowCleanup] = useState(false);
   const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [remindersSent, setRemindersSent] = useState<Record<string, string>>(() => {
     try {
@@ -104,11 +103,9 @@ const AdminClients: React.FC = () => {
       const [clientsData, bookingsData] = await Promise.all([getClients(), getBookingsForStats()]);
       const todayISO = new Date();
       todayISO.setHours(0, 0, 0, 0);
-      const cutoffDate = new Date(todayISO);
-      cutoffDate.setDate(cutoffDate.getDate() - 45);
 
       const allEnriched: ClientWithStats[] = (clientsData || [])
-        .filter((c: Client) => c && c.name && c.name !== 'BLOQUEADO' && c.name !== 'CLIENTE EXCLUIDO' && c.phone !== '00000000000' && !(c as unknown as Record<string, unknown>).is_blocked)
+        .filter((c: Client) => c && c.name && c.name !== 'BLOQUEADO' && c.name !== 'CLIENTE EXCLUIDO' && c.phone !== '00000000000' && !c.is_blocked)
         .map((c: Client) => {
           const cb = (bookingsData || []).filter((b) => b && b.client_id === c.id && b.status !== 'cancelled');
           const upcoming = cb.filter((b) => {
@@ -130,29 +127,22 @@ const AdminClients: React.FC = () => {
               date: new Date(upcoming.booking_date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
               time: (upcoming.booking_time || '').slice(0, 5)
             } : null,
-            lastBookingDate: lb ? new Date(lb.booking_date) : null
           };
         });
-
-      // Inactive clients: 1 booking + last booking > 45 days ago
-      const inactive = allEnriched.filter(c => {
-        if (c.bookingsCount !== 1) return false;
-        if (!c.lastBookingDate) return false;
-        return c.lastBookingDate < cutoffDate;
-      });
-      setInactiveClients(inactive);
 
       const enriched = allEnriched
         .filter((c) => c.bookingsCount >= 2 || c.manually_added);
       enriched.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       setClients(enriched);
-    } catch { /* ignored */ } finally { setLoading(false); }
+    } catch (e) { console.error('Erro ao carregar dados:', e); showError('Erro ao carregar dados.'); } finally { setLoading(false); }
   };
 
   useEffect(() => { loadData(); }, []);
 
+  const debouncedSearch = useDeferredValue(searchTerm);
+
   const filteredClients = clients.filter(c => {
-    const matchSearch = (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.phone || '').includes(searchTerm);
+    const matchSearch = (c.name || '').toLowerCase().includes(debouncedSearch.toLowerCase()) || (c.phone || '').includes(debouncedSearch);
     let matchFilter = true;
     if (reminderFilter === 'pending') {
       matchFilter = !isReminderRecent(c.id);
@@ -209,8 +199,6 @@ const AdminClients: React.FC = () => {
     try {
       const phone = newClientPhone.trim();
       const name = newClientName.trim();
-
-      const { supabase } = await import('../lib/supabase');
 
       const { data: existingPhone } = await supabase
         .from('clients')

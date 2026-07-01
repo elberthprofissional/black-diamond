@@ -66,8 +66,9 @@ const NewClientModal: React.FC<NewClientModalProps> = ({
                   <input
                     type="text"
                     value={name}
-                    onChange={(e) => onNameChange(e.target.value)}
+                    onChange={(e) => onNameChange(e.target.value.toUpperCase())}
                     placeholder="Nome do cliente"
+                    maxLength={100}
                     className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-700 text-left"
                     autoFocus
                   />
@@ -99,6 +100,7 @@ const NewClientModal: React.FC<NewClientModalProps> = ({
                     value={notes}
                     onChange={(e) => onNotesChange(e.target.value)}
                     placeholder="Ex: Prefere degradê baixo..."
+                    maxLength={500}
                     className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-600 resize-none h-16 text-left"
                   />
                 </div>

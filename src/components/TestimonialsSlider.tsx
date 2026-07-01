@@ -38,7 +38,7 @@ const Testimonials: React.FC = () => {
           })));
         }
       })
-      .catch(() => {});
+      .catch((e) => console.error('Erro ao buscar avaliações:', e));
   }, []);
 
   const handleScroll = useCallback(() => {

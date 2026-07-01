@@ -11,6 +11,15 @@
   --color-dark-border: rgba(255, 255, 255, 0.05);
   --color-dark-muted: #737373;
 
+  --z-dropdown: 30;
+  --z-sticky: 50;
+  --z-fixed: 100;
+  --z-overlay: 200;
+  --z-modal: 250;
+  --z-popover: 300;
+  --z-toast: 350;
+  --z-banner: 9999;
+
   --font-sans: "Plus Jakarta Sans", sans-serif;
   --font-bebas: "Bebas Neue", sans-serif;
   --font-roboto: "Roboto", sans-serif;

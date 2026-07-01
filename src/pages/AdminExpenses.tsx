@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, ChevronLeft, ChevronRight, Trash2, Home, Pencil, Check, X } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Trash2, Home, Pencil, Check, X, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
 import AddExpenseModal from '../components/Admin/shared/AddExpenseModal';
@@ -98,21 +98,35 @@ const AdminExpenses: React.FC = () => {
     }
   };
 
-  const faturamentoMes = useMemo(() => {
-    const [y, m] = currentMonth.split('-').map(Number);
+  const calcFaturamento = (monthKey: string) => {
+    const [y, m] = monthKey.split('-').map(Number);
     const start = new Date(y, m - 1, 1);
+    const end = new Date(y, m, 0, 23, 59, 59);
     return bookings
       .filter(b => {
         if (!b.booking_date || b.status === 'cancelled') return false;
         const d = new Date(b.booking_date + 'T12:00:00');
-        return d >= start;
+        return d >= start && d <= end;
       })
       .reduce((sum, b) => sum + Number(b.total_price || 0), 0);
-  }, [bookings, currentMonth]);
+  };
+
+  const faturamentoMes = useMemo(() => calcFaturamento(currentMonth), [bookings, currentMonth]);
 
   const totalGastos = useMemo(() => expenses.reduce((sum, e) => sum + Number(e.amount), 0), [expenses]);
   const aluguel = useMemo(() => fixedExpenses.find(f => f.category === 'Aluguel')?.amount || 0, [fixedExpenses]);
   const lucro = faturamentoMes - totalGastos - aluguel;
+
+  // Previous month comparison
+  const prevMonth = useMemo(() => {
+    const [y, m] = currentMonth.split('-').map(Number);
+    const d = new Date(y, m - 2, 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }, [currentMonth]);
+
+  const prevFaturamento = useMemo(() => calcFaturamento(prevMonth), [bookings, prevMonth]);
+  const diffFaturamento = faturamentoMes - prevFaturamento;
+  const diffPercent = prevFaturamento > 0 ? ((diffFaturamento / prevFaturamento) * 100) : 0;
 
   const navigateMonth = (dir: number) => {
     const [y, m] = currentMonth.split('-').map(Number);
@@ -145,15 +159,15 @@ const AdminExpenses: React.FC = () => {
           </button>
         </div>
 
-        {/* Resumo: Total (faturamento), Aluguel, Lucro */}
+        {/* Resumo */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 text-center">
-            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Total</p>
+            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Faturamento</p>
             <p className="text-lg font-black text-emerald-400">R$ {faturamentoMes.toFixed(0)}</p>
           </div>
           <div className="bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 text-center">
-            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Aluguel</p>
-            <p className="text-lg font-black text-red-400">R$ {aluguel.toFixed(0)}</p>
+            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Gastos</p>
+            <p className="text-lg font-black text-red-400">R$ {(totalGastos + aluguel).toFixed(0)}</p>
           </div>
           <div className="bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 text-center">
             <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Lucro</p>
@@ -161,7 +175,17 @@ const AdminExpenses: React.FC = () => {
           </div>
         </div>
 
-        {/* Aluguel editavel */}
+        {/* Comparacao com mes anterior */}
+        {prevFaturamento > 0 && (
+          <div className={`flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-[11px] font-bold ${
+            diffFaturamento > 0 ? 'bg-emerald-500/10 text-emerald-400' : diffFaturamento < 0 ? 'bg-red-500/10 text-red-400' : 'bg-white/[0.02] text-zinc-500'
+          }`}>
+            {diffFaturamento > 0 ? <TrendingUp size={14} /> : diffFaturamento < 0 ? <TrendingDown size={14} /> : <Minus size={14} />}
+            {diffFaturamento > 0 ? `+R$ ${diffFaturamento.toFixed(0)} vs mês anterior (+${diffPercent.toFixed(0)}%)` : diffFaturamento < 0 ? `${diffFaturamento.toFixed(0)} vs mês anterior (${diffPercent.toFixed(0)}%)` : 'Igual ao mês anterior'}
+          </div>
+        )}
+
+        {/* Aluguel */}
         {fixedExpenses.filter(f => f.category === 'Aluguel').map((fixed) => (
           <div key={fixed.id} className="flex items-center gap-3 bg-white/[0.02] border border-white/[0.04] rounded-xl px-4 py-3">
             <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
@@ -186,9 +210,9 @@ const AdminExpenses: React.FC = () => {
           </div>
         ))}
 
-        {/* Outros gastos */}
+        {/* Gastos */}
         <div className="space-y-1">
-          <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">Outros Gastos</p>
+          <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">Gastos</p>
           {loading ? (
             <div className="py-12 flex justify-center">
               <div className="w-5 h-5 border-2 border-zinc-800 border-t-[#C5A059] rounded-full animate-spin" />

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { supabase } from '../lib/supabase'
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || ''
 
@@ -61,7 +62,6 @@ export function usePushNotifications() {
       const endpoint = subscriptionJson.endpoint || ''
       const keys = subscriptionJson.keys as { p256dh?: string; auth?: string } | undefined
 
-      const { supabase } = await import('../lib/supabase')
       await supabase.rpc('save_push_subscription', {
         p_endpoint: endpoint,
         p_p256dh: keys?.p256dh || '',
@@ -82,7 +82,6 @@ export function usePushNotifications() {
       if (subscription) {
         const endpoint = subscription.endpoint
         await subscription.unsubscribe()
-        const { supabase } = await import('../lib/supabase')
         await supabase.rpc('delete_push_subscription', { p_endpoint: endpoint })
         setIsSubscribed(false)
       }

@@ -451,6 +451,17 @@ Black Diamond/
 │   │   │   ├── AuthGuard.tsx
 │   │   │   ├── BottomTabs.tsx
 │   │   │   ├── Navbar.tsx
+│   │   │   ├── booking/        # Componentes de agendamento admin
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── BookingStepIndicator.tsx
+│   │   │   │   ├── CalendarModal.tsx
+│   │   │   │   ├── RescheduleBanner.tsx
+│   │   │   │   ├── DesktopClientStep.tsx
+│   │   │   │   ├── DesktopServicesStep.tsx
+│   │   │   │   ├── DesktopDateTimeStep.tsx
+│   │   │   │   ├── MobileClientStep.tsx
+│   │   │   │   ├── MobileServicesStep.tsx
+│   │   │   │   └── MobileDateTimeStep.tsx
 │   │   │   └── shared/         # Componentes compartilhados
 │   │   │       ├── BookingDetailPanel.tsx
 │   │   │       ├── BookingSearchModal.tsx
@@ -529,7 +540,61 @@ Black Diamond/
 
 ---
 
-## 14. Troubleshooting
+## 14. Testes
+
+### Como rodar
+
+```bash
+npm run test          # Watch mode (re-roda ao salvar)
+npm run test:run      # Executa uma vez
+npm run test:coverage # Com cobertura de codigo
+```
+
+### Estrutura
+
+- **Hooks**: `src/hooks/*.test.ts` — Testam logica de hooks customizados
+- **Utils**: `src/lib/utils.test.ts` — Testam funcoes auxiliares
+- **API**: `src/lib/api.test.ts` — Testam chamadas ao Supabase (mockadas)
+- **Componentes**: `src/components/**/*.test.tsx` — Testam renderizacao e interacao
+- **Paginas**: `src/pages/*.test.tsx` — Testam fluxos completos
+
+### Padroes de Mock
+
+```typescript
+// Mock do Supabase
+vi.mock('../lib/supabase', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      // ...
+    })),
+    rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
+  },
+}));
+
+// Mock do Framer Motion
+vi.mock('framer-motion', () => ({
+  motion: { div: 'div' },
+  AnimatePresence: ({ children }) => children,
+}));
+
+// Mock do React Router
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => vi.fn(),
+  useLocation: () => ({ pathname: '/', search: '' }),
+}));
+```
+
+### Cobertura atual
+
+- 30 arquivos de teste
+- 224+ testes
+- Hooks, Utils, API, Componentes e Paginas cobertos
+
+---
+
+## 15. Troubleshooting
 
 ### "Nenhum agendamento aparece no admin"
 - Verifique se o usuario esta na tabela `admin_users` (SELECT * FROM admin_users)

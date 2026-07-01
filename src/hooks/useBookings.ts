@@ -29,7 +29,7 @@ export function useBookings(date?: string) {
               );
             });
           }
-        }).catch(() => {});
+        }).catch((e) => console.error('Erro ao auto-completar:', e));
       }
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch bookings'));

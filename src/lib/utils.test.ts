@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { getTimeSlotsForDate, getPeriod, formatPhone, getLocalDateString, getNextDays, isTimeOccupied } from './utils'
+import { describe, it, expect, vi } from 'vitest'
+import { getTimeSlotsForDate, getPeriod, formatPhone, getLocalDateString, getNextDays, isTimeOccupied, generateIcsFile, getErrorMessage } from './utils'
 
 describe('getTimeSlotsForDate', () => {
   it('retorna slots de 8h as 19h para dias de semana', () => {
@@ -108,5 +108,52 @@ describe('isTimeOccupied', () => {
 
   it('retorna false para horario cancelado', () => {
     expect(isTimeOccupied('11:00', bookings)).toBe(false)
+  })
+})
+
+describe('generateIcsFile', () => {
+  it('cria um link e clica nele', () => {
+    const createElementSpy = vi.spyOn(document, 'createElement');
+    const appendChildSpy = vi.spyOn(document.body, 'appendChild').mockImplementation(() => ({} as Node));
+    const removeChildSpy = vi.spyOn(document.body, 'removeChild').mockImplementation(() => ({} as Node));
+    const clickSpy = vi.fn();
+
+    createElementSpy.mockReturnValue({ href: '', download: '', click: clickSpy } as unknown as HTMLAnchorElement);
+
+    generateIcsFile('Corte', '2026-07-10', '10:00', 40);
+
+    expect(clickSpy).toHaveBeenCalled();
+    expect(appendChildSpy).toHaveBeenCalled();
+    expect(removeChildSpy).toHaveBeenCalled();
+
+    createElementSpy.mockRestore();
+    appendChildSpy.mockRestore();
+    removeChildSpy.mockRestore();
+  });
+})
+
+describe('getErrorMessage', () => {
+  it('retorna mensagem para erro de rede', () => {
+    expect(getErrorMessage(new Error('Failed to fetch'))).toBe('Sem conexão com o servidor. Verifique sua internet.');
+  })
+
+  it('retorna mensagem para JWT expired', () => {
+    expect(getErrorMessage(new Error('JWT expired'))).toBe('Sessão expirada. Faça login novamente.');
+  })
+
+  it('retorna mensagem para RLS error', () => {
+    expect(getErrorMessage(new Error('new row violates row-level security'))).toBe('Sem permissão para esta ação.');
+  })
+
+  it('retorna mensagem para unique violation', () => {
+    expect(getErrorMessage(new Error('unique_violation'))).toBe('Este telefone já está cadastrado para outro cliente.');
+  })
+
+  it('retorna mensagem para erro generico', () => {
+    expect(getErrorMessage(new Error('Something else'))).toBe('Something else');
+  })
+
+  it('retorna mensagem padrao para tipo desconhecido', () => {
+    expect(getErrorMessage('not an error')).toBe('Erro inesperado. Tente novamente.');
   })
 })
