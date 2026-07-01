@@ -471,52 +471,33 @@ const AdminProfile: React.FC = () => {
                 // iOS Chrome: redirect to Safari
                 <>
                   <div className="px-6 pt-6 pb-4">
-                    <p className="text-[15px] font-semibold text-white">Chrome não suporta no iPhone</p>
-                    <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
-                      No iPhone, o app só funciona pelo <strong className="text-white">Safari</strong>. Abra este link no Safari e repita o processo.
+                    <p className="text-[15px] font-semibold text-white">Atenção!</p>
+                    <p className="text-[12px] text-zinc-500 mt-2 leading-relaxed">
+                      No iPhone, o app só pode ser instalado pelo <strong className="text-white">Safari</strong>.
                     </p>
-                  </div>
-                  <div className="px-6 pb-5">
-                    <p className="text-[10px] text-zinc-600 leading-relaxed">
-                      Copie o link e cole no Safari, ou toque em "Abrir no Safari" se disponível.
+                    <p className="text-[12px] text-zinc-500 mt-1 leading-relaxed">
+                      Abra este link no <strong className="text-white">Safari</strong> e clique em <strong className="text-[#C5A059]">Compartilhar</strong> e depois <strong className="text-[#C5A059]">Adicionar à Tela de Início</strong>.
                     </p>
                   </div>
                 </>
               ) : isIOS ? (
-                // iOS Safari: step-by-step guide
+                // iOS Safari: simple direct guide
                 <>
                   <div className="px-6 pt-6 pb-4">
-                    <p className="text-[15px] font-semibold text-white">Instalar na tela de início</p>
-                    <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
-                      No iPhone, siga os passos abaixo pelo <strong className="text-white">Safari</strong>:
+                    <p className="text-[15px] font-semibold text-white">Instalar o app</p>
+                    <p className="text-[12px] text-zinc-500 mt-2 leading-relaxed">
+                      Por favor, clique no ícone de <strong className="text-[#C5A059]">Compartilhar</strong> (quadrado com seta pra cima) na parte de baixo da tela.
+                    </p>
+                    <p className="text-[12px] text-zinc-500 mt-2 leading-relaxed">
+                      Depois clique em <strong className="text-[#C5A059]">Adicionar à Tela de Início</strong>.
+                    </p>
+                    <p className="text-[12px] text-zinc-500 mt-2 leading-relaxed">
+                      Pronto! O app vai aparecer na sua tela inicial.
                     </p>
                   </div>
-                  <div className="px-6 pb-5 space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-[#C5A059]/10 flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-[10px] font-bold text-[#C5A059]">1</span>
-                      </div>
-                      <p className="text-[12px] text-zinc-400 leading-relaxed">Toque no ícone de <strong className="text-zinc-300">Compartilhar</strong> (quadrado com seta pra cima)</p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-[#C5A059]/10 flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-[10px] font-bold text-[#C5A059]">2</span>
-                      </div>
-                      <p className="text-[12px] text-zinc-400 leading-relaxed">Role pra baixo e toque em <strong className="text-zinc-300">"Adicionar à Tela de Início"</strong></p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-[#C5A059]/10 flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-[10px] font-bold text-[#C5A059]">3</span>
-                      </div>
-                      <p className="text-[12px] text-zinc-400 leading-relaxed">Toque em <strong className="text-zinc-300">Adicionar</strong> no canto superior direito</p>
-                    </div>
-                  </div>
-                  <div className="px-6 pb-5 space-y-2">
-                    <p className="text-[10px] text-zinc-500 leading-relaxed">
-                      Depois de instalado, o app aparece na tela de início. As notificações ficam disponíveis no iOS 16.4+.
-                    </p>
-                    <p className="text-[10px] text-[#C5A059]/70 leading-relaxed font-semibold">
-                      IMPORTANTE: Não use Chrome no iPhone. O Chrome não suporta instalação de apps no iOS.
+                  <div className="px-6 pb-5">
+                    <p className="text-[10px] text-zinc-600 leading-relaxed">
+                      Não use Chrome no iPhone. Abra pelo Safari.
                     </p>
                   </div>
                 </>
