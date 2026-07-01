@@ -325,6 +325,7 @@ const AdminProfile: React.FC = () => {
       {/* ========================================================================= */}
       {/* 1. DESKTOP LAYOUT (Original layout restored) */}
       {/* ========================================================================= */}
+      {!showSettings && (
       <div className="hidden lg:flex flex-col gap-6">
         
         {/* Header */}
@@ -444,10 +445,12 @@ const AdminProfile: React.FC = () => {
           )}
         </div>
       </div>
+      )}
 
       {/* ========================================================================= */}
       {/* 2. MOBILE LAYOUT */}
       {/* ========================================================================= */}
+      {!showSettings && (
       <ProfileMobile
         greeting={greeting}
         barberName={barberName}
@@ -464,6 +467,7 @@ const AdminProfile: React.FC = () => {
         topServices={topServices}
         quickActions={quickActions}
       />
+      )}
 
       {/* LOGOUT CONFIRMATION MODAL */}
       <AnimatePresence>
