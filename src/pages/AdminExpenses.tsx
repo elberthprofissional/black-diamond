@@ -1,12 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, ChevronLeft, ChevronRight, Trash2, Home, Pencil, Check, X, TrendingUp } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Trash2, Home, Pencil, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
 import AddExpenseModal from '../components/Admin/shared/AddExpenseModal';
 import { getExpenses, createExpense, deleteExpense, getFixedExpenses, updateFixedExpense, getBookingsForStats } from '../lib/api';
 import { useToast } from '../hooks/useToast';
 import { getErrorMessage } from '../lib/utils';
-import type { Expense, Booking } from '../types';
+import type { Expense } from '../types';
+
+interface BookingForFinance {
+  booking_date: string;
+  total_price: number;
+  status: string;
+}
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -21,7 +27,7 @@ const AdminExpenses: React.FC = () => {
   const { showSuccess, showError } = useToast();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<BookingForFinance[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
