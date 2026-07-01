@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
 export function useBarberSettings() {
+  const defaultPhone = import.meta.env.VITE_BARBER_WHATSAPP || '';
+
   const [barberName, setBarberName] = useState<string>(() => {
     return localStorage.getItem('barber_name') || 'Admin';
   });
   const [barberPhone, setBarberPhone] = useState<string>(() => {
-    return localStorage.getItem('barber_phone') || '';
+    return localStorage.getItem('barber_phone') || defaultPhone;
   });
   const [loading, setLoading] = useState(true);
 
@@ -24,9 +26,10 @@ export function useBarberSettings() {
               setBarberName(row.value);
               localStorage.setItem('barber_name', row.value);
             }
-            if (row.key === 'barber_phone' && row.value) {
-              setBarberPhone(row.value);
-              localStorage.setItem('barber_phone', row.value);
+            if (row.key === 'barber_phone') {
+              const phone = row.value || defaultPhone;
+              setBarberPhone(phone);
+              localStorage.setItem('barber_phone', phone);
             }
           }
         }
@@ -38,7 +41,7 @@ export function useBarberSettings() {
     };
 
     fetchSettings();
-  }, []);
+  }, [defaultPhone]);
 
   const updateBarberName = useCallback(async (newName: string) => {
     const trimmed = newName.trim();
