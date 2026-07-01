@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getBookings, getServices, getClients, deleteAllClients } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
 import type { Booking, Service, Client } from '../types';
@@ -14,6 +15,8 @@ import ProfileMobile from '../components/Admin/shared/ProfileMobile';
 
 
 const AdminProfile: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const showSettings = searchParams.get('tab') === 'settings';
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -32,8 +35,11 @@ const AdminProfile: React.FC = () => {
   const { toast, showSuccess, showError } = useToast();
   const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
   const { barberName, updateBarberName } = useBarberName();
-  const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
+
+  useEffect(() => {
+    setNameInput(barberName);
+  }, [barberName]);
 
   useEffect(() => {
     const handleAppInstalled = () => {
@@ -265,10 +271,57 @@ const AdminProfile: React.FC = () => {
   };
 
   return (
-    <AdminLayout 
+    <AdminLayout
       mainClassName="flex-1 w-full overflow-x-hidden px-0 sm:px-8 lg:px-12 pt-20 lg:pt-8 pb-24 lg:pb-12 space-y-6 text-left max-w-7xl mx-auto font-sans"
     >
-      
+
+      {/* ========================================================================= */}
+      {/* SETTINGS VIEW */}
+      {/* ========================================================================= */}
+      {showSettings && (
+        <div className="max-w-lg mx-auto space-y-6">
+          <h1 className="text-xl font-bold tracking-tight text-white uppercase italic">Configurações</h1>
+
+          {/* Name setting */}
+          <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 space-y-4">
+            <div>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">Nome do barbeiro</span>
+              <p className="text-[11px] text-zinc-600">Aparece no menu lateral e nas saudações.</p>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                placeholder="Seu nome"
+                maxLength={30}
+                className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#C5A059]/40 focus:ring-1 focus:ring-[#C5A059]/10 transition-all placeholder:text-zinc-600"
+              />
+              <button
+                onClick={async () => {
+                  if (nameInput.trim()) {
+                    const ok = await updateBarberName(nameInput);
+                    if (ok) showSuccess('Nome alterado!');
+                    else showError('Erro ao alterar nome');
+                  }
+                }}
+                disabled={!nameInput.trim() || nameInput.trim() === barberName}
+                className="px-5 py-3 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+              >
+                Salvar
+              </button>
+            </div>
+          </div>
+
+          <button
+            onClick={() => window.history.back()}
+            className="text-[11px] text-zinc-500 hover:text-white transition-colors cursor-pointer"
+          >
+            ← Voltar ao perfil
+          </button>
+        </div>
+      )}
+
       {/* ========================================================================= */}
       {/* 1. DESKTOP LAYOUT (Original layout restored) */}
       {/* ========================================================================= */}
@@ -304,12 +357,6 @@ const AdminProfile: React.FC = () => {
               }`}
             >
               {isSubscribed ? 'Notificando' : 'Notificar'}
-            </button>
-            <button
-              onClick={() => { setNameInput(barberName); setEditingName(true); }}
-              className="px-3 py-1.5 text-[9px] font-bold text-zinc-500 hover:text-white border border-white/[0.06] hover:border-white/[0.12] rounded-lg uppercase tracking-wider transition-all cursor-pointer shrink-0"
-            >
-              Nome
             </button>
             <button
               onClick={() => setShowResetConfirm(true)}
@@ -613,83 +660,6 @@ const AdminProfile: React.FC = () => {
               </div>
 
               {/* Mobile drag indicator */}
-              <div className="sm:hidden flex justify-center pb-3 pt-1">
-                <div className="w-10 h-1 rounded-full bg-white/10" />
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* EDIT NAME MODAL */}
-      <AnimatePresence>
-        {editingName && (
-          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setEditingName(false)}
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ y: '100%', opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: '100%', opacity: 0 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-              className="relative z-10 w-full sm:max-w-[340px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
-            >
-              <div className="px-6 pt-6 pb-4">
-                <p className="text-[15px] font-semibold text-white">Alterar nome</p>
-                <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
-                  Esse nome aparece no menu lateral e nas saudações.
-                </p>
-              </div>
-
-              <div className="px-6 pb-5">
-                <input
-                  type="text"
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  placeholder="Nome do barbeiro"
-                  aria-label="Nome do barbeiro"
-                  maxLength={30}
-                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#C5A059]/40 focus:ring-1 focus:ring-[#C5A059]/10 transition-all placeholder:text-zinc-600"
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && nameInput.trim()) {
-                      updateBarberName(nameInput).then(ok => {
-                        if (ok) { showSuccess('Nome alterado!'); setEditingName(false); }
-                        else showError('Erro ao alterar nome');
-                      });
-                    }
-                  }}
-                />
-              </div>
-
-              <div className="flex border-t border-white/[0.06]">
-                <button
-                  onClick={() => setEditingName(false)}
-                  className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <div className="w-px bg-white/[0.06]" />
-                <button
-                  onClick={async () => {
-                    if (nameInput.trim()) {
-                      const ok = await updateBarberName(nameInput);
-                      if (ok) { showSuccess('Nome alterado!'); setEditingName(false); }
-                      else showError('Erro ao alterar nome');
-                    }
-                  }}
-                  disabled={!nameInput.trim()}
-                  className="flex-1 py-4 text-[13px] font-semibold text-[#C5A059] hover:text-[#A68233] active:bg-white/[0.03] transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
-                >
-                  Salvar
-                </button>
-              </div>
-
               <div className="sm:hidden flex justify-center pb-3 pt-1">
                 <div className="w-10 h-1 rounded-full bg-white/10" />
               </div>

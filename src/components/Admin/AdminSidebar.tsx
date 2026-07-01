@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Users, ChevronDown, User, LogOut, Clock } from 'lucide-react';
+import { Calendar, Users, ChevronDown, User, LogOut, Clock, Settings } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
 import { useBarberName } from '../../hooks/useBarberName';
  
@@ -123,6 +123,13 @@ const AdminSidebar: React.FC = () => {
                   >
                     <User size={14} className="text-zinc-500 shrink-0" />
                     <span className="text-[11px] font-medium">Meu Perfil</span>
+                  </button>
+                  <button
+                    onClick={() => { setIsProfileOpen(false); navigate('/admin/profile?tab=settings'); }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all"
+                  >
+                    <Settings size={14} className="text-zinc-500 shrink-0" />
+                    <span className="text-[11px] font-medium">Configurações</span>
                   </button>
                 </div>
 

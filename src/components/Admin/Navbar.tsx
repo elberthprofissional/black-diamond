@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, User, LogOut } from 'lucide-react';
+import { ChevronDown, User, LogOut, Settings } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
  
 const AdminNavbar: React.FC = () => {
@@ -67,11 +67,17 @@ const AdminNavbar: React.FC = () => {
                     className="absolute right-0 mt-2 w-48 bg-[#161618] border border-white/[0.06] rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-50 overflow-hidden"
                   >
                     <div className="p-2 space-y-1">
-                      <button 
+                      <button
                         onClick={() => { navigate('/admin/profile'); setIsMenuOpen(false); }}
                         className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-bold text-zinc-300 hover:text-white hover:bg-white/[0.04] rounded-lg transition-all"
                       >
                         <User size={13} className="text-zinc-500" /> Meu Perfil
+                      </button>
+                      <button
+                        onClick={() => { navigate('/admin/profile?tab=settings'); setIsMenuOpen(false); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-bold text-zinc-300 hover:text-white hover:bg-white/[0.04] rounded-lg transition-all"
+                      >
+                        <Settings size={13} className="text-zinc-500" /> Configurações
                       </button>
                     </div>
                     <div className="h-px bg-white/[0.04]" />

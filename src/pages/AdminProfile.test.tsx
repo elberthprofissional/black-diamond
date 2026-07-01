@@ -40,6 +40,7 @@ vi.mock('../lib/supabase', () => ({
 vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),
   useLocation: () => ({ pathname: '/admin/profile', search: '' }),
+  useSearchParams: () => [new URLSearchParams(), vi.fn()],
 }));
 
 vi.mock('../hooks/useToast', () => ({
