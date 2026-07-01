@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users, ChevronDown, User, LogOut, Clock, Settings } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
-import { useBarberName } from '../../hooks/useBarberName';
+import { useBarberSettings } from '../../hooks/useBarberSettings';
  
 const AdminSidebar: React.FC = () => {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ const AdminSidebar: React.FC = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const handleLogout = useAdminLogout();
-  const { barberName } = useBarberName();
+  const { barberName } = useBarberSettings();
  
   const isActive = (path: string) => location.pathname === path;
  

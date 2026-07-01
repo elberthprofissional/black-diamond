@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createBooking, getAvailableSlots, getBookings, getClientByPhone } from '../lib/api';
 import { getNextDays, formatPhone, getTimeSlotsForDate, getErrorMessage, generateGoogleCalendarUrl } from '../lib/utils';
 import { useServices } from './useServices';
+import { supabase } from '../lib/supabase';
 import type { Service } from '../types';
 
 const MENSALISTA_EXCLUDED_SERVICES = ['Corte de Cabelo'];
@@ -22,6 +23,7 @@ export function useBookingWizard(showError: (msg: string) => void) {
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [isMensalista, setIsMensalista] = useState(false);
   const [clientLookupLoading, setClientLookupLoading] = useState(false);
+  const [barberPhone, setBarberPhone] = useState('');
 
   const dateContainerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -105,6 +107,27 @@ export function useBookingWizard(showError: (msg: string) => void) {
     });
   }, [allNextDays, isMensalista]);
 
+  // Fetch barber phone from database (falls back to env var)
+  useEffect(() => {
+    const fetchPhone = async () => {
+      try {
+        const { data } = await supabase
+          .from('settings')
+          .select('value')
+          .eq('key', 'barber_phone')
+          .single();
+        if (data?.value) {
+          setBarberPhone(data.value);
+        } else {
+          setBarberPhone(import.meta.env.VITE_BARBER_WHATSAPP || '');
+        }
+      } catch {
+        setBarberPhone(import.meta.env.VITE_BARBER_WHATSAPP || '');
+      }
+    };
+    fetchPhone();
+  }, []);
+
   useEffect(() => {
     setSelectedTime('');
     if (selectedDate) {
@@ -169,8 +192,6 @@ export function useBookingWizard(showError: (msg: string) => void) {
       showError(getErrorMessage(error));
     } finally { setIsSubmitting(false); }
   }, [isSubmitting, selectedTime, userInfo, selectedServices, selectedDate, totalPrice, showError]);
-
-  const barberPhone = import.meta.env.VITE_BARBER_WHATSAPP || '';
 
   const handleCalendarChoice = useCallback((wantsReminder: boolean) => {
     if (wantsReminder) {

@@ -10,7 +10,7 @@ import { useAdminLogout } from '../hooks/useAdminLogout';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
 import { useToast } from '../hooks/useToast';
 import { usePushNotifications } from '../hooks/usePushNotifications';
-import { useBarberName } from '../hooks/useBarberName';
+import { useBarberSettings } from '../hooks/useBarberSettings';
 import ProfileMobile from '../components/Admin/shared/ProfileMobile';
 
 
@@ -34,12 +34,14 @@ const AdminProfile: React.FC = () => {
   const handleLogout = useAdminLogout();
   const { toast, showSuccess, showError } = useToast();
   const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
-  const { barberName, updateBarberName } = useBarberName();
+  const { barberName, barberPhone, updateBarberName, updateBarberPhone } = useBarberSettings();
   const [nameInput, setNameInput] = useState('');
+  const [phoneInput, setPhoneInput] = useState('');
 
   useEffect(() => {
     setNameInput(barberName);
-  }, [barberName]);
+    setPhoneInput(barberPhone);
+  }, [barberName, barberPhone]);
 
   useEffect(() => {
     const handleAppInstalled = () => {
@@ -279,8 +281,15 @@ const AdminProfile: React.FC = () => {
       {/* SETTINGS VIEW */}
       {/* ========================================================================= */}
       {showSettings && (
-        <div className="max-w-lg mx-auto space-y-6">
-          <h1 className="text-xl font-bold tracking-tight text-white uppercase italic">Configurações</h1>
+        <div className="max-w-lg mx-auto space-y-6 relative">
+          <button
+            onClick={() => window.history.back()}
+            className="absolute -left-2 top-0 w-8 h-8 flex items-center justify-center text-zinc-500 hover:text-white transition-colors cursor-pointer"
+            aria-label="Voltar ao perfil"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <h1 className="text-xl font-bold tracking-tight text-white uppercase italic pl-8">Configurações</h1>
 
           {/* Name setting */}
           <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 space-y-4">
@@ -313,12 +322,40 @@ const AdminProfile: React.FC = () => {
             </div>
           </div>
 
-          <button
-            onClick={() => window.history.back()}
-            className="text-[11px] text-zinc-500 hover:text-white transition-colors cursor-pointer"
-          >
-            ← Voltar ao perfil
-          </button>
+          {/* Phone setting */}
+          <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 space-y-4">
+            <div>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">WhatsApp do barbeiro</span>
+              <p className="text-[11px] text-zinc-600">Número que recebe as mensagens de agendamento.</p>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="tel"
+                value={phoneInput}
+                onChange={(e) => setPhoneInput(e.target.value)}
+                placeholder="31999999999"
+                maxLength={15}
+                className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#C5A059]/40 focus:ring-1 focus:ring-[#C5A059]/10 transition-all placeholder:text-zinc-600"
+              />
+              <button
+                onClick={async () => {
+                  const digits = phoneInput.replace(/\D/g, '');
+                  if (digits.length >= 10) {
+                    const ok = await updateBarberPhone(digits);
+                    if (ok) showSuccess('Telefone alterado!');
+                    else showError('Erro ao alterar telefone');
+                  }
+                }}
+                disabled={phoneInput.replace(/\D/g, '') === barberPhone || phoneInput.replace(/\D/g, '').length < 10}
+                className="px-5 py-3 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+              >
+                Salvar
+              </button>
+            </div>
+            {barberPhone && (
+              <p className="text-[10px] text-zinc-600">Atual: {barberPhone}</p>
+            )}
+          </div>
         </div>
       )}
 
