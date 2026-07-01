@@ -362,8 +362,8 @@ const AdminClients: React.FC = () => {
                   <div className="relative shrink-0">
                     <div className="w-10 h-10 rounded-full bg-[#111111] border border-white/[0.08] flex items-center justify-center text-sm font-bold text-white uppercase">{client.name.charAt(0)}</div>
                     {client.is_mensalista ? (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0A0A0A] bg-[#C5A059] flex items-center justify-center">
-                        <svg width="6" height="6" viewBox="0 0 24 24" fill="white"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14v2H5v-2z"/></svg>
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-[#0A0A0A] bg-[#C5A059] flex items-center justify-center">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14v2H5v-2z"/></svg>
                       </div>
                     ) : (
                       <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0A0A0A] ${needsReminder ? 'bg-red-500' : 'bg-emerald-500'}`} />
@@ -395,8 +395,8 @@ const AdminClients: React.FC = () => {
                   <div className="relative shrink-0">
                     <div className="w-12 h-12 rounded-xl bg-[#111111] border border-white/[0.08] flex items-center justify-center text-base font-bold text-white uppercase">{client.name.charAt(0)}</div>
                     {client.is_mensalista ? (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0A0A0A] bg-[#C5A059] flex items-center justify-center">
-                        <svg width="8" height="8" viewBox="0 0 24 24" fill="white"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14v2H5v-2z"/></svg>
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-[#0A0A0A] bg-[#C5A059] flex items-center justify-center">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14v2H5v-2z"/></svg>
                       </div>
                     ) : (
                       <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0A0A0A] ${needsReminder ? 'bg-red-500' : 'bg-emerald-500'}`} />
