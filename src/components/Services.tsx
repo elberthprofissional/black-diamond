@@ -44,6 +44,29 @@ const Services: React.FC<ServicesProps> = ({ onBookingClick }) => {
               ))}
             </div>
           )}
+
+          {/* Plano Mensal */}
+          <div className="mt-16 md:mt-24 border border-[#D4AF37]/20 rounded-2xl p-8 md:p-10 bg-[#D4AF37]/[0.03]">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
+                  <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.3em]">Plano Mensal</span>
+                </div>
+                <h3 className="text-xl md:text-2xl font-bebas text-white uppercase tracking-wider">Acesso ilimitado a todos os serviços</h3>
+                <p className="text-sm text-zinc-500 leading-relaxed max-w-lg">
+                  Barba, sobrancelha, pezinho e mais. Agende quantas vezes quiser por mês.
+                  <span className="text-zinc-400"> Consulte valores na barbearia.</span>
+                </p>
+              </div>
+              <button
+                onClick={onBookingClick}
+                className="shrink-0 px-8 py-3.5 border border-[#D4AF37]/40 text-[#D4AF37] font-bold text-[10px] uppercase tracking-[0.2em] rounded-xl hover:bg-[#D4AF37]/10 transition-all cursor-pointer"
+              >
+                Saiba mais
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
