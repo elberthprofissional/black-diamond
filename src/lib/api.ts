@@ -402,4 +402,16 @@ export const autoCreateRecurringExpenses = async (year: number, month: number) =
   return data || [];
 };
 
+// Fixed Expenses (Aluguel, etc)
+export const getFixedExpenses = async () => {
+  const { data, error } = await supabase.from('fixed_expenses').select('*').eq('active', true).order('category');
+  if (error) throw error;
+  return data || [];
+};
+
+export const updateFixedExpense = async (id: string, amount: number) => {
+  const { error } = await supabase.from('fixed_expenses').update({ amount }).eq('id', id);
+  if (error) throw error;
+};
+
 

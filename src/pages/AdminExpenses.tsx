@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, ChevronLeft, ChevronRight, Trash2, ShoppingBag, Home, Wrench, Settings, Zap, MoreHorizontal } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Trash2, ShoppingBag, Home, Wrench, Settings, Zap, MoreHorizontal, Pencil, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
 import AddExpenseModal from '../components/Admin/shared/AddExpenseModal';
-import { getExpenses, createExpense, deleteExpense } from '../lib/api';
+import { getExpenses, createExpense, deleteExpense, getFixedExpenses, updateFixedExpense } from '../lib/api';
 import { useToast } from '../hooks/useToast';
 import { getErrorMessage } from '../lib/utils';
 import type { Expense } from '../types';
@@ -28,9 +28,17 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
+interface FixedExpense {
+  id: string;
+  description: string;
+  amount: number;
+  category: string;
+}
+
 const AdminExpenses: React.FC = () => {
   const { showSuccess, showError } = useToast();
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -39,10 +47,17 @@ const AdminExpenses: React.FC = () => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [editingFixed, setEditingFixed] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
 
   const loadData = async () => {
     try {
-      setExpenses(await getExpenses(currentMonth));
+      const [expData, fixedData] = await Promise.all([
+        getExpenses(currentMonth),
+        getFixedExpenses()
+      ]);
+      setExpenses(expData);
+      setFixedExpenses(fixedData);
     } catch (error) {
       showError(getErrorMessage(error));
     } finally {
@@ -79,7 +94,21 @@ const AdminExpenses: React.FC = () => {
     }
   };
 
+  const handleSaveFixed = async (id: string) => {
+    const newAmount = parseFloat(editValue.replace(',', '.'));
+    if (isNaN(newAmount) || newAmount <= 0) return;
+    try {
+      await updateFixedExpense(id, newAmount);
+      setFixedExpenses(prev => prev.map(f => f.id === id ? { ...f, amount: newAmount } : f));
+      setEditingFixed(null);
+      showSuccess('Atualizado!');
+    } catch (error) {
+      showError(getErrorMessage(error));
+    }
+  };
+
   const total = useMemo(() => expenses.reduce((sum, e) => sum + Number(e.amount), 0), [expenses]);
+  const totalFixo = useMemo(() => fixedExpenses.reduce((sum, f) => sum + Number(f.amount), 0), [fixedExpenses]);
 
   const navigateMonth = (dir: number) => {
     const [y, m] = currentMonth.split('-').map(Number);
@@ -91,12 +120,16 @@ const AdminExpenses: React.FC = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-4">
-        {/* Header com total */}
+      <div className="space-y-5">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-black text-white uppercase tracking-wider">Investimentos</h1>
-            <p className="text-xs text-zinc-500 mt-0.5">Total: <span className="font-bold text-[#C5A059]">R$ {total.toFixed(0)}</span></p>
+            <p className="text-xs text-zinc-500 mt-0.5">
+              Fixo: <span className="font-bold text-red-400">R$ {totalFixo.toFixed(0)}</span>
+              <span className="text-zinc-600 mx-1.5">|</span>
+              Variável: <span className="font-bold text-[#C5A059]">R$ {total.toFixed(0)}</span>
+            </p>
           </div>
           <button onClick={() => setIsModalOpen(true)} className="h-10 px-4 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-wider rounded-xl flex items-center gap-1.5 transition-all cursor-pointer active:scale-95">
             <Plus size={14} strokeWidth={2.5} />
@@ -115,14 +148,52 @@ const AdminExpenses: React.FC = () => {
           </button>
         </div>
 
-        {/* Lista */}
+        {/* Fixed expenses (Aluguel) */}
+        {fixedExpenses.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">Fixos</p>
+            {fixedExpenses.map((fixed) => (
+              <div key={fixed.id} className="flex items-center gap-3 bg-white/[0.02] border border-white/[0.04] rounded-xl px-4 py-3">
+                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
+                  <Home size={14} className="text-red-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-semibold text-white">{fixed.description}</p>
+                  <p className="text-[10px] text-zinc-600">Todo mês</p>
+                </div>
+                {editingFixed === fixed.id ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="text"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value.replace(/[^0-9.,]/g, ''))}
+                      className="w-20 bg-white/[0.06] border border-white/[0.1] rounded-lg px-2 py-1 text-[12px] text-white text-right outline-none"
+                      autoFocus
+                      onKeyDown={(e) => { if (e.key === 'Enter') handleSaveFixed(fixed.id); if (e.key === 'Escape') setEditingFixed(null); }}
+                    />
+                    <button onClick={() => handleSaveFixed(fixed.id)} className="w-6 h-6 rounded-md bg-[#C5A059]/10 flex items-center justify-center text-[#C5A059] cursor-pointer"><Check size={12} /></button>
+                    <button onClick={() => setEditingFixed(null)} className="w-6 h-6 rounded-md bg-white/[0.04] flex items-center justify-center text-zinc-500 cursor-pointer"><X size={12} /></button>
+                  </div>
+                ) : (
+                  <button onClick={() => { setEditingFixed(fixed.id); setEditValue(Number(fixed.amount).toFixed(0)); }} className="flex items-center gap-1 text-[12px] font-bold text-white tabular-nums cursor-pointer hover:text-[#C5A059] transition-colors">
+                    R$ {Number(fixed.amount).toFixed(0)}
+                    <Pencil size={10} className="text-zinc-600" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Variable expenses */}
         <div className="space-y-1">
+          <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">Variáveis</p>
           {loading ? (
-            <div className="py-16 flex justify-center">
+            <div className="py-12 flex justify-center">
               <div className="w-5 h-5 border-2 border-zinc-800 border-t-[#C5A059] rounded-full animate-spin" />
             </div>
           ) : expenses.length === 0 ? (
-            <div className="py-20 text-center">
+            <div className="py-16 text-center">
               <p className="text-[11px] text-zinc-600">Nenhuma despesa este mês.</p>
             </div>
           ) : (
