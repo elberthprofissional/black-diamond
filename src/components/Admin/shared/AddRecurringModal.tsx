@@ -72,24 +72,12 @@ const AddRecurringModal: React.FC<AddRecurringModalProps> = ({ isOpen, onSave, o
               <div className="space-y-4">
                 <div>
                   <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Categoria</span>
-                  <div className="grid grid-cols-3 gap-2">
-                    {CATEGORIES.map((cat) => {
-                      const Icon = cat.icon;
-                      const selected = category === cat.id;
-                      return (
-                        <button
-                          key={cat.id}
-                          onClick={() => setCategory(cat.id)}
-                          className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all cursor-pointer ${
-                            selected ? 'border-white/20 bg-white/[0.06]' : 'border-white/[0.04] hover:bg-white/[0.03]'
-                          }`}
-                        >
-                          <Icon size={18} style={{ color: selected ? cat.color : '#71717a' }} />
-                          <span className={`text-[9px] font-bold uppercase tracking-wider ${selected ? 'text-white' : 'text-zinc-500'}`}>{cat.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors appearance-none cursor-pointer">
+                    <option value="" disabled className="bg-[#111111] text-zinc-500">Selecione uma categoria</option>
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat.id} value={cat.id} className="bg-[#111111]">{cat.label}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
