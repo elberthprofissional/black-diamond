@@ -296,7 +296,7 @@ const AdminProfile: React.FC = () => {
           {/* Name setting */}
           <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
             {editingName ? (
-              <div className="p-5 space-y-4">
+              <div className="p-5 space-y-3">
                 <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">Nome do barbeiro</span>
                 <div className="flex gap-2">
                   <input
@@ -331,6 +331,12 @@ const AdminProfile: React.FC = () => {
                     OK
                   </button>
                 </div>
+                <button
+                  onClick={() => setEditingName(false)}
+                  className="text-[11px] text-zinc-600 hover:text-white transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
               </div>
             ) : (
               <button
@@ -349,7 +355,7 @@ const AdminProfile: React.FC = () => {
           {/* Phone setting */}
           <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
             {editingPhone ? (
-              <div className="p-5 space-y-4">
+              <div className="p-5 space-y-3">
                 <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">WhatsApp do barbeiro</span>
                 <div className="flex gap-2">
                   <input
@@ -385,6 +391,12 @@ const AdminProfile: React.FC = () => {
                     OK
                   </button>
                 </div>
+                <button
+                  onClick={() => setEditingPhone(false)}
+                  className="text-[11px] text-zinc-600 hover:text-white transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
               </div>
             ) : (
               <button
