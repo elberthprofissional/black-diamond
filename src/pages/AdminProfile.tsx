@@ -268,6 +268,12 @@ const AdminProfile: React.FC = () => {
             <div className="flex-1">
               <h1 className="text-lg font-bold text-white tracking-tight">{greeting}, Tato</h1>
             </div>
+            <button
+              onClick={() => setShowLogoutConfirm(true)}
+              className="px-3 py-1.5 text-[9px] font-bold text-zinc-500 hover:text-red-400 border border-white/[0.06] hover:border-red-500/20 rounded-lg uppercase tracking-wider transition-all cursor-pointer shrink-0"
+            >
+              Sair
+            </button>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -285,12 +291,6 @@ const AdminProfile: React.FC = () => {
               className="px-3 py-1.5 text-[9px] font-bold text-zinc-500 hover:text-red-400 border border-white/[0.06] hover:border-red-500/20 rounded-lg uppercase tracking-wider transition-all cursor-pointer shrink-0"
             >
               Limpar
-            </button>
-            <button
-              onClick={() => setShowLogoutConfirm(true)}
-              className="px-3 py-1.5 text-[9px] font-bold text-zinc-500 hover:text-red-400 border border-white/[0.06] hover:border-red-500/20 rounded-lg uppercase tracking-wider transition-all cursor-pointer shrink-0"
-            >
-              Sair
             </button>
           </div>
         </div>
