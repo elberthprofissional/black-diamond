@@ -280,10 +280,10 @@ const AdminProfile: React.FC = () => {
     >
 
       {/* ========================================================================= */}
-      {/* SETTINGS VIEW */}
+      {/* SETTINGS VIEW - Instagram Style */}
       {/* ========================================================================= */}
       {showSettings && (
-        <div className="max-w-lg mx-auto space-y-6 relative">
+        <div className="max-w-lg mx-auto space-y-8 relative">
           <button
             onClick={() => window.history.back()}
             className="absolute -left-2 top-0 w-8 h-8 flex items-center justify-center text-zinc-500 hover:text-white transition-colors cursor-pointer"
@@ -293,155 +293,164 @@ const AdminProfile: React.FC = () => {
           </button>
           <h1 className="text-xl font-bold tracking-tight text-white uppercase italic pl-8">Configurações</h1>
 
-          {/* Name setting */}
-          <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
-            {editingName ? (
-              <div className="p-5 space-y-3">
-                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">Nome do barbeiro</span>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={nameInput}
-                    onChange={(e) => setNameInput(e.target.value)}
-                    placeholder="Seu nome"
-                    maxLength={30}
-                    autoFocus
-                    className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && nameInput.trim()) {
-                        updateBarberName(nameInput).then(ok => {
+          {/* ========== CONTA ========== */}
+          <div>
+            <h2 className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] mb-3 px-1">Conta</h2>
+            <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden divide-y divide-white/5">
+
+              {/* Name */}
+              {editingName ? (
+                <div className="p-5 space-y-3">
+                  <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">Nome do barbeiro</span>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                      placeholder="Seu nome"
+                      maxLength={30}
+                      autoFocus
+                      className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && nameInput.trim()) {
+                          updateBarberName(nameInput).then(ok => {
+                            if (ok) { showSuccess('Nome alterado!'); setEditingName(false); }
+                            else showError('Erro ao alterar nome');
+                          });
+                        }
+                        if (e.key === 'Escape') setEditingName(false);
+                      }}
+                    />
+                    <button
+                      onClick={async () => {
+                        if (nameInput.trim()) {
+                          const ok = await updateBarberName(nameInput);
                           if (ok) { showSuccess('Nome alterado!'); setEditingName(false); }
                           else showError('Erro ao alterar nome');
-                        });
-                      }
-                      if (e.key === 'Escape') setEditingName(false);
-                    }}
-                  />
+                        }
+                      }}
+                      disabled={!nameInput.trim() || nameInput.trim() === barberName}
+                      className="px-5 py-3 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                    >
+                      OK
+                    </button>
+                  </div>
                   <button
-                    onClick={async () => {
-                      if (nameInput.trim()) {
-                        const ok = await updateBarberName(nameInput);
-                        if (ok) { showSuccess('Nome alterado!'); setEditingName(false); }
-                        else showError('Erro ao alterar nome');
-                      }
-                    }}
-                    disabled={!nameInput.trim() || nameInput.trim() === barberName}
-                    className="px-5 py-3 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                    onClick={() => setEditingName(false)}
+                    className="text-[11px] text-zinc-600 hover:text-white transition-colors cursor-pointer"
                   >
-                    OK
+                    Cancelar
                   </button>
                 </div>
+              ) : (
                 <button
-                  onClick={() => setEditingName(false)}
-                  className="text-[11px] text-zinc-600 hover:text-white transition-colors cursor-pointer"
+                  onClick={() => { setNameInput(barberName); setEditingName(true); }}
+                  className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
                 >
-                  Cancelar
+                  <div className="text-left">
+                    <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">Nome</span>
+                    <span className="text-[13px] text-white">{barberName}</span>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600"><path d="m9 18 6-6-6-6"/></svg>
                 </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => { setNameInput(barberName); setEditingName(true); }}
-                className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
-              >
-                <div className="text-left">
-                  <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">Nome</span>
-                  <span className="text-[13px] text-white">{barberName}</span>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600"><path d="m9 18 6-6-6-6"/></svg>
-              </button>
-            )}
-          </div>
+              )}
 
-          {/* Phone setting */}
-          <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
-            {editingPhone ? (
-              <div className="p-5 space-y-3">
-                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">WhatsApp do barbeiro</span>
-                <div className="flex gap-2">
-                  <input
-                    type="tel"
-                    value={phoneInput}
-                    onChange={(e) => setPhoneInput(e.target.value)}
-                    placeholder="31999999999"
-                    maxLength={15}
-                    autoFocus
-                    className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && phoneInput.replace(/\D/g, '').length >= 10) {
-                        updateBarberPhone(phoneInput).then(ok => {
+              {/* Phone */}
+              {editingPhone ? (
+                <div className="p-5 space-y-3">
+                  <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">WhatsApp do barbeiro</span>
+                  <div className="flex gap-2">
+                    <input
+                      type="tel"
+                      value={phoneInput}
+                      onChange={(e) => setPhoneInput(e.target.value)}
+                      placeholder="31999999999"
+                      maxLength={15}
+                      autoFocus
+                      className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && phoneInput.replace(/\D/g, '').length >= 10) {
+                          updateBarberPhone(phoneInput).then(ok => {
+                            if (ok) { showSuccess('Telefone alterado!'); setEditingPhone(false); }
+                            else showError('Erro ao alterar telefone');
+                          });
+                        }
+                        if (e.key === 'Escape') setEditingPhone(false);
+                      }}
+                    />
+                    <button
+                      onClick={async () => {
+                        const digits = phoneInput.replace(/\D/g, '');
+                        if (digits.length >= 10) {
+                          const ok = await updateBarberPhone(digits);
                           if (ok) { showSuccess('Telefone alterado!'); setEditingPhone(false); }
                           else showError('Erro ao alterar telefone');
-                        });
-                      }
-                      if (e.key === 'Escape') setEditingPhone(false);
-                    }}
-                  />
+                        }
+                      }}
+                      disabled={phoneInput.replace(/\D/g, '') === barberPhone || phoneInput.replace(/\D/g, '').length < 10}
+                      className="px-5 py-3 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                    >
+                      OK
+                    </button>
+                  </div>
                   <button
-                    onClick={async () => {
-                      const digits = phoneInput.replace(/\D/g, '');
-                      if (digits.length >= 10) {
-                        const ok = await updateBarberPhone(digits);
-                        if (ok) { showSuccess('Telefone alterado!'); setEditingPhone(false); }
-                        else showError('Erro ao alterar telefone');
-                      }
-                    }}
-                    disabled={phoneInput.replace(/\D/g, '') === barberPhone || phoneInput.replace(/\D/g, '').length < 10}
-                    className="px-5 py-3 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                    onClick={() => setEditingPhone(false)}
+                    className="text-[11px] text-zinc-600 hover:text-white transition-colors cursor-pointer"
                   >
-                    OK
+                    Cancelar
                   </button>
                 </div>
+              ) : (
                 <button
-                  onClick={() => setEditingPhone(false)}
-                  className="text-[11px] text-zinc-600 hover:text-white transition-colors cursor-pointer"
+                  onClick={() => { setPhoneInput(barberPhone); setEditingPhone(true); }}
+                  className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
                 >
-                  Cancelar
+                  <div className="text-left">
+                    <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">WhatsApp</span>
+                    <span className="text-[13px] text-white">{barberPhone || 'Não configurado'}</span>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600"><path d="m9 18 6-6-6-6"/></svg>
                 </button>
-              </div>
-            ) : (
+              )}
+            </div>
+          </div>
+
+          {/* ========== PREFERÊNCIAS ========== */}
+          <div>
+            <h2 className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] mb-3 px-1">Preferências</h2>
+            <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
               <button
-                onClick={() => { setPhoneInput(barberPhone); setEditingPhone(true); }}
+                onClick={handleToggleNotifications}
                 className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
               >
                 <div className="text-left">
-                  <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">WhatsApp</span>
-                  <span className="text-[13px] text-white">{barberPhone || 'Não configurado'}</span>
+                  <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">Notificações</span>
+                  <span className={`text-[13px] ${isSubscribed ? 'text-[#C5A059]' : 'text-white'}`}>
+                    {isSubscribed ? 'Ativadas' : 'Desativadas'}
+                  </span>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600"><path d="m9 18 6-6-6-6"/></svg>
+                <div className={`w-10 h-6 rounded-full transition-all relative ${isSubscribed ? 'bg-[#C5A059]' : 'bg-zinc-700'}`}>
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isSubscribed ? 'left-5' : 'left-1'}`} />
+                </div>
               </button>
-            )}
+            </div>
           </div>
 
-          {/* Notifications */}
-          <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
-            <button
-              onClick={handleToggleNotifications}
-              className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
-            >
-              <div className="text-left">
-                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">Notificações</span>
-                <span className={`text-[13px] ${isSubscribed ? 'text-[#C5A059]' : 'text-white'}`}>
-                  {isSubscribed ? 'Ativadas' : 'Desativadas'}
-                </span>
-              </div>
-              <div className={`w-10 h-6 rounded-full transition-all relative ${isSubscribed ? 'bg-[#C5A059]' : 'bg-zinc-700'}`}>
-                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isSubscribed ? 'left-5' : 'left-1'}`} />
-              </div>
-            </button>
-          </div>
-
-          {/* Clear data */}
-          <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
-            <button
-              onClick={() => setShowResetConfirm(true)}
-              className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
-            >
-              <div className="text-left">
-                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">Dados</span>
-                <span className="text-[13px] text-red-400">Limpar todos os dados</span>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600"><path d="m9 18 6-6-6-6"/></svg>
-            </button>
+          {/* ========== ZONA DE PERIGO ========== */}
+          <div>
+            <h2 className="text-[9px] font-bold text-red-500/60 uppercase tracking-[0.3em] mb-3 px-1">Zona de perigo</h2>
+            <div className="bg-[#111111] border border-red-500/10 rounded-2xl overflow-hidden">
+              <button
+                onClick={() => setShowResetConfirm(true)}
+                className="w-full flex items-center justify-between px-5 py-4 hover:bg-red-500/[0.03] transition-all cursor-pointer"
+              >
+                <div className="text-left">
+                  <span className="text-[8px] font-bold text-red-400/60 uppercase tracking-[0.2em] block mb-1">Limpar dados</span>
+                  <span className="text-[13px] text-red-400">Apaga todos os agendamentos e clientes</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-400/40"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </div>
           </div>
         </div>
       )}
