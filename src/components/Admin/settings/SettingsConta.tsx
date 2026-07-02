@@ -42,12 +42,19 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
 
     setUploading(true);
     try {
+      // Remove old files first
+      const oldFiles = ['profiles/barber-photo.webp', 'profiles/barber-photo.jpg', 'profiles/barber-photo.png'];
+      for (const oldFile of oldFiles) {
+        await supabase.storage.from('avatars').remove([oldFile]);
+      }
+
+      // Upload new file with timestamp to avoid cache
       const ext = file.name.split('.').pop() || 'jpg';
-      const filePath = `profiles/barber-photo.${ext}`;
+      const filePath = `profiles/barber-photo-${Date.now()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, file);
 
       if (uploadError) {
         console.error('Upload error:', uploadError);
