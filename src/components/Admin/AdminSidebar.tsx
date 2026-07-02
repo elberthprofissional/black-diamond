@@ -11,13 +11,13 @@ const AdminSidebar: React.FC = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const handleLogout = useAdminLogout();
-  const { barberName } = useBarberSettings();
+  const { barberName, barberPhoto } = useBarberSettings();
  
   const isActive = (path: string) => location.pathname === path;
  
   const mainMenuItems = [
     { label: 'Agenda do Dia', path: '/admin', icon: Clock },
-    { label: 'Agenda Semanal', path: '/admin/weekly', icon: Calendar },
+    { label: 'Agenda da Semana', path: '/admin/weekly', icon: Calendar },
     { label: 'Meus Clientes', path: '/admin/clients', icon: Users },
   ];
 
@@ -95,8 +95,14 @@ const AdminSidebar: React.FC = () => {
             }`}
           >
             <div className="relative shrink-0">
-              <div className="w-9 h-9 rounded-full border border-white/[0.08] overflow-hidden">
-                <img src="/assets/tato.webp" alt="Tato" className="w-full h-full object-cover" />
+              <div className="w-9 h-9 rounded-full border border-white/[0.08] overflow-hidden bg-white/[0.03]">
+                {barberPhoto ? (
+                  <img src={barberPhoto} alt={barberName} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <User size={14} className="text-zinc-600" />
+                  </div>
+                )}
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#0A0A0A] rounded-full" />
             </div>

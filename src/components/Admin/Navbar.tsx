@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, User, LogOut, Settings } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
- 
+import { useBarberSettings } from '../../hooks/useBarberSettings';
+
 const AdminNavbar: React.FC = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const handleLogout = useAdminLogout();
+  const { barberName, barberPhoto } = useBarberSettings();
 
   const [visible, setVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -49,8 +51,14 @@ const AdminNavbar: React.FC = () => {
  
           <div className="relative">
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-expanded={isMenuOpen} aria-haspopup="true" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-full border border-white/[0.08] group-hover:border-[#C5A059]/30 transition-all overflow-hidden">
-                <img src="/assets/tato.webp" alt="Tato" className="w-full h-full object-cover" />
+              <div className="w-8 h-8 rounded-full border border-white/[0.08] group-hover:border-[#C5A059]/30 transition-all overflow-hidden bg-white/[0.03]">
+                {barberPhoto ? (
+                  <img src={barberPhoto} alt={barberName} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <User size={14} className="text-zinc-600" />
+                  </div>
+                )}
               </div>
               <ChevronDown size={10} className={`text-zinc-600 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`} />
             </button>
