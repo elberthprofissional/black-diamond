@@ -16,14 +16,14 @@ const SettingsList: React.FC<SettingsListProps> = ({ onSelect }) => {
     <div className="max-w-lg mx-auto space-y-6">
       <h1 className="text-xl font-bold tracking-tight text-white uppercase italic">Configurações</h1>
 
-      <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden divide-y divide-white/5">
+      <div className="divide-y divide-white/5">
         {categories.map((cat) => {
           const Icon = cat.icon;
           return (
             <button
               key={cat.id}
               onClick={() => onSelect(cat.id)}
-              className={`w-full flex items-center gap-4 px-5 py-4 transition-all cursor-pointer ${
+              className={`w-full flex items-center gap-4 px-1 py-4 transition-all cursor-pointer ${
                 cat.danger ? 'hover:bg-red-500/[0.03]' : 'hover:bg-white/[0.02]'
               }`}
             >
