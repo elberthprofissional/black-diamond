@@ -27,6 +27,33 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
     setBioInput(barberBio);
   }, [barberName, barberPhone, barberBio]);
 
+  const convertToWebP = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxSize = 400;
+        let { width, height } = img;
+
+        if (width > height) {
+          if (width > maxSize) { height = (height * maxSize) / width; width = maxSize; }
+        } else {
+          if (height > maxSize) { width = (width * maxSize) / height; height = maxSize; }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject(new Error('Canvas error'));
+
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('WebP conversion failed')), 'image/webp', 0.85);
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -45,24 +72,24 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
 
     setUploading(true);
     try {
-      // Upload to Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `barber-photo.${fileExt}`;
-      const filePath = `profiles/${fileName}`;
+      // Convert to WebP before upload
+      const webpBlob = await convertToWebP(file);
+      const filePath = `profiles/barber-photo.webp`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, webpBlob, { upsert: true, contentType: 'image/webp' });
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
+      // Get public URL with cache bust
       const { data: urlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
       if (urlData?.publicUrl) {
-        const ok = await updateBarberPhoto(urlData.publicUrl);
+        const photoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+        const ok = await updateBarberPhoto(photoUrl);
         if (ok) showSuccess('Foto alterada!');
         else showError('Erro ao salvar foto');
       }
