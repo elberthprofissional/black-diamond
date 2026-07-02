@@ -49,7 +49,11 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
         .from('avatars')
         .upload(filePath, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        showError(`Erro: ${uploadError.message}`);
+        return;
+      }
 
       const { data: urlData } = supabase.storage
         .from('avatars')
@@ -61,7 +65,8 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
         if (ok) showSuccess('Foto alterada!');
         else showError('Erro ao salvar foto');
       }
-    } catch {
+    } catch (err) {
+      console.error('Upload catch:', err);
       showError('Erro ao enviar imagem');
     } finally {
       setUploading(false);
