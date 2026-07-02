@@ -10,22 +10,19 @@ interface SettingsContaProps {
 }
 
 const SettingsConta: React.FC<SettingsContaProps> = () => {
-  const { barberName, barberPhone, barberPhoto, barberBio, updateBarberName, updateBarberPhone, updateBarberPhoto, updateBarberBio } = useBarberSettings();
+  const { barberName, barberPhone, barberPhoto, updateBarberName, updateBarberPhone, updateBarberPhoto } = useBarberSettings();
   const { toast, showSuccess, showError } = useToast();
   const [nameInput, setNameInput] = useState('');
   const [phoneInput, setPhoneInput] = useState('');
-  const [bioInput, setBioInput] = useState('');
   const [editingName, setEditingName] = useState(false);
   const [editingPhone, setEditingPhone] = useState(false);
-  const [editingBio, setEditingBio] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setNameInput(barberName);
     setPhoneInput(barberPhone);
-    setBioInput(barberBio);
-  }, [barberName, barberPhone, barberBio]);
+  }, [barberName, barberPhone]);
 
   const convertToWebP = (file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
@@ -252,63 +249,6 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
               <div className="text-left">
                 <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">WhatsApp</span>
                 <span className="text-[13px] text-white">{barberPhone || 'Não configurado'}</span>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600"><path d="m9 18 6-6-6-6"/></svg>
-            </button>
-          )}
-        </div>
-
-        {/* Bio */}
-        <div className="bg-white/[0.02] border border-white/[0.04] rounded-2xl overflow-hidden">
-          {editingBio ? (
-            <div className="p-5 space-y-3">
-              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">Frase de efeito</span>
-              <textarea
-                value={bioInput}
-                onChange={(e) => setBioInput(e.target.value)}
-                placeholder="Uma frase sobre voce..."
-                maxLength={100}
-                rows={2}
-                autoFocus
-                className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600 resize-none"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    updateBarberBio(bioInput).then(ok => {
-                      if (ok) { showSuccess('Frase alterada!'); setEditingBio(false); }
-                      else showError('Erro ao alterar frase');
-                    });
-                  }
-                  if (e.key === 'Escape') setEditingBio(false);
-                }}
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setEditingBio(false)}
-                  className="flex-1 py-3 text-[11px] font-medium text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={async () => {
-                    const ok = await updateBarberBio(bioInput);
-                    if (ok) { showSuccess('Frase alterada!'); setEditingBio(false); }
-                    else showError('Erro ao alterar frase');
-                  }}
-                  className="flex-1 py-3 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer"
-                >
-                  Salvar
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={() => { setBioInput(barberBio); setEditingBio(true); }}
-              className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
-            >
-              <div className="text-left">
-                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">Frase</span>
-                <span className="text-[13px] text-white truncate max-w-[200px] block">{barberBio || 'Adicione uma frase...'}</span>
               </div>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600"><path d="m9 18 6-6-6-6"/></svg>
             </button>
