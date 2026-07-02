@@ -5,7 +5,11 @@ import { getErrorMessage } from '../../../lib/utils';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
 
-const SettingsDados: React.FC = () => {
+interface SettingsDadosProps {
+  onBack?: () => void;
+}
+
+const SettingsDados: React.FC<SettingsDadosProps> = () => {
   const { toast, showSuccess, showError } = useToast();
   const [activeModal, setActiveModal] = useState<'bookings' | 'clients' | null>(null);
   const [confirmText, setConfirmText] = useState('');

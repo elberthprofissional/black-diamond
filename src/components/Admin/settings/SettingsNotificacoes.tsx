@@ -3,7 +3,11 @@ import { usePushNotifications } from '../../../hooks/usePushNotifications';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
 
-const SettingsNotificacoes: React.FC = () => {
+interface SettingsNotificacoesProps {
+  onBack?: () => void;
+}
+
+const SettingsNotificacoes: React.FC<SettingsNotificacoesProps> = () => {
   const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
   const { toast, showSuccess, showError } = useToast();
 

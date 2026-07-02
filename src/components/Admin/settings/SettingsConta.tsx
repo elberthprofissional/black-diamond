@@ -3,7 +3,11 @@ import { useBarberSettings } from '../../../hooks/useBarberSettings';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
 
-const SettingsConta: React.FC = () => {
+interface SettingsContaProps {
+  onBack?: () => void;
+}
+
+const SettingsConta: React.FC<SettingsContaProps> = () => {
   const { barberName, barberPhone, updateBarberName, updateBarberPhone } = useBarberSettings();
   const { toast, showSuccess, showError } = useToast();
   const [nameInput, setNameInput] = useState('');
