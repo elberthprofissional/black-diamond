@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
+const SETTINGS_KEYS = ['barber_name', 'barber_phone', 'barber_photo', 'barber_bio'] as const;
+
 export function useBarberSettings() {
   const defaultPhone = import.meta.env.VITE_BARBER_WHATSAPP || '';
 
@@ -10,6 +12,12 @@ export function useBarberSettings() {
   const [barberPhone, setBarberPhone] = useState<string>(() => {
     return localStorage.getItem('barber_phone') || defaultPhone;
   });
+  const [barberPhoto, setBarberPhoto] = useState<string>(() => {
+    return localStorage.getItem('barber_photo') || '';
+  });
+  const [barberBio, setBarberBio] = useState<string>(() => {
+    return localStorage.getItem('barber_bio') || '';
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,7 +26,7 @@ export function useBarberSettings() {
         const { data } = await supabase
           .from('settings')
           .select('key, value')
-          .in('key', ['barber_name', 'barber_phone']);
+          .in('key', [...SETTINGS_KEYS]);
 
         if (data) {
           for (const row of data) {
@@ -30,6 +38,14 @@ export function useBarberSettings() {
               const phone = row.value || defaultPhone;
               setBarberPhone(phone);
               localStorage.setItem('barber_phone', phone);
+            }
+            if (row.key === 'barber_photo') {
+              setBarberPhoto(row.value || '');
+              localStorage.setItem('barber_photo', row.value || '');
+            }
+            if (row.key === 'barber_bio') {
+              setBarberBio(row.value || '');
+              localStorage.setItem('barber_bio', row.value || '');
             }
           }
         }
@@ -75,5 +91,41 @@ export function useBarberSettings() {
     return false;
   }, []);
 
-  return { barberName, barberPhone, loading, updateBarberName, updateBarberPhone };
+  const updateBarberPhoto = useCallback(async (photoUrl: string) => {
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key: 'barber_photo', value: photoUrl }, { onConflict: 'key' });
+
+    if (!error) {
+      setBarberPhoto(photoUrl);
+      localStorage.setItem('barber_photo', photoUrl);
+      return true;
+    }
+    return false;
+  }, []);
+
+  const updateBarberBio = useCallback(async (newBio: string) => {
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key: 'barber_bio', value: newBio }, { onConflict: 'key' });
+
+    if (!error) {
+      setBarberBio(newBio);
+      localStorage.setItem('barber_bio', newBio);
+      return true;
+    }
+    return false;
+  }, []);
+
+  return {
+    barberName,
+    barberPhone,
+    barberPhoto,
+    barberBio,
+    loading,
+    updateBarberName,
+    updateBarberPhone,
+    updateBarberPhoto,
+    updateBarberBio,
+  };
 }

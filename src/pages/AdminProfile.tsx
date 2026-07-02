@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { getBookings, getServices, getClients, deleteAllClients } from '../lib/api';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { getBookings, getServices, deleteAllClients } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
-import type { Booking, Service, Client } from '../types';
-import { Download, LogOut, Bell, Scissors, DollarSign, Trash2 } from 'lucide-react';
+import type { Booking, Service } from '../types';
+import { Download, LogOut, Bell, Trash2, Scissors, DollarSign, User, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
 import { useAdminLogout } from '../hooks/useAdminLogout';
@@ -23,7 +23,6 @@ const AdminProfile: React.FC = () => {
   const showSettings = searchParams.get('tab') === 'settings';
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [services, setServices] = useState<Service[]>([]);
-  const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'week' | 'month'>('week');
   const [showBalance, setShowBalance] = useState(() => localStorage.getItem('barber_show_balance') !== 'false');
@@ -38,8 +37,15 @@ const AdminProfile: React.FC = () => {
   const handleLogout = useAdminLogout();
   const { toast, showSuccess, showError } = useToast();
   const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
-  const { barberName } = useBarberSettings();
+  const { barberName, barberPhoto } = useBarberSettings();
   const [settingsSection, setSettingsSection] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (settingsSection === '__back') {
+      navigate('/admin/profile');
+    }
+  }, [settingsSection, navigate]);
 
   useEffect(() => {
     const handleAppInstalled = () => {
@@ -65,14 +71,12 @@ const AdminProfile: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [bookingsData, servicesData, clientsData] = await Promise.all([
+      const [bookingsData, servicesData] = await Promise.all([
         getBookings(),
-        getServices(),
-        getClients()
+        getServices()
       ]);
       setBookings(bookingsData || []);
       setServices(servicesData || []);
-      setClients(clientsData || []);
     } catch { /* ignored */ } finally {
       setLoading(false);
     }
@@ -151,23 +155,6 @@ const AdminProfile: React.FC = () => {
       count: currentServiceCounts[srv.id] || 0
     }))
     .sort((a, b) => b.count - a.count);
-
-  const clientesNovosMes = (clients || []).filter(c => {
-    if (!c || !c.created_at) return false;
-    if (c.name === 'BLOQUEADO' || c.name === 'CLIENTE EXCLUIDO' || c.phone === '00000000000') return false;
-    const d = new Date(c.created_at);
-    return !isNaN(d.getTime()) && d >= startOfMonth;
-  }).length;
-
-  const clientesNovosSemana = (clients || []).filter(c => {
-    if (!c || !c.created_at) return false;
-    if (c.name === 'BLOQUEADO' || c.name === 'CLIENTE EXCLUIDO' || c.phone === '00000000000') return false;
-    const d = new Date(c.created_at);
-    return !isNaN(d.getTime()) && d >= startOfWeek;
-  }).length;
-  const currentNovos = timeRange === 'week' ? clientesNovosSemana : clientesNovosMes;
-
-
 
   const greeting = new Date().getHours() < 12 ? 'Bom dia' : new Date().getHours() < 18 ? 'Boa tarde' : 'Boa noite';
 
@@ -272,7 +259,19 @@ const AdminProfile: React.FC = () => {
 
   return (
     <AdminLayout
-      mainClassName="flex-1 w-full overflow-x-hidden px-0 sm:px-8 lg:px-12 pt-20 lg:pt-8 pb-24 lg:pb-12 space-y-6 text-left max-w-7xl mx-auto font-sans"
+      mainClassName={`flex-1 w-full overflow-x-hidden px-0 sm:px-8 lg:px-10 ${showSettings ? 'pt-4 lg:pt-6' : 'pt-20 lg:pt-8'} pb-24 lg:pb-12 space-y-6 text-left font-sans`}
+      hideNavbar={showSettings}
+      hideBottomTabs={showSettings}
+      secondarySidebar={showSettings ? {
+        title: 'Configurações',
+        activeId: settingsSection || 'conta',
+        onSelect: setSettingsSection,
+        items: [
+          { id: 'conta', label: 'Conta', icon: <User size={15} /> },
+          { id: 'notificacoes', label: 'Notificações', icon: <Bell size={15} /> },
+          { id: 'dados', label: 'Zona de Segurança', icon: <Shield size={15} /> },
+        ],
+      } : undefined}
     >
 
       {/* ========================================================================= */}
@@ -280,18 +279,55 @@ const AdminProfile: React.FC = () => {
       {/* ========================================================================= */}
       {showSettings && (
         <>
-          {settingsSection === null && (
-            <SettingsList onSelect={setSettingsSection} />
-          )}
-          {settingsSection === 'conta' && (
-            <SettingsConta onBack={() => setSettingsSection(null)} />
-          )}
-          {settingsSection === 'notificacoes' && (
-            <SettingsNotificacoes onBack={() => setSettingsSection(null)} />
-          )}
-          {settingsSection === 'dados' && (
-            <SettingsDados onBack={() => setSettingsSection(null)} />
-          )}
+          {/* Mobile header for settings */}
+          <div className="lg:hidden flex items-center gap-4 px-4 -mt-1 mb-4">
+            <button
+              onClick={() => {
+                if (settingsSection) {
+                  setSettingsSection(null);
+                } else {
+                  setSettingsSection('__back');
+                }
+              }}
+              className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              aria-label="Voltar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <h1 className="text-lg font-bold tracking-tight text-white">
+              {settingsSection === 'conta' ? 'Conta' :
+               settingsSection === 'notificacoes' ? 'Notificações' :
+               settingsSection === 'dados' ? 'Zona de Segurança' :
+               'Configurações'}
+            </h1>
+          </div>
+
+          {/* Mobile: show settings list or content */}
+          <div className="lg:hidden">
+            {settingsSection === null && (
+              <SettingsList onSelect={setSettingsSection} />
+            )}
+            {settingsSection === 'conta' && <SettingsConta />}
+            {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
+            {settingsSection === 'dados' && <SettingsDados />}
+          </div>
+
+          {/* Desktop: show only content (sidebar handles navigation) */}
+          <div className="hidden lg:block">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={settingsSection || 'conta'}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.15 }}
+              >
+                {(!settingsSection || settingsSection === 'conta') && <SettingsConta />}
+                {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
+                {settingsSection === 'dados' && <SettingsDados />}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </>
       )}
 
@@ -305,8 +341,14 @@ const AdminProfile: React.FC = () => {
         <div className="flex flex-col gap-4 py-2 border-b border-white/5 pb-5">
           <div className="flex items-center gap-4">
             <div className="relative shrink-0">
-              <div className="w-16 h-16 rounded-full border border-white/10 overflow-hidden">
-                <img src="/assets/tato.webp" alt="Tato" className="w-full h-full object-cover" />
+              <div className="w-16 h-16 rounded-full border border-white/10 overflow-hidden bg-white/[0.03]">
+                {barberPhoto ? (
+                  <img src={barberPhoto} alt={barberName} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <User size={24} className="text-zinc-600" />
+                  </div>
+                )}
               </div>
               <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-[#0A0A0A] rounded-full" />
             </div>
@@ -375,7 +417,7 @@ const AdminProfile: React.FC = () => {
 
         {/* Services analytics */}
         <div className="bg-[#111111] border border-white/5 rounded-2xl p-5">
-          <h2 className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4">Serviços mais vendidos no mês</h2>
+          <h2 className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4">Serviços mais pedidos no mês</h2>
           {topServices.length > 0 && topServices.some(s => s.count > 0) ? (
             <div className="grid grid-cols-2 gap-x-8 gap-y-3">
               {topServices.filter(s => s.count > 0).map((srv, idx) => {
@@ -411,13 +453,13 @@ const AdminProfile: React.FC = () => {
       <ProfileMobile
         greeting={greeting}
         barberName={barberName}
+        barberPhoto={barberPhoto}
         showBalance={showBalance}
         toggleBalance={toggleBalance}
         lucroTotal={lucroTotal}
         lucroSemana={lucroSemana}
         lucroMes={lucroMes}
         currentConcluidos={currentConcluidos}
-        currentNovos={currentNovos}
         currentCancelados={currentCancelados}
         timeRange={timeRange}
         setTimeRange={setTimeRange}

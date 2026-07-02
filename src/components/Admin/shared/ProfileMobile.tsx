@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, EyeOff, TrendingUp } from 'lucide-react';
+import { Eye, EyeOff, TrendingUp, User } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 interface QuickAction {
@@ -12,13 +12,13 @@ interface QuickAction {
 interface ProfileMobileProps {
   greeting: string;
   barberName: string;
+  barberPhoto?: string;
   showBalance: boolean;
   toggleBalance: () => void;
   lucroTotal: number;
   lucroSemana: number;
   lucroMes: number;
   currentConcluidos: number;
-  currentNovos: number;
   currentCancelados: number;
   timeRange: 'week' | 'month';
   setTimeRange: (range: 'week' | 'month') => void;
@@ -29,13 +29,13 @@ interface ProfileMobileProps {
 const ProfileMobile: React.FC<ProfileMobileProps> = ({
   greeting,
   barberName,
+  barberPhoto,
   showBalance,
   toggleBalance,
   lucroTotal,
   lucroSemana,
   lucroMes,
   currentConcluidos,
-  currentNovos,
   currentCancelados,
   timeRange,
   setTimeRange,
@@ -47,8 +47,14 @@ const ProfileMobile: React.FC<ProfileMobileProps> = ({
       <div className="bg-[#161616] border-b border-white/5 px-6 pt-6 pb-8 -mt-4 text-white flex flex-col gap-6 relative overflow-hidden shadow-lg shadow-black/40">
         <div className="absolute top-[-50px] right-[-50px] w-[150px] h-[150px] bg-[#C5A059]/5 rounded-full blur-2xl pointer-events-none" />
         <div className="flex items-center justify-between">
-          <div className="w-12 h-12 rounded-full border border-white/[0.08] overflow-hidden shrink-0">
-            <img src="/assets/tato.webp" alt="Tato" className="w-full h-full object-cover" />
+          <div className="w-12 h-12 rounded-full border border-white/[0.08] overflow-hidden shrink-0 bg-white/[0.03]">
+            {barberPhoto ? (
+              <img src={barberPhoto} alt={barberName} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <User size={18} className="text-zinc-600" />
+              </div>
+            )}
           </div>
           <button
             onClick={toggleBalance}
@@ -143,12 +149,8 @@ const ProfileMobile: React.FC<ProfileMobileProps> = ({
               <div className="text-base font-bold text-white tabular-nums">{currentConcluidos}</div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4 divide-x divide-white/[0.04] pt-2 border-t border-white/[0.03]">
-            <div className="space-y-1">
-              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest block">Novos Clientes</span>
-              <div className="text-base font-bold text-white tabular-nums">{currentNovos}</div>
-            </div>
-            <div className="space-y-1 pl-4">
+          <div className="pt-2 border-t border-white/[0.03] flex justify-center">
+            <div className="space-y-1 text-center">
               <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest block">Cancelamentos</span>
               <div className="text-base font-bold text-red-500/70 tabular-nums">{currentCancelados}</div>
             </div>
@@ -157,7 +159,7 @@ const ProfileMobile: React.FC<ProfileMobileProps> = ({
 
         <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 space-y-4">
           <div className="flex items-center gap-2 text-zinc-400">
-            <span className="text-[10px] font-bold uppercase tracking-wider">Serviços Mais Vendidos</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider">Serviços Mais Pedidos</span>
           </div>
           {topServices.length > 0 && topServices.some(s => s.count > 0) ? (
             <div className="space-y-3 pt-1">
