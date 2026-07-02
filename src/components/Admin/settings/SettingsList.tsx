@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Scissors, Calendar, Bell, Shield, Trash2, ChevronRight } from 'lucide-react';
+import { User, Bell, Trash2, ChevronRight } from 'lucide-react';
 
 interface SettingsListProps {
   onSelect: (section: string) => void;
@@ -7,10 +7,7 @@ interface SettingsListProps {
 
 const categories = [
   { id: 'conta', label: 'Conta', description: 'Nome e WhatsApp', icon: User },
-  { id: 'barbearia', label: 'Barbearia', description: 'Horários e localização', icon: Scissors, soon: true },
-  { id: 'agenda', label: 'Agenda', description: 'Configurações de agendamento', icon: Calendar, soon: true },
   { id: 'notificacoes', label: 'Notificações', description: 'Alertas e push', icon: Bell },
-  { id: 'seguranca', label: 'Segurança', description: 'Senha e acesso', icon: Shield, soon: true },
   { id: 'dados', label: 'Dados', description: 'Limpar informações', icon: Trash2, danger: true },
 ];
 
@@ -26,13 +23,8 @@ const SettingsList: React.FC<SettingsListProps> = ({ onSelect }) => {
             <button
               key={cat.id}
               onClick={() => onSelect(cat.id)}
-              disabled={cat.soon}
               className={`w-full flex items-center gap-4 px-5 py-4 transition-all cursor-pointer ${
-                cat.soon
-                  ? 'opacity-40 cursor-not-allowed'
-                  : cat.danger
-                    ? 'hover:bg-red-500/[0.03]'
-                    : 'hover:bg-white/[0.02]'
+                cat.danger ? 'hover:bg-red-500/[0.03]' : 'hover:bg-white/[0.02]'
               }`}
             >
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
@@ -46,11 +38,7 @@ const SettingsList: React.FC<SettingsListProps> = ({ onSelect }) => {
                 </span>
                 <span className="text-[11px] text-zinc-500 block">{cat.description}</span>
               </div>
-              {cat.soon ? (
-                <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">Em breve</span>
-              ) : (
-                <ChevronRight size={16} className={cat.danger ? 'text-red-400/40' : 'text-zinc-600'} />
-              )}
+              <ChevronRight size={16} className={cat.danger ? 'text-red-400/40' : 'text-zinc-600'} />
             </button>
           );
         })}
