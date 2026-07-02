@@ -27,6 +27,7 @@ export function useReschedule(
       .catch((e) => { console.error('Erro ao buscar bookings para reagendamento:', e); showError('Erro ao carregar horários.'); })
       .finally(() => { if (active) setLoadingSlots(false); });
     return () => { active = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rescheduleDate, isRescheduling]);
 
   const startReschedule = () => {

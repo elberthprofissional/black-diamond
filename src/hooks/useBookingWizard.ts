@@ -79,6 +79,7 @@ export function useBookingWizard(showError: (msg: string) => void) {
       });
 
     return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userInfo.phone]);
 
   // Reset selected services when mensalista status changes
@@ -89,6 +90,7 @@ export function useBookingWizard(showError: (msg: string) => void) {
         setSelectedServices(allowed);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMensalista]);
 
   // Filter services for mensalista

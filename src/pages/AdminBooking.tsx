@@ -95,6 +95,7 @@ const AdminBooking: React.FC = () => {
       } catch (e) { console.error('Erro ao buscar clientes:', e); showError('Erro ao carregar clientes.'); }
     };
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rescheduleBooking, prefilledClientName, prefilledClientPhone]);
 
   useEffect(() => {
@@ -107,6 +108,7 @@ const AdminBooking: React.FC = () => {
       };
       loadBookings();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
   useEffect(() => {

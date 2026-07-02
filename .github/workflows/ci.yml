@@ -35,3 +35,4 @@ jobs:
           VITE_SUPABASE_URL: https://placeholder.supabase.co
           VITE_SUPABASE_ANON_KEY: placeholder
           VITE_BARBER_WHATSAPP: '5500000000000'
+          VITE_VAPID_PUBLIC_KEY: placeholder
