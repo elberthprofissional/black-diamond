@@ -44,7 +44,19 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
         if (!ctx) return reject(new Error('Canvas error'));
 
         ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('WebP conversion failed')), 'image/webp', 0.85);
+
+        // Try WebP first, fallback to JPEG
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            // Fallback to JPEG if WebP not supported
+            canvas.toBlob((jpegBlob) => {
+              if (jpegBlob) resolve(jpegBlob);
+              else reject(new Error('Image conversion failed'));
+            }, 'image/jpeg', 0.85);
+          }
+        }, 'image/webp', 0.85);
       };
       img.onerror = () => reject(new Error('Failed to load image'));
       img.src = URL.createObjectURL(file);
@@ -69,13 +81,15 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
 
     setUploading(true);
     try {
-      // Convert to WebP before upload
-      const webpBlob = await convertToWebP(file);
-      const filePath = `profiles/barber-photo.webp`;
+      // Convert to WebP/JPEG before upload
+      const convertedBlob = await convertToWebP(file);
+      const ext = convertedBlob.type === 'image/webp' ? 'webp' : 'jpg';
+      const filePath = `profiles/barber-photo.${ext}`;
+      const contentType = convertedBlob.type;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, webpBlob, { upsert: true, contentType: 'image/webp' });
+        .upload(filePath, convertedBlob, { upsert: true, contentType });
 
       if (uploadError) throw uploadError;
 
