@@ -1,6 +1,16 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import About from './About'
+
+vi.mock('../contexts/BarberSettingsContext', () => ({
+  useBarberSettings: () => ({
+    barberName: '',
+    barberPhone: '',
+    barberPhoto: '',
+    barberBio: '',
+    loading: false,
+  }),
+}))
 
 describe('About', () => {
   it('renderiza o titulo Sobre Mim', () => {
@@ -25,7 +35,7 @@ describe('About', () => {
 
   it('renderiza a imagem do barbeiro', () => {
     render(<About />)
-    const images = screen.getAllByAltText('Tato - Barbeiro')
+    const images = screen.getAllByAltText('TATO - Barbeiro')
     expect(images.length).toBeGreaterThan(0)
   })
 

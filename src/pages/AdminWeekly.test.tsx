@@ -43,6 +43,7 @@ vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 import AdminWeekly from './AdminWeekly';
 
 describe('AdminWeekly', () => {
@@ -51,17 +52,17 @@ describe('AdminWeekly', () => {
   });
 
   it('renderiza sem erros', () => {
-    const { container } = render(<AdminWeekly />);
+    const { container } = render(<BarberSettingsProvider><AdminWeekly /></BarberSettingsProvider>);
     expect(container).toBeTruthy();
   });
 
   it('renderiza titulo da agenda semanal', () => {
-    render(<AdminWeekly />);
+    render(<BarberSettingsProvider><AdminWeekly /></BarberSettingsProvider>);
     expect(screen.getAllByText(/Agenda da Semana/i).length).toBeGreaterThan(0);
   });
 
   it('renderiza navegacao por dia da semana', async () => {
-    render(<AdminWeekly />);
+    render(<BarberSettingsProvider><AdminWeekly /></BarberSettingsProvider>);
     await waitFor(() => {
       const dayButtons = screen.getAllByRole('button');
       expect(dayButtons.length).toBeGreaterThanOrEqual(6);
@@ -69,14 +70,14 @@ describe('AdminWeekly', () => {
   });
 
   it('renderiza abas de filtro', async () => {
-    render(<AdminWeekly />);
+    render(<BarberSettingsProvider><AdminWeekly /></BarberSettingsProvider>);
     await waitFor(() => {
       expect(screen.getByText(/Ocupados/i)).toBeInTheDocument();
     });
   });
 
   it('renderiza aba livres', async () => {
-    render(<AdminWeekly />);
+    render(<BarberSettingsProvider><AdminWeekly /></BarberSettingsProvider>);
     await waitFor(() => {
       expect(screen.getByText(/Livres/i)).toBeInTheDocument();
     });

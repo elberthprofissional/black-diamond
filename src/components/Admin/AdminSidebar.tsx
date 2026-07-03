@@ -47,10 +47,10 @@ const AdminSidebar: React.FC = () => {
       </div>
  
       {/* 2. NAVIGATION - SaaS STYLE */}
-      <div className="flex-1 px-6 py-4 overflow-y-auto scrollbar-hide space-y-8">
+      <div className="flex-1 px-6 py-4 overflow-y-auto scrollbar-hide space-y-10">
         <div>
-          <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.3em] px-4 block mb-4">Menu Principal</span>
-          <nav className="space-y-1">
+          <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.3em] px-4 block mb-5">Menu Principal</span>
+          <nav className="space-y-1.5">
             {mainMenuItems.map((item) => {
               const active = isActive(item.path);
               const Icon = item.icon;
@@ -59,7 +59,7 @@ const AdminSidebar: React.FC = () => {
                   key={item.path}
                   onClick={() => navigate(item.path)}
                   aria-current={active ? 'page' : undefined}
-                  className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all group relative ${
+                  className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all group relative ${
                     active 
                       ? 'bg-white/5 text-white' 
                       : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.02]'

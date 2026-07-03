@@ -60,7 +60,7 @@ describe('BookingSearchModal', () => {
   it('chama onClose ao clicar no botao fechar', () => {
     const onClose = vi.fn();
     render(<BookingSearchModal {...defaultProps} onClose={onClose} />);
-    fireEvent.click(screen.getByText('Fechar'));
+    fireEvent.click(screen.getByLabelText('Fechar busca'));
     expect(onClose).toHaveBeenCalled();
   });
 

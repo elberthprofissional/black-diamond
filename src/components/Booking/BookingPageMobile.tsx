@@ -120,7 +120,7 @@ const BookingPageMobile: React.FC<BookingPageMobileProps> = ({
               <span className="font-black text-[#C5A059]">R$ {totalPrice.toFixed(0)}</span>
             </div>
           )}
-          <button onClick={goNext} disabled={isStepDisabled} aria-label={step < 4 ? 'Continuar para a próxima etapa' : 'Confirmar e concluir agendamento'} className={`w-full h-12 rounded-xl font-bold text-xs uppercase tracking-widest transition-all duration-300 cursor-pointer ${isStepDisabled ? 'bg-[#0a0a0a] border border-white/[0.04] text-zinc-700 cursor-not-allowed' : 'bg-gradient-to-r from-[#C5A059] to-[#b8923f] text-black hover:brightness-110 active:scale-[0.98]'}`}>
+          <button onClick={goNext} disabled={isStepDisabled} aria-label={step < 4 ? 'Continuar para a próxima etapa' : 'Confirmar e concluir agendamento'} className={`w-full h-12 rounded-xl font-bold text-xs uppercase tracking-widest transition-all duration-300 cursor-pointer ${isStepDisabled ? 'bg-[#0a0a0a] border border-white/[0.04] text-zinc-700 cursor-not-allowed' : 'bg-gradient-to-r from-[#C5A059] to-[#b8923f] text-black hover:brightness-110 active:scale-[0.98] shadow-lg shadow-[#C5A059]/20 hover:shadow-xl hover:shadow-[#C5A059]/30'}`}>
             {isSubmitting ? 'CONFIRMANDO...' : step < 4 ? 'Continuar' : 'Confirmar Agendamento'}
           </button>
         </div>

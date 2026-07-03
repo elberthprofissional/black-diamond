@@ -36,8 +36,8 @@ const DeleteModal: React.FC<DeleteModalProps> = ({ booking, onConfirm, onCancel 
             <div className="px-5 pt-5 pb-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-bold text-white">Excluir agendamento?</h3>
-                <button onClick={onCancel} aria-label="Fechar" className="w-6 h-6 rounded-full bg-white/[0.04] flex items-center justify-center text-zinc-600 hover:text-white transition-all cursor-pointer">
-                  <X size={11} />
+                <button onClick={onCancel} aria-label="Fechar" className="text-zinc-500 hover:text-white transition-all cursor-pointer">
+                  <X size={16} />
                 </button>
               </div>
               <p className="text-[11px] text-zinc-500 leading-relaxed">

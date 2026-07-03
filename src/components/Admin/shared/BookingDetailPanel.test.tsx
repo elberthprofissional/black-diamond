@@ -64,7 +64,7 @@ describe('BookingDetailPanel', () => {
         onDelete={vi.fn()}
       />
     )
-    expect(screen.getByText('5531999999999')).toBeInTheDocument()
+    expect(screen.getByText('(55) 31999-9999')).toBeInTheDocument()
   })
 
   it('renderiza servicos do agendamento', () => {
@@ -125,7 +125,7 @@ describe('BookingDetailPanel', () => {
         onDelete={vi.fn()}
       />
     )
-    const completeButton = screen.getByText('Concluir Atendimento')
+    const completeButton = screen.getByText('Finalizar Atendimento')
     completeButton.click()
     expect(onComplete).toHaveBeenCalledTimes(1)
   })

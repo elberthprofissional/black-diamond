@@ -56,7 +56,7 @@ describe('useBookingWizard', () => {
 
   it('stepTitle muda por step', () => {
     const { result } = renderHook(() => useBookingWizard(mockShowError))
-    expect(result.current.stepTitle).toBe('Seus dados')
+    expect(result.current.stepTitle).toBe('Agende seu corte')
 
     act(() => result.current.setStep(2))
     expect(result.current.stepTitle).toBe('Escolha os serviços')

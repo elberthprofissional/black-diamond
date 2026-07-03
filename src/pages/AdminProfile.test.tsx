@@ -68,6 +68,7 @@ vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 import AdminProfile from './AdminProfile';
 
 describe('AdminProfile', () => {
@@ -76,33 +77,33 @@ describe('AdminProfile', () => {
   });
 
   it('renderiza sem erros', async () => {
-    const { container } = render(<AdminProfile />);
+    const { container } = render(<BarberSettingsProvider><AdminProfile /></BarberSettingsProvider>);
     expect(container).toBeTruthy();
   });
 
   it('renderiza titulo do perfil', async () => {
-    render(<AdminProfile />);
+    render(<BarberSettingsProvider><AdminProfile /></BarberSettingsProvider>);
     await waitFor(() => {
       expect(screen.getAllByText(/BLACK DIAMOND/i).length).toBeGreaterThan(0);
     });
   });
 
   it('renderiza metricas de faturamento', async () => {
-    render(<AdminProfile />);
+    render(<BarberSettingsProvider><AdminProfile /></BarberSettingsProvider>);
     await waitFor(() => {
       expect(screen.getAllByText(/Faturamento Total/i).length).toBeGreaterThan(0);
     });
   });
 
   it('renderiza botao de notificacoes', async () => {
-    render(<AdminProfile />);
+    render(<BarberSettingsProvider><AdminProfile /></BarberSettingsProvider>);
     await waitFor(() => {
       expect(screen.getAllByText(/Notificar/i).length).toBeGreaterThan(0);
     });
   });
 
   it('renderiza botao de limpar dados', async () => {
-    render(<AdminProfile />);
+    render(<BarberSettingsProvider><AdminProfile /></BarberSettingsProvider>);
     await waitFor(() => {
       expect(screen.getAllByText(/Limpar/i).length).toBeGreaterThan(0);
     });

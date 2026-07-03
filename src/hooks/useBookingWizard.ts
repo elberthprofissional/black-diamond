@@ -171,7 +171,7 @@ export function useBookingWizard(showError: (msg: string) => void) {
     return false;
   }, [step, selectedServices, selectedDate, selectedTime, userInfo, isSubmitting]);
 
-  const stepTitle = step === 1 ? 'Seus dados' : step === 2 ? 'Escolha os serviços' : step === 3 ? 'Data e horário' : 'Revisar agendamento';
+  const stepTitle = step === 1 ? 'Agende seu corte' : step === 2 ? 'Escolha os serviços' : step === 3 ? 'Data e horário' : 'Revisar agendamento';
 
   const handleConfirm = useCallback(async () => {
     if (isSubmitting || !selectedTime || !userInfo.name || !userInfo.phone || selectedServices.length === 0) return;
@@ -209,7 +209,28 @@ export function useBookingWizard(showError: (msg: string) => void) {
       const serviceNames = selectedServices.map(s => s.name).join(', ');
       const formattedDate = selectedDate.split('-').reverse().join('/');
       const mensalistaTag = isMensalista ? ' [MENSALISTA]' : '';
-      const msg = `*NOVO AGENDAMENTO - BLACK DIAMOND*\n\n*Cliente:* ${userInfo.name.trim()}${mensalistaTag}\n*Servico:* ${serviceNames}\n*Data:* ${formattedDate}\n*Horario:* ${selectedTime}\n*Valor:* R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
+      const msg = `━━━━━━━━━━━━━━━━━━━━━━━━━
+BLACK DIAMOND BARBEARIA
+NOVO AGENDAMENTO
+━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Cliente
+${userInfo.name.trim()}${mensalistaTag}
+
+Serviços
+${serviceNames.split(', ').map(s => `• ${s}`).join('\n')}
+
+Data
+${formattedDate}
+
+Horário
+${selectedTime}
+
+Valor Total
+R$ ${totalPrice.toFixed(2).replace('.', ',')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+Agendamento registrado com sucesso.`;
       const waUrl = `https://wa.me/${barberPhone}?text=${encodeURIComponent(msg)}`;
       setTimeout(() => { window.open(waUrl, '_blank'); }, 200);
     }

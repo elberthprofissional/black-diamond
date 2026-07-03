@@ -70,9 +70,9 @@ describe('getLocalDateString', () => {
 })
 
 describe('getNextDays', () => {
-  it('retorna 6 dias', () => {
+  it('retorna pelo menos 1 dia', () => {
     const days = getNextDays()
-    expect(days).toHaveLength(6)
+    expect(days.length).toBeGreaterThanOrEqual(1)
   })
 
   it('cada dia tem as propriedades obrigatorias', () => {
@@ -86,6 +86,32 @@ describe('getNextDays', () => {
       expect(typeof day.fullDate).toBe('string')
       expect(typeof day.dayName).toBe('string')
       expect(typeof day.dayNumber).toBe('number')
+    }
+  })
+
+  it('nao retorna datas passadas', () => {
+    const days = getNextDays()
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    for (const day of days) {
+      const [year, month, dayNum] = day.fullDate.split('-').map(Number)
+      const date = new Date(year, month - 1, dayNum)
+      date.setHours(0, 0, 0, 0)
+      expect(date.getTime()).toBeGreaterThanOrEqual(today.getTime())
+    }
+  })
+
+  it('todas as datas retornadas sao >= hoje', () => {
+    const days = getNextDays()
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const todayMs = today.getTime()
+
+    for (const day of days) {
+      const [year, month, dayNum] = day.fullDate.split('-').map(Number)
+      const dateMs = new Date(year, month - 1, dayNum).getTime()
+      expect(dateMs).toBeGreaterThanOrEqual(todayMs)
     }
   })
 })

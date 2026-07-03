@@ -62,30 +62,30 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         className="relative z-10 w-full h-full lg:h-auto lg:max-w-md lg:bg-[#0A0A0A] lg:border lg:border-white/[0.06] lg:rounded-2xl overflow-hidden max-h-full flex flex-col"
       >
-        <div className="px-5 pt-14 pb-4 lg:pt-6 flex items-center justify-between shrink-0">
+        <div className="px-5 pt-14 pb-4 lg:pt-5 flex items-center justify-between shrink-0">
           <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Buscar Cliente</h3>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Pesquise por nome ou whatsapp</p>
+            <h3 className="text-sm font-bold text-[#C5A059]/70 uppercase tracking-wider">Buscar Cliente</h3>
+            <p className="text-[10px] text-zinc-500 mt-1">Pesquise por nome ou whatsapp</p>
           </div>
           <button
             onClick={onClose}
             aria-label="Fechar busca"
             className="w-8 h-8 rounded-lg hover:bg-white/5 text-zinc-500 hover:text-white transition-all flex items-center justify-center cursor-pointer"
           >
-            <X size={16} />
+            <X size={18} />
           </button>
         </div>
 
-        <div className="px-5 py-2 shrink-0">
+        <div className="px-5 py-3 shrink-0">
           <div className="relative">
-            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
             <input
               type="text"
               id="booking-search"
               placeholder="Digite o nome ou número..."
               aria-label="Buscar cliente por nome ou WhatsApp"
               autoFocus
-              className="w-full bg-[#151515] border border-white/5 focus:border-[#C5A059]/30 rounded-xl py-3 pl-10 pr-4 text-xs font-semibold text-white outline-none transition-all placeholder:text-zinc-700 uppercase tracking-wider"
+              className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[14px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#C5A059]/50 focus:bg-white/[0.05]"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -104,12 +104,14 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
                     setQuery('');
                   }}
                   aria-label={`Selecionar cliente ${c.name}`}
-                  className="w-full text-left py-3.5 flex items-center justify-between cursor-pointer group"
+                  className="w-full text-left py-3.5 flex items-center gap-3 cursor-pointer group"
                 >
+                  <div className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center shrink-0">
+                    <span className="text-[11px] font-bold text-zinc-400">{c.name.charAt(0)}</span>
+                  </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-bold text-zinc-300 group-hover:text-white uppercase tracking-wider transition-colors truncate">{c.name}</p>
                   </div>
-                  <ChevronRight size={14} className="text-zinc-800 group-hover:text-[#C5A059] transition-colors" />
                 </button>
               ))}
             </div>
@@ -118,15 +120,6 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
               <p className="text-[9px] text-zinc-500 uppercase tracking-widest font-bold italic">Nenhum cliente encontrado</p>
             </div>
           )}
-        </div>
-
-        <div className="px-5 pb-8 lg:pb-6 pt-2 shrink-0">
-          <button
-            onClick={onClose}
-            className="w-full h-10 bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.05] text-zinc-400 hover:text-white text-[9px] font-bold uppercase tracking-widest rounded-xl transition-all cursor-pointer"
-          >
-            Fechar
-          </button>
         </div>
       </motion.div>
     </div>

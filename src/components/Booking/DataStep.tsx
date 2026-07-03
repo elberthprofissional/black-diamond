@@ -93,16 +93,16 @@ const DataStep: React.FC<DataStepProps> = React.memo(({ name, phone, onNameChang
           <User size={12} className="text-[#C5A059]/60" />
           Nome
         </label>
-        <input 
+        <input
           id="name-mobile"
-          type="text" 
-          placeholder="Digite seu nome..." 
+          type="text"
+          placeholder="Digite seu nome..."
           aria-label="Seu nome"
           aria-describedby={name && name.trim().length < 3 ? 'name-error-mobile' : undefined}
           aria-invalid={!!(name && name.trim().length < 3)}
-          className="w-full bg-[#0d0d0d] border border-white/[0.06] focus:border-[#C5A059] focus:shadow-[0_0_16px_rgba(197,160,89,0.15)] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600" 
-          value={name} 
-          onChange={e => onNameChange(e.target.value)} 
+          className="w-full bg-transparent border border-white/[0.06] focus:border-[#C5A059] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600"
+          value={name}
+          onChange={e => onNameChange(e.target.value)}
         />
         {name && name.trim().length < 3 && (
           <p id="name-error-mobile" className="text-[10px] text-red-400/80" role="alert">Mínimo 3 caracteres</p>
@@ -124,16 +124,16 @@ const DataStep: React.FC<DataStepProps> = React.memo(({ name, phone, onNameChang
             <span className="text-[9px] text-zinc-600 animate-pulse">Verificando...</span>
           )}
         </div>
-        <input 
+        <input
           id="phone-mobile"
-          type="tel" 
-          placeholder="(00) 90000-0000" 
+          type="tel"
+          placeholder="(00) 90000-0000"
           aria-label="Seu número de WhatsApp com DDD"
           aria-describedby={phone && phone.replace(/\D/g, '').length < 11 ? 'phone-error-mobile' : undefined}
           aria-invalid={!!(phone && phone.replace(/\D/g, '').length < 11)}
-          className="w-full bg-[#0d0d0d] border border-white/[0.06] focus:border-[#C5A059] focus:shadow-[0_0_16px_rgba(197,160,89,0.15)] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600" 
-          value={phone} 
-          onChange={e => onPhoneChange(e.target.value)} 
+          className="w-full bg-transparent border border-white/[0.06] focus:border-[#C5A059] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600"
+          value={phone}
+          onChange={e => onPhoneChange(e.target.value)}
         />
         {phone && phone.replace(/\D/g, '').length < 11 && (
           <p id="phone-error-mobile" className="text-[10px] text-red-400/80" role="alert">Informe um WhatsApp válido</p>

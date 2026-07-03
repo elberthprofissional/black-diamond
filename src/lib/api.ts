@@ -178,7 +178,8 @@ export const getBookingsForStats = async () => {
   const { data, error } = await supabase
     .from('bookings')
     .select('id, client_id, booking_date, booking_time, total_price, status')
-    .order('booking_date', { ascending: false });
+    .order('booking_date', { ascending: false })
+    .throwOnError();
 
   if (error) throw error;
   return data || [];

@@ -1,5 +1,5 @@
 import { getTimeSlotsForDate, isTimeOccupied } from '../../../lib/utils';
-import type { Booking, BookingWithClient } from '../../../types';
+import type { Booking, BookingWithClient, Service } from '../../../types';
 
 interface Day {
   fullDate: string;
@@ -15,6 +15,10 @@ interface MobileDateTimeStepProps {
   rescheduleBooking?: BookingWithClient;
   onSelectDate: (date: string) => void;
   onSelectTime: (time: string) => void;
+  isPreFilled?: boolean;
+  selectedServices?: Service[];
+  totalPrice?: number;
+  clientName?: string;
 }
 
 export default function MobileDateTimeStep({
@@ -25,6 +29,10 @@ export default function MobileDateTimeStep({
   rescheduleBooking,
   onSelectDate,
   onSelectTime,
+  isPreFilled = false,
+  selectedServices = [],
+  totalPrice = 0,
+  clientName = '',
 }: MobileDateTimeStepProps) {
   const isOccupied = (time: string) => {
     const toCheck = rescheduleBooking
@@ -33,6 +41,51 @@ export default function MobileDateTimeStep({
     return isTimeOccupied(time, toCheck);
   };
 
+  const formattedDate = selectedDate.split('-').reverse().join('/');
+
+  // Summary view when date/time are pre-filled from weekly schedule
+  if (isPreFilled && selectedDate && selectedTime) {
+    return (
+      <div className="space-y-5 flex flex-col">
+        <div className="space-y-1 shrink-0">
+          <h2 className="text-lg font-bold text-white uppercase tracking-tight">Confirmar</h2>
+          <p className="text-xs text-zinc-500">Revise os dados antes de confirmar</p>
+        </div>
+
+        <div className="space-y-3">
+          {clientName && (
+            <div className="flex justify-between items-center py-3 border-b border-white/[0.04]">
+              <span className="text-[11px] text-zinc-500 uppercase tracking-wider">Cliente</span>
+              <span className="text-[13px] font-semibold text-white">{clientName}</span>
+            </div>
+          )}
+          <div className="flex justify-between items-center py-3 border-b border-white/[0.04]">
+            <span className="text-[11px] text-zinc-500 uppercase tracking-wider">Data</span>
+            <span className="text-[13px] font-semibold text-white">{formattedDate}</span>
+          </div>
+          <div className="flex justify-between items-center py-3 border-b border-white/[0.04]">
+            <span className="text-[11px] text-zinc-500 uppercase tracking-wider">Horário</span>
+            <span className="text-[13px] font-semibold text-[#C5A059]">{selectedTime}</span>
+          </div>
+          <div className="pt-2 space-y-2">
+            <span className="text-[11px] text-zinc-500 uppercase tracking-wider">Serviços</span>
+            {selectedServices.map(s => (
+              <div key={s.id} className="flex justify-between items-center">
+                <span className="text-[12px] text-zinc-400">{s.name}</span>
+                <span className="text-[12px] font-medium text-white">R$ {Number(s.price).toFixed(0)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between items-center pt-3 border-t border-white/[0.04]">
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Total</span>
+            <span className="text-lg font-bold text-[#C5A059]">R$ {totalPrice.toFixed(0)}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Normal date/time picker view
   return (
     <div className="space-y-5 h-full flex flex-col">
       {rescheduleBooking ? (
@@ -53,23 +106,21 @@ export default function MobileDateTimeStep({
 
       <div className="space-y-2 shrink-0">
         <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">SELECIONE O DIA</span>
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1 snap-x">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {nextDays.map(day => {
             const isSelected = selectedDate === day.fullDate;
-            const monthAbbr = new Date(day.fullDate + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
             return (
               <button
                 key={day.fullDate}
                 onClick={() => onSelectDate(day.fullDate)}
-                className={`min-w-[64px] py-3 transition-all duration-300 snap-center flex flex-col items-center gap-0.5 rounded-xl border ${
+                className={`min-w-[64px] py-3 transition-all duration-300 flex flex-col items-center gap-0.5 rounded-xl border ${
                   isSelected
                     ? 'bg-[#C5A059]/10 border-[#C5A059]/50 text-[#C5A059]'
-                    : 'bg-[#111111] border-white/[0.06] text-zinc-500 hover:text-white hover:border-white/[0.12]'
+                    : 'bg-transparent border-white/[0.06] text-zinc-500 hover:text-white hover:border-white/[0.12]'
                 }`}
               >
                 <span className="text-[8px] font-bold uppercase tracking-widest opacity-60">{day.dayName}</span>
                 <span className="text-xl font-bold text-white">{day.dayNumber}</span>
-                <span className="text-[8px] font-bold uppercase tracking-wider opacity-50">{monthAbbr}</span>
               </button>
             );
           })}
@@ -94,8 +145,8 @@ export default function MobileDateTimeStep({
                       occupied
                         ? 'text-zinc-800 border-transparent cursor-not-allowed opacity-20 bg-transparent'
                         : isSelected
-                          ? 'text-[#C5A059] border-[#C5A059]/50 bg-[#C5A059]/[0.08]'
-                          : 'text-zinc-400 border-white/[0.06] bg-[#111111] hover:border-white/[0.12] hover:text-white'
+                          ? 'text-[#C5A059] border-[#C5A059]/50 bg-transparent'
+                          : 'text-zinc-400 border-white/[0.06] bg-transparent hover:border-white/[0.12] hover:text-white'
                     }`}
                   >
                     {time}

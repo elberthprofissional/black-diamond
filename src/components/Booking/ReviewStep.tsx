@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Service } from '../../types';
+import { formatPhone } from '../../lib/utils';
 
 interface ReviewStepProps {
   userName: string;
@@ -38,7 +39,7 @@ const ReviewStep: React.FC<ReviewStepProps> = React.memo(({
             </div>
             <div className="flex justify-between items-center py-0.5">
               <span className="text-zinc-500 font-medium">WhatsApp</span>
-              <span className="font-semibold text-white">{userPhone}</span>
+            <span className="font-semibold text-white">{formatPhone(userPhone)}</span>
             </div>
             <div className="flex justify-between items-center py-0.5">
               <span className="text-zinc-500 font-medium">Data e Horário</span>
@@ -59,7 +60,7 @@ const ReviewStep: React.FC<ReviewStepProps> = React.memo(({
           </div>
 
           <div className="pt-5 border-t border-white/[0.04] flex justify-between items-center">
-            <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Valor Total</span>
+          <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Total</span>
             <span className="text-2xl font-black text-[#C5A059] tracking-tight">R$ {totalPrice.toFixed(0)}</span>
           </div>
         </div>
@@ -69,10 +70,9 @@ const ReviewStep: React.FC<ReviewStepProps> = React.memo(({
 
   return (
     <div className="space-y-4 pb-4">
-      <div className="w-full bg-[#080808] border border-white/[0.04] rounded-2xl p-6 space-y-5">
-        <div className="pb-3 border-b border-white/[0.04] flex items-center justify-between">
+      <div className="w-full border border-white/[0.04] rounded-2xl p-6 space-y-5">
+        <div className="pb-3 border-b border-white/[0.04]">
           <span className="text-[10px] font-bold tracking-widest text-[#C5A059] uppercase">Resumo do Agendamento</span>
-          <span className="text-[10px] text-zinc-500 font-medium">Verifique os dados</span>
         </div>
 
         <div className="space-y-3 text-sm">
@@ -82,11 +82,15 @@ const ReviewStep: React.FC<ReviewStepProps> = React.memo(({
           </div>
           <div className="flex justify-between items-center py-0.5">
             <span className="text-zinc-500 font-medium">WhatsApp</span>
-            <span className="font-semibold text-white">{userPhone}</span>
+            <span className="font-semibold text-white">{formatPhone(userPhone)}</span>
           </div>
           <div className="flex justify-between items-center py-0.5">
-            <span className="text-zinc-500 font-medium">Data e Horário</span>
-            <span className="font-semibold text-[#C5A059]">{formattedDate} às {selectedTime}</span>
+            <span className="text-zinc-500 font-medium">Data</span>
+            <span className="font-semibold text-white">{formattedDate}</span>
+          </div>
+          <div className="flex justify-between items-center py-0.5">
+            <span className="text-zinc-500 font-medium">Horário</span>
+            <span className="font-semibold text-[#C5A059]">{selectedTime}</span>
           </div>
         </div>
 
@@ -103,7 +107,7 @@ const ReviewStep: React.FC<ReviewStepProps> = React.memo(({
         </div>
 
         <div className="pt-4 border-t border-white/[0.04] flex justify-between items-center">
-          <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Valor Total</span>
+          <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Total</span>
           <span className="text-xl font-black text-[#C5A059] tracking-tight">R$ {totalPrice.toFixed(0)}</span>
         </div>
       </div>

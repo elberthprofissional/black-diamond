@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Pencil, Trash2, Plus, Crown } from 'lucide-react';
+import { X, Pencil, Trash2, Plus, Crown, ArrowLeft, Check } from 'lucide-react';
 import { formatPhone } from '../../../lib/utils';
 import type { ClientWithStats, BookingWithClient } from '../../../types';
 
@@ -97,13 +97,13 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
               </span>
             </div>
             <div className="flex justify-between items-center px-2">
-              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Valor Faturado</span>
+              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Valor Gasto</span>
               <span className="text-sm font-black text-white">R$ {panelTotal.toFixed(0)}</span>
             </div>
             <div className="flex justify-between items-center pt-3 border-t border-white/[0.04] px-2">
               <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Última Visita</span>
               <span className="text-xs font-bold text-white uppercase">
-                {panelLast ? panelLast.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Nunca'}
+                {panelLast ? panelLast.toLocaleDateString('pt-BR') : 'Nunca'}
               </span>
             </div>
           </div>
@@ -175,6 +175,47 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
           </div>
         </div>
       </motion.div>
+
+      {/* Mobile Full-Screen Notes Editor */}
+      <AnimatePresence>
+        {isEditingNotes && (
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="fixed inset-0 z-[300] bg-[#0A0A0A] lg:hidden flex flex-col"
+          >
+            <div className="flex items-center justify-between px-4 h-14 border-b border-white/[0.06]">
+              <button
+                onClick={onToggleEditNotes}
+                className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                aria-label="Cancelar"
+              >
+                <ArrowLeft size={20} />
+              </button>
+              <span className="text-[15px] font-bold text-white">Anotações</span>
+              <button
+                onClick={async () => { await onSaveNotes(); }}
+                disabled={savingNotes}
+                className="text-[#C5A059] font-bold text-[15px] transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="Salvar"
+              >
+                {savingNotes ? '...' : <Check size={20} />}
+              </button>
+            </div>
+            <div className="flex-1 p-4">
+              <textarea
+                value={notesText}
+                onChange={(e) => onNotesChange(e.target.value)}
+                placeholder="Ex: Prefere degradê baixo..."
+                className="w-full h-full bg-transparent text-white text-[15px] placeholder:text-zinc-600 outline-none resize-none leading-relaxed"
+                autoFocus
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

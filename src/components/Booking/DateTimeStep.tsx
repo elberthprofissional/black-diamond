@@ -122,36 +122,30 @@ const DateTimeStep: React.FC<DateTimeStepProps> = ({
       >
         {nextDays.map(day => {
           const isSelected = selectedDate === day.fullDate;
-          const monthIndex = parseInt(day.fullDate.split('-')[1]) - 1;
           return (
-            <button 
-              key={day.fullDate} 
+            <button
+              key={day.fullDate}
               onClick={() => onSelectDate(day.fullDate)}
               disabled={day.isPast}
               role="radio"
               aria-checked={isSelected}
               aria-label={`${day.dayName} ${day.dayNumber}${day.isToday ? ' (hoje)' : ''}${day.isPast ? ' (indisponível)' : ''}`}
-              className={`w-[72px] h-[88px] shrink-0 snap-center flex flex-col items-center justify-center gap-1 rounded-xl transition-all duration-300 border ${
+              className={`w-[64px] h-[76px] shrink-0 snap-center flex flex-col items-center justify-center gap-1 rounded-xl transition-all duration-300 border ${
                 day.isPast
                   ? 'opacity-30 cursor-not-allowed border-transparent bg-transparent'
-                  : isSelected 
-                    ? 'bg-[#C5A059] border-[#C5A059] text-black' 
+                  : isSelected
+                    ? 'bg-[#C5A059] border-[#C5A059] text-black'
                     : day.isToday
                       ? 'bg-[#C5A059]/10 border border-[#C5A059]/30 text-[#C5A059]'
-                      : 'bg-[#0d0d0d] border border-white/[0.04] text-zinc-400 hover:bg-[#121212]'
+                      : 'bg-transparent border border-white/[0.04] text-zinc-400 hover:bg-white/[0.02]'
               }`}
             >
               <span className={`text-[9px] font-bold uppercase tracking-widest ${
                 isSelected ? 'text-black/60' : day.isToday ? 'text-[#C5A059]' : 'text-zinc-500'
               }`}>{day.dayName}</span>
-              
               <span className={`text-[19px] font-black leading-none ${
                 isSelected ? 'text-black' : day.isToday ? 'text-[#C5A059]' : 'text-white'
               }`}>{day.dayNumber}</span>
-              
-              <span className={`text-[8px] font-bold uppercase tracking-wider ${
-                isSelected ? 'text-black/50' : 'text-zinc-600'
-              }`}>{MONTH_NAMES[monthIndex]}</span>
             </button>
           );
         })}
@@ -174,11 +168,11 @@ const DateTimeStep: React.FC<DateTimeStepProps> = ({
                   onClick={() => onSelectTime(time)}
                   aria-label={`${time}${occupied ? ' (indisponível)' : ''}${isSelected ? ' (selecionado)' : ''}`}
                   className={`py-3 rounded-xl text-[12px] font-bold transition-all duration-200 border ${
-                    occupied 
-                      ? 'text-zinc-800 bg-transparent cursor-not-allowed line-through opacity-20 border-transparent' 
-                      : isSelected 
-                        ? 'bg-[#C5A059] border-[#C5A059] text-black' 
-                        : 'bg-[#0d0d0d] border-white/[0.04] text-zinc-400 hover:text-zinc-200'
+                    occupied
+                      ? 'text-zinc-800 cursor-not-allowed line-through opacity-20 border-transparent'
+                      : isSelected
+                        ? 'bg-transparent border-[#C5A059] text-[#C5A059]'
+                        : 'bg-transparent border-white/[0.06] text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
                   {time}

@@ -42,10 +42,11 @@ vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 import AdminClients from './AdminClients';
 
 const renderWithRouter = (ui: React.ReactElement) =>
-  render(<BrowserRouter>{ui}</BrowserRouter>);
+  render(<BrowserRouter><BarberSettingsProvider>{ui}</BarberSettingsProvider></BrowserRouter>);
 
 describe('AdminClients', () => {
   beforeEach(() => {

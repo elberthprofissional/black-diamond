@@ -19,11 +19,11 @@ export default function DesktopServicesStep({
   const totalPrice = selectedServices.reduce((sum, s) => sum + Number(s.price), 0);
 
   return (
-    <div className="space-y-8 h-full flex flex-col">
+    <div className="space-y-6 h-full flex flex-col">
       {/* Header */}
-      <div className="space-y-2">
+      <div className="space-y-1">
         <h2 className="text-2xl font-bold tracking-tight text-white">Serviços</h2>
-        <p className="text-[14px] text-zinc-500">
+        <p className="text-[13px] text-zinc-500">
           {isMensalista
             ? 'Serviço incluso no plano. Deseja adicionar algo?'
             : 'Selecione os serviços para o atendimento.'}
@@ -39,7 +39,7 @@ export default function DesktopServicesStep({
       )}
 
       {/* Services List */}
-      <div className="flex-1 space-y-1">
+      <div className="flex-1 space-y-0.5">
         {services.map(service => {
           const isSelected = selectedServices.some(s => s.id === service.id);
           return (
@@ -75,7 +75,7 @@ export default function DesktopServicesStep({
       </div>
 
       {/* Total + Continue */}
-      <div className="pt-4 border-t border-white/[0.04] space-y-4">
+      <div className="pt-4 border-t border-white/[0.04] space-y-3">
         {selectedServices.length > 0 && (
           <div className="flex items-center justify-between">
             <span className="text-[12px] font-medium text-zinc-500 uppercase tracking-wider">Total</span>
@@ -97,7 +97,7 @@ export default function DesktopServicesStep({
             type="button"
             onClick={onNextStep}
             disabled={!isMensalista && selectedServices.length === 0}
-            className="flex-1 py-4 bg-[#B8962D] text-black text-[13px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#B8962D]/20"
+            className="flex-1 py-4 bg-[#C5A059] text-black text-[13px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#C5A059]/20 hover:shadow-xl hover:shadow-[#C5A059]/30"
           >
             Continuar
             <ChevronRight size={16} />

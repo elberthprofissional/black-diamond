@@ -38,11 +38,11 @@ export default function DesktopClientStep({
   isStepValid,
 }: DesktopClientStepProps) {
   return (
-    <div className="space-y-8 h-full flex flex-col">
+    <div className="space-y-6 h-full flex flex-col">
       {/* Header */}
-      <div className="space-y-2">
+      <div className="space-y-1">
         <h2 className="text-2xl font-bold tracking-tight text-white">Cliente</h2>
-        <p className="text-[14px] text-zinc-500">
+        <p className="text-[13px] text-zinc-500">
           {selectedClient
             ? 'Cliente selecionado com sucesso.'
             : isManualEntry
@@ -117,11 +117,11 @@ export default function DesktopClientStep({
               </div>
               <div className="flex gap-3">
                 <div className="relative flex-1">
-                  <Search size={16} className="absolute left-0 top-1/2 -translate-y-1/2 text-zinc-600" />
+                  <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
                   <input
                     type="text"
                     placeholder="Digite o numero ou nome..."
-                    className="w-full bg-transparent border-b-2 border-white/10 focus:border-[#C5A059] py-3 pl-8 pr-4 text-[15px] text-white outline-none transition-all placeholder:text-zinc-600"
+                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[15px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#C5A059]/50 focus:bg-white/[0.05]"
                     value={searchQuery}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -138,7 +138,7 @@ export default function DesktopClientStep({
                   type="button"
                   onClick={onSearch}
                   disabled={!searchQuery.trim() || isSearchingClient}
-                  className="px-6 py-3 bg-[#C5A059] text-black text-[12px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-6 py-3.5 bg-[#C5A059] text-black text-[12px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-[#C5A059]/20"
                 >
                   {isSearchingClient ? <Loader2 size={14} className="animate-spin" /> : 'Buscar'}
                 </button>
@@ -172,21 +172,21 @@ export default function DesktopClientStep({
             </div>
             <div className="space-y-4">
               <div className="relative">
-                <User size={16} className="absolute left-0 top-1/2 -translate-y-1/2 text-zinc-600" />
+                <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
                 <input
                   type="text"
                   placeholder="Nome completo"
-                  className="w-full bg-transparent border-b-2 border-white/10 focus:border-[#C5A059] py-3 pl-8 pr-4 text-[15px] text-white outline-none transition-all placeholder:text-zinc-600"
+                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[15px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#C5A059]/50 focus:bg-white/[0.05]"
                   value={newClient.name}
                   onChange={(e) => onSetNewClient({ ...newClient, name: e.target.value.toUpperCase() })}
                 />
               </div>
               <div className="relative">
-                <Phone size={16} className="absolute left-0 top-1/2 -translate-y-1/2 text-zinc-600" />
+                <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
                 <input
                   type="tel"
                   placeholder="(00) 00000-0000"
-                  className="w-full bg-transparent border-b-2 border-white/10 focus:border-[#C5A059] py-3 pl-8 pr-4 text-[15px] text-white outline-none transition-all placeholder:text-zinc-600"
+                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[15px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#C5A059]/50 focus:bg-white/[0.05]"
                   value={newClient.phone}
                   onChange={(e) => onSetNewClient({ ...newClient, phone: formatPhone(e.target.value) })}
                 />
@@ -198,7 +198,7 @@ export default function DesktopClientStep({
             type="button"
             onClick={onNextStep}
             disabled={!isStepValid(1)}
-            className="w-full py-4 bg-[#B8962D] text-black text-[13px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#B8962D]/20"
+            className="w-full py-4 bg-[#C5A059] text-black text-[13px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#C5A059]/20 hover:shadow-xl hover:shadow-[#C5A059]/30"
           >
             Continuar
             <ChevronRight size={16} />

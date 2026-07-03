@@ -39,8 +39,9 @@ export const getLocalDateString = (d: Date = new Date()) => {
 export const getNextDays = () => {
   const days = [];
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const currentDay = today.getDay();
-  const currentHour = today.getHours();
+  const currentHour = new Date().getHours();
   
   const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
   const monday = new Date(today);
@@ -54,16 +55,20 @@ export const getNextDays = () => {
   for (let i = 0; i < 6; i++) {
     const date = new Date(monday);
     date.setDate(monday.getDate() + i);
+    date.setHours(0, 0, 0, 0);
     
-    const isToday = date.toDateString() === today.toDateString();
-    const isPast = date.getTime() < today.getTime() && !isToday;
+    const isToday = date.getTime() === today.getTime();
+    const isPast = date.getTime() < today.getTime();
+
+    // Pula dias que já passaram
+    if (isPast) continue;
 
     days.push({
       fullDate: getLocalDateString(date),
       dayName: date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase(),
       dayNumber: date.getDate(),
       isToday,
-      isPast,
+      isPast: false,
     });
   }
   return days;

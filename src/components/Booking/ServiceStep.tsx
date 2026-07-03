@@ -77,7 +77,7 @@ const ServiceStep: React.FC<ServiceStepProps> = React.memo(({ services, selected
         </div>
       )}
 
-      <div className="bg-white/[0.02] rounded-2xl overflow-hidden divide-y divide-white/[0.04]" role="group" aria-label="Serviços disponíveis">
+      <div className="space-y-1" role="group" aria-label="Serviços disponíveis">
         {services.map((service) => {
           const selected = isSelected(service.id);
           return (
@@ -85,8 +85,8 @@ const ServiceStep: React.FC<ServiceStepProps> = React.memo(({ services, selected
               key={service.id}
               onClick={() => onToggle(service)}
               aria-pressed={selected}
-              className={`w-full flex items-center gap-4 px-5 py-4 text-left transition-all cursor-pointer ${
-                selected ? 'bg-[#C5A059]/[0.04]' : 'hover:bg-white/[0.02]'
+              className={`w-full flex items-center gap-4 px-1 py-4 text-left transition-all cursor-pointer ${
+                selected ? 'bg-transparent' : 'hover:bg-transparent'
               }`}
             >
               <div className={`w-[18px] h-[18px] rounded-full border-[1.5px] flex items-center justify-center transition-all shrink-0 ${

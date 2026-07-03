@@ -1,6 +1,7 @@
 import React from 'react';
 import type { BookingWithClient, Service } from '../../../types';
 import WhatsAppReminderButton from './WhatsAppReminderButton';
+import { formatPhone } from '../../../lib/utils';
 
 interface BookingDetailPanelProps {
   booking: BookingWithClient;
@@ -82,12 +83,12 @@ const BookingDetailPanel: React.FC<BookingDetailPanelProps> = React.memo(({
       <div className="px-6 py-6 space-y-6 flex-1 text-left overflow-y-auto scrollbar-hide">
         {/* Client Info */}
         <div className="flex items-center gap-4 bg-white/[0.01] border border-white/[0.03] p-4 rounded-xl">
-          <div className="w-12 h-12 bg-[#111111] border border-black rounded-xl flex items-center justify-center text-lg font-bold text-zinc-500 uppercase shrink-0">
+          <div className="w-12 h-12 bg-[#111111] border border-white/[0.08] rounded-xl flex items-center justify-center text-lg font-bold text-white uppercase shrink-0">
             {booking.clients?.name?.charAt(0) || 'U'}
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="text-base font-black text-white uppercase tracking-tight truncate">{booking.clients?.name}</h3>
-            <p className="text-xs text-zinc-500 mt-0.5">{booking.clients?.phone || 'Sem telefone'}</p>
+            <p className="text-xs text-zinc-500 mt-0.5">{formatPhone(booking.clients?.phone) || 'Sem telefone'}</p>
           </div>
         </div>
 
@@ -123,7 +124,7 @@ const BookingDetailPanel: React.FC<BookingDetailPanelProps> = React.memo(({
             </div>
             <div className="h-px bg-white/[0.04]" />
             <div className="flex justify-between items-center px-1">
-              <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Investimento Total</span>
+              <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Total</span>
               <span className="text-base font-black text-[#C5A059]">R$ {(booking.total_price || 0).toFixed(0)}</span>
             </div>
           </div>
@@ -137,7 +138,7 @@ const BookingDetailPanel: React.FC<BookingDetailPanelProps> = React.memo(({
               className="w-full h-11 bg-[#C5A059] hover:bg-white text-[#0A0A0A] font-black text-[10px] uppercase tracking-[0.25em] transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 rounded-xl"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="mb-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Concluir Atendimento
+              Finalizar Atendimento
             </button>
           )}
           {booking.clients?.phone && (
@@ -145,7 +146,7 @@ const BookingDetailPanel: React.FC<BookingDetailPanelProps> = React.memo(({
               booking={booking}
               className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-zinc-300 hover:bg-white/[0.05] hover:text-white rounded-xl transition-all active:scale-[0.99] text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
               showLabel
-              label="Enviar lembrete"
+              label="Lembrar do agendamento"
               iconType="bell"
             />
           )}

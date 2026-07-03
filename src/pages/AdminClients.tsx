@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo, useDeferredValue } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useMemo, useDeferredValue, lazy, Suspense } from 'react';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getClients, getBookings, getBookingsForStats, deleteClient, updateClient, updateClientNotes, createClient, toggleClientMensalista } from '../lib/api';
 import { formatPhone, getErrorMessage } from '../lib/utils';
@@ -10,8 +10,8 @@ import ToastNotification from '../components/Admin/shared/ToastNotification';
 import ClientPanel from '../components/Admin/shared/ClientPanel';
 import DeleteClientModal from '../components/Admin/shared/DeleteClientModal';
 import EditClientModal from '../components/Admin/shared/EditClientModal';
-import NewClientModal from '../components/Admin/shared/NewClientModal';
-import ReminderModal from '../components/Admin/shared/ReminderModal';
+const NewClientModal = lazy(() => import('../components/Admin/shared/NewClientModal'));
+const ReminderModal = lazy(() => import('../components/Admin/shared/ReminderModal'));
 import { SkeletonClients } from '../components/Skeleton';
 import { ArrowLeft, Search, ChevronRight, Plus } from 'lucide-react';
 import type { Client, ClientWithStats, BookingWithClient } from '../types';
@@ -22,6 +22,7 @@ const AdminClients: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { toast, showSuccess, showError } = useToast();
   const [selectedClient, setSelectedClient] = useState<ClientWithStats | null>(null);
+  const location = useLocation();
   const [panelBookings, setPanelBookings] = useState<BookingWithClient[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
@@ -115,7 +116,7 @@ const AdminClients: React.FC = () => {
           }).sort((a, b) => new Date(a.booking_date).getTime() - new Date(b.booking_date).getTime())[0];
           const pastBookings = cb.filter((b) => {
             const bookingDate = new Date(b.booking_date + 'T00:00:00');
-            return bookingDate < todayISO;
+            return bookingDate <= todayISO;
           });
           const lb = [...pastBookings].sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime())[0];
 
@@ -140,6 +141,18 @@ const AdminClients: React.FC = () => {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadData(); }, []);
+
+  // Refresh data when navigating back to this page
+  useEffect(() => {
+    const handleRefresh = () => loadData();
+    window.addEventListener('focus', handleRefresh);
+    document.addEventListener('visibilitychange', handleRefresh);
+    return () => {
+      window.removeEventListener('focus', handleRefresh);
+      document.removeEventListener('visibilitychange', handleRefresh);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const debouncedSearch = useDeferredValue(searchTerm);
 
@@ -357,36 +370,49 @@ const AdminClients: React.FC = () => {
         ) : (
           <>
             <div className="lg:hidden space-y-1">
-              {filteredClients.map((client) => {
-                const needsReminder = !isReminderRecent(client.id);
-                return (
-                <div key={client.id} onClick={() => openPanel(client)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openPanel(client); }} aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`} className={`w-full flex items-center gap-3 py-3.5 px-4 rounded-xl cursor-pointer border transition-all group text-left ${needsReminder ? 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05]' : 'bg-white/[0.01] border-white/[0.03] hover:bg-white/[0.03]'}`}>
-                  <div className="relative shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-[#111111] border border-white/[0.08] flex items-center justify-center text-sm font-bold text-white uppercase">{client.name.charAt(0)}</div>
-                    {client.is_mensalista ? (
-                      <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-[#0A0A0A] flex items-center justify-center ${needsReminder ? 'bg-[#C5A059]' : 'bg-emerald-500'}`}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14v2H5v-2z"/></svg>
-                      </div>
-                    ) : (
-                      <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0A0A0A] ${needsReminder ? 'bg-red-500' : 'bg-emerald-500'}`} />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <p className="text-sm font-semibold text-white truncate">{client.name}</p>
-                    <div className="flex items-center gap-1.5 mt-0.5 overflow-hidden">
-                      <span className="text-[11px] text-zinc-500 truncate">{formatPhone(client.phone)}</span>
-                      <span className="text-zinc-600 shrink-0">•</span>
-                      <span className="text-[10px] text-zinc-500 truncate">Último: {client.lastVisit}</span>
+              {(() => {
+                const grouped: Record<string, typeof filteredClients> = {};
+                filteredClients.forEach(client => {
+                  const letter = (client.name || '?').charAt(0).toUpperCase();
+                  if (!grouped[letter]) grouped[letter] = [];
+                  grouped[letter].push(client);
+                });
+                return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b)).map(([letter, clients]) => (
+                  <div key={letter}>
+                    <div className="px-4 py-2 sticky top-0 z-10">
+                      <span className="text-[11px] font-bold text-zinc-500 uppercase">{letter}</span>
+                    </div>
+                    <div className="space-y-1">
+                      {clients.map((client) => {
+                        const needsReminder = !isReminderRecent(client.id);
+                        return (
+                          <div key={client.id} onClick={() => openPanel(client)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openPanel(client); }} aria-label={`Cliente ${client.name}`} className={`w-full flex items-center gap-3 py-3.5 px-4 rounded-xl cursor-pointer border transition-all group text-left ${needsReminder ? 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05]' : 'bg-white/[0.01] border-white/[0.03] hover:bg-white/[0.03]'}`}>
+                            <div className="relative shrink-0">
+                              <div className="w-10 h-10 rounded-full bg-[#111111] border border-white/[0.08] flex items-center justify-center text-sm font-bold text-white uppercase">{client.name.charAt(0)}</div>
+                              {client.is_mensalista ? (
+                                <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-[#0A0A0A] flex items-center justify-center ${needsReminder ? 'bg-[#C5A059]' : 'bg-emerald-500'}`}>
+                                  <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14v2H5v-2z"/></svg>
+                                </div>
+                              ) : (
+                                <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0A0A0A] ${needsReminder ? 'bg-red-500' : 'bg-emerald-500'}`} />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0 text-left">
+                              <p className="text-sm font-semibold text-white truncate">{client.name}</p>
+                            </div>
+                            <div className="shrink-0 flex items-center gap-2">
+                              {needsReminder && (
+                                <button onClick={(e) => { e.stopPropagation(); setSelectedClient(client); setIsReminderOpen(true); }} className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer active:scale-95 bg-white/[0.06] hover:bg-white/[0.1] text-zinc-400 hover:text-white border border-white/[0.08]">Lembrar</button>
+                              )}
+                              <ChevronRight size={14} className="text-zinc-600 shrink-0" />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                  <div className="shrink-0 flex items-center gap-2">
-                    {needsReminder && (
-                      <button onClick={(e) => { e.stopPropagation(); setSelectedClient(client); setIsReminderOpen(true); }} className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer active:scale-95 bg-white/[0.06] hover:bg-white/[0.1] text-zinc-400 hover:text-white border border-white/[0.08]">Lembrar</button>
-                    )}
-                    <ChevronRight size={14} className="text-zinc-600 shrink-0" />
-                  </div>
-                </div>
-              )})}
+                ));
+              })()}
             </div>
 
             <div className="hidden lg:grid grid-cols-2 gap-3">
@@ -468,29 +494,33 @@ const AdminClients: React.FC = () => {
         onCancel={() => setIsEditing(false)}
       />
 
-      <ReminderModal
-        isOpen={isReminderOpen && !!selectedClient}
-        clientName={selectedClient?.name || ''}
-        templates={templates}
-        onDeleteTemplate={handleDeleteTemplate}
-        onSaveTemplate={handleSaveTemplate}
-        onSendTemplate={sendWithTemplate}
-        onClose={() => setIsReminderOpen(false)}
-      />
+      <Suspense fallback={null}>
+        <ReminderModal
+          isOpen={isReminderOpen && !!selectedClient}
+          clientName={selectedClient?.name || ''}
+          templates={templates}
+          onDeleteTemplate={handleDeleteTemplate}
+          onSaveTemplate={handleSaveTemplate}
+          onSendTemplate={sendWithTemplate}
+          onClose={() => setIsReminderOpen(false)}
+        />
+      </Suspense>
 
-      <NewClientModal
-        isOpen={isCreatingClient}
-        name={newClientName}
-        phone={newClientPhone}
-        notes={newClientNotes}
-        saving={isSavingClient}
-        error={newClientError}
-        onNameChange={(v) => { setNewClientName(v); setNewClientError(''); }}
-        onPhoneChange={(v) => { setNewClientPhone(v); setNewClientError(''); }}
-        onNotesChange={setNewClientNotes}
-        onSave={handleCreateClient}
-        onCancel={() => { setIsCreatingClient(false); setNewClientName(''); setNewClientPhone(''); setNewClientEmail(''); setNewClientNotes(''); setNewClientError(''); }}
-      />
+      <Suspense fallback={null}>
+        <NewClientModal
+          isOpen={isCreatingClient}
+          name={newClientName}
+          phone={newClientPhone}
+          notes={newClientNotes}
+          saving={isSavingClient}
+          error={newClientError}
+          onNameChange={(v) => { setNewClientName(v); setNewClientError(''); }}
+          onPhoneChange={(v) => { setNewClientPhone(v); setNewClientError(''); }}
+          onNotesChange={setNewClientNotes}
+          onSave={handleCreateClient}
+          onCancel={() => { setIsCreatingClient(false); setNewClientName(''); setNewClientPhone(''); setNewClientEmail(''); setNewClientNotes(''); setNewClientError(''); }}
+        />
+      </Suspense>
 
       <ToastNotification toast={toast} />
     </AdminLayout>

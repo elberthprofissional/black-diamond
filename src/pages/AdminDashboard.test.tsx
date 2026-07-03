@@ -43,6 +43,7 @@ vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 import AdminDashboard from './AdminDashboard';
 
 describe('AdminDashboard', () => {
@@ -51,31 +52,31 @@ describe('AdminDashboard', () => {
   });
 
   it('renderiza sem erros', () => {
-    const { container } = render(<AdminDashboard />);
+    const { container } = render(<BarberSettingsProvider><AdminDashboard /></BarberSettingsProvider>);
     expect(container).toBeTruthy();
   });
 
   it('renderiza titulo do dashboard', () => {
-    render(<AdminDashboard />);
+    render(<BarberSettingsProvider><AdminDashboard /></BarberSettingsProvider>);
     expect(screen.getAllByText(/BLACK DIAMOND/i).length).toBeGreaterThan(0);
   });
 
   it('renderiza abas de filtro', async () => {
-    render(<AdminDashboard />);
+    render(<BarberSettingsProvider><AdminDashboard /></BarberSettingsProvider>);
     await waitFor(() => {
       expect(screen.getByText(/Ocupados/i)).toBeInTheDocument();
     });
   });
 
   it('renderiza aba de livres', async () => {
-    render(<AdminDashboard />);
+    render(<BarberSettingsProvider><AdminDashboard /></BarberSettingsProvider>);
     await waitFor(() => {
       expect(screen.getByText(/Livres/i)).toBeInTheDocument();
     });
   });
 
   it('renderiza aba de bloqueados', async () => {
-    render(<AdminDashboard />);
+    render(<BarberSettingsProvider><AdminDashboard /></BarberSettingsProvider>);
     await waitFor(() => {
       expect(screen.getByText(/Bloqueados/i)).toBeInTheDocument();
     });

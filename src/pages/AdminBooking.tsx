@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createBooking, getBookings, getClients, getBookingsForStats, deleteBooking } from '../lib/api';
 import { formatPhone, getNextDays } from '../lib/utils';
@@ -7,12 +7,11 @@ import { useServices } from '../hooks/useServices';
 import type { Service, Client, Booking } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomTabs from '../components/Admin/BottomTabs';
-import BookingSearchModal from '../components/Admin/shared/BookingSearchModal';
+const BookingSearchModal = lazy(() => import('../components/Admin/shared/BookingSearchModal'));
 
 import AdminLayout from '../components/Admin/AdminLayout';
 import {
   RescheduleBanner,
-  CalendarModal,
   BookingStepIndicator,
   DesktopClientStep,
   DesktopServicesStep,
@@ -23,12 +22,6 @@ import {
 } from '../components/Admin/booking';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import { ArrowLeft } from 'lucide-react';
-
-const STEPS = [
-  { step: 1, label: 'CLIENTE', num: '01' },
-  { step: 2, label: 'SERVIÇOS', num: '02' },
-  { step: 3, label: 'AGENDA', num: '03' },
-];
 
 const MENSALISTA_EXCLUDED_SERVICES = ['Corte de Cabelo'];
 
@@ -47,8 +40,6 @@ const AdminBooking: React.FC = () => {
   const [filteredClientsForModal, setFilteredClientsForModal] = useState<Client[]>([]);
   const [existingBookings, setExistingBookings] = useState<Booking[]>([]);
   const { showSuccess, showError } = useToast();
-  const [showCalendarModal, setShowCalendarModal] = useState(false);
-  const [calendarUrl, setCalendarUrl] = useState('');
 
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [newClient, setNewClient] = useState({ name: '', phone: '' });
@@ -81,6 +72,14 @@ const AdminBooking: React.FC = () => {
   const [isManualEntry, setIsManualEntry] = useState(true);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const isDesktop = useIsDesktop();
+
+  const isPreFilled = !!location.state?.date && !!location.state?.time && !rescheduleBooking;
+
+  const STEPS = [
+    { step: 1, label: 'CLIENTE', num: '01' },
+    { step: 2, label: 'SERVIÇOS', num: '02' },
+    { step: 3, label: isPreFilled ? 'CONFIRMAR' : 'AGENDA', num: '03' },
+  ];
 
   // Filter services for mensalista
   const filteredServices = useMemo(() => {
@@ -206,17 +205,8 @@ const AdminBooking: React.FC = () => {
         { name, phone }
       );
 
-      const serviceNames = selectedServices.map(s => s.name).join(', ');
-      const mensalistaTag = isMensalista ? ' [MENSALISTA]' : '';
-      const endDate = new Date(`${selectedDate}T${selectedTime}`);
-      endDate.setMinutes(endDate.getMinutes() + totalDuration);
-      const endDateTime = `${endDate.getFullYear()}${String(endDate.getMonth() + 1).padStart(2, '0')}${String(endDate.getDate()).padStart(2, '0')}T${String(endDate.getHours()).padStart(2, '0')}${String(endDate.getMinutes()).padStart(2, '0')}00`;
-      const startFormatted = `${selectedDate.split('-')[0]}${selectedDate.split('-')[1]}${selectedDate.split('-')[2]}T${selectedTime.replace(':', '')}00`;
-      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(name + mensalistaTag + ' - ' + serviceNames)}&dates=${startFormatted}/${endDateTime}&details=${encodeURIComponent('Black Diamond - ' + serviceNames + ' - R$ ' + totalPrice.toFixed(2))}`;
-
-      setCalendarUrl(url);
       showSuccess(rescheduleBooking?.id ? 'Agendamento reagendado com sucesso!' : 'Agendamento realizado!');
-      setShowCalendarModal(true);
+      setTimeout(() => navigate('/admin'), 300);
     } catch (error) {
       showError(error instanceof Error ? error.message : 'Erro ao agendar.');
     } finally {
@@ -236,18 +226,12 @@ const AdminBooking: React.FC = () => {
       const term = searchQuery.trim().toLowerCase();
       const isPhone = /^\+?\d[\d\s\-()]*$/.test(term);
       const matches = isPhone
-        ? clients.filter(c => c.phone.replace(/\D/g, '').includes(term.replace(/\D/g, '')))
-        : clients.filter(c => c.name.toLowerCase().includes(term));
+        ? filteredClientsForModal.filter(c => c.phone.replace(/\D/g, '').includes(term.replace(/\D/g, '')))
+        : filteredClientsForModal.filter(c => c.name.toLowerCase().includes(term));
 
       setIsSearchingClient(false);
 
-      if (matches.length === 1) {
-        setSelectedClient(matches[0]);
-        setNewClient({ name: '', phone: '' });
-        setMultipleMatches([]);
-        setIsManualEntry(false);
-        setIsMensalista(!!matches[0].is_mensalista);
-      } else if (matches.length > 1) {
+      if (matches.length > 0) {
         setSelectedClient(null);
         setMultipleMatches(matches);
         setIsManualEntry(false);
@@ -293,9 +277,9 @@ const AdminBooking: React.FC = () => {
   if (isDesktop) {
     return (
       <AdminLayout mainClassName="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 lg:pt-8 pb-10">
-        <div className="space-y-8">
+        <div className="space-y-6">
           {/* Header */}
-          <div className="pb-6 border-b border-white/[0.06]">
+          <div className="pb-4 border-b border-white/[0.06]">
             <div className="flex items-center gap-5">
               <button type="button" onClick={() => navigate('/admin')} className="w-11 h-11 rounded-xl border border-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/[0.12] transition-all cursor-pointer" aria-label="Voltar para a Agenda">
                 <ArrowLeft size={18} />
@@ -309,7 +293,7 @@ const AdminBooking: React.FC = () => {
                 </p>
               </div>
             </div>
-            <div className="mt-4 h-px bg-gradient-to-r from-[#C5A059]/40 via-[#C5A059]/10 to-transparent" />
+            <div className="mt-3 h-px bg-gradient-to-r from-[#C5A059]/40 via-[#C5A059]/10 to-transparent" />
           </div>
 
           {/* Step Indicator */}
@@ -320,7 +304,7 @@ const AdminBooking: React.FC = () => {
                   <button
                     onClick={() => s.step <= currentStep && setCurrentStep(s.step)}
                     disabled={s.step > currentStep}
-                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-[12px] font-medium transition-all cursor-pointer ${
+                    className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-[12px] font-medium transition-all cursor-pointer ${
                       currentStep === s.step
                         ? 'bg-[#C5A059]/15 border border-[#C5A059]/40 text-[#C5A059]'
                         : s.step < currentStep
@@ -350,7 +334,7 @@ const AdminBooking: React.FC = () => {
           {rescheduleBooking && <RescheduleBanner booking={rescheduleBooking} />}
 
           {/* Step Content */}
-          <div className="bg-[#0C0C0C]/80 border border-white/[0.05] p-6 rounded-2xl backdrop-blur-xl min-h-[500px]">
+          <div className="bg-[#0C0C0C]/80 border border-white/[0.05] p-6 rounded-2xl backdrop-blur-xl min-h-[420px]">
             <AnimatePresence mode="wait">
               {currentStep === 1 && (
                 <motion.div key="step-client" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
@@ -399,6 +383,10 @@ const AdminBooking: React.FC = () => {
                     onFinish={handleFinish}
                     isSubmitting={isSubmitting}
                     isStepValid={isStepValid}
+                    isPreFilled={!!location.state?.date && !!location.state?.time && !rescheduleBooking}
+                    selectedServices={selectedServices}
+                    totalPrice={totalPrice}
+                    clientName={selectedClient?.name || newClient.name}
                   />
                 </motion.div>
               )}
@@ -406,12 +394,14 @@ const AdminBooking: React.FC = () => {
           </div>
         </div>
 
-        <BookingSearchModal
-          isOpen={isSearchOpen}
-          onClose={() => setIsSearchOpen(false)}
-          onSelectClient={(client) => { setSelectedClient(client); setIsSearchOpen(false); setIsManualEntry(false); setIsMensalista(!!client.is_mensalista); }}
-          clients={filteredClientsForModal}
-        />
+        <Suspense fallback={null}>
+          <BookingSearchModal
+            isOpen={isSearchOpen}
+            onClose={() => setIsSearchOpen(false)}
+            onSelectClient={(client) => { setSelectedClient(client); setIsSearchOpen(false); setIsManualEntry(false); setIsMensalista(!!client.is_mensalista); }}
+            clients={filteredClientsForModal}
+          />
+        </Suspense>
       </AdminLayout>
     );
   }
@@ -441,7 +431,7 @@ const AdminBooking: React.FC = () => {
           )}
         </header>
 
-        <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-5 pt-5 pb-36 flex flex-col scrollbar-hide">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-5 pt-5 pb-44 flex flex-col scrollbar-hide">
           <AnimatePresence mode="wait">
             {currentStep === 1 && (
               <motion.div key="m-step-client" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }} className="space-y-5 h-full flex flex-col">
@@ -483,6 +473,10 @@ const AdminBooking: React.FC = () => {
                   rescheduleBooking={rescheduleBooking}
                   onSelectDate={(date) => { setSelectedDate(date); setSelectedTime(''); }}
                   onSelectTime={setSelectedTime}
+                  isPreFilled={!!location.state?.date && !!location.state?.time && !rescheduleBooking}
+                  selectedServices={selectedServices}
+                  totalPrice={totalPrice}
+                  clientName={selectedClient?.name || newClient.name}
                 />
               </motion.div>
             )}
@@ -509,21 +503,17 @@ const AdminBooking: React.FC = () => {
         </div>
       </div>
 
-      <BookingSearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-        onSelectClient={(client) => { setSelectedClient(client); setIsSearchOpen(false); setIsManualEntry(false); }}
-        clients={filteredClientsForModal}
-      />
+      <Suspense fallback={null}>
+        <BookingSearchModal
+          isOpen={isSearchOpen}
+          onClose={() => setIsSearchOpen(false)}
+          onSelectClient={(client) => { setSelectedClient(client); setIsSearchOpen(false); setIsManualEntry(false); }}
+          clients={filteredClientsForModal}
+        />
+      </Suspense>
 
       <BottomTabs />
 
-      <CalendarModal
-        isOpen={showCalendarModal}
-        calendarUrl={calendarUrl}
-        onAddToCalendar={() => { setShowCalendarModal(false); setTimeout(() => navigate('/admin'), 300); }}
-        onSkip={() => { setShowCalendarModal(false); navigate('/admin'); }}
-      />
     </div>
   );
 };

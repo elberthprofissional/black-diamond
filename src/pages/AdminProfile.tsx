@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getBookings, getServices, deleteAllClients } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
+import { supabase } from '../lib/supabase';
 import type { Booking, Service } from '../types';
 import { Download, LogOut, Bell, Trash2, Scissors, DollarSign, User, ArrowLeft, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -38,8 +39,9 @@ const AdminProfile: React.FC = () => {
   const handleLogout = useAdminLogout();
   const { toast, showSuccess, showError } = useToast();
   const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
-  const { barberName, barberPhoto, refetch } = useBarberSettings();
+  const { barberName, barberPhone, barberPhoto, refetch } = useBarberSettings();
   const [settingsSection, setSettingsSection] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string>('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,6 +49,16 @@ const AdminProfile: React.FC = () => {
       navigate('/admin/profile');
     }
   }, [settingsSection, navigate]);
+
+  useEffect(() => {
+    const fetchEmail = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.email) {
+        setUserEmail(session.user.email);
+      }
+    };
+    fetchEmail();
+  }, []);
 
   useEffect(() => {
     const handleAppInstalled = () => {
@@ -211,13 +223,8 @@ const AdminProfile: React.FC = () => {
       await unsubscribe()
       showSuccess('Notificações desativadas')
     } else {
-      if (isIOSChrome) {
-        showError('Chrome no iPhone não suporta notificações. Abra pelo Safari e instale na tela de início')
-        return
-      }
       if (isIOSNotInstalled) {
-        showError('Instale o app pela tela de início primeiro (via Safari). Depois ative as notificações')
-        setShowInstallPrompt(true)
+        showError('Para ativar as notificações, instale o aplicativo')
         return
       }
       if (!import.meta.env.VITE_VAPID_PUBLIC_KEY) {
@@ -292,13 +299,35 @@ const AdminProfile: React.FC = () => {
             >
               <ArrowLeft size={20} />
             </button>
-            <h1 className="text-lg font-bold tracking-tight text-white">
-              {settingsSection === 'conta' ? 'Conta' :
-               settingsSection === 'notificacoes' ? 'Notificações' :
-               settingsSection === 'dados' ? 'Zona de Segurança' :
-               'Configurações'}
-            </h1>
+            <div className="flex-1">
+              <h1 className="text-lg font-bold tracking-tight text-white">
+                {settingsSection === 'conta' ? 'Conta' :
+                 settingsSection === 'notificacoes' ? 'Notificações' :
+                 settingsSection === 'dados' ? 'Zona de Segurança' :
+                 'Configurações'}
+              </h1>
+              {!settingsSection && (
+                <p className="text-[11px] text-zinc-500 mt-0.5">Veja suas configurações e altere se necessário</p>
+              )}
+            </div>
           </div>
+
+          {/* Mobile: Profile Card */}
+          {!settingsSection && (
+            <div className="lg:hidden flex flex-col items-center py-6 px-4 mb-2">
+              <div className="w-20 h-20 rounded-full border-2 border-white/10 overflow-hidden bg-white/[0.03] flex items-center justify-center mb-3">
+                {barberPhoto ? (
+                  <img src={barberPhoto} alt={barberName} className="w-full h-full object-cover" />
+                ) : (
+                  <User size={28} className="text-zinc-600" />
+                )}
+              </div>
+              <h2 className="text-base font-bold text-white">{barberName}</h2>
+              {barberPhone && (
+                <p className="text-[12px] text-zinc-500 mt-0.5">({barberPhone.slice(0, 2)}) {barberPhone.slice(2, 7)}-{barberPhone.slice(7)}</p>
+              )}
+            </div>
+          )}
 
           {/* Mobile: show settings list or content */}
           <div className="lg:hidden">
@@ -558,38 +587,43 @@ const AdminProfile: React.FC = () => {
               transition={{ type: 'spring', damping: 30, stiffness: 400 }}
               className="relative z-10 w-full sm:max-w-[340px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
             >
-              {isIOSChrome ? (
-                // iOS Chrome: redirect to Safari
+              {isIOS ? (
+                // iOS: unified guide
                 <>
                   <div className="px-6 pt-6 pb-4">
-                    <p className="text-[15px] font-semibold text-white">Atenção!</p>
-                    <p className="text-[12px] text-zinc-500 mt-2 leading-relaxed">
-                      No iPhone, o app só pode ser instalado pelo <strong className="text-white">Safari</strong>.
-                    </p>
-                    <p className="text-[12px] text-zinc-500 mt-1 leading-relaxed">
-                      Abra este link no <strong className="text-white">Safari</strong> e clique em <strong className="text-[#C5A059]">Compartilhar</strong> e depois <strong className="text-[#C5A059]">Adicionar à Tela de Início</strong>.
-                    </p>
-                  </div>
-                </>
-              ) : isIOS ? (
-                // iOS Safari: simple direct guide
-                <>
-                  <div className="px-6 pt-6 pb-4">
-                    <p className="text-[15px] font-semibold text-white">Instalar o app</p>
-                    <p className="text-[12px] text-zinc-500 mt-2 leading-relaxed">
-                      Por favor, clique no ícone de <strong className="text-[#C5A059]">Compartilhar</strong> (quadrado com seta pra cima) na parte de baixo da tela.
-                    </p>
-                    <p className="text-[12px] text-zinc-500 mt-2 leading-relaxed">
-                      Depois clique em <strong className="text-[#C5A059]">Adicionar à Tela de Início</strong>.
-                    </p>
-                    <p className="text-[12px] text-zinc-500 mt-2 leading-relaxed">
-                      Pronto! O app vai aparecer na sua tela inicial.
+                    <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-4">
+                      <Download size={20} className="text-[#C5A059]" />
+                    </div>
+                    <p className="text-[15px] font-semibold text-white text-center">Instalar o app</p>
+                    <p className="text-[12px] text-zinc-500 mt-2 text-center leading-relaxed">
+                      Siga os passos abaixo para adicionar o app à sua tela de início.
                     </p>
                   </div>
-                  <div className="px-6 pb-5">
-                    <p className="text-[10px] text-zinc-600 leading-relaxed">
-                      Não use Chrome no iPhone. Abra pelo Safari.
-                    </p>
+                  <div className="px-6 pb-5 space-y-4">
+                    <div className="flex gap-3">
+                      <div className="w-6 h-6 rounded-full bg-[#C5A059]/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-[10px] font-bold text-[#C5A059]">1</span>
+                      </div>
+                      <p className="text-[12px] text-zinc-400 leading-relaxed">
+                        Toque no ícone de <strong className="text-white">Compartilhar</strong> — é o quadrado com seta pra cima, na parte de baixo da tela.
+                      </p>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="w-6 h-6 rounded-full bg-[#C5A059]/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-[10px] font-bold text-[#C5A059]">2</span>
+                      </div>
+                      <p className="text-[12px] text-zinc-400 leading-relaxed">
+                        Role pra baixo e toque em <strong className="text-white">Adicionar à Tela de Início</strong>.
+                      </p>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="w-6 h-6 rounded-full bg-[#C5A059]/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-[10px] font-bold text-[#C5A059]">3</span>
+                      </div>
+                      <p className="text-[12px] text-zinc-400 leading-relaxed">
+                        Confirme tocando em <strong className="text-white">Adicionar</strong> no canto superior direito. Pronto!
+                      </p>
+                    </div>
                   </div>
                 </>
               ) : (
