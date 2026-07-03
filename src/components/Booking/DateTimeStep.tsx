@@ -25,8 +25,6 @@ interface DateTimeStepProps {
   onMouseMove?: (e: React.MouseEvent) => void;
 }
 
-const MONTH_NAMES = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-
 const DateTimeStep: React.FC<DateTimeStepProps> = ({
   nextDays,
   selectedDate,

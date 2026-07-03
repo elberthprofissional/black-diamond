@@ -13,10 +13,10 @@ const About: React.FC = () => {
       <div className="container mx-auto px-6">
         <div className="max-w-5xl mx-auto">
 
-          <div className="flex flex-col lg:flex-row items-center gap-12 md:gap-24">
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-[100px]">
 
             {/* Editorial Text */}
-            <div className="w-full lg:w-1/2 space-y-10 text-center lg:text-left order-2 lg:order-first">
+            <div className="w-full lg:w-[520px] lg:shrink-0 space-y-10 text-center lg:text-left order-2 lg:order-first">
               <div className="space-y-4">
                 <h3 className="text-[10px] font-bebas text-[#D4AF37] tracking-[0.6em] uppercase">Sobre Mim</h3>
                 <h2 className="text-4xl sm:text-6xl md:text-8xl font-bebas text-white leading-tight uppercase tracking-widest">
@@ -26,8 +26,8 @@ const About: React.FC = () => {
               </div>
 
               {/* Barber Photo - Mobile */}
-              <div className="w-full lg:hidden relative">
-                <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl">
+              <div className="w-full lg:hidden relative pl-8">
+                <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl max-w-[280px] ml-auto">
                   <img src={displayPhoto} alt={`${displayName} - Barbeiro`} className="w-full h-full object-cover object-top" loading="lazy" />
                 </div>
               </div>
@@ -46,7 +46,7 @@ const About: React.FC = () => {
             </div>
 
             {/* Barber Photo - Desktop */}
-            <div className="hidden lg:block w-full lg:w-1/2 relative">
+            <div className="hidden lg:block w-full lg:flex-1 relative lg:ml-auto">
               <div className="relative aspect-[3/4] rounded-3xl overflow-hidden border border-white/[0.05] shadow-2xl">
                 <img src={displayPhoto} alt={`${displayName} - Barbeiro`} className="w-full h-full object-cover object-top" loading="lazy" />
               </div>

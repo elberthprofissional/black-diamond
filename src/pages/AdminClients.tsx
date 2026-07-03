@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useDeferredValue, lazy, Suspense } from 'react';
-import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getClients, getBookings, getBookingsForStats, deleteClient, updateClient, updateClientNotes, createClient, toggleClientMensalista } from '../lib/api';
 import { formatPhone, getErrorMessage } from '../lib/utils';
@@ -22,7 +22,6 @@ const AdminClients: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { toast, showSuccess, showError } = useToast();
   const [selectedClient, setSelectedClient] = useState<ClientWithStats | null>(null);
-  const location = useLocation();
   const [panelBookings, setPanelBookings] = useState<BookingWithClient[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');

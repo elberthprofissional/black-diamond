@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Search, ArrowLeft } from 'lucide-react';
 import { formatPhone } from '../../../lib/utils';
 import type { Client } from '../../../types';

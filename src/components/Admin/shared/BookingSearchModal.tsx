@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, ChevronRight, X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { useModalA11y } from '../../../hooks/useModalA11y';
 import type { Client } from '../../../types';
 

@@ -36,7 +36,6 @@ const AdminBooking: React.FC = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { services } = useServices();
-  const [clients, setClients] = useState<Client[]>([]);
   const [filteredClientsForModal, setFilteredClientsForModal] = useState<Client[]>([]);
   const [existingBookings, setExistingBookings] = useState<Booking[]>([]);
   const { showSuccess, showError } = useToast();
@@ -112,7 +111,6 @@ const AdminBooking: React.FC = () => {
     const fetchData = async () => {
       try {
         const [clientsData, bookingsData] = await Promise.all([getClients(), getBookingsForStats()]);
-        setClients(clientsData);
 
         // Filter clients: only those with 2+ bookings or manually added
         const enrichedClients = clientsData.filter((c: Client) => {

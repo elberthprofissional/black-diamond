@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getBookings, getServices, deleteAllClients } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
-import { supabase } from '../lib/supabase';
 import type { Booking, Service } from '../types';
 import { Download, LogOut, Bell, Trash2, Scissors, DollarSign, User, ArrowLeft, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -41,7 +40,6 @@ const AdminProfile: React.FC = () => {
   const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
   const { barberName, barberPhone, barberPhoto, refetch } = useBarberSettings();
   const [settingsSection, setSettingsSection] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string>('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,16 +47,6 @@ const AdminProfile: React.FC = () => {
       navigate('/admin/profile');
     }
   }, [settingsSection, navigate]);
-
-  useEffect(() => {
-    const fetchEmail = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user?.email) {
-        setUserEmail(session.user.email);
-      }
-    };
-    fetchEmail();
-  }, []);
 
   useEffect(() => {
     const handleAppInstalled = () => {
