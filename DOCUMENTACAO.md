@@ -2,6 +2,8 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, PWA, notificacoes push e integracao com Google Calendar.
 
+**Versao:** 3.0.0 | **Ultima atualizacao:** Julho 2026
+
 ---
 
 ## Sumario
@@ -24,6 +26,8 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 16. [Notificacoes Push (Web Push)](#16-notificacoes-push-web-push)
 17. [Sistema de Avaliacao](#17-sistema-de-avaliacao)
 18. [Google Calendar Auto-Sync](#18-google-calendar-auto-sync)
+19. [Sistema de Mensalista](#19-sistema-de-mensalista)
+20. [Skeleton Loading](#20-skeleton-loading)
 
 ---
 
@@ -651,19 +655,24 @@ vi.mock('react-router-dom', () => ({
 - Manutencao mensal (opcional)
 
 ### Funcionalidades implementadas
-- [x] Agendamento online 4 steps
-- [x] Painel admin completo
+- [x] Agendamento online 4 steps (desktop + mobile)
+- [x] Painel admin completo (dashboard, semana, clientes, agendamento manual)
 - [x] Notificacoes push via navegador
 - [x] Integracao com Google Calendar
 - [x] Sistema de avaliacoes
-- [x] PWA instalavel
+- [x] PWA instalavel com guia de instalacao iOS
 - [x] CI/CD com GitHub Actions
 - [x] Headers de seguranca (CSP, X-Frame-Options, etc.)
-- [x] Configuracoes do barbeiro (nome, WhatsApp)
+- [x] Configuracoes do barbeiro (nome, WhatsApp, foto de perfil)
 - [x] Lembretes WhatsApp com modelos personalizaveis
 - [x] Reset financeiro e deletar clientes
-- [x] Layout desktop estilo GitHub (sidebar secundaria)
+- [x] Layout desktop com stepper profissional
 - [x] Layout mobile estilo Instagram (tela cheia)
+- [x] Skeleton loading nas paginas principais
+- [x] Atualizacao em tempo real (Context API)
+- [x] Sistema de mensalista (servicos exclusos, dias restritos)
+- [x] Busca de clientes otimizada (so clientes ativos)
+- [x] Stepper elegante com indicador de progresso
 
 ### Possiveis melhorias futuras
 - [ ] Multi-tenancy (varias barbearias no mesmo sistema)
@@ -671,7 +680,6 @@ vi.mock('react-router-dom', () => ({
 - [ ] API de WhatsApp (Evolution API) para lembretes automaticos
 - [ ] Grafico de faturamento mensal no dashboard
 - [ ] Horarios de funcionamento configuraveis pelo admin
-- [ ] Logo/foto do perfil do barbeiro
 
 ---
 
@@ -799,4 +807,57 @@ supabase functions deploy sync-google-calendar
 
 ---
 
-*Documento atualizado em Julho 2026. Versao do sistema: 2.3.0*
+## 19. Sistema de Mensalista
+
+### Visao Geral
+O sistema de mensalista permite que clientes com plano mensal tenham beneficios como servicos inclusos e restricoes de agendamento.
+
+### Funcionamento
+- **Servicos inclusos:** Mensalistas tem "Corte de Cabelo" incluso no plano
+- **Servicos adicionais:** Podem adicionar Barba, Sobrancelha, etc.
+- **Restricao de dias:** So podem agendar de Segunda a Quinta
+- **Tag visual:** Aparece "[MENSALISTA]" no WhatsApp
+
+### Como usar
+1. Admin vai em **Meus Clientes** e clica no cliente
+2. Clica em "Tornar Mensalista" no painel do cliente
+3. Quando agendar pra esse cliente, o sistema automaticamente:
+   - Exclui servicos inclusos da selecao
+   - Mostra banner "Corte incluso no plano"
+   - Permite pular selecao de servicos
+   - Restringe datas para Seg-Qua
+
+### Arquivos envolvidos
+- `src/contexts/BarberSettingsContext.tsx` — Estado compartilhado
+- `src/pages/AdminBooking.tsx` — Logica de mensalista no admin
+- `src/components/Admin/booking/DesktopServicesStep.tsx` — UI desktop
+- `src/components/Admin/booking/MobileServicesStep.tsx` — UI mobile
+- `src/components/Booking/ServiceStep.tsx` — UI cliente
+
+---
+
+## 20. Skeleton Loading
+
+### Visao Geral
+Skeleton loading melhora a experiencia do usuario mostrando placeholders animados enquanto os dados carregam.
+
+### Componentes disponiveis
+- `Skeleton` — Componente basico (text, circle, rect)
+- `SkeletonCard` — Card com titulo e linhas
+- `SkeletonList` — Lista de itens com avatar
+- `SkeletonDashboard` — Layout completo do dashboard
+- `SkeletonBooking` — Layout do agendamento
+- `SkeletonClients` — Layout da pagina de clientes
+
+### Onde e usado
+- **AdminDashboard** — Enquanto carrega bookings
+- **AdminClients** — Enquanto carrega lista de clientes
+- **AdminProfile** — Enquanto carrega dados do perfil
+
+### Arquivos envolvidos
+- `src/components/Skeleton.tsx` — Componentes de skeleton
+- `src/components/Skeleton.test.tsx` — Testes unitarios
+
+---
+
+*Documento atualizado em Julho 2026. Versao do sistema: 3.0.0*
