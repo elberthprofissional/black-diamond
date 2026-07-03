@@ -40,15 +40,16 @@ export default function DesktopDateTimeStep({
   };
 
   return (
-    <div className="space-y-6 lg:space-y-10 h-full flex flex-col overflow-visible">
-      <div className="space-y-2">
-        <h2 className="text-2xl font-bold uppercase tracking-tight">ESCOLHA DATA E HORÁRIO</h2>
-        <p className="text-zinc-500 text-sm">Defina o dia e horário do agendamento.</p>
+    <div className="space-y-8 h-full flex flex-col">
+      <div className="space-y-1">
+        <h2 className="text-xl font-bold tracking-tight text-white">Data e Horário</h2>
+        <p className="text-[13px] text-zinc-500">Defina o dia e horário do agendamento.</p>
       </div>
 
+      {/* Date Selection */}
       <div className="space-y-3">
-        <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] block pl-0.5">Selecione o Dia</span>
-        <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-2 px-2">
+        <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Dia</span>
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {nextDays.map(day => {
             const isSelected = selectedDate === day.fullDate;
             return (
@@ -56,67 +57,60 @@ export default function DesktopDateTimeStep({
                 key={day.fullDate}
                 type="button"
                 onClick={() => onSelectDate(day.fullDate)}
-                className={`flex flex-col items-center gap-1 select-none cursor-pointer group shrink-0 p-4 min-w-[75px] transition-all duration-300 border ${
+                className={`flex flex-col items-center gap-1 px-4 py-3 rounded-xl transition-all cursor-pointer shrink-0 ${
                   isSelected
-                    ? 'border-[#C5A059] bg-[#C5A059]/[0.04] text-[#C5A059]'
-                    : 'border-white/[0.06] bg-[#111111] text-zinc-500 hover:border-white/[0.12] hover:text-white'
+                    ? 'bg-[#C5A059]/10 border border-[#C5A059]/30 text-[#C5A059]'
+                    : 'bg-white/[0.02] border border-white/[0.04] text-zinc-500 hover:text-white hover:border-white/[0.08]'
                 }`}
               >
-                <span className="text-[9px] font-bold tracking-widest uppercase">{day.dayName}</span>
-                <span className="text-2xl font-light">{day.dayNumber}</span>
+                <span className="text-[10px] font-medium uppercase">{day.dayName}</span>
+                <span className="text-xl font-semibold">{day.dayNumber}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <div className="space-y-4 pr-1 pb-0">
+      {/* Time Selection */}
+      <div className="space-y-3">
+        <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Horários</span>
         {selectedDate ? (
-          <div className="flex flex-col gap-3">
-            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] pl-0.5">
-              Horários Disponíveis
-            </span>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-              {getTimeSlotsForDate(selectedDate).map(time => {
-                const occupied = isOccupied(time);
-                const isSelected = selectedTime === time;
-                return (
-                  <button
-                    key={time}
-                    type="button"
-                    disabled={occupied}
-                    onClick={() => onSelectTime(time)}
-                    className={`py-4 border text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                      occupied
-                        ? 'text-zinc-800/10 border-transparent cursor-not-allowed line-through opacity-20 bg-transparent'
-                        : isSelected
-                          ? 'text-[#C5A059] border-[#C5A059] bg-[#C5A059]/[0.04] font-black'
-                          : 'text-zinc-400 border-white/[0.06] bg-[#111111] hover:border-white/[0.12] hover:text-white'
-                    }`}
-                  >
-                    {time}
-                  </button>
-                );
-              })}
-            </div>
+          <div className="grid grid-cols-5 gap-2">
+            {getTimeSlotsForDate(selectedDate).map(time => {
+              const occupied = isOccupied(time);
+              const isSelected = selectedTime === time;
+              return (
+                <button
+                  key={time}
+                  type="button"
+                  disabled={occupied}
+                  onClick={() => onSelectTime(time)}
+                  className={`py-3 rounded-xl text-[13px] font-medium transition-all cursor-pointer ${
+                    occupied
+                      ? 'text-zinc-700 cursor-not-allowed line-through opacity-30'
+                      : isSelected
+                        ? 'bg-[#C5A059]/10 border border-[#C5A059]/30 text-[#C5A059]'
+                        : 'bg-white/[0.02] border border-white/[0.04] text-zinc-400 hover:text-white hover:border-white/[0.08]'
+                  }`}
+                >
+                  {time}
+                </button>
+              );
+            })}
           </div>
         ) : (
-          <p className="text-zinc-500 text-xs py-4 text-center">Selecione um dia da semana acima para ver os horários disponíveis.</p>
+          <p className="text-[13px] text-zinc-600 py-4">Selecione um dia acima.</p>
         )}
       </div>
 
-      <div className="pt-6 border-t border-white/[0.04]">
+      <div className="pt-4">
         <button
           type="button"
           onClick={onFinish}
           disabled={isSubmitting || !selectedTime || !isStepValid(1) || !isStepValid(2) || !isStepValid(3)}
-          className={`px-10 py-4 text-xs font-bold uppercase tracking-[0.3em] transition-all duration-300 cursor-pointer ${
-            isSubmitting || !selectedTime || !isStepValid(1) || !isStepValid(2) || !isStepValid(3)
-              ? 'bg-[#111111] text-zinc-600 border border-white/[0.04] opacity-30 cursor-not-allowed'
-              : 'bg-white text-black hover:bg-[#C5A059] hover:text-black active:scale-[0.98]'
-          }`}
+          className="px-8 py-3 bg-[#C5A059] text-black text-[12px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? 'CONFIRMANDO...' : 'FINALIZAR RESERVA'}
+          {isSubmitting ? 'Confirmando...' : 'Confirmar Agendamento'}
         </button>
       </div>
     </div>

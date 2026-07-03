@@ -74,9 +74,9 @@ const ReminderModal: React.FC<ReminderModalProps> = ({
                   <button
                     onClick={() => setMode('list')}
                     aria-label="Voltar para lista de modelos"
-                    className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
+                    className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
                   >
-                    <ArrowLeft size={14} />
+                    <ArrowLeft size={16} />
                   </button>
                 )}
                 <div className="text-left">
@@ -180,6 +180,16 @@ const ReminderModal: React.FC<ReminderModalProps> = ({
                         aria-label="Mensagem personalizada de lembrete"
                         className="w-full bg-black/40 border border-white/[0.06] rounded-2xl px-5 py-4 text-sm text-zinc-200 outline-none focus:border-[#C5A059]/30 resize-none h-48 placeholder:text-zinc-700 leading-relaxed focus:bg-white/[0.01] transition-all"
                       />
+                      <button
+                        onClick={() => {
+                          const link = window.location.origin + '/agendar';
+                          setCustomText(prev => prev ? `${prev}\n\n${link}` : link);
+                        }}
+                        className="w-full py-2.5 border border-white/[0.06] hover:border-white/[0.12] bg-white/[0.02] hover:bg-white/[0.04] text-zinc-400 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                        Inserir link do site
+                      </button>
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-3 pt-2">

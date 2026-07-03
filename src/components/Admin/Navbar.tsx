@@ -3,14 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, User, LogOut, Settings } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
-import { useBarberSettings } from '../../hooks/useBarberSettings';
+import { useBarberSettings } from '../../contexts/BarberSettingsContext';
 
 const AdminNavbar: React.FC = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const handleLogout = useAdminLogout();
-  const { barberName, barberPhoto } = useBarberSettings();
+  const { barberName, barberPhoto, refetch } = useBarberSettings();
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   const [visible, setVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);

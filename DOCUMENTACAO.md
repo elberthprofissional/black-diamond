@@ -150,13 +150,21 @@ Service Worker → Notificacao no celular do admin
 
 ### Funcionalidades do Admin
 - **Dashboard do dia:** Proximo cliente, lucro do dia, filtros por ocupados/livres/bloqueados
-- **Agenda semanal:** Navegacao por 6 dias, bloqueio/desbloqueio de dia inteiro
+- **Agenda da semana:** Navegacao por 6 dias, bloqueio/desbloqueio de dia inteiro
 - **Agendamento manual:** Busca por WhatsApp/nome, selecao de servicos, data/hora
 - **Gestao de clientes:** CRUD, notas, historico, lembretes via WhatsApp, filtros por status de lembrete
 - **Reagendamento:** Wizard de 3 steps (servicos, data/hora, revisao)
-- **Relatorios:** Faturamento semanal/mensal, servicos mais vendidos, novos clientes
+- **Relatorios:** Faturamento semanal/mensal, servicos mais pedidos, cancelamentos
+- **Configuracoes:** Nome do barbeiro, WhatsApp do barbeiro, notificacoes, zona de seguranca
 - **Notificacoes Push:** Ativacao/desativacao de notificacoes no navegador
 - **PWA:** Instalacao na tela inicial com guia visual
+
+### Configuracoes (`/admin/profile?tab=settings`)
+- **Conta:** Nome do barbeiro e WhatsApp configuraveis pelo painel
+- **Notificacoes:** Toggle de notificacoes push
+- **Zona de Seguranca:** Resetar financeiro e deletar clientes
+- **Layout Desktop:** Sidebar secundaria estilo GitHub com icones Lucide
+- **Layout Mobile:** Tela cheia com navegacao por seta
 
 ---
 
@@ -184,9 +192,11 @@ status TEXT (pending/confirmed/cancelled/completed), is_blocked BOOLEAN,
 notes TEXT, google_event_id TEXT, created_at TIMESTAMPTZ
 ```
 
-**settings** — Configuracoes (horarios de funcionamento)
+**settings** — Configuracoes do sistema
 ```sql
 key TEXT PK, value TEXT, updated_at TIMESTAMPTZ
+-- Chaves: opening_time, closing_time, saturday_opening, saturday_closing,
+-- working_days, barber_name, barber_phone
 ```
 
 **reviews** — Avaliacoes de clientes
@@ -649,11 +659,19 @@ vi.mock('react-router-dom', () => ({
 - [x] PWA instalavel
 - [x] CI/CD com GitHub Actions
 - [x] Headers de seguranca (CSP, X-Frame-Options, etc.)
+- [x] Configuracoes do barbeiro (nome, WhatsApp)
+- [x] Lembretes WhatsApp com modelos personalizaveis
+- [x] Reset financeiro e deletar clientes
+- [x] Layout desktop estilo GitHub (sidebar secundaria)
+- [x] Layout mobile estilo Instagram (tela cheia)
 
 ### Possiveis melhorias futuras
+- [ ] Multi-tenancy (varias barbearias no mesmo sistema)
+- [ ] Pagamento online (Stripe/Mercado Pago)
 - [ ] API de WhatsApp (Evolution API) para lembretes automaticos
 - [ ] Grafico de faturamento mensal no dashboard
-- [ ] Environment promotion (dev → staging → prod)
+- [ ] Horarios de funcionamento configuraveis pelo admin
+- [ ] Logo/foto do perfil do barbeiro
 
 ---
 
@@ -781,4 +799,4 @@ supabase functions deploy sync-google-calendar
 
 ---
 
-*Documento atualizado em Junho 2026. Versao do sistema: 2.2.0*
+*Documento atualizado em Julho 2026. Versao do sistema: 2.3.0*

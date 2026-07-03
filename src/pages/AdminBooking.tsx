@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { createBooking, getBookings, getClients, deleteBooking } from '../lib/api';
+import { createBooking, getBookings, getClients, getBookingsForStats, deleteBooking } from '../lib/api';
 import { formatPhone, getNextDays } from '../lib/utils';
 import { useToast } from '../hooks/useToast';
 import { useServices } from '../hooks/useServices';
@@ -8,7 +8,7 @@ import type { Service, Client, Booking } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomTabs from '../components/Admin/BottomTabs';
 import BookingSearchModal from '../components/Admin/shared/BookingSearchModal';
-import BookingSummaryPanel from '../components/Admin/shared/BookingSummaryPanel';
+
 import AdminLayout from '../components/Admin/AdminLayout';
 import {
   RescheduleBanner,
@@ -30,8 +30,10 @@ const STEPS = [
   { step: 3, label: 'AGENDA', num: '03' },
 ];
 
+const MENSALISTA_EXCLUDED_SERVICES = ['Corte de Cabelo'];
+
 const AdminBooking: React.FC = () => {
-  const nextDays = useMemo(() => getNextDays(), []);
+  const allNextDays = useMemo(() => getNextDays(), []);
   const location = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
@@ -42,6 +44,7 @@ const AdminBooking: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { services } = useServices();
   const [clients, setClients] = useState<Client[]>([]);
+  const [filteredClientsForModal, setFilteredClientsForModal] = useState<Client[]>([]);
   const [existingBookings, setExistingBookings] = useState<Booking[]>([]);
   const { showSuccess, showError } = useToast();
   const [showCalendarModal, setShowCalendarModal] = useState(false);
@@ -50,6 +53,7 @@ const AdminBooking: React.FC = () => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [newClient, setNewClient] = useState({ name: '', phone: '' });
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
+  const [isMensalista, setIsMensalista] = useState(false);
 
   const [currentStep, setCurrentStep] = useState(() => {
     if (location.state?.rescheduleBooking) return 3;
@@ -78,19 +82,66 @@ const AdminBooking: React.FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const isDesktop = useIsDesktop();
 
+  // Filter services for mensalista
+  const filteredServices = useMemo(() => {
+    if (!isMensalista) return services;
+    return services.filter(s => !MENSALISTA_EXCLUDED_SERVICES.includes(s.name));
+  }, [services, isMensalista]);
+
+  // Filter days for mensalista (MON-THU only)
+  const nextDays = useMemo(() => {
+    if (!isMensalista) return allNextDays;
+    return allNextDays.filter(d => {
+      const date = new Date(d.fullDate + 'T12:00:00');
+      const dow = date.getDay();
+      return dow >= 1 && dow <= 4; // MON=1, THU=4
+    });
+  }, [allNextDays, isMensalista]);
+
+  // Reset selected services when mensalista status changes
+  useEffect(() => {
+    if (isMensalista && selectedServices.length > 0) {
+      const allowed = selectedServices.filter(s => !MENSALISTA_EXCLUDED_SERVICES.includes(s.name));
+      if (allowed.length !== selectedServices.length) {
+        setSelectedServices(allowed);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMensalista]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const clientsData = await getClients();
+        const [clientsData, bookingsData] = await Promise.all([getClients(), getBookingsForStats()]);
         setClients(clientsData);
+
+        // Filter clients: only those with 2+ bookings or manually added
+        const enrichedClients = clientsData.filter((c: Client) => {
+          const bookingsCount = (bookingsData || []).filter((b: { client_id: string; status: string }) => b.client_id === c.id && b.status !== 'cancelled').length;
+          return bookingsCount >= 2 || c.manually_added;
+        });
+        setFilteredClientsForModal(enrichedClients);
+
         if (rescheduleBooking) {
-          const match = clientsData.find(c => c.id === rescheduleBooking.client_id || c.phone === rescheduleBooking.clients?.phone);
-          if (match) { setSelectedClient(match); setIsManualEntry(false); }
-          else { setNewClient({ name: rescheduleBooking.clients?.name || '', phone: rescheduleBooking.clients?.phone || '' }); setIsManualEntry(true); }
+          const match = clientsData.find((c: Client) => c.id === rescheduleBooking.client_id || c.phone === rescheduleBooking.clients?.phone);
+          if (match) {
+            setSelectedClient(match);
+            setIsManualEntry(false);
+            setIsMensalista(!!match.is_mensalista);
+          } else {
+            setNewClient({ name: rescheduleBooking.clients?.name || '', phone: rescheduleBooking.clients?.phone || '' });
+            setIsManualEntry(true);
+          }
         } else if (prefilledClientName && prefilledClientPhone) {
-          const match = clientsData.find(c => c.phone === prefilledClientPhone || c.name === prefilledClientName);
-          if (match) { setSelectedClient(match); setIsManualEntry(false); }
-          else { setNewClient({ name: prefilledClientName, phone: prefilledClientPhone }); setIsManualEntry(true); }
+          const match = clientsData.find((c: Client) => c.phone === prefilledClientPhone || c.name === prefilledClientName);
+          if (match) {
+            setSelectedClient(match);
+            setIsManualEntry(false);
+            setIsMensalista(!!match.is_mensalista);
+          } else {
+            setNewClient({ name: prefilledClientName, phone: prefilledClientPhone });
+            setIsManualEntry(true);
+          }
         }
       } catch (e) { console.error('Erro ao buscar clientes:', e); showError('Erro ao carregar clientes.'); }
     };
@@ -156,11 +207,12 @@ const AdminBooking: React.FC = () => {
       );
 
       const serviceNames = selectedServices.map(s => s.name).join(', ');
+      const mensalistaTag = isMensalista ? ' [MENSALISTA]' : '';
       const endDate = new Date(`${selectedDate}T${selectedTime}`);
       endDate.setMinutes(endDate.getMinutes() + totalDuration);
       const endDateTime = `${endDate.getFullYear()}${String(endDate.getMonth() + 1).padStart(2, '0')}${String(endDate.getDate()).padStart(2, '0')}T${String(endDate.getHours()).padStart(2, '0')}${String(endDate.getMinutes()).padStart(2, '0')}00`;
       const startFormatted = `${selectedDate.split('-')[0]}${selectedDate.split('-')[1]}${selectedDate.split('-')[2]}T${selectedTime.replace(':', '')}00`;
-      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(name + ' - ' + serviceNames)}&dates=${startFormatted}/${endDateTime}&details=${encodeURIComponent('Black Diamond - ' + serviceNames + ' - R$ ' + totalPrice.toFixed(2))}`;
+      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(name + mensalistaTag + ' - ' + serviceNames)}&dates=${startFormatted}/${endDateTime}&details=${encodeURIComponent('Black Diamond - ' + serviceNames + ' - R$ ' + totalPrice.toFixed(2))}`;
 
       setCalendarUrl(url);
       showSuccess(rescheduleBooking?.id ? 'Agendamento reagendado com sucesso!' : 'Agendamento realizado!');
@@ -194,6 +246,7 @@ const AdminBooking: React.FC = () => {
         setNewClient({ name: '', phone: '' });
         setMultipleMatches([]);
         setIsManualEntry(false);
+        setIsMensalista(!!matches[0].is_mensalista);
       } else if (matches.length > 1) {
         setSelectedClient(null);
         setMultipleMatches(matches);
@@ -216,7 +269,7 @@ const AdminBooking: React.FC = () => {
         return;
       }
     }
-    if (currentStep === 2 && selectedServices.length === 0) {
+    if (currentStep === 2 && !isMensalista && selectedServices.length === 0) {
       showError('Selecione ao menos um serviço.');
       return;
     }
@@ -232,100 +285,132 @@ const AdminBooking: React.FC = () => {
       if (selectedClient) return true;
       return newClient.name.trim() !== '' && newClient.phone.trim().length >= 8;
     }
-    if (step === 2) return selectedServices.length > 0;
+    if (step === 2) return isMensalista || selectedServices.length > 0;
     if (step === 3) return !!selectedDate && !!selectedTime;
     return false;
   };
 
   if (isDesktop) {
     return (
-      <AdminLayout mainClassName="flex-1 w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 pt-24 lg:pt-8 pb-10">
-        <div className="space-y-6">
-          <div className="flex items-center justify-between gap-4 pb-4 border-b border-white/5">
-            <div className="flex items-center gap-3">
-              <button type="button" onClick={() => navigate('/admin')} className="text-zinc-400 hover:text-white transition-all cursor-pointer" aria-label="Voltar para a Agenda">
+      <AdminLayout mainClassName="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 lg:pt-8 pb-10">
+        <div className="space-y-8">
+          {/* Header */}
+          <div className="pb-6 border-b border-white/[0.06]">
+            <div className="flex items-center gap-5">
+              <button type="button" onClick={() => navigate('/admin')} className="w-11 h-11 rounded-xl border border-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/[0.12] transition-all cursor-pointer" aria-label="Voltar para a Agenda">
                 <ArrowLeft size={18} />
               </button>
               <div>
-                <h1 className="text-xl font-bold tracking-tight text-white uppercase italic">
-                  {rescheduleBooking ? 'Reagendar Reserva' : 'Novo Agendamento'}
+                <h1 className="text-4xl font-black tracking-tight text-white uppercase">
+                  {rescheduleBooking ? 'Reagendar' : 'Novo Agendamento'}
                 </h1>
-                <p className="text-[9px] text-zinc-550 font-bold uppercase tracking-widest mt-0.5">
-                  workspace de agendamento administrativo
+                <p className="text-[13px] text-zinc-500 mt-1">
+                  {rescheduleBooking ? 'Altere a data ou horário do agendamento' : 'Preencha os dados para criar um novo agendamento'}
                 </p>
               </div>
             </div>
+            <div className="mt-4 h-px bg-gradient-to-r from-[#C5A059]/40 via-[#C5A059]/10 to-transparent" />
           </div>
 
-          <div className="grid grid-cols-12 gap-6 items-stretch">
-            {rescheduleBooking && <RescheduleBanner booking={rescheduleBooking} />}
-
-            {/* COLUMN 1: CLIENT */}
-            <div className="col-span-12 lg:col-span-6 xl:col-span-3 bg-[#0C0C0C]/80 border border-white/[0.05] p-5 rounded-2xl flex flex-col justify-between min-h-[580px] backdrop-blur-xl relative">
-              <DesktopClientStep
-                selectedClient={selectedClient}
-                newClient={newClient}
-                searchQuery={searchQuery}
-                multipleMatches={multipleMatches}
-                isManualEntry={isManualEntry}
-                isSearchingClient={isSearchingClient}
-                onSetNewClient={setNewClient}
-                onSetSearchQuery={setSearchQuery}
-                onSetIsManualEntry={setIsManualEntry}
-                onSetMultipleMatches={setMultipleMatches}
-                onSetSelectedClient={setSelectedClient}
-                onSearch={handleSearch}
-                onNextStep={handleNextStep}
-                onOpenSearch={() => setIsSearchOpen(true)}
-                isStepValid={isStepValid}
-              />
+          {/* Step Indicator */}
+          {!rescheduleBooking && (
+            <div className="flex items-center gap-1">
+              {STEPS.map((s, i) => (
+                <React.Fragment key={s.step}>
+                  <button
+                    onClick={() => s.step <= currentStep && setCurrentStep(s.step)}
+                    disabled={s.step > currentStep}
+                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-[12px] font-medium transition-all cursor-pointer ${
+                      currentStep === s.step
+                        ? 'bg-[#C5A059]/15 border border-[#C5A059]/40 text-[#C5A059]'
+                        : s.step < currentStep
+                          ? 'bg-white/[0.04] border border-white/[0.08] text-zinc-300 hover:text-white'
+                          : 'bg-white/[0.02] border border-white/[0.04] text-zinc-500'
+                    }`}
+                  >
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                      currentStep === s.step
+                        ? 'bg-[#C5A059] text-black shadow-lg shadow-[#C5A059]/20'
+                        : s.step < currentStep
+                          ? 'bg-[#C5A059]/30 text-[#C5A059]'
+                          : 'bg-white/[0.06] text-zinc-500'
+                    }`}>
+                      {s.step < currentStep ? '✓' : s.num}
+                    </span>
+                    <span className="hidden xl:inline">{s.label}</span>
+                  </button>
+                  {i < STEPS.length - 1 && (
+                    <div className={`w-10 h-px ${s.step < currentStep ? 'bg-[#C5A059]/50' : 'bg-white/[0.08]'}`} />
+                  )}
+                </React.Fragment>
+              ))}
             </div>
+          )}
 
-            {/* COLUMN 2: SERVICES */}
-            <div className="col-span-12 lg:col-span-6 xl:col-span-3 bg-[#0C0C0C]/80 border border-white/[0.05] p-5 rounded-2xl flex flex-col justify-between min-h-[580px] backdrop-blur-xl relative">
-              <DesktopServicesStep
-                services={services}
-                selectedServices={selectedServices}
-                onToggleService={toggleService}
-                onNextStep={handleNextStep}
-              />
-            </div>
+          {rescheduleBooking && <RescheduleBanner booking={rescheduleBooking} />}
 
-            {/* COLUMN 3: DATE & TIME */}
-            <div className="col-span-12 lg:col-span-6 xl:col-span-3 bg-[#0C0C0C]/80 border border-white/[0.05] p-5 rounded-2xl flex flex-col justify-between min-h-[580px] backdrop-blur-xl relative">
-              <DesktopDateTimeStep
-                nextDays={nextDays}
-                selectedDate={selectedDate}
-                selectedTime={selectedTime}
-                existingBookings={existingBookings}
-                rescheduleBookingId={rescheduleBooking?.id}
-                onSelectDate={(date) => { setSelectedDate(date); setSelectedTime(''); }}
-                onSelectTime={setSelectedTime}
-                onFinish={handleFinish}
-                isSubmitting={isSubmitting}
-                isStepValid={isStepValid}
-              />
-            </div>
+          {/* Step Content */}
+          <div className="bg-[#0C0C0C]/80 border border-white/[0.05] p-6 rounded-2xl backdrop-blur-xl min-h-[500px]">
+            <AnimatePresence mode="wait">
+              {currentStep === 1 && (
+                <motion.div key="step-client" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
+                  <DesktopClientStep
+                    selectedClient={selectedClient}
+                    newClient={newClient}
+                    searchQuery={searchQuery}
+                    multipleMatches={multipleMatches}
+                    isManualEntry={isManualEntry}
+                    isSearchingClient={isSearchingClient}
+                    onSetNewClient={setNewClient}
+                    onSetSearchQuery={setSearchQuery}
+                    onSetIsManualEntry={setIsManualEntry}
+                    onSetMultipleMatches={setMultipleMatches}
+                    onSetSelectedClient={setSelectedClient}
+                    onSearch={handleSearch}
+                    onNextStep={handleNextStep}
+                    onOpenSearch={() => setIsSearchOpen(true)}
+                    isStepValid={isStepValid}
+                  />
+                </motion.div>
+              )}
 
-            {/* COLUMN 4: SUMMARY */}
-            <div className="col-span-12 lg:col-span-6 xl:col-span-3 bg-[#0C0C0C]/90 border border-white/[0.08] p-5 rounded-2xl flex flex-col justify-between min-h-[580px] shadow-[0_15px_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
-              <BookingSummaryPanel
-                selectedClient={selectedClient}
-                newClient={newClient}
-                selectedServices={selectedServices}
-                selectedDate={selectedDate}
-                selectedTime={selectedTime}
-                totalPrice={totalPrice}
-              />
-            </div>
+              {currentStep === 2 && (
+                <motion.div key="step-services" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
+                  <DesktopServicesStep
+                    services={filteredServices}
+                    selectedServices={selectedServices}
+                    isMensalista={isMensalista}
+                    onToggleService={toggleService}
+                    onNextStep={handleNextStep}
+                  />
+                </motion.div>
+              )}
+
+              {currentStep === 3 && (
+                <motion.div key="step-datetime" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
+                  <DesktopDateTimeStep
+                    nextDays={nextDays}
+                    selectedDate={selectedDate}
+                    selectedTime={selectedTime}
+                    existingBookings={existingBookings}
+                    rescheduleBookingId={rescheduleBooking?.id}
+                    onSelectDate={(date) => { setSelectedDate(date); setSelectedTime(''); }}
+                    onSelectTime={setSelectedTime}
+                    onFinish={handleFinish}
+                    isSubmitting={isSubmitting}
+                    isStepValid={isStepValid}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
         <BookingSearchModal
           isOpen={isSearchOpen}
           onClose={() => setIsSearchOpen(false)}
-          onSelectClient={(client) => { setSelectedClient(client); setIsSearchOpen(false); setIsManualEntry(false); }}
-          clients={clients}
+          onSelectClient={(client) => { setSelectedClient(client); setIsSearchOpen(false); setIsManualEntry(false); setIsMensalista(!!client.is_mensalista); }}
+          clients={filteredClientsForModal}
         />
       </AdminLayout>
     );
@@ -380,8 +465,9 @@ const AdminBooking: React.FC = () => {
             {currentStep === 2 && (
               <motion.div key="m-step-services" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }} className="space-y-4 h-full flex flex-col">
                 <MobileServicesStep
-                  services={services}
+                  services={filteredServices}
                   selectedServices={selectedServices}
+                  isMensalista={isMensalista}
                   onToggleService={toggleService}
                 />
               </motion.div>
@@ -427,7 +513,7 @@ const AdminBooking: React.FC = () => {
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         onSelectClient={(client) => { setSelectedClient(client); setIsSearchOpen(false); setIsManualEntry(false); }}
-        clients={clients}
+        clients={filteredClientsForModal}
       />
 
       <BottomTabs />

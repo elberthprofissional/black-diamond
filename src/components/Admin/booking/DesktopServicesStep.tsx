@@ -1,9 +1,10 @@
-import { Check } from 'lucide-react';
+import { Check, ChevronRight } from 'lucide-react';
 import type { Service } from '../../../types';
 
 interface DesktopServicesStepProps {
   services: Service[];
   selectedServices: Service[];
+  isMensalista?: boolean;
   onToggleService: (service: Service) => void;
   onNextStep: () => void;
 }
@@ -11,59 +12,97 @@ interface DesktopServicesStepProps {
 export default function DesktopServicesStep({
   services,
   selectedServices,
+  isMensalista = false,
   onToggleService,
   onNextStep,
 }: DesktopServicesStepProps) {
+  const totalPrice = selectedServices.reduce((sum, s) => sum + Number(s.price), 0);
+
   return (
-    <div className="space-y-6 lg:space-y-8 h-full flex flex-col overflow-visible">
+    <div className="space-y-8 h-full flex flex-col">
+      {/* Header */}
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold uppercase tracking-tight">ESCOLHA OS SERVIÇOS</h2>
-        <p className="text-zinc-500 text-sm">Selecione os serviços que farão parte do atendimento.</p>
+        <h2 className="text-2xl font-bold tracking-tight text-white">Serviços</h2>
+        <p className="text-[14px] text-zinc-500">
+          {isMensalista
+            ? 'Serviço incluso no plano. Deseja adicionar algo?'
+            : 'Selecione os serviços para o atendimento.'}
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pr-1 pb-0">
+      {/* Mensalista Banner */}
+      {isMensalista && (
+        <div className="p-4 bg-[#C5A059]/[0.06] border border-[#C5A059]/20 rounded-xl">
+          <p className="text-[13px] text-[#C5A059] font-medium">Corte de Cabelo incluso no plano mensal</p>
+          <p className="text-[12px] text-zinc-500 mt-1">Selecione serviços adicionais ou pule esta etapa.</p>
+        </div>
+      )}
+
+      {/* Services List */}
+      <div className="flex-1 space-y-1">
         {services.map(service => {
           const isSelected = selectedServices.some(s => s.id === service.id);
           return (
-            <div
+            <button
               key={service.id}
               onClick={() => onToggleService(service)}
-              className={`p-5 border transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[140px] relative group select-none ${
-                isSelected
-                  ? 'border-[#C5A059] bg-[#C5A059]/[0.04]'
-                  : 'border-white/[0.06] bg-[#111111] hover:border-white/[0.12]'
+              className={`w-full flex items-center justify-between py-4 px-1 transition-all cursor-pointer group ${
+                isSelected ? 'opacity-100' : 'opacity-70 hover:opacity-100'
               }`}
             >
-              <div className="flex justify-between items-start gap-4">
-                <div className="space-y-1 min-w-0">
-                  <h3 className={`font-bold uppercase tracking-tight text-base leading-none truncate ${isSelected ? 'text-[#C5A059]' : 'text-zinc-300 group-hover:text-white'}`}>
-                    {service.name}
-                  </h3>
+              <div className="flex items-center gap-4">
+                <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                  isSelected
+                    ? 'bg-[#C5A059] border-[#C5A059]'
+                    : 'border-white/20 group-hover:border-white/40'
+                }`}>
+                  {isSelected && <Check size={12} className="text-black" strokeWidth={3} />}
                 </div>
-                <div className={`w-4 h-4 border flex items-center justify-center transition-all shrink-0 ${isSelected ? 'border-[#C5A059] bg-transparent' : 'border-white/[0.08] group-hover:border-white/[0.15]'}`}>
-                  {isSelected && <Check size={10} className="text-[#C5A059]" strokeWidth={3} />}
-                </div>
-              </div>
-              <div className="flex justify-between items-end pt-4 border-t border-white/[0.04] mt-4">
-                <span className="text-zinc-600 text-[9px] font-bold uppercase tracking-widest">Valor</span>
-                <span className={`font-bold text-lg ${isSelected ? 'text-[#C5A059]' : 'text-white'}`}>
-                  R$ {Number(service.price).toFixed(0)}
+                <span className={`text-[15px] font-medium transition-colors ${
+                  isSelected ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'
+                }`}>
+                  {service.name}
                 </span>
               </div>
-            </div>
+              <span className={`text-[15px] font-medium tabular-nums ${
+                isSelected ? 'text-[#C5A059]' : 'text-zinc-500'
+              }`}>
+                R$ {Number(service.price).toFixed(0)}
+              </span>
+            </button>
           );
         })}
       </div>
 
-      <div className="pt-6 border-t border-white/[0.04]">
-        <button
-          type="button"
-          onClick={onNextStep}
-          disabled={selectedServices.length === 0}
-          className="px-10 py-4 bg-white text-black hover:bg-[#C5A059] text-[10px] font-bold uppercase tracking-[0.3em] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          Avançar
-        </button>
+      {/* Total + Continue */}
+      <div className="pt-4 border-t border-white/[0.04] space-y-4">
+        {selectedServices.length > 0 && (
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] font-medium text-zinc-500 uppercase tracking-wider">Total</span>
+            <span className="text-xl font-bold text-[#C5A059]">R$ {totalPrice.toFixed(0)}</span>
+          </div>
+        )}
+
+        <div className="flex gap-3">
+          {isMensalista && (
+            <button
+              type="button"
+              onClick={onNextStep}
+              className="px-8 py-4 bg-white/[0.04] border border-white/[0.06] text-zinc-400 text-[13px] font-medium rounded-xl hover:bg-white/[0.06] hover:text-white transition-all cursor-pointer"
+            >
+              Pular
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onNextStep}
+            disabled={!isMensalista && selectedServices.length === 0}
+            className="flex-1 py-4 bg-[#B8962D] text-black text-[13px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#B8962D]/20"
+          >
+            Continuar
+            <ChevronRight size={16} />
+          </button>
+        </div>
       </div>
     </div>
   );

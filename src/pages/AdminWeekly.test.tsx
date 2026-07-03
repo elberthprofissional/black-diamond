@@ -57,7 +57,7 @@ describe('AdminWeekly', () => {
 
   it('renderiza titulo da agenda semanal', () => {
     render(<AdminWeekly />);
-    expect(screen.getByText(/Agenda da Semana/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Agenda da Semana/i).length).toBeGreaterThan(0);
   });
 
   it('renderiza navegacao por dia da semana', async () => {

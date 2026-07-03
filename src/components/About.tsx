@@ -1,5 +1,5 @@
 import React from 'react';
-import { useBarberSettings } from '../hooks/useBarberSettings';
+import { useBarberSettings } from '../contexts/BarberSettingsContext';
 
 const About: React.FC = () => {
   const { barberName, barberPhoto, barberBio } = useBarberSettings();

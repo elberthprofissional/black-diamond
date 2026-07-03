@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useBarberSettings } from '../../../hooks/useBarberSettings';
+import { useBarberSettings } from '../../../contexts/BarberSettingsContext';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
 import { supabase } from '../../../lib/supabase';
-import { Camera, User } from 'lucide-react';
+import { Camera, User, X, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SettingsContaProps {
   onBack?: () => void;
@@ -18,23 +19,35 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
   const [editingPhone, setEditingPhone] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setNameInput(barberName);
     setPhoneInput(barberPhone);
   }, [barberName, barberPhone]);
 
+  useEffect(() => {
+    if (editingName && nameInputRef.current) {
+      nameInputRef.current.focus();
+    }
+  }, [editingName]);
+
+  useEffect(() => {
+    if (editingPhone && phoneInputRef.current) {
+      phoneInputRef.current.focus();
+    }
+  }, [editingPhone]);
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       showError('Envie apenas imagens');
       return;
     }
 
-    // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       showError('Imagem muito grande (max 2MB)');
       return;
@@ -42,13 +55,11 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
 
     setUploading(true);
     try {
-      // Remove old files first
       const oldFiles = ['profiles/barber-photo.webp', 'profiles/barber-photo.jpg', 'profiles/barber-photo.png'];
       for (const oldFile of oldFiles) {
         await supabase.storage.from('avatars').remove([oldFile]);
       }
 
-      // Upload new file with timestamp to avoid cache
       const ext = file.name.split('.').pop() || 'jpg';
       const filePath = `profiles/barber-photo-${Date.now()}.${ext}`;
 
@@ -81,12 +92,26 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
     }
   };
 
+  const handleSaveName = async () => {
+    if (nameInput.trim()) {
+      const ok = await updateBarberName(nameInput);
+      if (ok) { showSuccess('Nome alterado!'); setEditingName(false); }
+      else showError('Erro ao alterar nome');
+    }
+  };
+
+  const handleSavePhone = async () => {
+    const digits = phoneInput.replace(/\D/g, '');
+    if (digits.length >= 10) {
+      const ok = await updateBarberPhone(digits);
+      if (ok) { showSuccess('Telefone alterado!'); setEditingPhone(false); }
+      else showError('Erro ao alterar telefone');
+    }
+  };
+
   return (
-    <div className="space-y-6 flex flex-col items-center">
-      <div className="hidden lg:block mb-6 text-center w-full max-w-2xl">
-        <h2 className="text-2xl font-bold tracking-tight text-white">Conta</h2>
-      </div>
-      <div className="w-full max-w-2xl space-y-4">
+    <div className="space-y-6">
+      <div className="w-full space-y-4">
         {/* Photo */}
         <div className="flex justify-center">
           <button
@@ -119,11 +144,11 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
           />
         </div>
 
-        {/* Name */}
-        <div className="bg-white/[0.02] border border-white/[0.04] rounded-2xl overflow-hidden">
+        {/* Name - Desktop Inline Edit */}
+        <div className="border border-white/[0.04] rounded-2xl overflow-hidden hidden lg:block">
           {editingName ? (
             <div className="p-5 space-y-3">
-              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">Nome do barbeiro</span>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">Nome</span>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -134,35 +159,18 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
                   autoFocus
                   className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600"
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && nameInput.trim()) {
-                      updateBarberName(nameInput).then(ok => {
-                        if (ok) { showSuccess('Nome alterado!'); setEditingName(false); }
-                        else showError('Erro ao alterar nome');
-                      });
-                    }
+                    if (e.key === 'Enter') handleSaveName();
                     if (e.key === 'Escape') setEditingName(false);
                   }}
                 />
                 <button
-                  onClick={async () => {
-                    if (nameInput.trim()) {
-                      const ok = await updateBarberName(nameInput);
-                      if (ok) { showSuccess('Nome alterado!'); setEditingName(false); }
-                      else showError('Erro ao alterar nome');
-                    }
-                  }}
+                  onClick={handleSaveName}
                   disabled={!nameInput.trim() || nameInput.trim() === barberName}
                   className="px-5 py-3 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
                 >
                   OK
                 </button>
               </div>
-              <button
-                onClick={() => setEditingName(false)}
-                className="lg:hidden text-[11px] text-zinc-600 hover:text-white transition-colors cursor-pointer"
-              >
-                Cancelar
-              </button>
             </div>
           ) : (
             <button
@@ -178,11 +186,25 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
           )}
         </div>
 
-        {/* Phone */}
-        <div className="bg-white/[0.02] border border-white/[0.04] rounded-2xl overflow-hidden">
+        {/* Name - Mobile Simple Button */}
+        <div className="border border-white/[0.04] rounded-2xl overflow-hidden lg:hidden">
+          <button
+            onClick={() => { setNameInput(barberName); setEditingName(true); }}
+            className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
+          >
+            <div className="text-left">
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">Nome</span>
+              <span className="text-[13px] text-white">{barberName}</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+
+        {/* Phone - Desktop Inline Edit */}
+        <div className="border border-white/[0.04] rounded-2xl overflow-hidden hidden lg:block">
           {editingPhone ? (
             <div className="p-5 space-y-3">
-              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">WhatsApp do barbeiro</span>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">WhatsApp</span>
               <div className="flex gap-2">
                 <input
                   type="tel"
@@ -193,36 +215,18 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
                   autoFocus
                   className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600"
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && phoneInput.replace(/\D/g, '').length >= 10) {
-                      updateBarberPhone(phoneInput).then(ok => {
-                        if (ok) { showSuccess('Telefone alterado!'); setEditingPhone(false); }
-                        else showError('Erro ao alterar telefone');
-                      });
-                    }
+                    if (e.key === 'Enter') handleSavePhone();
                     if (e.key === 'Escape') setEditingPhone(false);
                   }}
                 />
                 <button
-                  onClick={async () => {
-                    const digits = phoneInput.replace(/\D/g, '');
-                    if (digits.length >= 10) {
-                      const ok = await updateBarberPhone(digits);
-                      if (ok) { showSuccess('Telefone alterado!'); setEditingPhone(false); }
-                      else showError('Erro ao alterar telefone');
-                    }
-                  }}
+                  onClick={handleSavePhone}
                   disabled={phoneInput.replace(/\D/g, '') === barberPhone || phoneInput.replace(/\D/g, '').length < 10}
                   className="px-5 py-3 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
                 >
                   OK
                 </button>
               </div>
-              <button
-                onClick={() => setEditingPhone(false)}
-                className="lg:hidden text-[11px] text-zinc-600 hover:text-white transition-colors cursor-pointer"
-              >
-                Cancelar
-              </button>
             </div>
           ) : (
             <button
@@ -237,7 +241,113 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
             </button>
           )}
         </div>
+
+        {/* Phone - Mobile Simple Button */}
+        <div className="border border-white/[0.04] rounded-2xl overflow-hidden lg:hidden">
+          <button
+            onClick={() => { setPhoneInput(barberPhone); setEditingPhone(true); }}
+            className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
+          >
+            <div className="text-left">
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">WhatsApp</span>
+              <span className="text-[13px] text-white">{barberPhone || 'Não configurado'}</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Name Editor - Instagram Style */}
+      <AnimatePresence>
+        {editingName && (
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="fixed inset-0 z-[300] bg-[#0A0A0A] lg:hidden"
+          >
+            <div className="flex items-center justify-between px-4 h-14 border-b border-white/[0.06]">
+              <button
+                onClick={() => setEditingName(false)}
+                className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                aria-label="Cancelar"
+              >
+                <X size={24} />
+              </button>
+              <span className="text-[15px] font-bold text-white">Nome</span>
+              <button
+                onClick={handleSaveName}
+                disabled={!nameInput.trim() || nameInput.trim() === barberName}
+                className="text-[#C5A059] font-bold text-[15px] transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="Salvar"
+              >
+                <Check size={24} />
+              </button>
+            </div>
+            <div className="p-4">
+              <input
+                ref={nameInputRef}
+                type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                placeholder="Seu nome"
+                maxLength={30}
+                className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[15px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveName();
+                }}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Phone Editor - Instagram Style */}
+      <AnimatePresence>
+        {editingPhone && (
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="fixed inset-0 z-[300] bg-[#0A0A0A] lg:hidden"
+          >
+            <div className="flex items-center justify-between px-4 h-14 border-b border-white/[0.06]">
+              <button
+                onClick={() => setEditingPhone(false)}
+                className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                aria-label="Cancelar"
+              >
+                <X size={24} />
+              </button>
+              <span className="text-[15px] font-bold text-white">WhatsApp</span>
+              <button
+                onClick={handleSavePhone}
+                disabled={phoneInput.replace(/\D/g, '') === barberPhone || phoneInput.replace(/\D/g, '').length < 10}
+                className="text-[#C5A059] font-bold text-[15px] transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="Salvar"
+              >
+                <Check size={24} />
+              </button>
+            </div>
+            <div className="p-4">
+              <input
+                ref={phoneInputRef}
+                type="tel"
+                value={phoneInput}
+                onChange={(e) => setPhoneInput(e.target.value)}
+                placeholder="31999999999"
+                maxLength={15}
+                className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[15px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSavePhone();
+                }}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <ToastNotification toast={toast} />
     </div>

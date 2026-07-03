@@ -1,4 +1,4 @@
-import { Search, Loader2, ChevronRight, RefreshCw } from 'lucide-react';
+import { Search, Loader2, ChevronRight, UserPlus, User, Phone } from 'lucide-react';
 import { formatPhone } from '../../../lib/utils';
 import type { Client } from '../../../types';
 
@@ -38,79 +38,90 @@ export default function DesktopClientStep({
   isStepValid,
 }: DesktopClientStepProps) {
   return (
-    <div className="space-y-6 lg:space-y-8 h-full flex flex-col justify-between overflow-visible pr-1 scrollbar-hide">
+    <div className="space-y-8 h-full flex flex-col">
+      {/* Header */}
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold uppercase tracking-tight">CLIENTE</h2>
-        <p className="text-zinc-500 text-sm">
+        <h2 className="text-2xl font-bold tracking-tight text-white">Cliente</h2>
+        <p className="text-[14px] text-zinc-500">
           {selectedClient
             ? 'Cliente selecionado com sucesso.'
             : isManualEntry
-              ? 'Insira os dados do cliente abaixo.'
-              : 'Busque pelo WhatsApp ou nome cadastrado.'}
+              ? 'Preencha os dados ou busque um cliente cadastrado.'
+              : 'Busque pelo WhatsApp ou nome do cliente.'}
         </p>
       </div>
 
+      {/* Selected Client */}
       {selectedClient ? (
-        <div className="p-5 sm:p-6 bg-[#111111] border border-white/[0.06] flex items-center justify-between gap-4 min-w-0 transition-all group hover:border-[#C5A059]/30 rounded-xl">
-          <div className="flex items-center gap-4 sm:gap-5 min-w-0 flex-1">
-            <div className="w-12 h-12 bg-[#0A0A0A] border border-white/[0.08] flex items-center justify-center text-[#C5A059] text-lg font-bold transition-all duration-300 shrink-0">
+        <div className="p-5 bg-white/[0.02] border border-white/[0.06] rounded-2xl flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 flex items-center justify-center text-[#C5A059] font-bold text-lg">
               {selectedClient.name.charAt(0)}
             </div>
-            <div className="min-w-0 flex-1">
-              <span className="text-[8px] font-bold text-[#C5A059] tracking-[0.25em] uppercase block mb-1">CLIENTE CADASTRADO</span>
-              <h3 className="text-base sm:text-lg font-bold text-white uppercase tracking-wide leading-none truncate">{selectedClient.name}</h3>
-              <p className="text-xs text-zinc-500 mt-2 truncate">{selectedClient.phone}</p>
+            <div>
+              <p className="text-[15px] font-semibold text-white">{selectedClient.name}</p>
+              <p className="text-[13px] text-zinc-500">{selectedClient.phone}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => { onSetSelectedClient(null); onSetSearchQuery(''); onSetIsManualEntry(true); }}
-            className="text-[10px] font-bold uppercase tracking-widest text-[#C5A059] hover:text-white transition-all cursor-pointer px-3 py-1.5 shrink-0 bg-white/[0.03] border border-[#C5A059]/20 rounded-xl hover:bg-white/[0.08] hover:border-[#C5A059]/40 active:scale-95"
+            className="text-[12px] text-[#C5A059] hover:text-white transition-colors cursor-pointer"
           >
             Alterar
           </button>
         </div>
       ) : !isManualEntry ? (
+        /* Multiple Matches */
         multipleMatches.length > 0 ? (
           <div className="space-y-4">
-            <div className="p-4 bg-[#111111] border border-white/[0.06] text-xs text-zinc-400 uppercase tracking-wider">
-              Múltiplos clientes encontrados. Selecione o correto abaixo:
-            </div>
-            <div className="divide-y divide-white/[0.04] border border-white/[0.06] max-h-60 overflow-y-auto scrollbar-hide bg-[#111111]">
+            <p className="text-[12px] text-zinc-500">Múltiplos clientes encontrados:</p>
+            <div className="space-y-1">
               {multipleMatches.map(c => (
                 <button
                   key={c.id}
                   type="button"
                   onClick={() => { onSetSelectedClient(c); onSetMultipleMatches([]); }}
-                  className="w-full text-left p-4 hover:bg-white/[0.02] transition-all flex items-center justify-between cursor-pointer group"
+                  className="w-full flex items-center justify-between py-3 px-1 hover:bg-white/[0.02] transition-all cursor-pointer group"
                 >
                   <div>
-                    <p className="text-base font-bold text-zinc-300 group-hover:text-white uppercase tracking-wide leading-none">{c.name}</p>
-                    <p className="text-xs text-zinc-600 group-hover:text-zinc-500 mt-1.5 transition-colors">{c.phone}</p>
+                    <p className="text-[14px] font-medium text-zinc-300 group-hover:text-white">{c.name}</p>
+                    <p className="text-[12px] text-zinc-600">{c.phone}</p>
                   </div>
-                  <ChevronRight size={14} className="text-[#C5A059] group-hover:translate-x-0.5 transition-all" />
+                  <ChevronRight size={14} className="text-zinc-600 group-hover:text-[#C5A059] transition-colors" />
                 </button>
               ))}
             </div>
             <button
               type="button"
               onClick={() => { onSetMultipleMatches([]); onSetSearchQuery(''); }}
-              className="text-[10px] font-bold uppercase tracking-widest text-[#C5A059] hover:text-white transition-colors cursor-pointer"
+              className="text-[12px] text-[#C5A059] hover:text-white transition-colors cursor-pointer"
             >
-              Fazer nova busca
+              Nova busca
             </button>
           </div>
         ) : (
-          <div className="space-y-6">
-            <div className="space-y-3">
-              <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] ml-0.5">TELEFONE OU NOME DO CLIENTE</label>
+          /* Search Client */
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[12px] font-medium text-zinc-400 uppercase tracking-wider">Buscar Cliente</label>
+                <button
+                  type="button"
+                  onClick={onOpenSearch}
+                  className="flex items-center gap-1.5 text-[12px] text-[#C5A059] hover:text-white transition-colors cursor-pointer"
+                >
+                  <Search size={12} />
+                  Ver meus clientes
+                </button>
+              </div>
               <div className="flex gap-3">
                 <div className="relative flex-1">
-                  <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-700" />
+                  <Search size={16} className="absolute left-0 top-1/2 -translate-y-1/2 text-zinc-600" />
                   <input
                     type="text"
-                    placeholder="Digite o número (ou nome)..."
-                    className="w-full bg-transparent border-b-2 border-white/[0.06] focus:border-[#C5A059] py-4 pl-12 pr-4 text-base text-white outline-none transition-all placeholder:text-zinc-700 font-medium"
+                    placeholder="Digite o numero ou nome..."
+                    className="w-full bg-transparent border-b-2 border-white/10 focus:border-[#C5A059] py-3 pl-8 pr-4 text-[15px] text-white outline-none transition-all placeholder:text-zinc-600"
                     value={searchQuery}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -127,86 +138,71 @@ export default function DesktopClientStep({
                   type="button"
                   onClick={onSearch}
                   disabled={!searchQuery.trim() || isSearchingClient}
-                  className="px-8 bg-[#111111] border border-white/[0.06] hover:border-[#C5A059]/30 hover:bg-[#C5A059]/5 text-[#C5A059] text-[10px] font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2 min-w-[120px] disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="px-6 py-3 bg-[#C5A059] text-black text-[12px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  {isSearchingClient ? <Loader2 size={12} className="animate-spin text-[#C5A059]" /> : 'Buscar'}
+                  {isSearchingClient ? <Loader2 size={14} className="animate-spin" /> : 'Buscar'}
                 </button>
               </div>
             </div>
 
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={onOpenSearch}
-                className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#C5A059] hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
-              >
-                <Search size={11} />
-                <span>Buscar Cliente Cadastrado</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => onSetIsManualEntry(true)}
+              className="flex items-center gap-2 text-[12px] text-zinc-500 hover:text-[#C5A059] transition-colors cursor-pointer"
+            >
+              <UserPlus size={14} />
+              Cadastrar novo cliente
+            </button>
           </div>
         )
       ) : (
+        /* New Client Form */
         <div className="space-y-6">
           <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] ml-0.5">NOME DO CLIENTE</label>
-              <input
-                type="text"
-                placeholder="Digite o nome completo"
-                className="w-full bg-transparent border-b-2 border-white/[0.06] focus:border-[#C5A059] px-0 py-3.5 text-base text-white outline-none transition-all placeholder:text-zinc-700 font-medium"
-                value={newClient.name}
-                onChange={(e) => onSetNewClient({ ...newClient, name: e.target.value.toUpperCase() })}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] ml-0.5">TELEFONE (WHATSAPP)</label>
-              <input
-                type="tel"
-                placeholder="(00) 00000-0000"
-                className="w-full bg-transparent border-b-2 border-white/[0.06] focus:border-[#C5A059] px-0 py-3.5 text-base text-white outline-none transition-all placeholder:text-zinc-700 font-medium"
-                value={newClient.phone}
-                onChange={(e) => onSetNewClient({ ...newClient, phone: formatPhone(e.target.value) })}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-6">
-            <div>
+            <div className="flex items-center justify-between">
+              <label className="text-[12px] font-bold text-[#C5A059]/70 uppercase tracking-wider">Dados do Cliente</label>
               <button
                 type="button"
                 onClick={onOpenSearch}
-                className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#C5A059] hover:text-white transition-colors flex items-center gap-2 cursor-pointer group"
+                className="flex items-center gap-1.5 text-[12px] text-[#C5A059] hover:text-white transition-colors cursor-pointer"
               >
-                <Search size={11} className="text-[#C5A059] group-hover:text-white transition-colors" />
-                <span>Buscar Cliente Cadastrado</span>
+                <Search size={12} />
+                Ver meus clientes
               </button>
             </div>
-
-            <div className="pt-6 border-t border-white/[0.04]">
-              <button
-                type="button"
-                onClick={onNextStep}
-                disabled={!isStepValid(1)}
-                className="px-10 py-4 bg-white text-black hover:bg-[#C5A059] hover:text-black text-[10px] font-bold uppercase tracking-[0.3em] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                Avançar
-              </button>
+            <div className="space-y-4">
+              <div className="relative">
+                <User size={16} className="absolute left-0 top-1/2 -translate-y-1/2 text-zinc-600" />
+                <input
+                  type="text"
+                  placeholder="Nome completo"
+                  className="w-full bg-transparent border-b-2 border-white/10 focus:border-[#C5A059] py-3 pl-8 pr-4 text-[15px] text-white outline-none transition-all placeholder:text-zinc-600"
+                  value={newClient.name}
+                  onChange={(e) => onSetNewClient({ ...newClient, name: e.target.value.toUpperCase() })}
+                />
+              </div>
+              <div className="relative">
+                <Phone size={16} className="absolute left-0 top-1/2 -translate-y-1/2 text-zinc-600" />
+                <input
+                  type="tel"
+                  placeholder="(00) 00000-0000"
+                  className="w-full bg-transparent border-b-2 border-white/10 focus:border-[#C5A059] py-3 pl-8 pr-4 text-[15px] text-white outline-none transition-all placeholder:text-zinc-600"
+                  value={newClient.phone}
+                  onChange={(e) => onSetNewClient({ ...newClient, phone: formatPhone(e.target.value) })}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
 
-      {((!selectedClient && isManualEntry) || selectedClient) && (
-        <div className="pt-4 border-t border-white/[0.04]">
-          <div className="flex items-center gap-2 text-zinc-500">
-            <RefreshCw size={12} className="shrink-0 text-zinc-550" />
-            <p className="text-[9px] font-bold leading-normal">
-              {selectedClient
-                ? 'Cliente selecionado.'
-                : 'Preencha o nome e o telefone para cadastrar o cliente na hora da reserva.'}
-            </p>
-          </div>
+          <button
+            type="button"
+            onClick={onNextStep}
+            disabled={!isStepValid(1)}
+            className="w-full py-4 bg-[#B8962D] text-black text-[13px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#B8962D]/20"
+          >
+            Continuar
+            <ChevronRight size={16} />
+          </button>
         </div>
       )}
     </div>

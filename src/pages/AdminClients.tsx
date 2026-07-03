@@ -12,6 +12,7 @@ import DeleteClientModal from '../components/Admin/shared/DeleteClientModal';
 import EditClientModal from '../components/Admin/shared/EditClientModal';
 import NewClientModal from '../components/Admin/shared/NewClientModal';
 import ReminderModal from '../components/Admin/shared/ReminderModal';
+import { SkeletonClients } from '../components/Skeleton';
 import { ArrowLeft, Search, ChevronRight, Plus } from 'lucide-react';
 import type { Client, ClientWithStats, BookingWithClient } from '../types';
 
@@ -346,10 +347,7 @@ const AdminClients: React.FC = () => {
 
       <div>
         {loading ? (
-          <div className="py-24 flex flex-col items-center justify-center gap-3">
-            <div className="w-5 h-5 border-2 border-zinc-800 border-t-zinc-400 rounded-full animate-spin" />
-            <span className="text-[10px] font-medium text-zinc-500">Carregando...</span>
-          </div>
+          <SkeletonClients />
         ) : filteredClients.length === 0 ? (
           <div className="py-16 text-center flex flex-col items-center justify-center">
             <p className="text-[11px] text-zinc-500 max-w-xs mx-auto leading-relaxed">

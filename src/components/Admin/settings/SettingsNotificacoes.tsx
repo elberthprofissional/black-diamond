@@ -23,25 +23,20 @@ const SettingsNotificacoes: React.FC<SettingsNotificacoesProps> = () => {
   };
 
   return (
-    <div className="space-y-6 flex flex-col items-center">
-      <div className="hidden lg:block mb-6 text-center w-full max-w-2xl">
-        <h2 className="text-2xl font-bold tracking-tight text-white">Notificações</h2>
-      </div>
-      <div className="w-full max-w-2xl">
-        <div className="bg-white/[0.02] border border-white/[0.04] rounded-2xl overflow-hidden">
-          <button
-            onClick={handleToggle}
-            className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
-          >
-            <div className="text-left">
-              <span className="text-[13px] text-white block">Notificações</span>
-              <span className="text-[11px] text-zinc-500 block mt-0.5">Receba alertas quando agendar</span>
-            </div>
-            <div className={`w-11 h-6 rounded-full transition-all relative ${isSubscribed ? 'bg-[#C5A059]' : 'bg-zinc-700'}`}>
-              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isSubscribed ? 'left-6' : 'left-1'}`} />
-            </div>
-          </button>
-        </div>
+    <div className="space-y-6">
+      <div className="w-full">
+        <button
+          onClick={handleToggle}
+          className="w-full flex items-center justify-between px-5 py-4 border border-white/[0.04] rounded-2xl hover:bg-white/[0.02] transition-all cursor-pointer"
+        >
+          <div className="text-left">
+            <span className="text-[13px] text-white block font-medium">Notificações</span>
+            <span className="text-[11px] text-zinc-500 block mt-0.5">Receba alertas de novos agendamentos</span>
+          </div>
+          <div className={`w-11 h-6 rounded-full transition-all relative ${isSubscribed ? 'bg-[#C5A059]' : 'bg-zinc-700'}`}>
+            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isSubscribed ? 'left-6' : 'left-1'}`} />
+          </div>
+        </button>
       </div>
 
       <ToastNotification toast={toast} />

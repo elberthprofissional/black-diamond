@@ -101,7 +101,7 @@ const BookingPageMobile: React.FC<BookingPageMobileProps> = ({
                   <p className="text-[10px] text-zinc-400">{isMensalista ? 'Serviços inclusos no plano' : 'Selecione os serviços desejados'}</p>
                 </div>
               </div>
-              <ServiceStep services={services} selectedServices={selectedServices} onToggle={toggleService} layout="mobile" />
+              <ServiceStep services={services} selectedServices={selectedServices} isMensalista={isMensalista} onToggle={toggleService} onSkip={goNext} layout="mobile" />
             </motion.div>
           )}
           {step === 3 && <motion.div key="m3" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3 }} className="space-y-6 w-full"><DateTimeStep nextDays={nextDays} selectedDate={selectedDate} selectedTime={selectedTime} onSelectDate={setSelectedDate} onSelectTime={setSelectedTime} availableSlots={availableSlots} existingBookings={existingBookings} layout="mobile" dateContainerRef={dateContainerRef} onMouseDown={handleMouseDown} onMouseLeave={handleMouseLeave} onMouseUp={handleMouseUp} onMouseMove={handleMouseMove} /></motion.div>}

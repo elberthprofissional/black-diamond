@@ -16,6 +16,7 @@ import DeleteModal from '../components/Admin/shared/DeleteModal';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
 import RescheduleWizard from '../components/Admin/shared/RescheduleWizard';
 import BookingDetailPanel from '../components/Admin/shared/BookingDetailPanel';
+import { SkeletonDashboard } from '../components/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const AdminDashboard: React.FC = () => {
@@ -94,10 +95,7 @@ const AdminDashboard: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="py-20 flex flex-col items-center justify-center gap-4">
-              <div className="w-5 h-5 border-2 border-zinc-800 border-t-zinc-500 rounded-full animate-spin" />
-              <span className="text-[10px] text-zinc-600 uppercase tracking-widest">Carregando...</span>
-            </div>
+            <SkeletonDashboard />
           ) : (
             <div className="pt-2">
               {mgmt.filter === 'occupied' && (

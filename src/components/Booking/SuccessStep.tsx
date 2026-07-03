@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, MessageCircle } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Service } from '../../types';
 
@@ -12,23 +12,9 @@ interface SuccessStepProps {
   layout: 'desktop' | 'mobile';
 }
 
-const SuccessStep: React.FC<SuccessStepProps> = ({ selectedDate, selectedTime, totalPrice, selectedServices, clientName, layout }) => {
+const SuccessStep: React.FC<SuccessStepProps> = ({ selectedDate, selectedTime, totalPrice, layout }) => {
   const navigate = useNavigate();
   const formattedDate = selectedDate.split('-').reverse().join('/');
-  const serviceNames = selectedServices.map(s => s.name).join(', ');
-
-  const barberPhone = import.meta.env.VITE_BARBER_WHATSAPP || '';
-  const message = `*NOVO AGENDAMENTO - BLACK DIAMOND*
-
-*Cliente:* ${clientName.trim()}
-*Servico:* ${serviceNames.trim()}
-*Data:* ${formattedDate.trim()}
-*Horario:* ${selectedTime.trim()}
-*Valor:* R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
-
-  const whatsappUrl = barberPhone
-    ? `https://wa.me/${barberPhone}?text=${encodeURIComponent(message)}`
-    : '';
 
   if (layout === 'desktop') {
     return (
@@ -39,7 +25,7 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ selectedDate, selectedTime, t
         <h2 className="text-2xl font-bold text-white mb-2">Agendamento confirmado!</h2>
         <p className="text-base text-zinc-500 mb-8">Seu horário foi reservado com sucesso.</p>
 
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 space-y-3 w-full max-w-sm mb-10 text-left">
+        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 space-y-3 w-full max-w-sm mb-16 text-left">
           <div className="flex justify-between">
             <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Data</span>
             <span className="text-sm font-bold text-white">{formattedDate}</span>
@@ -54,26 +40,13 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ selectedDate, selectedTime, t
           </div>
         </div>
 
-        <div className="flex gap-3">
-          {whatsappUrl && (
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="h-12 px-6 border border-emerald-500/30 text-emerald-500 font-bold text-[10px] uppercase tracking-widest rounded-2xl hover:bg-emerald-500/10 transition-all cursor-pointer flex items-center gap-2"
-            >
-              <MessageCircle size={14} />
-              Enviar ao barbeiro
-            </a>
-          )}
-          <button
-            onClick={() => navigate('/')}
-            aria-label="Voltar para a página inicial"
-            className="h-12 px-10 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-2xl hover:bg-zinc-200 transition-all cursor-pointer"
-          >
-            Voltar ao início
-          </button>
-        </div>
+        <button
+          onClick={() => navigate('/')}
+          aria-label="Voltar para a página inicial"
+          className="h-12 px-10 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-2xl hover:bg-zinc-200 transition-all cursor-pointer"
+        >
+          Voltar ao início
+        </button>
       </div>
     );
   }
@@ -90,7 +63,7 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ selectedDate, selectedTime, t
           <p className="text-sm text-zinc-500">Seu horário foi reservado com sucesso.</p>
         </div>
 
-        <div className="bg-[#111111] border border-white/[0.04] rounded-xl p-5 space-y-3 text-left">
+        <div className="bg-[#111111] border border-white/[0.04] rounded-xl p-5 space-y-3 text-left mb-12">
           <div className="flex justify-between">
             <span className="text-[10px] text-zinc-500 uppercase">Data</span>
             <span className="text-xs font-bold text-white">{formattedDate}</span>
@@ -105,26 +78,13 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ selectedDate, selectedTime, t
           </div>
         </div>
 
-        <div className="space-y-3">
-          {whatsappUrl && (
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full h-12 border border-emerald-500/30 text-emerald-500 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-emerald-500/10 transition-all cursor-pointer flex items-center justify-center gap-2"
-            >
-              <MessageCircle size={14} />
-              Enviar ao barbeiro
-            </a>
-          )}
-          <button
-            onClick={() => navigate('/')}
-            aria-label="Voltar para a página inicial"
-            className="w-full h-12 bg-white text-black font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-zinc-200 transition-all cursor-pointer"
-          >
-            Voltar ao início
-          </button>
-        </div>
+        <button
+          onClick={() => navigate('/')}
+          aria-label="Voltar para a página inicial"
+          className="w-full h-12 bg-white text-black font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-zinc-200 transition-all cursor-pointer"
+        >
+          Voltar ao início
+        </button>
       </div>
     </div>
   );

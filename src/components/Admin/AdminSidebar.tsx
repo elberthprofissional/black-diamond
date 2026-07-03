@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users, ChevronDown, User, LogOut, Clock, Settings } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
-import { useBarberSettings } from '../../hooks/useBarberSettings';
+import { useBarberSettings } from '../../contexts/BarberSettingsContext';
  
 const AdminSidebar: React.FC = () => {
   const navigate = useNavigate();
@@ -11,13 +11,17 @@ const AdminSidebar: React.FC = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const handleLogout = useAdminLogout();
-  const { barberName, barberPhoto } = useBarberSettings();
+  const { barberName, barberPhoto, refetch } = useBarberSettings();
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
  
   const isActive = (path: string) => location.pathname === path;
  
   const mainMenuItems = [
     { label: 'Agenda do Dia', path: '/admin', icon: Clock },
-    { label: 'Agenda da Semana', path: '/admin/weekly', icon: Calendar },
+    { label: 'Agenda Semanal', path: '/admin/weekly', icon: Calendar },
     { label: 'Meus Clientes', path: '/admin/clients', icon: Users },
   ];
 
@@ -95,11 +99,11 @@ const AdminSidebar: React.FC = () => {
             }`}
           >
             <div className="relative shrink-0">
-              <div className="w-9 h-9 rounded-full border border-white/[0.08] overflow-hidden bg-white/[0.03]">
+              <div className="w-9 h-9 rounded-full border border-white/[0.08] overflow-hidden">
                 {barberPhoto ? (
                   <img src={barberPhoto} alt={barberName} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
+                  <div className="w-full h-full flex items-center justify-center bg-white/[0.03]">
                     <User size={14} className="text-zinc-600" />
                   </div>
                 )}

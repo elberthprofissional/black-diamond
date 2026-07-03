@@ -117,6 +117,39 @@ export function useBarberSettings() {
     return false;
   }, []);
 
+  const refetch = useCallback(async () => {
+    try {
+      const { data } = await supabase
+        .from('settings')
+        .select('key, value')
+        .in('key', [...SETTINGS_KEYS]);
+
+      if (data) {
+        for (const row of data) {
+          if (row.key === 'barber_name' && row.value) {
+            setBarberName(row.value);
+            localStorage.setItem('barber_name', row.value);
+          }
+          if (row.key === 'barber_phone') {
+            const phone = row.value || defaultPhone;
+            setBarberPhone(phone);
+            localStorage.setItem('barber_phone', phone);
+          }
+          if (row.key === 'barber_photo') {
+            setBarberPhoto(row.value || '');
+            localStorage.setItem('barber_photo', row.value || '');
+          }
+          if (row.key === 'barber_bio') {
+            setBarberBio(row.value || '');
+            localStorage.setItem('barber_bio', row.value || '');
+          }
+        }
+      }
+    } catch {
+      // keep current values
+    }
+  }, [defaultPhone]);
+
   return {
     barberName,
     barberPhone,
@@ -127,5 +160,6 @@ export function useBarberSettings() {
     updateBarberPhone,
     updateBarberPhoto,
     updateBarberBio,
+    refetch,
   };
 }

@@ -4,6 +4,7 @@ import { deleteAllBookings, deleteAllClients } from '../../../lib/api';
 import { getErrorMessage } from '../../../lib/utils';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
+import { AlertTriangle, Trash2, RotateCcw } from 'lucide-react';
 
 interface SettingsDadosProps {
   onBack?: () => void;
@@ -45,32 +46,40 @@ const SettingsDados: React.FC<SettingsDadosProps> = () => {
 
   return (
     <div className="space-y-6 flex flex-col items-center">
-      <div className="hidden lg:block mb-6 text-center w-full max-w-2xl">
-        <h2 className="text-2xl font-bold tracking-tight text-white">Zona de Segurança</h2>
+      {/* Desktop Warning Banner */}
+      <div className="hidden lg:flex w-full items-center gap-3 p-4 bg-yellow-500/[0.04] border border-yellow-500/10 rounded-2xl">
+        <AlertTriangle size={18} className="text-yellow-500/70 shrink-0" />
+        <p className="text-[12px] text-zinc-500">Estas ações são irreversíveis. Tenha certeza antes de continuar.</p>
       </div>
 
-      <div className="w-full max-w-2xl space-y-3">
+      <div className="w-full space-y-3">
         {/* Resetar financeiro */}
-        <div className="bg-white/[0.02] border border-white/[0.04] rounded-2xl overflow-hidden">
+        <div className="border border-white/[0.04] rounded-2xl overflow-hidden hover:border-white/[0.08] transition-colors">
           <button
             onClick={() => { setActiveModal('bookings'); setConfirmText(''); }}
-            className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
+            className="w-full flex items-center gap-4 px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
           >
-            <div className="text-left">
-              <span className="text-[13px] text-white block">Resetar financeiro</span>
+            <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center shrink-0">
+              <RotateCcw size={16} className="text-zinc-400" />
+            </div>
+            <div className="text-left flex-1">
+              <span className="text-[13px] text-white block font-medium">Resetar financeiro</span>
               <span className="text-[11px] text-zinc-500 block mt-0.5">Zera faturamento, atendimentos e cancelados</span>
             </div>
           </button>
         </div>
 
         {/* Deletar clientes */}
-        <div className="bg-white/[0.02] border border-white/[0.04] rounded-2xl overflow-hidden">
+        <div className="border border-white/[0.04] rounded-2xl overflow-hidden hover:border-white/[0.08] transition-colors">
           <button
             onClick={() => { setActiveModal('clients'); setConfirmText(''); }}
-            className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
+            className="w-full flex items-center gap-4 px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
           >
-            <div className="text-left">
-              <span className="text-[13px] text-white block">Deletar clientes</span>
+            <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center shrink-0">
+              <Trash2 size={16} className="text-zinc-400" />
+            </div>
+            <div className="text-left flex-1">
+              <span className="text-[13px] text-white block font-medium">Deletar clientes</span>
               <span className="text-[11px] text-zinc-500 block mt-0.5">Remove todos os clientes cadastrados</span>
             </div>
           </button>

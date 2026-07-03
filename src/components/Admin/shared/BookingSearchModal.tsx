@@ -25,6 +25,7 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
       c && c.name &&
       c.name !== 'CLIENTE EXCLUIDO' &&
       c.name !== 'BLOQUEADO' &&
+      !c.phone.startsWith('DELETED_') &&
       c.phone !== '00000000000'
     );
   }, [clients]);
@@ -107,7 +108,6 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
                 >
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-bold text-zinc-300 group-hover:text-white uppercase tracking-wider transition-colors truncate">{c.name}</p>
-                    <p className="text-[10px] text-zinc-500 mt-1 font-mono tracking-tight truncate">{c.phone}</p>
                   </div>
                   <ChevronRight size={14} className="text-zinc-800 group-hover:text-[#C5A059] transition-colors" />
                 </button>

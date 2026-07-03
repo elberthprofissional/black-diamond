@@ -186,11 +186,13 @@ export const getBookingsForStats = async () => {
 
 // Clients
 
-/** Busca todos os clientes cadastrados, ordenados por nome. */
+/** Busca todos os clientes cadastrados, ordenados por nome. Exclui clientes soft-deletados. */
 export const getClients = async () => {
   const { data, error } = await supabase
     .from('clients')
     .select('*')
+    .not('name', 'in', '("CLIENTE EXCLUIDO","BLOQUEADO")')
+    .not('phone', 'like', 'DELETED_%')
     .order('name', { ascending: true });
   if (error) throw error;
   return data || [];

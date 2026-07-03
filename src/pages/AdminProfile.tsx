@@ -3,19 +3,20 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getBookings, getServices, deleteAllClients } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
 import type { Booking, Service } from '../types';
-import { Download, LogOut, Bell, Trash2, Scissors, DollarSign, User, Shield } from 'lucide-react';
+import { Download, LogOut, Bell, Trash2, Scissors, DollarSign, User, ArrowLeft, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
 import { useAdminLogout } from '../hooks/useAdminLogout';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
 import { useToast } from '../hooks/useToast';
 import { usePushNotifications } from '../hooks/usePushNotifications';
-import { useBarberSettings } from '../hooks/useBarberSettings';
+import { useBarberSettings } from '../contexts/BarberSettingsContext';
 import ProfileMobile from '../components/Admin/shared/ProfileMobile';
 import SettingsList from '../components/Admin/settings/SettingsList';
 import SettingsConta from '../components/Admin/settings/SettingsConta';
 import SettingsNotificacoes from '../components/Admin/settings/SettingsNotificacoes';
 import SettingsDados from '../components/Admin/settings/SettingsDados';
+import { SkeletonDashboard } from '../components/Skeleton';
 
 
 const AdminProfile: React.FC = () => {
@@ -37,7 +38,7 @@ const AdminProfile: React.FC = () => {
   const handleLogout = useAdminLogout();
   const { toast, showSuccess, showError } = useToast();
   const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
-  const { barberName, barberPhoto } = useBarberSettings();
+  const { barberName, barberPhoto, refetch } = useBarberSettings();
   const [settingsSection, setSettingsSection] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -68,6 +69,11 @@ const AdminProfile: React.FC = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
+
+  // Refetch settings when component mounts to get latest name/photo
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   const loadData = async () => {
     try {
@@ -159,8 +165,10 @@ const AdminProfile: React.FC = () => {
   const greeting = new Date().getHours() < 12 ? 'Bom dia' : new Date().getHours() < 18 ? 'Boa tarde' : 'Boa noite';
 
   if (loading) return (
-    <div className="min-h-screen bg-[#000000] flex items-center justify-center font-sans">
-      <div className="w-5 h-5 border-2 border-white/5 border-t-[#C5A059] rounded-full animate-spin" />
+    <div className="min-h-screen bg-[#000000] font-sans">
+      <div className="max-w-4xl mx-auto px-4 sm:px-8 lg:px-10 pt-24 lg:pt-8">
+        <SkeletonDashboard />
+      </div>
     </div>
   );
 
@@ -262,16 +270,6 @@ const AdminProfile: React.FC = () => {
       mainClassName={`flex-1 w-full overflow-x-hidden px-0 sm:px-8 lg:px-10 ${showSettings ? 'pt-4 lg:pt-6' : 'pt-20 lg:pt-8'} pb-24 lg:pb-12 space-y-6 text-left font-sans`}
       hideNavbar={showSettings}
       hideBottomTabs={showSettings}
-      secondarySidebar={showSettings ? {
-        title: 'Configurações',
-        activeId: settingsSection || 'conta',
-        onSelect: setSettingsSection,
-        items: [
-          { id: 'conta', label: 'Conta', icon: <User size={15} /> },
-          { id: 'notificacoes', label: 'Notificações', icon: <Bell size={15} /> },
-          { id: 'dados', label: 'Zona de Segurança', icon: <Shield size={15} /> },
-        ],
-      } : undefined}
     >
 
       {/* ========================================================================= */}
@@ -280,7 +278,7 @@ const AdminProfile: React.FC = () => {
       {showSettings && (
         <>
           {/* Mobile header for settings */}
-          <div className="lg:hidden flex items-center gap-4 px-4 -mt-1 mb-4">
+          <div className="lg:hidden flex items-center gap-3 px-4 -mt-1 mb-4">
             <button
               onClick={() => {
                 if (settingsSection) {
@@ -289,10 +287,10 @@ const AdminProfile: React.FC = () => {
                   setSettingsSection('__back');
                 }
               }}
-              className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors cursor-pointer"
               aria-label="Voltar"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              <ArrowLeft size={20} />
             </button>
             <h1 className="text-lg font-bold tracking-tight text-white">
               {settingsSection === 'conta' ? 'Conta' :
@@ -312,21 +310,53 @@ const AdminProfile: React.FC = () => {
             {settingsSection === 'dados' && <SettingsDados />}
           </div>
 
-          {/* Desktop: show only content (sidebar handles navigation) */}
-          <div className="hidden lg:block">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={settingsSection || 'conta'}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.15 }}
-              >
-                {(!settingsSection || settingsSection === 'conta') && <SettingsConta />}
-                {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
-                {settingsSection === 'dados' && <SettingsDados />}
-              </motion.div>
-            </AnimatePresence>
+          {/* Desktop: sidebar secundaria + conteudo */}
+          <div className="hidden lg:flex gap-8 max-w-4xl mx-auto">
+            {/* Sidebar Secundaria */}
+            <div className="w-[200px] shrink-0">
+              <div className="sticky top-6 space-y-1">
+                <h2 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] px-3 mb-4">Configurações</h2>
+                {[
+                  { id: 'conta', label: 'Conta', icon: User },
+                  { id: 'notificacoes', label: 'Notificações', icon: Bell },
+                  { id: 'dados', label: 'Segurança', icon: Shield },
+                ].map((item) => {
+                  const active = (settingsSection || 'conta') === item.id;
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setSettingsSection(item.id)}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] transition-all cursor-pointer ${
+                        active
+                          ? 'bg-white/5 text-white font-medium'
+                          : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03]'
+                      }`}
+                    >
+                      <Icon size={15} className={active ? 'text-[#C5A059]' : 'text-zinc-500'} />
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Conteudo */}
+            <div className="flex-1 min-w-0 min-h-[400px]">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={settingsSection || 'conta'}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  {(!settingsSection || settingsSection === 'conta') && <SettingsConta />}
+                  {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
+                  {settingsSection === 'dados' && <SettingsDados />}
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </div>
         </>
       )}

@@ -103,7 +103,8 @@ const BookingPageDesktop: React.FC<BookingPageDesktopProps> = ({
       </div>
 
       <div className="flex-1 flex flex-col">
-        <div className="px-14 py-6 flex items-center justify-between">
+        {/* Header */}
+        <div className="px-14 py-6 flex items-center justify-between border-b border-white/[0.04]">
           <div className="flex items-center gap-5">
             {step > 1 && step < 5 && (
               <button onClick={goBack} aria-label="Voltar para o passo anterior" className="w-10 h-10 rounded-xl border border-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/[0.12] transition-all cursor-pointer">
@@ -112,22 +113,63 @@ const BookingPageDesktop: React.FC<BookingPageDesktopProps> = ({
             )}
             {step < 5 && (
               <div>
-                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Passo {step} de 4</p>
-                <h2 className="text-xl font-bold text-white mt-0.5">{stepTitle}</h2>
+                <h2 className="text-xl font-bold text-white">{stepTitle}</h2>
+                <p className="text-[12px] text-zinc-500 mt-0.5">
+                  {step === 1 && 'Preencha suas informações'}
+                  {step === 2 && 'Escolha os serviços'}
+                  {step === 3 && 'Defina data e horário'}
+                  {step === 4 && 'Revise e confirme'}
+                </p>
               </div>
             )}
           </div>
-          <div className="flex gap-1 w-40" role="list" aria-label="Progresso do agendamento">
-            {[1, 2, 3, 4].map((s) => (
-              <div key={s} role="listitem" aria-current={step === s ? 'step' : undefined} aria-label={`Passo ${s}${step === s ? ' (atual)' : step > s ? ' (concluído)' : ''}`} className={`h-[2px] flex-1 rounded-full transition-all duration-500 ${step === s ? 'bg-[#C5A059]' : step > s ? 'bg-[#C5A059]/30' : 'bg-white/[0.08]'}`} />
-            ))}
-          </div>
+
+          {/* Step Indicator */}
+          {step < 5 && (
+            <div className="flex items-center gap-3" role="list" aria-label="Progresso do agendamento">
+              {[1, 2, 3, 4].map((s, i) => (
+                <React.Fragment key={s}>
+                  <div
+                    role="listitem"
+                    aria-current={step === s ? 'step' : undefined}
+                    aria-label={`Passo ${s}${step === s ? ' (atual)' : step > s ? ' (concluído)' : ''}`}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
+                      step === s
+                        ? 'bg-[#C5A059]/10 text-[#C5A059]'
+                        : step > s
+                          ? 'text-zinc-400'
+                          : 'text-zinc-600'
+                    }`}
+                  >
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                      step === s
+                        ? 'bg-[#C5A059] text-black'
+                        : step > s
+                          ? 'bg-white/10 text-white'
+                          : 'bg-white/[0.04] text-zinc-600'
+                    }`}>
+                      {step > s ? '✓' : s}
+                    </span>
+                    <span className="hidden xl:inline">
+                      {s === 1 && 'Dados'}
+                      {s === 2 && 'Serviços'}
+                      {s === 3 && 'Horário'}
+                      {s === 4 && 'Confirmar'}
+                    </span>
+                  </div>
+                  {i < 3 && (
+                    <div className={`w-6 h-px ${step > s ? 'bg-[#C5A059]/30' : 'bg-white/[0.06]'}`} />
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto px-14 pt-10 pb-6 flex flex-col">
           <AnimatePresence mode="wait">
             {step === 1 && <motion.div key="d1" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1"><DataStep name={userInfo.name} phone={userInfo.phone} onNameChange={v => setUserInfo({...userInfo, name: v})} onPhoneChange={v => setUserInfo({...userInfo, phone: v})} layout="desktop" isMensalista={isMensalista} clientLookupLoading={clientLookupLoading} /></motion.div>}
-            {step === 2 && <motion.div key="d2" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1"><ServiceStep services={services} selectedServices={selectedServices} onToggle={toggleService} layout="desktop" /></motion.div>}
+            {step === 2 && <motion.div key="d2" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1"><ServiceStep services={services} selectedServices={selectedServices} isMensalista={isMensalista} onToggle={toggleService} onSkip={goNext} layout="desktop" /></motion.div>}
             {step === 3 && <motion.div key="d3" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1"><DateTimeStep nextDays={nextDays} selectedDate={selectedDate} selectedTime={selectedTime} onSelectDate={setSelectedDate} onSelectTime={setSelectedTime} availableSlots={availableSlots} existingBookings={existingBookings} layout="desktop" /></motion.div>}
             {step === 4 && <motion.div key="d4" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="flex-1"><ReviewStep userName={userInfo.name} userPhone={userInfo.phone} selectedDate={selectedDate} selectedTime={selectedTime} selectedServices={selectedServices} totalPrice={totalPrice} layout="desktop" /></motion.div>}
             {step === 5 && <motion.div key="d5" initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3 }} className="flex-1"><SuccessStep selectedDate={selectedDate} selectedTime={selectedTime} totalPrice={totalPrice} selectedServices={selectedServices} clientName={userInfo.name} layout="desktop" /></motion.div>}

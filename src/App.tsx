@@ -13,7 +13,7 @@ const TITLES: Record<string, string> = {
   '/admin': 'Painel Admin | Black Diamond',
   '/admin/login': 'Login Admin | Black Diamond',
   '/admin/agendar': 'Novo Agendamento | Black Diamond',
-  '/admin/weekly': 'Agenda Semanal | Black Diamond',
+  '/admin/weekly': 'Agenda da Semana | Black Diamond',
   '/admin/clients': 'Clientes | Black Diamond',
 
   '/admin/profile': 'Perfil | Black Diamond',
