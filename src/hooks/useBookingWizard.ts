@@ -1,13 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createBooking, getAvailableSlots, getBookings, getClientByPhone } from '../lib/api';
-import {
-  getNextDays,
-  formatPhone,
-  getTimeSlotsForDate,
-  getErrorMessage,
-  generateGoogleCalendarUrl,
-} from '../lib/utils';
+import { getNextDays, formatPhone, getTimeSlotsForDate, getErrorMessage } from '../lib/utils';
 import { useServices } from './useServices';
 import { supabase } from '../lib/supabase';
 import type { Service } from '../types';
@@ -28,7 +22,6 @@ export function useBookingWizard(showError: (msg: string) => void) {
     { booking_time: string; status: string }[]
   >([]);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
-  const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [isMensalista, setIsMensalista] = useState(false);
   const [clientLookupLoading, setClientLookupLoading] = useState(false);
   const [barberPhone, setBarberPhone] = useState('');
@@ -179,12 +172,13 @@ export function useBookingWizard(showError: (msg: string) => void) {
 
   // Inverted steps: 1=Data, 2=Services, 3=DateTime, 4=Review
   const isStepDisabled = useMemo(() => {
-    if (step === 1)
+    if (step === 1) {
       return (
         !userInfo.name.trim() ||
         userInfo.name.trim().length < 3 ||
         userInfo.phone.replace(/\D/g, '').length < 11
       );
+    }
     if (step === 2) return selectedServices.length === 0;
     if (step === 3) return !selectedDate || !selectedTime;
     if (step === 4) return isSubmitting;
@@ -207,8 +201,9 @@ export function useBookingWizard(showError: (msg: string) => void) {
       !userInfo.name ||
       !userInfo.phone ||
       selectedServices.length === 0
-    )
+    ) {
       return;
+    }
     setIsSubmitting(true);
     try {
       const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
@@ -223,20 +218,7 @@ export function useBookingWizard(showError: (msg: string) => void) {
         { name: userInfo.name, phone: userInfo.phone }
       );
 
-      setShowCalendarModal(true);
-    } catch (error) {
-      showError(getErrorMessage(error));
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [isSubmitting, selectedTime, userInfo, selectedServices, selectedDate, totalPrice, showError]);
-
-  const handleCalendarChoice = useCallback(
-    (wantsReminder: boolean) => {
-      setShowCalendarModal(false);
-      setStep(5);
-
-      // SEMPRE envia mensagem pro barbeiro primeiro
+      // Abre WhatsApp pro barbeiro e vai pro step de sucesso
       if (barberPhone) {
         const serviceNames = selectedServices.map((s) => s.name).join(', ');
         const formattedDate = selectedDate.split('-').reverse().join('/');
@@ -244,7 +226,7 @@ export function useBookingWizard(showError: (msg: string) => void) {
         const msg = `━━━━━━━━━━━━━━━━━━━━━━━━━━
 BLACK DIAMOND BARBEARIA
 NOVO AGENDAMENTO
-━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Cliente:
 ${userInfo.name.trim()}${mensalistaTag}
@@ -267,23 +249,23 @@ R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
         window.open(waUrl, '_blank');
       }
 
-      // DEPOIS abre Google Calendar se cliente quer lembrete
-      if (wantsReminder) {
-        const serviceNames = selectedServices.map((s) => s.name).join(' + ');
-        const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
-        const gcalUrl = generateGoogleCalendarUrl(
-          serviceNames,
-          selectedDate,
-          selectedTime,
-          totalDuration
-        );
-        setTimeout(() => {
-          window.open(gcalUrl, '_blank');
-        }, 500);
-      }
-    },
-    [selectedServices, selectedDate, selectedTime, userInfo, totalPrice, barberPhone, isMensalista]
-  );
+      setStep(5);
+    } catch (error) {
+      showError(getErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [
+    isSubmitting,
+    selectedTime,
+    userInfo,
+    selectedServices,
+    selectedDate,
+    totalPrice,
+    showError,
+    barberPhone,
+    isMensalista,
+  ]);
 
   const goNext = useCallback(() => {
     if (step < 4) setStep(step + 1);
@@ -325,8 +307,6 @@ R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
     navigate,
     nextDays: filteredNextDays,
     formatPhoneValue,
-    showCalendarModal,
-    handleCalendarChoice,
     isMensalista,
     clientLookupLoading,
   };

@@ -1,6 +1,4 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
 import { useBookingWizard } from '../hooks/useBookingWizard';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
@@ -46,57 +44,6 @@ const BookingPage: React.FC = () => {
         <BookingPageDesktop {...sharedProps} />
         <BookingPageMobile {...sharedProps} navigate={w.navigate} />
       </main>
-
-      {/* Calendar Reminder Modal */}
-      <AnimatePresence>
-        {w.showCalendarModal && (
-          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => w.handleCalendarChoice(false)}
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ y: '100%', opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: '100%', opacity: 0 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-              className="relative z-10 w-full sm:max-w-[320px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
-            >
-              <div className="px-6 pt-6 pb-2 text-center">
-                <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-4">
-                  <Calendar size={20} className="text-[#C5A059]" />
-                </div>
-                <p className="text-[15px] font-semibold text-white">Deseja receber um aviso?</p>
-                <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
-                  Adicionamos um lembrete no seu celular para você não esquecer do agendamento.
-                </p>
-              </div>
-
-              <div className="px-6 pb-4 space-y-2">
-                <button
-                  onClick={() => w.handleCalendarChoice(true)}
-                  className="w-full py-3.5 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[11px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer"
-                >
-                  Sim
-                </button>
-                <button
-                  onClick={() => w.handleCalendarChoice(false)}
-                  className="w-full py-3.5 text-[12px] font-medium text-zinc-500 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
-                >
-                  Não
-                </button>
-              </div>
-
-              <div className="sm:hidden flex justify-center pb-3 pt-1">
-                <div className="w-10 h-1 rounded-full bg-white/10" />
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       <ToastNotification toast={toast} />
     </div>
