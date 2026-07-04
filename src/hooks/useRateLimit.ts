@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 
 interface RateLimitConfig {
   maxAttempts: number;
@@ -24,7 +24,6 @@ export function useRateLimit(key: string, config: Partial<RateLimitConfig> = {})
   });
 
   const isBlocked = attempts >= maxAttempts;
-  const lastAttempt = useRef(Date.now());
 
   const recordAttempt = useCallback(() => {
     const now = Date.now();
