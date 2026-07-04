@@ -5,6 +5,8 @@ import { EyeOff, Eye, ChevronRight, ArrowLeft, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../hooks/useToast';
 import { useModalA11y } from '../hooks/useModalA11y';
+import { useRateLimit } from '../hooks/useRateLimit';
+import { useAuditLog } from '../hooks/useAuditLog';
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -18,11 +20,18 @@ const AdminLogin: React.FC = () => {
   const { toast, showError } = useToast();
   const navigate = useNavigate();
   const [isPWA, setIsPWA] = useState(false);
+  const { isBlocked, attempts, recordAttempt, getTimeUntilReset } = useRateLimit('login', {
+    maxAttempts: 5,
+    windowMs: 900000,
+  }); // 15 minutos
+  const { logLogin } = useAuditLog();
 
   // Se já houver uma sessão ativa, redireciona para o admin automaticamente
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session) {
         navigate('/admin');
       }
@@ -32,7 +41,8 @@ const AdminLogin: React.FC = () => {
 
   // Detecta PWA e trava navegação de voltar caso esteja standalone
   useEffect(() => {
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     setIsPWA(!!isStandalone);
 
     if (isStandalone) {
@@ -55,7 +65,7 @@ const AdminLogin: React.FC = () => {
     document.body.style.position = 'fixed';
     document.body.style.width = '100%';
     document.body.style.height = '100%';
-    
+
     return () => {
       document.documentElement.style.overscrollBehavior = '';
       document.body.style.overscrollBehavior = '';
@@ -72,17 +82,30 @@ const AdminLogin: React.FC = () => {
       showError('Preencha todos os campos.');
       return;
     }
-    
+
+    if (isBlocked) {
+      const remaining = Math.ceil(getTimeUntilReset() / 60000);
+      showError(`Muitas tentativas. Tente novamente em ${remaining} minuto(s).`);
+      return;
+    }
+
     setIsLoggingIn(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
-        password: password.trim()
+        password: password.trim(),
       });
 
       if (error) {
-        showError('E-mail ou senha incorretos.');
+        const allowed = recordAttempt();
+        logLogin(false, email.trim());
+        if (!allowed) {
+          showError('Conta bloqueada temporariamente. Tente novamente mais tarde.');
+        } else {
+          showError('E-mail ou senha incorretos.');
+        }
       } else {
+        logLogin(true, email.trim());
         navigate('/admin');
       }
     } catch {
@@ -99,7 +122,7 @@ const AdminLogin: React.FC = () => {
       return;
     }
     setIsSendingReset(true);
-    
+
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(recoveryEmail.trim(), {
         redirectTo: `${window.location.origin}/admin/reset-password`,
@@ -127,7 +150,6 @@ const AdminLogin: React.FC = () => {
 
   return (
     <div className="h-screen w-full bg-[#0A0A0A] text-white flex relative overflow-hidden font-sans select-none">
-      
       {/* Voltar para Home (apenas no site, oculto no PWA) */}
       {!isPWA && (
         <button
@@ -140,10 +162,10 @@ const AdminLogin: React.FC = () => {
 
       {/* --- DESKTOP SIDE IMAGE --- */}
       <div className="hidden lg:flex lg:w-[55%] h-full relative overflow-hidden bg-[#0A0A0A] border-r border-white/5">
-        <motion.div 
+        <motion.div
           initial={{ scale: 1.05 }}
           animate={{ scale: 1 }}
-          transition={{ duration: 2, ease: "easeOut" }}
+          transition={{ duration: 2, ease: 'easeOut' }}
           className="absolute inset-0"
         >
           <img
@@ -154,10 +176,10 @@ const AdminLogin: React.FC = () => {
             className="w-full h-full object-cover grayscale opacity-20"
           />
         </motion.div>
-        
+
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-[#0A0A0A]/30" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0A] via-transparent to-transparent" />
-        
+
         <div className="relative z-10 w-full h-full flex flex-col justify-between p-16 xl:p-24">
           <div />
           <motion.div
@@ -168,11 +190,16 @@ const AdminLogin: React.FC = () => {
           >
             <div className="w-12 h-[2px] bg-[#C5A059]" />
             <h2 className="flex flex-col gap-2">
-              <span className="text-2xl xl:text-3xl font-bebas tracking-[0.3em] text-white uppercase">Gestão</span>
-              <span className="text-6xl xl:text-7xl font-bebas leading-[0.9] tracking-widest text-[#C5A059] italic pr-4 uppercase">Black Diamond</span>
+              <span className="text-2xl xl:text-3xl font-bebas tracking-[0.3em] text-white uppercase">
+                Gestão
+              </span>
+              <span className="text-6xl xl:text-7xl font-bebas leading-[0.9] tracking-widest text-[#C5A059] italic pr-4 uppercase">
+                Black Diamond
+              </span>
             </h2>
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-zinc-500 leading-relaxed max-w-md">
-              Sua barbearia na palma da mão. Acompanhe sua agenda, clientes e faturamento de forma simples.
+              Sua barbearia na palma da mão. Acompanhe sua agenda, clientes e faturamento de forma
+              simples.
             </p>
           </motion.div>
         </div>
@@ -180,7 +207,6 @@ const AdminLogin: React.FC = () => {
 
       {/* --- LOGIN SECTION --- */}
       <div className="flex-1 h-full flex flex-col items-center justify-center p-6 md:p-12 lg:p-24 relative bg-[#0A0A0A] sm:bg-[#121212]">
-        
         <div className="absolute inset-0 hidden md:block lg:hidden overflow-hidden">
           <img
             src="/assets/login.webp"
@@ -197,7 +223,7 @@ const AdminLogin: React.FC = () => {
         </div>
 
         {/* --- FORM CARD --- */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-[340px] lg:max-w-[420px] relative z-10 flex flex-col items-center"
@@ -210,14 +236,21 @@ const AdminLogin: React.FC = () => {
           {/* Header Desktop */}
           <div className="hidden lg:block mb-16 space-y-4 w-full text-left">
             <h1 className="text-5xl font-bebas tracking-widest text-white">BEM-VINDO</h1>
-            <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-zinc-500">Insira seus dados para continuar</p>
+            <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-zinc-500">
+              Insira seus dados para continuar
+            </p>
           </div>
 
           <form onSubmit={handleLogin} className="w-full space-y-6 lg:space-y-12">
             <div className="space-y-4 lg:space-y-10">
               {/* Email */}
               <div className="space-y-2 lg:space-y-4">
-                <label htmlFor="login-email" className="text-[9px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0">E-mail</label>
+                <label
+                  htmlFor="login-email"
+                  className="text-[9px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0"
+                >
+                  E-mail
+                </label>
                 <div className="relative group">
                   <input
                     id="login-email"
@@ -234,11 +267,16 @@ const AdminLogin: React.FC = () => {
 
               {/* Password */}
               <div className="space-y-2 lg:space-y-4">
-                <label htmlFor="login-password" className="text-[9px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0">Senha</label>
+                <label
+                  htmlFor="login-password"
+                  className="text-[9px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0"
+                >
+                  Senha
+                </label>
                 <div className="relative group">
                   <input
                     id="login-password"
-                    type={showPassword ? "text" : "password"}
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full h-14 bg-[#1a1a1a] border border-white/[0.08] rounded-2xl px-6 pr-14 text-sm font-medium text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-all placeholder:text-zinc-600 lg:h-12 lg:font-light lg:text-lg"
@@ -248,7 +286,7 @@ const AdminLogin: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                     aria-pressed={showPassword}
                     className="absolute right-6 lg:right-4 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white transition-colors"
                   >
@@ -257,8 +295,8 @@ const AdminLogin: React.FC = () => {
                   <div className="absolute bottom-0 left-6 right-6 lg:hidden h-[1px] bg-gradient-to-r from-transparent via-[#C5A059]/0 to-transparent group-focus-within:via-[#C5A059]/40 transition-all duration-500" />
                 </div>
                 <div className="flex justify-end lg:pt-2">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => setIsForgotOpen(true)}
                     className="text-[8px] lg:text-[9px] font-black lg:font-medium text-[#C5A059]/70 uppercase tracking-widest hover:text-[#C5A059] transition-colors cursor-pointer"
                   >
@@ -268,15 +306,26 @@ const AdminLogin: React.FC = () => {
               </div>
             </div>
 
-            <motion.button 
+            {attempts >= 3 && !isBlocked && (
+              <p className="text-[10px] text-amber-500/70 text-center">
+                Atenção: {5 - attempts} tentativa(s) restante(s) antes do bloqueio temporário.
+              </p>
+            )}
+
+            <motion.button
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               type="submit"
-              disabled={isLoggingIn}
+              disabled={isLoggingIn || isBlocked}
               className="w-full h-14 lg:h-16 bg-[#C5A059] text-black font-black uppercase tracking-[0.5em] text-[11px] rounded-2xl lg:rounded-sm hover:bg-white transition-all flex items-center justify-center gap-3 group lg:mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>{isLoggingIn ? 'Entrando...' : 'Entrar'}</span>
-              {!isLoggingIn && <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />}
+              <span>{isLoggingIn ? 'Entrando...' : isBlocked ? 'Bloqueado' : 'Entrar'}</span>
+              {!isLoggingIn && !isBlocked && (
+                <ChevronRight
+                  size={14}
+                  className="group-hover:translate-x-1 transition-transform"
+                />
+              )}
             </motion.button>
           </form>
         </motion.div>
@@ -286,12 +335,14 @@ const AdminLogin: React.FC = () => {
       <AnimatePresence>
         {isForgotOpen && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               onClick={handleCloseForgot}
               className="absolute inset-0 bg-black/80 backdrop-blur-md"
             />
-            <motion.div 
+            <motion.div
               ref={dialogRef}
               role="dialog"
               aria-modal="true"
@@ -303,12 +354,20 @@ const AdminLogin: React.FC = () => {
             >
               {!isResetSent ? (
                 <>
-                  <button onClick={handleCloseForgot} className="absolute top-4 left-4 z-10 text-zinc-500 hover:text-white transition-colors cursor-pointer" aria-label="Fechar">
+                  <button
+                    onClick={handleCloseForgot}
+                    className="absolute top-4 left-4 z-10 text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                    aria-label="Fechar"
+                  >
                     <X size={16} />
                   </button>
                   <div className="p-6 sm:p-8 pb-5 sm:pb-6 text-center border-b border-white/5">
-                    <h2 className="text-base sm:text-lg font-semibold text-white mb-1">Encontre sua conta</h2>
-                    <p className="text-xs sm:text-sm text-zinc-400">Insira seu email para redefinir sua senha.</p>
+                    <h2 className="text-base sm:text-lg font-semibold text-white mb-1">
+                      Encontre sua conta
+                    </h2>
+                    <p className="text-xs sm:text-sm text-zinc-400">
+                      Insira seu email para redefinir sua senha.
+                    </p>
                   </div>
                   <div className="p-6 sm:p-8 space-y-3 sm:space-y-4">
                     <input
@@ -329,16 +388,36 @@ const AdminLogin: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <button onClick={handleCloseForgot} className="absolute top-4 left-4 z-10 text-zinc-500 hover:text-white transition-colors cursor-pointer" aria-label="Fechar">
+                  <button
+                    onClick={handleCloseForgot}
+                    className="absolute top-4 left-4 z-10 text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                    aria-label="Fechar"
+                  >
                     <X size={16} />
                   </button>
                   <div className="p-6 sm:p-8 pb-5 sm:pb-6 text-center border-b border-white/5">
                     <div className="w-14 sm:w-16 h-14 sm:h-16 mx-auto mb-4 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#22c55e"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
                     </div>
-                    <h2 className="text-base sm:text-lg font-semibold text-white mb-1">Email enviado!</h2>
+                    <h2 className="text-base sm:text-lg font-semibold text-white mb-1">
+                      Email enviado!
+                    </h2>
                     <p className="text-xs sm:text-sm text-zinc-400">
-                      Enviamos um link de recuperação para <span className="font-medium text-white">{recoveryEmail}</span>. Verifique sua caixa de entrada.
+                      Enviamos um link de recuperação para{' '}
+                      <span className="font-medium text-white">{recoveryEmail}</span>. Verifique sua
+                      caixa de entrada.
                     </p>
                   </div>
                 </>
@@ -359,7 +438,9 @@ const AdminLogin: React.FC = () => {
               toast.type === 'error' ? 'text-red-500' : 'text-[#C5A059]'
             }`}
           >
-            <div className={`w-2 h-2 rounded-full animate-pulse ${toast.type === 'error' ? 'bg-red-500' : 'bg-[#C5A059]'}`} />
+            <div
+              className={`w-2 h-2 rounded-full animate-pulse ${toast.type === 'error' ? 'bg-red-500' : 'bg-[#C5A059]'}`}
+            />
             <p className="text-[10px] font-black uppercase tracking-[0.3em]">{toast.message}</p>
           </motion.div>
         )}
