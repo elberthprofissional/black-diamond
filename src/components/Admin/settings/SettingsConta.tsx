@@ -163,9 +163,6 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
                     if (e.key === 'Escape') setEditingName(false);
                   }}
                 />
-                {nameInput.length >= 10 && (
-                  <p className="text-[10px] text-amber-500/80">Nome muito longo. Use no máximo 10 caracteres.</p>
-                )}
                 <button
                   onClick={handleSaveName}
                   disabled={!nameInput.trim() || nameInput.trim() === barberName}
