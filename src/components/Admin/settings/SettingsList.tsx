@@ -1,14 +1,39 @@
 import React from 'react';
-import { User, Bell, Trash2, ChevronRight, AlertTriangle } from 'lucide-react';
+import { User, Bell, Trash2, ChevronRight, AlertTriangle, Image as ImageIcon } from 'lucide-react';
 
 interface SettingsListProps {
   onSelect: (section: string) => void;
 }
 
 const categories = [
-  { id: 'conta', label: 'Conta', description: 'Altere suas informações pessoais', icon: User, danger: false },
-  { id: 'notificacoes', label: 'Notificações', description: 'Receba alertas de novos agendamentos', icon: Bell, danger: false },
-  { id: 'dados', label: 'Zona de Segurança', description: 'Apagar todos os dados', icon: Trash2, danger: true },
+  {
+    id: 'conta',
+    label: 'Conta',
+    description: 'Altere suas informações pessoais',
+    icon: User,
+    danger: false,
+  },
+  {
+    id: 'galeria',
+    label: 'Galeria',
+    description: 'Gerencie as fotos do portfólio',
+    icon: ImageIcon,
+    danger: false,
+  },
+  {
+    id: 'notificacoes',
+    label: 'Notificações',
+    description: 'Receba alertas de novos agendamentos',
+    icon: Bell,
+    danger: false,
+  },
+  {
+    id: 'dados',
+    label: 'Zona de Segurança',
+    description: 'Apagar todos os dados',
+    icon: Trash2,
+    danger: true,
+  },
 ];
 
 const SettingsList: React.FC<SettingsListProps> = ({ onSelect }) => {
@@ -27,18 +52,24 @@ const SettingsList: React.FC<SettingsListProps> = ({ onSelect }) => {
                   : 'hover:bg-white/[0.02]'
               }`}
             >
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                cat.danger
-                  ? 'bg-red-500/[0.08] border border-red-500/20'
-                  : 'bg-white/[0.04]'
-              }`}>
+              <div
+                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                  cat.danger ? 'bg-red-500/[0.08] border border-red-500/20' : 'bg-white/[0.04]'
+                }`}
+              >
                 <Icon size={16} className={cat.danger ? 'text-red-500/80' : 'text-zinc-400'} />
               </div>
               <div className="flex-1 text-left min-w-0">
-                <span className={`text-[13px] font-medium block ${cat.danger ? 'text-red-400/90' : 'text-white'}`}>
+                <span
+                  className={`text-[13px] font-medium block ${cat.danger ? 'text-red-400/90' : 'text-white'}`}
+                >
                   {cat.label}
                 </span>
-                <span className={`text-[11px] block ${cat.danger ? 'text-red-500/50' : 'text-zinc-500'}`}>{cat.description}</span>
+                <span
+                  className={`text-[11px] block ${cat.danger ? 'text-red-500/50' : 'text-zinc-500'}`}
+                >
+                  {cat.description}
+                </span>
               </div>
               {cat.danger ? (
                 <AlertTriangle size={14} className="text-red-500/60 animate-pulse" />

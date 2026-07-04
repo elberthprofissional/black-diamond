@@ -11,7 +11,14 @@ interface SettingsContaProps {
 }
 
 const SettingsConta: React.FC<SettingsContaProps> = () => {
-  const { barberName, barberPhone, barberPhoto, updateBarberName, updateBarberPhone, updateBarberPhoto } = useBarberSettings();
+  const {
+    barberName,
+    barberPhone,
+    barberPhoto,
+    updateBarberName,
+    updateBarberPhone,
+    updateBarberPhoto,
+  } = useBarberSettings();
   const { toast, showSuccess, showError } = useToast();
   const [nameInput, setNameInput] = useState('');
   const [phoneInput, setPhoneInput] = useState('');
@@ -39,6 +46,57 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
     }
   }, [editingPhone]);
 
+  const convertToWebP = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxSize = 800;
+        let { width, height } = img;
+
+        if (width > maxSize || height > maxSize) {
+          if (width > height) {
+            height = (height / width) * maxSize;
+            width = maxSize;
+          } else {
+            width = (width / height) * maxSize;
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            URL.revokeObjectURL(url);
+            if (blob) resolve(blob);
+            else reject(new Error('Failed to convert to WebP'));
+          },
+          'image/webp',
+          0.85
+        );
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load image'));
+      };
+
+      img.src = url;
+    });
+  };
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -55,17 +113,21 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
 
     setUploading(true);
     try {
-      const oldFiles = ['profiles/barber-photo.webp', 'profiles/barber-photo.jpg', 'profiles/barber-photo.png'];
+      const oldFiles = [
+        'profiles/barber-photo.webp',
+        'profiles/barber-photo.jpg',
+        'profiles/barber-photo.png',
+      ];
       for (const oldFile of oldFiles) {
         await supabase.storage.from('avatars').remove([oldFile]);
       }
 
-      const ext = file.name.split('.').pop() || 'jpg';
-      const filePath = `profiles/barber-photo-${Date.now()}.${ext}`;
+      const webpBlob = await convertToWebP(file);
+      const filePath = `profiles/barber-photo-${Date.now()}.webp`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, webpBlob, { contentType: 'image/webp' });
 
       if (uploadError) {
         console.error('Upload error:', uploadError);
@@ -73,9 +135,7 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
         return;
       }
 
-      const { data: urlData } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
 
       if (urlData?.publicUrl) {
         const photoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
@@ -95,8 +155,10 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
   const handleSaveName = async () => {
     if (nameInput.trim()) {
       const ok = await updateBarberName(nameInput);
-      if (ok) { showSuccess('Nome alterado!'); setEditingName(false); }
-      else showError('Erro ao alterar nome');
+      if (ok) {
+        showSuccess('Nome alterado!');
+        setEditingName(false);
+      } else showError('Erro ao alterar nome');
     }
   };
 
@@ -104,8 +166,10 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
     const digits = phoneInput.replace(/\D/g, '');
     if (digits.length >= 10) {
       const ok = await updateBarberPhone(digits);
-      if (ok) { showSuccess('Telefone alterado!'); setEditingPhone(false); }
-      else showError('Erro ao alterar telefone');
+      if (ok) {
+        showSuccess('Telefone alterado!');
+        setEditingPhone(false);
+      } else showError('Erro ao alterar telefone');
     }
   };
 
@@ -122,7 +186,11 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
           >
             <div className="w-24 h-24 rounded-full border-2 border-white/10 overflow-hidden bg-white/[0.03] flex items-center justify-center group-hover:border-[#C5A059]/40 transition-all">
               {barberPhoto ? (
-                <img src={barberPhoto} alt="Foto do barbeiro" className="w-full h-full object-cover" />
+                <img
+                  src={barberPhoto}
+                  alt="Foto do barbeiro"
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 <User size={32} className="text-zinc-600" />
               )}
@@ -148,7 +216,9 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
         <div className="border border-white/[0.04] rounded-2xl overflow-hidden hidden lg:block">
           {editingName ? (
             <div className="p-5 space-y-3">
-              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">Nome</span>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">
+                Nome
+              </span>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -174,14 +244,32 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
             </div>
           ) : (
             <button
-              onClick={() => { setNameInput(barberName); setEditingName(true); }}
+              onClick={() => {
+                setNameInput(barberName);
+                setEditingName(true);
+              }}
               className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
             >
               <div className="text-left">
-                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">Nome</span>
+                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">
+                  Nome
+                </span>
                 <span className="text-[13px] text-white">{barberName}</span>
               </div>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600"><path d="m9 18 6-6-6-6"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-zinc-600"
+              >
+                <path d="m9 18 6-6-6-6" />
+              </svg>
             </button>
           )}
         </div>
@@ -189,14 +277,32 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
         {/* Name - Mobile Simple Button */}
         <div className="border border-white/[0.04] rounded-2xl overflow-hidden lg:hidden">
           <button
-            onClick={() => { setNameInput(barberName); setEditingName(true); }}
+            onClick={() => {
+              setNameInput(barberName);
+              setEditingName(true);
+            }}
             className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
           >
             <div className="text-left">
-              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">Nome</span>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">
+                Nome
+              </span>
               <span className="text-[13px] text-white">{barberName}</span>
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600"><path d="m9 18 6-6-6-6"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-zinc-600"
+            >
+              <path d="m9 18 6-6-6-6" />
+            </svg>
           </button>
         </div>
 
@@ -204,7 +310,9 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
         <div className="border border-white/[0.04] rounded-2xl overflow-hidden hidden lg:block">
           {editingPhone ? (
             <div className="p-5 space-y-3">
-              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">WhatsApp</span>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">
+                WhatsApp
+              </span>
               <div className="flex gap-2">
                 <input
                   type="tel"
@@ -221,7 +329,10 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
                 />
                 <button
                   onClick={handleSavePhone}
-                  disabled={phoneInput.replace(/\D/g, '') === barberPhone || phoneInput.replace(/\D/g, '').length < 10}
+                  disabled={
+                    phoneInput.replace(/\D/g, '') === barberPhone ||
+                    phoneInput.replace(/\D/g, '').length < 10
+                  }
                   className="px-5 py-3 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
                 >
                   OK
@@ -230,14 +341,32 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
             </div>
           ) : (
             <button
-              onClick={() => { setPhoneInput(barberPhone); setEditingPhone(true); }}
+              onClick={() => {
+                setPhoneInput(barberPhone);
+                setEditingPhone(true);
+              }}
               className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
             >
               <div className="text-left">
-                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">WhatsApp</span>
+                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">
+                  WhatsApp
+                </span>
                 <span className="text-[13px] text-white">{barberPhone || 'Não configurado'}</span>
               </div>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600"><path d="m9 18 6-6-6-6"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-zinc-600"
+              >
+                <path d="m9 18 6-6-6-6" />
+              </svg>
             </button>
           )}
         </div>
@@ -245,14 +374,32 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
         {/* Phone - Mobile Simple Button */}
         <div className="border border-white/[0.04] rounded-2xl overflow-hidden lg:hidden">
           <button
-            onClick={() => { setPhoneInput(barberPhone); setEditingPhone(true); }}
+            onClick={() => {
+              setPhoneInput(barberPhone);
+              setEditingPhone(true);
+            }}
             className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
           >
             <div className="text-left">
-              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">WhatsApp</span>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">
+                WhatsApp
+              </span>
               <span className="text-[13px] text-white">{barberPhone || 'Não configurado'}</span>
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600"><path d="m9 18 6-6-6-6"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-zinc-600"
+            >
+              <path d="m9 18 6-6-6-6" />
+            </svg>
           </button>
         </div>
       </div>
@@ -324,7 +471,10 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
               <span className="text-[15px] font-bold text-white">WhatsApp</span>
               <button
                 onClick={handleSavePhone}
-                disabled={phoneInput.replace(/\D/g, '') === barberPhone || phoneInput.replace(/\D/g, '').length < 10}
+                disabled={
+                  phoneInput.replace(/\D/g, '') === barberPhone ||
+                  phoneInput.replace(/\D/g, '').length < 10
+                }
                 className="text-[#C5A059] font-bold text-[15px] transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                 aria-label="Salvar"
               >

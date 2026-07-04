@@ -126,6 +126,30 @@ CREATE POLICY "System can insert audit logs" ON audit_logs
     TO authenticated
     WITH CHECK (true);
 
+-- Tabela de imagens da galeria
+CREATE TABLE IF NOT EXISTS gallery_images (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    image_url TEXT NOT NULL,
+    alt TEXT DEFAULT '',
+    position INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RLS para gallery_images (apenas admin pode acessar)
+ALTER TABLE gallery_images ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Admin can manage gallery" ON gallery_images;
+CREATE POLICY "Admin can manage gallery" ON gallery_images
+    FOR ALL
+    TO authenticated
+    USING (auth.uid() IN (SELECT id FROM auth.users WHERE email = current_setting('request.jwt.claims', true)::json->>'email'));
+
+DROP POLICY IF EXISTS "Anyone can read gallery" ON gallery_images;
+CREATE POLICY "Anyone can read gallery" ON gallery_images
+    FOR SELECT
+    TO anon
+    USING (true);
+
 -- =========================================================================
 -- 3. CONFIGURAÇÕES PADRÃO
 -- =========================================================================

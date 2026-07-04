@@ -1,19 +1,52 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { ImageIcon } from 'lucide-react';
+import GalleryLightbox from './GalleryLightbox';
+
+interface GalleryImage {
+  image_url: string;
+  alt: string;
+}
 
 const Gallery: React.FC = () => {
-  const [isPaused, setIsPaused] = useState(false);
-  const handlePause = useCallback(() => setIsPaused(true), []);
-  const handleResume = useCallback(() => setIsPaused(false), []);
-  const images = [
-    { src: '/assets/gallery/corte-1.webp', alt: 'Corte de cabelo masculino estilo fade' },
-    { src: '/assets/gallery/corte-2.webp', alt: 'Corte degradê com acabamento na navalha' },
-    { src: '/assets/gallery/corte-3.webp', alt: 'Corte social com pente 2' },
-    { src: '/assets/gallery/corte-4.webp', alt: 'Corte infantil com acabamento perfeito' },
-    { src: '/assets/gallery/corte-5.webp', alt: 'Barba feita com navalha e navalha' },
-    { src: '/assets/gallery/corte-6.webp', alt: 'Corte combo com barba e sobrancelha' },
-    { src: '/assets/gallery/corte-7.webp', alt: 'Pigmentação capilar e design de barba' },
-    { src: '/assets/gallery/corte-8.webp', alt: 'Visual completo Black Diamond' },
-  ];
+  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      const { data } = await supabase
+        .from('gallery_images')
+        .select('image_url, alt')
+        .order('position', { ascending: true });
+
+      if (data && data.length > 0) {
+        setImages(data);
+      }
+    };
+
+    fetchImages();
+  }, []);
+
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
+
+  const handleDeleteImage = async (image: GalleryImage) => {
+    try {
+      const { error } = await supabase
+        .from('gallery_images')
+        .delete()
+        .eq('image_url', image.image_url);
+
+      if (!error) {
+        setImages((prev) => prev.filter((img) => img.image_url !== image.image_url));
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+    }
+  };
 
   // Double the images for infinite scroll effect
   const displayImages = [...images, ...images];
@@ -22,7 +55,9 @@ const Gallery: React.FC = () => {
     <section id="galeria" className="py-20 md:py-40 bg-[#0A0A0A] overflow-hidden">
       <div className="container mx-auto px-6 mb-10 md:mb-16">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-[#D4AF37] font-bebas text-[10px] md:text-xs tracking-[0.6em] uppercase mb-4">Galeria</h2>
+          <h2 className="text-[#D4AF37] font-bebas text-[10px] md:text-xs tracking-[0.6em] uppercase mb-4">
+            Galeria
+          </h2>
           <h3 className="text-4xl sm:text-6xl md:text-8xl font-bebas text-white mb-6 tracking-tight uppercase leading-none">
             MEUS <span className="text-[#D4AF37]">TRABALHOS</span>
           </h3>
@@ -34,39 +69,40 @@ const Gallery: React.FC = () => {
       <div
         className="relative flex overflow-x-hidden"
         role="region"
-        tabIndex={0}
-        aria-label="Galeria de trabalhos (passe o mouse para pausar)"
+        aria-label="Galeria de trabalhos"
         aria-roledescription="carrossel"
-        onMouseEnter={handlePause}
-        onMouseLeave={handleResume}
-        onFocus={handlePause}
-        onBlur={handleResume}
       >
-        <div
-          className="flex animate-marquee whitespace-nowrap gap-4 md:gap-8 px-4"
-          aria-live="off"
-          style={{ animationPlayState: isPaused ? 'paused' : 'running' }}
-        >
-          {displayImages.map((img, index) => (
-            <div
-              key={`${img.alt}-${index}`}
-              role="group"
-              aria-roledescription="slide"
-              aria-label={`Foto ${img.alt}`}
-              className="relative w-[280px] md:w-[400px] h-[360px] md:h-[500px] bg-[#1a1a1a] border border-white/[0.03] overflow-hidden flex-shrink-0 group"
-            >
-              <img
-                src={img.src}
-                alt={img.alt}
-                loading="lazy"
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              {/* Minimal Frame overlay */}
-              <div className="absolute inset-4 border border-white/[0.05] pointer-events-none" />
-              {/* Dark Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            </div>
-          ))}
+        <div className="flex animate-marquee whitespace-nowrap gap-4 md:gap-8 px-4" aria-live="off">
+          {images.length === 0 ? (
+            <>
+              {[...Array(8)].map((_, index) => (
+                <div
+                  key={`placeholder-${index}`}
+                  className="relative w-[280px] md:w-[400px] h-[360px] md:h-[500px] bg-[#1a1a1a] border border-dashed border-white/10 overflow-hidden flex-shrink-0 flex items-center justify-center"
+                >
+                  <ImageIcon size={48} className="text-zinc-700" />
+                </div>
+              ))}
+            </>
+          ) : (
+            displayImages.map((img, index) => (
+              <div
+                key={`${img.alt}-${index}`}
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`Foto ${img.alt}`}
+                onClick={() => openLightbox(index % images.length)}
+                className="relative w-[280px] md:w-[400px] h-[360px] md:h-[500px] bg-[#1a1a1a] overflow-hidden flex-shrink-0 cursor-pointer"
+              >
+                <img
+                  src={img.image_url}
+                  alt={img.alt}
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))
+          )}
         </div>
       </div>
 
@@ -77,9 +113,21 @@ const Gallery: React.FC = () => {
           rel="noopener noreferrer"
           className="text-[8px] md:text-[10px] font-medium text-zinc-600 uppercase tracking-[0.4em] hover:text-[#D4AF37] transition-colors duration-300"
         >
-          Para mais, siga no Instagram <span className="text-[#D4AF37]">@blackdiamond</span>
+          Para mais, siga a gente no{' '}
+          <span className="text-[#D4AF37] underline underline-offset-4 decoration-[#D4AF37]/50 hover:decoration-[#D4AF37]">
+            Instagram
+          </span>
         </a>
       </div>
+
+      {/* Lightbox */}
+      <GalleryLightbox
+        images={images}
+        initialIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        onDelete={handleDeleteImage}
+      />
     </section>
   );
 };
