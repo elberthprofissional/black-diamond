@@ -21,11 +21,24 @@ export interface ProfileStats {
 function computeStats(bookings: Booking[], services: Service[]): ProfileStats {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  // Business week: Sunday 00:00 to Saturday 20:00 (closing time)
+  // After Saturday 20:00, the week has ended and next week starts
   const startOfWeek = new Date(now);
-  const dayOfWeek = now.getDay();
-  const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-  startOfWeek.setDate(now.getDate() - diffToMonday);
-  startOfWeek.setHours(0, 0, 0, 0);
+  const dayOfWeek = now.getDay(); // 0=Sun, 6=Sat
+
+  if (dayOfWeek === 0) {
+    // Sunday: week just started, use today
+    startOfWeek.setHours(0, 0, 0, 0);
+  } else if (dayOfWeek === 6 && now.getHours() >= 20) {
+    // Saturday after 20:00: shop closed, next week starts
+    startOfWeek.setDate(now.getDate() + 1); // jump to Sunday
+    startOfWeek.setHours(0, 0, 0, 0);
+  } else {
+    // Mon-Sat before 20:00: go back to last Sunday
+    startOfWeek.setDate(now.getDate() - dayOfWeek);
+    startOfWeek.setHours(0, 0, 0, 0);
+  }
 
   let lucroTotal = 0;
   let lucroMes = 0;
@@ -46,6 +59,7 @@ function computeStats(bookings: Booking[], services: Service[]): ProfileStats {
     const price = Number(b.total_price || 0);
 
     if (b.status !== 'cancelled') lucroTotal += price;
+
     if (date >= startOfMonth) {
       if (b.status === 'cancelled') canceladosMes++;
       else {
@@ -58,6 +72,7 @@ function computeStats(bookings: Booking[], services: Service[]): ProfileStats {
         }
       }
     }
+
     if (date >= startOfWeek) {
       if (b.status === 'cancelled') canceladosSemana++;
       else {
@@ -82,9 +97,13 @@ function computeStats(bookings: Booking[], services: Service[]): ProfileStats {
     .sort((a, b) => b.count - a.count);
 
   return {
-    lucroTotal, lucroMes, lucroSemana,
-    canceladosMes, canceladosSemana,
-    concluidosMes, concluidosSemana,
+    lucroTotal,
+    lucroMes,
+    lucroSemana,
+    canceladosMes,
+    canceladosSemana,
+    concluidosMes,
+    concluidosSemana,
     topServices,
   };
 }
@@ -106,12 +125,26 @@ export function useProfileStats() {
     }
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Auto-refresh every 3 minutes to keep stats current
+  useEffect(() => {
+    const interval = setInterval(loadData, 3 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const stats = useMemo(() => computeStats(bookings, services), [bookings, services]);
 
   return {
-    bookings, services, loading, stats,
-    loadData, setBookings, setServices, setLoading,
+    bookings,
+    services,
+    loading,
+    stats,
+    loadData,
+    setBookings,
+    setServices,
+    setLoading,
   };
 }
