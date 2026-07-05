@@ -15,7 +15,7 @@ export const getServices = async (): Promise<Service[]> => {
 
   // Deduplicate by name
   const seen = new Set<string>();
-  return data.filter(s => {
+  return data.filter((s) => {
     if (seen.has(s.name)) return false;
     seen.add(s.name);
     return true;
@@ -32,21 +32,18 @@ export const createService = async (service: { name: string; price: number }): P
 };
 
 /** Atualiza um serviço existente */
-export const updateService = async (id: string, data: { name?: string; price?: number }): Promise<boolean> => {
-  const { error } = await supabase
-    .from('services')
-    .update(data)
-    .eq('id', id);
+export const updateService = async (
+  id: string,
+  data: { name?: string; price?: number }
+): Promise<boolean> => {
+  const { error } = await supabase.from('services').update(data).eq('id', id);
 
   return !error;
 };
 
 /** Remove um serviço */
 export const deleteService = async (id: string): Promise<boolean> => {
-  const { error } = await supabase
-    .from('services')
-    .delete()
-    .eq('id', id);
+  const { error } = await supabase.from('services').delete().eq('id', id);
 
   return !error;
 };
@@ -60,7 +57,8 @@ export const createBooking = async (
 ) => {
   // Client-side validation before hitting the RPC
   if (!clientData.name.trim()) throw new Error('Informe seu nome.');
-  if (clientData.phone.replace(/\D/g, '').length < 10) throw new Error('Informe um telefone válido com DDD.');
+  if (clientData.phone.replace(/\D/g, '').length < 10)
+    throw new Error('Informe um telefone válido com DDD.');
   if (bookingData.service_ids.length === 0) throw new Error('Selecione pelo menos um serviço.');
   if (!bookingData.booking_date) throw new Error('Selecione uma data.');
   if (!bookingData.booking_time) throw new Error('Selecione um horário.');
@@ -74,7 +72,7 @@ export const createBooking = async (
     p_data: bookingData.booking_date,
     p_hora: bookingData.booking_time,
     p_preco_total: bookingData.total_price,
-    p_duracao_total: bookingData.total_duration
+    p_duracao_total: bookingData.total_duration,
   });
 
   if (error) {
@@ -94,23 +92,27 @@ export const createBooking = async (
 /** Busca horários disponíveis para uma data via RPC, excluindo slots ocupados e bloqueados. */
 export const getAvailableSlots = async (date: string) => {
   const { data, error } = await supabase.rpc('get_available_slots', {
-    p_date: date
+    p_date: date,
   });
   if (error) throw error;
-  return (data || []).map((item: { slot_time: string }) => (item?.slot_time ?? '').slice(0, 5)).filter(Boolean);
+  return (data || [])
+    .map((item: { slot_time: string }) => (item?.slot_time ?? '').slice(0, 5))
+    .filter(Boolean);
 };
 
 /** Busca agendamentos, opcionalmente filtrados por data. Retorna bookings com dados do cliente. */
 export const getBookings = async (date?: string) => {
   let query = supabase
     .from('bookings')
-    .select(`
+    .select(
+      `
       *,
       clients (
         name,
         phone
       )
-    `)
+    `
+    )
     .order('booking_time', { ascending: true });
 
   if (date) {
@@ -123,22 +125,19 @@ export const getBookings = async (date?: string) => {
 };
 
 /** Atualiza o status de um agendamento (confirmed, completed, cancelled, pending). */
-export const updateBookingStatus = async (id: string, status: 'confirmed' | 'completed' | 'cancelled' | 'pending') => {
-  const { error } = await supabase
-    .from('bookings')
-    .update({ status })
-    .eq('id', id);
-  
+export const updateBookingStatus = async (
+  id: string,
+  status: 'confirmed' | 'completed' | 'cancelled' | 'pending'
+) => {
+  const { error } = await supabase.from('bookings').update({ status }).eq('id', id);
+
   if (error) throw error;
 };
 
 /** Exclui permanentemente um agendamento pelo ID. */
 export const deleteBooking = async (id: string) => {
-  const { error } = await supabase
-    .from('bookings')
-    .delete()
-    .eq('id', id);
-  
+  const { error } = await supabase.from('bookings').delete().eq('id', id);
+
   if (error) throw error;
 };
 
@@ -146,7 +145,7 @@ export const deleteBooking = async (id: string) => {
 export const toggleSlotBlock = async (date: string, time: string) => {
   const { data, error } = await supabase.rpc('toggle_slot_block', {
     p_date: date,
-    p_time: time
+    p_time: time,
   });
   if (error) throw error;
   return data;
@@ -155,7 +154,7 @@ export const toggleSlotBlock = async (date: string, time: string) => {
 /** Desbloqueia todos os horários de um dia via RPC. */
 export const unblockDay = async (date: string) => {
   const { error } = await supabase.rpc('unblock_day', {
-    p_date: date
+    p_date: date,
   });
   if (error) throw error;
 };
@@ -171,9 +170,16 @@ export const autoCompleteExpiredBookings = async (date: string): Promise<number>
 
   if (error || !bookings || bookings.length === 0) return 0;
 
-  // Get current time in user's local timezone for accurate comparison
+  // Use explicit São Paulo timezone (UTC-3) for accurate comparison
   const now = new Date();
-  const currentTimeMinutes = now.getHours() * 60 + now.getMinutes();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: false,
+    timeZone: 'America/Sao_Paulo',
+  });
+  const [h, m] = formatter.format(now).split(':').map(Number);
+  const currentTimeMinutes = h * 60 + m;
 
   const expiredIds: string[] = [];
 
@@ -202,8 +208,7 @@ export const getBookingsForStats = async () => {
   const { data, error } = await supabase
     .from('bookings')
     .select('id, client_id, booking_date, booking_time, total_price, status')
-    .order('booking_date', { ascending: false })
-    .throwOnError();
+    .order('booking_date', { ascending: false });
 
   if (error) throw error;
   return data || [];
@@ -243,7 +248,7 @@ export const deleteAllBookings = async (): Promise<number> => {
   const { data, error } = await supabase
     .from('bookings')
     .delete()
-    .gte('created_at', '1970-01-01')
+    .neq('id', '00000000-0000-0000-0000-000000000000')
     .select('id');
   if (error) throw error;
   return data?.length || 0;
@@ -255,10 +260,10 @@ export const deleteAllClients = async (): Promise<number> => {
   const { error: bookingError } = await supabase
     .from('bookings')
     .delete()
-    .gte('created_at', '1970-01-01');
+    .neq('id', '00000000-0000-0000-0000-000000000000');
   if (bookingError) throw bookingError;
 
-  // Then soft-delete all real clients (each with unique phone using their own ID)
+  // Then soft-delete all real clients (phone UNIQUE requires per-row updates)
   const { data: clients, error: fetchError } = await supabase
     .from('clients')
     .select('id')
@@ -267,13 +272,14 @@ export const deleteAllClients = async (): Promise<number> => {
   if (fetchError) throw fetchError;
   if (!clients || clients.length === 0) return 0;
 
-  for (const client of clients) {
-    const { error } = await supabase
-      .from('clients')
-      .update({ name: 'CLIENTE EXCLUIDO', phone: `DELETED_${client.id}` })
-      .eq('id', client.id);
-    if (error) throw error;
-  }
+  await Promise.all(
+    clients.map((client) =>
+      supabase
+        .from('clients')
+        .update({ name: 'CLIENTE EXCLUIDO', phone: `DELETED_${client.id}` })
+        .eq('id', client.id)
+    )
+  );
 
   return clients.length;
 };
@@ -291,15 +297,18 @@ export const deleteClient = async (id: string) => {
 };
 
 /** Cria um novo cliente. Trata violação de unique constraint no banco. */
-export const createClient = async (data: { name: string; phone: string; email?: string; notes?: string; manually_added?: boolean }) => {
-  const { data: newClient, error } = await supabase
-    .from('clients')
-    .insert(data)
-    .select()
-    .single();
+export const createClient = async (data: {
+  name: string;
+  phone: string;
+  email?: string;
+  notes?: string;
+  manually_added?: boolean;
+}) => {
+  const { data: newClient, error } = await supabase.from('clients').insert(data).select().single();
 
   if (error) {
-    if (error.code === '23505') { // unique_violation
+    if (error.code === '23505') {
+      // unique_violation
       throw new Error('Este telefone já está cadastrado para outro cliente.');
     }
     throw error;
@@ -308,7 +317,10 @@ export const createClient = async (data: { name: string; phone: string; email?: 
 };
 
 /** Atualiza dados de um cliente. Verifica se o telefone não pertence a outro cliente. */
-export const updateClient = async (id: string, data: { name: string; phone: string; email?: string }) => {
+export const updateClient = async (
+  id: string,
+  data: { name: string; phone: string; email?: string }
+) => {
   const { data: existing } = await supabase
     .from('clients')
     .select('id')
@@ -321,30 +333,21 @@ export const updateClient = async (id: string, data: { name: string; phone: stri
     throw new Error('Este telefone já está cadastrado para outro cliente.');
   }
 
-  const { error } = await supabase
-    .from('clients')
-    .update(data)
-    .eq('id', id);
-  
+  const { error } = await supabase.from('clients').update(data).eq('id', id);
+
   if (error) throw error;
 };
 
 /** Atualiza as notas de um cliente. */
 export const updateClientNotes = async (id: string, notes: string) => {
-  const { error } = await supabase
-    .from('clients')
-    .update({ notes })
-    .eq('id', id);
+  const { error } = await supabase.from('clients').update({ notes }).eq('id', id);
 
   if (error) throw error;
 };
 
 /** Alterna o status de favorito de um cliente. */
 export const toggleClientFavorite = async (id: string, isFavorite: boolean) => {
-  const { error } = await supabase
-    .from('clients')
-    .update({ is_favorite: isFavorite })
-    .eq('id', id);
+  const { error } = await supabase.from('clients').update({ is_favorite: isFavorite }).eq('id', id);
 
   if (error) throw error;
 };
@@ -375,7 +378,12 @@ export const getClientByPhone = async (phone: string) => {
 // Reviews
 
 /** Submete uma avaliação (1-5 estrelas) para um agendamento. */
-export const submitReview = async (bookingId: string, clientId: string, rating: number, comment?: string) => {
+export const submitReview = async (
+  bookingId: string,
+  clientId: string,
+  rating: number,
+  comment?: string
+) => {
   if (rating < 1 || rating > 5) throw new Error('Avaliação deve ser entre 1 e 5');
   const { error } = await supabase
     .from('reviews')
@@ -398,6 +406,3 @@ export const getTopReviews = async (limit = 10) => {
   if (error) throw error;
   return data || [];
 };
-
-
-

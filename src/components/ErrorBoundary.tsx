@@ -21,12 +21,10 @@ class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    // Log error details for debugging
-    console.error('[ErrorBoundary] Error:', error.message);
-    console.error('[ErrorBoundary] Component stack:', info.componentStack);
-
-    // In production, you could send this to an error reporting service
-    // Example: errorReporter.captureException(error, { extra: { componentStack: info.componentStack } });
+    if (import.meta.env.DEV) {
+      console.error('[ErrorBoundary] Error:', error.message);
+      console.error('[ErrorBoundary] Component stack:', info.componentStack);
+    }
   }
 
   render() {
@@ -36,13 +34,27 @@ class ErrorBoundary extends React.Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-6" role="alert" aria-live="assertive">
+        <div
+          className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-6"
+          role="alert"
+          aria-live="assertive"
+        >
           <div className="max-w-md w-full text-center space-y-6">
             <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#ef4444"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
             </div>
             <div className="space-y-2">

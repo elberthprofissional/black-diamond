@@ -1,7 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
-const SETTINGS_KEYS = ['barber_name', 'barber_phone', 'barber_photo', 'barber_bio', 'barber_quote', 'barber_instagram', 'barber_hours'] as const;
+const SETTINGS_KEYS = [
+  'barber_name',
+  'barber_phone',
+  'barber_photo',
+  'barber_bio',
+  'barber_quote',
+  'barber_instagram',
+  'barber_hours',
+] as const;
 
 interface BarberSettingsContextType {
   barberName: string;
@@ -89,11 +97,9 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
   const updateBarberName = useCallback(async (newName: string) => {
     const trimmed = newName.trim();
     if (!trimmed) return false;
-
     const { error } = await supabase
       .from('settings')
       .upsert({ key: 'barber_name', value: trimmed }, { onConflict: 'key' });
-
     if (!error) {
       setBarberName(trimmed);
       window.dispatchEvent(new CustomEvent('barber-settings-changed'));
@@ -105,11 +111,9 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
   const updateBarberPhone = useCallback(async (newPhone: string) => {
     const digits = newPhone.replace(/\D/g, '');
     if (digits.length < 10) return false;
-
     const { error } = await supabase
       .from('settings')
       .upsert({ key: 'barber_phone', value: digits }, { onConflict: 'key' });
-
     if (!error) {
       setBarberPhone(digits);
       window.dispatchEvent(new CustomEvent('barber-settings-changed'));
@@ -122,7 +126,6 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
     const { error } = await supabase
       .from('settings')
       .upsert({ key: 'barber_photo', value: photoUrl }, { onConflict: 'key' });
-
     if (!error) {
       setBarberPhoto(photoUrl);
       window.dispatchEvent(new CustomEvent('barber-settings-changed'));
@@ -135,7 +138,6 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
     const { error } = await supabase
       .from('settings')
       .upsert({ key: 'barber_bio', value: newBio }, { onConflict: 'key' });
-
     if (!error) {
       setBarberBio(newBio);
       window.dispatchEvent(new CustomEvent('barber-settings-changed'));
@@ -148,7 +150,6 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
     const { error } = await supabase
       .from('settings')
       .upsert({ key: 'barber_quote', value: newQuote }, { onConflict: 'key' });
-
     if (!error) {
       setBarberQuote(newQuote);
       window.dispatchEvent(new CustomEvent('barber-settings-changed'));
@@ -162,7 +163,6 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
     const { error } = await supabase
       .from('settings')
       .upsert({ key: 'barber_instagram', value: cleaned }, { onConflict: 'key' });
-
     if (!error) {
       setBarberInstagram(cleaned);
       window.dispatchEvent(new CustomEvent('barber-settings-changed'));
@@ -171,7 +171,7 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
     return false;
   }, []);
 
-  const updateBarberHours = async (newHours: string) => {
+  const updateBarberHours = useCallback(async (newHours: string) => {
     const { error } = await supabase
       .from('settings')
       .upsert({ key: 'barber_hours', value: newHours }, { onConflict: 'key' });
@@ -196,46 +196,64 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
       const latestClose = closeTimes.sort().reverse()[0] || '18:00';
       const sat = parsed['6'] as { enabled: boolean; open: string; close: string } | undefined;
 
-      await Promise.all([
-        supabase.from('settings').upsert({ key: 'opening_time', value: earliestOpen }, { onConflict: 'key' }),
-        supabase.from('settings').upsert({ key: 'closing_time', value: latestClose }, { onConflict: 'key' }),
-        supabase.from('settings').upsert({ key: 'working_days', value: enabledDays.join(',') }, { onConflict: 'key' }),
-        supabase.from('settings').upsert({ key: 'saturday_opening', value: sat?.open || '08:00' }, { onConflict: 'key' }),
-        supabase.from('settings').upsert({ key: 'saturday_closing', value: sat?.close || '18:00' }, { onConflict: 'key' }),
+      await Promise.allSettled([
+        supabase
+          .from('settings')
+          .upsert({ key: 'opening_time', value: earliestOpen }, { onConflict: 'key' }),
+        supabase
+          .from('settings')
+          .upsert({ key: 'closing_time', value: latestClose }, { onConflict: 'key' }),
+        supabase
+          .from('settings')
+          .upsert({ key: 'working_days', value: enabledDays.join(',') }, { onConflict: 'key' }),
+        supabase
+          .from('settings')
+          .upsert({ key: 'saturday_opening', value: sat?.open || '08:00' }, { onConflict: 'key' }),
+        supabase
+          .from('settings')
+          .upsert({ key: 'saturday_closing', value: sat?.close || '18:00' }, { onConflict: 'key' }),
       ]);
-    } catch (e) {
-      console.error('Error saving individual keys:', e);
+    } catch {
+      // legacy keys fallback failed — barber_hours JSON is already saved
     }
 
     setBarberHours(newHours);
+    try {
+      localStorage.setItem('barber_hours', newHours);
+    } catch {
+      /* ignore */
+    }
     window.dispatchEvent(new CustomEvent('barber-settings-changed'));
     return true;
-  };
+  }, []);
 
   return (
-    <BarberSettingsContext.Provider value={{
-      barberName,
-      barberPhone,
-      barberPhoto,
-      barberBio,
-      barberQuote,
-      barberInstagram,
-      barberHours,
-      loading,
-      updateBarberName,
-      updateBarberPhone,
-      updateBarberPhoto,
-      updateBarberBio,
-      updateBarberQuote,
-      updateBarberInstagram,
-      updateBarberHours,
-      refetch,
-    }}>
+    <BarberSettingsContext.Provider
+      value={{
+        barberName,
+        barberPhone,
+        barberPhoto,
+        barberBio,
+        barberQuote,
+        barberInstagram,
+        barberHours,
+        loading,
+        updateBarberName,
+        updateBarberPhone,
+        updateBarberPhoto,
+        updateBarberBio,
+        updateBarberQuote,
+        updateBarberInstagram,
+        updateBarberHours,
+        refetch,
+      }}
+    >
       {children}
     </BarberSettingsContext.Provider>
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useBarberSettings() {
   const context = useContext(BarberSettingsContext);
   if (!context) {

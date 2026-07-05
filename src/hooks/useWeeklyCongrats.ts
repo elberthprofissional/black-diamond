@@ -71,24 +71,7 @@ async function sendCongratsPush(message: string, weekKey: string) {
 
     if (!subscriptions || subscriptions.length === 0) return;
 
-    // Get VAPID keys from secrets
-    const { data: secrets } = await supabase
-      .from('secrets')
-      .select('key, value')
-      .in('key', ['VAPID_PRIVATE_KEY', 'VAPID_PUBLIC_KEY', 'VAPID_SUBJECT']);
-
-    if (!secrets || secrets.length < 3) return;
-
-    const secretMap: Record<string, string> = {};
-    for (const s of secrets) secretMap[s.key] = s.value;
-
-    const vapidPrivateKey = secretMap['VAPID_PRIVATE_KEY'];
-    const vapidPublicKey = secretMap['VAPID_PUBLIC_KEY'];
-    const vapidSubject = secretMap['VAPID_SUBJECT'];
-
-    if (!vapidPrivateKey || !vapidPublicKey || !vapidSubject) return;
-
-    // Send to each subscription via edge function
+    // VAPID keys are handled server-side by the edge function — never expose them to the client
     for (const sub of subscriptions) {
       try {
         await supabase.functions.invoke('send-push', {

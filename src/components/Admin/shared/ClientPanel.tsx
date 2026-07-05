@@ -44,7 +44,13 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
 
   return (
     <div className="fixed inset-0 z-[200] flex justify-end flex-col sm:flex-row">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+      />
       <motion.div
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
@@ -54,16 +60,30 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
       >
         <div className="sticky top-0 bg-[#0E0E0E]/95 backdrop-blur-md z-10 px-6 py-4 border-b border-white/[0.04] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={onClose} aria-label="Fechar painel" className="text-zinc-500 hover:text-white transition-colors cursor-pointer">
+            <button
+              onClick={onClose}
+              aria-label="Fechar painel"
+              className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
+            >
               <X size={16} />
             </button>
-            <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.25em]">Dados do Cliente</span>
+            <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.25em]">
+              Dados do Cliente
+            </span>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={onEdit} aria-label="Editar cliente" className="text-zinc-400 hover:text-white transition-all cursor-pointer">
+            <button
+              onClick={onEdit}
+              aria-label="Editar cliente"
+              className="text-zinc-400 hover:text-white transition-all cursor-pointer"
+            >
               <Pencil size={14} />
             </button>
-            <button onClick={onDelete} aria-label="Excluir cliente" className="text-zinc-400 hover:text-red-400 transition-all cursor-pointer">
+            <button
+              onClick={onDelete}
+              aria-label="Excluir cliente"
+              className="text-zinc-400 hover:text-red-400 transition-all cursor-pointer"
+            >
               <Trash2 size={14} />
             </button>
           </div>
@@ -76,32 +96,48 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-black text-white uppercase tracking-tight truncate">{client.name}</h2>
+                <h2 className="text-base font-black text-white uppercase tracking-tight truncate">
+                  {client.name}
+                </h2>
                 {client.is_mensalista && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-full shrink-0">
                     <Crown size={10} className="text-[#C5A059]" />
-                    <span className="text-[8px] font-bold text-[#C5A059] uppercase">Mensalista</span>
+                    <span className="text-[8px] font-bold text-[#C5A059] uppercase">
+                      Mensalista
+                    </span>
                   </span>
                 )}
               </div>
               <p className="text-xs text-zinc-500 mt-0.5">{formatPhone(client.phone)}</p>
-              <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest mt-1">Membro desde {new Date(client.created_at).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}</p>
+              <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest mt-1">
+                Membro desde{' '}
+                {new Date(client.created_at).toLocaleDateString('pt-BR', {
+                  month: 'short',
+                  year: 'numeric',
+                })}
+              </p>
             </div>
           </div>
 
           <div className="bg-[#121212] border border-white/[0.03] rounded-xl p-4 space-y-3">
             <div className="flex justify-between items-center px-2 py-1">
-              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Total de Visitas</span>
+              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+                Total de Visitas
+              </span>
               <span className="text-sm font-black text-[#C5A059]">
                 {panelBookings.length} {panelBookings.length === 1 ? 'visita' : 'visitas'}
               </span>
             </div>
             <div className="flex justify-between items-center px-2">
-              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Valor Gasto</span>
+              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+                Valor Gasto
+              </span>
               <span className="text-sm font-black text-white">R$ {panelTotal.toFixed(0)}</span>
             </div>
             <div className="flex justify-between items-center pt-3 border-t border-white/[0.04] px-2">
-              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Última Visita</span>
+              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+                Última Visita
+              </span>
               <span className="text-xs font-bold text-white uppercase">
                 {panelLast ? panelLast.toLocaleDateString('pt-BR') : 'Nunca'}
               </span>
@@ -110,7 +146,7 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
 
           <div className="flex gap-2">
             <a
-              href={`https://wa.me/${client.phone?.replace(/\D/g, '').startsWith('55') ? '' : '55'}${client.phone?.replace(/\D/g, '')}`}
+              href={`https://wa.me/${(client.phone ?? '').replace(/\D/g, '').startsWith('55') ? '' : '55'}${(client.phone ?? '').replace(/\D/g, '')}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 h-10 border border-white/[0.06] bg-white/[0.02] text-zinc-300 font-bold text-[9px] uppercase tracking-wider rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer flex items-center justify-center"
@@ -124,7 +160,11 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
               Enviar Lembrete
             </button>
             <button
-              onClick={() => navigate(`/admin/agendar?client=${encodeURIComponent(client.name)}&phone=${encodeURIComponent(client.phone)}`)}
+              onClick={() =>
+                navigate(
+                  `/admin/agendar?client=${encodeURIComponent(client.name)}&phone=${encodeURIComponent(client.phone)}`
+                )
+              }
               className="flex-1 h-10 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[9px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Plus size={12} strokeWidth={3} />
@@ -146,8 +186,13 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
 
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.04]">
-              <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-[#C5A059]">Anotações</h3>
-              <button onClick={onToggleEditNotes} className="text-[9px] font-bold uppercase tracking-wider text-zinc-500 hover:text-white transition-colors cursor-pointer">
+              <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-[#C5A059]">
+                Anotações
+              </h3>
+              <button
+                onClick={onToggleEditNotes}
+                className="text-[9px] font-bold uppercase tracking-wider text-zinc-500 hover:text-white transition-colors cursor-pointer"
+              >
                 {isEditingNotes ? 'Cancelar' : notesText.trim() ? 'Editar' : '+ Adicionar'}
               </button>
             </div>
@@ -155,7 +200,9 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
             {notesText.trim() ? (
               <div className="space-y-1.5 pl-3 border-l border-[#C5A059]/20 my-2 text-left">
                 {notesText.split('\n').map((line, idx) => (
-                  <p key={idx} className="text-xs text-zinc-300 leading-relaxed">{line}</p>
+                  <p key={idx} className="text-xs text-zinc-300 leading-relaxed">
+                    {line}
+                  </p>
                 ))}
               </div>
             ) : !isEditingNotes ? (
@@ -164,9 +211,26 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
 
             <AnimatePresence>
               {isEditingNotes && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-2 overflow-hidden">
-                  <textarea value={notesText} onChange={(e) => onNotesChange(e.target.value)} placeholder="Ex: Prefere degradê baixo..." className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-xs text-white placeholder:text-zinc-700 outline-none focus:border-[#C5A059]/30 resize-none h-20" autoFocus />
-                  <button onClick={async () => { await onSaveNotes(); }} disabled={savingNotes} className="w-full py-2.5 bg-[#C5A059] text-black text-[10px] font-bold uppercase tracking-wider rounded-xl cursor-pointer active:scale-95 transition-all">
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-2 overflow-hidden"
+                >
+                  <textarea
+                    value={notesText}
+                    onChange={(e) => onNotesChange(e.target.value)}
+                    placeholder="Ex: Prefere degradê baixo..."
+                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-xs text-white placeholder:text-zinc-700 outline-none focus:border-[#C5A059]/30 resize-none h-20"
+                    autoFocus
+                  />
+                  <button
+                    onClick={async () => {
+                      await onSaveNotes();
+                    }}
+                    disabled={savingNotes}
+                    className="w-full py-2.5 bg-[#C5A059] text-black text-[10px] font-bold uppercase tracking-wider rounded-xl cursor-pointer active:scale-95 transition-all"
+                  >
                     {savingNotes ? '...' : 'Salvar'}
                   </button>
                 </motion.div>
@@ -196,7 +260,9 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
               </button>
               <span className="text-[15px] font-bold text-white">Anotações</span>
               <button
-                onClick={async () => { await onSaveNotes(); }}
+                onClick={async () => {
+                  await onSaveNotes();
+                }}
                 disabled={savingNotes}
                 className="text-[#C5A059] font-bold text-[15px] transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                 aria-label="Salvar"

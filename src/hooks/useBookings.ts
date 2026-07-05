@@ -7,9 +7,9 @@ export function useBookings(date?: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const fetchRef = useRef<() => void>(() => {});
 
   const fetchBookings = useCallback(async () => {
-    // Cancel any in-flight request
     abortControllerRef.current?.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -26,22 +26,10 @@ export function useBookings(date?: string) {
           .then((count) => {
             if (controller.signal.aborted) return;
             if (count > 0) {
-              setBookings(prev => {
-                const hasExpired = prev.some(b =>
-                  b.status !== 'completed' && b.status !== 'cancelled'
-                );
-                if (!hasExpired) return prev;
-                return prev.map(b =>
-                  b.status !== 'completed' && b.status !== 'cancelled'
-                    ? { ...b, status: 'completed' as const }
-                    : b
-                );
-              });
+              fetchRef.current();
             }
           })
-          .catch(() => {
-            // Silently ignore — auto-complete is best-effort
-          });
+          .catch(() => {});
       }
     } catch (err) {
       if (controller.signal.aborted) return;
@@ -52,6 +40,8 @@ export function useBookings(date?: string) {
       }
     }
   }, [date]);
+
+  fetchRef.current = fetchBookings;
 
   useEffect(() => {
     fetchBookings();

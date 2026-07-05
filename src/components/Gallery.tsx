@@ -14,7 +14,7 @@ interface GalleryImage {
 
 type DisplayMode = 'empty' | 'featured' | 'grid' | 'carousel';
 
-const Gallery: React.FC = () => {
+const Gallery: React.FC = React.memo(() => {
   const { barberInstagram } = useBarberSettings();
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,8 +31,8 @@ const Gallery: React.FC = () => {
 
         if (error) throw error;
         if (data) setImages(data);
-      } catch (err) {
-        console.error('Error fetching gallery:', err);
+      } catch {
+        // gallery load failed — show empty state
       } finally {
         setLoading(false);
       }
@@ -76,7 +76,11 @@ const Gallery: React.FC = () => {
           </div>
           <div className="flex gap-4 overflow-hidden">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} variant="rect" className="w-[280px] h-[360px] md:w-[400px] md:h-[500px] flex-shrink-0" />
+              <Skeleton
+                key={i}
+                variant="rect"
+                className="w-[280px] h-[360px] md:w-[400px] md:h-[500px] flex-shrink-0"
+              />
             ))}
           </div>
         </div>
@@ -117,9 +121,11 @@ const Gallery: React.FC = () => {
         {displayMode === 'featured' && (
           <>
             {/* Mobile: grid */}
-            <div className={`gap-2 px-4 md:hidden ${
-              images.length === 1 ? 'grid grid-cols-1 max-w-md mx-auto' : 'grid grid-cols-2'
-            }`}>
+            <div
+              className={`gap-2 px-4 md:hidden ${
+                images.length === 1 ? 'grid grid-cols-1 max-w-md mx-auto' : 'grid grid-cols-2'
+              }`}
+            >
               {images.map((img, index) => (
                 <div
                   key={img.id}
@@ -219,7 +225,10 @@ const Gallery: React.FC = () => {
             aria-label="Galeria de trabalhos"
             aria-roledescription="carrossel"
           >
-            <div className="flex animate-marquee whitespace-nowrap gap-4 md:gap-8 px-4" aria-live="off">
+            <div
+              className="flex animate-marquee whitespace-nowrap gap-4 md:gap-8 px-4"
+              aria-live="off"
+            >
               {displayImages.map((img, index) => (
                 <div
                   key={`${img.id}-${index}`}
@@ -266,6 +275,6 @@ const Gallery: React.FC = () => {
       />
     </>
   );
-};
+});
 
 export default Gallery;

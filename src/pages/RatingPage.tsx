@@ -35,14 +35,26 @@ const RatingPage: React.FC = () => {
         return;
       }
 
-      const { error: insertError } = await supabase
+      // Check for existing review
+      const { data: existingReview } = await supabase
         .from('reviews')
-        .insert({
-          booking_id: bookingId,
-          client_id: booking.client_id,
-          rating,
-          comment: comment || null,
-        });
+        .select('id')
+        .eq('booking_id', bookingId)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingReview) {
+        setError('Você já avaliou este atendimento.');
+        setLoading(false);
+        return;
+      }
+
+      const { error: insertError } = await supabase.from('reviews').insert({
+        booking_id: bookingId,
+        client_id: booking.client_id,
+        rating,
+        comment: comment || null,
+      });
 
       if (insertError) throw insertError;
 
@@ -81,7 +93,9 @@ const RatingPage: React.FC = () => {
     <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-6">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center space-y-3">
-          <span className="text-[10px] font-black tracking-[0.4em] text-[#C5A059] uppercase">Black Diamond</span>
+          <span className="text-[10px] font-black tracking-[0.4em] text-[#C5A059] uppercase">
+            Black Diamond
+          </span>
           <h1 className="text-2xl font-bold text-white">Como foi seu atendimento?</h1>
           <p className="text-sm text-zinc-500">Sua opinião nos ajuda a melhorar cada dia.</p>
         </div>
@@ -91,7 +105,10 @@ const RatingPage: React.FC = () => {
             {[1, 2, 3, 4, 5].map((star) => (
               <button
                 key={star}
-                onClick={() => { setRating(star); setError(''); }}
+                onClick={() => {
+                  setRating(star);
+                  setError('');
+                }}
                 onMouseEnter={() => setHoveredStar(star)}
                 onMouseLeave={() => setHoveredStar(0)}
                 aria-label={`${star} ${star === 1 ? 'estrela' : 'estrelas'}`}
@@ -124,7 +141,10 @@ const RatingPage: React.FC = () => {
           )}
 
           <div>
-            <label htmlFor="review-comment" className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2">
+            <label
+              htmlFor="review-comment"
+              className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2"
+            >
               Comentário <span className="text-zinc-600 font-normal">(opcional)</span>
             </label>
             <textarea
@@ -137,9 +157,7 @@ const RatingPage: React.FC = () => {
             />
           </div>
 
-          {error && (
-            <p className="text-xs text-red-400 text-center">{error}</p>
-          )}
+          {error && <p className="text-xs text-red-400 text-center">{error}</p>}
 
           <button
             onClick={handleSubmit}

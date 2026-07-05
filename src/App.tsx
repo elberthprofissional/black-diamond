@@ -46,9 +46,18 @@ function LoadingFallback() {
       <div className="flex flex-col items-center gap-4">
         <div className="w-8 h-8 border-2 border-zinc-800 border-t-[#C5A059] rounded-full animate-spin" />
         <div className="flex gap-1">
-          <div className="w-1 h-1 rounded-full bg-[#C5A059] animate-bounce" style={{ animationDelay: '0ms' }} />
-          <div className="w-1 h-1 rounded-full bg-[#C5A059] animate-bounce" style={{ animationDelay: '150ms' }} />
-          <div className="w-1 h-1 rounded-full bg-[#C5A059] animate-bounce" style={{ animationDelay: '300ms' }} />
+          <div
+            className="w-1 h-1 rounded-full bg-[#C5A059] animate-bounce"
+            style={{ animationDelay: '0ms' }}
+          />
+          <div
+            className="w-1 h-1 rounded-full bg-[#C5A059] animate-bounce"
+            style={{ animationDelay: '150ms' }}
+          />
+          <div
+            className="w-1 h-1 rounded-full bg-[#C5A059] animate-bounce"
+            style={{ animationDelay: '300ms' }}
+          />
         </div>
       </div>
     </div>
@@ -60,32 +69,83 @@ function App() {
   return (
     <Router>
       <MotionConfig reducedMotion={reducedMotion ? 'always' : 'never'}>
-      <a href="#main-content" className="skip-link">Pular para o conteúdo</a>
-      <TitleManager />
-      <div className="min-h-screen bg-[#0f0f0f]">
-        <ConnectionStatusBanner />
-        <ErrorBoundary>
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            <Route path="/" element={<PwaGuard><Home /></PwaGuard>} />
-            <Route path="/agendar" element={<PwaGuard><BookingPage /></PwaGuard>} />
-            <Route path="/avaliar/:bookingId" element={<RatingPage />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/reset-password" element={<AdminResetPassword />} />
+        <a href="#main-content" className="skip-link">
+          Pular para o conteúdo
+        </a>
+        <TitleManager />
+        <div className="min-h-screen bg-[#0f0f0f]">
+          <ConnectionStatusBanner />
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <PwaGuard>
+                      <Home />
+                    </PwaGuard>
+                  }
+                />
+                <Route
+                  path="/agendar"
+                  element={
+                    <PwaGuard>
+                      <BookingPage />
+                    </PwaGuard>
+                  }
+                />
+                <Route path="/avaliar/:bookingId" element={<RatingPage />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin/reset-password" element={<AdminResetPassword />} />
 
-            {/* Protected Admin Routes */}
-            <Route path="/admin" element={<AuthGuard><AdminDashboard /></AuthGuard>} />
-            <Route path="/admin/agendar" element={<AuthGuard><AdminBooking /></AuthGuard>} />
-            <Route path="/admin/weekly" element={<AuthGuard><AdminWeekly /></AuthGuard>} />
-            <Route path="/admin/clients" element={<AuthGuard><AdminClients /></AuthGuard>} />
-            <Route path="/admin/profile" element={<AuthGuard><AdminProfile /></AuthGuard>} />
+                {/* Protected Admin Routes — single AuthGuard check */}
+                <Route
+                  path="/admin"
+                  element={
+                    <AuthGuard>
+                      <AdminDashboard />
+                    </AuthGuard>
+                  }
+                />
+                <Route
+                  path="/admin/agendar"
+                  element={
+                    <AuthGuard>
+                      <AdminBooking />
+                    </AuthGuard>
+                  }
+                />
+                <Route
+                  path="/admin/weekly"
+                  element={
+                    <AuthGuard>
+                      <AdminWeekly />
+                    </AuthGuard>
+                  }
+                />
+                <Route
+                  path="/admin/clients"
+                  element={
+                    <AuthGuard>
+                      <AdminClients />
+                    </AuthGuard>
+                  }
+                />
+                <Route
+                  path="/admin/profile"
+                  element={
+                    <AuthGuard>
+                      <AdminProfile />
+                    </AuthGuard>
+                  }
+                />
 
-            {/* Catch-all 404 Route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-        </ErrorBoundary>
-      </div>
+                {/* Catch-all 404 Route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </ErrorBoundary>
+        </div>
       </MotionConfig>
     </Router>
   );

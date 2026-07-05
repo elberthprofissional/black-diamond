@@ -5,6 +5,72 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.5.1] - 2026-07-05
+
+### Fixed
+- **Domingo não aparecia na agenda** — corrigido lógica de geração de datas no `getNextDays`
+- **Mensalista não era identificado** — coluna `is_mensalista` adicionada ao schema SQL
+- **Colunas faltantes na tabela clients** — `is_mensalista`, `is_favorite`, `is_blocked`, `manually_added` adicionadas
+- **PhotoCropper removido** — upload agora é direto com conversão WebP
+- **Admin booking não mostrava badge mensalista** — adicionado badge visual no desktop e mobile
+- **Admin booking não detectava mensalista** — busca por telefone agora verifica status de mensalista
+- **Mobile não setava mensalista ao selecionar do modal** — corrigido `onSelectClient`
+
+### Changed
+- **getNextDays** agora começa de hoje (inclui domingo se habilitado)
+- **useClientLookup** agora tem debounce de 500ms
+- **AdminBooking** detecta mensalista automaticamente ao digitar telefone
+- **DesktopClientStep** e **MobileClientStep** recebem prop `isMensalista`
+
+## [3.5.0] - 2026-07-05
+
+### Added
+- **Zustand** — State management para escalabilidade (4 stores: auth, booking, ui, connection)
+- **Sentry** — Error reporting em produção (captura automática de erros com contexto)
+- **15+ novos testes E2E** — Erro de rede, concorrência, limites, 404, acessibilidade, performance, rate limiting, proteção de rotas
+- **Coverage mínimo no CI** — Thresholds de 70% (statements, branches, functions, lines)
+- Stores: `useAuthStore`, `useBookingStore`, `useUIStore`, `useConnectionStore`
+- Variável de ambiente `VITE_SENTRY_DSN`
+- SQL de migração para colunas faltantes na tabela `clients`
+
+### Changed
+- **AdminLogin.tsx** splitado em 5 componentes: `ForgotPasswordModal`, `LoginBackground`, `LoginHeader`, `LoginForm`, `LoginToast` (459 linhas → 6 arquivos limpos)
+- CI agora usa `npm run test:coverage` ao invés de `test:run`
+- Documentação atualizada com novas features
+- **PhotoCropper removido** — upload agora é direto (conversão para WebP automática)
+- **getNextDays** agora começa de hoje (inclui domingo se habilitado)
+- **useClientLookup** agora tem debounce de 500ms
+
+### Fixed
+- Coverage mínimo agora bloqueia merge se abaixo de 70%
+- **Domingo não aparecia na agenda** — corrigido lógica de geração de datas
+- **Mensalista não era identificado** — coluna `is_mensalista` adicionada ao schema SQL
+- **Colunas faltantes na tabela clients** — `is_mensalista`, `is_favorite`, `is_blocked`, `manually_added` adicionadas
+
+## [3.3.0] - 2026-07-05
+
+### Fixed
+- **SECURITY**: Removida busca de VAPID private keys no client (useWeeklyCongrats.ts) — chaves agora ficam apenas no servidor
+- **BUG**: Timezone do Google Calendar corrigido (setHours(-3) em vez de setMinutes(+3))
+- **BUG**: Service Worker catch block corrigido — lê text() primeiro, depois tenta JSON.parse
+- **BUG**: Consolidados dois hooks useBarberSettings duplicados — componentes públicos agora usam o mesmo context
+
+### Changed
+- Removidos 14 console.error/warn de código de produção (ErrorBoundary mantido apenas em DEV)
+- WhatsAppIcon extraído como componente compartilhado (eliminada duplicação em 3 arquivos)
+- formatPhone e formatDateBR centralizados em lib/utils.ts
+- og:image e twitter:image agora usam URL absoluta (preview em redes sociais funciona)
+- ReviewWithClient tipo morto removido
+- deleteAllBookings usa WHERE limpo em vez de gte('created_at', '1970-01-01')
+- deleteAllClients usa Promise.all para paralelizar updates
+- getNextDays lê horário de fechamento do sábado do localStorage
+- Services section usa skeleton loading em vez de texto
+- GalleryLightbox e modal de lembrete agora têm role="dialog" e aria-modal="true"
+
+### Added
+- Componente WhatsAppIcon compartilhado (src/components/WhatsAppIcon.tsx)
+- Utilidade formatDateBR para conversão de datas
+
 ## [3.2.0] - 2026-07-04
 
 ### Added

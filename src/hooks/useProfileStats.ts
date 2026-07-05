@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getBookings, getServices } from '../lib/api';
 import type { Booking, Service } from '../types';
 
@@ -62,7 +62,7 @@ function computeStats(bookings: Booking[], services: Service[]): ProfileStats {
 
     if (date >= startOfMonth) {
       if (b.status === 'cancelled') canceladosMes++;
-      else {
+      else if (b.status === 'completed') {
         lucroMes += price;
         concluidosMes++;
         if (Array.isArray(b.service_ids)) {
@@ -75,7 +75,7 @@ function computeStats(bookings: Booking[], services: Service[]): ProfileStats {
 
     if (date >= startOfWeek) {
       if (b.status === 'cancelled') canceladosSemana++;
-      else {
+      else if (b.status === 'completed') {
         lucroSemana += price;
         concluidosSemana++;
         if (Array.isArray(b.service_ids)) {
@@ -87,7 +87,7 @@ function computeStats(bookings: Booking[], services: Service[]): ProfileStats {
     }
   });
 
-  const currentServiceCounts = serviceCountsSemana;
+  const currentServiceCounts = serviceCountsMes;
   const topServices: TopService[] = (services || [])
     .filter((srv) => srv && srv.id && srv.name)
     .map((srv) => ({
@@ -113,7 +113,7 @@ export function useProfileStats() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [bookingsData, servicesData] = await Promise.all([getBookings(), getServices()]);
       setBookings(bookingsData || []);
@@ -123,17 +123,22 @@ export function useProfileStats() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   // Auto-refresh every 3 minutes to keep stats current
   useEffect(() => {
-    const interval = setInterval(loadData, 3 * 60 * 1000);
+    const interval = setInterval(
+      () => {
+        loadData();
+      },
+      3 * 60 * 1000
+    );
     return () => clearInterval(interval);
-  }, []);
+  }, [loadData]);
 
   const stats = useMemo(() => computeStats(bookings, services), [bookings, services]);
 

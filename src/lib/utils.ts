@@ -99,8 +99,8 @@ const getBarberHours = async (): Promise<HoursData> => {
 
       return result;
     }
-  } catch (err) {
-    console.error('[getBarberHours] Erro ao buscar horários:', err);
+  } catch {
+    // keep default hours
   }
 
   return DEFAULT_HOURS;
@@ -159,24 +159,63 @@ export const getNextDays = () => {
   const currentDay = today.getDay();
   const currentHour = new Date().getHours();
 
-  const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
-  const monday = new Date(today);
-  monday.setDate(today.getDate() + mondayOffset);
-
-  // Se for sábado após as 18:00 (fechamento) ou se for domingo, a agenda abre para a próxima semana
-  if (currentDay === 0 || (currentDay === 6 && currentHour >= 18)) {
-    monday.setDate(monday.getDate() + 7);
+  // Read closing hours from localStorage (set by admin panel)
+  let saturdayCloseHour = 18;
+  let sundayCloseHour = 14;
+  try {
+    const saved = localStorage.getItem('barber_hours');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed['6']?.close) {
+        saturdayCloseHour = parseInt(parsed['6'].close.split(':')[0], 10);
+      }
+      if (parsed['0']?.close) {
+        sundayCloseHour = parseInt(parsed['0'].close.split(':')[0], 10);
+      }
+    }
+  } catch {
+    /* use default */
   }
 
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(monday);
-    date.setDate(monday.getDate() + i);
+  // If Saturday after closing or Sunday after closing, start from next week's Monday
+  if (
+    (currentDay === 6 && currentHour >= saturdayCloseHour) ||
+    (currentDay === 0 && currentHour >= sundayCloseHour)
+  ) {
+    const nextMonday = new Date(today);
+    nextMonday.setDate(today.getDate() + ((1 - currentDay + 7) % 7 || 7));
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(nextMonday);
+      date.setDate(nextMonday.getDate() + i);
+      date.setHours(0, 0, 0, 0);
+      const isPast = date.getTime() < today.getTime();
+      if (isPast) continue;
+      days.push({
+        fullDate: getLocalDateString(date),
+        dayName: date
+          .toLocaleDateString('pt-BR', { weekday: 'short' })
+          .replace('.', '')
+          .toUpperCase(),
+        dayNumber: date.getDate(),
+        isToday: false,
+        isPast: false,
+      });
+    }
+    return days;
+  }
+
+  // Otherwise start from today (or next valid day)
+  const startDate = new Date(today);
+
+  for (let i = 0; i < 14; i++) {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + i);
     date.setHours(0, 0, 0, 0);
 
     const isToday = date.getTime() === today.getTime();
     const isPast = date.getTime() < today.getTime();
 
-    // Pula dias que já passaram
+    // Pula dias que ja passaram
     if (isPast) continue;
 
     days.push({
@@ -189,6 +228,9 @@ export const getNextDays = () => {
       isToday,
       isPast: false,
     });
+
+    // Stop after 7 available days
+    if (days.length >= 7) break;
   }
   return days;
 };
@@ -238,7 +280,7 @@ export const generateGoogleCalendarUrl = (
   const start = formatGCalDate(startDate);
   const end = formatGCalDate(endDate);
 
-  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(details)}`;
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(details)}&ctz=America/Sao_Paulo`;
 };
 
 export const generateIcsFile = (
@@ -264,19 +306,33 @@ export const generateIcsFile = (
   const escapeIcsText = (text: string) =>
     text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
 
+  const formatUtcDate = (d: Date) => {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
+  };
+
   const ics = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//Black Diamond//Barbearia//PT',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
+    'BEGIN:VTIMEZONE',
+    'TZID:America/Sao_Paulo',
+    'BEGIN:STANDARD',
+    'DTSTART:19700101T000000',
+    'TZOFFSETFROM:-0300',
+    'TZOFFSETTO:-0300',
+    'TZNAME:BRT',
+    'END:STANDARD',
+    'END:VTIMEZONE',
     'BEGIN:VEVENT',
     `UID:${uid}`,
-    `DTSTAMP:${formatIcsDate(now)}`,
+    `DTSTAMP:${formatUtcDate(now)}`,
     `DTSTART;TZID=America/Sao_Paulo:${formatIcsDate(startDate)}`,
     `DTEND;TZID=America/Sao_Paulo:${formatIcsDate(endDate)}`,
     `SUMMARY:${escapeIcsText(`${serviceName} - Black Diamond`)}`,
-    `DESCRIPTION:${escapeIcsText('Seu agendamento na Black Diamond Barbearia.')}`,
+    `DESCRIPTION:${escapeIcsText(`Serviço: ${serviceName}\nHorário: ${time}\nData: ${date}\nDuração: ${duration} minutos`)}`,
     'BEGIN:VALARM',
     'TRIGGER:-PT30M',
     'ACTION:DISPLAY',
@@ -305,10 +361,12 @@ export const generateIcsFile = (
 export const getErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
     const msg = error.message;
-    if (msg.includes('horário acabou de ser preenchido'))
+    if (msg.includes('horário acabou de ser preenchido')) {
       return 'Este horário acabou de ser preenchido. Escolha outro.';
-    if (msg.includes('Limite de 3 agendamentos'))
+    }
+    if (msg.includes('Limite de 3 agendamentos')) {
       return 'Limite de 3 agendamentos por dia atingido.';
+    }
     if (msg.includes('Informe')) return msg; // client-side validation messages
     for (const [key, value] of Object.entries(ERROR_MESSAGES)) {
       if (msg.toLowerCase().includes(key.toLowerCase())) return value;
@@ -316,4 +374,9 @@ export const getErrorMessage = (error: unknown): string => {
     return msg || 'Erro inesperado. Tente novamente.';
   }
   return 'Erro inesperado. Tente novamente.';
+};
+
+/** Converts "YYYY-MM-DD" to "DD/MM/YYYY" */
+export const formatDateBR = (dateStr: string): string => {
+  return dateStr.split('-').reverse().join('/');
 };

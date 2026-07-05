@@ -23,16 +23,24 @@ export function useReschedule(
     let active = true;
     setLoadingSlots(true);
     getBookings(rescheduleDate)
-      .then(data => { if (active) setExistingBookings(data || []); })
-      .catch((e) => { console.error('Erro ao buscar bookings para reagendamento:', e); showError('Erro ao carregar horários.'); })
-      .finally(() => { if (active) setLoadingSlots(false); });
-    return () => { active = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+      .then((data) => {
+        if (active) setExistingBookings(data || []);
+      })
+      .catch(() => {
+        showError('Erro ao carregar horários.');
+      })
+      .finally(() => {
+        if (active) setLoadingSlots(false);
+      });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rescheduleDate, isRescheduling]);
 
   const startReschedule = () => {
     if (!selectedBooking) return;
-    const initialServices = services.filter(s => selectedBooking.service_ids?.includes(s.id));
+    const initialServices = services.filter((s) => selectedBooking.service_ids?.includes(s.id));
     setRescheduleServices(initialServices);
     setRescheduleDate(selectedBooking.booking_date);
     setRescheduleTime(selectedBooking.booking_time.slice(0, 5));
@@ -41,25 +49,26 @@ export function useReschedule(
   };
 
   const confirmReschedule = async () => {
-    if (!selectedBooking || rescheduleServices.length === 0 || !rescheduleDate || !rescheduleTime) return;
+    if (!selectedBooking || rescheduleServices.length === 0 || !rescheduleDate || !rescheduleTime)
+      return;
     setIsSaving(true);
     try {
-      await deleteBooking(selectedBooking.id);
       const totalPrice = rescheduleServices.reduce((sum, s) => sum + Number(s.price || 0), 0);
       const totalDuration = rescheduleServices.reduce((sum, s) => sum + (s.duration || 0), 0);
       await createBooking(
         {
-          service_ids: rescheduleServices.map(s => s.id),
+          service_ids: rescheduleServices.map((s) => s.id),
           booking_date: rescheduleDate,
           booking_time: rescheduleTime,
           total_price: totalPrice,
-          total_duration: totalDuration
+          total_duration: totalDuration,
         },
         {
           name: selectedBooking.clients?.name || '',
-          phone: selectedBooking.clients?.phone || ''
+          phone: selectedBooking.clients?.phone || '',
         }
       );
+      await deleteBooking(selectedBooking.id);
       setIsRescheduling(false);
       onDone();
       onSuccess();
@@ -80,13 +89,17 @@ export function useReschedule(
 
   return {
     isRescheduling,
-    rescheduleServices, setRescheduleServices,
-    rescheduleDate, setRescheduleDate,
-    rescheduleTime, setRescheduleTime,
+    rescheduleServices,
+    setRescheduleServices,
+    rescheduleDate,
+    setRescheduleDate,
+    rescheduleTime,
+    setRescheduleTime,
     existingBookings,
     loadingSlots,
     isSaving,
-    rescheduleStep, setRescheduleStep,
+    rescheduleStep,
+    setRescheduleStep,
     startReschedule,
     confirmReschedule,
     cancelReschedule,

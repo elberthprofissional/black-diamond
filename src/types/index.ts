@@ -61,8 +61,3 @@ export interface Review {
   comment?: string;
   created_at: string;
 }
-
-export interface ReviewWithClient extends Review {
-  client_name: string;
-}
-

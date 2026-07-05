@@ -43,8 +43,7 @@ export function useAuditLog() {
         user_agent: navigator.userAgent,
       });
     } catch {
-      // Audit log falhou silenciosamente - não bloqueia a ação do usuário
-      console.warn('Audit log failed:', action);
+      // Audit log failed silently — do not block user action
     }
   }, []);
 

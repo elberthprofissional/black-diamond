@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
 import { supabase } from '../../../lib/supabase';
@@ -28,7 +28,7 @@ const SettingsServicos: React.FC = () => {
   const [priceInput, setPriceInput] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  const loadServices = async () => {
+  const loadServices = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('services')
@@ -41,7 +41,7 @@ const SettingsServicos: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
 
   useEffect(() => {
     loadServices();
@@ -353,8 +353,9 @@ const SettingsServicos: React.FC = () => {
                     value={priceInput}
                     onChange={(e) => {
                       const val = e.target.value.replace(/[^\d.,]/g, '');
-                      if (val.replace('.', '').replace(',', '').length <= MAX_PRICE_LENGTH)
+                      if (val.replace('.', '').replace(',', '').length <= MAX_PRICE_LENGTH) {
                         setPriceInput(val);
+                      }
                     }}
                     placeholder="0,00"
                     className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[15px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600"

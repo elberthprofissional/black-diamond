@@ -45,13 +45,19 @@ export default function DesktopDateTimeStep({
 
   useEffect(() => {
     if (selectedDate) {
-      getTimeSlotsForDate(selectedDate).then(setTimeSlots);
+      let active = true;
+      getTimeSlotsForDate(selectedDate).then((slots) => {
+        if (active) setTimeSlots(slots);
+      });
+      return () => {
+        active = false;
+      };
     }
   }, [selectedDate]);
 
   const isOccupied = (time: string) => {
     const toCheck = rescheduleBookingId
-      ? existingBookings.filter(b => b.id !== rescheduleBookingId)
+      ? existingBookings.filter((b) => b.id !== rescheduleBookingId)
       : existingBookings;
     return isTimeOccupied(time, toCheck);
   };
@@ -84,15 +90,19 @@ export default function DesktopDateTimeStep({
           </div>
           <div className="pt-2 space-y-2">
             <span className="text-[12px] text-zinc-500">Serviços</span>
-            {selectedServices.map(s => (
+            {selectedServices.map((s) => (
               <div key={s.id} className="flex justify-between items-center">
                 <span className="text-[13px] text-zinc-400">{s.name}</span>
-                <span className="text-[13px] font-medium text-white">R$ {Number(s.price).toFixed(0)}</span>
+                <span className="text-[13px] font-medium text-white">
+                  R$ {Number(s.price).toFixed(0)}
+                </span>
               </div>
             ))}
           </div>
           <div className="flex justify-between items-center pt-3 border-t border-white/[0.04]">
-            <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">Total</span>
+            <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">
+              Total
+            </span>
             <span className="text-xl font-bold text-[#C5A059]">R$ {totalPrice.toFixed(0)}</span>
           </div>
         </div>
@@ -123,7 +133,7 @@ export default function DesktopDateTimeStep({
       <div className="space-y-2">
         <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Dia</span>
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {nextDays.map(day => {
+          {nextDays.map((day) => {
             const isSelected = selectedDate === day.fullDate;
             return (
               <button
@@ -146,10 +156,12 @@ export default function DesktopDateTimeStep({
 
       {/* Time Selection */}
       <div className="space-y-2">
-        <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Horários</span>
+        <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
+          Horários
+        </span>
         {selectedDate ? (
           <div className="grid grid-cols-5 gap-2">
-            {timeSlots.map(time => {
+            {timeSlots.map((time) => {
               const occupied = isOccupied(time);
               const isSelected = selectedTime === time;
               return (
@@ -180,7 +192,9 @@ export default function DesktopDateTimeStep({
         <button
           type="button"
           onClick={onFinish}
-          disabled={isSubmitting || !selectedTime || !isStepValid(1) || !isStepValid(2) || !isStepValid(3)}
+          disabled={
+            isSubmitting || !selectedTime || !isStepValid(1) || !isStepValid(2) || !isStepValid(3)
+          }
           className="h-13 px-10 bg-[#C5A059] text-black text-[12px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#A68233] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-[#C5A059]/20 hover:shadow-xl hover:shadow-[#C5A059]/30"
         >
           {isSubmitting ? 'Confirmando...' : 'Confirmar Agendamento'}

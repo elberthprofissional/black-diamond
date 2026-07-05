@@ -54,11 +54,11 @@ const Testimonials: React.FC = () => {
           );
         }
       })
-      .catch((e) => console.error('Erro ao buscar avaliações:', e));
+      .catch(() => {});
   }, []);
 
   const handleScroll = useCallback(() => {
-    if (!sliderRef.current) return;
+    if (!sliderRef.current || reviews.length <= 1) return;
     const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
     const cardWidth = (scrollWidth - clientWidth) / (reviews.length - 1);
     const index = Math.round(scrollLeft / cardWidth);
@@ -67,7 +67,7 @@ const Testimonials: React.FC = () => {
 
   const scrollToIndex = useCallback(
     (index: number) => {
-      if (!sliderRef.current) return;
+      if (!sliderRef.current || reviews.length <= 1) return;
       const { scrollWidth, clientWidth } = sliderRef.current;
       const cardWidth = (scrollWidth - clientWidth) / (reviews.length - 1);
       sliderRef.current.scrollTo({ left: cardWidth * index, behavior: 'smooth' });

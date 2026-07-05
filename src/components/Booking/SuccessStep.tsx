@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Check, ArrowLeft, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { generateGoogleCalendarUrl } from '../../lib/utils';
+import { generateGoogleCalendarUrl, formatDateBR } from '../../lib/utils';
 import type { Service } from '../../types';
 
 interface SuccessStepProps {
@@ -22,7 +22,7 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
   layout,
 }) => {
   const navigate = useNavigate();
-  const formattedDate = selectedDate.split('-').reverse().join('/');
+  const formattedDate = formatDateBR(selectedDate);
   const [showReminderModal, setShowReminderModal] = useState(false);
 
   const handleAddReminder = () => {
@@ -137,6 +137,9 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
               exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 30, stiffness: 400 }}
               className="relative z-10 w-full sm:max-w-[320px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Lembrete de agendamento"
             >
               <div className="px-6 pt-6 pb-2 text-center">
                 <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-4">

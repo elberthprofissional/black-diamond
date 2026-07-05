@@ -20,7 +20,8 @@ import BookingDetailPanel from '../components/Admin/shared/BookingDetailPanel';
 import { SkeletonDashboard } from '../components/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const LAYOUT_CLASS = "flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-8 pb-40 transition-all duration-300 max-w-5xl";
+const LAYOUT_CLASS =
+  'flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-8 pb-40 transition-all duration-300 max-w-5xl';
 
 const AdminDashboard: React.FC = () => {
   const selectedDate = getLocalDateString();
@@ -29,8 +30,14 @@ const AdminDashboard: React.FC = () => {
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
 
   const {
-    blockingSlot, unblockingBooking, setUnblockingBooking,
-    blockSlot, unblockSlot, blockingDay, blockEntireDay, unblockEntireDay
+    blockingSlot,
+    unblockingBooking,
+    setUnblockingBooking,
+    blockSlot,
+    unblockSlot,
+    blockingDay,
+    blockEntireDay,
+    unblockEntireDay,
   } = useSlotBlocking();
 
   useEffect(() => {
@@ -40,12 +47,18 @@ const AdminDashboard: React.FC = () => {
         const slots = await getAvailableSlots(selectedDate);
         if (active) setAvailableSlots(slots);
       } catch {
-        const fallbackSlots = await getTimeSlotsForDate(selectedDate);
-        if (active) setAvailableSlots(fallbackSlots);
+        try {
+          const fallbackSlots = await getTimeSlotsForDate(selectedDate);
+          if (active) setAvailableSlots(fallbackSlots);
+        } catch {
+          if (active) setAvailableSlots([]);
+        }
       }
     };
     loadAvailableSlots();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [selectedDate]);
 
   const handleBlockSlot = async (slot: string) => {
@@ -58,20 +71,28 @@ const AdminDashboard: React.FC = () => {
   };
 
   const dailyRevenue = bookings
-    .filter(b => b.status === 'completed' || b.status === 'confirmed')
+    .filter((b) => b.status === 'completed' || b.status === 'confirmed')
     .reduce((sum, b) => sum + (b.total_price || 0), 0);
 
-  const occupiedBookings = bookings.filter(b => b.status !== 'completed' && b.status !== 'cancelled' && !b.is_blocked);
-  const blockedBookings = bookings.filter(b => b.status !== 'cancelled' && b.is_blocked);
-  const isTimeOccupied = (time: string) => bookings.some(b => b.status !== 'cancelled' && b.booking_time.slice(0, 5) === time);
-  const freeSlots = availableSlots.filter(slot => !isTimeOccupied(slot));
+  const occupiedBookings = bookings.filter(
+    (b) => b.status !== 'completed' && b.status !== 'cancelled' && !b.is_blocked
+  );
+  const blockedBookings = bookings.filter((b) => b.status !== 'cancelled' && b.is_blocked);
+  const isTimeOccupied = (time: string) =>
+    bookings.some((b) => b.status !== 'cancelled' && b.booking_time.slice(0, 5) === time);
+  const freeSlots = availableSlots.filter((slot) => !isTimeOccupied(slot));
 
   const getNextBooking = () => {
     const now = new Date();
-    const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-    return bookings
-      .filter(b => b.status !== 'cancelled' && b.booking_time >= currentTime && !b.is_blocked)
-      .sort((a, b) => a.booking_time.localeCompare(b.booking_time))[0] || null;
+    const currentTime =
+      now.getHours().toString().padStart(2, '0') +
+      ':' +
+      now.getMinutes().toString().padStart(2, '0');
+    return (
+      bookings
+        .filter((b) => b.status !== 'cancelled' && b.booking_time >= currentTime && !b.is_blocked)
+        .sort((a, b) => a.booking_time.localeCompare(b.booking_time))[0] || null
+    );
   };
   const nextBooking = getNextBooking();
 
@@ -100,7 +121,10 @@ const AdminDashboard: React.FC = () => {
           loadingSlots={mgmt.loadingSlots}
           isSaving={mgmt.isSavingReschedule}
           onConfirm={mgmt.handleConfirmReschedule}
-          onClose={() => { mgmt.setSelectedBooking(null); mgmt.cancelReschedule(); }}
+          onClose={() => {
+            mgmt.setSelectedBooking(null);
+            mgmt.cancelReschedule();
+          }}
         />
       );
     }
@@ -158,10 +182,10 @@ const AdminDashboard: React.FC = () => {
             className="absolute inset-0 bg-black/90 backdrop-blur-md"
           />
           <motion.div
-            initial={{ y: "100%" }}
+            initial={{ y: '100%' }}
             animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             className="relative w-full h-[100dvh] bg-[#0f0f0f] z-10 flex flex-col text-left overflow-hidden"
           >
             {renderDetailPanel()}

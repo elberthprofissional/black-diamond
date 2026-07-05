@@ -2,7 +2,7 @@
 
 Sistema de agendamento premium para barbearias.
 
-[![Version](https://img.shields.io/badge/version-3.2.0-blue)](https://github.com/seu-usuario/black-diamond)
+[![Version](https://img.shields.io/badge/version-3.5.0-blue)](https://github.com/seu-usuario/black-diamond)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Build](https://img.shields.io/badge/build-passing-brightgreen)]()
 [![Coverage](https://img.shields.io/badge/coverage-80%25-yellow)]()
@@ -16,7 +16,9 @@ Sistema de agendamento premium para barbearias.
 | Estilo | Tailwind CSS 4.x |
 | Animacoes | Framer Motion 12.x |
 | Roteamento | React Router DOM 7.x |
+| State Management | Zustand |
 | Backend | Supabase (PostgreSQL + RLS + Auth) |
+| Error Reporting | Sentry |
 | Testes | Vitest 4.x + Playwright |
 | Deploy | Vercel |
 
@@ -64,6 +66,7 @@ src/
 │   └── shared/     # Componentes compartilhados
 ├── contexts/       # Contextos React
 ├── hooks/          # Hooks customizados
+├── stores/         # Zustand stores (auth, booking, ui, connection)
 ├── lib/            # Utilitários e integrações
 ├── pages/          # Páginas (rotas)
 ├── types/          # Tipos TypeScript

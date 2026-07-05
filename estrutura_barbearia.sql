@@ -27,7 +27,6 @@ CREATE TABLE IF NOT EXISTS secrets (
 DROP POLICY IF EXISTS "Secrets no access" ON secrets;
 CREATE POLICY "Secrets no access" ON secrets
     FOR ALL
-    TO authenticated
     USING (false)
     WITH CHECK (false);
 
@@ -48,6 +47,10 @@ CREATE TABLE IF NOT EXISTS clients (
     phone TEXT NOT NULL UNIQUE,
     email TEXT,
     notes TEXT,
+    is_favorite BOOLEAN DEFAULT FALSE,
+    is_mensalista BOOLEAN DEFAULT FALSE,
+    is_blocked BOOLEAN DEFAULT FALSE,
+    manually_added BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -118,13 +121,13 @@ DROP POLICY IF EXISTS "Admin can read audit logs" ON audit_logs;
 CREATE POLICY "Admin can read audit logs" ON audit_logs
     FOR SELECT
     TO authenticated
-    USING (auth.uid() IN (SELECT id FROM auth.users WHERE email = current_setting('request.jwt.claims', true)::json->>'email'));
+    USING (is_admin());
 
 DROP POLICY IF EXISTS "System can insert audit logs" ON audit_logs;
 CREATE POLICY "System can insert audit logs" ON audit_logs
     FOR INSERT
     TO authenticated
-    WITH CHECK (true);
+    WITH CHECK (is_admin());
 
 -- Tabela de imagens da galeria
 CREATE TABLE IF NOT EXISTS gallery_images (
@@ -142,7 +145,8 @@ DROP POLICY IF EXISTS "Admin can manage gallery" ON gallery_images;
 CREATE POLICY "Admin can manage gallery" ON gallery_images
     FOR ALL
     TO authenticated
-    USING (auth.uid() IN (SELECT id FROM auth.users WHERE email = current_setting('request.jwt.claims', true)::json->>'email'));
+    USING (is_admin())
+    WITH CHECK (is_admin());
 
 DROP POLICY IF EXISTS "Anyone can read gallery" ON gallery_images;
 CREATE POLICY "Anyone can read gallery" ON gallery_images
@@ -174,6 +178,11 @@ DROP INDEX IF EXISTS idx_no_double_booking;
 CREATE UNIQUE INDEX idx_no_double_booking
 ON bookings (booking_date, booking_time)
 WHERE (status != 'cancelled');
+
+-- Index para queries frequentes por data
+CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(booking_date);
+CREATE INDEX IF NOT EXISTS idx_bookings_date_status ON bookings(booking_date, status);
+CREATE INDEX IF NOT EXISTS idx_bookings_client_id ON bookings(client_id);
 
 -- View de faturamento diário
 CREATE OR REPLACE VIEW faturamento_diario
@@ -330,7 +339,52 @@ DECLARE
     v_booking_id uuid;
     v_result jsonb;
     v_daily_bookings integer;
+    v_day_of_week integer;
+    v_hours_json jsonb;
+    v_day_key text;
+    v_day_enabled boolean := false;
+    v_opening time;
+    v_closing time;
+    v_server_price decimal;
+    v_server_duration integer;
 BEGIN
+    -- Validate booking time is within business hours
+    v_day_of_week := EXTRACT(DOW FROM p_data);
+    v_day_key := v_day_of_week::text;
+
+    v_hours_json := (SELECT value::jsonb FROM settings WHERE key = 'barber_hours');
+
+    IF v_hours_json IS NOT NULL AND v_hours_json ? v_day_key THEN
+        v_day_enabled := (v_hours_json->v_day_key->>'enabled')::boolean;
+        IF v_day_enabled THEN
+            v_opening := (v_hours_json->v_day_key->>'open')::time;
+            v_closing := (v_hours_json->v_day_key->>'close')::time;
+        END IF;
+    ELSE
+        v_day_enabled := EXISTS (
+            SELECT 1 FROM unnest(string_to_array(
+                COALESCE((SELECT value FROM settings WHERE key = 'working_days'), '1,2,3,4,5,6'), ','
+            )) AS d WHERE d = v_day_key
+        );
+        IF v_day_enabled THEN
+            IF v_day_of_week = 6 THEN
+                v_opening := COALESCE((SELECT value::time FROM settings WHERE key = 'saturday_opening'), '08:00'::time);
+                v_closing := COALESCE((SELECT value::time FROM settings WHERE key = 'saturday_closing'), '18:00'::time);
+            ELSE
+                v_opening := COALESCE((SELECT value::time FROM settings WHERE key = 'opening_time'), '08:00'::time);
+                v_closing := COALESCE((SELECT value::time FROM settings WHERE key = 'closing_time'), '18:00'::time);
+            END IF;
+        END IF;
+    END IF;
+
+    IF NOT v_day_enabled THEN
+        RAISE EXCEPTION 'Este dia não está disponível para agendamento.';
+    END IF;
+
+    IF p_hora < v_opening OR p_hora >= v_closing THEN
+        RAISE EXCEPTION 'O horário escolhido está fora do horário de funcionamento (%-%).', v_opening, v_closing;
+    END IF;
+
     SELECT COUNT(*) INTO v_daily_bookings
     FROM bookings b
     JOIN clients c ON c.id = b.client_id
@@ -341,6 +395,19 @@ BEGIN
     IF v_daily_bookings >= 3 THEN
         RAISE EXCEPTION 'Limite de 3 agendamentos por dia atingido.';
     END IF;
+
+    -- Server-side price and duration calculation (prevent client-side manipulation)
+    SELECT COALESCE(SUM(price), 0), COALESCE(SUM(duration), 0)
+    INTO v_server_price, v_server_duration
+    FROM services WHERE id = ANY(p_servicos);
+
+    IF v_server_price = 0 AND array_length(p_servicos, 1) > 0 THEN
+        RAISE EXCEPTION 'Serviço(s) inválido(s).';
+    END IF;
+
+    -- Use server-calculated values instead of client-supplied
+    p_preco_total := v_server_price;
+    p_duracao_total := v_server_duration;
 
     SELECT id INTO v_client_id FROM clients WHERE phone = p_cliente_telefone LIMIT 1;
 
@@ -439,13 +506,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Configurações do negócio
+-- Configurações do negócio (apenas horários e config públicas)
 CREATE OR REPLACE FUNCTION get_business_hours()
 RETURNS jsonb AS $$
 DECLARE
     v_result jsonb;
 BEGIN
-    SELECT jsonb_object_agg(key, value) INTO v_result FROM settings;
+    SELECT jsonb_object_agg(key, value) INTO v_result
+    FROM settings
+    WHERE key IN ('opening_time', 'closing_time', 'saturday_opening', 'saturday_closing', 'working_days', 'barber_hours', 'barber_name', 'barber_phone');
     RETURN COALESCE(v_result, '{}'::jsonb);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -547,7 +616,7 @@ RETURNS TABLE(
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT r.id, c.name, r.rating, r.comment, r.created_at
+    SELECT r.id, CONCAT(LEFT(c.name, 1), '****') as client_name, r.rating, r.comment, r.created_at
     FROM reviews r
     JOIN clients c ON c.id = r.client_id
     WHERE r.rating >= 4
@@ -573,10 +642,6 @@ BEGIN
     SET is_blocked = FALSE, status = 'cancelled'
     WHERE booking_date < CURRENT_DATE
     AND is_blocked = TRUE;
-
-    DELETE FROM bookings
-    WHERE is_blocked = TRUE
-    AND booking_date < CURRENT_DATE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

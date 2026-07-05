@@ -9,6 +9,7 @@ interface DesktopClientStepProps {
   multipleMatches: Client[];
   isManualEntry: boolean;
   isSearchingClient: boolean;
+  isMensalista: boolean;
   onSetNewClient: (client: { name: string; phone: string }) => void;
   onSetSearchQuery: (query: string) => void;
   onSetIsManualEntry: (v: boolean) => void;
@@ -27,6 +28,7 @@ export default function DesktopClientStep({
   multipleMatches,
   isManualEntry,
   isSearchingClient,
+  isMensalista,
   onSetNewClient,
   onSetSearchQuery,
   onSetIsManualEntry,
@@ -59,13 +61,27 @@ export default function DesktopClientStep({
               {selectedClient.name.charAt(0)}
             </div>
             <div>
-              <p className="text-[15px] font-semibold text-white">{selectedClient.name}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-[15px] font-semibold text-white">{selectedClient.name}</p>
+                {selectedClient.is_mensalista && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />
+                    <span className="text-[9px] font-bold text-[#C5A059] uppercase">
+                      Mensalista
+                    </span>
+                  </span>
+                )}
+              </div>
               <p className="text-[13px] text-zinc-500">{selectedClient.phone}</p>
             </div>
           </div>
           <button
             type="button"
-            onClick={() => { onSetSelectedClient(null); onSetSearchQuery(''); onSetIsManualEntry(true); }}
+            onClick={() => {
+              onSetSelectedClient(null);
+              onSetSearchQuery('');
+              onSetIsManualEntry(true);
+            }}
             className="text-[12px] text-[#C5A059] hover:text-white transition-colors cursor-pointer"
           >
             Alterar
@@ -77,24 +93,35 @@ export default function DesktopClientStep({
           <div className="space-y-4">
             <p className="text-[12px] text-zinc-500">Múltiplos clientes encontrados:</p>
             <div className="space-y-1">
-              {multipleMatches.map(c => (
+              {multipleMatches.map((c) => (
                 <button
                   key={c.id}
                   type="button"
-                  onClick={() => { onSetSelectedClient(c); onSetMultipleMatches([]); }}
+                  onClick={() => {
+                    onSetSelectedClient(c);
+                    onSetMultipleMatches([]);
+                  }}
                   className="w-full flex items-center justify-between py-3 px-1 hover:bg-white/[0.02] transition-all cursor-pointer group"
                 >
                   <div>
-                    <p className="text-[14px] font-medium text-zinc-300 group-hover:text-white">{c.name}</p>
+                    <p className="text-[14px] font-medium text-zinc-300 group-hover:text-white">
+                      {c.name}
+                    </p>
                     <p className="text-[12px] text-zinc-600">{c.phone}</p>
                   </div>
-                  <ChevronRight size={14} className="text-zinc-600 group-hover:text-[#C5A059] transition-colors" />
+                  <ChevronRight
+                    size={14}
+                    className="text-zinc-600 group-hover:text-[#C5A059] transition-colors"
+                  />
                 </button>
               ))}
             </div>
             <button
               type="button"
-              onClick={() => { onSetMultipleMatches([]); onSetSearchQuery(''); }}
+              onClick={() => {
+                onSetMultipleMatches([]);
+                onSetSearchQuery('');
+              }}
               className="text-[12px] text-[#C5A059] hover:text-white transition-colors cursor-pointer"
             >
               Nova busca
@@ -105,7 +132,9 @@ export default function DesktopClientStep({
           <div className="space-y-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-[12px] font-medium text-zinc-400 uppercase tracking-wider">Buscar Cliente</label>
+                <label className="text-[12px] font-medium text-zinc-400 uppercase tracking-wider">
+                  Buscar Cliente
+                </label>
                 <button
                   type="button"
                   onClick={onOpenSearch}
@@ -117,7 +146,10 @@ export default function DesktopClientStep({
               </div>
               <div className="flex gap-3">
                 <div className="relative flex-1">
-                  <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+                  <Search
+                    size={16}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"
+                  />
                   <input
                     type="text"
                     placeholder="Digite o numero ou nome..."
@@ -131,7 +163,12 @@ export default function DesktopClientStep({
                         onSetSearchQuery(val);
                       }
                     }}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); onSearch(); } }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        onSearch();
+                      }
+                    }}
                   />
                 </div>
                 <button
@@ -160,7 +197,9 @@ export default function DesktopClientStep({
         <div className="space-y-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <label className="text-[12px] font-bold text-[#C5A059]/70 uppercase tracking-wider">Dados do Cliente</label>
+              <label className="text-[12px] font-bold text-[#C5A059]/70 uppercase tracking-wider">
+                Dados do Cliente
+              </label>
               <button
                 type="button"
                 onClick={onOpenSearch}
@@ -172,24 +211,49 @@ export default function DesktopClientStep({
             </div>
             <div className="space-y-4">
               <div className="relative">
-                <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+                <User
+                  size={16}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"
+                />
                 <input
                   type="text"
                   placeholder="Nome completo"
                   className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[15px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#C5A059]/50 focus:bg-white/[0.05]"
                   value={newClient.name}
-                  onChange={(e) => onSetNewClient({ ...newClient, name: e.target.value.toUpperCase() })}
+                  onChange={(e) =>
+                    onSetNewClient({ ...newClient, name: e.target.value.toUpperCase() })
+                  }
                 />
               </div>
-              <div className="relative">
-                <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-                <input
-                  type="tel"
-                  placeholder="(00) 00000-0000"
-                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[15px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#C5A059]/50 focus:bg-white/[0.05]"
-                  value={newClient.phone}
-                  onChange={(e) => onSetNewClient({ ...newClient, phone: formatPhone(e.target.value) })}
-                />
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[12px] font-medium text-zinc-400 uppercase tracking-wider">
+                    WhatsApp
+                  </label>
+                  {isMensalista && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />
+                      <span className="text-[10px] font-bold text-[#C5A059] uppercase">
+                        Mensalista
+                      </span>
+                    </span>
+                  )}
+                </div>
+                <div className="relative">
+                  <Phone
+                    size={16}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"
+                  />
+                  <input
+                    type="tel"
+                    placeholder="(00) 00000-0000"
+                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[15px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#C5A059]/50 focus:bg-white/[0.05]"
+                    value={newClient.phone}
+                    onChange={(e) =>
+                      onSetNewClient({ ...newClient, phone: formatPhone(e.target.value) })
+                    }
+                  />
+                </div>
               </div>
             </div>
           </div>

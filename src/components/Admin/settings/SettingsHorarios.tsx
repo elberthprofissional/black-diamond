@@ -456,7 +456,13 @@ const SettingsHorarios: React.FC = () => {
               key={day}
               className={`flex items-center py-4 border-b border-white/[0.04] ${!hours[day]?.enabled ? 'opacity-40' : ''}`}
             >
-              <button onClick={() => toggle(day)} className="relative cursor-pointer shrink-0 mr-4">
+              <button
+                onClick={() => toggle(day)}
+                role="switch"
+                aria-checked={!!hours[day]?.enabled}
+                aria-label={`${DAY_NAMES[day]} ${hours[day]?.enabled ? 'ativo' : 'inativo'}`}
+                className="relative cursor-pointer shrink-0 mr-4"
+              >
                 <div
                   className={`w-9 h-5 rounded-full transition-all duration-300 ${hours[day]?.enabled ? 'bg-[#C5A059]' : 'bg-white/10'}`}
                 >
@@ -515,7 +521,13 @@ const SettingsHorarios: React.FC = () => {
               className={`border-b border-white/[0.04] ${!hours[day]?.enabled ? 'opacity-35' : ''}`}
             >
               <div className="flex items-center gap-3 py-4 px-1">
-                <button onClick={() => toggle(day)} className="relative cursor-pointer shrink-0">
+                <button
+                  onClick={() => toggle(day)}
+                  role="switch"
+                  aria-checked={!!hours[day]?.enabled}
+                  aria-label={`${DAY_NAMES[day]} ${hours[day]?.enabled ? 'ativo' : 'inativo'}`}
+                  className="relative cursor-pointer shrink-0"
+                >
                   <div
                     className={`w-9 h-5 rounded-full transition-all duration-300 ${hours[day]?.enabled ? 'bg-[#C5A059]' : 'bg-white/10'}`}
                   >

@@ -74,7 +74,12 @@ self.addEventListener('fetch', (e) => {
 self.addEventListener('push', async (e) => {
   let data = { title: 'Black Diamond', body: 'Nova notificação', icon: '/assets/logo.webp' };
   if (e.data) {
-    try { data = e.data.json(); } catch { data.body = await e.data.text(); }
+    try {
+      const text = await e.data.text();
+      try { data = JSON.parse(text); } catch { data.body = text; }
+    } catch {
+      // Keep default data
+    }
   }
   e.waitUntil(
     self.registration.showNotification(data.title, {

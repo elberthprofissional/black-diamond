@@ -6,13 +6,12 @@ import { supabase } from '../../../lib/supabase';
 import { formatPhone } from '../../../lib/utils';
 import { Camera, User, X, Check, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import PhotoCropper from './PhotoCropper';
 
 interface SettingsContaProps {
   onBack?: () => void;
 }
 
-const SettingsConta: React.FC<SettingsContaProps> = () => {
+const SettingsConta: React.FC<SettingsContaProps> = ({ onBack: _onBack }) => {
   const {
     barberName,
     barberPhone,
@@ -40,8 +39,6 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
   const [editingInstagram, setEditingInstagram] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showPhotoMenu, setShowPhotoMenu] = useState(false);
-  const [showCropper, setShowCropper] = useState(false);
-  const [cropperFile, setCropperFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const phoneInputRef = useRef<HTMLInputElement>(null);
@@ -119,17 +116,51 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
       return;
     }
 
-    // Open cropper instead of uploading directly
-    setCropperFile(file);
-    setShowCropper(true);
     setShowPhotoMenu(false);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  const handleCropperConfirm = async (croppedBlob: Blob) => {
-    setShowCropper(false);
     setUploading(true);
+
     try {
+      // Convert to webp
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxSize = 800;
+          let { width, height } = img;
+
+          if (width > maxSize || height > maxSize) {
+            if (width > height) {
+              height = (height / width) * maxSize;
+              width = maxSize;
+            } else {
+              width = (width / height) * maxSize;
+              height = maxSize;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return reject(new Error('Canvas error'));
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (b) => {
+              URL.revokeObjectURL(blobUrl);
+              if (b) resolve(b);
+              else reject(new Error('Blob error'));
+            },
+            'image/webp',
+            0.85
+          );
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(blobUrl);
+          reject(new Error('Image load error'));
+        };
+        const blobUrl = URL.createObjectURL(file);
+        img.src = blobUrl;
+      });
+
       const oldFiles = [
         'profiles/barber-photo.webp',
         'profiles/barber-photo.jpg',
@@ -143,10 +174,9 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, croppedBlob, { contentType: 'image/webp' });
+        .upload(filePath, blob, { contentType: 'image/webp' });
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
         showError(`Erro: ${uploadError.message}`);
         return;
       }
@@ -159,18 +189,11 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
         if (ok) showSuccess('Foto alterada!');
         else showError('Erro ao salvar foto');
       }
-    } catch (err) {
-      console.error('Upload catch:', err);
+    } catch {
       showError('Erro ao enviar imagem');
     } finally {
       setUploading(false);
-      setCropperFile(null);
     }
-  };
-
-  const handleCropperCancel = () => {
-    setShowCropper(false);
-    setCropperFile(null);
   };
 
   const handleSaveName = async () => {
@@ -1153,13 +1176,6 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
       </AnimatePresence>
 
       <ToastNotification toast={toast} />
-
-      <PhotoCropper
-        isOpen={showCropper}
-        imageFile={cropperFile}
-        onConfirm={handleCropperConfirm}
-        onCancel={handleCropperCancel}
-      />
     </div>
   );
 };

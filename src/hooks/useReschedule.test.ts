@@ -78,7 +78,7 @@ describe('useReschedule', () => {
     expect(result.current.rescheduleServices).toEqual([]);
   });
 
-  it('confirmReschedule chama delete + create', async () => {
+  it('confirmReschedule chama create + delete (na ordem correta)', async () => {
     const { result } = renderHook(() =>
       useReschedule(mockBooking, mockServices, mockOnSuccess, mockOnDone, mockShowError)
     );
@@ -92,6 +92,12 @@ describe('useReschedule', () => {
     });
 
     const { deleteBooking, createBooking } = await import('../lib/api');
+    const createCall = vi.mocked(createBooking).mock.calls[0];
+    const deleteCall = vi.mocked(deleteBooking).mock.calls[0];
+
+    // createBooking must be called before deleteBooking
+    expect(createCall).toBeDefined();
+    expect(deleteCall).toBeDefined();
     expect(deleteBooking).toHaveBeenCalledWith('b1');
     expect(createBooking).toHaveBeenCalled();
     expect(mockOnDone).toHaveBeenCalled();

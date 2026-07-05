@@ -130,6 +130,9 @@ const GalleryLightbox: React.FC<GalleryLightboxProps> = ({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[500] bg-black/95 flex items-center justify-center"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Galeria de imagens"
         onClick={onClose}
       >
         {/* Close Button */}

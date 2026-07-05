@@ -9,14 +9,21 @@ import { useDateDragScroll } from './useDateDragScroll';
 import { supabase } from '../lib/supabase';
 import type { Service } from '../types';
 
-const MENSALISTA_EXCLUDED_SERVICES = ['Corte de Cabelo'];
+import { MENSALISTA_EXCLUDED_SERVICES } from '../lib/constants';
 
 export function useBookingWizard(showError: (msg: string) => void) {
   const allNextDays = useMemo(() => getNextDays(), []);
   const navigate = useNavigate();
 
   // Step control
-  const { step, setStep, isStepDisabled, stepTitle, goNext: wizardGoNext, goBack } = useWizardStep();
+  const {
+    step,
+    setStep,
+    isStepDisabled,
+    stepTitle,
+    goNext: wizardGoNext,
+    goBack,
+  } = useWizardStep();
 
   // Services
   const { services } = useServices();
@@ -33,7 +40,9 @@ export function useBookingWizard(showError: (msg: string) => void) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Existing bookings & slots
-  const [existingBookings, setExistingBookings] = useState<{ booking_time: string; status: string }[]>([]);
+  const [existingBookings, setExistingBookings] = useState<
+    { booking_time: string; status: string }[]
+  >([]);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
 
   // Client lookup & mensalista
@@ -43,7 +52,8 @@ export function useBookingWizard(showError: (msg: string) => void) {
   const { isMensalista, clientLookupLoading } = useClientLookup(userInfo.phone, handleNameFound);
 
   // Drag scroll
-  const { dateContainerRef, handleMouseDown, handleMouseLeave, handleMouseUp, handleMouseMove } = useDateDragScroll();
+  const { dateContainerRef, handleMouseDown, handleMouseLeave, handleMouseUp, handleMouseMove } =
+    useDateDragScroll();
 
   // Barber settings
   const [barberPhone, setBarberPhone] = useState('');
@@ -119,19 +129,24 @@ export function useBookingWizard(showError: (msg: string) => void) {
   useEffect(() => {
     setSelectedTime('');
     if (selectedDate) {
+      let active = true;
       const loadData = async () => {
         try {
           const [bookingsData, slotsData] = await Promise.all([
             getBookings(selectedDate).catch(() => []),
             getAvailableSlots(selectedDate).catch(() => fetchTimeSlotsForDate(selectedDate)),
           ]);
+          if (!active) return;
           setExistingBookings(bookingsData);
           setAvailableSlots(slotsData);
         } catch {
-          showError('Erro ao carregar dados.');
+          if (active) showError('Erro ao carregar dados.');
         }
       };
       loadData();
+      return () => {
+        active = false;
+      };
     }
   }, [selectedDate, showError]);
 
@@ -179,7 +194,9 @@ export function useBookingWizard(showError: (msg: string) => void) {
         const msg = `━━━━━━━━━━━━━━━━━━━━━━━━━━\nBLACK DIAMOND BARBEARIA\nNOVO AGENDAMENTO\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nCliente:\n${userInfo.name.trim()}${mensalistaTag}\n\nServiços:\n${serviceNames
           .split(', ')
           .map((s) => `• ${s}`)
-          .join('\n')}\n\nData:\n${formattedDate}\n\nHorário:\n${selectedTime}\n\nValor Total:\nR$ ${totalPrice.toFixed(2).replace('.', ',')}`;
+          .join(
+            '\n'
+          )}\n\nData:\n${formattedDate}\n\nHorário:\n${selectedTime}\n\nValor Total:\nR$ ${totalPrice.toFixed(2).replace('.', ',')}`;
         const waUrl = `https://wa.me/${barberPhone}?text=${encodeURIComponent(msg)}`;
         window.open(waUrl, '_blank');
       }
@@ -221,7 +238,10 @@ export function useBookingWizard(showError: (msg: string) => void) {
     [step, userInfo, selectedServices, selectedDate, selectedTime, isSubmitting]
   );
 
-  const disabled = useMemo(() => isStepDisabled(validationInput), [isStepDisabled, validationInput]);
+  const disabled = useMemo(
+    () => isStepDisabled(validationInput),
+    [isStepDisabled, validationInput]
+  );
 
   return {
     step,

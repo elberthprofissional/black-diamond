@@ -50,11 +50,13 @@ const AdminWeekly: React.FC = () => {
       const map: Record<number, boolean> = {};
       for (let d = 0; d <= 6; d++) map[d] = parsed[String(d)]?.enabled !== false;
       return map;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   }, [barberHours]);
 
   // Filtra só os dias habilitados
-  const visibleWeekDays = weekDays.filter(d => {
+  const visibleWeekDays = weekDays.filter((d) => {
     if (!enabledDays) return true;
     return enabledDays[d.getDay()] !== false;
   });
@@ -62,7 +64,7 @@ const AdminWeekly: React.FC = () => {
   const [selectedVisibleIndex, setSelectedVisibleIndex] = useState(() => {
     // Tenta selecionar hoje; se estiver desabilitado, pega o primeiro dia habilitado
     const todayStr = today.toDateString();
-    const idx = visibleWeekDays.findIndex(d => d.toDateString() === todayStr);
+    const idx = visibleWeekDays.findIndex((d) => d.toDateString() === todayStr);
     return idx >= 0 ? idx : 0;
   });
 
@@ -99,7 +101,9 @@ const AdminWeekly: React.FC = () => {
     getTimeSlotsForDate(selectedDateStr).then((slots) => {
       if (active) setAllSlots(slots);
     });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [selectedDateStr, barberHours]);
 
   const handleBlockSlot = async (date: string, slot: string) => {
@@ -123,8 +127,9 @@ const AdminWeekly: React.FC = () => {
     return bookingEndMinutes > currentMinutes;
   });
   const freeSlots = allSlots.filter((slot) => {
-    if (dayBookings.some((b) => b.booking_time.slice(0, 5) === slot && b.status !== 'cancelled'))
+    if (dayBookings.some((b) => b.booking_time.slice(0, 5) === slot && b.status !== 'cancelled')) {
       return false;
+    }
     if (!isToday) return true;
     const slotHour = parseInt(slot.split(':')[0], 10);
     return slotHour >= currentHour;

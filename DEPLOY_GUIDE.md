@@ -142,6 +142,9 @@ Value: eyJ...                              ← A chave que você anotou no Passo
 
 Name:  VITE_ADMIN_EMAIL
 Value: email-do-barbeiro@email.com         ← Email do admin
+
+Name:  VITE_SENTRY_DSN
+Value: https://xxx@sentry.io/xxx           ← DSN do Sentry (opcional, para error reporting)
 ```
 
 ### Passo 3.3 — Deploy

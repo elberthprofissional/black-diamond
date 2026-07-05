@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
-import Gallery from './Gallery'
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
+import Gallery from './Gallery';
 
 // Mock do Supabase
 vi.mock('../lib/supabase', () => ({
@@ -11,44 +12,64 @@ vi.mock('../lib/supabase', () => ({
       })),
     })),
   },
-}))
+}));
 
 describe('Gallery', () => {
   it('renderiza o titulo Galeria', async () => {
-    render(<Gallery />)
+    render(
+      <BarberSettingsProvider>
+        <Gallery />
+      </BarberSettingsProvider>
+    );
     await waitFor(() => {
-      expect(screen.getByText('Galeria')).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByText('Galeria')).toBeInTheDocument();
+    });
+  });
 
   it('renderiza o subtitulo Meus Trabalhos', async () => {
-    render(<Gallery />)
+    render(
+      <BarberSettingsProvider>
+        <Gallery />
+      </BarberSettingsProvider>
+    );
     await waitFor(() => {
-      expect(screen.getByText(/MEUS/)).toBeInTheDocument()
-      expect(screen.getByText(/TRABALHOS/)).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByText(/MEUS/)).toBeInTheDocument();
+      expect(screen.getByText(/TRABALHOS/)).toBeInTheDocument();
+    });
+  });
 
   it('tem secao com id=galeria para navegacao', async () => {
-    render(<Gallery />)
+    render(
+      <BarberSettingsProvider>
+        <Gallery />
+      </BarberSettingsProvider>
+    );
     await waitFor(() => {
-      const section = document.getElementById('galeria')
-      expect(section).toBeInTheDocument()
-    })
-  })
+      const section = document.getElementById('galeria');
+      expect(section).toBeInTheDocument();
+    });
+  });
 
   it('renderiza placeholders quando nao ha fotos', async () => {
-    render(<Gallery />)
+    render(
+      <BarberSettingsProvider>
+        <Gallery />
+      </BarberSettingsProvider>
+    );
     await waitFor(() => {
-      const placeholders = document.querySelectorAll('.lucide-image')
-      expect(placeholders.length).toBe(4)
-    })
-  })
+      const placeholders = document.querySelectorAll('.lucide-image');
+      expect(placeholders.length).toBe(4);
+    });
+  });
 
   it('link para Instagram esta presente', async () => {
-    render(<Gallery />)
+    render(
+      <BarberSettingsProvider>
+        <Gallery />
+      </BarberSettingsProvider>
+    );
     await waitFor(() => {
-      expect(screen.getByText(/siga a gente no/)).toBeInTheDocument()
-    })
-  })
-})
+      expect(screen.getByText(/siga a gente no/)).toBeInTheDocument();
+    });
+  });
+});

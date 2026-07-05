@@ -2,7 +2,7 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, PWA, notificacoes push e integracao com Google Calendar.
 
-**Versao:** 3.5.2 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.5.1 | **Ultima atualizacao:** Julho 2026
 
 ---
 
@@ -46,13 +46,17 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 - Painel admin com agenda do dia, semana, clientes e relatorios
 - Notificacoes push para agendamentos em tempo real
 - Sincronizacao automatica com Google Calendar
-- PWA instalavel na tela inicial do celular    - Galeria editavel com lightbox e delete pelo admin
-    - Conversao automatica para WebP em uploads
-    - Menu de foto estilo Instagram (alterar/remover foto)
-    - Placeholder de perfil generico (sem foto fixa do Tato)
-    - Acessibilidade: focus-visible, contraste aprimorado, skip-link
-    - Projeto universal: template pronto para qualquer barbearia
-    - Custo operacional zero (Vercel + Supabase Free Tier)
+- PWA instalavel na tela inicial do celular
+- Galeria editavel com lightbox e delete pelo admin
+- Conversao automatica para WebP em uploads
+- Menu de foto estilo Instagram (alterar/remover foto)
+- Placeholder de perfil generico (sem foto fixa do Tato)
+- Acessibilidade: focus-visible, contraste aprimorado, skip-link
+- State management com Zustand (performance e escalabilidade)
+- Error reporting com Sentry (captura automatica de erros)
+- Coverage minimo no CI (qualidade garantida)
+- Projeto universal: template pronto para qualquer barbearia
+- Custo operacional zero (Vercel + Supabase Free Tier + Sentry Free)
 
 ---
 
@@ -66,9 +70,11 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 | Animacoes | Framer Motion | 12.x |
 | Icones | Lucide React | 0.460 |
 | Roteamento | React Router DOM | 7.x |
+| State Management | Zustand | 5.x |
 | Backend/Banco | Supabase (PostgreSQL) | ^2.108 |
+| Error Reporting | Sentry | ^1.x |
 | Hospedagem | Vercel | Gratis |
-| Testes | Vitest + Testing Library | Vitest 4.x |
+| Testes | Vitest + Testing Library + Playwright | Vitest 4.x |
 | CI/CD | GitHub Actions | Gratis |
 
 ---
@@ -81,9 +87,11 @@ O Black Diamond foi projetado para ser **universal** — pronto para qualquer ba
 - `setup-barbearia.js` — Script interativo para configurar novo barbeiro (pergunta dados e gera variaveis)
 - `estrutura_barbearia.sql` — Schema universal do banco (sem nomes fixos de barbeiro)
 - Placeholder generico na secao About (sem foto fixa do Tato)
+- Zustand para state management performatico
+- Sentry para error reporting em producao
 
 ### Filosofia "Template de Barbearia"
-> O projeto e feito para ser **replicado**. Cada barbeiro tem seu proprio deploy (Vercel + Supabase), seu proprio dominio, e configura tudo pelo painel. Voce so precisa mudar endereco, mapa e logo — ~10 linhas de codigo.
+> O projeto e feito para ser **replicado**. Cada barbeiro tem seu proprio deploy (Vercel + Supabase), seu proprio dominio, e configura tudo pelo painel. Voce so precisa mudar endereco, mapa e logo — ~10 linhas de codigo. O sistema usa Zustand para performance e Sentry para monitoramento em producao.
 
 ---
 
@@ -96,6 +104,8 @@ Vercel (SPA estatica)
 Supabase (PostgreSQL + RLS + Auth)
   ↓ Web Push (VAPID)
 Service Worker → Notificacao no celular do admin
+
+Erros → Sentry (error reporting automatico)
 ```
 
 ### Como funciona o agendamento
@@ -121,6 +131,11 @@ Service Worker → Notificacao no celular do admin
 - `CompleteModal` / `DeleteModal` / `UnblockModal` — Modais de acao
 - `DashboardHeader` — Card de proximo cliente e lucro do dia
 - `SettingsGaleria` — Gerenciamento de galeria com multi-select e preview
+- `ForgotPasswordModal` — Modal de recuperacao de senha
+- `LoginBackground` — Background do login desktop
+- `LoginHeader` — Header do login
+- `LoginForm` — Formulario de login
+- `LoginToast` — Toast do login
 
 ### Componentes de agendamento (Booking)
 - `ServiceStep` — Selecao de servicos (desktop + mobile)
@@ -158,6 +173,32 @@ No Settings > Conta, ao clicar na foto de perfil abre um popover com opcoes:
 - `useModalA11y` — Acessibilidade de modais (Escape, focus trap)
 - `useConnectionStatus` — Monitora conectividade com o Supabase
 - `useAdminLogout` — Logout seguro do admin
+- `useRateLimit` — Rate limiting client-side com persistencia
+- `useAuditLog` — Logging de acoes administrativas
+- `useBookingWizard` — Orquestra todo o fluxo de agendamento
+- `useBookingManagement` — Composicao de modais, filtros, reagendamento
+- `useBookingFilters` — Filtros do dashboard
+- `useBookingModals` — Gerenciamento de modais
+- `useClientLookup` — Auto-fill por telefone
+- `useDateDragScroll` — Drag scroll no date picker
+- `useWizardStep` — Controle de steps do wizard
+- `useBarberSettings` — Hook standalone do context
+
+### Zustand Stores
+O projeto usa Zustand para state management granular, evitando re-renders desnecessarios:
+
+| Store | Arquivo | Responsabilidade |
+|-------|---------|------------------|
+| `useAuthStore` | `stores/authStore.ts` | Autenticacao do usuario (login, logout, session) |
+| `useBookingStore` | `stores/bookingStore.ts` | Agendamentos, filtros, selectedDate |
+| `useUIStore` | `stores/uiStore.ts` | Toasts, modals, selecao de booking |
+| `useConnectionStore` | `stores/connectionStore.ts` | Status da conexao com Supabase |
+
+**Por que Zustand e nao so Context?**
+- Cada componente pega so o que precisa (granularidade)
+- Quando um dado muda, so quem usa aquele dado re-renderiza
+- Sem necessidade de Providers aninhados
+- Codigo mais limpo e performatico
 
 ---
 
@@ -226,7 +267,9 @@ id UUID PK, name TEXT, description TEXT, price DECIMAL, duration INTEGER, create
 
 **clients** — Cadastro de clientes
 ```sql
-id UUID PK, name TEXT, phone TEXT UNIQUE, email TEXT, notes TEXT, created_at TIMESTAMPTZ
+id UUID PK, name TEXT, phone TEXT UNIQUE, email TEXT, notes TEXT,
+is_favorite BOOLEAN, is_mensalista BOOLEAN, is_blocked BOOLEAN,
+manually_added BOOLEAN, created_at TIMESTAMPTZ
 ```
 
 **bookings** — Agendamentos
@@ -327,6 +370,7 @@ DELETE FROM admin_users WHERE user_id = 'UUID_DO_ADMIN';
 - **XSS:** React escapa inputs automaticamente
 - **Modais:** Hook `useModalA11y` com Escape-to-close, focus trap e restauracao de foco
 - **Acessibilidade:** Skip link, aria-labels, aria-modal em todos os modais
+- **Error Reporting:** Sentry captura erros em producao com contexto completo
 
 ### Headers de seguranca (vercel.json)
 ```
@@ -336,6 +380,23 @@ X-Content-Type-Options: nosniff
 Referrer-Policy: strict-origin-when-cross-origin
 Permissions-Policy: camera=(), microphone=(), geolocation=()
 ```
+
+### Sentry (Error Reporting)
+O Sentry esta configurado para capturar erros em producao automaticamente.
+
+**O que captura:**
+- Erros de React (componentes)
+- Erros de JavaScript (runtime)
+- Rejeicoes de promises
+- Erros de rede
+
+**Configuracao:**
+- `VITE_SENTRY_DSN` no `.env`
+- Inicializado em `src/main.tsx`
+- So envia erros em producao (nao em desenvolvimento)
+- Replay de sessao quando ha erro (pra ver o que o usuario fez)
+
+**Painel:** [sentry.io](https://sentry.io) → Projeto "Black Diamond"
 
 ---
 
@@ -367,6 +428,7 @@ VITE_SUPABASE_URL=https://seu-projeto.supabase.co
 VITE_SUPABASE_ANON_KEY=sua_chave_anon
 VITE_BARBER_WHATSAPP=5531999999999
 VITE_VAPID_PUBLIC_KEY=sua_chave_publica_vapid
+VITE_SENTRY_DSN=https://xxx@sentry.io/xxx  # Opcional, para error reporting
 ```
 
 ### Passo 4: Rodar
@@ -376,12 +438,14 @@ npm run dev
 
 ### Comandos uteis
 ```bash
-npm run dev        # Desenvolvimento
-npm run build      # Build de producao
-npm run lint       # Verificar erros de codigo
-npm run preview    # Preview do build
-npm run test       # Rodar testes (watch mode)
-npm run test:run   # Rodar testes uma vez
+npm run dev          # Desenvolvimento
+npm run build        # Build de producao
+npm run lint         # Verificar erros de codigo
+npm run preview      # Preview do build
+npm run test         # Rodar testes (watch mode)
+npm run test:run     # Rodar testes uma vez
+npm run test:coverage # Rodar testes com coverage (minimo 70%)
+npm run test:e2e     # Rodar testes E2E (Playwright)
 ```
 
 ---
@@ -402,6 +466,13 @@ npm run test:run   # Rodar testes uma vez
 - Adicione o dominio da Vercel nos **Redirect URLs** do Supabase (Authentication > URL Configuration)
 - Ex: `https://seu-app.vercel.app/**`
 
+### Sentry (Opcional)
+Se quiser error reporting em producao:
+1. Crie uma conta no [sentry.io](https://sentry.io)
+2. Crie um projeto "Black Diamond" (React)
+3. Copie o DSN
+4. Adicione `VITE_SENTRY_DSN` nas Environment Variables do Vercel
+
 ---
 
 ## 9. CI/CD (GitHub Actions)
@@ -411,9 +482,12 @@ O projeto ja possui um pipeline de CI configurado em `.github/workflows/ci.yml`.
 ### O que roda automaticamente
 Toda vez que ha um push ou PR pra branch `main`:
 1. **Lint** — Verifica erros de codigo (`npm run lint`)
-2. **Test** — Executa todos os testes (`npm run test:run`)
+2. **Test** — Executa todos os testes com coverage (`npm run test:coverage`)
 3. **Type Check** — Verifica tipos TypeScript (`npx tsc --noEmit`)
 4. **Build** — Verifica se o projeto compila (`npm run build`)
+
+### Coverage Minimo
+O CI bloqueia merge se a cobertura ficar abaixo de 70% em qualquer metrica (statements, branches, functions, lines).
 
 ### Como funciona
 - Push/PR na branch `main` → workflow executa automaticamente
@@ -490,6 +564,7 @@ Agora ta liberado pros clientes.
 | `VITE_SUPABASE_ANON_KEY` | Chave anon/public do Supabase | Sim |
 | `VITE_BARBER_WHATSAPP` | Numero WhatsApp do barbeiro (formato: 5531999999999) | Sim |
 | `VITE_VAPID_PUBLIC_KEY` | Chave publica VAPID para notificacoes push | Sim |
+| `VITE_SENTRY_DSN` | DSN do Sentry para error reporting | Sim (producao) |
 
 ---
 
@@ -511,6 +586,11 @@ Black Diamond/
 │   │   │   ├── AdminSidebar.tsx
 │   │   │   ├── AuthGuard.tsx
 │   │   │   ├── BottomTabs.tsx
+│   │   │   ├── ForgotPasswordModal.tsx  # Modal de recuperacao de senha
+│   │   │   ├── LoginBackground.tsx      # Background do login desktop
+│   │   │   ├── LoginHeader.tsx          # Header do login
+│   │   │   ├── LoginForm.tsx            # Formulario de login
+│   │   │   ├── LoginToast.tsx           # Toast do login
 │   │   │   ├── Navbar.tsx
 │   │   │   ├── booking/        # Componentes de agendamento admin
 │   │   │   │   ├── index.ts
@@ -524,14 +604,26 @@ Black Diamond/
 │   │   │   │   ├── MobileServicesStep.tsx
 │   │   │   │   └── MobileDateTimeStep.tsx
 │   │   │   └── shared/         # Componentes compartilhados
+│   │   │       ├── BlockedPanel.tsx
 │   │   │       ├── BookingDetailPanel.tsx
 │   │   │       ├── BookingSearchModal.tsx
 │   │   │       ├── BookingSummaryPanel.tsx
+│   │   │       ├── ClientPanel.tsx
 │   │   │       ├── CompleteModal.tsx
 │   │   │       ├── DashboardHeader.tsx
+│   │   │       ├── DeleteClientModal.tsx
 │   │   │       ├── DeleteModal.tsx
+│   │   │       ├── EditClientModal.tsx
 │   │   │       ├── FilterTabs.tsx
+│   │   │       ├── FreePanel.tsx
+│   │   │       ├── NewClientModal.tsx
+│   │   │       ├── OccupiedPanel.tsx
+│   │   │       ├── ProfileDesktopMetrics.tsx
+│   │   │       ├── ProfileMobile.tsx
+│   │   │       ├── ProfileServicesChart.tsx
+│   │   │       ├── ReminderModal.tsx
 │   │   │       ├── RescheduleWizard.tsx
+│   │   │       ├── ThankYouModal.tsx
 │   │   │       ├── ToastNotification.tsx
 │   │   │       ├── UnblockModal.tsx
 │   │   │       └── WhatsAppReminderButton.tsx
@@ -560,15 +652,48 @@ Black Diamond/
 │   │   └── TestimonialsSlider.tsx
 │   ├── hooks/
 │   │   ├── useAdminLogout.ts
+│   │   ├── useAuditLog.ts
+│   │   ├── useBarberSettings.ts
+│   │   ├── useBookingFilters.ts
+│   │   ├── useBookingManagement.ts
+│   │   ├── useBookingModals.ts
 │   │   ├── useBookings.ts
+│   │   ├── useBookingWizard.ts
+│   │   ├── useCallbackRef.ts
+│   │   ├── useClientCreation.ts
+│   │   ├── useClientLookup.ts
+│   │   ├── useClientPanel.ts
+│   │   ├── useClients.ts
+│   │   ├── useClientsData.ts
 │   │   ├── useConnectionStatus.ts
+│   │   ├── useDateDragScroll.ts
+│   │   ├── useDebounce.ts
+│   │   ├── useGallery.ts
+│   │   ├── useGalleryData.ts
+│   │   ├── useGalleryPreview.ts
+│   │   ├── useGallerySelection.ts
+│   │   ├── useGalleryUpload.ts
+│   │   ├── useIsDesktop.ts
+│   │   ├── useLatest.ts
 │   │   ├── useModalA11y.ts
+│   │   ├── usePrefetchRoute.ts
+│   │   ├── useProfileStats.ts
 │   │   ├── usePushNotifications.ts
+│   │   ├── useRateLimit.ts
 │   │   ├── useReducedMotion.ts
+│   │   ├── useReminders.ts
 │   │   ├── useReschedule.ts
 │   │   ├── useServices.ts
 │   │   ├── useSlotBlocking.ts
-│   │   └── useToast.ts
+│   │   ├── useToast.ts
+│   │   ├── useWeeklyCongrats.ts
+│   │   └── useWizardStep.ts
+│   ├── stores/
+│   │   ├── index.ts                 # Exportacao centralizada
+│   │   ├── authStore.ts             # Autenticacao
+│   │   ├── bookingStore.ts          # Agendamentos
+│   │   ├── uiStore.ts               # UI (toasts, modals)
+│   │   └── connectionStore.ts       # Status da conexao
 │   ├── lib/
 │   │   ├── api.ts              # Funcoes de API (CRUD)
 │   │   ├── supabase.ts         # Cliente Supabase
@@ -578,7 +703,7 @@ Black Diamond/
 │   │   ├── AdminBooking.tsx
 │   │   ├── AdminClients.tsx
 │   │   ├── AdminDashboard.tsx
-│   │   ├── AdminLogin.tsx
+│   │   ├── AdminLogin.tsx           # Splitado em 5 componentes
 │   │   ├── AdminProfile.tsx
 │   │   ├── AdminResetPassword.tsx
 │   │   ├── AdminWeekly.tsx
@@ -598,6 +723,10 @@ Black Diamond/
 │   └── functions/
 │       ├── send-push/          # Edge function de notificacao push
 │       └── sync-google-calendar/ # Edge function de sync com Google Calendar
+├── e2e/                        # Testes E2E (Playwright)
+│   ├── admin.spec.ts           # Testes do admin (login, navegacao, rate limiting)
+│   ├── booking.spec.ts         # Testes do agendamento
+│   └── booking-errors.spec.ts  # Testes de erros, concorrencia, limites
 ├── estrutura_barbearia.sql    # Schema completo do banco (generico)
 ├── DEPLOY_GUIDE.md             # Guia passo a passo para deploy em novas barbearias
 ├── setup-barbearia.js          # Script interativo para configurar novo barbeiro
@@ -617,7 +746,8 @@ Black Diamond/
 ```bash
 npm run test          # Watch mode (re-roda ao salvar)
 npm run test:run      # Executa uma vez
-npm run test:coverage # Com cobertura de codigo
+npm run test:coverage # Com cobertura de codigo (minimo 70%)
+npm run test:e2e      # Testes E2E com Playwright
 ```
 
 ### Estrutura
@@ -627,6 +757,7 @@ npm run test:coverage # Com cobertura de codigo
 - **API**: `src/lib/api.test.ts` — Testam chamadas ao Supabase (mockadas)
 - **Componentes**: `src/components/**/*.test.tsx` — Testam renderizacao e interacao
 - **Paginas**: `src/pages/*.test.tsx` — Testam fluxos completos
+- **E2E**: `e2e/*.spec.ts` — Testes de ponta a ponta com Playwright
 
 ### Padroes de Mock
 
@@ -656,12 +787,29 @@ vi.mock('react-router-dom', () => ({
 }));
 ```
 
+### Testes E2E (Playwright)
+
+Os testes E2E verificam fluxos completos de ponta a ponta:
+
+- **booking.spec.ts** — Fluxo de agendamento do cliente
+- **booking-errors.spec.ts** — Tratamento de erros, concorrencia, limites, 404, acessibilidade, performance
+- **admin.spec.ts** — Login, logout, navegacao, rate limiting, protecao de rotas
+
+### Coverage Minimo
+
+O CI bloqueia merge se a cobertura ficar abaixo de 70%:
+- Statements: 70%
+- Branches: 70%
+- Functions: 70%
+- Lines: 70%
+
 ### Cobertura atual
 
-- 35 arquivos de teste
-- 304+ testes
+- 40+ arquivos de teste
+- 335+ testes (unit + E2E)
 - Hooks, Utils, API, Componentes e Paginas cobertos
-- CI/CD com GitHub Actions: lint → test → typecheck → build
+- CI/CD com GitHub Actions: lint → test:coverage → typecheck → build
+- **Coverage minimo:** 70% (statements, branches, functions, lines)
 
 ---
 
@@ -695,6 +843,17 @@ vi.mock('react-router-dom', () => ({
 - Verifique se a edge function `send-push` esta deployada
 - So funciona em HTTPS (producao)
 
+### "Sentry nao captura erros"
+- Verifique se `VITE_SENTRY_DSN` esta configurada no `.env`
+- Verifique se o DSN esta correto (formato: `https://xxx@sentry.io/xxx`)
+- Erros so sao capturados em producao (nao em desenvolvimento)
+- Verifique o painel do Sentry em [sentry.io](https://sentry.io)
+
+### "Coverage do CI falha"
+- Rode `npm run test:coverage` localmente para ver a cobertura atual
+- Adicione testes para arquivos nao cobertos
+- O minimo e 70% em statements, branches, functions e lines
+
 ---
 
 ## 15. Notas de Negocio
@@ -704,6 +863,7 @@ vi.mock('react-router-dom', () => ({
 - Banco de dados (Supabase Free): R$ 0,00
 - Notificacoes push (Web Push): R$ 0,00
 - Google Calendar API: R$ 0,00
+- Error Reporting (Sentry Free): R$ 0,00 (5.000 erros/mes)
 - Dominio: ~R$ 40,00/ano (opcional)
 
 ### O que cobrar do cliente
@@ -729,8 +889,12 @@ vi.mock('react-router-dom', () => ({
 - [x] Layout mobile estilo Instagram (tela cheia)
 - [x] Skeleton loading nas paginas principais
 - [x] Acessibilidade: focus-visible, contraste, skip-link, aria-live
-- [x] Atualizacao em tempo real (Context API)
-- [x] Sistema de mensalista (servicos exclusos, dias restritos)
+- [x] Atualizacao em tempo real (Context API + Zustand)
+- [x] Sistema de mensalista (servicos exclusos, dias restritos, identificacao automatica por telefone)
+- [x] State management com Zustand (4 stores: auth, booking, ui, connection)
+- [x] Error reporting com Sentry (captura automatica de erros em producao)
+- [x] Coverage minimo no CI (70% — bloqueia merge abaixo do threshold)
+- [x] Testes E2E robustos (erro de rede, concorrencia, limites, acessibilidade)
 - [x] Busca de clientes otimizada (so clientes ativos)
 - [x] Stepper elegante com indicador de progresso
 - [x] Galeria editavel com upload, delete, reordenacao e multi-select
@@ -751,6 +915,11 @@ vi.mock('react-router-dom', () => ({
 - [x] Anti-burro: validacao de horarios, preco minimo, DDD
 - [x] UX da galeria estilo Google Fotos (header compacto, selecao integrada)
 - [x] Scrollbar dourada so no desktop (mobile limpo)
+- [x] State management com Zustand (4 stores: auth, booking, ui, connection)
+- [x] Error reporting com Sentry (captura automatica de erros em producao)
+- [x] Coverage minimo no CI (70% — bloqueia merge abaixo do threshold)
+- [x] Testes E2E robustos (erro de rede, concorrencia, limites, acessibilidade, performance)
+- [x] AdminLogin splitado em 5 componentes (melhor manutenibilidade)
 
 ### Possiveis melhorias futuras
 - [ ] Multi-tenancy (varias barbearias no mesmo sistema)
@@ -761,6 +930,9 @@ vi.mock('react-router-dom', () => ({
 - [ ] Drag and drop para reordenar fotos na galeria
 - [ ] Filtros e edicao de imagens no admin
 - [ ] Tema claro/escuro alternavel pelo admin
+- [ ] Migrar Context API para Zustand em todos os stores (BarberSettingsContext)
+- [ ] Adicionar mais testes E2E para fluxos complexos
+- [ ] Integrar Sentry com GitHub para vincular erros a commits
 
 ---
 

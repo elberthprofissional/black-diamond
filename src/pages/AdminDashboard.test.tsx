@@ -1,16 +1,45 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 
+const mockGetBookings = vi.fn().mockResolvedValue([
+  {
+    id: 'b1',
+    client_id: 'c1',
+    booking_date: '2026-07-05',
+    booking_time: '10:00:00',
+    total_price: 35,
+    status: 'confirmed',
+    is_blocked: false,
+    service_ids: ['s1'],
+    clients: { name: 'João Silva', phone: '11999999999' },
+  },
+  {
+    id: 'b2',
+    client_id: 'c2',
+    booking_date: '2026-07-05',
+    booking_time: '11:00:00',
+    total_price: 27,
+    status: 'completed',
+    is_blocked: false,
+    service_ids: ['s2'],
+    clients: { name: 'Maria Souza', phone: '11888888888' },
+  },
+]);
+
 vi.mock('../lib/api', () => ({
-  getBookings: vi.fn().mockResolvedValue([]),
-  getAvailableSlots: vi.fn().mockResolvedValue(['08:00', '09:00', '10:00']),
-  getServices: vi.fn().mockResolvedValue([
-    { id: 's1', name: 'Corte', price: 35, duration: 40 },
-  ]),
+  getBookings: (...args: unknown[]) => mockGetBookings(...args),
+  getAvailableSlots: vi.fn().mockResolvedValue(['08:00', '09:00']),
+  autoCompleteExpiredBookings: vi.fn().mockResolvedValue(0),
   updateBookingStatus: vi.fn().mockResolvedValue(undefined),
   deleteBooking: vi.fn().mockResolvedValue(undefined),
   toggleSlotBlock: vi.fn().mockResolvedValue({ id: 'b1', blocked: true }),
   unblockDay: vi.fn().mockResolvedValue(undefined),
+  getServices: vi.fn().mockResolvedValue([
+    { id: 's1', name: 'Corte', price: 35, duration: 40 },
+    { id: 's2', name: 'Barba', price: 27, duration: 20 },
+  ]),
+  getClients: vi.fn().mockResolvedValue([]),
+  getBookingsForStats: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock('../lib/supabase', () => ({
@@ -24,12 +53,21 @@ vi.mock('../lib/supabase', () => ({
       maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     })),
     rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
+    auth: {
+      getSession: vi
+        .fn()
+        .mockResolvedValue({ data: { session: { user: { id: '1' } } }, error: null }),
+      onAuthStateChange: vi
+        .fn()
+        .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+    },
   },
 }));
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),
   useLocation: () => ({ pathname: '/admin', search: '' }),
+  BrowserRouter: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 vi.mock('../hooks/useToast', () => ({
@@ -45,42 +83,91 @@ vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+vi.mock('../hooks/useIsDesktop', () => ({
+  useIsDesktop: () => true,
+}));
+
 import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 import AdminDashboard from './AdminDashboard';
 
-describe('AdminDashboard', () => {
+describe('AdminDashboard — Comportamental', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('renderiza sem erros', () => {
-    const { container } = render(<BarberSettingsProvider><AdminDashboard /></BarberSettingsProvider>);
+    const { container } = render(
+      <BarberSettingsProvider>
+        <AdminDashboard />
+      </BarberSettingsProvider>
+    );
     expect(container).toBeTruthy();
   });
 
   it('renderiza titulo do dashboard', () => {
-    render(<BarberSettingsProvider><AdminDashboard /></BarberSettingsProvider>);
+    render(
+      <BarberSettingsProvider>
+        <AdminDashboard />
+      </BarberSettingsProvider>
+    );
     expect(screen.getAllByText(/BLACK DIAMOND/i).length).toBeGreaterThan(0);
   });
 
-  it('renderiza abas de filtro', async () => {
-    render(<BarberSettingsProvider><AdminDashboard /></BarberSettingsProvider>);
+  it('renderiza as três abas de filtro', async () => {
+    render(
+      <BarberSettingsProvider>
+        <AdminDashboard />
+      </BarberSettingsProvider>
+    );
     await waitFor(() => {
       expect(screen.getByText(/Ocupados/i)).toBeInTheDocument();
-    });
-  });
-
-  it('renderiza aba de livres', async () => {
-    render(<BarberSettingsProvider><AdminDashboard /></BarberSettingsProvider>);
-    await waitFor(() => {
       expect(screen.getByText(/Livres/i)).toBeInTheDocument();
-    });
-  });
-
-  it('renderiza aba de bloqueados', async () => {
-    render(<BarberSettingsProvider><AdminDashboard /></BarberSettingsProvider>);
-    await waitFor(() => {
       expect(screen.getByText(/Bloqueados/i)).toBeInTheDocument();
     });
+  });
+
+  it('busca agendamentos ao renderizar', async () => {
+    render(
+      <BarberSettingsProvider>
+        <AdminDashboard />
+      </BarberSettingsProvider>
+    );
+    await waitFor(() => {
+      expect(mockGetBookings).toHaveBeenCalled();
+    });
+  });
+
+  it('exibe nome do cliente no painel de ocupados', async () => {
+    render(
+      <BarberSettingsProvider>
+        <AdminDashboard />
+      </BarberSettingsProvider>
+    );
+    await waitFor(() => {
+      expect(screen.getByText('João Silva')).toBeInTheDocument();
+    });
+  });
+
+  it('exibe horário do agendamento', async () => {
+    render(
+      <BarberSettingsProvider>
+        <AdminDashboard />
+      </BarberSettingsProvider>
+    );
+    await waitFor(() => {
+      expect(screen.getByText(/10:00/)).toBeInTheDocument();
+    });
+  });
+
+  it('exibe preco do servico', async () => {
+    render(
+      <BarberSettingsProvider>
+        <AdminDashboard />
+      </BarberSettingsProvider>
+    );
+    await waitFor(() => {
+      expect(screen.getByText('João Silva')).toBeInTheDocument();
+    });
+    expect(screen.getByText(/10:00/)).toBeInTheDocument();
   });
 });
