@@ -226,6 +226,11 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
   const handleSavePhone = async () => {
     const digits = phoneInput.replace(/\D/g, '');
     if (digits.length >= 10) {
+      const ddd = parseInt(digits.slice(0, 2), 10);
+      if (ddd < 11 || ddd > 99) {
+        showError('DDD inválido. Use um DDD válido do Brasil.');
+        return;
+      }
       const ok = await updateBarberPhone(digits);
       if (ok) {
         showSuccess('Telefone alterado!');
@@ -522,7 +527,9 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
                 <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
                   WhatsApp
                 </span>
-                <span className="text-[10px] text-zinc-600">{phoneInput.replace(/\D/g, '').length}/10</span>
+                <span className="text-[10px] text-zinc-600">
+                  {phoneInput.replace(/\D/g, '').length}/10
+                </span>
               </div>
               <div className="flex gap-2">
                 <input
@@ -562,7 +569,9 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
                 <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">
                   WhatsApp
                 </span>
-                <span className="text-[13px] text-white">{barberPhone ? formatPhone(barberPhone) : 'Não configurado'}</span>
+                <span className="text-[13px] text-white">
+                  {barberPhone ? formatPhone(barberPhone) : 'Não configurado'}
+                </span>
               </div>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -839,7 +848,9 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
                 <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
                   Instagram
                 </span>
-                <span className="text-[10px] text-zinc-600">{instagramInput.replace(/^@/, '').length}/30</span>
+                <span className="text-[10px] text-zinc-600">
+                  {instagramInput.replace(/^@/, '').length}/30
+                </span>
               </div>
               <div className="flex gap-2">
                 <input
@@ -847,7 +858,8 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
                   type="text"
                   value={instagramInput}
                   onChange={(e) => {
-                    if (e.target.value.replace(/^@/, '').length <= 30) setInstagramInput(e.target.value);
+                    if (e.target.value.replace(/^@/, '').length <= 30)
+                      setInstagramInput(e.target.value);
                   }}
                   placeholder="@seuusuario"
                   maxLength={31}
@@ -883,7 +895,18 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
                   {barberInstagram ? `@${barberInstagram}` : '@seuusuario'}
                 </span>
               </div>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-zinc-600"
+              >
                 <path d="m9 18 6-6-6-6" />
               </svg>
             </button>
@@ -907,7 +930,18 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
                 {barberInstagram ? `@${barberInstagram}` : '@seuusuario'}
               </span>
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600 shrink-0">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-zinc-600 shrink-0"
+            >
               <path d="m9 18 6-6-6-6" />
             </svg>
           </button>
@@ -1136,13 +1170,16 @@ const SettingsConta: React.FC<SettingsContaProps> = () => {
                 type="text"
                 value={instagramInput}
                 onChange={(e) => {
-                  if (e.target.value.replace(/^@/, '').length <= 30) setInstagramInput(e.target.value);
+                  if (e.target.value.replace(/^@/, '').length <= 30)
+                    setInstagramInput(e.target.value);
                 }}
                 placeholder="@seuusuario"
                 maxLength={31}
                 className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[15px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600"
               />
-              <p className="text-[11px] text-zinc-600 text-right">{instagramInput.replace(/^@/, '').length}/30</p>
+              <p className="text-[11px] text-zinc-600 text-right">
+                {instagramInput.replace(/^@/, '').length}/30
+              </p>
             </div>
           </motion.div>
         )}

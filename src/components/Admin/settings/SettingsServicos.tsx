@@ -30,14 +30,22 @@ const SettingsServicos: React.FC = () => {
 
   const loadServices = async () => {
     try {
-      const { data, error } = await supabase.from('services').select('id, name, price').order('name', { ascending: true });
+      const { data, error } = await supabase
+        .from('services')
+        .select('id, name, price')
+        .order('name', { ascending: true });
       if (error) throw error;
       if (data) setServices(data);
-    }    catch { showError('Erro ao carregar serviços'); }
-    finally { setLoading(false); }
+    } catch {
+      showError('Erro ao carregar serviços');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { loadServices(); }, [loadServices]);
+  useEffect(() => {
+    loadServices();
+  }, [loadServices]);
 
   useEffect(() => {
     if ((screen === 'add' || screen === 'edit') && nameInputRef.current) {
@@ -48,33 +56,66 @@ const SettingsServicos: React.FC = () => {
   const handleAdd = async () => {
     const name = nameInput.trim();
     const price = parseFloat(priceInput.replace(',', '.'));
-    if (!name) { showError('Digite o nome do serviço'); return; }
-    if (name.length > MAX_NAME_LENGTH) { showError(`Máximo de ${MAX_NAME_LENGTH} caracteres`); return; }
-    if (!priceInput || isNaN(price) || price <= 0) { showError('Digite um preço válido'); return; }
-    if (services.length >= MAX_SERVICES) { showError(`Máximo de ${MAX_SERVICES} serviços`); return; }
+    if (!name) {
+      showError('Digite o nome do serviço');
+      return;
+    }
+    if (name.length > MAX_NAME_LENGTH) {
+      showError(`Máximo de ${MAX_NAME_LENGTH} caracteres`);
+      return;
+    }
+    if (!priceInput || isNaN(price) || price <= 0) {
+      showError('Digite um preço válido');
+      return;
+    }
+    if (price < 5) {
+      showError('Preço mínimo é R$ 5,00');
+      return;
+    }
+    if (services.length >= MAX_SERVICES) {
+      showError(`Máximo de ${MAX_SERVICES} serviços`);
+      return;
+    }
 
     try {
       const { error } = await supabase.from('services').insert({ name, price, duration: 60 });
       if (error) throw error;
       showSuccess('Serviço adicionado!');
-      setNameInput(''); setPriceInput(''); setScreen('list');
+      setNameInput('');
+      setPriceInput('');
+      setScreen('list');
       loadServices();
-    } catch { showError('Erro ao adicionar serviço'); }
+    } catch {
+      showError('Erro ao adicionar serviço');
+    }
   };
 
   const handleUpdate = async () => {
     if (!editingId) return;
     const name = nameInput.trim();
     const price = parseFloat(priceInput.replace(',', '.'));
-    if (!name || name.length > MAX_NAME_LENGTH) { showError(`Nome: 1-${MAX_NAME_LENGTH} caracteres`); return; }
-    if (!priceInput || isNaN(price) || price <= 0) { showError('Preço inválido'); return; }
+    if (!name || name.length > MAX_NAME_LENGTH) {
+      showError(`Nome: 1-${MAX_NAME_LENGTH} caracteres`);
+      return;
+    }
+    if (!priceInput || isNaN(price) || price <= 0) {
+      showError('Preço inválido');
+      return;
+    }
+    if (price < 5) {
+      showError('Preço mínimo é R$ 5,00');
+      return;
+    }
 
     try {
       const { error } = await supabase.from('services').update({ name, price }).eq('id', editingId);
       if (error) throw error;
       showSuccess('Serviço atualizado!');
-      setScreen('list'); loadServices();
-    } catch { showError('Erro ao atualizar serviço'); }
+      setScreen('list');
+      loadServices();
+    } catch {
+      showError('Erro ao atualizar serviço');
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -84,19 +125,43 @@ const SettingsServicos: React.FC = () => {
       if (error) throw error;
       showSuccess('Serviço removido!');
       setServices((prev) => prev.filter((s) => s.id !== id));
-    } catch { showError('Erro ao remover serviço'); }
-    finally { setDeleting(null); setConfirmDelete(null); }
+    } catch {
+      showError('Erro ao remover serviço');
+    } finally {
+      setDeleting(null);
+      setConfirmDelete(null);
+    }
   };
 
-  const openAdd = () => { setNameInput(''); setPriceInput(''); setEditingId(null); setScreen('add'); };
-  const openEdit = (service: Service) => { setNameInput(service.name); setPriceInput(String(service.price)); setEditingId(service.id); setScreen('edit'); };
-  const closeForm = () => { setNameInput(''); setPriceInput(''); setEditingId(null); setScreen('list'); };
-  const handleSubmit = () => { if (screen === 'add') handleAdd(); else if (screen === 'edit') handleUpdate(); };
+  const openAdd = () => {
+    setNameInput('');
+    setPriceInput('');
+    setEditingId(null);
+    setScreen('add');
+  };
+  const openEdit = (service: Service) => {
+    setNameInput(service.name);
+    setPriceInput(String(service.price));
+    setEditingId(service.id);
+    setScreen('edit');
+  };
+  const closeForm = () => {
+    setNameInput('');
+    setPriceInput('');
+    setEditingId(null);
+    setScreen('list');
+  };
+  const handleSubmit = () => {
+    if (screen === 'add') handleAdd();
+    else if (screen === 'edit') handleUpdate();
+  };
 
   if (loading) {
     return (
       <div className="space-y-4">
-        {[1, 2, 3].map((i) => <div key={i} className="h-16 bg-white/[0.02] rounded-2xl animate-pulse" />)}
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-16 bg-white/[0.02] rounded-2xl animate-pulse" />
+        ))}
       </div>
     );
   }
@@ -109,7 +174,9 @@ const SettingsServicos: React.FC = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-white text-[15px] font-semibold">Serviços cadastrados</h3>
-            <p className="text-zinc-500 text-[12px] mt-0.5">{services.length} de {MAX_SERVICES}</p>
+            <p className="text-zinc-500 text-[12px] mt-0.5">
+              {services.length} de {MAX_SERVICES}
+            </p>
           </div>
           <button
             onClick={openAdd}
@@ -146,14 +213,20 @@ const SettingsServicos: React.FC = () => {
                     className="p-2 hover:bg-white/[0.06] rounded-lg transition-all cursor-pointer"
                     title="Editar"
                   >
-                    <Pencil size={14} className="text-zinc-500 hover:text-white transition-colors" />
+                    <Pencil
+                      size={14}
+                      className="text-zinc-500 hover:text-white transition-colors"
+                    />
                   </button>
                   <button
                     onClick={() => setConfirmDelete(service.id)}
                     className="p-2 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer"
                     title="Excluir"
                   >
-                    <Trash2 size={14} className="text-zinc-500 hover:text-red-400 transition-colors" />
+                    <Trash2
+                      size={14}
+                      className="text-zinc-500 hover:text-red-400 transition-colors"
+                    />
                   </button>
                 </div>
               </div>
@@ -186,7 +259,10 @@ const SettingsServicos: React.FC = () => {
           )}
 
           {services.map((service) => (
-            <div key={service.id} className="px-5 py-4 flex items-center justify-between border-t border-white/[0.04]">
+            <div
+              key={service.id}
+              className="px-5 py-4 flex items-center justify-between border-t border-white/[0.04]"
+            >
               <div>
                 <p className="text-[13px] text-white">{service.name}</p>
                 <p className="text-[11px] text-[#C5A059] font-medium">R$ {service.price}</p>
@@ -221,11 +297,21 @@ const SettingsServicos: React.FC = () => {
             className="fixed inset-0 z-[300] bg-[#0A0A0A]"
           >
             <div className="flex items-center justify-between px-4 h-14 border-b border-white/[0.06]">
-              <button onClick={closeForm} className="text-zinc-400 hover:text-white transition-colors cursor-pointer" aria-label="Cancelar">
+              <button
+                onClick={closeForm}
+                className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                aria-label="Cancelar"
+              >
                 <X size={24} />
               </button>
-              <span className="text-[15px] font-bold text-white">{screen === 'add' ? 'Novo Serviço' : 'Editar Serviço'}</span>
-              <button onClick={handleSubmit} className="text-[#C5A059] font-bold text-[15px] transition-colors cursor-pointer" aria-label="Salvar">
+              <span className="text-[15px] font-bold text-white">
+                {screen === 'add' ? 'Novo Serviço' : 'Editar Serviço'}
+              </span>
+              <button
+                onClick={handleSubmit}
+                className="text-[#C5A059] font-bold text-[15px] transition-colors cursor-pointer"
+                aria-label="Salvar"
+              >
                 <Check size={24} />
               </button>
             </div>
@@ -233,32 +319,48 @@ const SettingsServicos: React.FC = () => {
             <div className="p-5 space-y-6">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Nome do serviço</span>
-                  <span className="text-[10px] text-zinc-600">{nameInput.length}/{MAX_NAME_LENGTH}</span>
+                  <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+                    Nome do serviço
+                  </span>
+                  <span className="text-[10px] text-zinc-600">
+                    {nameInput.length}/{MAX_NAME_LENGTH}
+                  </span>
                 </div>
                 <input
                   ref={nameInputRef}
                   type="text"
                   value={nameInput}
-                  onChange={(e) => { if (e.target.value.length <= MAX_NAME_LENGTH) setNameInput(e.target.value); }}
+                  onChange={(e) => {
+                    if (e.target.value.length <= MAX_NAME_LENGTH) setNameInput(e.target.value);
+                  }}
                   placeholder="Ex: Corte de Cabelo"
                   maxLength={MAX_NAME_LENGTH}
                   className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[15px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600"
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSubmit();
+                  }}
                 />
               </div>
 
               <div className="space-y-2">
-                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">Preço</span>
+                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">
+                  Preço
+                </span>
                 <div className="flex items-center gap-2">
                   <span className="text-zinc-500 text-[15px] font-medium">R$</span>
                   <input
                     type="text"
                     value={priceInput}
-                    onChange={(e) => { const val = e.target.value.replace(/[^\d.,]/g, ''); if (val.replace('.', '').replace(',', '').length <= MAX_PRICE_LENGTH) setPriceInput(val); }}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^\d.,]/g, '');
+                      if (val.replace('.', '').replace(',', '').length <= MAX_PRICE_LENGTH)
+                        setPriceInput(val);
+                    }}
                     placeholder="0,00"
                     className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[15px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600"
-                    onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSubmit();
+                    }}
                   />
                 </div>
               </div>
