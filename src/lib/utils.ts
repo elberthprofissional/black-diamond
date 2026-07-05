@@ -21,8 +21,8 @@ const DEFAULT_HOURS: HoursData = {
 };
 
 /**
- * Gera slots de hora em hora a partir de um horário de abertura e fechamento.
- * Suporta horários quebrados (ex: 08:30 → slots a partir de 09:00).
+ * Gera slots de hora em hora respeitando os minutos do horário de abertura.
+ * Ex: abre 08:30 → 08:30, 09:30, 10:30... fecha 20:00 → último slot 19:30
  */
 function generateHourlySlots(open: string, close: string): string[] {
   const [openH = 8, openM = 0] = open.split(':').map(Number);
@@ -31,15 +31,11 @@ function generateHourlySlots(open: string, close: string): string[] {
   const openMinutes = openH * 60 + openM;
   const closeMinutes = closeH * 60 + closeM;
 
-  // Arredonda PRA CIMA: se abre 08:30, o primeiro slot é 09:00 (próxima hora cheia)
-  const firstSlotMinutes = openMinutes % 60 === 0
-    ? openMinutes
-    : openMinutes + (60 - (openMinutes % 60));
-
   const slots: string[] = [];
-  for (let m = firstSlotMinutes; m < closeMinutes; m += 60) {
+  for (let m = openMinutes; m < closeMinutes; m += 60) {
     const h = Math.floor(m / 60);
-    slots.push(`${String(h).padStart(2, '0')}:00`);
+    const min = m % 60;
+    slots.push(`${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`);
   }
   return slots;
 }
@@ -70,13 +66,19 @@ const getBarberHours = async (): Promise<HoursData> => {
     const { data: rows } = await supabase
       .from('settings')
       .select('key, value')
-      .in('key', ['working_days', 'opening_time', 'closing_time', 'saturday_opening', 'saturday_closing']);
+      .in('key', [
+        'working_days',
+        'opening_time',
+        'closing_time',
+        'saturday_opening',
+        'saturday_closing',
+      ]);
 
     if (rows && rows.length > 0) {
       const map: Record<string, string> = {};
       for (const row of rows) map[row.key] = row.value;
 
-      const workingDays = (map.working_days || '1,2,3,4,5,6').split(',').map(d => d.trim());
+      const workingDays = (map.working_days || '1,2,3,4,5,6').split(',').map((d) => d.trim());
       const weekOpen = map.opening_time || '08:00';
       const weekClose = map.closing_time || '18:00';
       const satOpen = map.saturday_opening || '08:00';
@@ -156,7 +158,7 @@ export const getNextDays = () => {
   today.setHours(0, 0, 0, 0);
   const currentDay = today.getDay();
   const currentHour = new Date().getHours();
-  
+
   const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
   const monday = new Date(today);
   monday.setDate(today.getDate() + mondayOffset);
@@ -170,7 +172,7 @@ export const getNextDays = () => {
     const date = new Date(monday);
     date.setDate(monday.getDate() + i);
     date.setHours(0, 0, 0, 0);
-    
+
     const isToday = date.getTime() === today.getTime();
     const isPast = date.getTime() < today.getTime();
 
@@ -179,7 +181,10 @@ export const getNextDays = () => {
 
     days.push({
       fullDate: getLocalDateString(date),
-      dayName: date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase(),
+      dayName: date
+        .toLocaleDateString('pt-BR', { weekday: 'short' })
+        .replace('.', '')
+        .toUpperCase(),
       dayNumber: date.getDate(),
       isToday,
       isPast: false,
@@ -188,8 +193,11 @@ export const getNextDays = () => {
   return days;
 };
 
-export const isTimeOccupied = (time: string, bookings: { booking_time: string; status: string }[]) => {
-  return bookings.some(b => {
+export const isTimeOccupied = (
+  time: string,
+  bookings: { booking_time: string; status: string }[]
+) => {
+  return bookings.some((b) => {
     const bookingTime = b.booking_time.slice(0, 5);
     return bookingTime === time && b.status !== 'cancelled';
   });
@@ -197,7 +205,7 @@ export const isTimeOccupied = (time: string, bookings: { booking_time: string; s
 
 const ERROR_MESSAGES: Record<string, string> = {
   'Failed to fetch': 'Sem conexão com o servidor. Verifique sua internet.',
-  'NetworkError': 'Erro de rede. Tente novamente.',
+  NetworkError: 'Erro de rede. Tente novamente.',
   'invalid input': 'Dados inválidos. Verifique os campos.',
   'permission denied': 'Sem permissão para esta ação.',
   'JWT expired': 'Sessão expirada. Faça login novamente.',
@@ -205,7 +213,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   'row-level security': 'Sem permissão para esta ação.',
   'violates foreign key': 'Erro de integridade dos dados.',
   'duplicate key': 'Este telefone já está cadastrado para outro cliente.',
-  'unique_violation': 'Este telefone já está cadastrado para outro cliente.',
+  unique_violation: 'Este telefone já está cadastrado para outro cliente.',
 };
 
 export const generateGoogleCalendarUrl = (
@@ -297,8 +305,10 @@ export const generateIcsFile = (
 export const getErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
     const msg = error.message;
-    if (msg.includes('horário acabou de ser preenchido')) return 'Este horário acabou de ser preenchido. Escolha outro.';
-    if (msg.includes('Limite de 3 agendamentos')) return 'Limite de 3 agendamentos por dia atingido.';
+    if (msg.includes('horário acabou de ser preenchido'))
+      return 'Este horário acabou de ser preenchido. Escolha outro.';
+    if (msg.includes('Limite de 3 agendamentos'))
+      return 'Limite de 3 agendamentos por dia atingido.';
     if (msg.includes('Informe')) return msg; // client-side validation messages
     for (const [key, value] of Object.entries(ERROR_MESSAGES)) {
       if (msg.toLowerCase().includes(key.toLowerCase())) return value;
