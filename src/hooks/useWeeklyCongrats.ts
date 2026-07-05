@@ -32,13 +32,13 @@ export function useWeeklyCongrats(weeklyRevenue: number, weeklyCompleted: number
 
     sentRef.current = true;
 
-    // Build congratulatory message
-    const hourNow = now.getHours();
-    const greeting = hourNow < 21 ? 'Boa noite' : 'Boa noite';
-    const msg = `${greeting}, Tato! 💈\n\nParabéns pelo trabalho durante a semana!\n\n📊 Resumo da semana:\n• Faturamento: R$ ${weeklyRevenue.toFixed(2).replace('.', ',')}\n• Atendimentos: ${weeklyCompleted}\n\nBom descanso e até segunda! 🏆`;
+    // Fetch barber name and send notification
+    fetchBarberName().then((name) => {
+      const displayName = name || 'Barbeiro';
+      const msg = `Boa noite, ${displayName}! 💈\n\nParabéns pelo trabalho durante a semana!\n\n📊 Resumo da semana:\n• Faturamento: R$ ${weeklyRevenue.toFixed(2).replace('.', ',')}\n• Atendimentos: ${weeklyCompleted}\n\nBom descanso e até segunda! 🏆`;
 
-    // Send push via Supabase
-    sendCongratsPush(msg, weekKey);
+      sendCongratsPush(msg, weekKey);
+    });
   }, [weeklyRevenue, weeklyCompleted]);
 }
 
@@ -47,6 +47,19 @@ function getWeekKey(date: Date): string {
   const days = Math.floor((date.getTime() - startOfYear.getTime()) / 86400000);
   const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
   return `${date.getFullYear()}-W${weekNumber}`;
+}
+
+async function fetchBarberName(): Promise<string> {
+  try {
+    const { data } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'barber_name')
+      .maybeSingle();
+    return data?.value || '';
+  } catch {
+    return '';
+  }
 }
 
 async function sendCongratsPush(message: string, weekKey: string) {
