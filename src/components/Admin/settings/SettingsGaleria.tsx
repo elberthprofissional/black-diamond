@@ -1,6 +1,6 @@
 import React from 'react';
 import ToastNotification from '../shared/ToastNotification';
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGallery } from '../../../hooks/useGallery';
 import GalleryPreview from './gallery/GalleryPreview';
