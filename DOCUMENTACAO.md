@@ -2,7 +2,7 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, PWA, notificacoes push e integracao com Google Calendar.
 
-**Versao:** 3.5.0 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.5.2 | **Ultima atualizacao:** Julho 2026
 
 ---
 
@@ -747,6 +747,10 @@ vi.mock('react-router-dom', () => ({
 - [x] Animacao marquee na galeria
 - [x] Projeto universal: template pronto para qualquer barbearia
 - [x] Guia de deploy (DEPLOY_GUIDE.md) + script de setup (setup-barbearia.js)
+- [x] Clipping mask na foto de perfil (drag + zoom estilo Instagram)
+- [x] Anti-burro: validacao de horarios, preco minimo, DDD
+- [x] UX da galeria estilo Google Fotos (header compacto, selecao integrada)
+- [x] Scrollbar dourada so no desktop (mobile limpo)
 
 ### Possiveis melhorias futuras
 - [ ] Multi-tenancy (varias barbearias no mesmo sistema)
