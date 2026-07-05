@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import ToastNotification from '../shared/ToastNotification';
-import { ImageIcon, Trash2 } from 'lucide-react';
+import { ImageIcon, Trash2, ArrowLeft, MoveVertical } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGallery } from '../../../hooks/useGallery';
 import GalleryPreview from './gallery/GalleryPreview';
@@ -11,51 +11,119 @@ interface SettingsGaleriaProps {
   onBack?: () => void;
 }
 
-const SettingsGaleria: React.FC<SettingsGaleriaProps> = () => {
+const SettingsGaleria: React.FC<SettingsGaleriaProps> = ({ onBack }) => {
   const g = useGallery();
+  const isSelecting = g.selectionMode || g.selectedImages.length > 0;
+
+  const handleBack = useCallback(() => {
+    if (isSelecting) {
+      g.clearSelection();
+    } else {
+      onBack?.();
+    }
+  }, [isSelecting, g, onBack]);
 
   return (
-    <div className="space-y-6 overflow-hidden">
+    <div className="space-y-4 overflow-hidden">
       {/* Hidden file input */}
-      <input ref={g.fileInputRef} type="file" accept="image/*" onChange={g.handleUpload} className="hidden" />
+      <input
+        ref={g.fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={g.handleUpload}
+        className="hidden"
+      />
 
-      {/* Counter + Add Button */}
-      <div className="flex items-center justify-between">
-        <p className="text-zinc-500 text-xs">{g.images.length}/{g.MAX_PHOTOS} fotos</p>
-        <div className="flex items-center gap-2">
-          {g.images.length > 0 && (
-            <button
-              onClick={() => { g.setSelectionMode(!g.selectionMode); if (g.selectionMode) g.clearSelection(); }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
-                g.selectionMode
-                  ? 'bg-[#C5A059]/20 text-[#C5A059]'
-                  : 'bg-white/[0.04] text-zinc-400 hover:text-white hover:bg-white/[0.08]'
-              }`}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 11 12 14 22 4" />
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-              </svg>
-              {g.selectionMode ? 'Sair da seleção' : 'Selecionar'}
-            </button>
-          )}
+      {/* Header - Google Photos style */}
+      <div className="flex items-center justify-between h-12">
+        <div className="flex items-center gap-3">
           <button
-            onClick={g.openFilePicker}
-            disabled={g.uploading}
-            className="px-3 py-1.5 bg-[#C5A059] hover:bg-[#A68233] text-black text-[11px] font-bold rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleBack}
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/[0.06] transition-colors cursor-pointer"
           >
-            {g.uploading ? 'Enviando...' : 'Adicionar'}
+            <ArrowLeft size={20} className="text-zinc-300" />
           </button>
+          <div>
+            {isSelecting ? (
+              <p className="text-sm font-medium text-white">
+                {g.selectedImages.length} selecionada{g.selectedImages.length > 1 ? 's' : ''}
+              </p>
+            ) : (
+              <p className="text-sm text-zinc-400">
+                {g.images.length}/{g.MAX_PHOTOS} fotos
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1">
+          {isSelecting ? (
+            <>
+              {g.selectedImages.length === 1 && (
+                <button
+                  onClick={() => {
+                    g.setMoveTarget(1);
+                    g.setShowMoveModal(true);
+                  }}
+                  className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/[0.06] transition-colors cursor-pointer"
+                >
+                  <MoveVertical size={18} className="text-zinc-300" />
+                </button>
+              )}
+              <button
+                onClick={() => g.setConfirmBulkDelete(true)}
+                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-red-500/15 transition-colors cursor-pointer"
+              >
+                <Trash2 size={18} className="text-zinc-300" />
+              </button>
+            </>
+          ) : (
+            <>
+              {g.images.length > 0 && (
+                <button
+                  onClick={() => g.setSelectionMode(true)}
+                  className="h-8 px-3 flex items-center gap-1.5 rounded-full text-[11px] font-medium bg-white/[0.04] text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="9 11 12 14 22 4" />
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                  </svg>
+                  Selecionar
+                </button>
+              )}
+              <button
+                onClick={g.openFilePicker}
+                disabled={g.uploading}
+                className="h-8 px-3 flex items-center gap-1.5 rounded-full text-[11px] font-bold bg-[#C5A059] hover:bg-[#A68233] text-black transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {g.uploading ? 'Enviando...' : 'Adicionar'}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
       {/* Uploading progress bar */}
       <AnimatePresence>
         {g.uploading && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-            <div className="bg-[#1a1a1a] rounded-xl p-4 border border-[#C5A059]/10">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-5 h-5 border-2 border-[#C5A059]/30 border-t-[#C5A059] rounded-full animate-spin" />
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-[#1a1a1a] rounded-xl p-3 border border-[#C5A059]/10">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-4 h-4 border-2 border-[#C5A059]/30 border-t-[#C5A059] rounded-full animate-spin" />
                 <span className="text-xs text-zinc-400">Enviando a foto...</span>
               </div>
               <div className="h-1 bg-white/[0.05] rounded-full overflow-hidden">
@@ -74,122 +142,94 @@ const SettingsGaleria: React.FC<SettingsGaleriaProps> = () => {
       {/* Empty State */}
       {g.images.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-full bg-white/[0.03] flex items-center justify-center mb-4">
-            <ImageIcon size={28} className="text-zinc-700" />
+          <div className="w-14 h-14 rounded-full bg-white/[0.03] flex items-center justify-center mb-4">
+            <ImageIcon size={24} className="text-zinc-700" />
           </div>
           <p className="text-zinc-500 text-sm font-medium mb-1">Nenhuma foto na galeria</p>
           <p className="text-zinc-600 text-xs">Clique em "Adicionar" para comecar</p>
         </div>
       )}
 
-      {/* Image Grid */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        {g.images.map((image, index) => {
-          const isSelected = g.selectedImages.includes(image.id);
-          return (
-            <div
-              key={image.id}
-              className={`relative group aspect-square bg-[#1a1a1a] rounded-xl overflow-hidden border min-w-0 transition-all duration-200 ${
-                isSelected ? 'border-[#C5A059] ring-2 ring-[#C5A059]/30' : 'border-white/[0.04]'
-              }`}
-              onMouseDown={() => g.handleLongPressStart(image.id)}
-              onMouseUp={g.handleLongPressEnd}
-              onMouseLeave={g.handleLongPressEnd}
-              onMouseMove={g.handleLongPressMove}
-              onTouchStart={() => g.handleLongPressStart(image.id)}
-              onTouchEnd={g.handleLongPressEnd}
-              onTouchMove={g.handleLongPressMove}
-            >
-              <img
-                src={image.image_url}
-                alt={image.alt || `Foto ${index + 1}`}
-                className={`w-full h-full object-cover transition-all duration-200 ${isSelected ? 'brightness-75' : ''}`}
-                loading="lazy"
-                draggable={false}
-              />
+      {/* Image Grid - Google Photos style */}
+      {g.images.length > 0 && (
+        <div className="grid grid-cols-3 gap-2.5">
+          {g.images.map((image, index) => {
+            const isSelected = g.selectedImages.includes(image.id);
+            return (
+              <div
+                key={image.id}
+                className={`relative group aspect-square bg-[#1a1a1a] rounded-lg overflow-hidden transition-all duration-150 ${
+                  isSelected ? 'ring-2 ring-[#C5A059]' : ''
+                }`}
+                onMouseDown={() => g.handleLongPressStart(image.id)}
+                onMouseUp={g.handleLongPressEnd}
+                onMouseLeave={g.handleLongPressEnd}
+                onMouseMove={g.handleLongPressMove}
+                onTouchStart={() => g.handleLongPressStart(image.id)}
+                onTouchEnd={g.handleLongPressEnd}
+                onTouchMove={g.handleLongPressMove}
+              >
+                <img
+                  src={image.image_url}
+                  alt={image.alt || `Foto ${index + 1}`}
+                  className={`w-full h-full object-cover transition-all duration-150 ${isSelected ? 'brightness-75' : ''}`}
+                  loading="lazy"
+                  draggable={false}
+                />
 
-              {/* Selection Check */}
-              {(g.selectedImages.length > 0 || g.selectionMode) && (
+                {/* Selection Check - smaller */}
+                {isSelecting && (
+                  <button
+                    onClick={(e) => g.toggleSelect(image.id, e)}
+                    className="absolute top-1.5 right-1.5 z-30 w-5 h-5 rounded-full flex items-center justify-center transition-all cursor-pointer"
+                    style={{
+                      background: isSelected ? '#C5A059' : 'rgba(0,0,0,0.5)',
+                      border: isSelected ? 'none' : '1.5px solid rgba(255,255,255,0.4)',
+                    }}
+                  >
+                    {isSelected && (
+                      <svg
+                        width="10"
+                        height="10"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="black"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                  </button>
+                )}
+
+                {/* Click to preview / toggle select */}
                 <button
-                  onClick={(e) => g.toggleSelect(image.id, e)}
-                  className="flex absolute top-2 right-2 z-30 w-6 h-6 rounded-full items-center justify-center transition-all cursor-pointer"
-                  style={{
-                    background: isSelected ? '#C5A059' : 'rgba(0,0,0,0.5)',
-                    border: isSelected ? 'none' : '2px solid rgba(255,255,255,0.3)',
+                  onClick={(e) => {
+                    if (g.checkAndClearLongPress()) return;
+                    if (isSelecting) {
+                      g.toggleSelect(image.id, e);
+                    } else {
+                      g.setPreviewImage(image);
+                      g.setPreviewIndex(index);
+                    }
                   }}
-                >
-                  {isSelected && (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  )}
-                </button>
-              )}
+                  className="absolute inset-0 z-10 cursor-pointer"
+                  aria-label={`Ver foto ${index + 1}`}
+                />
 
-              {/* Click to preview / toggle select */}
-              <button
-                onClick={(e) => {
-                  if (g.checkAndClearLongPress()) return;
-                  if (g.selectionMode) { g.toggleSelect(image.id, e); }
-                  else if (g.selectedImages.length === 0) {
-                    g.setPreviewImage(image);
-                    g.setPreviewIndex(index);
-                  }
-                }}
-                className="absolute inset-0 z-10 cursor-pointer"
-                aria-label={`Ver foto ${index + 1}`}
-              />
-
-
-
-              {/* Position Badge */}
-              <div className="absolute top-2 left-2 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center">
-                <span className="text-[10px] text-white font-medium">{index + 1}</span>
+                {/* Position Badge - smaller */}
+                {!isSelecting && (
+                  <div className="absolute top-1.5 left-1.5 w-4 h-4 bg-black/50 rounded-full flex items-center justify-center">
+                    <span className="text-[9px] text-white/80 font-medium">{index + 1}</span>
+                  </div>
+                )}
               </div>
-            </div>
-          );
-        })}
-      </div>              {/* Bulk Selection Toolbar */}
-      <AnimatePresence>
-        {(g.selectedImages.length > 0 || g.selectionMode) && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]"
-          >
-            <div
-              className="flex items-center gap-3 px-5 py-3 rounded-full border border-white/[0.1] shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
-              style={{ background: 'rgba(25,25,25,0.85)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
-            >
-              <span className="text-zinc-400 text-xs font-medium mr-1">
-                {g.selectedImages.length > 0
-                  ? `${g.selectedImages.length} selecionada${g.selectedImages.length > 1 ? 's' : ''}`
-                  : 'Clique nas fotos para selecionar'}
-              </span>
-              {g.selectedImages.length > 0 && (
-                <>
-                  <div className="w-px h-5 bg-white/10" />
-                  <button onClick={() => { if (g.selectedImages.length === 1) { g.setMoveTarget(1); g.setShowMoveModal(true); } }}
-                    disabled={g.selectedImages.length !== 1}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/[0.08] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
-                    <span className="text-zinc-300 text-xs">Mover</span>
-                  </button>
-                  <button onClick={() => g.setConfirmBulkDelete(true)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-red-500/15 transition-all cursor-pointer group">
-                    <Trash2 size={14} className="text-zinc-400 group-hover:text-red-400 transition-colors" />
-                    <span className="text-zinc-300 text-xs group-hover:text-red-400 transition-colors">Excluir</span>
-                  </button>
-                  <div className="w-px h-5 bg-white/10" />
-                </>
-              )}
-              <button onClick={g.clearSelection}
-                className="px-3 py-2 rounded-xl hover:bg-white/[0.08] transition-all cursor-pointer">
-                <span className="text-zinc-500 text-xs">{g.selectedImages.length > 0 ? 'Cancelar' : 'Fechar'}</span>
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            );
+          })}
+        </div>
+      )}
 
       {/* Preview Modal */}
       <GalleryPreview
@@ -197,8 +237,13 @@ const SettingsGaleria: React.FC<SettingsGaleriaProps> = () => {
         previewIndex={g.previewIndex}
         images={g.images}
         onClose={() => g.setPreviewImage(null)}
-        onDelete={(id) => { g.setConfirmDelete(id); }}
-        onMove={() => { g.setMoveTarget((g.previewImage?.position || 0) + 1); g.setShowMoveModal(true); }}
+        onDelete={(id) => {
+          g.setConfirmDelete(id);
+        }}
+        onMove={() => {
+          g.setMoveTarget((g.previewImage?.position || 0) + 1);
+          g.setShowMoveModal(true);
+        }}
         onPrev={g.goToPrevPreview}
         onNext={g.goToNextPreview}
         touchStart={g.touchStart}
