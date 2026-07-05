@@ -9,9 +9,7 @@ const About: React.FC = () => {
   const displayBio =
     barberBio ||
     'Acredito que a barbearia é um dos poucos lugares onde o homem pode relaxar de verdade. Por isso, busco oferecer um atendimento tranquilo, com atenção aos detalhes e respeito a cada cliente.';
-  const displayQuote =
-    barberQuote ||
-    'Não sou o melhor, mas sou o melhor para você.';
+  const displayQuote = barberQuote || 'Não sou o melhor, mas sou o melhor para você.';
 
   return (
     <section
@@ -36,7 +34,7 @@ const About: React.FC = () => {
               {/* Barber Photo - Mobile */}
               <div className="w-full lg:hidden relative">
                 {hasPhoto ? (
-                  <div className="relative aspect-[3/4] max-h-[350px] rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl mx-auto">
+                  <div className="relative aspect-[3/4] max-h-[350px] rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl mx-auto bg-[#1a1a1a]">
                     <img
                       src={barberPhoto}
                       alt="Barbeiro"
@@ -71,7 +69,7 @@ const About: React.FC = () => {
             {/* Barber Photo - Desktop */}
             <div className="hidden lg:block w-full lg:w-[55%] relative lg:ml-[100px]">
               {hasPhoto ? (
-                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden border border-white/[0.05] shadow-2xl">
+                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden border border-white/[0.05] shadow-2xl bg-[#1a1a1a]">
                   <img
                     src={barberPhoto}
                     alt="Barbeiro"
