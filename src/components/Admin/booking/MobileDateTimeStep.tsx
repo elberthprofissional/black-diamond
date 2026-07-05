@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { getTimeSlotsForDate, isTimeOccupied } from '../../../lib/utils';
 import type { Booking, BookingWithClient, Service } from '../../../types';
 
@@ -34,6 +35,14 @@ export default function MobileDateTimeStep({
   totalPrice = 0,
   clientName = '',
 }: MobileDateTimeStepProps) {
+  const [timeSlots, setTimeSlots] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (selectedDate) {
+      getTimeSlotsForDate(selectedDate).then(setTimeSlots);
+    }
+  }, [selectedDate]);
+
   const isOccupied = (time: string) => {
     const toCheck = rescheduleBooking
       ? existingBookings.filter(b => b.id !== rescheduleBooking.id)
@@ -132,7 +141,7 @@ export default function MobileDateTimeStep({
           <div className="space-y-2.5">
             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Horários Disponíveis</span>
             <div className="grid grid-cols-4 gap-2">
-              {getTimeSlotsForDate(selectedDate).map(time => {
+              {timeSlots.map(time => {
                 const occupied = isOccupied(time);
                 const isSelected = selectedTime === time;
                 return (

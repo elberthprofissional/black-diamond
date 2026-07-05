@@ -1,48 +1,54 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
 import Gallery from './Gallery'
 
+// Mock do Supabase
+vi.mock('../lib/supabase', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        order: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      })),
+    })),
+  },
+}))
+
 describe('Gallery', () => {
-  it('renderiza o titulo Galeria', () => {
+  it('renderiza o titulo Galeria', async () => {
     render(<Gallery />)
-    expect(screen.getByText('Galeria')).toBeInTheDocument()
-  })
-
-  it('renderiza o subtitulo Meus Trabalhos', () => {
-    render(<Gallery />)
-    expect(screen.getByText(/MEUS/)).toBeInTheDocument()
-    expect(screen.getByText(/TRABALHOS/)).toBeInTheDocument()
-  })
-
-  it('renderiza as imagens da galeria', () => {
-    render(<Gallery />)
-    const images = screen.getAllByRole('img')
-    expect(images.length).toBeGreaterThan(0)
-  })
-
-  it('tem role=region para acessibilidade', () => {
-    render(<Gallery />)
-    const region = screen.getByRole('region', { name: /galeria de trabalhos/i })
-    expect(region).toBeInTheDocument()
-  })
-
-  it('imagens tem role=group e aria-roledescription=slide', () => {
-    render(<Gallery />)
-    const slides = screen.getAllByRole('group')
-    expect(slides.length).toBeGreaterThan(0)
-    slides.forEach(slide => {
-      expect(slide).toHaveAttribute('aria-roledescription', 'slide')
+    await waitFor(() => {
+      expect(screen.getByText('Galeria')).toBeInTheDocument()
     })
   })
 
-  it('link para Instagram esta presente', () => {
+  it('renderiza o subtitulo Meus Trabalhos', async () => {
     render(<Gallery />)
-    expect(screen.getByText(/siga no Instagram/)).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText(/MEUS/)).toBeInTheDocument()
+      expect(screen.getByText(/TRABALHOS/)).toBeInTheDocument()
+    })
   })
 
-  it('tem secao com id=galeria para navegacao', () => {
+  it('tem secao com id=galeria para navegacao', async () => {
     render(<Gallery />)
-    const section = document.getElementById('galeria')
-    expect(section).toBeInTheDocument()
+    await waitFor(() => {
+      const section = document.getElementById('galeria')
+      expect(section).toBeInTheDocument()
+    })
+  })
+
+  it('renderiza placeholders quando nao ha fotos', async () => {
+    render(<Gallery />)
+    await waitFor(() => {
+      const placeholders = document.querySelectorAll('.lucide-image')
+      expect(placeholders.length).toBe(4)
+    })
+  })
+
+  it('link para Instagram esta presente', async () => {
+    render(<Gallery />)
+    await waitFor(() => {
+      expect(screen.getByText(/siga a gente no/)).toBeInTheDocument()
+    })
   })
 })

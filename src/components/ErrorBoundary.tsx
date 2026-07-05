@@ -21,7 +21,12 @@ class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error('ErrorBoundary caught:', error, info.componentStack);
+    // Log error details for debugging
+    console.error('[ErrorBoundary] Error:', error.message);
+    console.error('[ErrorBoundary] Component stack:', info.componentStack);
+
+    // In production, you could send this to an error reporting service
+    // Example: errorReporter.captureException(error, { extra: { componentStack: info.componentStack } });
   }
 
   render() {
@@ -45,6 +50,11 @@ class ErrorBoundary extends React.Component<Props, State> {
               <p className="text-sm text-zinc-500 leading-relaxed">
                 Ocorreu um erro inesperado. Tente recarregar a página.
               </p>
+              {import.meta.env.DEV && this.state.error && (
+                <p className="text-xs text-zinc-600 mt-4 p-3 bg-zinc-900 rounded-lg text-left overflow-auto max-h-32">
+                  {this.state.error.message}
+                </p>
+              )}
             </div>
             <button
               onClick={() => window.location.reload()}

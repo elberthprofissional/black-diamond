@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { getTimeSlotsForDate, isTimeOccupied } from '../../../lib/utils';
 import type { Booking, Service } from '../../../types';
 
@@ -40,6 +41,14 @@ export default function DesktopDateTimeStep({
   totalPrice = 0,
   clientName = '',
 }: DesktopDateTimeStepProps) {
+  const [timeSlots, setTimeSlots] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (selectedDate) {
+      getTimeSlotsForDate(selectedDate).then(setTimeSlots);
+    }
+  }, [selectedDate]);
+
   const isOccupied = (time: string) => {
     const toCheck = rescheduleBookingId
       ? existingBookings.filter(b => b.id !== rescheduleBookingId)
@@ -140,7 +149,7 @@ export default function DesktopDateTimeStep({
         <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Horários</span>
         {selectedDate ? (
           <div className="grid grid-cols-5 gap-2">
-            {getTimeSlotsForDate(selectedDate).map(time => {
+            {timeSlots.map(time => {
               const occupied = isOccupied(time);
               const isSelected = selectedTime === time;
               return (

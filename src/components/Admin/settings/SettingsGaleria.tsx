@@ -1,348 +1,284 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useToast } from '../../../hooks/useToast';
+import React from 'react';
 import ToastNotification from '../shared/ToastNotification';
-import { supabase } from '../../../lib/supabase';
-import { Camera, Trash2, ArrowUp, ArrowDown, Image as ImageIcon } from 'lucide-react';
+import { ImageIcon, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-interface GalleryImage {
-  id: string;
-  image_url: string;
-  alt: string;
-  position: number;
-}
+import { useGallery } from '../../../hooks/useGallery';
+import GalleryPreview from './gallery/GalleryPreview';
+import GalleryDeleteModal from './gallery/GalleryDeleteModal';
+import GalleryMoveModal from './gallery/GalleryMoveModal';
 
 interface SettingsGaleriaProps {
   onBack?: () => void;
 }
 
-const MAX_PHOTOS = 8;
-
 const SettingsGaleria: React.FC<SettingsGaleriaProps> = () => {
-  const { toast, showSuccess, showError } = useToast();
-  const [images, setImages] = useState<GalleryImage[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [deleting, setDeleting] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const loadImages = async () => {
-    const { data } = await supabase
-      .from('gallery_images')
-      .select('*')
-      .order('position', { ascending: true });
-
-    if (data) setImages(data);
-  };
-
-  useEffect(() => {
-    loadImages();
-  }, []);
-
-  const convertToWebP = (file: File): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const maxSize = 1200;
-        let { width, height } = img;
-
-        if (width > maxSize || height > maxSize) {
-          if (width > height) {
-            height = (height / width) * maxSize;
-            width = maxSize;
-          } else {
-            width = (width / height) * maxSize;
-            height = maxSize;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Could not get canvas context'));
-          return;
-        }
-
-        ctx.drawImage(img, 0, 0, width, height);
-
-        canvas.toBlob(
-          (blob) => {
-            URL.revokeObjectURL(url);
-            if (blob) resolve(blob);
-            else reject(new Error('Failed to convert to WebP'));
-          },
-          'image/webp',
-          0.85
-        );
-      };
-
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject(new Error('Failed to load image'));
-      };
-
-      img.src = url;
-    });
-  };
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      showError('Envie apenas imagens');
-      return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-      showError('Imagem muito grande (max 2MB)');
-      return;
-    }
-
-    if (images.length >= MAX_PHOTOS) {
-      showError(`Máximo de ${MAX_PHOTOS} fotos`);
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const webpBlob = await convertToWebP(file);
-      const filePath = `gallery/${Date.now()}.webp`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, webpBlob, { contentType: 'image/webp' });
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        showError(`Erro: ${uploadError.message}`);
-        return;
-      }
-
-      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
-
-      if (urlData?.publicUrl) {
-        const imageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-        const nextPosition = images.length > 0 ? Math.max(...images.map((i) => i.position)) + 1 : 0;
-
-        const { error: insertError } = await supabase.from('gallery_images').insert({
-          image_url: imageUrl,
-          alt: '',
-          position: nextPosition,
-        });
-
-        if (insertError) {
-          showError('Erro ao salvar no banco');
-          return;
-        }
-
-        showSuccess('Foto adicionada!');
-        loadImages();
-      }
-    } catch (err) {
-      console.error('Upload catch:', err);
-      showError('Erro ao enviar imagem');
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    setDeleting(id);
-    try {
-      const { error } = await supabase.from('gallery_images').delete().eq('id', id);
-
-      if (error) {
-        showError('Erro ao deletar');
-        return;
-      }
-
-      showSuccess('Foto removida!');
-      setImages((prev) => prev.filter((i) => i.id !== id));
-    } catch {
-      showError('Erro ao deletar');
-    } finally {
-      setDeleting(null);
-      setConfirmDelete(null);
-    }
-  };
-
-  const handleMove = async (id: string, direction: 'up' | 'down') => {
-    const idx = images.findIndex((i) => i.id === id);
-    if (idx === -1) return;
-
-    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (swapIdx < 0 || swapIdx >= images.length) return;
-
-    const newImages = [...images];
-    const tempPos = newImages[idx].position;
-    newImages[idx].position = newImages[swapIdx].position;
-    newImages[swapIdx].position = tempPos;
-
-    // Swap in array
-    [newImages[idx], newImages[swapIdx]] = [newImages[swapIdx], newImages[idx]];
-
-    setImages(newImages);
-
-    // Update in database
-    await supabase
-      .from('gallery_images')
-      .update({ position: newImages[idx].position })
-      .eq('id', newImages[idx].id);
-
-    await supabase
-      .from('gallery_images')
-      .update({ position: newImages[swapIdx].position })
-      .eq('id', newImages[swapIdx].id);
-  };
+  const g = useGallery();
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-6 overflow-hidden">
+      {/* Hidden file input */}
+      <input ref={g.fileInputRef} type="file" accept="image/*" onChange={g.handleUpload} className="hidden" />
+
+      {/* Counter + Add Button */}
       <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-white font-bold text-sm">Galeria</h3>
-          <p className="text-zinc-500 text-xs mt-1">
-            {images.length}/{MAX_PHOTOS} fotos
-          </p>
-        </div>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading || images.length >= MAX_PHOTOS}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {uploading ? (
-            <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-          ) : (
-            <Camera size={14} />
-          )}
-          {uploading ? 'Enviando...' : 'Adicionar'}
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleUpload}
-          className="hidden"
-        />
-      </div>
-
-      {/* Empty State */}
-      {images.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 border border-dashed border-white/10 rounded-2xl">
-          <ImageIcon size={48} className="text-zinc-700 mb-4" />
-          <p className="text-zinc-500 text-sm">Nenhuma foto na galeria</p>
-          <p className="text-zinc-600 text-xs mt-1">Clique em "Adicionar" para começar</p>
-        </div>
-      )}
-
-      {/* Image Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {images.map((image, index) => (
-          <div
-            key={image.id}
-            className="relative group aspect-square bg-[#1a1a1a] rounded-xl overflow-hidden border border-white/[0.04]"
-          >
-            <img
-              src={image.image_url}
-              alt={image.alt || `Foto ${index + 1}`}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-              <div className="flex items-center gap-2">
-                {/* Move Up */}
-                <button
-                  onClick={() => handleMove(image.id, 'up')}
-                  disabled={index === 0}
-                  className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                  aria-label="Mover para cima"
-                >
-                  <ArrowUp size={14} className="text-white" />
-                </button>
-
-                {/* Move Down */}
-                <button
-                  onClick={() => handleMove(image.id, 'down')}
-                  disabled={index === images.length - 1}
-                  className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                  aria-label="Mover para baixo"
-                >
-                  <ArrowDown size={14} className="text-white" />
-                </button>
-
-                {/* Delete */}
-                <button
-                  onClick={() => setConfirmDelete(image.id)}
-                  disabled={deleting === image.id}
-                  className="w-8 h-8 bg-red-500/20 hover:bg-red-500/40 rounded-lg flex items-center justify-center transition-all cursor-pointer"
-                  aria-label="Deletar foto"
-                >
-                  {deleting === image.id ? (
-                    <div className="w-3 h-3 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin" />
-                  ) : (
-                    <Trash2 size={14} className="text-red-400" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Position Badge */}
-            <div className="absolute top-2 left-2 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center">
-              <span className="text-[10px] text-white font-medium">{index + 1}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {confirmDelete && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4"
-            onClick={() => setConfirmDelete(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
-              className="bg-[#1a1a1a] rounded-2xl p-6 max-w-sm w-full border border-white/[0.06]"
-              onClick={(e) => e.stopPropagation()}
+        <p className="text-zinc-500 text-xs">{g.images.length}/{g.MAX_PHOTOS} fotos</p>
+        <div className="flex items-center gap-2">
+          {g.images.length > 0 && (
+            <button
+              onClick={() => { g.setSelectionMode(!g.selectionMode); if (g.selectionMode) g.clearSelection(); }}
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
+                g.selectionMode
+                  ? 'bg-[#C5A059]/20 text-[#C5A059]'
+                  : 'bg-white/[0.04] text-zinc-400 hover:text-white hover:bg-white/[0.08]'
+              }`}
             >
-              <h4 className="text-white font-bold text-sm mb-2">Deletar foto?</h4>
-              <p className="text-zinc-500 text-xs mb-6">Essa ação não pode ser desfeita.</p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setConfirmDelete(null)}
-                  className="flex-1 px-4 py-3 bg-white/[0.06] hover:bg-white/[0.1] text-white text-xs font-medium rounded-xl transition-all cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={() => handleDelete(confirmDelete)}
-                  disabled={deleting !== null}
-                  className="flex-1 px-4 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-bold rounded-xl transition-all cursor-pointer"
-                >
-                  {deleting ? 'Deletando...' : 'Deletar'}
-                </button>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 11 12 14 22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
+              {g.selectionMode ? 'Sair da seleção' : 'Selecionar'}
+            </button>
+          )}
+          <button
+            onClick={g.openFilePicker}
+            disabled={g.uploading}
+            className="px-3 py-1.5 bg-[#C5A059] hover:bg-[#A68233] text-black text-[11px] font-bold rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {g.uploading ? 'Enviando...' : 'Adicionar'}
+          </button>
+        </div>
+      </div>
+
+      {/* Uploading progress bar */}
+      <AnimatePresence>
+        {g.uploading && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+            <div className="bg-[#1a1a1a] rounded-xl p-4 border border-[#C5A059]/10">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-5 h-5 border-2 border-[#C5A059]/30 border-t-[#C5A059] rounded-full animate-spin" />
+                <span className="text-xs text-zinc-400">Enviando a foto...</span>
               </div>
-            </motion.div>
+              <div className="h-1 bg-white/[0.05] rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-[#C5A059] to-[#A68233] rounded-full"
+                  initial={{ width: '0%' }}
+                  animate={{ width: '100%' }}
+                  transition={{ duration: 2, ease: 'easeInOut' }}
+                />
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <ToastNotification toast={toast} />
+      {/* Empty State */}
+      {g.images.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-16 h-16 rounded-full bg-white/[0.03] flex items-center justify-center mb-4">
+            <ImageIcon size={28} className="text-zinc-700" />
+          </div>
+          <p className="text-zinc-500 text-sm font-medium mb-1">Nenhuma foto na galeria</p>
+          <p className="text-zinc-600 text-xs">Clique em "Adicionar" para comecar</p>
+        </div>
+      )}
+
+      {/* Image Grid */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        {g.images.map((image, index) => {
+          const isSelected = g.selectedImages.includes(image.id);
+          return (
+            <div
+              key={image.id}
+              className={`relative group aspect-square bg-[#1a1a1a] rounded-xl overflow-hidden border min-w-0 transition-all duration-200 ${
+                isSelected ? 'border-[#C5A059] ring-2 ring-[#C5A059]/30' : 'border-white/[0.04]'
+              }`}
+              onMouseDown={() => g.handleLongPressStart(image.id)}
+              onMouseUp={g.handleLongPressEnd}
+              onMouseLeave={g.handleLongPressEnd}
+              onMouseMove={g.handleLongPressMove}
+              onTouchStart={() => g.handleLongPressStart(image.id)}
+              onTouchEnd={g.handleLongPressEnd}
+              onTouchMove={g.handleLongPressMove}
+            >
+              <img
+                src={image.image_url}
+                alt={image.alt || `Foto ${index + 1}`}
+                className={`w-full h-full object-cover transition-all duration-200 ${isSelected ? 'brightness-75' : ''}`}
+                loading="lazy"
+                draggable={false}
+              />
+
+              {/* Selection Check - Desktop only */}
+              {(g.selectedImages.length > 0 || g.selectionMode) && (
+                <button
+                  onClick={(e) => g.toggleSelect(image.id, e)}
+                  className="hidden sm:flex absolute top-2 right-2 z-30 w-6 h-6 rounded-full items-center justify-center transition-all cursor-pointer"
+                  style={{
+                    background: isSelected ? '#C5A059' : 'rgba(0,0,0,0.5)',
+                    border: isSelected ? 'none' : '2px solid rgba(255,255,255,0.3)',
+                  }}
+                >
+                  {isSelected && (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </button>
+              )}
+
+              {/* Click to preview */}
+              <button
+                onClick={(e) => {
+                  if (g.selectionMode) { g.toggleSelect(image.id, e); }
+                  else if (!g.longPressMenu && g.selectedImages.length === 0) {
+                    g.setPreviewImage(image);
+                    g.setPreviewIndex(index);
+                  }
+                }}
+                className="absolute inset-0 z-10 cursor-pointer"
+                aria-label={`Ver foto ${index + 1}`}
+              />
+
+              {/* Long Press Menu Overlay */}
+              <AnimatePresence>
+                {g.longPressMenu === image.id && (
+                  <motion.div
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="absolute inset-0 z-20 bg-black/80 flex flex-col items-center justify-center gap-2 p-2"
+                    onClick={(e) => { e.stopPropagation(); g.setLongPressMenu(null); }}
+                  >
+                    <button onClick={(e) => { e.stopPropagation(); g.handleMove(image.id, 'up'); g.setLongPressMenu(null); }}
+                      disabled={index === 0}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 bg-white/10 hover:bg-white/15 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">
+                      <ArrowUp size={14} className="text-white" />
+                      <span className="text-white text-xs font-medium">Cima</span>
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); g.handleMove(image.id, 'down'); g.setLongPressMenu(null); }}
+                      disabled={index === g.images.length - 1}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 bg-white/10 hover:bg-white/15 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">
+                      <ArrowDown size={14} className="text-white" />
+                      <span className="text-white text-xs font-medium">Baixo</span>
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); g.setConfirmDelete(image.id); g.setLongPressMenu(null); }}
+                      disabled={g.deleting === image.id}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-500/20 hover:bg-red-500/30 rounded-xl transition-all cursor-pointer">
+                      {g.deleting === image.id ? (
+                        <div className="w-3 h-3 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin" />
+                      ) : (<Trash2 size={14} className="text-red-400" />)}
+                      <span className="text-red-400 text-xs font-medium">Excluir</span>
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); g.setLongPressMenu(null); }}
+                      className="w-full py-2.5 text-zinc-500 text-xs font-medium hover:text-white transition-all cursor-pointer">
+                      Cancelar
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Position Badge */}
+              <div className="absolute top-2 left-2 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center">
+                <span className="text-[10px] text-white font-medium">{index + 1}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Bulk Selection Toolbar - Desktop */}
+      <AnimatePresence>
+        {(g.selectedImages.length > 0 || g.selectionMode) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            className="hidden sm:block fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]"
+          >
+            <div
+              className="flex items-center gap-3 px-5 py-3 rounded-full border border-white/[0.1] shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
+              style={{ background: 'rgba(25,25,25,0.85)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
+            >
+              <span className="text-zinc-400 text-xs font-medium mr-1">
+                {g.selectedImages.length > 0
+                  ? `${g.selectedImages.length} selecionada${g.selectedImages.length > 1 ? 's' : ''}`
+                  : 'Clique nas fotos para selecionar'}
+              </span>
+              {g.selectedImages.length > 0 && (
+                <>
+                  <div className="w-px h-5 bg-white/10" />
+                  <button onClick={() => { if (g.selectedImages.length === 1) { g.setMoveTarget(1); g.setShowMoveModal(true); } }}
+                    disabled={g.selectedImages.length !== 1}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/[0.08] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
+                    <span className="text-zinc-300 text-xs">Mover</span>
+                  </button>
+                  <button onClick={() => g.setConfirmBulkDelete(true)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-red-500/15 transition-all cursor-pointer group">
+                    <Trash2 size={14} className="text-zinc-400 group-hover:text-red-400 transition-colors" />
+                    <span className="text-zinc-300 text-xs group-hover:text-red-400 transition-colors">Excluir</span>
+                  </button>
+                  <div className="w-px h-5 bg-white/10" />
+                </>
+              )}
+              <button onClick={g.clearSelection}
+                className="px-3 py-2 rounded-xl hover:bg-white/[0.08] transition-all cursor-pointer">
+                <span className="text-zinc-500 text-xs">{g.selectedImages.length > 0 ? 'Cancelar' : 'Fechar'}</span>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Preview Modal */}
+      <GalleryPreview
+        previewImage={g.previewImage}
+        previewIndex={g.previewIndex}
+        images={g.images}
+        onClose={() => g.setPreviewImage(null)}
+        onDelete={(id) => { g.setConfirmDelete(id); }}
+        onMove={() => { g.setMoveTarget((g.previewImage?.position || 0) + 1); g.setShowMoveModal(true); }}
+        onPrev={g.goToPrevPreview}
+        onNext={g.goToNextPreview}
+        touchStart={g.touchStart}
+        onTouchStart={(e: React.TouchEvent) => g.setTouchStart(e.touches[0].clientX)}
+        onTouchEnd={(e: React.TouchEvent) => {
+          if (g.touchStart === null) return;
+          const diff = g.touchStart - e.changedTouches[0].clientX;
+          if (Math.abs(diff) > 50) {
+            if (diff > 0) g.goToNextPreview();
+            else g.goToPrevPreview();
+          }
+          g.setTouchStart(null);
+        }}
+      />
+
+      {/* Delete Modals */}
+      <GalleryDeleteModal
+        show={g.confirmDelete !== null}
+        deleting={g.deleting}
+        isBulk={false}
+        bulkCount={0}
+        onConfirm={() => g.confirmDelete && g.handleDelete(g.confirmDelete)}
+        onCancel={() => g.setConfirmDelete(null)}
+      />
+      <GalleryDeleteModal
+        show={g.confirmBulkDelete}
+        deleting={g.deleting}
+        isBulk={true}
+        bulkCount={g.selectedImages.length}
+        onConfirm={g.handleBulkDelete}
+        onCancel={() => g.setConfirmBulkDelete(false)}
+      />
+
+      {/* Move Modal */}
+      <GalleryMoveModal
+        show={g.showMoveModal}
+        moveTarget={g.moveTarget}
+        totalImages={g.images.length}
+        currentPosition={g.previewImage?.position || 0}
+        onTargetChange={g.setMoveTarget}
+        onConfirm={() => g.handleMoveToPosition(g.moveTarget)}
+        onCancel={() => g.setShowMoveModal(false)}
+      />
+
+      <ToastNotification toast={g.toast} />
     </div>
   );
 };

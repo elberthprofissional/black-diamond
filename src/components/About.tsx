@@ -1,13 +1,17 @@
 import React from 'react';
+import { User } from 'lucide-react';
 import { useBarberSettings } from '../contexts/BarberSettingsContext';
 
 const About: React.FC = () => {
-  const { barberPhoto, barberBio } = useBarberSettings();
+  const { barberPhoto, barberBio, barberName, barberQuote } = useBarberSettings();
 
-  const displayPhoto = barberPhoto || '/assets/tato.webp';
+  const hasPhoto = !!barberPhoto;
   const displayBio =
     barberBio ||
     'Acredito que a barbearia é um dos poucos lugares onde o homem pode relaxar de verdade. Por isso, busco oferecer um atendimento tranquilo, com atenção aos detalhes e respeito a cada cliente.';
+  const displayQuote =
+    barberQuote ||
+    'Não sou o melhor, mas sou o melhor para você.';
 
   return (
     <section
@@ -25,20 +29,30 @@ const About: React.FC = () => {
                 </h3>
                 <h2 className="text-5xl sm:text-6xl md:text-8xl font-bebas text-white leading-none uppercase tracking-widest">
                   PRAZER, <br />
-                  <span className="font-serif italic font-light">Tato.</span>
+                  <span className="font-serif italic font-light">{barberName || 'Tato'}</span>
                 </h2>
               </div>
 
               {/* Barber Photo - Mobile */}
               <div className="w-full lg:hidden relative">
-                <div className="relative aspect-[3/4] max-h-[350px] rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl mx-auto">
-                  <img
-                    src={displayPhoto}
-                    alt="Black Diamond Barbearia"
-                    className="w-full h-full object-cover object-top"
-                    loading="lazy"
-                  />
-                </div>
+                {hasPhoto ? (
+                  <div className="relative aspect-[3/4] max-h-[350px] rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl mx-auto">
+                    <img
+                      src={barberPhoto}
+                      alt="Barbeiro"
+                      className="w-full h-full object-cover object-top"
+                      loading="lazy"
+                    />
+                  </div>
+                ) : (
+                  <div className="relative aspect-[3/4] max-h-[350px] rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl mx-auto bg-[#151515] flex items-center justify-center">
+                    <div className="flex items-center justify-center">
+                      <div className="w-20 h-20 rounded-full bg-white/[0.02] flex items-center justify-center ring-1 ring-white/[0.06]">
+                        <User size={32} className="text-zinc-600" />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-8 max-w-lg mx-auto lg:mx-0">
@@ -48,22 +62,32 @@ const About: React.FC = () => {
 
                 <div className="pt-6 border-t border-white/[0.05]">
                   <p className="text-base md:text-3xl font-serif italic text-[#D4AF37] leading-relaxed">
-                    "Não sou o melhor, mas sou o melhor para você."
+                    "{displayQuote}"
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Barber Photo - Desktop */}
-            <div className="hidden lg:block w-full lg:w-1/2 relative">
-              <div className="relative aspect-[3/4] rounded-3xl overflow-hidden border border-white/[0.05] shadow-2xl">
-                <img
-                  src={displayPhoto}
-                  alt="Black Diamond Barbearia"
-                  className="w-full h-full object-cover object-top"
-                  loading="lazy"
-                />
-              </div>
+            <div className="hidden lg:block w-full lg:w-[55%] relative lg:ml-[100px]">
+              {hasPhoto ? (
+                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden border border-white/[0.05] shadow-2xl">
+                  <img
+                    src={barberPhoto}
+                    alt="Barbeiro"
+                    className="w-full h-full object-cover object-top scale-110"
+                    loading="lazy"
+                  />
+                </div>
+              ) : (
+                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden border border-white/[0.05] shadow-2xl bg-[#151515] flex items-center justify-center">
+                  <div className="flex items-center justify-center">
+                    <div className="w-28 h-28 rounded-full bg-white/[0.02] flex items-center justify-center ring-1 ring-white/[0.06]">
+                      <User size={48} className="text-zinc-600" />
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="absolute -bottom-8 -right-8 w-32 h-px bg-[#C5A059]/30" />
             </div>
           </div>

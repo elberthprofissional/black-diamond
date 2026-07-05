@@ -2,7 +2,7 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, PWA, notificacoes push e integracao com Google Calendar.
 
-**Versao:** 3.0.0 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.5.0 | **Ultima atualizacao:** Julho 2026
 
 ---
 
@@ -28,6 +28,8 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 18. [Google Calendar Auto-Sync](#18-google-calendar-auto-sync)
 19. [Sistema de Mensalista](#19-sistema-de-mensalista)
 20. [Skeleton Loading](#20-skeleton-loading)
+21. [Sistema de Galeria](#21-sistema-de-galeria)
+22. [Layout Inteligente da Galeria](#22-layout-inteligente-da-galeria)
 
 ---
 
@@ -44,8 +46,13 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 - Painel admin com agenda do dia, semana, clientes e relatorios
 - Notificacoes push para agendamentos em tempo real
 - Sincronizacao automatica com Google Calendar
-- PWA instalavel na tela inicial do celular
-- Custo operacional zero (Vercel + Supabase Free Tier)
+- PWA instalavel na tela inicial do celular    - Galeria editavel com lightbox e delete pelo admin
+    - Conversao automatica para WebP em uploads
+    - Menu de foto estilo Instagram (alterar/remover foto)
+    - Placeholder de perfil generico (sem foto fixa do Tato)
+    - Acessibilidade: focus-visible, contraste aprimorado, skip-link
+    - Projeto universal: template pronto para qualquer barbearia
+    - Custo operacional zero (Vercel + Supabase Free Tier)
 
 ---
 
@@ -67,6 +74,18 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 ---
 
 ## 3. Arquitetura do Projeto
+
+### Visao Geral do Projeto
+O Black Diamond foi projetado para ser **universal** — pronto para qualquer barbearia. O projeto inclui:
+- `DEPLOY_GUIDE.md` — Guia passo a passo para deploy em novas barbearias
+- `setup-barbearia.js` — Script interativo para configurar novo barbeiro (pergunta dados e gera variaveis)
+- `estrutura_barbearia.sql` — Schema universal do banco (sem nomes fixos de barbeiro)
+- Placeholder generico na secao About (sem foto fixa do Tato)
+
+### Filosofia "Template de Barbearia"
+> O projeto e feito para ser **replicado**. Cada barbeiro tem seu proprio deploy (Vercel + Supabase), seu proprio dominio, e configura tudo pelo painel. Voce so precisa mudar endereco, mapa e logo — ~10 linhas de codigo.
+
+---
 
 ### Fluxo de dados
 ```
@@ -101,6 +120,7 @@ Service Worker → Notificacao no celular do admin
 - `ToastNotification` — Sistema de notificacoes
 - `CompleteModal` / `DeleteModal` / `UnblockModal` — Modais de acao
 - `DashboardHeader` — Card de proximo cliente e lucro do dia
+- `SettingsGaleria` — Gerenciamento de galeria com multi-select e preview
 
 ### Componentes de agendamento (Booking)
 - `ServiceStep` — Selecao de servicos (desktop + mobile)
@@ -108,6 +128,24 @@ Service Worker → Notificacao no celular do admin
 - `DataStep` — Formulario nome + WhatsApp
 - `ReviewStep` — Card de resumo do agendamento
 - `SuccessStep` — Tela de confirmacao
+
+### Placeholder de Foto
+Quando o barbeiro ainda nao fez upload da foto de perfil, o sistema exibe um **placeholder minimalista**:
+- Circulo com ring sutil (`ring-1 ring-white/[0.06]`)
+- Icone `User` do Lucide em tom neutro (`text-zinc-600`)
+- Fundo escuro `bg-[#151515]`
+- Sem texto, sem foto fixa — generico e elegante
+
+### Menu de Foto (Instagram Style)
+No Settings > Conta, ao clicar na foto de perfil abre um popover com opcoes:
+- **Alterar foto de perfil** — Abre o seletor de arquivos
+- **Remover foto** — Aparece apenas quando ja existe foto (em vermelho)
+- **Cancelar** — Fecha o menu
+- Fechamento ao clicar fora (backdrop)
+- Animacao suave com Framer Motion (spring)
+- Icones consistentes com o Lucide (Camera, Trash2, X)
+
+---
 
 ### Hooks customizados
 - `useBookings` — Carregamento de bookings com cache
@@ -164,7 +202,10 @@ Service Worker → Notificacao no celular do admin
 - **PWA:** Instalacao na tela inicial com guia visual
 
 ### Configuracoes (`/admin/profile?tab=settings`)
-- **Conta:** Nome do barbeiro e WhatsApp configuraveis pelo painel
+- **Conta:** Nome, WhatsApp, Bio, Frase, Instagram, foto de perfil com menu estilo Instagram (alterar/remover)
+- **Galeria:** Upload, delete, reordenacao e multi-select de fotos do portfolio (max 8 fotos)
+- **Horarios:** Configuracao de dias e horarios de funcionamento
+- **Servicos:** Gerenciamento de servicos e precos
 - **Notificacoes:** Toggle de notificacoes push
 - **Zona de Seguranca:** Resetar financeiro e deletar clientes
 - **Layout Desktop:** Sidebar secundaria estilo GitHub com icones Lucide
@@ -174,7 +215,7 @@ Service Worker → Notificacao no celular do admin
 
 ## 5. Schema do Banco de Dados
 
-Schema completo: `estrutura_black_diamond.sql`
+Schema completo: `estrutura_barbearia.sql`
 
 ### Tabelas
 
@@ -223,6 +264,11 @@ key TEXT PK, value TEXT, created_at TIMESTAMPTZ
 user_id UUID PK (FK para auth.users), created_at TIMESTAMPTZ
 ```
 
+**gallery_images** — Fotos da galeria do portfolio
+```sql
+id UUID PK, image_url TEXT, alt TEXT, position INTEGER, created_at TIMESTAMPTZ
+```
+
 ### Indexes
 - `idx_no_double_booking` — Unique em (booking_date, booking_time) WHERE status != 'cancelled'
 - `idx_bookings_client_id` — Index em (client_id) para queries por cliente
@@ -259,6 +305,7 @@ user_id UUID PK (FK para auth.users), created_at TIMESTAMPTZ
 - **reviews:** Leitura publica, insercao publica, gerenciamento admin
 - **push_subscriptions:** Apenas admin autenticado
 - **admin_users:** Apenas admin pode ver/modificar a lista de admins
+- **gallery_images:** Leitura publica, gerenciamento apenas admin autenticado
 
 ### Gerenciamento de Admins
 O sistema usa a tabela `admin_users` para controlar quem e admin. Para adicionar/remover admins, use os comandos SQL:
@@ -310,7 +357,7 @@ npm install
 ### Passo 2: Configurar Supabase
 1. Crie um projeto no [supabase.com](https://supabase.com)
 2. Acesse o SQL Editor
-3. Cole e execute o conteudo de `estrutura_black_diamond.sql`
+3. Cole e execute o conteudo de `estrutura_barbearia.sql`
 4. Acesse Authentication > Users e crie o usuario admin
 
 ### Passo 3: Configurar variaveis de ambiente
@@ -454,7 +501,7 @@ Black Diamond/
 │   └── workflows/
 │       └── ci.yml              # Pipeline de CI/CD
 ├── public/
-│   ├── assets/                 # Imagens (logo, galeria, fundos)
+│   ├── assets/                 # Imagens (logo, hero, fundos — sem fotos de barbeiro/galeria)
 │   ├── manifest.json           # Configuracao PWA
 │   └── sw.js                   # Service Worker (cache offline)
 ├── src/
@@ -488,6 +535,12 @@ Black Diamond/
 │   │   │       ├── ToastNotification.tsx
 │   │   │       ├── UnblockModal.tsx
 │   │   │       └── WhatsAppReminderButton.tsx
+│   │   │   └── settings/       # Configuracoes do admin
+│   │   │       ├── SettingsList.tsx
+│   │   │       ├── SettingsConta.tsx
+│   │   │       ├── SettingsGaleria.tsx
+│   │   │       ├── SettingsNotificacoes.tsx
+│   │   │       └── SettingsDados.tsx
 │   │   ├── Booking/            # Componentes de agendamento
 │   │   │   ├── DataStep.tsx
 │   │   │   ├── DateTimeStep.tsx
@@ -498,6 +551,7 @@ Black Diamond/
 │   │   ├── ErrorBoundary.tsx
 │   │   ├── Footer.tsx
 │   │   ├── Gallery.tsx
+│   │   ├── GalleryLightbox.tsx
 │   │   ├── Hero.tsx
 │   │   ├── Location.tsx
 │   │   ├── Navbar.tsx
@@ -544,7 +598,9 @@ Black Diamond/
 │   └── functions/
 │       ├── send-push/          # Edge function de notificacao push
 │       └── sync-google-calendar/ # Edge function de sync com Google Calendar
-├── estrutura_black_diamond.sql # Schema completo do banco
+├── estrutura_barbearia.sql    # Schema completo do banco (generico)
+├── DEPLOY_GUIDE.md             # Guia passo a passo para deploy em novas barbearias
+├── setup-barbearia.js          # Script interativo para configurar novo barbeiro
 ├── vercel.json                 # Configuracao de deploy + headers de seguranca
 ├── package.json
 ├── vite.config.ts
@@ -602,9 +658,10 @@ vi.mock('react-router-dom', () => ({
 
 ### Cobertura atual
 
-- 30 arquivos de teste
-- 224+ testes
+- 35 arquivos de teste
+- 304+ testes
 - Hooks, Utils, API, Componentes e Paginas cobertos
+- CI/CD com GitHub Actions: lint → test → typecheck → build
 
 ---
 
@@ -663,23 +720,43 @@ vi.mock('react-router-dom', () => ({
 - [x] PWA instalavel com guia de instalacao iOS
 - [x] CI/CD com GitHub Actions
 - [x] Headers de seguranca (CSP, X-Frame-Options, etc.)
-- [x] Configuracoes do barbeiro (nome, WhatsApp, foto de perfil)
+- [x] Configuracoes do barbeiro (nome, WhatsApp, Bio, Frase, Instagram, foto)
+- [x] Menu de foto estilo Instagram (alterar/remover com popover animado)
 - [x] Lembretes WhatsApp com modelos personalizaveis
+- [x] Horarios de funcionamento configuraveis pelo admin
 - [x] Reset financeiro e deletar clientes
 - [x] Layout desktop com stepper profissional
 - [x] Layout mobile estilo Instagram (tela cheia)
 - [x] Skeleton loading nas paginas principais
+- [x] Acessibilidade: focus-visible, contraste, skip-link, aria-live
 - [x] Atualizacao em tempo real (Context API)
 - [x] Sistema de mensalista (servicos exclusos, dias restritos)
 - [x] Busca de clientes otimizada (so clientes ativos)
 - [x] Stepper elegante com indicador de progresso
+- [x] Galeria editavel com upload, delete, reordenacao e multi-select
+- [x] Barra de progresso durante upload com animacao
+- [x] Layout inteligente adaptativo (featured/grid/carousel)
+- [x] Preview profissional estilo Windows 7 Photo Viewer
+- [x] Dock flutuante com efeito de vidro (glass morphism)
+- [x] Long press no mobile com menu contextual
+- [x] Multi-select no desktop com toolbar flutuante
+- [x] Navegacao por teclado (setas, A/D, ESC)
+- [x] Modal de delete estilo bottom sheet
+- [x] Conversao automatica para WebP em uploads
+- [x] WhatsApp dinamico (configuravel pelo admin)
+- [x] Animacao marquee na galeria
+- [x] Projeto universal: template pronto para qualquer barbearia
+- [x] Guia de deploy (DEPLOY_GUIDE.md) + script de setup (setup-barbearia.js)
 
 ### Possiveis melhorias futuras
 - [ ] Multi-tenancy (varias barbearias no mesmo sistema)
 - [ ] Pagamento online (Stripe/Mercado Pago)
 - [ ] API de WhatsApp (Evolution API) para lembretes automaticos
 - [ ] Grafico de faturamento mensal no dashboard
-- [ ] Horarios de funcionamento configuraveis pelo admin
+- [ ] App nativo Android (APK) via Capacitor
+- [ ] Drag and drop para reordenar fotos na galeria
+- [ ] Filtros e edicao de imagens no admin
+- [ ] Tema claro/escuro alternavel pelo admin
 
 ---
 
@@ -715,7 +792,7 @@ VAPID_SUBJECT=mailto:seu-email@gmail.com
 SUPABASE_SERVICE_ROLE_KEY=<sua_service_role_key>
 ```
 
-#### 4. Rodar SQL no Supabase Execute as secoes de push do `estrutura_black_diamond.sql`
+#### 4. Rodar SQL no Supabase Execute as secoes de push do `estrutura_barbearia.sql`
 
 #### 5. Deploy da edge function
 ```bash
@@ -726,7 +803,7 @@ supabase functions deploy send-push
 - `supabase/functions/send-push/index.ts` — Edge function que envia o push
 - `src/hooks/usePushNotifications.ts` — Hook React para subscribe/unsubscribe
 - `public/sw.js` — Service Worker que recebe e mostra a notificacao
-- `estrutura_black_diamond.sql` — Trigger, RPCs e cron jobs
+- `estrutura_barbearia.sql` — Trigger, RPCs e cron jobs
 
 ---
 
@@ -744,7 +821,7 @@ Apos cada atendimento, o cliente recebe um email com link pra avaliar de 1 a 5 e
 6. TestimonialsSlider usa avaliacoes reais
 
 ### Configuracao
-Execute as secoes de reviews do `estrutura_black_diamond.sql` para criar:
+Execute as secoes de reviews do `estrutura_barbearia.sql` para criar:
 - Tabela `reviews`
 - Funcoes `get_average_rating()` e `get_top_reviews()`
 - Trigger `enviar_email_avaliacao` (AFTER UPDATE ON bookings)
@@ -794,7 +871,7 @@ supabase secrets set GOOGLE_REFRESH_TOKEN=<seu_refresh_token>
 ```
 
 #### 5. Rodar SQL
-Execute a secao de `google_event_id` do `estrutura_black_diamond.sql` para adicionar a coluna na tabela bookings.
+Execute a secao de `google_event_id` do `estrutura_barbearia.sql` para adicionar a coluna na tabela bookings.
 
 #### 6. Deploy da edge function
 ```bash
@@ -803,7 +880,7 @@ supabase functions deploy sync-google-calendar
 
 ### Arquivos envolvidos
 - `supabase/functions/sync-google-calendar/index.ts` — Edge function CRUD no Google Calendar
-- `estrutura_black_diamond.sql` — Coluna `google_event_id`
+- `estrutura_barbearia.sql` — Coluna `google_event_id`
 
 ---
 
@@ -860,4 +937,165 @@ Skeleton loading melhora a experiencia do usuario mostrando placeholders animado
 
 ---
 
-*Documento atualizado em Julho 2026. Versao do sistema: 3.0.0*
+## 21. Sistema de Galeria
+
+### Visao Geral
+A galeria permite que o barbeiro gerencie as fotos do portfolio diretamente pelo painel admin, com interface profissional inspirada no Windows 7 Photo Viewer.
+
+### Funcionalidades
+- **Upload de fotos:** Max 8 fotos, max 2MB cada, conversao automatica para WebP
+- **Barra de progresso:** Indicador visual com spinner e barra animada durante upload
+- **Delete individual:** Long press (mobile) ou hover + botao (desktop) com modal de confirmacao
+- **Multi-select (desktop):** Botao "Selecionar" ativa modo selecao, clique nas fotos para marcar
+- **Reordenacao:** Botao mover com modal de posicao
+- **Preview profissional:** Visualizacao em tela cheia com dock estilo Windows 7
+- **Layout inteligente:** Exibicao adaptativa baseada na quantidade de fotos
+
+### Interface Mobile
+- **Grid:** Grade 2 colunas com fotos responsivas
+- **Long press (500ms):** Abre menu contextual com opcoes Mover, Excluir, Cancelar
+- **Preview:** Seta de voltar no topo, swipe para navegar, dock simplificado
+- **Contador:** Mostra posicao atual / total de fotos
+- **Layout inteligente:** Muda baseado na quantidade de fotos (veja abaixo)
+
+### Interface Desktop
+- **Grid:** Grade horizontal com hover overlay para acoes rapidas
+- **Modo Selecao:** Botao "Selecionar" ativa modo multi-select
+  - Clique nas fotos para marcar/desmarcar
+  - Ctrl+A para selecionar todas
+  - Delete/Backspace para excluir selecionadas
+  - ESC para limpar selecao
+- **Preview estilo Windows 7 Photo Viewer:**
+  - Top bar com X para fechar + contador
+  - Dock flutuante com efeito de vidro (backdrop-filter: blur)
+  - Logo Black Diamond centralizada entre setas
+  - Navegacao por teclado: setas, A/D, ESC
+  - Botao mover e excluir no dock
+
+### Layout Inteligente (Sistema de Exibicao)
+O gallery adapta automaticamente o layout baseado na quantidade de fotos e dispositivo:
+
+#### Mobile (< 768px)
+| Fotos | Modo | Layout |
+|-------|------|--------|
+| 0 | Empty | Placeholders |
+| 1-2 | Featured | Grade (1-2 colunas) |
+| 3-4 | Grid | Grade 2 colunas |
+| 5+ | Carousel | Marquee infinito |
+
+#### Desktop (>= 768px)
+| Fotos | Modo | Layout |
+|-------|------|--------|
+| 0 | Empty | Placeholders |
+| 1-2 | Featured | Cards grandes lado a lado |
+| 3-5 | Grid | Linha horizontal |
+| 6+ | Carousel | Marquee infinito |
+
+**Por que essa logica?**
+- Poucas fotos (1-4): Layout estatico evita repeticao visual
+- Muitas fotos (5+ mobile, 6+ desktop): Carousel justificado pela quantidade
+
+### Dock de Acoes (Desktop)
+- **Estilo:** Cápsula translucida com blur(16px), borda sutil, sombra suave
+- **Botoes:** Flat, escalam 5% no hover, fundo aparece suavemente
+- **Excluir:** Cinza normal, vermelho apenas no hover
+- **Posicao:** Flutuante na parte inferior, 15px acima da borda
+
+### Modal de Delete
+- **Mobile:** Bottom sheet com slide-up, drag indicator, botoes empilhados
+- **Desktop:** Centralizado com backdrop blur, botoes full-width
+- **Confirmacao:** Exige clique intencional, nao fecha ao clicar fora
+
+### Multi-Select (Desktop)
+- **Ativacao:** Clique em "Selecionar" no topo da galeria
+- **Selecao:** Clique nas fotos para marcar (checkbox dourado)
+- **Toolbar flutuante:** Contador + Mover + Excluir + Cancelar
+- **Atalhos:** Ctrl+A (todas), Delete (excluir), ESC (limpar)
+- **Visual:** Borda dourada + anel nas fotos selecionadas
+
+### Conversao WebP
+Todas as imagens sao convertidas para WebP automaticamente antes do upload:
+- **Gallery:** Max 1200px, qualidade 85%
+- **Foto de perfil:** Max 800px, qualidade 85%
+- Reducao media de 70-80% no tamanho do arquivo
+
+### Barra de Progresso de Upload
+Quando o admin seleciona uma foto para enviar:
+- **Botao "Adicionar"** muda para "Enviando..." e fica desabilitado
+- **Barra de progresso** aparece acima da galeria com:
+  - Spinner dourado animado
+  - Texto "Enviando a foto..."
+  - Barra que preenche de 0% a 100% com gradiente dourado
+- **Animacao suave** de entrada (height + opacity) e saida
+- **Fixa na posicao** — nao move o layout da galeria
+
+### Componentes
+- `SettingsGaleria.tsx` — Painel de gerenciamento no admin (grid + preview + modais)
+- `Gallery.tsx` — Exibicao da galeria com marquee no site
+- `GalleryLightbox.tsx` — Visualizacao em tela cheia para clientes
+
+### Arquivos envolvidos
+- `src/components/Admin/settings/SettingsGaleria.tsx`
+- `src/components/Gallery.tsx`
+- `src/components/GalleryLightbox.tsx`
+- `src/components/Admin/settings/SettingsList.tsx`
+- `src/pages/AdminProfile.tsx`
+- `estrutura_barbearia.sql` (tabela gallery_images)
+
+---
+
+## 22. Layout Inteligente da Galeria
+
+### Visao Geral
+O sistema de galeria adapta automaticamente o layout baseado na quantidade de fotos disponiveis e no dispositivo do usuario (mobile/desktop).
+
+### Por que e necessario?
+- **Poucas fotos (1-4):** Layout estatico evita repeticao visual indesejada
+- **Muitas fotos (5+):** Carousel justificado pela quantidade de conteudo
+
+### Logica de Decisao
+
+#### Mobile (< 768px)
+```
+0 fotos    → Empty (placeholders)
+1-2 fotos  → Featured (grade simples)
+3-4 fotos  → Grid (2 colunas)
+5+ fotos   → Carousel (marquee infinito)
+```
+
+#### Desktop (>= 768px)
+```
+0 fotos    → Empty (placeholders)
+1-2 fotos  → Featured (cards grandes lado a lado)
+3-5 fotos  → Grid (linha horizontal)
+6+ fotos   → Carousel (marquee infinito)
+```
+
+### Modos de Exibicao
+
+#### Empty
+- 4 cards placeholder com borda tracejada
+- Indica que nao ha fotos na galeria
+
+#### Featured (1-2 fotos)
+- **Mobile:** Grade com 1-2 colunas
+- **Desktop:** Cards grandes (450x550px) lado a lado
+- Hover com scale suave
+
+#### Grid (3-4 mobile, 3-5 desktop)
+- **Mobile:** Grade 2 colunas, todas visiveis na tela
+- **Desktop:** Linha horizontal com cards (320x420px)
+- Hover com scale e overlay
+
+#### Carousel (5+ mobile, 6+ desktop)
+- Marquee infinito com animacao
+- Imagens duplicadas para efeito continuo
+- Suficiente para nao parecer repetitivo
+
+### Componentes Envolvidos
+- `Gallery.tsx` — Componente principal com logica de decisao
+- `GalleryLightbox.tsx` — Visualizacao em tela cheia
+
+---
+
+*Documento atualizado em Julho 2026. Versao do sistema: 3.5.0*

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 
@@ -9,42 +9,48 @@ interface AuthGuardProps {
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
+  const hasRedirectedRef = useRef(false);
 
   useEffect(() => {
     let active = true;
     let unsubscribe: (() => void) | undefined;
 
+    const redirect = () => {
+      if (active && !hasRedirectedRef.current) {
+        hasRedirectedRef.current = true;
+        navigate('/admin/login', { replace: true });
+      }
+    };
+
     const checkAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (active) {
-          if (!session) {
-            navigate('/admin/login', { replace: true });
-          } else {
-            setChecking(false);
-          }
+        if (!active) return;
+
+        if (!session) {
+          redirect();
+          return;
         }
 
+        setChecking(false);
+
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-          if (active) {
-            if (!session) {
-              navigate('/admin/login', { replace: true });
-            } else {
-              setChecking(false);
-            }
+          if (!active) return;
+          if (!session) {
+            redirect();
           }
         });
         unsubscribe = subscription.unsubscribe;
       } catch {
-        if (active) navigate('/admin/login', { replace: true });
+        redirect();
       }
     };
-    
+
     checkAuth();
 
     return () => {
       active = false;
-      if (unsubscribe) unsubscribe();
+      unsubscribe?.();
     };
   }, [navigate]);
 
@@ -60,4 +66,3 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
 };
 
 export default AuthGuard;
-

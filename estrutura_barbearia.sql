@@ -374,8 +374,26 @@ DECLARE
     v_closing time;
     v_current time;
     v_day_of_week integer;
+    v_working_days text;
+    v_day_enabled boolean := false;
 BEGIN
     v_day_of_week := EXTRACT(DOW FROM p_date);
+
+    -- Check if day is enabled in working_days
+    v_working_days := COALESCE((SELECT value FROM settings WHERE key = 'working_days'), '1,2,3,4,5,6');
+
+    -- Check if day is in the comma-separated list
+    IF EXISTS (
+        SELECT 1 FROM unnest(string_to_array(v_working_days, ',')) AS d
+        WHERE d = v_day_of_week::text
+    ) THEN
+        v_day_enabled := true;
+    END IF;
+
+    -- If day not enabled, return empty
+    IF NOT v_day_enabled THEN
+        RETURN;
+    END IF;
 
     IF v_day_of_week = 6 THEN
         v_opening := COALESCE((SELECT value::time FROM settings WHERE key = 'saturday_opening'), '08:00'::time);

@@ -1,16 +1,33 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import About from './About';
 
+const mockUseBarberSettings = vi.fn(() => ({
+  barberName: '',
+  barberPhone: '',
+  barberPhoto: '',
+  barberBio: '',
+  barberQuote: '',
+  barberInstagram: '',
+  loading: false,
+}));
+
 vi.mock('../contexts/BarberSettingsContext', () => ({
-  useBarberSettings: () => ({
+  useBarberSettings: (...args: any[]) => mockUseBarberSettings(...args),
+}));
+
+beforeEach(() => {
+  mockUseBarberSettings.mockReset();
+  mockUseBarberSettings.mockReturnValue({
     barberName: '',
     barberPhone: '',
     barberPhoto: '',
     barberBio: '',
+    barberQuote: '',
+    barberInstagram: '',
     loading: false,
-  }),
-}));
+  });
+});
 
 describe('About', () => {
   it('renderiza o titulo Sobre Mim', () => {
@@ -20,7 +37,7 @@ describe('About', () => {
 
   it('renderiza o nome Tato', () => {
     render(<About />);
-    expect(screen.getByText('Tato.')).toBeInTheDocument();
+    expect(screen.getByText('Tato')).toBeInTheDocument();
   });
 
   it('renderiza a descricao', () => {
@@ -33,10 +50,26 @@ describe('About', () => {
     expect(screen.getByText(/Não sou o melhor, mas sou o melhor para você/)).toBeInTheDocument();
   });
 
-  it('renderiza a imagem do barbeiro', () => {
+  it('renderiza placeholder quando nao tem foto', () => {
     render(<About />);
-    const images = screen.getAllByAltText('Black Diamond Barbearia');
-    expect(images.length).toBeGreaterThan(0);
+    // Quando nao ha foto, exibe o icone User do Lucide como placeholder
+    const icons = document.querySelectorAll('.lucide-user');
+    expect(icons.length).toBe(2); // mobile + desktop
+  });
+
+  it('renderiza a imagem do barbeiro quando tem foto', () => {
+    mockUseBarberSettings.mockReturnValueOnce({
+      barberName: 'João',
+      barberPhone: '11999999999',
+      barberPhoto: 'https://example.com/photo.jpg',
+      barberBio: 'Bio qualquer',
+      barberQuote: 'Frase',
+      barberInstagram: '@joao',
+      loading: false,
+    });
+    render(<About />);
+    const images = screen.getAllByAltText('Barbeiro');
+    expect(images.length).toBe(2); // mobile + desktop
   });
 
   it('tem secao com id=sobre para navegacao', () => {

@@ -7,6 +7,10 @@ import PwaGuard from './components/PwaGuard';
 import ErrorBoundary from './components/ErrorBoundary';
 import ConnectionStatusBanner from './components/ConnectionStatusBanner';
 
+// Eagerly loaded modules for route prefetching
+import './pages/BookingPage';
+import './pages/AdminDashboard';
+
 const TITLES: Record<string, string> = {
   '/': 'BLACK DIAMOND',
   '/agendar': 'Agendar Horário | Black Diamond',

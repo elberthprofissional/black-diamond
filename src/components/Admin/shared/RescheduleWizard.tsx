@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getLocalDateString, getTimeSlotsForDate } from '../../../lib/utils';
 import type { Service, Booking, BookingWithClient } from '../../../types';
@@ -57,6 +57,13 @@ const RescheduleWizard: React.FC<RescheduleWizardProps> = ({
   onClose,
 }) => {
   const next14Days = React.useMemo(() => getNext14Days(), []);
+  const [rescheduleSlots, setRescheduleSlots] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (rescheduleDate && step === 2) {
+      getTimeSlotsForDate(rescheduleDate).then(setRescheduleSlots);
+    }
+  }, [rescheduleDate, step]);
 
   const handleBack = () => {
     if (step > 1) setStep(step - 1);
@@ -165,7 +172,7 @@ const RescheduleWizard: React.FC<RescheduleWizardProps> = ({
                   <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Novo Horário</span>
                   {!loadingSlots && (
                     <span className="text-[7px] font-bold text-[#C5A059] uppercase tracking-wider">
-                      {getTimeSlotsForDate(rescheduleDate).filter((slot: string) => {
+                      {rescheduleSlots.filter((slot: string) => {
                         const occupied = rescheduleDate === selectedBooking.booking_date && slot === selectedBooking.booking_time.slice(0, 5)
                           ? false
                           : existingBookings.some(b => b.status !== 'cancelled' && b.booking_time.slice(0, 5) === slot);
@@ -181,7 +188,7 @@ const RescheduleWizard: React.FC<RescheduleWizardProps> = ({
                   </div>
                 ) : (
                   <div className="grid grid-cols-4 gap-2">
-                    {getTimeSlotsForDate(rescheduleDate).map((slot: string) => {
+                    {rescheduleSlots.map((slot: string) => {
                       const occupied = rescheduleDate === selectedBooking.booking_date && slot === selectedBooking.booking_time.slice(0, 5)
                         ? false
                         : existingBookings.some(b => b.status !== 'cancelled' && b.booking_time.slice(0, 5) === slot);

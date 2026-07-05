@@ -22,6 +22,35 @@ export const getServices = async (): Promise<Service[]> => {
   });
 };
 
+/** Cria um novo serviço */
+export const createService = async (service: { name: string; price: number }): Promise<boolean> => {
+  const { error } = await supabase
+    .from('services')
+    .insert({ name: service.name, price: service.price, duration: 60 });
+
+  return !error;
+};
+
+/** Atualiza um serviço existente */
+export const updateService = async (id: string, data: { name?: string; price?: number }): Promise<boolean> => {
+  const { error } = await supabase
+    .from('services')
+    .update(data)
+    .eq('id', id);
+
+  return !error;
+};
+
+/** Remove um serviço */
+export const deleteService = async (id: string): Promise<boolean> => {
+  const { error } = await supabase
+    .from('services')
+    .delete()
+    .eq('id', id);
+
+  return !error;
+};
+
 // Bookings
 
 /** Cria um agendamento via RPC, criando o cliente automaticamente se necessário. Valida campos obrigatórios no client-side. */
@@ -142,14 +171,9 @@ export const autoCompleteExpiredBookings = async (date: string): Promise<number>
 
   if (error || !bookings || bookings.length === 0) return 0;
 
-  // Use Intl to get the current time in the user's local timezone,
-  // consistent with how booking times are interpreted (local business hours).
-  const nowStr = new Intl.DateTimeFormat('en-GB', {
-    hour: '2-digit', minute: '2-digit', hour12: false,
-    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-  }).format(new Date());
-  const [nowH, nowM] = nowStr.split(':').map(Number);
-  const currentTimeMinutes = nowH * 60 + nowM;
+  // Get current time in user's local timezone for accurate comparison
+  const now = new Date();
+  const currentTimeMinutes = now.getHours() * 60 + now.getMinutes();
 
   const expiredIds: string[] = [];
 
@@ -194,6 +218,7 @@ export const getClients = async () => {
     .select('*')
     .not('name', 'in', '("CLIENTE EXCLUIDO","BLOQUEADO")')
     .not('phone', 'like', 'DELETED_%')
+    .not('phone', 'eq', '00000000000')
     .order('name', { ascending: true });
   if (error) throw error;
   return data || [];
@@ -265,26 +290,20 @@ export const deleteClient = async (id: string) => {
   if (error) throw error;
 };
 
-/** Cria um novo cliente. Verifica duplicidade de telefone antes de inserir. */
+/** Cria um novo cliente. Trata violação de unique constraint no banco. */
 export const createClient = async (data: { name: string; phone: string; email?: string; notes?: string; manually_added?: boolean }) => {
-  const { data: existing } = await supabase
-    .from('clients')
-    .select('id')
-    .eq('phone', data.phone)
-    .limit(1)
-    .maybeSingle();
-
-  if (existing) {
-    throw new Error('Este telefone já está cadastrado para outro cliente.');
-  }
-
   const { data: newClient, error } = await supabase
     .from('clients')
     .insert(data)
     .select()
     .single();
-  
-  if (error) throw error;
+
+  if (error) {
+    if (error.code === '23505') { // unique_violation
+      throw new Error('Este telefone já está cadastrado para outro cliente.');
+    }
+    throw error;
+  }
   return newClient;
 };
 

@@ -1,7 +1,12 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import MobileDateTimeStep from './MobileDateTimeStep';
 import type { Booking, Service } from '../../../types';
+
+vi.mock('../../../lib/utils', () => ({
+  getTimeSlotsForDate: vi.fn(() => Promise.resolve(['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'])),
+  isTimeOccupied: vi.fn((time: string, bookings: Booking[]) => bookings.some(b => b.status !== 'cancelled' && b.booking_time.slice(0, 5) === time)),
+}));
 
 const mockDays = [
   { fullDate: '2026-07-03', dayName: 'QUI', dayNumber: 3 },
@@ -62,21 +67,29 @@ describe('MobileDateTimeStep', () => {
       expect(onSelectDate).toHaveBeenCalledWith('2026-07-03');
     });
 
-    it('mostra slots de horario quando um dia e selecionado', () => {
+    it('mostra slots de horario quando um dia e selecionado', async () => {
       render(<MobileDateTimeStep {...defaultProps} selectedDate="2026-07-03" />);
-      expect(screen.getByText('08:00')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('08:00')).toBeInTheDocument();
+      });
       expect(screen.getByText('18:00')).toBeInTheDocument();
     });
 
-    it('chama onSelectTime ao clicar em um horario', () => {
+    it('chama onSelectTime ao clicar em um horario', async () => {
       const onSelectTime = vi.fn();
       render(<MobileDateTimeStep {...defaultProps} selectedDate="2026-07-03" onSelectTime={onSelectTime} />);
+      await waitFor(() => {
+        expect(screen.getByText('09:00')).toBeInTheDocument();
+      });
       fireEvent.click(screen.getByText('09:00'));
       expect(onSelectTime).toHaveBeenCalledWith('09:00');
     });
 
-    it('desabilita horario ocupado', () => {
+    it('desabilita horario ocupado', async () => {
       render(<MobileDateTimeStep {...defaultProps} selectedDate="2026-07-03" />);
+      await waitFor(() => {
+        expect(screen.getByText('10:00')).toBeInTheDocument();
+      });
       const occupiedButton = screen.getByText('10:00');
       expect(occupiedButton).toBeDisabled();
     });

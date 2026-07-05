@@ -1,16 +1,36 @@
 import { describe, it, expect, vi } from 'vitest'
 import { getTimeSlotsForDate, getPeriod, formatPhone, getLocalDateString, getNextDays, isTimeOccupied, generateIcsFile, getErrorMessage } from './utils'
 
+vi.mock('./supabase', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          maybeSingle: vi.fn(() => Promise.resolve({ data: { value: JSON.stringify({
+            '1': { enabled: true, open: '08:00', close: '19:00' },
+            '2': { enabled: true, open: '08:00', close: '19:00' },
+            '3': { enabled: true, open: '08:00', close: '19:00' },
+            '4': { enabled: true, open: '08:00', close: '19:00' },
+            '5': { enabled: true, open: '08:00', close: '19:00' },
+            '6': { enabled: true, open: '08:00', close: '18:00' },
+            '0': { enabled: false, open: '09:00', close: '14:00' },
+          })} })),
+        })),
+      })),
+    })),
+  },
+}));
+
 describe('getTimeSlotsForDate', () => {
-  it('retorna slots de 8h as 19h para dias de semana', () => {
-    const slots = getTimeSlotsForDate('2026-06-29') // segunda-feira
+  it('retorna slots de 8h as 19h para dias de semana', async () => {
+    const slots = await getTimeSlotsForDate('2026-06-29') // segunda-feira
     expect(slots[0]).toBe('08:00')
     expect(slots[slots.length - 1]).toBe('18:00')
     expect(slots).toHaveLength(11)
   })
 
-  it('retorna slots de 8h as 18h para sabado', () => {
-    const slots = getTimeSlotsForDate('2026-06-27') // sabado
+  it('retorna slots de 8h as 18h para sabado', async () => {
+    const slots = await getTimeSlotsForDate('2026-06-27') // sabado
     expect(slots[0]).toBe('08:00')
     expect(slots[slots.length - 1]).toBe('17:00')
     expect(slots).toHaveLength(10)

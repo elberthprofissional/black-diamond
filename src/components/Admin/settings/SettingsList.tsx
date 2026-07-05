@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Bell, Trash2, ChevronRight, AlertTriangle, Image as ImageIcon } from 'lucide-react';
+import { User, Bell, Trash2, ChevronRight, AlertTriangle, Image as ImageIcon, Clock, Scissors } from 'lucide-react';
 
 interface SettingsListProps {
   onSelect: (section: string) => void;
@@ -9,15 +9,29 @@ const categories = [
   {
     id: 'conta',
     label: 'Conta',
-    description: 'Altere suas informações pessoais',
+    description: 'Gerencie suas informações pessoais',
     icon: User,
     danger: false,
   },
   {
     id: 'galeria',
     label: 'Galeria',
-    description: 'Gerencie as fotos do portfólio',
+    description: 'Gerencie as fotos exibidas aos clientes',
     icon: ImageIcon,
+    danger: false,
+  },
+  {
+    id: 'servicos',
+    label: 'Serviços',
+    description: 'Gerencie os serviços oferecidos',
+    icon: Scissors,
+    danger: false,
+  },
+  {
+    id: 'horarios',
+    label: 'Horários',
+    description: 'Configure seus dias e horários de atendimento',
+    icon: Clock,
     danger: false,
   },
   {
@@ -30,7 +44,7 @@ const categories = [
   {
     id: 'dados',
     label: 'Zona de Segurança',
-    description: 'Apagar todos os dados',
+    description: 'Excluir permanentemente os dados',
     icon: Trash2,
     danger: true,
   },

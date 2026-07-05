@@ -26,7 +26,7 @@ vi.mock('../lib/supabase', () => ({
 vi.mock('../lib/utils', () => ({
   getNextDays: vi.fn(() => []),
   formatPhone: vi.fn((v: string) => v),
-  getTimeSlotsForDate: vi.fn(() => ['08:00', '09:00', '10:00']),
+  getTimeSlotsForDate: vi.fn(() => Promise.resolve(['08:00', '09:00', '10:00'])),
 }))
 
 vi.mock('./useServices', () => ({

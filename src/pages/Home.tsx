@@ -20,7 +20,7 @@ const Home: React.FC = () => {
   return (
     <>
       <Navbar onBookingClick={handleBooking} />
-      <main className="bg-[#0f0f0f]">
+      <main id="main-content" className="bg-[#0f0f0f]">
         <Hero onBookingClick={handleBooking} />
         <About />
         <Services onBookingClick={handleBooking} />

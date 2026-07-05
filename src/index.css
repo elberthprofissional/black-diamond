@@ -251,6 +251,81 @@
 }
 
 /* ========================================================================= */
+/* 2.5 ACCESSIBILITY — FOCUS VISIBLE & CONTRAST IMPROVEMENTS                */
+/* ========================================================================= */
+
+/* Global focus-visible ring — aparece apenas na navegação por teclado, não no clique */
+:focus-visible {
+  outline: 2px solid var(--color-gold-bright);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Botões com foco via teclado */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+[role="menuitem"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-gold-bright);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove outline feio do focus padrão do navegador quando não via teclado */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Melhora contraste do texto gold em fundo escuro para WCAG AA */
+.text-\[\#D4AF37\],
+.text-\[\#C5A059\],
+.text-gold,
+.text-gold-bright {
+  /* Texto médio/grande (>24px ou bold>18px) já passa WCAG AA com gold #D4AF37 em fundo #0f0f0f */
+  /* Para texto pequeno (<18px), adiciona text-shadow pra melhorar legibilidade */
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+/* Garante que texto gold pequeno tenha contraste suficiente */
+.text-xs.text-\[\#D4AF37\],
+.text-sm.text-\[\#D4AF37\],
+.text-\[10px\].text-\[\#D4AF37\],
+.text-\[9px\].text-\[\#D4AF37\],
+.text-\[8px\].text-\[\#D4AF37\],
+.text-\[\#D4AF37\].font-bebas,
+button.text-\[\#D4AF37\] {
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.7), 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Skip link melhorado */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  z-index: 9999;
+  padding: 1rem 1.5rem;
+  background: var(--color-gold);
+  color: #000;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  transition: top 0.2s;
+  min-width: 200px;
+  text-align: center;
+}
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+/* ========================================================================= */
 /* 3. PWA NATIVE MOBILE OPTIMIZATIONS (iOS Notch & Safari Enhancements)     */
 /* ========================================================================= */
 

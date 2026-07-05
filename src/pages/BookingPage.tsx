@@ -40,7 +40,7 @@ const BookingPage: React.FC = () => {
 
   return (
     <div className="font-sans relative min-h-screen bg-[#050505] flex flex-col selection:bg-[#C5A059] selection:text-black overflow-x-hidden">
-      <main className="flex-1 relative z-10 h-full flex flex-col">
+      <main id="main-content" className="flex-1 relative z-10 h-full flex flex-col">
         <BookingPageDesktop {...sharedProps} />
         <BookingPageMobile {...sharedProps} navigate={w.navigate} />
       </main>

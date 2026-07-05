@@ -11,7 +11,10 @@ export function useBookingManagement(loadData: () => Promise<void>) {
     completingBooking, setCompletingBooking,
     selectedBooking, setSelectedBooking,
     bookingToDelete, setBookingToDelete,
+    thankYouBooking,
     handleComplete,
+    handleSendThankYou,
+    handleCancelThankYou,
     confirmDelete,
   } = useBookingModals(loadData);
 
@@ -45,6 +48,7 @@ export function useBookingManagement(loadData: () => Promise<void>) {
     completingBooking, setCompletingBooking,
     selectedBooking, setSelectedBooking,
     bookingToDelete, setBookingToDelete,
+    thankYouBooking,
     filter, setFilter,
     isDesktop,
     isRescheduling,
@@ -59,6 +63,8 @@ export function useBookingManagement(loadData: () => Promise<void>) {
     handleConfirmReschedule,
     cancelReschedule,
     handleComplete,
+    handleSendThankYou,
+    handleCancelThankYou,
     confirmDelete,
   };
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
-const SETTINGS_KEYS = ['barber_name', 'barber_phone', 'barber_photo', 'barber_bio'] as const;
+const SETTINGS_KEYS = ['barber_name', 'barber_phone', 'barber_photo', 'barber_bio', 'barber_instagram'] as const;
 
 export function useBarberSettings() {
   const defaultPhone = import.meta.env.VITE_BARBER_WHATSAPP || '';
@@ -18,46 +18,10 @@ export function useBarberSettings() {
   const [barberBio, setBarberBio] = useState<string>(() => {
     return localStorage.getItem('barber_bio') || '';
   });
+  const [barberInstagram, setBarberInstagram] = useState<string>(() => {
+    return localStorage.getItem('barber_instagram') || '';
+  });
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const { data } = await supabase
-          .from('settings')
-          .select('key, value')
-          .in('key', [...SETTINGS_KEYS]);
-
-        if (data) {
-          for (const row of data) {
-            if (row.key === 'barber_name' && row.value) {
-              setBarberName(row.value);
-              localStorage.setItem('barber_name', row.value);
-            }
-            if (row.key === 'barber_phone') {
-              const phone = row.value || defaultPhone;
-              setBarberPhone(phone);
-              localStorage.setItem('barber_phone', phone);
-            }
-            if (row.key === 'barber_photo') {
-              setBarberPhoto(row.value || '');
-              localStorage.setItem('barber_photo', row.value || '');
-            }
-            if (row.key === 'barber_bio') {
-              setBarberBio(row.value || '');
-              localStorage.setItem('barber_bio', row.value || '');
-            }
-          }
-        }
-      } catch {
-        // keep defaults
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSettings();
-  }, [defaultPhone]);
 
   const updateBarberName = useCallback(async (newName: string) => {
     const trimmed = newName.trim();
@@ -117,6 +81,20 @@ export function useBarberSettings() {
     return false;
   }, []);
 
+  const updateBarberInstagram = useCallback(async (newInstagram: string) => {
+    const cleaned = newInstagram.replace(/^@/, '').trim();
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key: 'barber_instagram', value: cleaned }, { onConflict: 'key' });
+
+    if (!error) {
+      setBarberInstagram(cleaned);
+      localStorage.setItem('barber_instagram', cleaned);
+      return true;
+    }
+    return false;
+  }, []);
+
   const refetch = useCallback(async () => {
     try {
       const { data } = await supabase
@@ -143,23 +121,42 @@ export function useBarberSettings() {
             setBarberBio(row.value || '');
             localStorage.setItem('barber_bio', row.value || '');
           }
+          if (row.key === 'barber_instagram') {
+            setBarberInstagram(row.value || '');
+            localStorage.setItem('barber_instagram', row.value || '');
+          }
         }
       }
     } catch {
       // keep current values
+    } finally {
+      setLoading(false);
     }
   }, [defaultPhone]);
+
+  useEffect(() => {
+    refetch();
+
+    // Re-fetch sempre que alguém salvar configurações
+    const handleSettingsChanged = () => {
+      refetch();
+    };
+    window.addEventListener('barber-settings-changed', handleSettingsChanged);
+    return () => window.removeEventListener('barber-settings-changed', handleSettingsChanged);
+  }, [refetch]);
 
   return {
     barberName,
     barberPhone,
     barberPhoto,
     barberBio,
+    barberInstagram,
     loading,
     updateBarberName,
     updateBarberPhone,
     updateBarberPhoto,
     updateBarberBio,
+    updateBarberInstagram,
     refetch,
   };
 }

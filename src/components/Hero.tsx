@@ -37,8 +37,9 @@ const Hero: React.FC<HeroProps> = ({ onBookingClick }) => {
             </p>
           </div>
           
-          <button 
+          <button
             onClick={onBookingClick}
+            onMouseEnter={() => import('../pages/BookingPage')}
             className="mt-4 group"
           >
             <div className="px-8 py-3.5 border border-[#D4AF37]/60 bg-transparent group-hover:bg-[#D4AF37]/10 transition-all duration-300">

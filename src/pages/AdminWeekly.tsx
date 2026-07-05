@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTimeSlotsForDate, getLocalDateString } from '../lib/utils';
 import { useBookings } from '../hooks/useBookings';
 import { useSlotBlocking } from '../hooks/useSlotBlocking';
 import { useBookingManagement } from '../hooks/useBookingManagement';
+import { useBarberSettings } from '../contexts/BarberSettingsContext';
 import AdminLayout from '../components/Admin/AdminLayout';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
 import UnblockModal from '../components/Admin/shared/UnblockModal';
 import CompleteModal from '../components/Admin/shared/CompleteModal';
+import ThankYouModal from '../components/Admin/shared/ThankYouModal';
 import DeleteModal from '../components/Admin/shared/DeleteModal';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
 import RescheduleWizard from '../components/Admin/shared/RescheduleWizard';
@@ -30,18 +32,41 @@ const AdminWeekly: React.FC = () => {
     return new Date(date.setDate(diff));
   };
 
+  const { barberHours } = useBarberSettings();
+
   const [currentWeekStart] = useState(() => getMonday(today));
 
-  const weekDays = Array.from({ length: 6 }).map((_, i) => {
+  const weekDays = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date(currentWeekStart);
     d.setDate(d.getDate() + i);
     return d;
   });
 
-  const [selectedDayIndex, setSelectedDayIndex] = useState(() => {
-    const todayIdx = weekDays.findIndex((d) => d.toDateString() === today.toDateString());
-    return todayIdx >= 0 ? todayIdx : 0;
+  // Dias habilitados nas configurações
+  const enabledDays = React.useMemo(() => {
+    if (!barberHours) return null;
+    try {
+      const parsed = JSON.parse(barberHours);
+      const map: Record<number, boolean> = {};
+      for (let d = 0; d <= 6; d++) map[d] = parsed[String(d)]?.enabled !== false;
+      return map;
+    } catch { return null; }
+  }, [barberHours]);
+
+  // Filtra só os dias habilitados
+  const visibleWeekDays = weekDays.filter(d => {
+    if (!enabledDays) return true;
+    return enabledDays[d.getDay()] !== false;
   });
+
+  const [selectedVisibleIndex, setSelectedVisibleIndex] = useState(() => {
+    // Tenta selecionar hoje; se estiver desabilitado, pega o primeiro dia habilitado
+    const todayStr = today.toDateString();
+    const idx = visibleWeekDays.findIndex(d => d.toDateString() === todayStr);
+    return idx >= 0 ? idx : 0;
+  });
+
+  const [allSlots, setAllSlots] = useState<string[]>([]);
 
   const {
     blockingSlot,
@@ -54,6 +79,29 @@ const AdminWeekly: React.FC = () => {
     unblockEntireDay,
   } = useSlotBlocking();
 
+  // Se todos os dias estão desabilitados, não quebra
+  const hasVisibleDays = visibleWeekDays.length > 0;
+  const selectedDate = hasVisibleDays ? visibleWeekDays[selectedVisibleIndex] : new Date();
+  const selectedDateStr = getLocalDateString(selectedDate);
+  const isToday = hasVisibleDays && selectedDate.toDateString() === today.toDateString();
+  const currentHour = today.getHours();
+  const currentMinutes = today.getHours() * 60 + today.getMinutes();
+
+  // Se todos os dias mudarem (ex: carregou barberHours), ajusta o índice selecionado
+  useEffect(() => {
+    if (selectedVisibleIndex >= visibleWeekDays.length) {
+      setSelectedVisibleIndex(0);
+    }
+  }, [visibleWeekDays.length, selectedVisibleIndex]);
+
+  useEffect(() => {
+    let active = true;
+    getTimeSlotsForDate(selectedDateStr).then((slots) => {
+      if (active) setAllSlots(slots);
+    });
+    return () => { active = false; };
+  }, [selectedDateStr, barberHours]);
+
   const handleBlockSlot = async (date: string, slot: string) => {
     await blockSlot(date, slot, loadData, `${date}-${slot}`);
   };
@@ -63,12 +111,6 @@ const AdminWeekly: React.FC = () => {
     await unblockSlot(unblockingBooking.id, loadData);
   };
 
-  const selectedDate = weekDays[selectedDayIndex];
-  const selectedDateStr = getLocalDateString(selectedDate);
-  const isToday = selectedDate.toDateString() === today.toDateString();
-  const currentHour = today.getHours();
-  const currentMinutes = today.getHours() * 60 + today.getMinutes();
-
   const dayBookings = bookings.filter(
     (b) => b.booking_date === selectedDateStr && b.status !== 'cancelled'
   );
@@ -76,16 +118,14 @@ const AdminWeekly: React.FC = () => {
     if (b.status === 'cancelled') return false;
     if (b.is_blocked) return false;
     if (!isToday) return true;
-    // Keep bookings that are in progress or upcoming
     const [h, m] = b.booking_time.slice(0, 5).split(':').map(Number);
     const bookingEndMinutes = h * 60 + m + (b.total_duration || 60);
     return bookingEndMinutes > currentMinutes;
   });
-  const freeSlots = getTimeSlotsForDate(selectedDateStr).filter((slot) => {
+  const freeSlots = allSlots.filter((slot) => {
     if (dayBookings.some((b) => b.booking_time.slice(0, 5) === slot && b.status !== 'cancelled'))
       return false;
     if (!isToday) return true;
-    // Hide past free slots
     const slotHour = parseInt(slot.split(':')[0], 10);
     return slotHour >= currentHour;
   });
@@ -159,13 +199,13 @@ const AdminWeekly: React.FC = () => {
         </div>
 
         <div className="flex gap-1.5">
-          {weekDays.map((day, idx) => {
-            const isSelected = idx === selectedDayIndex;
+          {visibleWeekDays.map((day, idx) => {
+            const isSelected = idx === selectedVisibleIndex;
             const isToday = day.toDateString() === today.toDateString();
             return (
               <button
                 key={idx}
-                onClick={() => setSelectedDayIndex(idx)}
+                onClick={() => setSelectedVisibleIndex(idx)}
                 className={`flex-1 py-4 rounded-lg transition-all duration-200 flex flex-col items-center gap-0.5 relative ${isSelected ? 'bg-[#C5A059] text-black' : isToday ? 'bg-white/[0.04] text-[#C5A059]' : 'bg-white/[0.02] text-zinc-400 hover:bg-white/[0.05] hover:text-zinc-200'}`}
               >
                 <span
@@ -375,6 +415,11 @@ const AdminWeekly: React.FC = () => {
         booking={mgmt.completingBooking}
         onConfirm={mgmt.handleComplete}
         onCancel={() => mgmt.setCompletingBooking(null)}
+      />
+      <ThankYouModal
+        booking={mgmt.thankYouBooking}
+        onConfirm={mgmt.handleSendThankYou}
+        onCancel={mgmt.handleCancelThankYou}
       />
       <DeleteModal
         booking={mgmt.bookingToDelete}

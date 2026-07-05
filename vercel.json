@@ -5,7 +5,23 @@
   },
   "rewrites": [
     {
-      "source": "/((?!assets/|sw\\.js|manifest\\.json|favicon\\.ico|robots\\.txt|sitemap\\.xml).*)",
+      "source": "/assets/(.*)",
+      "destination": "/assets/$1"
+    },
+    {
+      "source": "/sw.js",
+      "destination": "/sw.js"
+    },
+    {
+      "source": "/manifest.json",
+      "destination": "/manifest.json"
+    },
+    {
+      "source": "/favicon.ico",
+      "destination": "/favicon.ico"
+    },
+    {
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],

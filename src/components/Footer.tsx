@@ -4,7 +4,7 @@ import { Instagram } from 'lucide-react';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 
 const Footer: React.FC = () => {
-  const { barberPhone } = useBarberSettings();
+  const { barberPhone, barberInstagram } = useBarberSettings();
 
   const formatPhone = (raw: string) => {
     const digits = raw.replace(/\D/g, '');
@@ -44,7 +44,7 @@ const Footer: React.FC = () => {
             <div className="space-y-3 md:space-y-4">
               {/* Instagram */}
               <a
-                href="https://www.instagram.com/black.diamond.barbeariaa/"
+                href={`https://www.instagram.com/${barberInstagram || 'black.diamond.barbeariaa'}/`}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Acessar nosso perfil no Instagram"

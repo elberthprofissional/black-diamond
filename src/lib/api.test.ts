@@ -258,19 +258,9 @@ describe('deleteClient', () => {
 
 describe('createClient', () => {
   it('cria novo cliente', async () => {
-    let fromCallCount = 0
-    mockFrom.mockImplementation(() => {
-      fromCallCount++
-      const builder = createQueryBuilder()
-      if (fromCallCount === 1) {
-        // Duplicate check: no existing client
-        builder.maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
-      } else {
-        // Insert: return created client
-        builder.single = vi.fn().mockResolvedValue({ data: { id: 'c1', name: 'Novo', phone: '123' }, error: null })
-      }
-      return builder
-    })
+    const builder = createQueryBuilder()
+    builder.single = vi.fn().mockResolvedValue({ data: { id: 'c1', name: 'Novo', phone: '123' }, error: null })
+    mockFrom.mockReturnValue(builder)
     const result = await createClient({ name: 'Novo', phone: '123' })
     expect(result.name).toBe('Novo')
   })
