@@ -1,6 +1,6 @@
 import React from 'react';
 import ToastNotification from '../shared/ToastNotification';
-import { ImageIcon, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGallery } from '../../../hooks/useGallery';
 import GalleryPreview from './gallery/GalleryPreview';
@@ -26,7 +26,7 @@ const SettingsGaleria: React.FC<SettingsGaleriaProps> = () => {
           {g.images.length > 0 && (
             <button
               onClick={() => { g.setSelectionMode(!g.selectionMode); if (g.selectionMode) g.clearSelection(); }}
-              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
                 g.selectionMode
                   ? 'bg-[#C5A059]/20 text-[#C5A059]'
                   : 'bg-white/[0.04] text-zinc-400 hover:text-white hover:bg-white/[0.08]'
@@ -108,11 +108,11 @@ const SettingsGaleria: React.FC<SettingsGaleriaProps> = () => {
                 draggable={false}
               />
 
-              {/* Selection Check - Desktop only */}
+              {/* Selection Check */}
               {(g.selectedImages.length > 0 || g.selectionMode) && (
                 <button
                   onClick={(e) => g.toggleSelect(image.id, e)}
-                  className="hidden sm:flex absolute top-2 right-2 z-30 w-6 h-6 rounded-full items-center justify-center transition-all cursor-pointer"
+                  className="flex absolute top-2 right-2 z-30 w-6 h-6 rounded-full items-center justify-center transition-all cursor-pointer"
                   style={{
                     background: isSelected ? '#C5A059' : 'rgba(0,0,0,0.5)',
                     border: isSelected ? 'none' : '2px solid rgba(255,255,255,0.3)',
@@ -126,11 +126,12 @@ const SettingsGaleria: React.FC<SettingsGaleriaProps> = () => {
                 </button>
               )}
 
-              {/* Click to preview */}
+              {/* Click to preview / toggle select */}
               <button
                 onClick={(e) => {
+                  if (g.checkAndClearLongPress()) return;
                   if (g.selectionMode) { g.toggleSelect(image.id, e); }
-                  else if (!g.longPressMenu && g.selectedImages.length === 0) {
+                  else if (g.selectedImages.length === 0) {
                     g.setPreviewImage(image);
                     g.setPreviewIndex(index);
                   }
@@ -139,41 +140,7 @@ const SettingsGaleria: React.FC<SettingsGaleriaProps> = () => {
                 aria-label={`Ver foto ${index + 1}`}
               />
 
-              {/* Long Press Menu Overlay */}
-              <AnimatePresence>
-                {g.longPressMenu === image.id && (
-                  <motion.div
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="absolute inset-0 z-20 bg-black/80 flex flex-col items-center justify-center gap-2 p-2"
-                    onClick={(e) => { e.stopPropagation(); g.setLongPressMenu(null); }}
-                  >
-                    <button onClick={(e) => { e.stopPropagation(); g.handleMove(image.id, 'up'); g.setLongPressMenu(null); }}
-                      disabled={index === 0}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 bg-white/10 hover:bg-white/15 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">
-                      <ArrowUp size={14} className="text-white" />
-                      <span className="text-white text-xs font-medium">Cima</span>
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); g.handleMove(image.id, 'down'); g.setLongPressMenu(null); }}
-                      disabled={index === g.images.length - 1}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 bg-white/10 hover:bg-white/15 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">
-                      <ArrowDown size={14} className="text-white" />
-                      <span className="text-white text-xs font-medium">Baixo</span>
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); g.setConfirmDelete(image.id); g.setLongPressMenu(null); }}
-                      disabled={g.deleting === image.id}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-500/20 hover:bg-red-500/30 rounded-xl transition-all cursor-pointer">
-                      {g.deleting === image.id ? (
-                        <div className="w-3 h-3 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin" />
-                      ) : (<Trash2 size={14} className="text-red-400" />)}
-                      <span className="text-red-400 text-xs font-medium">Excluir</span>
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); g.setLongPressMenu(null); }}
-                      className="w-full py-2.5 text-zinc-500 text-xs font-medium hover:text-white transition-all cursor-pointer">
-                      Cancelar
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+
 
               {/* Position Badge */}
               <div className="absolute top-2 left-2 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center">
@@ -182,14 +149,12 @@ const SettingsGaleria: React.FC<SettingsGaleriaProps> = () => {
             </div>
           );
         })}
-      </div>
-
-      {/* Bulk Selection Toolbar - Desktop */}
+      </div>              {/* Bulk Selection Toolbar */}
       <AnimatePresence>
         {(g.selectedImages.length > 0 || g.selectionMode) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-            className="hidden sm:block fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]"
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]"
           >
             <div
               className="flex items-center gap-3 px-5 py-3 rounded-full border border-white/[0.1] shadow-[0_8px_40px_rgba(0,0,0,0.5)]"

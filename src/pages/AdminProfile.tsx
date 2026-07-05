@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { deleteAllClients } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
@@ -47,7 +47,33 @@ const AdminProfile: React.FC = () => {
   const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
   const { barberName, barberPhoto, refetch } = useBarberSettings();
   const [settingsSection, setSettingsSection] = useState<string | null>(null);
+  const enteredSection = useRef(false);
   const navigate = useNavigate();
+
+  // Quando ENTRA numa sub-seção pela primeira vez (ex: null → 'galeria'),
+  // empurra UM estado no histórico pra interceptar o botão de voltar
+  // Se já está numa sub-seção e muda pra outra, NÃO empurra de novo
+  useEffect(() => {
+    if (settingsSection && settingsSection !== '__back' && !enteredSection.current) {
+      window.history.pushState({ section: settingsSection }, '');
+      enteredSection.current = true;
+    }
+    if (!settingsSection) {
+      enteredSection.current = false;
+    }
+  }, [settingsSection]);
+
+  // Intercepta o botão de voltar do navegador/celular
+  // Volta pra lista de configurações sem poluir o histórico
+  useEffect(() => {
+    const handlePopState = () => {
+      if (settingsSection) {
+        setSettingsSection(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [settingsSection]);
 
   useEffect(() => {
     if (settingsSection === '__back') {

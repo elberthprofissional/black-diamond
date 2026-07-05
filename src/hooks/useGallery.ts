@@ -23,11 +23,11 @@ export function useGallery() {
   const [moveTarget, setMoveTarget] = useState(1);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [longPressMenu, setLongPressMenu] = useState<string | null>(null);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggered = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const openFilePicker = useCallback(() => {
@@ -53,7 +53,11 @@ export function useGallery() {
   // --- Long press ---
   const handleLongPressStart = useCallback((imageId: string) => {
     longPressTimer.current = setTimeout(() => {
-      setLongPressMenu(imageId);
+      longPressTriggered.current = true;
+      setSelectionMode(true);
+      setSelectedImages((prev) =>
+        prev.includes(imageId) ? prev : [...prev, imageId]
+      );
     }, 500);
   }, []);
 
@@ -69,6 +73,7 @@ export function useGallery() {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
+    longPressTriggered.current = false;
   }, []);
 
   // --- Keyboard shortcuts for preview ---
@@ -272,6 +277,13 @@ export function useGallery() {
     setPreviewImage(images[next]);
   }, [previewIndex, images]);
 
+  // --- Check if long press just happened (to prevent click after long press) ---
+  const checkAndClearLongPress = useCallback((): boolean => {
+    const was = longPressTriggered.current;
+    longPressTriggered.current = false;
+    return was;
+  }, []);
+
   // --- Clear selection mode ---
   const clearSelection = useCallback(() => {
     setSelectedImages([]);
@@ -281,18 +293,19 @@ export function useGallery() {
   return {
     // State
     images, toast, uploading, deleting, confirmDelete, previewImage, previewIndex,
-    showMoveModal, moveTarget, touchStart, longPressMenu, selectedImages,
+    showMoveModal, moveTarget, touchStart, selectedImages,
     confirmBulkDelete, selectionMode, fileInputRef,
 
     // Actions
     openFilePicker, loadImages, handleUpload, handleDelete, handleBulkDelete,
     handleMove, handleMoveToPosition, handleLongPressStart, handleLongPressEnd,
-    handleLongPressMove, toggleSelect, clearSelection, goToPrevPreview, goToNextPreview,
+    handleLongPressMove, toggleSelect, clearSelection, checkAndClearLongPress,
+    goToPrevPreview, goToNextPreview,
 
     // Setters
     setPreviewImage, setPreviewIndex, setShowMoveModal, setMoveTarget,
     setTouchStart, setConfirmDelete, setConfirmBulkDelete, setSelectionMode,
-    setSelectedImages, setLongPressMenu, setDeleting, showSuccess,
+    setSelectedImages, setDeleting, showSuccess,
 
     // Constants
     MAX_PHOTOS,
