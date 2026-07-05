@@ -374,33 +374,42 @@ DECLARE
     v_closing time;
     v_current time;
     v_day_of_week integer;
-    v_working_days text;
+    v_hours_json jsonb;
+    v_day_key text;
     v_day_enabled boolean := false;
 BEGIN
     v_day_of_week := EXTRACT(DOW FROM p_date);
+    v_day_key := v_day_of_week::text;
 
-    -- Check if day is enabled in working_days
-    v_working_days := COALESCE((SELECT value FROM settings WHERE key = 'working_days'), '1,2,3,4,5,6');
+    -- Read from barber_hours JSON (set by admin panel)
+    v_hours_json := (SELECT value::jsonb FROM settings WHERE key = 'barber_hours');
 
-    -- Check if day is in the comma-separated list
-    IF EXISTS (
-        SELECT 1 FROM unnest(string_to_array(v_working_days, ',')) AS d
-        WHERE d = v_day_of_week::text
-    ) THEN
-        v_day_enabled := true;
+    IF v_hours_json IS NOT NULL AND v_hours_json ? v_day_key THEN
+        v_day_enabled := (v_hours_json->v_day_key->>'enabled')::boolean;
+        IF v_day_enabled THEN
+            v_opening := (v_hours_json->v_day_key->>'open')::time;
+            v_closing := (v_hours_json->v_day_key->>'close')::time;
+        END IF;
+    ELSE
+        -- Fallback to individual settings
+        v_day_enabled := EXISTS (
+            SELECT 1 FROM unnest(string_to_array(
+                COALESCE((SELECT value FROM settings WHERE key = 'working_days'), '1,2,3,4,5,6'), ','
+            )) AS d WHERE d = v_day_key
+        );
+        IF v_day_enabled THEN
+            IF v_day_of_week = 6 THEN
+                v_opening := COALESCE((SELECT value::time FROM settings WHERE key = 'saturday_opening'), '08:00'::time);
+                v_closing := COALESCE((SELECT value::time FROM settings WHERE key = 'saturday_closing'), '18:00'::time);
+            ELSE
+                v_opening := COALESCE((SELECT value::time FROM settings WHERE key = 'opening_time'), '08:00'::time);
+                v_closing := COALESCE((SELECT value::time FROM settings WHERE key = 'closing_time'), '18:00'::time);
+            END IF;
+        END IF;
     END IF;
 
-    -- If day not enabled, return empty
     IF NOT v_day_enabled THEN
         RETURN;
-    END IF;
-
-    IF v_day_of_week = 6 THEN
-        v_opening := COALESCE((SELECT value::time FROM settings WHERE key = 'saturday_opening'), '08:00'::time);
-        v_closing := COALESCE((SELECT value::time FROM settings WHERE key = 'saturday_closing'), '18:00'::time);
-    ELSE
-        v_opening := COALESCE((SELECT value::time FROM settings WHERE key = 'opening_time'), '08:30'::time);
-        v_closing := COALESCE((SELECT value::time FROM settings WHERE key = 'closing_time'), '19:00'::time);
     END IF;
 
     v_current := v_opening;
