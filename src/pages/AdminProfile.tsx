@@ -3,8 +3,16 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { deleteAllClients } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
 import {
-  Download, LogOut, Bell, Trash2, Scissors,
-  User, ArrowLeft, Shield, Clock, Image as ImageIcon,
+  Download,
+  LogOut,
+  Bell,
+  Trash2,
+  Scissors,
+  User,
+  ArrowLeft,
+  Shield,
+  Clock,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
@@ -14,6 +22,7 @@ import { useToast } from '../hooks/useToast';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { useBarberSettings } from '../contexts/BarberSettingsContext';
 import { useProfileStats } from '../hooks/useProfileStats';
+import { useWeeklyCongrats } from '../hooks/useWeeklyCongrats';
 import ProfileMobile from '../components/Admin/shared/ProfileMobile';
 import ProfileDesktopMetrics from '../components/Admin/shared/ProfileDesktopMetrics';
 import ProfileServicesChart from '../components/Admin/shared/ProfileServicesChart';
@@ -30,6 +39,7 @@ const AdminProfile: React.FC = () => {
   const [searchParams] = useSearchParams();
   const showSettings = searchParams.get('tab') === 'settings';
   const { stats, loading, loadData } = useProfileStats();
+  useWeeklyCongrats(stats.lucroSemana, stats.concluidosSemana);
   const [timeRange, setTimeRange] = useState<'week' | 'month'>('week');
   const [showBalance, setShowBalance] = useState(
     () => localStorage.getItem('barber_show_balance') !== 'false'
@@ -102,7 +112,9 @@ const AdminProfile: React.FC = () => {
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
 
-  useEffect(() => { refetch(); }, [refetch]);
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   const greeting =
     new Date().getHours() < 12 ? 'Bom dia' : new Date().getHours() < 18 ? 'Boa tarde' : 'Boa noite';
@@ -128,13 +140,21 @@ const AdminProfile: React.FC = () => {
   const isIOSNotInstalled = isIOS && !isStandalone;
 
   const handleInstallClick = () => {
-    if (isStandalone) { showSuccess('Aplicativo já instalado!'); return; }
-    if (isIOSChrome) { showError('No iPhone, abra este link pelo Safari primeiro'); }
+    if (isStandalone) {
+      showSuccess('Aplicativo já instalado!');
+      return;
+    }
+    if (isIOSChrome) {
+      showError('No iPhone, abra este link pelo Safari primeiro');
+    }
     setShowInstallPrompt(true);
   };
 
   const handleConfirmInstall = async () => {
-    if (isIOS) { setShowInstallPrompt(false); return; }
+    if (isIOS) {
+      setShowInstallPrompt(false);
+      return;
+    }
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
@@ -145,11 +165,27 @@ const AdminProfile: React.FC = () => {
   };
 
   const handleToggleNotifications = async () => {
-    if (isSubscribed) { await unsubscribe(); showSuccess('Notificações desativadas'); return; }
-    if (isIOSNotInstalled) { showError('Para ativar as notificações, instale o aplicativo'); return; }
-    if (!import.meta.env.VITE_VAPID_PUBLIC_KEY) { showError('Chave VAPID não configurada no servidor'); return; }
-    if (!('Notification' in window)) { showError('Seu navegador não suporta notificações'); return; }
-    if (Notification.permission === 'denied') { showError('Notificações bloqueadas. Permita nas configurações do navegador'); return; }
+    if (isSubscribed) {
+      await unsubscribe();
+      showSuccess('Notificações desativadas');
+      return;
+    }
+    if (isIOSNotInstalled) {
+      showError('Para ativar as notificações, instale o aplicativo');
+      return;
+    }
+    if (!import.meta.env.VITE_VAPID_PUBLIC_KEY) {
+      showError('Chave VAPID não configurada no servidor');
+      return;
+    }
+    if (!('Notification' in window)) {
+      showError('Seu navegador não suporta notificações');
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      showError('Notificações bloqueadas. Permita nas configurações do navegador');
+      return;
+    }
     const success = await subscribe();
     if (success) showSuccess('Notificações ativadas!');
     else showError('Erro ao ativar notificações');
@@ -187,16 +223,31 @@ const AdminProfile: React.FC = () => {
       {showSettings && (
         <>
           <div className="lg:hidden flex items-center gap-3 px-4 -mt-1 mb-4">
-            <button onClick={() => { if (settingsSection) setSettingsSection(null); else setSettingsSection('__back'); }}
-              className="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors cursor-pointer" aria-label="Voltar">
+            <button
+              onClick={() => {
+                if (settingsSection) setSettingsSection(null);
+                else setSettingsSection('__back');
+              }}
+              className="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              aria-label="Voltar"
+            >
               <ArrowLeft size={20} />
             </button>
             <div className="flex-1">
               <h1 className="text-lg font-bold tracking-tight text-white">
-                {settingsSection === 'conta' ? 'Conta' : settingsSection === 'galeria' ? 'Galeria'
-                  : settingsSection === 'servicos' ? 'Serviços' : settingsSection === 'horarios' ? 'Horários'
-                  : settingsSection === 'notificacoes' ? 'Notificações' : settingsSection === 'dados' ? 'Zona de Segurança'
-                  : 'Configurações'}
+                {settingsSection === 'conta'
+                  ? 'Conta'
+                  : settingsSection === 'galeria'
+                    ? 'Galeria'
+                    : settingsSection === 'servicos'
+                      ? 'Serviços'
+                      : settingsSection === 'horarios'
+                        ? 'Horários'
+                        : settingsSection === 'notificacoes'
+                          ? 'Notificações'
+                          : settingsSection === 'dados'
+                            ? 'Zona de Segurança'
+                            : 'Configurações'}
               </h1>
             </div>
           </div>
@@ -214,7 +265,9 @@ const AdminProfile: React.FC = () => {
           <div className="hidden lg:flex gap-8 max-w-4xl mx-auto">
             <div className="w-[200px] shrink-0">
               <div className="sticky top-6 space-y-1">
-                <h2 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] px-3 mb-4">Configurações</h2>
+                <h2 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] px-3 mb-4">
+                  Configurações
+                </h2>
                 {[
                   { id: 'conta', label: 'Conta', icon: User },
                   { id: 'galeria', label: 'Galeria', icon: ImageIcon },
@@ -226,8 +279,11 @@ const AdminProfile: React.FC = () => {
                   const Icon = item.icon;
                   const active = (settingsSection || 'conta') === item.id;
                   return (
-                    <button key={item.id} onClick={() => setSettingsSection(item.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] transition-all cursor-pointer ${active ? 'bg-white/5 text-white font-medium' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03]'}`}>
+                    <button
+                      key={item.id}
+                      onClick={() => setSettingsSection(item.id)}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] transition-all cursor-pointer ${active ? 'bg-white/5 text-white font-medium' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03]'}`}
+                    >
                       <Icon size={15} className={active ? 'text-[#C5A059]' : 'text-zinc-500'} />
                       {item.label}
                     </button>
@@ -237,7 +293,13 @@ const AdminProfile: React.FC = () => {
             </div>
             <div className="flex-1 min-w-0 min-h-[400px]">
               <AnimatePresence mode="wait">
-                <motion.div key={settingsSection || 'conta'} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
+                <motion.div
+                  key={settingsSection || 'conta'}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.15 }}
+                >
                   {(!settingsSection || settingsSection === 'conta') && <SettingsConta />}
                   {settingsSection === 'galeria' && <SettingsGaleria />}
                   {settingsSection === 'servicos' && <SettingsServicos />}
@@ -267,7 +329,11 @@ const AdminProfile: React.FC = () => {
       )}
 
       {/* DESKTOP SERVICES CHART */}
-      {!showSettings && <div className="hidden lg:block"><ProfileServicesChart topServices={stats.topServices} /></div>}
+      {!showSettings && (
+        <div className="hidden lg:block">
+          <ProfileServicesChart topServices={stats.topServices} />
+        </div>
+      )}
 
       {/* MOBILE LAYOUT */}
       {!showSettings && (
@@ -298,16 +364,38 @@ const AdminProfile: React.FC = () => {
       <AnimatePresence>
         {showLogoutConfirm && (
           <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowLogoutConfirm(false)} className="absolute inset-0 bg-black/60" />
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }} className="relative z-10 w-full max-w-[260px] bg-[#1A1A1A] border border-white/5 rounded-2xl overflow-hidden">
-              <div className="p-5 text-center"><p className="text-[11px] text-zinc-300 font-medium">Sair da conta?</p></div>
-              <div className="border-t border-white/[0.06]">
-                <button onClick={handleLogout} className="w-full py-3.5 text-[11px] font-bold text-red-500 active:bg-white/[0.03] transition-colors cursor-pointer">Sair</button>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowLogoutConfirm(false)}
+              className="absolute inset-0 bg-black/60"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="relative z-10 w-full max-w-[260px] bg-[#1A1A1A] border border-white/5 rounded-2xl overflow-hidden"
+            >
+              <div className="p-5 text-center">
+                <p className="text-[11px] text-zinc-300 font-medium">Sair da conta?</p>
               </div>
               <div className="border-t border-white/[0.06]">
-                <button onClick={() => setShowLogoutConfirm(false)} className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer">Manter</button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full py-3.5 text-[11px] font-bold text-red-500 active:bg-white/[0.03] transition-colors cursor-pointer"
+                >
+                  Sair
+                </button>
+              </div>
+              <div className="border-t border-white/[0.06]">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
+                >
+                  Manter
+                </button>
               </div>
             </motion.div>
           </div>
@@ -317,23 +405,38 @@ const AdminProfile: React.FC = () => {
       <AnimatePresence>
         {showInstallPrompt && (
           <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowInstallPrompt(false)} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-            <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowInstallPrompt(false)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-              className="relative z-10 w-full sm:max-w-[340px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden">
+              className="relative z-10 w-full sm:max-w-[340px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
+            >
               {isIOS ? (
                 <>
                   <div className="px-6 pt-6 pb-4">
                     <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-4">
                       <Download size={20} className="text-[#C5A059]" />
                     </div>
-                    <p className="text-[15px] font-semibold text-white text-center">Instalar o app</p>
-                    <p className="text-[12px] text-zinc-500 mt-2 text-center leading-relaxed">Siga os passos abaixo para adicionar o app à sua tela de início.</p>
+                    <p className="text-[15px] font-semibold text-white text-center">
+                      Instalar o app
+                    </p>
+                    <p className="text-[12px] text-zinc-500 mt-2 text-center leading-relaxed">
+                      Siga os passos abaixo para adicionar o app à sua tela de início.
+                    </p>
                   </div>
                   <div className="px-6 pb-5 space-y-4">
                     {[
-                      ['Toque no ícone de Compartilhar — é o quadrado com seta pra cima, na parte de baixo da tela.'],
+                      [
+                        'Toque no ícone de Compartilhar — é o quadrado com seta pra cima, na parte de baixo da tela.',
+                      ],
                       ['Role pra baixo e toque em Adicionar à Tela de Início.'],
                       ['Confirme tocando em Adicionar no canto superior direito. Pronto!'],
                     ].map((text, i) => (
@@ -349,23 +452,33 @@ const AdminProfile: React.FC = () => {
               ) : (
                 <div className="px-6 pt-6 pb-4">
                   <p className="text-[15px] font-semibold text-white">Instalar aplicativo</p>
-                  <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">Adicione o Black Diamond à sua tela de início para acesso rápido.</p>
+                  <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
+                    Adicione o Black Diamond à sua tela de início para acesso rápido.
+                  </p>
                 </div>
               )}
               <div className="flex border-t border-white/[0.06]">
-                <button onClick={() => setShowInstallPrompt(false)}
-                  className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer">
+                <button
+                  onClick={() => setShowInstallPrompt(false)}
+                  className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
+                >
                   {isIOS ? 'Entendi' : 'Cancelar'}
                 </button>
                 {!isIOS && (
                   <>
                     <div className="w-px bg-white/[0.06]" />
-                    <button onClick={handleConfirmInstall}
-                      className="flex-1 py-4 text-[13px] font-semibold text-[#C5A059] hover:text-[#A68233] active:bg-white/[0.03] transition-all cursor-pointer">Instalar</button>
+                    <button
+                      onClick={handleConfirmInstall}
+                      className="flex-1 py-4 text-[13px] font-semibold text-[#C5A059] hover:text-[#A68233] active:bg-white/[0.03] transition-all cursor-pointer"
+                    >
+                      Instalar
+                    </button>
                   </>
                 )}
               </div>
-              <div className="sm:hidden flex justify-center pb-3 pt-1"><div className="w-10 h-1 rounded-full bg-white/10" /></div>
+              <div className="sm:hidden flex justify-center pb-3 pt-1">
+                <div className="w-10 h-1 rounded-full bg-white/10" />
+              </div>
             </motion.div>
           </div>
         )}
@@ -374,31 +487,65 @@ const AdminProfile: React.FC = () => {
       <AnimatePresence>
         {showResetConfirm && (
           <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => { setShowResetConfirm(false); setResetText(''); }} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-            <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                setShowResetConfirm(false);
+                setResetText('');
+              }}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-              className="relative z-10 w-full sm:max-w-[340px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden">
+              className="relative z-10 w-full sm:max-w-[340px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
+            >
               <div className="px-6 pt-6 pb-4">
                 <p className="text-[15px] font-semibold text-white">Limpar dados</p>
-                <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">Todos os dados da barbearia vão ser apagados permanentemente.</p>
+                <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
+                  Todos os dados da barbearia vão ser apagados permanentemente.
+                </p>
               </div>
               <div className="px-6 pb-5">
-                <input type="text" value={resetText} onChange={(e) => setResetText(e.target.value.toUpperCase())}
-                  placeholder="Digite LIMPAR para confirmar" aria-label="Digite LIMPAR para confirmar a limpeza dos dados"
+                <input
+                  type="text"
+                  value={resetText}
+                  onChange={(e) => setResetText(e.target.value.toUpperCase())}
+                  placeholder="Digite LIMPAR para confirmar"
+                  aria-label="Digite LIMPAR para confirmar a limpeza dos dados"
                   className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-red-500/40 focus:ring-1 focus:ring-red-500/10 transition-all placeholder:text-zinc-600"
-                  autoFocus onKeyDown={(e) => { if (e.key === 'Enter' && resetText === 'LIMPAR') handleResetData(); }} />
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && resetText === 'LIMPAR') handleResetData();
+                  }}
+                />
               </div>
               <div className="flex border-t border-white/[0.06]">
-                <button onClick={() => { setShowResetConfirm(false); setResetText(''); }}
-                  className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer">Cancelar</button>
+                <button
+                  onClick={() => {
+                    setShowResetConfirm(false);
+                    setResetText('');
+                  }}
+                  className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
                 <div className="w-px bg-white/[0.06]" />
-                <button onClick={handleResetData} disabled={resetText !== 'LIMPAR' || resetting}
-                  className="flex-1 py-4 text-[13px] font-semibold text-red-500 hover:text-red-400 active:bg-white/[0.03] transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed">
+                <button
+                  onClick={handleResetData}
+                  disabled={resetText !== 'LIMPAR' || resetting}
+                  className="flex-1 py-4 text-[13px] font-semibold text-red-500 hover:text-red-400 active:bg-white/[0.03] transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                >
                   {resetting ? '...' : 'Limpar'}
                 </button>
               </div>
-              <div className="sm:hidden flex justify-center pb-3 pt-1"><div className="w-10 h-1 rounded-full bg-white/10" /></div>
+              <div className="sm:hidden flex justify-center pb-3 pt-1">
+                <div className="w-10 h-1 rounded-full bg-white/10" />
+              </div>
             </motion.div>
           </div>
         )}
