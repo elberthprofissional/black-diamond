@@ -5,6 +5,21 @@ import './index.css';
 import App from './App.tsx';
 import { BarberSettingsProvider } from './contexts/BarberSettingsContext';
 
+// Google Analytics
+const gaId = import.meta.env.VITE_GA_ID;
+if (gaId) {
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+  document.head.appendChild(script);
+  window.dataLayer = window.dataLayer || [];
+  function gtag(...args: unknown[]) {
+    window.dataLayer!.push(args);
+  }
+  gtag('js', new Date());
+  gtag('config', gaId, { send_page_view: false });
+}
+
 const dsn = import.meta.env.VITE_SENTRY_DSN;
 
 if (dsn) {

@@ -57,8 +57,9 @@ export const createBooking = async (
 ) => {
   // Client-side validation before hitting the RPC
   if (!clientData.name.trim()) throw new Error('Informe seu nome.');
-  if (clientData.phone.replace(/\D/g, '').length < 10)
+  if (clientData.phone.replace(/\D/g, '').length < 10) {
     throw new Error('Informe um telefone válido com DDD.');
+  }
   if (bookingData.service_ids.length === 0) throw new Error('Selecione pelo menos um serviço.');
   if (!bookingData.booking_date) throw new Error('Selecione uma data.');
   if (!bookingData.booking_time) throw new Error('Selecione um horário.');
@@ -376,33 +377,3 @@ export const getClientByPhone = async (phone: string) => {
 };
 
 // Reviews
-
-/** Submete uma avaliação (1-5 estrelas) para um agendamento. */
-export const submitReview = async (
-  bookingId: string,
-  clientId: string,
-  rating: number,
-  comment?: string
-) => {
-  if (rating < 1 || rating > 5) throw new Error('Avaliação deve ser entre 1 e 5');
-  const { error } = await supabase
-    .from('reviews')
-    .insert({ booking_id: bookingId, client_id: clientId, rating, comment: comment || null });
-
-  if (error) throw error;
-};
-
-/** Retorna a média e total de avaliações via RPC. */
-export const getAverageRating = async () => {
-  const { data, error } = await supabase.rpc('get_average_rating');
-  if (error) throw error;
-  if (!data) return { average: 0, total: 0 };
-  return data as { average: number; total: number };
-};
-
-/** Retorna as melhores avaliações para exibição no slider. */
-export const getTopReviews = async (limit = 10) => {
-  const { data, error } = await supabase.rpc('get_top_reviews', { p_limit: limit });
-  if (error) throw error;
-  return data || [];
-};

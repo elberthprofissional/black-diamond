@@ -154,3 +154,60 @@ test.describe('Performance', () => {
     expect(headers?.['cache-control']).toBeDefined();
   });
 });
+
+test.describe('Admin - Autenticação', () => {
+  test('rota admin redireciona para login sem sessão', async ({ page }) => {
+    await page.goto('/admin');
+    await expect(page).toHaveURL(/\/admin\/login/);
+  });
+
+  test('login com credenciais inválidas mostra erro', async ({ page }) => {
+    await page.goto('/admin/login');
+    await page.fill('#login-email', 'wrong@email.com');
+    await page.fill('#login-password', 'wrongpassword');
+    await page.click('[data-testid="login-submit"]');
+
+    await expect(page.locator('text=incorretos')).toBeVisible({ timeout: 10000 });
+  });
+
+  test('login com campos vazios mostra erro', async ({ page }) => {
+    await page.goto('/admin/login');
+    await page.click('[data-testid="login-submit"]');
+
+    await expect(page.locator('text=Preencha')).toBeVisible({ timeout: 5000 });
+  });
+});
+
+test.describe('Admin - Rate Limiting', () => {
+  test('bloqueio temporário após múltiplas tentativas', async ({ page }) => {
+    await page.goto('/admin/login');
+
+    for (let i = 0; i < 5; i++) {
+      await page.fill('#login-email', 'test@test.com');
+      await page.fill('#login-password', 'wrong');
+      await page.click('[data-testid="login-submit"]');
+      await page.waitForTimeout(500);
+    }
+
+    await expect(page.locator('text=bloqueada')).toBeVisible({ timeout: 10000 });
+  });
+});
+
+test.describe('Navegação - PWA', () => {
+  test('service worker é registrado', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const swReady = await page.evaluate(() =>
+      navigator.serviceWorker?.ready.then(() => true).catch(() => false)
+    );
+    expect(swReady).toBe(true);
+  });
+
+  test('manifest.json é acessível', async ({ page }) => {
+    const response = await page.goto('/manifest.json');
+    expect(response?.status()).toBe(200);
+    const manifest = await response?.json();
+    expect(manifest?.name).toBe('Black Diamond');
+  });
+});

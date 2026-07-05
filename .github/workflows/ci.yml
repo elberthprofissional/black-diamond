@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, versao-teste]
   pull_request:
     branches: [main]
 
@@ -37,3 +37,32 @@ jobs:
           VITE_BARBER_WHATSAPP: '5500000000000'
           VITE_VAPID_PUBLIC_KEY: placeholder
           VITE_SENTRY_DSN: placeholder
+          VITE_GA_ID: placeholder
+
+  lighthouse:
+    name: Lighthouse Audit
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_ANON_KEY: placeholder
+          VITE_BARBER_WHATSAPP: '5500000000000'
+          VITE_VAPID_PUBLIC_KEY: placeholder
+          VITE_SENTRY_DSN: placeholder
+
+      - name: Run Lighthouse
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: ./lighthouse.config.js

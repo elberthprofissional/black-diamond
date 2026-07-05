@@ -8,12 +8,13 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  retryCount: number;
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, retryCount: 0 };
   }
 
   static getDerivedStateFromError(error: Error): State {
@@ -26,6 +27,10 @@ class ErrorBoundary extends React.Component<Props, State> {
       console.error('[ErrorBoundary] Component stack:', info.componentStack);
     }
   }
+
+  handleRetry = () => {
+    this.setState((prev) => ({ hasError: false, error: null, retryCount: prev.retryCount + 1 }));
+  };
 
   render() {
     if (this.state.hasError) {
@@ -60,7 +65,9 @@ class ErrorBoundary extends React.Component<Props, State> {
             <div className="space-y-2">
               <h2 className="text-xl font-bold text-white">Algo deu errado</h2>
               <p className="text-sm text-zinc-500 leading-relaxed">
-                Ocorreu um erro inesperado. Tente recarregar a página.
+                {this.state.retryCount < 3
+                  ? 'Ocorreu um erro inesperado. Tente novamente.'
+                  : 'O erro persiste. Recarregue a página ou tente novamente mais tarde.'}
               </p>
               {import.meta.env.DEV && this.state.error && (
                 <p className="text-xs text-zinc-600 mt-4 p-3 bg-zinc-900 rounded-lg text-left overflow-auto max-h-32">
@@ -68,12 +75,22 @@ class ErrorBoundary extends React.Component<Props, State> {
                 </p>
               )}
             </div>
-            <button
-              onClick={() => window.location.reload()}
-              className="h-11 px-8 bg-[#C5A059] text-black font-bold text-[10px] uppercase tracking-[0.2em] rounded-xl hover:bg-[#A68233] transition-all cursor-pointer"
-            >
-              Recarregar
-            </button>
+            <div className="flex gap-3 justify-center">
+              {this.state.retryCount < 3 && (
+                <button
+                  onClick={this.handleRetry}
+                  className="h-11 px-8 bg-white/[0.06] hover:bg-white/[0.1] text-zinc-300 font-bold text-[10px] uppercase tracking-[0.2em] rounded-xl transition-all cursor-pointer"
+                >
+                  Tentar Novamente
+                </button>
+              )}
+              <button
+                onClick={() => window.location.reload()}
+                className="h-11 px-8 bg-[#C5A059] text-black font-bold text-[10px] uppercase tracking-[0.2em] rounded-xl hover:bg-[#A68233] transition-all cursor-pointer"
+              >
+                Recarregar
+              </button>
+            </div>
           </div>
         </div>
       );

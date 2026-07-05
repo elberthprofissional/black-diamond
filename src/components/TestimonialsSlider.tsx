@@ -1,6 +1,5 @@
-import React, { useRef, useCallback, useState, useEffect } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
 import { User, Star } from 'lucide-react';
-import { getTopReviews } from '../lib/api';
 
 interface Review {
   name: string;
@@ -8,7 +7,7 @@ interface Review {
   text: string;
 }
 
-const FALLBACK_REVIEWS: Review[] = [
+const REVIEWS: Review[] = [
   {
     name: 'YP TATTOO',
     rating: 5,
@@ -39,23 +38,7 @@ const Testimonials: React.FC = () => {
   const startX = useRef(0);
   const scrollLeftVal = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [reviews, setReviews] = useState<Review[]>(FALLBACK_REVIEWS);
-
-  useEffect(() => {
-    getTopReviews(10)
-      .then((data) => {
-        if (data && data.length > 0) {
-          setReviews(
-            data.map((r: { client_name?: string; rating: number; comment?: string }) => ({
-              name: r.client_name || 'Cliente',
-              rating: r.rating,
-              text: r.comment || '',
-            }))
-          );
-        }
-      })
-      .catch(() => {});
-  }, []);
+  const reviews = REVIEWS;
 
   const handleScroll = useCallback(() => {
     if (!sliderRef.current || reviews.length <= 1) return;

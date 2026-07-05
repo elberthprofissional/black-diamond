@@ -30,7 +30,6 @@ function TitleManager() {
 
 const Home = lazy(() => import('./pages/Home'));
 const BookingPage = lazy(() => import('./pages/BookingPage'));
-const RatingPage = lazy(() => import('./pages/RatingPage'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const AdminResetPassword = lazy(() => import('./pages/AdminResetPassword'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
@@ -94,7 +93,6 @@ function App() {
                     </PwaGuard>
                   }
                 />
-                <Route path="/avaliar/:bookingId" element={<RatingPage />} />
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin/reset-password" element={<AdminResetPassword />} />
 

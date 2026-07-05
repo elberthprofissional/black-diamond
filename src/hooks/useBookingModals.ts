@@ -43,15 +43,13 @@ export function useBookingModals(loadData: () => Promise<void>) {
 
     const clientName = thankYouBooking.clients?.name || 'Cliente';
     const firstName = clientName.split(' ')[0];
-    const baseUrl = window.location.origin;
-    const reviewLink = `${baseUrl}/avaliar/${thankYouBooking.id}`;
 
     let cleanPhone = phone.replace(/\D/g, '');
     if (cleanPhone.length === 10 || cleanPhone.length === 11) {
       cleanPhone = '55' + cleanPhone;
     }
 
-    const message = `Oi ${firstName}! Obrigado por cortar com a gente no Black Diamond 💈❤️\n\nSe puder, deixa sua avaliação aqui:\n${reviewLink}\n\nSua opinião é muito importante pra nós!`;
+    const message = `Oi ${firstName}! Obrigado por cortar com a gente no Black Diamond 💈❤️\n\nSe precisar de algo, é só chamar! Até a próxima!`;
 
     setThankYouBooking(null);
     showSuccess('Agradecimento enviado! ✅');

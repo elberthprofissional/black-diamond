@@ -7,6 +7,7 @@ interface BeforeInstallPromptEvent extends Event {
 
 interface Window {
   deferredPrompt?: BeforeInstallPromptEvent;
+  dataLayer?: unknown[][];
 }
 
 interface Navigator {
@@ -20,6 +21,7 @@ interface ImportMetaEnv {
   readonly VITE_VAPID_PUBLIC_KEY: string;
   readonly VITE_ADMIN_EMAIL: string;
   readonly VITE_ADMIN_NAME: string;
+  readonly VITE_GA_ID: string;
 }
 
 interface ImportMeta {
