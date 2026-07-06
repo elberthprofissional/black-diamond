@@ -139,14 +139,24 @@ const AdminProfile: React.FC = () => {
   const isIOSChrome = isIOS && window.navigator.userAgent.includes('CriOS');
   const isIOSNotInstalled = isIOS && !isStandalone;
 
-  const handleInstallClick = () => {
+  const handleInstallClick = async () => {
     if (isStandalone) {
       showSuccess('Aplicativo já instalado!');
       return;
     }
     if (isIOSChrome) {
       showError('No iPhone, abra este link pelo Safari primeiro');
+      return;
     }
+    // Se o prompt automático do navegador estiver pronto, dispara direto!
+    if (!isIOS && deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') showSuccess('Aplicativo instalado!');
+      setDeferredPrompt(null);
+      return;
+    }
+    // Caso contrário (iOS ou Android com prompt manual), abre o modal com orientações
     setShowInstallPrompt(true);
   };
 

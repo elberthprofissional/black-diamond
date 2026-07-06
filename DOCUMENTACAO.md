@@ -824,8 +824,11 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - Verifique se o Supabase esta acessivel
 
 ### "PWA nao instala"
-- So funciona em HTTPS (producao)
-- No iOS, use Safari > Compartilhar > Adicionar a Tela de Inicio
+- Só funciona em HTTPS (produção) ou localhost (desenvolvimento).
+- **iOS (iPhone):** O Safari não suporta instalação programática. O usuário deve clicar em **Compartilhar (quadrado com seta para cima) > Adicionar à Tela de Início**. O app exibe um guia visual passo a passo automaticamente.
+- **Android/Chrome (Instalação Inteligente):**
+  - Se o navegador permitir a instalação automática, o app acionará diretamente a janela nativa do Chrome ao clicar em "Aplicativo".
+  - Se o Chrome bloquear o prompt automático (o que ocorre temporariamente após desinstalações recentes ou cache), o aplicativo exibirá automaticamente um guia passo a passo ensinando a instalar manualmente através do menu do Chrome (três pontinhos > Instalar aplicativo).
 
 ### "Build falha"
 - Rode `npm run lint` para ver erros
