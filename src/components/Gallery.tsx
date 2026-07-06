@@ -258,19 +258,21 @@ const Gallery: React.FC = React.memo(() => {
           </div>
         )}
 
-        <div className="mt-12 text-center">
-          <a
-            href={`https://www.instagram.com/${barberInstagram || 'black.diamond.barbeariaa'}/`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[8px] md:text-[10px] font-medium text-zinc-600 uppercase tracking-[0.4em] hover:text-[#D4AF37] transition-colors duration-300"
-          >
-            Para mais, siga a gente no{' '}
-            <span className="text-[#D4AF37] underline underline-offset-4 decoration-[#D4AF37]/50 hover:decoration-[#D4AF37]">
-              Instagram
-            </span>
-          </a>
-        </div>
+        {barberInstagram && (
+          <div className="mt-12 text-center">
+            <a
+              href={`https://www.instagram.com/${barberInstagram}/`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[8px] md:text-[10px] font-medium text-zinc-600 uppercase tracking-[0.4em] hover:text-[#D4AF37] transition-colors duration-300"
+            >
+              Para mais, siga a gente no{' '}
+              <span className="text-[#D4AF37] underline underline-offset-4 decoration-[#D4AF37]/50 hover:decoration-[#D4AF37]">
+                Instagram
+              </span>
+            </a>
+          </div>
+        )}
       </section>
 
       {/* Lightbox */}

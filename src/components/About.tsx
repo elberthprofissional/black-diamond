@@ -27,7 +27,7 @@ const About: React.FC = () => {
                 </h3>
                 <h2 className="text-5xl sm:text-6xl md:text-8xl font-bebas text-white leading-none uppercase tracking-widest">
                   PRAZER, <br />
-                  <span className="font-serif italic font-light">{barberName || 'Tato'}</span>
+                  <span className="font-serif italic font-light">{barberName || 'Barbeiro'}</span>
                 </h2>
               </div>
 

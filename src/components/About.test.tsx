@@ -35,9 +35,9 @@ describe('About', () => {
     expect(screen.getByText('Sobre Mim')).toBeInTheDocument();
   });
 
-  it('renderiza o nome Tato', () => {
+  it('renderiza o nome Barbeiro como fallback', () => {
     render(<About />);
-    expect(screen.getByText('Tato')).toBeInTheDocument();
+    expect(screen.getByText('Barbeiro')).toBeInTheDocument();
   });
 
   it('renderiza a descricao', () => {

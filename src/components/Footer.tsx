@@ -60,20 +60,22 @@ const Footer: React.FC = () => {
             </h4>
             <div className="space-y-3 md:space-y-4">
               {/* Instagram */}
-              <a
-                href={`https://www.instagram.com/${barberInstagram || 'black.diamond.barbeariaa'}/`}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Acessar nosso perfil no Instagram"
-                className="group flex items-center gap-3 md:gap-4 text-zinc-400 hover:text-[#D4AF37] transition-all duration-500"
-              >
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#141414] border border-white/5 flex items-center justify-center group-hover:border-[#D4AF37]/50 group-hover:bg-[#D4AF37]/10 transition-all duration-500">
-                  <Instagram size={14} className="md:w-4 md:h-4" />
-                </div>
-                <span className="font-roboto font-light text-xs md:text-sm">
-                  Siga a gente no Instagram
-                </span>
-              </a>
+              {barberInstagram && (
+                <a
+                  href={`https://www.instagram.com/${barberInstagram}/`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Acessar nosso perfil no Instagram"
+                  className="group flex items-center gap-3 md:gap-4 text-zinc-400 hover:text-[#D4AF37] transition-all duration-500"
+                >
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#141414] border border-white/5 flex items-center justify-center group-hover:border-[#D4AF37]/50 group-hover:bg-[#D4AF37]/10 transition-all duration-500">
+                    <Instagram size={14} className="md:w-4 md:h-4" />
+                  </div>
+                  <span className="font-roboto font-light text-xs md:text-sm">
+                    Siga a gente no Instagram
+                  </span>
+                </a>
+              )}
 
               {/* WhatsApp */}
               {barberPhone && (

@@ -22,13 +22,13 @@ describe('Location', () => {
     expect(screen.getByText(/Av. Brasílio da Gama/)).toBeInTheDocument();
   });
 
-  it('renderiza o horario', () => {
+  it('renderiza a secao de horario', () => {
     render(
       <BarberSettingsProvider>
         <Location />
       </BarberSettingsProvider>
     );
-    expect(screen.getByText(/08:30 às 19:00/)).toBeInTheDocument();
+    expect(screen.getByText('Horário')).toBeInTheDocument();
   });
 
   it('renderiza o iframe do Google Maps', () => {

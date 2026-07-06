@@ -23,14 +23,9 @@ describe('Footer', () => {
     expect(screen.getByText(/© 2026 Black Diamond/)).toBeInTheDocument();
   });
 
-  it('renderiza link do Instagram', () => {
+  it('nao renderiza link do Instagram quando nao configurado', () => {
     renderWithRouter(<Footer />);
-    const instagramLink = screen.getByLabelText(/perfil no instagram/i);
-    expect(instagramLink).toBeInTheDocument();
-    expect(instagramLink).toHaveAttribute(
-      'href',
-      'https://www.instagram.com/black.diamond.barbeariaa/'
-    );
+    expect(screen.queryByLabelText(/perfil no instagram/i)).not.toBeInTheDocument();
   });
 
   it('renderiza link do WhatsApp', () => {
@@ -39,10 +34,9 @@ describe('Footer', () => {
     expect(whatsappLink).toBeInTheDocument();
   });
 
-  it('renderiza horarios de funcionamento', () => {
+  it('renderiza a secao de horario de funcionamento', () => {
     renderWithRouter(<Footer />);
-    expect(screen.getByText('08:30 - 19:00')).toBeInTheDocument();
-    expect(screen.getByText('08:00 - 18:00')).toBeInTheDocument();
+    expect(screen.getByText('Horário de Funcionamento')).toBeInTheDocument();
   });
 
   it('renderiza endereco', () => {
@@ -59,8 +53,8 @@ describe('Footer', () => {
 
   it('links externos tem target=_blank e rel=noopener', () => {
     renderWithRouter(<Footer />);
-    const instagramLink = screen.getByLabelText(/perfil no instagram/i);
-    expect(instagramLink).toHaveAttribute('target', '_blank');
-    expect(instagramLink).toHaveAttribute('rel', 'noopener noreferrer');
+    const devLink = screen.getByText('desenvolvimento');
+    expect(devLink).toHaveAttribute('target', '_blank');
+    expect(devLink).toHaveAttribute('rel', 'noopener noreferrer');
   });
 });

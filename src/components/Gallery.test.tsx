@@ -62,14 +62,14 @@ describe('Gallery', () => {
     });
   });
 
-  it('link para Instagram esta presente', async () => {
+  it('nao renderiza link do Instagram quando nao configurado', async () => {
     render(
       <BarberSettingsProvider>
         <Gallery />
       </BarberSettingsProvider>
     );
     await waitFor(() => {
-      expect(screen.getByText(/siga a gente no/)).toBeInTheDocument();
+      expect(screen.queryByText(/siga a gente no/i)).not.toBeInTheDocument();
     });
   });
 });
