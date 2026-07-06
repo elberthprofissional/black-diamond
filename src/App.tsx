@@ -28,8 +28,8 @@ function TitleManager() {
 
     // Send pageview event to Google Analytics on route transition
     const gaId = import.meta.env.VITE_GA_ID;
-    if (gaId && (window as any).gtag) {
-      (window as any).gtag('event', 'page_view', {
+    if (gaId && window.gtag) {
+      window.gtag('event', 'page_view', {
         page_title: pageTitle,
         page_location: window.location.href,
         page_path: pathname,

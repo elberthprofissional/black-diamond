@@ -15,12 +15,12 @@ if (gaId) {
   window.dataLayer = window.dataLayer || [];
 
   // Define global gtag function on window
-  (window as any).gtag = function (...args: unknown[]) {
+  window.gtag = function (...args: unknown[]) {
     window.dataLayer!.push(args);
   };
 
-  (window as any).gtag('js', new Date());
-  (window as any).gtag('config', gaId, { send_page_view: false });
+  window.gtag('js', new Date());
+  window.gtag('config', gaId, { send_page_view: false });
 }
 
 const dsn = import.meta.env.VITE_SENTRY_DSN;

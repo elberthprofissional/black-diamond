@@ -57,7 +57,7 @@ vi.mock('react-router-dom', async () => {
 vi.mock('framer-motion', () => {
   const MotionEl =
     (tag: string) =>
-    ({ children, whileHover, whileTap, ...props }: Record<string, unknown>) =>
+    ({ children, ...props }: Record<string, unknown>) =>
       React.createElement(tag, props, children);
   return {
     motion: { div: MotionEl('div'), button: MotionEl('button') },

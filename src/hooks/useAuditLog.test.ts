@@ -32,7 +32,7 @@ describe('useAuditLog', () => {
     const { supabase } = await import('../lib/supabase');
     vi.mocked(supabase.from).mockReturnValue({
       insert: vi.fn().mockRejectedValue(new Error('DB error')),
-    } as any);
+    } as unknown as ReturnType<typeof supabase.from>);
 
     const { result } = renderHook(() => useAuditLog());
 

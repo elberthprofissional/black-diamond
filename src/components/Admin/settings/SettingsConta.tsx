@@ -907,7 +907,7 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCa
     if (!imgRef.current || !naturalSize) return;
     const img = imgRef.current;
     const canvas = document.createElement('canvas');
-    const destSize = 800; // Aumentado para 800px para qualidade ultra nítida (Retina-ready)
+    const destSize = 1024; // 1024px para qualidade Retina-ready
     canvas.width = destSize;
     canvas.height = destSize;
     const ctx = canvas.getContext('2d');
@@ -936,7 +936,7 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCa
         }
       },
       'image/webp',
-      0.9
+      0.95
     );
   };
 

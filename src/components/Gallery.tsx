@@ -112,13 +112,13 @@ const Gallery: React.FC = React.memo(() => {
 
         {/* Display Mode: Empty */}
         {displayMode === 'empty' && (
-          <div className="flex justify-center gap-4 md:gap-8 px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 px-4 max-w-2xl mx-auto">
             {[...Array(4)].map((_, index) => (
               <div
                 key={`placeholder-${index}`}
-                className="relative w-[280px] md:w-[400px] h-[360px] md:h-[500px] bg-[#1a1a1a] border border-dashed border-white/10 overflow-hidden flex-shrink-0 flex items-center justify-center"
+                className="relative aspect-[3/4] bg-[#1a1a1a] border border-dashed border-white/10 overflow-hidden flex items-center justify-center"
               >
-                <ImageIcon size={48} className="text-zinc-700" />
+                <ImageIcon size={32} className="text-zinc-700 md:w-12 md:h-12" />
               </div>
             ))}
           </div>
@@ -227,7 +227,7 @@ const Gallery: React.FC = React.memo(() => {
         {/* Display Mode: Carousel (6+ photos) */}
         {displayMode === 'carousel' && (
           <div
-            className="relative flex overflow-x-hidden"
+            className="relative flex overflow-x-hidden w-full"
             role="region"
             aria-label="Galeria de trabalhos"
             aria-roledescription="carrossel"
@@ -243,7 +243,7 @@ const Gallery: React.FC = React.memo(() => {
                   aria-roledescription="slide"
                   aria-label={`Foto ${img.alt || index + 1}`}
                   onClick={() => openLightbox(index % images.length)}
-                  className="relative w-[280px] md:w-[400px] h-[360px] md:h-[500px] bg-[#1a1a1a] overflow-hidden flex-shrink-0 cursor-pointer group"
+                  className="relative w-[200px] sm:w-[280px] md:w-[400px] h-[260px] sm:h-[360px] md:h-[500px] bg-[#1a1a1a] overflow-hidden flex-shrink-0 cursor-pointer group"
                 >
                   <img
                     src={img.image_url}

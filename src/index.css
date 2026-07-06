@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
 @theme {
+  --breakpoint-xs: 360px;
   --color-gold: #c5a059;
   --color-gold-hover: #a68233;
   --color-gold-bright: #d4af37;
@@ -28,6 +29,9 @@
 @layer base {
   html {
     @apply scroll-smooth;
+  }
+  html {
+    @apply overflow-x-hidden;
   }
   body {
     @apply bg-[#0f0f0f] text-white font-sans antialiased selection:bg-gold selection:text-white overflow-x-hidden;
@@ -373,4 +377,76 @@ a,
   textarea {
     font-size: 16px !important;
   }
+}
+
+/* ========================================================================= */
+/* 4. VERY SMALL SCREENS (< 360px) — UNIVERSAL RESPONSIVE                  */
+/* ========================================================================= */
+
+@media (max-width: 359px) {
+  .container {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  /* Reduce font sizes on tiny screens */
+  h1,
+  .text-5xl {
+    font-size: 2rem !important; /* 32px */
+  }
+  h2,
+  .text-4xl {
+    font-size: 1.75rem !important; /* 28px */
+  }
+
+  /* Prevent any element from causing horizontal scroll */
+  img,
+  svg,
+  video,
+  iframe {
+    max-width: 100% !important;
+  }
+
+  /* Ensure buttons don't overflow */
+  button,
+  a {
+    word-break: break-word;
+  }
+
+  /* Reduce padding on sections */
+  .px-6 {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  .px-4 {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+}
+
+/* ========================================================================= */
+/* 5. UNIVERSAL OVERFLOW SAFEGUARDS                                       */
+/* ========================================================================= */
+
+/* Prevent any element from causing unwanted horizontal scroll */
+img,
+video,
+iframe,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Ensure pre/code blocks wrap */
+pre,
+code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Ensure tables scroll horizontally instead of breaking layout */
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }

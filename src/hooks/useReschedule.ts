@@ -49,8 +49,9 @@ export function useReschedule(
   };
 
   const confirmReschedule = async () => {
-    if (!selectedBooking || rescheduleServices.length === 0 || !rescheduleDate || !rescheduleTime)
+    if (!selectedBooking || rescheduleServices.length === 0 || !rescheduleDate || !rescheduleTime) {
       return;
+    }
     setIsSaving(true);
     try {
       const totalPrice = rescheduleServices.reduce((sum, s) => sum + Number(s.price || 0), 0);

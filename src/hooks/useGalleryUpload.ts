@@ -23,7 +23,7 @@ export function useGalleryUpload(images: GalleryImage[], onUploadComplete: () =>
       const url = URL.createObjectURL(file);
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const maxSize = 1200;
+        const maxSize = 2048;
         let { width, height } = img;
         if (width > maxSize || height > maxSize) {
           if (width > height) {
@@ -49,7 +49,7 @@ export function useGalleryUpload(images: GalleryImage[], onUploadComplete: () =>
             else reject(new Error('Failed to convert to WebP'));
           },
           'image/webp',
-          0.85
+          0.92
         );
       };
       img.onerror = () => {

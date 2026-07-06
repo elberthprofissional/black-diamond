@@ -13,7 +13,7 @@ const mockUseBarberSettings = vi.fn(() => ({
 }));
 
 vi.mock('../contexts/BarberSettingsContext', () => ({
-  useBarberSettings: (...args: any[]) => mockUseBarberSettings(...args),
+  useBarberSettings: () => mockUseBarberSettings(),
 }));
 
 beforeEach(() => {

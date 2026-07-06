@@ -1,6 +1,24 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram } from 'lucide-react';
+// Instagram icon replaced with inline SVG (lucide-react v1 removed brand icons)
+const InstagramIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="md:w-4 md:h-4"
+  >
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+  </svg>
+);
 import { useBarberSettings } from '../hooks/useBarberSettings';
 import { formatPhone } from '../lib/utils';
 import { WhatsAppIcon } from './WhatsAppIcon';
@@ -69,7 +87,7 @@ const Footer: React.FC = () => {
                   className="group flex items-center gap-3 md:gap-4 text-zinc-400 hover:text-[#D4AF37] transition-all duration-500"
                 >
                   <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#141414] border border-white/5 flex items-center justify-center group-hover:border-[#D4AF37]/50 group-hover:bg-[#D4AF37]/10 transition-all duration-500">
-                    <Instagram size={14} className="md:w-4 md:h-4" />
+                    <InstagramIcon />
                   </div>
                   <span className="font-roboto font-light text-xs md:text-sm">
                     Siga a gente no Instagram
