@@ -419,7 +419,7 @@ const AdminProfile: React.FC = () => {
               transition={{ type: 'spring', damping: 30, stiffness: 400 }}
               className="relative z-10 w-full sm:max-w-[340px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
             >
-              {isIOS ? (
+              {isIOS || (!isIOS && !deferredPrompt) ? (
                 <>
                   <div className="px-6 pt-6 pb-4">
                     <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-4">
@@ -433,20 +433,31 @@ const AdminProfile: React.FC = () => {
                     </p>
                   </div>
                   <div className="px-6 pb-5 space-y-4">
-                    {[
-                      [
-                        'Toque no ícone de Compartilhar — é o quadrado com seta pra cima, na parte de baixo da tela.',
-                      ],
-                      ['Role pra baixo e toque em Adicionar à Tela de Início.'],
-                      ['Confirme tocando em Adicionar no canto superior direito. Pronto!'],
-                    ].map((text, i) => (
-                      <div key={i} className="flex gap-3">
-                        <div className="w-6 h-6 rounded-full bg-[#C5A059]/10 flex items-center justify-center shrink-0 mt-0.5">
-                          <span className="text-[10px] font-bold text-[#C5A059]">{i + 1}</span>
-                        </div>
-                        <p className="text-[12px] text-zinc-400 leading-relaxed">{text}</p>
-                      </div>
-                    ))}
+                    {isIOS
+                      ? [
+                          'Toque no ícone de Compartilhar — é o quadrado com seta pra cima, na parte de baixo da tela.',
+                          'Role pra baixo e toque em Adicionar à Tela de Início.',
+                          'Confirme tocando em Adicionar no canto superior direito. Pronto!',
+                        ].map((text, i) => (
+                          <div key={i} className="flex gap-3">
+                            <div className="w-6 h-6 rounded-full bg-[#C5A059]/10 flex items-center justify-center shrink-0 mt-0.5">
+                              <span className="text-[10px] font-bold text-[#C5A059]">{i + 1}</span>
+                            </div>
+                            <p className="text-[12px] text-zinc-400 leading-relaxed">{text}</p>
+                          </div>
+                        ))
+                      : [
+                          'Abra o menu do Chrome tocando nos três pontinhos no canto superior direito.',
+                          'Role a lista e selecione "Instalar aplicativo" ou "Adicionar à tela inicial".',
+                          'Confirme tocando em Instalar / Adicionar. Pronto!',
+                        ].map((text, i) => (
+                          <div key={i} className="flex gap-3">
+                            <div className="w-6 h-6 rounded-full bg-[#C5A059]/10 flex items-center justify-center shrink-0 mt-0.5">
+                              <span className="text-[10px] font-bold text-[#C5A059]">{i + 1}</span>
+                            </div>
+                            <p className="text-[12px] text-zinc-400 leading-relaxed">{text}</p>
+                          </div>
+                        ))}
                   </div>
                 </>
               ) : (
@@ -462,9 +473,9 @@ const AdminProfile: React.FC = () => {
                   onClick={() => setShowInstallPrompt(false)}
                   className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
                 >
-                  {isIOS ? 'Entendi' : 'Cancelar'}
+                  {isIOS || (!isIOS && !deferredPrompt) ? 'Entendi' : 'Cancelar'}
                 </button>
-                {!isIOS && (
+                {!isIOS && deferredPrompt && (
                   <>
                     <div className="w-px bg-white/[0.06]" />
                     <button
