@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
 
 interface NavbarProps {
   onBookingClick: () => void;
@@ -9,7 +8,6 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = React.memo(({ onBookingClick }) => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,21 +15,6 @@ const Navbar: React.FC<NavbarProps> = React.memo(({ onBookingClick }) => {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const handleMobileNavClick = useCallback((id: string) => {
-    setMobileMenuOpen(false);
-    setTimeout(() => {
-      const element = document.getElementById(id);
-      if (element) {
-        const offset = 80;
-        const bodyRect = document.body.getBoundingClientRect().top;
-        const elementRect = element.getBoundingClientRect().top;
-        const elementPosition = elementRect - bodyRect;
-        const offsetPosition = elementPosition - offset;
-        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-      }
-    }, 100);
   }, []);
 
   const handleNavClick = (id: string) => {
@@ -103,15 +86,6 @@ const Navbar: React.FC<NavbarProps> = React.memo(({ onBookingClick }) => {
           </nav>
 
           <div className="flex items-center gap-4">
-            {/* Mobile Menu Toggle */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
-              aria-expanded={mobileMenuOpen}
-              className="lg:hidden w-10 h-10 flex items-center justify-center text-white hover:text-[#C5A059] transition-all cursor-pointer"
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
             <button
               onClick={onBookingClick}
               aria-label="Abrir formulário de agendamento online"
@@ -122,40 +96,6 @@ const Navbar: React.FC<NavbarProps> = React.memo(({ onBookingClick }) => {
           </div>
         </div>
       </nav>
-
-      {/* Mobile Menu Dropdown */}
-      {mobileMenuOpen && (
-        <div
-          className="lg:hidden fixed inset-0 top-20 z-[99] bg-black/95 backdrop-blur-lg"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Menu de navegação mobile"
-        >
-          <nav
-            className="flex flex-col items-center justify-center h-full gap-8 pb-20"
-            aria-label="Menu mobile"
-          >
-            {navLinks.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleMobileNavClick(item.id)}
-                className="text-2xl uppercase tracking-[0.4em] text-zinc-300 font-bebas hover:text-[#C5A059] transition-all cursor-pointer"
-              >
-                {item.label}
-              </button>
-            ))}
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setTimeout(() => onBookingClick(), 100);
-              }}
-              className="mt-4 px-10 py-3 border border-[#C5A059]/40 text-[#C5A059] text-[14px] font-bebas uppercase tracking-[0.3em] hover:bg-[#C5A059] hover:text-black transition-all cursor-pointer"
-            >
-              Agendar
-            </button>
-          </nav>
-        </div>
-      )}
     </>
   );
 });
