@@ -164,7 +164,6 @@ const AdminLogin: React.FC = () => {
 
   return (
     <div className="h-screen w-full bg-[#0A0A0A] text-white flex relative overflow-hidden font-sans select-none">
-      <LoginHeader isPWA={isPWA} />
       <LoginBackground />
 
       {/* --- LOGIN SECTION --- */}
@@ -190,6 +189,7 @@ const AdminLogin: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-[340px] lg:max-w-[420px] relative z-10 flex flex-col items-center"
         >
+          <LoginHeader isPWA={isPWA} />
           <LoginForm
             email={email}
             onEmailChange={setEmail}

@@ -14,7 +14,7 @@ export default function LoginHeader({ isPWA }: LoginHeaderProps) {
       {!isPWA && (
         <button
           onClick={() => navigate('/')}
-          className="absolute top-6 left-6 z-50 text-zinc-500 hover:text-white transition-colors cursor-pointer active:scale-95"
+          className="fixed top-6 left-6 z-50 text-zinc-500 hover:text-white transition-colors cursor-pointer active:scale-95"
         >
           <ArrowLeft size={20} />
         </button>
