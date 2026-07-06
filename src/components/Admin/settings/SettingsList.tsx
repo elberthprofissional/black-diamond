@@ -8,7 +8,6 @@ import {
   Image as ImageIcon,
   Clock,
   Scissors,
-  LogOut,
 } from 'lucide-react';
 
 interface SettingsListProps {
@@ -107,20 +106,12 @@ const SettingsList: React.FC<SettingsListProps> = ({ onSelect, onLogoutClick }) 
       </div>
 
       {onLogoutClick && (
-        <div className="pt-2">
+        <div className="border-t border-white/5 pt-2">
           <button
             onClick={onLogoutClick}
-            className="w-full flex items-center gap-4 px-1 py-4 transition-all cursor-pointer hover:bg-red-500/[0.04] border border-transparent hover:border-red-500/20 rounded-xl"
+            className="w-full text-left px-1 py-4 text-[13px] font-medium text-red-500 hover:text-red-400 active:text-red-600 transition-colors cursor-pointer"
           >
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-red-500/[0.08] border border-red-500/20">
-              <LogOut size={16} className="text-red-500/80" />
-            </div>
-            <div className="flex-1 text-left min-w-0">
-              <span className="text-[13px] font-medium block text-red-400/90">Sair da Conta</span>
-              <span className="text-[11px] block text-red-500/50">
-                Encerrar sessão ativa neste dispositivo
-              </span>
-            </div>
+            Sair da Conta
           </button>
         </div>
       )}
