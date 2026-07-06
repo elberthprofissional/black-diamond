@@ -111,7 +111,7 @@ const SettingsList: React.FC<SettingsListProps> = ({ onSelect, onLogoutClick }) 
             onClick={onLogoutClick}
             className="w-full text-left px-1 py-4 text-[13px] font-medium text-red-500 hover:text-red-400 active:text-red-600 transition-colors cursor-pointer"
           >
-            Sair da Conta
+            Sair
           </button>
         </div>
       )}
