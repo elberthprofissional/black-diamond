@@ -76,13 +76,10 @@ const SettingsList: React.FC<SettingsListProps> = ({ onSelect, onLogoutClick }) 
                   : 'hover:bg-white/[0.02]'
               }`}
             >
-              <div
-                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                  cat.danger ? 'bg-red-500/[0.08] border border-red-500/20' : 'bg-white/[0.04]'
-                }`}
-              >
-                <Icon size={16} className={cat.danger ? 'text-red-500/80' : 'text-zinc-400'} />
-              </div>
+              <Icon
+                size={18}
+                className={`shrink-0 ${cat.danger ? 'text-red-500/80' : 'text-zinc-400'}`}
+              />
               <div className="flex-1 text-left min-w-0">
                 <span
                   className={`text-[13px] font-medium block ${cat.danger ? 'text-red-400/90' : 'text-white'}`}
