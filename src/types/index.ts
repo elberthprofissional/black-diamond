@@ -18,7 +18,6 @@ export interface Booking {
   is_blocked?: boolean;
   reminder_sent?: boolean;
   notes?: string;
-  google_event_id?: string;
   created_at: string;
   clients?: {
     name: string;

@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
@@ -53,10 +54,16 @@ vi.mock('react-router-dom', async () => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-vi.mock('framer-motion', () => ({
-  motion: { div: 'div', button: 'button' },
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
-}));
+vi.mock('framer-motion', () => {
+  const MotionEl =
+    (tag: string) =>
+    ({ children, whileHover, whileTap, ...props }: Record<string, unknown>) =>
+      React.createElement(tag, props, children);
+  return {
+    motion: { div: MotionEl('div'), button: MotionEl('button') },
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+  };
+});
 
 import AdminLogin from './AdminLogin';
 
@@ -91,7 +98,7 @@ describe('AdminLogin — Comportamental', () => {
     fireEvent.change(screen.getByPlaceholderText(/email/i), {
       target: { value: 'admin@test.com' },
     });
-    fireEvent.change(screen.getByPlaceholderText(/••••/), { target: { value: 'senha123' } });
+    fireEvent.change(screen.getByPlaceholderText(/senha/i), { target: { value: 'senha123' } });
     fireEvent.click(screen.getByRole('button', { name: /entrar/i }));
 
     await waitFor(() => {
@@ -109,7 +116,7 @@ describe('AdminLogin — Comportamental', () => {
     fireEvent.change(screen.getByPlaceholderText(/email/i), {
       target: { value: 'admin@test.com' },
     });
-    fireEvent.change(screen.getByPlaceholderText(/••••/), { target: { value: 'senha123' } });
+    fireEvent.change(screen.getByPlaceholderText(/senha/i), { target: { value: 'senha123' } });
     fireEvent.click(screen.getByRole('button', { name: /entrar/i }));
 
     await waitFor(() => {
@@ -124,7 +131,7 @@ describe('AdminLogin — Comportamental', () => {
     fireEvent.change(screen.getByPlaceholderText(/email/i), {
       target: { value: 'wrong@test.com' },
     });
-    fireEvent.change(screen.getByPlaceholderText(/••••/), { target: { value: 'errada' } });
+    fireEvent.change(screen.getByPlaceholderText(/senha/i), { target: { value: 'errada' } });
     fireEvent.click(screen.getByRole('button', { name: /entrar/i }));
 
     await waitFor(() => {
@@ -139,7 +146,7 @@ describe('AdminLogin — Comportamental', () => {
     fireEvent.change(screen.getByPlaceholderText(/email/i), {
       target: { value: 'admin@test.com' },
     });
-    fireEvent.change(screen.getByPlaceholderText(/••••/), { target: { value: 'errada' } });
+    fireEvent.change(screen.getByPlaceholderText(/senha/i), { target: { value: 'errada' } });
     fireEvent.click(screen.getByRole('button', { name: /entrar/i }));
 
     await waitFor(() => {

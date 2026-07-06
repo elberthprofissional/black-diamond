@@ -3,7 +3,7 @@
 
 ---
 
-## FILE: `estrutura_barbearia.sql` (683 lines)
+## FILE: `estrutura_barbearia.sql` (681 lines)
 
 ### SEC-1 — LOW — Line 519 — Unnecessary SECURITY DEFINER on `get_business_hours()`
 Only reads `settings` table which already has public SELECT policy (line 251).  
@@ -16,10 +16,6 @@ Only reads `reviews` table which already has public SELECT policy (line 266).
 ### IDX-1 — HIGH — Line 60 — Missing index on `bookings.client_id`
 The `criar_agendamento` function JOINs bookings→clients on this FK (line 389). `limpar_agendamentos_semana` also scans without it.  
 **Fix:** `CREATE INDEX idx_bookings_client_id ON bookings(client_id);`
-
-### IDX-2 — MEDIUM — Line 70 — Missing index on `bookings.google_event_id`
-Edge function sync-google-calendar updates by this column (line 134 of index.ts).  
-**Fix:** `CREATE INDEX idx_bookings_google_event_id ON bookings(google_event_id) WHERE google_event_id IS NOT NULL;`
 
 ### IDX-3 — MEDIUM — Lines 93–96 — Missing indexes on `reviews.booking_id` and `reviews.client_id`
 `get_top_reviews` JOINs on both. Insert policy (line 279) also subqueries `reviews.booking_id`.  
@@ -90,29 +86,6 @@ Lines 4–60 are identical to lines 436–495 of the main schema file. Running b
 
 ---
 
-## FILE: `supabase/functions/sync-google-calendar/index.ts` (187 lines)
-
-### SEC-3 — HIGH — Line 86–92 — Hardcoded UTC-3 timezone offset
-`parseBrazilDateTime` manually subtracts 3 hours. Brazil observes DST in some regions (UTC-2 in summer). During DST the offset is wrong, causing calendar events to be 1 hour off.  
-**Fix:** Use `Intl.DateTimeFormat` with `timeZone: "America/Sao_Paulo"` or the `temporal` API.
-
-### SEC-4 — MEDIUM — Lines 112, 143, 162 — No input validation on request body
-`booking_id`, `client_name`, `service_names`, `booking_date`, `booking_time`, `total_duration`, `google_event_id` are destructured without any validation. Malformed data passes straight to Google Calendar API.  
-**Fix:** Validate required fields exist and have expected types before use.
-
-### SEC-5 — MEDIUM — Lines 130–134 — Supabase client created inside request handler without cleanup
-`createClient` is called inside the `if (action === "create")` block but the instance is not reused. A second call occurs in the `delete` block (line 165).  
-**Fix:** Create the Supabase client once at the top of the handler, after auth check.
-
-### ERR-1 — LOW — Line 181 — Catch block swallows all errors silently
-The bare `catch` returns a generic "Internal error" with no logging. Debugging production failures will be difficult.  
-**Fix:** Log the error to console before returning the generic message.
-
-### SEC-6 — LOW — Line 42 — Google Calendar ID is URL-encoded via `encodeURIComponent`
-If `GOOGLE_CALENDAR_ID` contains special characters, this is correct. But the `eventId` on line 60 is NOT encoded, which could break if the ID contains `/` characters.  
-**Fix:** Apply `encodeURIComponent(eventId)` on line 60.
-
----
 
 ## FILE: `supabase/functions/send-push/index.ts` (101 lines)
 
@@ -125,7 +98,7 @@ Fetches all columns including `endpoint`, `p256dh`, `auth` for every subscriptio
 **Fix:** Use explicit column list: `SELECT id, endpoint, p256dh, auth`.
 
 ### ERR-2 — LOW — Line 95 — Catch block swallows errors silently
-Same issue as sync-google-calendar ERR-1.  
+All errors are logged at the catch block but only a generic "Internal error" is returned. Debugging production failures could be improved with more detailed logging.  
 **Fix:** Log error details before returning generic response.
 
 ### PERF-2 — LOW — Lines 69–86 — `Promise.allSettled` sends to all subscriptions in parallel
@@ -141,14 +114,13 @@ If keys are empty, `webpush.setVapidDetails` is skipped, but the check on line 3
 
 | Severity | Count |
 |----------|-------|
-| HIGH     | 4     |
-| MEDIUM   | 10    |
-| LOW      | 9     |
-| **Total** | **23** |
+| HIGH     | 3     |
+| MEDIUM   | 7     |
+| LOW      | 7     |
+| **Total** | **17** |
 
 ## Top Priority Fixes
 
-1. **SEC-3** — Hardcoded UTC-3 offset will cause wrong calendar times during DST
-2. **VAL-1** — `criar_agendamento` accepts empty/malicious input
-3. **IDX-1** — Missing `bookings.client_id` index degrades core booking queries
-4. **RLS-1** — Push subscription RLS/function inconsistency is a security gap
+1. **VAL-1** — `criar_agendamento` accepts empty/malicious input
+2. **IDX-1** — Missing `bookings.client_id` index degrades core booking queries
+3. **RLS-1** — Push subscription RLS/function inconsistency is a security gap

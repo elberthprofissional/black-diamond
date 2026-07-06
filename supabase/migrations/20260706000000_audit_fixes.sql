@@ -323,9 +323,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-
--- 6. IDX-2, IDX-3, IDX-4: Missing Indexes
-CREATE INDEX IF NOT EXISTS idx_bookings_google_event_id ON bookings(google_event_id) WHERE google_event_id IS NOT NULL;
+-- 6. IDX-3, IDX-4: Missing Indexes
 CREATE INDEX IF NOT EXISTS idx_reviews_booking_id ON reviews(booking_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_client_id ON reviews(client_id);
 CREATE INDEX IF NOT EXISTS idx_clients_mensalista ON clients(id) WHERE is_mensalista;

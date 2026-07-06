@@ -67,7 +67,6 @@ CREATE TABLE IF NOT EXISTS bookings (
     is_blocked BOOLEAN DEFAULT FALSE,
     reminder_sent BOOLEAN DEFAULT FALSE,
     notes TEXT,
-    google_event_id TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -183,7 +182,6 @@ WHERE (status != 'cancelled');
 CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(booking_date);
 CREATE INDEX IF NOT EXISTS idx_bookings_date_status ON bookings(booking_date, status);
 CREATE INDEX IF NOT EXISTS idx_bookings_client_id ON bookings(client_id);
-CREATE INDEX IF NOT EXISTS idx_bookings_google_event_id ON bookings(google_event_id) WHERE google_event_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_reviews_booking_id ON reviews(booking_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_client_id ON reviews(client_id);
 CREATE INDEX IF NOT EXISTS idx_clients_mensalista ON clients(id) WHERE is_mensalista;

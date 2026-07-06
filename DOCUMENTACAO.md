@@ -21,11 +21,11 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 11. [Recuperacao de Senha](#11-recuperacao-de-senha)
 12. [Variaveis de Ambiente](#12-variaveis-de-ambiente)
 13. [Estrutura de Pastas](#13-estrutura-de-pastas)
-14. [Troubleshooting](#14-troubleshooting)
-15. [Notas de Negocio](#15-notas-de-negocio)
-16. [Notificacoes Push (Web Push)](#16-notificacoes-push-web-push)
-17. [Sistema de Avaliacao](#17-sistema-de-avaliacao)
-18. [Google Calendar Auto-Sync](#18-google-calendar-auto-sync)
+14. [Testes](#14-testes)
+15. [Troubleshooting](#15-troubleshooting)
+16. [Notas de Negocio](#16-notas-de-negocio)
+17. [Notificacoes Push (Web Push)](#17-notificacoes-push-web-push)
+18. [Sistema de Avaliacao](#18-sistema-de-avaliacao)
 19. [Sistema de Mensalista](#19-sistema-de-mensalista)
 20. [Skeleton Loading](#20-skeleton-loading)
 21. [Sistema de Galeria](#21-sistema-de-galeria)
@@ -45,7 +45,7 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 - Agendamento online em 4 etapas com confirmacao via WhatsApp
 - Painel admin com agenda do dia, semana, clientes e relatorios
 - Notificacoes push para agendamentos em tempo real
-- Sincronizacao automatica com Google Calendar
+
 - PWA instalavel na tela inicial do celular
 - Galeria editavel com lightbox e delete pelo admin
 - Conversao automatica para WebP em uploads
@@ -114,7 +114,7 @@ Erros → Sentry (error reporting automatico)
 3. A RPC verifica conflitos, cria o client (se novo) e insere o booking
 4. O frontend redireciona pro WhatsApp com a mensagem formatada
 5. Um trigger dispara notificacao push para o admin
-6. O booking e sincronizado com o Google Calendar
+6. O booking e confirmado e notificacoes push sao enviadas
 
 ### Bloqueio de horarios
 - O sistema usa a coluna `is_blocked` na tabela `bookings`
@@ -277,7 +277,7 @@ manually_added BOOLEAN, created_at TIMESTAMPTZ
 id UUID PK, client_id UUID FK, service_ids UUID[], booking_date DATE,
 booking_time TIME, total_price DECIMAL, total_duration INTEGER,
 status TEXT (pending/confirmed/cancelled/completed), is_blocked BOOLEAN,
-notes TEXT, google_event_id TEXT, created_at TIMESTAMPTZ
+notes TEXT, created_at TIMESTAMPTZ
 ```
 
 **settings** — Configuracoes do sistema
@@ -722,7 +722,6 @@ Black Diamond/
 ├── supabase/
 │   └── functions/
 │       ├── send-push/          # Edge function de notificacao push
-│       └── sync-google-calendar/ # Edge function de sync com Google Calendar
 ├── e2e/                        # Testes E2E (Playwright)
 │   ├── admin.spec.ts           # Testes do admin (login, navegacao, rate limiting)
 │   ├── booking.spec.ts         # Testes do agendamento
@@ -859,13 +858,13 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 
 ---
 
-## 15. Notas de Negocio
+## 16. Notas de Negocio
 
 ### Custo de operacao
 - Hospedagem (Vercel): R$ 0,00
 - Banco de dados (Supabase Free): R$ 0,00
 - Notificacoes push (Web Push): R$ 0,00
-- Google Calendar API: R$ 0,00
+
 - Error Reporting (Sentry Free): R$ 0,00 (5.000 erros/mes)
 - Dominio: ~R$ 40,00/ano (opcional)
 
@@ -878,7 +877,7 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [x] Agendamento online 4 steps (desktop + mobile)
 - [x] Painel admin completo (dashboard, semana, clientes, agendamento manual)
 - [x] Notificacoes push via navegador
-- [x] Integracao com Google Calendar
+- [x] Lembrete no Google Calendar para o cliente (link na confirmacao)
 - [x] Sistema de avaliacoes
 - [x] PWA instalavel com guia de instalacao iOS
 - [x] CI/CD com GitHub Actions
@@ -939,7 +938,7 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 
 ---
 
-## 16. Notificacoes Push (Web Push)
+## 17. Notificacoes Push (Web Push)
 
 ### Visao Geral
 O sistema envia notificacoes push automaticamente ao criar um novo agendamento. O admin recebe a notificacao no celular/desktop mesmo com o app fechado.
@@ -986,7 +985,7 @@ supabase functions deploy send-push
 
 ---
 
-## 17. Sistema de Avaliacao
+## 18. Sistema de Avaliacao
 
 ### Visao Geral
 Apos cada atendimento, o cliente recebe um email com link pra avaliar de 1 a 5 estrelas. Avaliacoes 4-5 redirecionam pro Google Maps.
@@ -1011,57 +1010,6 @@ Configure no Supabase:
 
 ---
 
-## 18. Google Calendar Auto-Sync
-
-### Visao Geral
-Agendamentos sao sincronizados automaticamente com o Google Calendar do barbeiro.
-
-### Como funciona
-1. Booking criado → cria evento no Google Calendar
-2. Booking cancelado → remove evento
-3. Booking reagendado → atualiza evento
-4. ID do evento salvo na coluna `google_event_id` da tabela bookings
-
-### Configuracao
-
-#### 1. Criar projeto no Google Cloud Console
-1. Acesse https://console.cloud.google.com
-2. Crie um novo projeto (ex: "Black Diamond Calendar")
-3. Ative a Google Calendar API
-
-#### 2. Criar OAuth 2.0 Credentials
-1. APIs & Services → Credentials → Create Credentials → OAuth 2.0 Client ID
-2. Application type: Web application
-3. Authorized redirect URIs: adicione a URL da edge function
-4. Copie o Client ID e Client Secret
-
-#### 3. Obter Refresh Token
-1. Gere uma URL de autorizacao com seu Client ID
-2. Autorize uma vez (barbeiro clica no link)
-3. Copie o codigo de autorizacao
-4. Troque o codigo por refresh token usando a API OAuth
-5. Salve o refresh token
-
-#### 4. Configurar secrets no Supabase
-```bash
-supabase secrets set GOOGLE_CLIENT_ID=<seu_client_id>
-supabase secrets set GOOGLE_CLIENT_SECRET=<seu_client_secret>
-supabase secrets set GOOGLE_REFRESH_TOKEN=<seu_refresh_token>
-```
-
-#### 5. Rodar SQL
-Execute a secao de `google_event_id` do `estrutura_barbearia.sql` para adicionar a coluna na tabela bookings.
-
-#### 6. Deploy da edge function
-```bash
-supabase functions deploy sync-google-calendar
-```
-
-### Arquivos envolvidos
-- `supabase/functions/sync-google-calendar/index.ts` — Edge function CRUD no Google Calendar
-- `estrutura_barbearia.sql` — Coluna `google_event_id`
-
----
 
 ## 19. Sistema de Mensalista
 
