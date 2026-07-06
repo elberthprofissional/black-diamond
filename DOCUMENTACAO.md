@@ -2,7 +2,7 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, PWA, notificacoes push e integracao com Google Calendar.
 
-**Versao:** 3.5.1 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.6.0 | **Ultima atualizacao:** Julho 2026
 
 ---
 
@@ -922,6 +922,9 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [x] Coverage minimo no CI (70% — bloqueia merge abaixo do threshold)
 - [x] Testes E2E robustos (erro de rede, concorrencia, limites, acessibilidade, performance)
 - [x] AdminLogin splitado em 5 componentes (melhor manutenibilidade)
+- [x] Horarios do Footer e Location dinamicos (refletem configuracoes do admin)
+- [x] Admin booking filtra dias desativados (working_days) igual o cliente
+- [x] Login com inputs transparentes, borda dourada no focus e altura maior no desktop
 
 ### Possiveis melhorias futuras
 - [ ] Multi-tenancy (varias barbearias no mesmo sistema)
@@ -935,6 +938,8 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [ ] Migrar Context API para Zustand em todos os stores (BarberSettingsContext)
 - [ ] Adicionar mais testes E2E para fluxos complexos
 - [ ] Integrar Sentry com GitHub para vincular erros a commits
+- [ ] Refatorar getNextDays() para buscar working_days do Supabase em vez de localStorage
+- [ ] Adicionar observer de `barber-settings-changed` no admin booking para atualizar dias em tempo real
 
 ---
 
@@ -1225,4 +1230,4 @@ O sistema de galeria adapta automaticamente o layout baseado na quantidade de fo
 
 ---
 
-*Documento atualizado em Julho 2026. Versao do sistema: 3.5.0*
+*Documento atualizado em Julho 2026. Versao do sistema: 3.6.0*
