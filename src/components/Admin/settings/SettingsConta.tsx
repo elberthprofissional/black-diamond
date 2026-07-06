@@ -41,6 +41,8 @@ const SettingsConta: React.FC<SettingsContaProps> = ({ onBack: _onBack }) => {
   const [editingInstagram, setEditingInstagram] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showPhotoMenu, setShowPhotoMenu] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [showCropModal, setShowCropModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const phoneInputRef = useRef<HTMLInputElement>(null);
@@ -88,7 +90,7 @@ const SettingsConta: React.FC<SettingsContaProps> = ({ onBack: _onBack }) => {
     else showError('Erro ao remover foto');
   };
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -100,47 +102,22 @@ const SettingsConta: React.FC<SettingsContaProps> = ({ onBack: _onBack }) => {
       return;
     }
 
-    setShowPhotoMenu(false);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImageSrc(reader.result as string);
+      setShowCropModal(true);
+      setShowPhotoMenu(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveCroppedPhoto = async (blob: Blob) => {
+    setShowCropModal(false);
     setUploading(true);
     try {
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const maxSize = 800;
-          let { width, height } = img;
-          if (width > maxSize || height > maxSize) {
-            if (width > height) {
-              height = (height / width) * maxSize;
-              width = maxSize;
-            } else {
-              width = (width / height) * maxSize;
-              height = maxSize;
-            }
-          }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return reject(new Error('Canvas error'));
-          ctx.drawImage(img, 0, 0, width, height);
-          canvas.toBlob(
-            (b) => {
-              URL.revokeObjectURL(blobUrl);
-              if (b) resolve(b);
-              else reject(new Error('Blob error'));
-            },
-            'image/webp',
-            0.85
-          );
-        };
-        img.onerror = () => {
-          URL.revokeObjectURL(blobUrl);
-          reject(new Error('Image load error'));
-        };
-        const blobUrl = URL.createObjectURL(file);
-        img.src = blobUrl;
-      });
-
       for (const old of [
         'profiles/barber-photo.webp',
         'profiles/barber-photo.jpg',
@@ -166,6 +143,7 @@ const SettingsConta: React.FC<SettingsContaProps> = ({ onBack: _onBack }) => {
       showError('Erro ao enviar imagem');
     } finally {
       setUploading(false);
+      setCropImageSrc(null);
     }
   };
 
@@ -794,7 +772,223 @@ const SettingsConta: React.FC<SettingsContaProps> = ({ onBack: _onBack }) => {
         </p>
       </MobileEditScreen>
 
+      <ImageCropperModal
+        isOpen={showCropModal}
+        src={cropImageSrc || ''}
+        onCancel={() => {
+          setShowCropModal(false);
+          setCropImageSrc(null);
+        }}
+        onSave={handleSaveCroppedPhoto}
+      />
+
       <ToastNotification toast={toast} />
+    </div>
+  );
+};
+
+interface ImageCropperModalProps {
+  isOpen: boolean;
+  src: string;
+  onCancel: () => void;
+  onSave: (croppedBlob: Blob) => void;
+}
+
+const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCancel, onSave }) => {
+  const [zoom, setZoom] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  const containerSize = 220;
+
+  useEffect(() => {
+    if (isOpen) {
+      setZoom(1);
+      setOffset({ x: 0, y: 0 });
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const getDimensions = () => {
+    if (!imgRef.current) return { w: containerSize, h: containerSize, R: 1 };
+    const naturalWidth = imgRef.current.naturalWidth || containerSize;
+    const naturalHeight = imgRef.current.naturalHeight || containerSize;
+    const R = naturalWidth / naturalHeight;
+    let w, h;
+    if (R > 1) {
+      h = containerSize * zoom;
+      w = h * R;
+    } else {
+      w = containerSize * zoom;
+      h = w / R;
+    }
+    return { w, h, R };
+  };
+
+  const { w, h } = getDimensions();
+  const limitX = Math.max(0, (w - containerSize) / 2);
+  const limitY = Math.max(0, (h - containerSize) / 2);
+
+  const clampedX = Math.min(Math.max(offset.x, -limitX), limitX);
+  const clampedY = Math.min(Math.max(offset.y, -limitY), limitY);
+
+  const handleStart = (clientX: number, clientY: number) => {
+    setIsDragging(true);
+    setDragStart({ x: clientX - offset.x, y: clientY - offset.y });
+  };
+
+  const handleMove = (clientX: number, clientY: number) => {
+    if (!isDragging) return;
+    const dx = clientX - dragStart.x;
+    const dy = clientY - dragStart.y;
+    const newX = Math.min(Math.max(dx, -limitX), limitX);
+    const newY = Math.min(Math.max(dy, -limitY), limitY);
+    setOffset({ x: newX, y: newY });
+  };
+
+  const handleEnd = () => {
+    setIsDragging(false);
+  };
+
+  const handleCrop = () => {
+    if (!imgRef.current) return;
+    const img = imgRef.current;
+    const canvas = document.createElement('canvas');
+    const destSize = 400;
+    canvas.width = destSize;
+    canvas.height = destSize;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const naturalWidth = img.naturalWidth;
+    const scaleRatio = naturalWidth / w;
+    const srcX_screen = (w - containerSize) / 2 - clampedX;
+    const srcY_screen = (h - containerSize) / 2 - clampedY;
+
+    const srcX = srcX_screen * scaleRatio;
+    const srcY = srcY_screen * scaleRatio;
+    const srcWidth = containerSize * scaleRatio;
+    const srcHeight = containerSize * scaleRatio;
+
+    ctx.drawImage(img, srcX, srcY, srcWidth, srcHeight, 0, 0, destSize, destSize);
+
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          onSave(blob);
+        }
+      },
+      'image/webp',
+      0.85
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+      <div onClick={onCancel} className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+
+      <div className="relative z-10 w-full max-w-[340px] bg-[#1A1A1A] border border-white/10 rounded-3xl overflow-hidden p-6 shadow-2xl flex flex-col items-center">
+        <h3 className="text-[13px] font-bold text-white mb-6 uppercase tracking-wider">
+          Ajustar Foto
+        </h3>
+
+        <div
+          className="relative overflow-hidden rounded-full border-2 border-[#C5A059] shadow-inner select-none cursor-grab active:cursor-grabbing bg-zinc-900"
+          style={{ width: containerSize, height: containerSize }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            handleStart(e.clientX, e.clientY);
+          }}
+          onMouseMove={(e) => handleMove(e.clientX, e.clientY)}
+          onMouseUp={handleEnd}
+          onMouseLeave={handleEnd}
+          onTouchStart={(e) => {
+            const touch = e.touches[0];
+            handleStart(touch.clientX, touch.clientY);
+          }}
+          onTouchMove={(e) => {
+            const touch = e.touches[0];
+            handleMove(touch.clientX, touch.clientY);
+          }}
+          onTouchEnd={handleEnd}
+        >
+          <img
+            ref={imgRef}
+            src={src}
+            alt="Recortar"
+            className="pointer-events-none select-none max-w-none max-h-none"
+            style={{
+              width: w,
+              height: h,
+              transform: `translate(${clampedX}px, ${clampedY}px)`,
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              marginTop: -h / 2,
+              marginLeft: -w / 2,
+            }}
+          />
+        </div>
+
+        <p className="text-[10px] text-zinc-500 mt-4">Arraste a foto para posicionar</p>
+
+        <div className="w-full mt-6 space-y-2 px-2">
+          <div className="flex justify-between text-[11px] text-zinc-400">
+            <span>Zoom</span>
+            <span>{Math.round(zoom * 100)}%</span>
+          </div>
+          <input
+            type="range"
+            min="1"
+            max="3"
+            step="0.02"
+            value={zoom}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              setZoom(val);
+              setOffset((prev) => {
+                let tempW, tempH;
+                const R = imgRef.current
+                  ? imgRef.current.naturalWidth / imgRef.current.naturalHeight
+                  : 1;
+                if (R > 1) {
+                  tempH = containerSize * val;
+                  tempW = tempH * R;
+                } else {
+                  tempW = containerSize * val;
+                  tempH = tempW / R;
+                }
+                const newLimX = Math.max(0, (tempW - containerSize) / 2);
+                const newLimY = Math.max(0, (tempH - containerSize) / 2);
+                return {
+                  x: Math.min(Math.max(prev.x, -newLimX), newLimX),
+                  y: Math.min(Math.max(prev.y, -newLimY), newLimY),
+                };
+              });
+            }}
+            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#C5A059]"
+            aria-label="Ajustar zoom"
+          />
+        </div>
+
+        <div className="w-full flex gap-3 mt-8">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-3 text-[12px] font-bold text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleCrop}
+            className="flex-1 py-3 text-[12px] font-bold text-[#1A1A1A] bg-[#C5A059] hover:bg-[#A68233] rounded-xl transition-all cursor-pointer shadow-lg shadow-[#C5A059]/10"
+          >
+            Confirmar
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
