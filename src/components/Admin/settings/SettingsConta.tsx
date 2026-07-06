@@ -800,6 +800,7 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCa
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const imgRef = useRef<HTMLImageElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const containerSize = 220;
 
@@ -809,8 +810,6 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCa
       setOffset({ x: 0, y: 0 });
     }
   }, [isOpen]);
-
-  if (!isOpen) return null;
 
   const getDimensions = () => {
     if (!imgRef.current) return { w: containerSize, h: containerSize, R: 1 };
@@ -835,6 +834,12 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCa
   const clampedX = Math.min(Math.max(offset.x, -limitX), limitX);
   const clampedY = Math.min(Math.max(offset.y, -limitY), limitY);
 
+  // Keep a mutable ref of state values so touch event listeners always have the latest values without re-binding!
+  const stateRef = useRef({ offset, isDragging, dragStart, limitX, limitY });
+  useEffect(() => {
+    stateRef.current = { offset, isDragging, dragStart, limitX, limitY };
+  });
+
   const handleStart = (clientX: number, clientY: number) => {
     setIsDragging(true);
     setDragStart({ x: clientX - offset.x, y: clientY - offset.y });
@@ -852,6 +857,51 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCa
   const handleEnd = () => {
     setIsDragging(false);
   };
+
+  // Bind touch events manually with passive: false to prevent mobile screen scrolling!
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const onTouchStart = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      const currentOffset = stateRef.current.offset;
+      stateRef.current.isDragging = true;
+      setIsDragging(true);
+      const startX = touch.clientX - currentOffset.x;
+      const startY = touch.clientY - currentOffset.y;
+      stateRef.current.dragStart = { x: startX, y: startY };
+      setDragStart({ x: startX, y: startY });
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.cancelable) {
+        e.preventDefault(); // This blocks the screen from dragging/scrolling!
+      }
+      if (!stateRef.current.isDragging) return;
+      const touch = e.touches[0];
+      const dx = touch.clientX - stateRef.current.dragStart.x;
+      const dy = touch.clientY - stateRef.current.dragStart.y;
+      const newX = Math.min(Math.max(dx, -stateRef.current.limitX), stateRef.current.limitX);
+      const newY = Math.min(Math.max(dy, -stateRef.current.limitY), stateRef.current.limitY);
+      setOffset({ x: newX, y: newY });
+    };
+
+    const onTouchEnd = () => {
+      stateRef.current.isDragging = false;
+      setIsDragging(false);
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    el.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onTouchEnd);
+    };
+  }, []);
 
   const handleCrop = () => {
     if (!imgRef.current) return;
@@ -886,6 +936,8 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCa
     );
   };
 
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
       <div onClick={onCancel} className="absolute inset-0 bg-black/80 backdrop-blur-md" />
@@ -896,6 +948,7 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCa
         </h3>
 
         <div
+          ref={containerRef}
           className="relative overflow-hidden rounded-full border-2 border-[#C5A059] shadow-inner select-none cursor-grab active:cursor-grabbing bg-zinc-900"
           style={{ width: containerSize, height: containerSize }}
           onMouseDown={(e) => {
@@ -905,15 +958,6 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCa
           onMouseMove={(e) => handleMove(e.clientX, e.clientY)}
           onMouseUp={handleEnd}
           onMouseLeave={handleEnd}
-          onTouchStart={(e) => {
-            const touch = e.touches[0];
-            handleStart(touch.clientX, touch.clientY);
-          }}
-          onTouchMove={(e) => {
-            const touch = e.touches[0];
-            handleMove(touch.clientX, touch.clientY);
-          }}
-          onTouchEnd={handleEnd}
         >
           <img
             ref={imgRef}
