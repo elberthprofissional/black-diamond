@@ -164,15 +164,19 @@ const AdminBooking: React.FC = () => {
 
   // Fetch working_days from settings
   useEffect(() => {
-    supabase
-      .from('settings')
-      .select('value')
-      .eq('key', 'working_days')
-      .maybeSingle()
-      .then(({ data }) => {
+    const fetchWorkingDays = async () => {
+      try {
+        const { data } = await supabase
+          .from('settings')
+          .select('value')
+          .eq('key', 'working_days')
+          .maybeSingle();
         if (data?.value) setWorkingDays(data.value);
-      })
-      .catch(() => {});
+      } catch {
+        // keep default
+      }
+    };
+    fetchWorkingDays();
   }, []);
 
   useEffect(() => {
