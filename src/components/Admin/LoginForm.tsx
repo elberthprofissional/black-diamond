@@ -42,20 +42,20 @@ export default function LoginForm({
               type="email"
               value={email}
               onChange={(e) => onEmailChange(e.target.value)}
-              className="peer w-full h-14 bg-transparent border border-white/[0.08] rounded-2xl px-6 pt-5 pb-1 text-sm font-medium text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-all placeholder-transparent lg:h-12 lg:pt-4 lg:pb-1 lg:font-light lg:text-lg"
+              className="peer w-full h-14 bg-transparent border-b border-white/[0.08] px-0 pt-5 pb-1 text-sm font-medium text-white outline-none focus:border-b-[#C5A059]/50 transition-all placeholder-transparent lg:h-16 lg:pt-6 lg:pb-2 lg:font-light lg:text-lg"
               placeholder="email"
               required
             />
             <label
               htmlFor="login-email"
-              className="absolute left-6 text-xs text-zinc-500 pointer-events-none transition-all
+              className="absolute left-0 text-xs text-zinc-500 pointer-events-none transition-all
                 peer-placeholder-shown:text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2
                 peer-focus:top-2 peer-focus:translate-y-0 peer-focus:text-[10px] peer-focus:text-[#C5A059]
                 top-2 translate-y-0 text-[10px] text-zinc-500"
             >
               email
             </label>
-            <div className="absolute bottom-0 left-6 right-6 lg:hidden h-[1px] bg-gradient-to-r from-transparent via-[#C5A059]/0 to-transparent group-focus-within:via-[#C5A059]/40 transition-all duration-500" />
+            <div className="absolute bottom-0 left-0 right-0 lg:hidden h-[1px] bg-gradient-to-r from-transparent via-[#C5A059]/0 to-transparent group-focus-within:via-[#C5A059]/40 transition-all duration-500" />
           </div>
         </div>
 
@@ -67,13 +67,13 @@ export default function LoginForm({
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => onPasswordChange(e.target.value)}
-              className="peer w-full h-14 bg-transparent border border-white/[0.08] rounded-2xl px-6 pr-14 pt-5 pb-1 text-sm font-medium text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-all placeholder-transparent lg:h-12 lg:pt-4 lg:pb-1 lg:font-light lg:text-lg"
+              className="peer w-full h-14 bg-transparent border-b border-white/[0.08] px-0 pr-14 pt-5 pb-1 text-sm font-medium text-white outline-none focus:border-b-[#C5A059]/50 transition-all placeholder-transparent lg:h-16 lg:pt-6 lg:pb-2 lg:font-light lg:text-lg"
               placeholder="senha"
               required
             />
             <label
               htmlFor="login-password"
-              className="absolute left-6 text-xs text-zinc-500 pointer-events-none transition-all
+              className="absolute left-0 text-xs text-zinc-500 pointer-events-none transition-all
                 peer-placeholder-shown:text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2
                 peer-focus:top-2 peer-focus:translate-y-0 peer-focus:text-[10px] peer-focus:text-[#C5A059]
                 top-2 translate-y-0 text-[10px] text-zinc-500"
@@ -85,11 +85,11 @@ export default function LoginForm({
               onClick={onTogglePassword}
               aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
               aria-pressed={showPassword}
-              className="absolute right-6 lg:right-4 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white transition-colors"
+              className="absolute right-0 lg:right-0 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white transition-colors"
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
-            <div className="absolute bottom-0 left-6 right-6 lg:hidden h-[1px] bg-gradient-to-r from-transparent via-[#C5A059]/0 to-transparent group-focus-within:via-[#C5A059]/40 transition-all duration-500" />
+            <div className="absolute bottom-0 left-0 right-0 lg:hidden h-[1px] bg-gradient-to-r from-transparent via-[#C5A059]/0 to-transparent group-focus-within:via-[#C5A059]/40 transition-all duration-500" />
           </div>
           <div className="flex justify-end lg:pt-2">
             <button
