@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { ImageIcon } from 'lucide-react';
 import GalleryLightbox from './GalleryLightbox';
@@ -46,10 +46,17 @@ const Gallery: React.FC = React.memo(() => {
     setLightboxOpen(true);
   };
 
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Smart display mode based on image count
-  const getDisplayMode = (): DisplayMode => {
+  const getDisplayMode = useCallback((): DisplayMode => {
     if (images.length === 0) return 'empty';
-    const isMobile = window.innerWidth < 768;
     if (isMobile) {
       if (images.length <= 2) return 'featured';
       if (images.length <= 4) return 'grid';
@@ -58,7 +65,7 @@ const Gallery: React.FC = React.memo(() => {
     if (images.length <= 2) return 'featured';
     if (images.length <= 5) return 'grid';
     return 'carousel';
-  };
+  }, [images.length, isMobile]);
 
   const displayMode = getDisplayMode();
 

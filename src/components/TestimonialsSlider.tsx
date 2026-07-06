@@ -83,6 +83,36 @@ const Testimonials: React.FC = () => {
     }
   }, []);
 
+  const touchStartX = useRef(0);
+  const touchStartScrollLeft = useRef(0);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!sliderRef.current) return;
+    touchStartX.current = e.touches[0].clientX;
+    touchStartScrollLeft.current = sliderRef.current.scrollLeft;
+  }, []);
+
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (!sliderRef.current || reviews.length <= 1) return;
+      const touchEndX = e.changedTouches[0].clientX;
+      const diff = touchStartX.current - touchEndX;
+
+      if (Math.abs(diff) > 50) {
+        const { scrollWidth, clientWidth } = sliderRef.current;
+        const cardWidth = (scrollWidth - clientWidth) / (reviews.length - 1);
+        const currentCardIndex = Math.round(sliderRef.current.scrollLeft / cardWidth);
+
+        if (diff > 0) {
+          scrollToIndex(Math.min(currentCardIndex + 1, reviews.length - 1));
+        } else {
+          scrollToIndex(Math.max(currentCardIndex - 1, 0));
+        }
+      }
+    },
+    [reviews.length, scrollToIndex]
+  );
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'ArrowRight') {
@@ -145,6 +175,8 @@ const Testimonials: React.FC = () => {
           onMouseLeave={handleMouseUp}
           onScroll={handleScroll}
           onKeyDown={handleKeyDown}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
           onWheel={(e) => {
             if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
               e.currentTarget.scrollLeft += e.deltaY;
@@ -157,7 +189,7 @@ const Testimonials: React.FC = () => {
               role="group"
               aria-roledescription="slide"
               aria-label={`Depoimento ${index + 1} de ${reviews.length}`}
-              className="bg-[#1a1a1a] border border-white/[0.02] p-7 md:p-10 rounded-2xl flex flex-col gap-6 h-auto hover:border-[#D4AF37]/20 transition-all duration-500 w-[75vw] md:w-[340px] snap-center shrink-0"
+              className="bg-[#1a1a1a] border border-white/[0.02] p-7 md:p-10 rounded-2xl flex flex-col gap-6 h-auto hover:border-[#D4AF37]/20 transition-all duration-500 w-[80vw] sm:w-[75vw] md:w-[340px] snap-center shrink-0"
             >
               {/* Header: Avatar, Name and Stars */}
               <div className="flex items-center gap-4">
