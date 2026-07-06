@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 
 export default function LoginBackground() {
   return (
-    <div className="hidden lg:flex lg:absolute lg:inset-0 h-full relative overflow-hidden bg-[#0A0A0A]">
+    <div className="hidden lg:flex lg:w-[55%] h-full relative overflow-hidden bg-[#0A0A0A] border-r border-white/5">
       <motion.div
         initial={{ scale: 1.05 }}
         animate={{ scale: 1 }}

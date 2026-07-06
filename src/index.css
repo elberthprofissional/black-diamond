@@ -62,13 +62,15 @@
     top: 0;
   }
 
-  /* Mantem os inputs com fundo transparente e texto branco no autofill do Chrome/Safari/Firefox */
+  /* Autofill do Chrome: fundo escuro igual ao site e texto visível */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
   input:-webkit-autofill:active {
-    transition: background-color 99999s ease-in-out 0s;
-    -webkit-text-fill-color: #ffffff !important;
+    -webkit-box-shadow: 0 0 0 1000px #0f0f0f inset !important;
+    -webkit-text-fill-color: #e4e4e7 !important;
+    caret-color: #ffffff !important;
+    border-radius: 16px;
   }
 }
 
