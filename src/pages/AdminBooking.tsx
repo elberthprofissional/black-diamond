@@ -9,6 +9,7 @@ import {
   getClientByPhone,
 } from '../lib/api';
 import { formatPhone, getNextDays } from '../lib/utils';
+import { supabase } from '../lib/supabase';
 import { useToast } from '../hooks/useToast';
 import { useServices } from '../hooks/useServices';
 import type { Service, Client, Booking } from '../types';
@@ -72,6 +73,8 @@ const AdminBooking: React.FC = () => {
     return location.state?.time || '';
   });
 
+  const [workingDays, setWorkingDays] = useState<string>('1,2,3,4,5,6');
+
   const [searchQuery, setSearchQuery] = useState('');
   const [multipleMatches, setMultipleMatches] = useState<Client[]>([]);
   const [isSearchingClient, setIsSearchingClient] = useState(false);
@@ -94,15 +97,21 @@ const AdminBooking: React.FC = () => {
     return services.filter((s) => !MENSALISTA_EXCLUDED_SERVICES.includes(s.name));
   }, [services, isMensalista]);
 
-  // Filter days for mensalista (MON-THU only)
+  // Filter days by working_days (from settings) + optional mensalista filter
   const nextDays = useMemo(() => {
-    if (!isMensalista) return allNextDays;
-    return allNextDays.filter((d) => {
-      const date = new Date(d.fullDate + 'T12:00:00');
-      const dow = date.getDay();
-      return dow >= 1 && dow <= 4; // MON=1, THU=4
+    const enabled = workingDays.split(',').map(Number);
+    let days = allNextDays.filter((d) => {
+      const dow = new Date(d.fullDate + 'T12:00:00').getDay();
+      return enabled.includes(dow);
     });
-  }, [allNextDays, isMensalista]);
+    if (isMensalista) {
+      days = days.filter((d) => {
+        const dow = new Date(d.fullDate + 'T12:00:00').getDay();
+        return dow >= 1 && dow <= 4; // MON=1, THU=4
+      });
+    }
+    return days;
+  }, [allNextDays, isMensalista, workingDays]);
 
   // Reset selected services when mensalista status changes
   useEffect(() => {
@@ -152,6 +161,19 @@ const AdminBooking: React.FC = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newClient.phone, isManualEntry]);
+
+  // Fetch working_days from settings
+  useEffect(() => {
+    supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'working_days')
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.value) setWorkingDays(data.value);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
