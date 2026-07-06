@@ -247,21 +247,19 @@ const SettingsConta: React.FC<SettingsContaProps> = ({ onBack: _onBack }) => {
           <button
             onClick={() => setShowPhotoMenu(!showPhotoMenu)}
             disabled={uploading}
-            className="relative group cursor-pointer"
+            className="relative w-24 h-24 rounded-full group cursor-pointer overflow-hidden border-2 border-white/10 hover:border-[#C5A059]/40 transition-all bg-white/[0.03] flex items-center justify-center"
             aria-label="Alterar foto de perfil"
           >
-            <div className="w-24 h-24 rounded-full border-2 border-white/10 overflow-hidden bg-white/[0.03] flex items-center justify-center group-hover:border-[#C5A059]/40 transition-all">
-              {barberPhoto ? (
-                <img
-                  src={barberPhoto}
-                  alt="Foto do barbeiro"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <User size={32} className="text-zinc-600" />
-              )}
-            </div>
-            <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center transition-all group-hover:bg-black/50">
+            {barberPhoto ? (
+              <img
+                src={barberPhoto}
+                alt="Foto do barbeiro"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User size={32} className="text-zinc-600" />
+            )}
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-all group-hover:bg-black/50">
               {uploading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
@@ -620,8 +618,9 @@ const SettingsConta: React.FC<SettingsContaProps> = ({ onBack: _onBack }) => {
                     type="text"
                     value={instagramInput}
                     onChange={(e) => {
-                      if (e.target.value.replace(/^@/, '').length <= 30)
+                      if (e.target.value.replace(/^@/, '').length <= 30) {
                         setInstagramInput(e.target.value);
+                      }
                     }}
                     placeholder="@seuusuario"
                     maxLength={31}

@@ -461,15 +461,15 @@ const SettingsHorarios: React.FC = () => {
                 role="switch"
                 aria-checked={!!hours[day]?.enabled}
                 aria-label={`${DAY_NAMES[day]} ${hours[day]?.enabled ? 'ativo' : 'inativo'}`}
-                className="relative cursor-pointer shrink-0 mr-4"
+                className={`relative w-9 h-5 rounded-full transition-all duration-300 shrink-0 cursor-pointer mr-4 ${
+                  hours[day]?.enabled ? 'bg-[#C5A059]' : 'bg-white/10'
+                }`}
               >
-                <div
-                  className={`w-9 h-5 rounded-full transition-all duration-300 ${hours[day]?.enabled ? 'bg-[#C5A059]' : 'bg-white/10'}`}
-                >
-                  <div
-                    className={`absolute top-[3px] w-[14px] h-[14px] rounded-full bg-white shadow transition-transform duration-300 ${hours[day]?.enabled ? 'translate-x-[19px]' : 'translate-x-[3px]'}`}
-                  />
-                </div>
+                <span
+                  className={`absolute top-[3px] left-0 w-[14px] h-[14px] rounded-full bg-white shadow transition-transform duration-300 ${
+                    hours[day]?.enabled ? 'translate-x-[19px]' : 'translate-x-[3px]'
+                  }`}
+                />
               </button>
               <span
                 className={`text-[13px] w-36 shrink-0 ${hours[day]?.enabled ? 'text-white' : 'text-zinc-500'}`}
@@ -526,15 +526,15 @@ const SettingsHorarios: React.FC = () => {
                   role="switch"
                   aria-checked={!!hours[day]?.enabled}
                   aria-label={`${DAY_NAMES[day]} ${hours[day]?.enabled ? 'ativo' : 'inativo'}`}
-                  className="relative cursor-pointer shrink-0"
+                  className={`relative w-9 h-5 rounded-full transition-all duration-300 shrink-0 cursor-pointer ${
+                    hours[day]?.enabled ? 'bg-[#C5A059]' : 'bg-white/10'
+                  }`}
                 >
-                  <div
-                    className={`w-9 h-5 rounded-full transition-all duration-300 ${hours[day]?.enabled ? 'bg-[#C5A059]' : 'bg-white/10'}`}
-                  >
-                    <div
-                      className={`absolute top-[3px] w-[14px] h-[14px] rounded-full bg-white shadow transition-transform duration-300 ${hours[day]?.enabled ? 'translate-x-[19px]' : 'translate-x-[3px]'}`}
-                    />
-                  </div>
+                  <span
+                    className={`absolute top-[3px] left-0 w-[14px] h-[14px] rounded-full bg-white shadow transition-transform duration-300 ${
+                      hours[day]?.enabled ? 'translate-x-[19px]' : 'translate-x-[3px]'
+                    }`}
+                  />
                 </button>
                 <span
                   className={`text-[14px] flex-1 ${hours[day]?.enabled ? 'text-white font-medium' : 'text-zinc-500'}`}

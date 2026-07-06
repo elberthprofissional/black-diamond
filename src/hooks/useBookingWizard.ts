@@ -173,6 +173,14 @@ export function useBookingWizard(showError: (msg: string) => void) {
     ) {
       return;
     }
+
+    if (!navigator.onLine) {
+      showError(
+        'Você está sem conexão com a internet. Por favor, verifique sua rede e tente novamente.'
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);

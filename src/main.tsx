@@ -13,11 +13,14 @@ if (gaId) {
   script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
   document.head.appendChild(script);
   window.dataLayer = window.dataLayer || [];
-  function gtag(...args: unknown[]) {
+
+  // Define global gtag function on window
+  (window as any).gtag = function (...args: unknown[]) {
     window.dataLayer!.push(args);
-  }
-  gtag('js', new Date());
-  gtag('config', gaId, { send_page_view: false });
+  };
+
+  (window as any).gtag('js', new Date());
+  (window as any).gtag('config', gaId, { send_page_view: false });
 }
 
 const dsn = import.meta.env.VITE_SENTRY_DSN;

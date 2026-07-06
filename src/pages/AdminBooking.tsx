@@ -256,6 +256,13 @@ const AdminBooking: React.FC = () => {
       return;
     }
 
+    if (!navigator.onLine) {
+      showError(
+        'Você está sem conexão com a internet. Por favor, verifique sua rede e tente novamente.'
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await createBooking(

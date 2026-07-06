@@ -23,7 +23,19 @@ const TITLES: Record<string, string> = {
 function TitleManager() {
   const { pathname } = useLocation();
   useEffect(() => {
-    document.title = TITLES[pathname] || 'Black Diamond';
+    const pageTitle = TITLES[pathname] || 'Black Diamond';
+    document.title = pageTitle;
+
+    // Send pageview event to Google Analytics on route transition
+    const gaId = import.meta.env.VITE_GA_ID;
+    if (gaId && (window as any).gtag) {
+      (window as any).gtag('event', 'page_view', {
+        page_title: pageTitle,
+        page_location: window.location.href,
+        page_path: pathname,
+        send_to: gaId,
+      });
+    }
   }, [pathname]);
   return null;
 }

@@ -183,6 +183,11 @@ WHERE (status != 'cancelled');
 CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(booking_date);
 CREATE INDEX IF NOT EXISTS idx_bookings_date_status ON bookings(booking_date, status);
 CREATE INDEX IF NOT EXISTS idx_bookings_client_id ON bookings(client_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_google_event_id ON bookings(google_event_id) WHERE google_event_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_reviews_booking_id ON reviews(booking_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_client_id ON reviews(client_id);
+CREATE INDEX IF NOT EXISTS idx_clients_mensalista ON clients(id) WHERE is_mensalista;
+CREATE INDEX IF NOT EXISTS idx_clients_blocked ON clients(id) WHERE is_blocked;
 
 -- View de faturamento diário
 CREATE OR REPLACE VIEW faturamento_diario
@@ -348,6 +353,36 @@ DECLARE
     v_server_price decimal;
     v_server_duration integer;
 BEGIN
+    -- VAL-1: Validação de input
+    p_cliente_nome := TRIM(p_cliente_nome);
+    IF p_cliente_nome = '' OR length(p_cliente_nome) < 2 THEN
+        RAISE EXCEPTION 'Nome do cliente inválido (mínimo de 2 caracteres).';
+    END IF;
+
+    p_cliente_telefone := TRIM(p_cliente_telefone);
+    -- Garante formato apenas de dígitos de 10 a 15 de tamanho
+    IF p_cliente_telefone !~ '^[0-9]{10,15}$' THEN
+        RAISE EXCEPTION 'Número de telefone inválido (deve conter apenas números e ter entre 10 e 15 dígitos).';
+    END IF;
+
+    IF p_cliente_email IS NOT NULL AND TRIM(p_cliente_email) != '' THEN
+        p_cliente_email := TRIM(p_cliente_email);
+        IF p_cliente_email !~ '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$' THEN
+            RAISE EXCEPTION 'E-mail inválido.';
+        END IF;
+    ELSE
+        p_cliente_email := NULL;
+    END IF;
+
+    -- VAL-2: Validação de serviço vazio
+    IF p_servicos IS NULL OR array_length(p_servicos, 1) IS NULL OR array_length(p_servicos, 1) = 0 THEN
+        RAISE EXCEPTION 'Selecione pelo menos um serviço.';
+    END IF;
+
+    IF p_data < CURRENT_DATE THEN
+        RAISE EXCEPTION 'Não é possível agendar em uma data passada.';
+    END IF;
+
     -- Validate booking time is within business hours
     v_day_of_week := EXTRACT(DOW FROM p_data);
     v_day_key := v_day_of_week::text;
@@ -439,12 +474,16 @@ RETURNS TABLE(slot_time text) AS $$
 DECLARE
     v_opening time;
     v_closing time;
-    v_current time;
     v_day_of_week integer;
     v_hours_json jsonb;
     v_day_key text;
     v_day_enabled boolean := false;
 BEGIN
+    -- VAL-3: Past-date guard
+    IF p_date < CURRENT_DATE THEN
+        RETURN;
+    END IF;
+
     v_day_of_week := EXTRACT(DOW FROM p_date);
     v_day_key := v_day_of_week::text;
 
@@ -479,19 +518,20 @@ BEGIN
         RETURN;
     END IF;
 
-    v_current := v_opening;
-    WHILE v_current < v_closing LOOP
-        IF NOT EXISTS (
-            SELECT 1 FROM bookings b
-            WHERE b.booking_date = p_date
-            AND b.booking_time = v_current
-            AND b.status != 'cancelled'
-        ) THEN
-            slot_time := v_current::text;
-            RETURN NEXT;
-        END IF;
-        v_current := v_current + interval '1 hour';
-    END LOOP;
+    -- PERF-1: Optimized single query generate_series without WHILE loop
+    RETURN QUERY
+    SELECT to_char(slot, 'HH24:MI:SS') AS slot_time
+    FROM generate_series(
+        p_date + v_opening,
+        p_date + v_closing - interval '1 second',
+        interval '1 hour'
+    ) AS slot
+    WHERE NOT EXISTS (
+        SELECT 1 FROM bookings b
+        WHERE b.booking_date = p_date
+        AND b.booking_time = slot::time
+        AND b.status != 'cancelled'
+    );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -506,24 +546,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Configurações do negócio (apenas horários e config públicas)
-CREATE OR REPLACE FUNCTION get_business_hours()
-RETURNS jsonb AS $$
-DECLARE
-    v_result jsonb;
-BEGIN
-    SELECT jsonb_object_agg(key, value) INTO v_result
-    FROM settings
-    WHERE key IN ('opening_time', 'closing_time', 'saturday_opening', 'saturday_closing', 'working_days', 'barber_hours', 'barber_name', 'barber_phone');
-    RETURN COALESCE(v_result, '{}'::jsonb);
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- Bloquear/desbloquear horário
 CREATE OR REPLACE FUNCTION toggle_slot_block(p_date date, p_time time)
 RETURNS jsonb AS $$
 DECLARE
-    v_client_id uuid;
     v_existing_id uuid;
     v_result jsonb;
 BEGIN
@@ -537,13 +563,9 @@ BEGIN
         SELECT jsonb_build_object('id', v_existing_id, 'blocked', (SELECT is_blocked FROM bookings WHERE id = v_existing_id)) INTO v_result;
         RETURN v_result;
     ELSE
-        SELECT id INTO v_client_id FROM clients WHERE phone = '00000000000' LIMIT 1;
-        IF v_client_id IS NULL THEN
-            INSERT INTO clients (name, phone) VALUES ('BLOQUEADO', '00000000000') RETURNING id INTO v_client_id;
-        END IF;
-
+        -- Opção profissional: Insere com client_id NULL para bloqueio
         INSERT INTO bookings (client_id, service_ids, booking_date, booking_time, total_price, total_duration, status, is_blocked)
-        VALUES (v_client_id, '{}', p_date, p_time, 0, 0, 'confirmed', true)
+        VALUES (NULL, '{}', p_date, p_time, 0, 0, 'confirmed', true)
         RETURNING id INTO v_existing_id;
 
         RETURN jsonb_build_object('id', v_existing_id, 'blocked', true);
@@ -572,6 +594,10 @@ CREATE OR REPLACE FUNCTION save_push_subscription(
 )
 RETURNS void AS $$
 BEGIN
+    IF NOT is_admin() THEN
+        RAISE EXCEPTION 'Acesso negado: apenas administradores podem gerenciar inscrições de push.';
+    END IF;
+
     INSERT INTO push_subscriptions (endpoint, p256dh, auth)
     VALUES (p_endpoint, p_p256dh, p_auth)
     ON CONFLICT (endpoint) DO UPDATE SET
@@ -584,6 +610,10 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION delete_push_subscription(p_endpoint text)
 RETURNS void AS $$
 BEGIN
+    IF NOT is_admin() THEN
+        RAISE EXCEPTION 'Acesso negado: apenas administradores podem gerenciar inscrições de push.';
+    END IF;
+
     DELETE FROM push_subscriptions WHERE endpoint = p_endpoint;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -604,7 +634,7 @@ BEGIN
     FROM reviews;
     RETURN v_result;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY INVOKER;
 
 CREATE OR REPLACE FUNCTION get_top_reviews(p_limit integer DEFAULT 10)
 RETURNS TABLE(

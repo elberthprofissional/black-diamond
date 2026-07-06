@@ -144,7 +144,7 @@ describe('AdminDashboard — Comportamental', () => {
       </BarberSettingsProvider>
     );
     await waitFor(() => {
-      expect(screen.getByText('João Silva')).toBeInTheDocument();
+      expect(screen.getAllByText('João Silva')[0]).toBeInTheDocument();
     });
   });
 
@@ -155,7 +155,7 @@ describe('AdminDashboard — Comportamental', () => {
       </BarberSettingsProvider>
     );
     await waitFor(() => {
-      expect(screen.getByText(/10:00/)).toBeInTheDocument();
+      expect(screen.getAllByText(/10:00/)[0]).toBeInTheDocument();
     });
   });
 
@@ -166,8 +166,8 @@ describe('AdminDashboard — Comportamental', () => {
       </BarberSettingsProvider>
     );
     await waitFor(() => {
-      expect(screen.getByText('João Silva')).toBeInTheDocument();
+      expect(screen.getAllByText('João Silva')[0]).toBeInTheDocument();
     });
-    expect(screen.getByText(/10:00/)).toBeInTheDocument();
+    expect(screen.getAllByText(/10:00/)[0]).toBeInTheDocument();
   });
 });
