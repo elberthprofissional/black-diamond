@@ -799,6 +799,7 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCa
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [naturalSize, setNaturalSize] = useState<{ width: number; height: number } | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -808,14 +809,13 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCa
     if (isOpen) {
       setZoom(1);
       setOffset({ x: 0, y: 0 });
+      setNaturalSize(null);
     }
   }, [isOpen]);
 
   const getDimensions = () => {
-    if (!imgRef.current) return { w: containerSize, h: containerSize, R: 1 };
-    const naturalWidth = imgRef.current.naturalWidth || containerSize;
-    const naturalHeight = imgRef.current.naturalHeight || containerSize;
-    const R = naturalWidth / naturalHeight;
+    if (!naturalSize) return { w: containerSize, h: containerSize, R: 1 };
+    const R = naturalSize.width / naturalSize.height;
     let w, h;
     if (R > 1) {
       h = containerSize * zoom;
@@ -904,16 +904,20 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCa
   }, []);
 
   const handleCrop = () => {
-    if (!imgRef.current) return;
+    if (!imgRef.current || !naturalSize) return;
     const img = imgRef.current;
     const canvas = document.createElement('canvas');
-    const destSize = 400;
+    const destSize = 800; // Aumentado para 800px para qualidade ultra nítida (Retina-ready)
     canvas.width = destSize;
     canvas.height = destSize;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const naturalWidth = img.naturalWidth;
+    // Configurações de interpolação de alta qualidade para o redimensionamento do canvas
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    const naturalWidth = naturalSize.width;
     const scaleRatio = naturalWidth / w;
     const srcX_screen = (w - containerSize) / 2 - clampedX;
     const srcY_screen = (h - containerSize) / 2 - clampedY;
@@ -932,7 +936,7 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCa
         }
       },
       'image/webp',
-      0.85
+      0.9
     );
   };
 
@@ -963,6 +967,10 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCa
             ref={imgRef}
             src={src}
             alt="Recortar"
+            onLoad={(e) => {
+              const image = e.currentTarget;
+              setNaturalSize({ width: image.naturalWidth, height: image.naturalHeight });
+            }}
             className="pointer-events-none select-none max-w-none max-h-none"
             style={{
               width: w,
@@ -995,9 +1003,8 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCa
               setZoom(val);
               setOffset((prev) => {
                 let tempW, tempH;
-                const R = imgRef.current
-                  ? imgRef.current.naturalWidth / imgRef.current.naturalHeight
-                  : 1;
+                if (!naturalSize) return prev;
+                const R = naturalSize.width / naturalSize.height;
                 if (R > 1) {
                   tempH = containerSize * val;
                   tempW = tempH * R;
