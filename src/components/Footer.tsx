@@ -5,8 +5,31 @@ import { useBarberSettings } from '../hooks/useBarberSettings';
 import { formatPhone } from '../lib/utils';
 import { WhatsAppIcon } from './WhatsAppIcon';
 
+interface DaySchedule {
+  enabled: boolean;
+  open: string;
+  close: string;
+}
+
+interface HoursData {
+  [key: string]: DaySchedule;
+}
+
 const Footer: React.FC = () => {
-  const { barberPhone, barberInstagram } = useBarberSettings();
+  const { barberPhone, barberInstagram, barberHours } = useBarberSettings();
+
+  const hours: HoursData | null = React.useMemo(() => {
+    if (!barberHours) return null;
+    try {
+      return JSON.parse(barberHours);
+    } catch {
+      return null;
+    }
+  }, [barberHours]);
+
+  const segSex = hours?.['1']?.enabled ? `${hours['1'].open} - ${hours['1'].close}` : null;
+  const sabado = hours?.['6']?.enabled ? `${hours['6'].open} - ${hours['6'].close}` : null;
+  const domingo = hours?.['0']?.enabled ? `${hours['0'].open} - ${hours['0'].close}` : null;
 
   return (
     <footer className="bg-[#0A0A0A] pt-16 pb-8 overflow-hidden relative">
@@ -78,22 +101,41 @@ const Footer: React.FC = () => {
               Horário de Funcionamento
             </h4>
             <div className="space-y-2">
-              <div className="flex flex-col">
-                <span className="text-[#D4AF37] font-bebas text-[12px] md:text-sm tracking-wider uppercase">
-                  Seg - Sex
+              {segSex && (
+                <div className="flex flex-col">
+                  <span className="text-[#D4AF37] font-bebas text-[12px] md:text-sm tracking-wider uppercase">
+                    Seg - Sex
+                  </span>
+                  <span className="text-zinc-400 font-roboto font-light text-xs md:text-sm">
+                    {segSex}
+                  </span>
+                </div>
+              )}
+              {sabado && (
+                <div className="flex flex-col">
+                  <span className="text-[#D4AF37] font-bebas text-[12px] md:text-sm tracking-wider uppercase">
+                    Sábado
+                  </span>
+                  <span className="text-zinc-400 font-roboto font-light text-xs md:text-sm">
+                    {sabado}
+                  </span>
+                </div>
+              )}
+              {domingo && (
+                <div className="flex flex-col">
+                  <span className="text-[#D4AF37] font-bebas text-[12px] md:text-sm tracking-wider uppercase">
+                    Domingo
+                  </span>
+                  <span className="text-zinc-400 font-roboto font-light text-xs md:text-sm">
+                    {domingo}
+                  </span>
+                </div>
+              )}
+              {!segSex && !sabado && !domingo && (
+                <span className="text-zinc-500 font-roboto font-light text-xs md:text-sm">
+                  Consulte nossos horários
                 </span>
-                <span className="text-zinc-400 font-roboto font-light text-xs md:text-sm">
-                  08:30 - 19:00
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[#D4AF37] font-bebas text-[12px] md:text-sm tracking-wider uppercase">
-                  Sábado
-                </span>
-                <span className="text-zinc-400 font-roboto font-light text-xs md:text-sm">
-                  08:00 - 18:00
-                </span>
-              </div>
+              )}
             </div>
           </div>
 

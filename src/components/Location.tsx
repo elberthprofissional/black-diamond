@@ -4,8 +4,51 @@ import { useBarberSettings } from '../hooks/useBarberSettings';
 import { formatPhone } from '../lib/utils';
 import { WhatsAppIcon } from './WhatsAppIcon';
 
+interface DaySchedule {
+  enabled: boolean;
+  open: string;
+  close: string;
+}
+
+interface HoursData {
+  [key: string]: DaySchedule;
+}
+
 const Location: React.FC = () => {
-  const { barberPhone } = useBarberSettings();
+  const { barberPhone, barberHours } = useBarberSettings();
+
+  const hours: HoursData | null = React.useMemo(() => {
+    if (!barberHours) return null;
+    try {
+      return JSON.parse(barberHours);
+    } catch {
+      return null;
+    }
+  }, [barberHours]);
+
+  const weekEnabled = hours?.['1']?.enabled;
+  const satEnabled = hours?.['6']?.enabled;
+
+  // Build hours display lines
+  const hoursLines: string[] = [];
+  if (
+    weekEnabled &&
+    satEnabled &&
+    hours!['1'].open === hours!['6'].open &&
+    hours!['1'].close === hours!['6'].close
+  ) {
+    hoursLines.push(`Segunda a Sábado`);
+    hoursLines.push(`${hours!['1'].open} às ${hours!['1'].close}`);
+  } else {
+    if (weekEnabled) {
+      hoursLines.push(`Segunda a Sexta`);
+      hoursLines.push(`${hours!['1'].open} às ${hours!['1'].close}`);
+    }
+    if (satEnabled) {
+      hoursLines.push(`Sábado`);
+      hoursLines.push(`${hours!['6'].open} às ${hours!['6'].close}`);
+    }
+  }
 
   return (
     <section id="localização" className="py-20 md:py-32 bg-[#141414]">
@@ -68,9 +111,14 @@ const Location: React.FC = () => {
                       Horário
                     </h4>
                     <p className="text-zinc-400 font-light text-sm md:text-base leading-relaxed">
-                      Segunda a Sábado
-                      <br />
-                      08:30 às 19:00
+                      {hoursLines.length > 0
+                        ? hoursLines.map((l, i) => (
+                            <React.Fragment key={i}>
+                              {i > 0 && <br />}
+                              {l}
+                            </React.Fragment>
+                          ))
+                        : 'Consulte nossos horários'}
                     </p>
                   </div>
                 </div>
