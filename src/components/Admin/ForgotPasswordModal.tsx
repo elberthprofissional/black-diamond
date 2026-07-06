@@ -66,7 +66,7 @@ export default function ForgotPasswordModal({
                     type="email"
                     value={recoveryEmail}
                     onChange={(e) => onEmailChange(e.target.value)}
-                    className="w-full h-11 sm:h-12 bg-[#1a1a1a] border border-white/[0.08] rounded-xl px-4 text-sm text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-colors placeholder:text-zinc-600"
+                    className="w-full h-11 sm:h-12 bg-transparent border border-white/[0.08] rounded-xl px-4 text-sm text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-colors placeholder:text-zinc-600"
                     placeholder="Insira seu email"
                   />
                   <button

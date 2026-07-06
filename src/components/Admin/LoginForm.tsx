@@ -48,7 +48,7 @@ export default function LoginForm({
               type="email"
               value={email}
               onChange={(e) => onEmailChange(e.target.value)}
-              className="w-full h-14 bg-[#1a1a1a] border border-white/[0.08] rounded-2xl px-6 text-sm font-medium text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-all placeholder:text-zinc-600 lg:h-12 lg:font-light lg:text-lg"
+              className="w-full h-14 bg-transparent border border-white/[0.08] rounded-2xl px-6 text-sm font-medium text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-all placeholder:text-zinc-600 lg:h-12 lg:font-light lg:text-lg"
               placeholder="seu@email.com"
               required
             />
@@ -70,7 +70,7 @@ export default function LoginForm({
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => onPasswordChange(e.target.value)}
-              className="w-full h-14 bg-[#1a1a1a] border border-white/[0.08] rounded-2xl px-6 pr-14 text-sm font-medium text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-all placeholder:text-zinc-600 lg:h-12 lg:font-light lg:text-lg"
+              className="w-full h-14 bg-transparent border border-white/[0.08] rounded-2xl px-6 pr-14 text-sm font-medium text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-all placeholder:text-zinc-600 lg:h-12 lg:font-light lg:text-lg"
               placeholder="••••••••"
               required
             />
