@@ -263,7 +263,12 @@ const AdminProfile: React.FC = () => {
           </div>
 
           <div className="lg:hidden">
-            {settingsSection === null && <SettingsList onSelect={setSettingsSection} />}
+            {settingsSection === null && (
+              <SettingsList
+                onSelect={setSettingsSection}
+                onLogoutClick={() => setShowLogoutConfirm(true)}
+              />
+            )}
             {settingsSection === 'conta' && <SettingsConta />}
             {settingsSection === 'galeria' && <SettingsGaleria />}
             {settingsSection === 'servicos' && <SettingsServicos />}

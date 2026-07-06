@@ -1,8 +1,19 @@
 import React from 'react';
-import { User, Bell, Trash2, ChevronRight, AlertTriangle, Image as ImageIcon, Clock, Scissors } from 'lucide-react';
+import {
+  User,
+  Bell,
+  Trash2,
+  ChevronRight,
+  AlertTriangle,
+  Image as ImageIcon,
+  Clock,
+  Scissors,
+  LogOut,
+} from 'lucide-react';
 
 interface SettingsListProps {
   onSelect: (section: string) => void;
+  onLogoutClick?: () => void;
 }
 
 const categories = [
@@ -50,7 +61,7 @@ const categories = [
   },
 ];
 
-const SettingsList: React.FC<SettingsListProps> = ({ onSelect }) => {
+const SettingsList: React.FC<SettingsListProps> = ({ onSelect, onLogoutClick }) => {
   return (
     <div className="max-w-lg mx-auto space-y-6">
       <div className="divide-y divide-white/5">
@@ -94,6 +105,25 @@ const SettingsList: React.FC<SettingsListProps> = ({ onSelect }) => {
           );
         })}
       </div>
+
+      {onLogoutClick && (
+        <div className="pt-2">
+          <button
+            onClick={onLogoutClick}
+            className="w-full flex items-center gap-4 px-1 py-4 transition-all cursor-pointer hover:bg-red-500/[0.04] border border-transparent hover:border-red-500/20 rounded-xl"
+          >
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-red-500/[0.08] border border-red-500/20">
+              <LogOut size={16} className="text-red-500/80" />
+            </div>
+            <div className="flex-1 text-left min-w-0">
+              <span className="text-[13px] font-medium block text-red-400/90">Sair da Conta</span>
+              <span className="text-[11px] block text-red-500/50">
+                Encerrar sessão ativa neste dispositivo
+              </span>
+            </div>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
