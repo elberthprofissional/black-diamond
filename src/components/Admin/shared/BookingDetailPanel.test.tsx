@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import BookingDetailPanel from './BookingDetailPanel'
-import type { BookingWithClient, Service } from '../../../types'
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import BookingDetailPanel from './BookingDetailPanel';
+import type { BookingWithClient, Service } from '../../../types';
 
 const mockBooking: BookingWithClient = {
   id: 'booking-1',
@@ -17,12 +17,12 @@ const mockBooking: BookingWithClient = {
     name: 'João Silva',
     phone: '5531999999999',
   },
-}
+};
 
 const mockServices: Service[] = [
   { id: 'service-1', name: 'Corte', price: 45, duration: 30 },
   { id: 'service-2', name: 'Barba', price: 30, duration: 15 },
-]
+];
 
 describe('BookingDetailPanel', () => {
   it('renderiza titulo do painel', () => {
@@ -35,9 +35,9 @@ describe('BookingDetailPanel', () => {
         onReschedule={vi.fn()}
         onDelete={vi.fn()}
       />
-    )
-    expect(screen.getByText('Dados do Agendamento')).toBeInTheDocument()
-  })
+    );
+    expect(screen.getByText('Dados do Agendamento')).toBeInTheDocument();
+  });
 
   it('renderiza nome do cliente', () => {
     render(
@@ -49,9 +49,9 @@ describe('BookingDetailPanel', () => {
         onReschedule={vi.fn()}
         onDelete={vi.fn()}
       />
-    )
-    expect(screen.getByText('João Silva')).toBeInTheDocument()
-  })
+    );
+    expect(screen.getAllByText('João Silva').length).toBeGreaterThanOrEqual(1);
+  });
 
   it('renderiza telefone do cliente', () => {
     render(
@@ -63,9 +63,9 @@ describe('BookingDetailPanel', () => {
         onReschedule={vi.fn()}
         onDelete={vi.fn()}
       />
-    )
-    expect(screen.getByText('(55) 31999-9999')).toBeInTheDocument()
-  })
+    );
+    expect(screen.getAllByText('(55) 31999-9999').length).toBeGreaterThanOrEqual(1);
+  });
 
   it('renderiza servicos do agendamento', () => {
     render(
@@ -77,10 +77,10 @@ describe('BookingDetailPanel', () => {
         onReschedule={vi.fn()}
         onDelete={vi.fn()}
       />
-    )
-    expect(screen.getByText('Corte')).toBeInTheDocument()
-    expect(screen.getByText('Barba')).toBeInTheDocument()
-  })
+    );
+    expect(screen.getByText('Corte')).toBeInTheDocument();
+    expect(screen.getByText('Barba')).toBeInTheDocument();
+  });
 
   it('renderiza preco total', () => {
     render(
@@ -92,12 +92,12 @@ describe('BookingDetailPanel', () => {
         onReschedule={vi.fn()}
         onDelete={vi.fn()}
       />
-    )
-    expect(screen.getByText('R$ 75')).toBeInTheDocument()
-  })
+    );
+    expect(screen.getByText('R$ 75')).toBeInTheDocument();
+  });
 
   it('chama onClose ao clicar no botao fechar', () => {
-    const onClose = vi.fn()
+    const onClose = vi.fn();
     render(
       <BookingDetailPanel
         booking={mockBooking}
@@ -107,14 +107,14 @@ describe('BookingDetailPanel', () => {
         onReschedule={vi.fn()}
         onDelete={vi.fn()}
       />
-    )
-    const closeButton = screen.getAllByRole('button')[0]
-    closeButton.click()
-    expect(onClose).toHaveBeenCalledTimes(1)
-  })
+    );
+    const closeButton = screen.getAllByRole('button')[0];
+    closeButton.click();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 
   it('chama onComplete ao clicar em Concluir', () => {
-    const onComplete = vi.fn()
+    const onComplete = vi.fn();
     render(
       <BookingDetailPanel
         booking={mockBooking}
@@ -124,14 +124,14 @@ describe('BookingDetailPanel', () => {
         onReschedule={vi.fn()}
         onDelete={vi.fn()}
       />
-    )
-    const completeButton = screen.getByText('Finalizar Atendimento')
-    completeButton.click()
-    expect(onComplete).toHaveBeenCalledTimes(1)
-  })
+    );
+    const completeButton = screen.getByText('Finalizar Atendimento');
+    completeButton.click();
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
 
   it('chama onReschedule ao clicar em Reagendar', () => {
-    const onReschedule = vi.fn()
+    const onReschedule = vi.fn();
     render(
       <BookingDetailPanel
         booking={mockBooking}
@@ -141,14 +141,14 @@ describe('BookingDetailPanel', () => {
         onReschedule={onReschedule}
         onDelete={vi.fn()}
       />
-    )
-    const rescheduleButton = screen.getByText('Reagendar')
-    rescheduleButton.click()
-    expect(onReschedule).toHaveBeenCalledTimes(1)
-  })
+    );
+    const rescheduleButtons = screen.getAllByText('Reagendar');
+    rescheduleButtons[0].click();
+    expect(onReschedule).toHaveBeenCalledTimes(1);
+  });
 
-  it('chama onDelete ao clicar em Excluir', () => {
-    const onDelete = vi.fn()
+  it('chama onDelete ao clicar em Cancelar', () => {
+    const onDelete = vi.fn();
     render(
       <BookingDetailPanel
         booking={mockBooking}
@@ -158,14 +158,14 @@ describe('BookingDetailPanel', () => {
         onReschedule={vi.fn()}
         onDelete={onDelete}
       />
-    )
-    const deleteButton = screen.getByText('Excluir Agendamento')
-    deleteButton.click()
-    expect(onDelete).toHaveBeenCalledTimes(1)
-  })
+    );
+    const deleteButtons = screen.getAllByText('Cancelar Agendamento');
+    deleteButtons[0].click();
+    expect(onDelete).toHaveBeenCalledTimes(1);
+  });
 
   it('nao mostra botao Concluir para booking ja concluido', () => {
-    const completedBooking = { ...mockBooking, status: 'completed' as const }
+    const completedBooking = { ...mockBooking, status: 'completed' as const };
     render(
       <BookingDetailPanel
         booking={completedBooking}
@@ -175,7 +175,7 @@ describe('BookingDetailPanel', () => {
         onReschedule={vi.fn()}
         onDelete={vi.fn()}
       />
-    )
-    expect(screen.queryByText('Concluir Atendimento')).not.toBeInTheDocument()
-  })
-})
+    );
+    expect(screen.queryByText('Concluir Atendimento')).not.toBeInTheDocument();
+  });
+});

@@ -388,17 +388,19 @@ export const toggleClientFavorite = async (id: string, isFavorite: boolean) => {
   if (error) throw error;
 };
 
-/** Alterna o status de mensalista de um cliente, opcionalmente vinculando a um plano. */
+/** Alterna o status de mensalista de um cliente, opcionalmente vinculando a um plano e data de expiração. */
 export const toggleClientMensalista = async (
   id: string,
   isMensalista: boolean,
-  planId?: string | null
+  planId?: string | null,
+  expiresAt?: string | null
 ) => {
   const { error } = await supabase
     .from('clients')
     .update({
       is_mensalista: isMensalista,
       mensalista_plan_id: isMensalista ? planId || null : null,
+      mensalista_expires_at: isMensalista ? expiresAt || null : null,
     })
     .eq('id', id);
 

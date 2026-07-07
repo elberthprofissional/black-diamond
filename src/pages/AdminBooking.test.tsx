@@ -11,6 +11,7 @@ vi.mock('../lib/api', () => ({
   getClients: vi.fn().mockResolvedValue([]),
   createBooking: vi.fn().mockResolvedValue([{ id: 'b1' }]),
   deleteBooking: vi.fn().mockResolvedValue(undefined),
+  getMensalistaPlans: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock('../lib/supabase', () => ({
@@ -55,42 +56,74 @@ describe('AdminBooking', () => {
   });
 
   it('renderiza titulo do agendamento', () => {
-    render(<BarberSettingsProvider><AdminBooking /></BarberSettingsProvider>);
+    render(
+      <BarberSettingsProvider>
+        <AdminBooking />
+      </BarberSettingsProvider>
+    );
     expect(screen.getAllByText(/Novo Agendamento/i).length).toBeGreaterThan(0);
   });
 
   it('renderiza secao de cliente', () => {
-    render(<BarberSettingsProvider><AdminBooking /></BarberSettingsProvider>);
+    render(
+      <BarberSettingsProvider>
+        <AdminBooking />
+      </BarberSettingsProvider>
+    );
     expect(screen.getAllByText(/CLIENTE/i).length).toBeGreaterThan(0);
   });
 
   it('renderiza campo de nome', () => {
-    render(<BarberSettingsProvider><AdminBooking /></BarberSettingsProvider>);
+    render(
+      <BarberSettingsProvider>
+        <AdminBooking />
+      </BarberSettingsProvider>
+    );
     expect(screen.getAllByPlaceholderText(/nome/i).length).toBeGreaterThan(0);
   });
 
   it('renderiza campo de telefone', () => {
-    render(<BarberSettingsProvider><AdminBooking /></BarberSettingsProvider>);
+    render(
+      <BarberSettingsProvider>
+        <AdminBooking />
+      </BarberSettingsProvider>
+    );
     expect(screen.getAllByPlaceholderText(/00000/i).length).toBeGreaterThan(0);
   });
 
   it('renderiza secao de servicos', () => {
-    render(<BarberSettingsProvider><AdminBooking /></BarberSettingsProvider>);
+    render(
+      <BarberSettingsProvider>
+        <AdminBooking />
+      </BarberSettingsProvider>
+    );
     expect(screen.getAllByText(/SERVIÇOS/i).length).toBeGreaterThan(0);
   });
 
   it('renderiza secao de agenda', () => {
-    render(<BarberSettingsProvider><AdminBooking /></BarberSettingsProvider>);
+    render(
+      <BarberSettingsProvider>
+        <AdminBooking />
+      </BarberSettingsProvider>
+    );
     expect(screen.getAllByText(/AGENDA/i).length).toBeGreaterThan(0);
   });
 
   it('renderiza botao de buscar cliente', () => {
-    render(<BarberSettingsProvider><AdminBooking /></BarberSettingsProvider>);
+    render(
+      <BarberSettingsProvider>
+        <AdminBooking />
+      </BarberSettingsProvider>
+    );
     expect(screen.getAllByText(/Buscar|Dados|Cliente/i).length).toBeGreaterThan(0);
   });
 
   it('renderiza botao de avancar', () => {
-    render(<BarberSettingsProvider><AdminBooking /></BarberSettingsProvider>);
+    render(
+      <BarberSettingsProvider>
+        <AdminBooking />
+      </BarberSettingsProvider>
+    );
     expect(screen.getAllByText(/Continuar/i).length).toBeGreaterThan(0);
   });
 });

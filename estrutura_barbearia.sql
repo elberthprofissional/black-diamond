@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS clients (
     is_favorite BOOLEAN DEFAULT FALSE,
     is_mensalista BOOLEAN DEFAULT FALSE,
     mensalista_plan_id UUID REFERENCES mensalista_plans(id) ON DELETE SET NULL,
+    mensalista_expires_at DATE,
     is_blocked BOOLEAN DEFAULT FALSE,
     manually_added BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -747,10 +748,78 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- =========================================================================
--- 12. CRON JOBS
+-- 12. VERIFICAR MENSALISTAS
 -- =========================================================================
 
--- Remove o cron antigo (semanal) se existir
+-- Função que verifica mensalistas perto de vencer e envia push pro barbeiro.
+-- Roda todo dia e:
+--   1. Notifica o barbeiro sobre mensalistas que vencem em até 3 dias
+--   2. Remove automaticamente mensalistas vencidos (expirou ontem ou antes)
+CREATE OR REPLACE FUNCTION verificar_mensalistas()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_client RECORD;
+  v_title TEXT;
+  v_body TEXT;
+  v_tag TEXT;
+  v_days_until_expiry INTEGER;
+BEGIN
+  -- Notifica sobre mensalistas próximos do vencimento
+  FOR v_client IN
+    SELECT id, name, mensalista_expires_at
+    FROM clients
+    WHERE is_mensalista = true
+      AND mensalista_expires_at IS NOT NULL
+      AND mensalista_expires_at <= (NOW() AT TIME ZONE 'America/Sao_Paulo')::date + 3
+      AND mensalista_expires_at >= (NOW() AT TIME ZONE 'America/Sao_Paulo')::date
+  LOOP
+    v_days_until_expiry := v_client.mensalista_expires_at - (NOW() AT TIME ZONE 'America/Sao_Paulo')::date;
+
+    IF v_days_until_expiry = 0 THEN
+      v_title := 'Mensalidade vence hoje! ⏰';
+      v_body := format('A mensalidade de %s vence hoje! Renove para não perder o plano.', v_client.name);
+      v_tag := format('mensalidade-hoje-%s', v_client.id);
+    ELSE
+      v_title := 'Mensalidade perto de vencer! ⏰';
+      v_body := format('A mensalidade de %s vence em %s dias!', v_client.name, v_days_until_expiry);
+      v_tag := format('mensalidade-alerta-%s', v_client.id);
+    END IF;
+
+    -- Envia push via Edge Function
+    PERFORM
+      net.http_post(
+        url := current_setting('app.settings.supabase_url') || '/functions/v1/send-push',
+        headers := jsonb_build_object(
+          'Content-Type', 'application/json',
+          'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key')
+        ),
+        body := jsonb_build_object(
+          'title', v_title,
+          'body', v_body,
+          'tag', v_tag
+        )::text
+      );
+  END LOOP;
+
+  -- Remove mensalistas vencidos (expirou antes de hoje)
+  UPDATE clients
+  SET is_mensalista = false,
+      mensalista_plan_id = NULL,
+      mensalista_expires_at = NULL
+  WHERE is_mensalista = true
+    AND mensalista_expires_at IS NOT NULL
+    AND mensalista_expires_at < (NOW() AT TIME ZONE 'America/Sao_Paulo')::date;
+END;
+$$;
+
+-- =========================================================================
+-- 13. CRON JOBS
+-- =========================================================================
+
+-- Remove crons antigos se existirem
 DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'limpar-semana') THEN
@@ -762,10 +831,12 @@ BEGIN
     IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'completar-tarde') THEN
         PERFORM cron.unschedule('completar-tarde');
     END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'verificar-mensalistas') THEN
+        PERFORM cron.unschedule('verificar-mensalistas');
+    END IF;
 END $$;
 
 -- CRON #1: Roda TODO DIA às 3h UTC (0h Brasília - meia-noite)
--- Pega agendamentos do DIA ANTERIOR que escaparam.
 SELECT cron.schedule(
     'completar-diario',
     '0 3 * * *',
@@ -773,12 +844,17 @@ SELECT cron.schedule(
 );
 
 -- CRON #2: Roda TODO DIA às 21h UTC (18h Brasília)
--- Pega agendamentos de HOJE que já terminaram (mesmo dia).
--- Ex: booking de segunda 10h vira 'completed' às 18h de segunda.
 SELECT cron.schedule(
     'completar-tarde',
     '0 21 * * *',
     $$ SELECT completar_agendamentos_expirados() $$
+);
+
+-- CRON #3: Roda TODO DIA às 11h BRT (14h UTC) - verificar mensalistas
+SELECT cron.schedule(
+    'verificar-mensalistas',
+    '0 14 * * *',
+    $$ SELECT verificar_mensalistas() $$
 );
 
 -- =========================================================================

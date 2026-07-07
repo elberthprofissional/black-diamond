@@ -41,6 +41,7 @@ export interface Client {
   is_favorite?: boolean;
   is_mensalista?: boolean;
   mensalista_plan_id?: string;
+  mensalista_expires_at?: string;
   is_blocked?: boolean;
   manually_added?: boolean;
   created_at: string;

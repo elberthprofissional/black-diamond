@@ -698,40 +698,37 @@ const SettingsMensalista: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[400] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center"
+            className="fixed inset-0 z-[400] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center"
             onClick={() => setConfirmDelete(null)}
           >
             <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-              className="w-full sm:max-w-[320px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
+              className="w-full sm:max-w-sm bg-[#141414] sm:rounded-xl rounded-t-2xl overflow-hidden border border-white/[0.06]"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="px-6 pt-6 pb-4 text-center">
-                <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
-                  <Trash2 size={20} className="text-red-500" />
-                </div>
-                <p className="text-[15px] font-semibold text-white">Excluir plano?</p>
-                <p className="text-[12px] text-zinc-500 mt-1.5">
+              <div className="px-5 pt-5 pb-3">
+                <p className="text-[14px] font-semibold text-white">Excluir plano?</p>
+                <p className="text-[12px] text-zinc-500 mt-1">
                   Clientes vinculados perderão o plano.
                 </p>
               </div>
-              <div className="flex flex-col border-t border-white/[0.06]">
+              <div className="flex border-t border-white/[0.06]">
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  className="flex-1 py-3 text-[12px] font-medium text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <div className="w-px bg-white/[0.06]" />
                 <button
                   onClick={() => confirmDelete && handleDelete(confirmDelete)}
                   disabled={deleting !== null}
-                  className="w-full py-4 text-[13px] font-semibold text-red-500 hover:text-red-400 active:bg-white/[0.03] transition-all cursor-pointer"
+                  className="flex-1 py-3 text-[12px] font-semibold text-red-500 hover:text-red-400 transition-colors cursor-pointer"
                 >
                   {deleting ? 'Excluindo...' : 'Excluir'}
-                </button>
-                <div className="h-px bg-white/[0.06]" />
-                <button
-                  onClick={() => setConfirmDelete(null)}
-                  className="w-full py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
-                >
-                  Cancelar
                 </button>
               </div>
             </motion.div>

@@ -104,34 +104,89 @@ export function useClientPanel(
     }
   }, [selectedClient, closePanel, showSuccess, showError, setClients]);
 
+  const [expiresAt, setExpiresAt] = useState<string>('');
+
   const handleToggleMensalista = useCallback(
     async (planId?: string) => {
       if (!selectedClient) return;
       try {
         const newValue = !selectedClient.is_mensalista;
-        await toggleClientMensalista(selectedClient.id, newValue, planId);
+        const expDate = newValue ? expiresAt || null : null;
+        await toggleClientMensalista(selectedClient.id, newValue, planId, expDate);
         setSelectedClient((prev) =>
           prev
             ? {
                 ...prev,
                 is_mensalista: newValue,
                 mensalista_plan_id: newValue ? planId : undefined,
+                mensalista_expires_at: expDate || undefined,
               }
             : prev
         );
         setClients((prev) =>
           prev.map((c) =>
             c.id === selectedClient.id
-              ? { ...c, is_mensalista: newValue, mensalista_plan_id: newValue ? planId : undefined }
+              ? {
+                  ...c,
+                  is_mensalista: newValue,
+                  mensalista_plan_id: newValue ? planId : undefined,
+                  mensalista_expires_at: expDate || undefined,
+                }
               : c
           )
         );
+        setExpiresAt('');
         showSuccess(newValue ? 'Cliente agora é mensalista!' : 'Mensalidade removida.');
       } catch (error) {
         showError(getErrorMessage(error));
       }
     },
-    [selectedClient, showSuccess, showError, setClients]
+    [selectedClient, expiresAt, showSuccess, showError, setClients]
+  );
+
+  // Preenche expiresAt quando abre o painel de um mensalista
+  const openPanelWithExpiry = useCallback(
+    async (client: ClientWithStats) => {
+      await openPanel(client);
+      if (client.mensalista_expires_at) {
+        setExpiresAt(client.mensalista_expires_at);
+      } else {
+        // Default: +30 days from today
+        const d = new Date();
+        d.setDate(d.getDate() + 30);
+        setExpiresAt(d.toISOString().split('T')[0]);
+      }
+    },
+    [openPanel]
+  );
+
+  // Atualiza a data de expiração separadamente (para renovação)
+  const handleRenewMensalidade = useCallback(
+    async (days: number = 30) => {
+      if (!selectedClient || !selectedClient.is_mensalista) return;
+      try {
+        const d = new Date();
+        d.setDate(d.getDate() + days);
+        const newExpiry = d.toISOString().split('T')[0];
+        await toggleClientMensalista(
+          selectedClient.id,
+          true,
+          selectedClient.mensalista_plan_id,
+          newExpiry
+        );
+        setSelectedClient((prev) => (prev ? { ...prev, mensalista_expires_at: newExpiry } : prev));
+        setClients((prev) =>
+          prev.map((c) =>
+            c.id === selectedClient.id ? { ...c, mensalista_expires_at: newExpiry } : c
+          )
+        );
+        setExpiresAt(newExpiry);
+        showSuccess(`Mensalidade renovada até ${new Date(newExpiry).toLocaleDateString('pt-BR')}!`);
+      } catch (error) {
+        showError(getErrorMessage(error));
+      }
+    },
+    [selectedClient, showSuccess, showError]
   );
 
   const panelTotal = useMemo(
@@ -163,11 +218,15 @@ export function useClientPanel(
     setIsDeleteOpen,
     isDeleting,
     openPanel,
+    openPanelWithExpiry,
     closePanel,
     handleSaveEdit,
     handleSaveNotes,
     confirmDelete,
     handleToggleMensalista,
+    handleRenewMensalidade,
+    expiresAt,
+    setExpiresAt,
     panelTotal,
     panelLast,
     planName,

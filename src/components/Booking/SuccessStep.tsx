@@ -17,7 +17,6 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
   selectedDate,
   selectedTime,
   totalPrice,
-  selectedServices,
   layout,
 }) => {
   const navigate = useNavigate();
@@ -31,15 +30,6 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
     }
   );
   const [activating, setActivating] = useState(false);
-
-  // Check if booking was already saved to localStorage (meaning this is a fresh booking)
-  const [hasLocalBooking] = useState(() => {
-    try {
-      return !!localStorage.getItem('client_booking');
-    } catch {
-      return false;
-    }
-  });
 
   const handleActivateNotification = async () => {
     if (!('Notification' in window)) {
@@ -166,9 +156,7 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
               >
                 <BellOff size={14} />
                 <span>
-                  {activating
-                    ? 'Ativando...'
-                    : 'Ativar notificação no navegador para ser lembrado'}
+                  {activating ? 'Ativando...' : 'Ativar notificação no navegador para ser lembrado'}
                 </span>
               </button>
             )}
@@ -184,6 +172,7 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
             </div>
           </div>
         )}
+      </div>
     </div>
   );
 };

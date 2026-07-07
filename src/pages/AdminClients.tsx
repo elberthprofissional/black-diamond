@@ -67,7 +67,7 @@ const AdminClients: React.FC = () => {
   }, [c.clients, r]);
 
   const handleOpenPanel = (client: (typeof c.clients)[0]) => {
-    c.openPanel(client);
+    c.openPanelWithExpiry(client);
     setIsReminderOpen(false);
   };
 
@@ -374,6 +374,8 @@ const AdminClients: React.FC = () => {
             onReminder={() => setIsReminderOpen(true)}
             onClose={c.closePanel}
             onToggleMensalista={c.handleToggleMensalista}
+            expiresAt={c.expiresAt}
+            onRenewMensalidade={c.handleRenewMensalidade}
           />
         )}
       </AnimatePresence>

@@ -7,14 +7,8 @@ import { useClientBooking } from '../hooks/useClientBooking';
 
 const ClientBookingCard: React.FC = () => {
   const navigate = useNavigate();
-  const {
-    booking,
-    isExpired,
-    timeLeft,
-    notificationAvailable,
-    dismissCard,
-    requestNotification,
-  } = useClientBooking();
+  const { booking, isExpired, timeLeft, notificationAvailable, dismissCard, requestNotification } =
+    useClientBooking();
 
   if (!booking || isExpired) return null;
 
@@ -76,7 +70,7 @@ const ClientBookingCard: React.FC = () => {
                 </div>
                 {timeLeft.total > 0 && (
                   <span className="text-[10px] text-zinc-600">
-                    · Desaparece em {timeLeft.hours > 0 ? `${timeLeft.h}h ` : ''}
+                    · Desaparece em {timeLeft.hours > 0 ? `${timeLeft.hours}h ` : ''}
                     {timeLeft.minutes}min
                   </span>
                 )}
@@ -111,7 +105,9 @@ const ClientBookingCard: React.FC = () => {
                 className="h-8 px-3 flex items-center gap-1.5 rounded-lg bg-[#C5A059]/10 border border-[#C5A059]/20 text-[#C5A059] hover:bg-[#C5A059]/20 transition-all cursor-pointer"
               >
                 <ExternalLink size={10} />
-                <span className="text-[9px] font-bold uppercase tracking-wider">Cancelar / Reagendar</span>
+                <span className="text-[9px] font-bold uppercase tracking-wider">
+                  Cancelar / Reagendar
+                </span>
               </button>
 
               {/* Dismiss */}
