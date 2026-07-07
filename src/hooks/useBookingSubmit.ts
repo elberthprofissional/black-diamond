@@ -78,6 +78,11 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
         // Save booking to localStorage for the client card on Home
         try {
           const result = Array.isArray(bookingResult) ? bookingResult[0] : bookingResult;
+          const notificationsAllowed =
+            typeof window !== 'undefined' &&
+            'Notification' in window &&
+            Notification.permission === 'granted';
+
           const bookingData: ClientBookingData = {
             id: result?.id || '',
             clientName: userInfo.name.trim(),
@@ -86,7 +91,7 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
             date: selectedDate,
             time: selectedTime,
             totalPrice,
-            notificationEnabled: false,
+            notificationEnabled: notificationsAllowed,
             notificationSent: false,
             createdAt: new Date().toISOString(),
           };

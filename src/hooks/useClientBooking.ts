@@ -127,15 +127,18 @@ export function useClientBooking() {
       !booking.notificationEnabled ||
       booking.notificationSent ||
       notificationFiredRef.current
-    )
+    ) {
       return;
+    }
 
     const [h, m] = booking.time.split(':').map(Number);
     const notifTime = new Date(booking.date + 'T12:00:00');
     notifTime.setHours(h, m - 30, 0, 0);
 
     const checkNotif = () => {
-      if (notificationFiredRef.current) return;
+      if (notificationFiredRef.current) {
+        return;
+      }
 
       const now = Date.now();
       if (now >= notifTime.getTime() && Notification.permission === 'granted') {
