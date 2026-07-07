@@ -283,11 +283,15 @@ CREATE POLICY "Clientes gerenciamento admin" ON clients FOR ALL TO authenticated
 USING (is_admin())
 WITH CHECK (is_admin());
 
--- Agendamentos: apenas admin
+-- Agendamentos: apenas admin + leitura pública para cancelamento
 DROP POLICY IF EXISTS "Agendamentos gerenciamento admin" ON bookings;
 CREATE POLICY "Agendamentos gerenciamento admin" ON bookings FOR ALL TO authenticated
 USING (is_admin())
 WITH CHECK (is_admin());
+
+DROP POLICY IF EXISTS "Leitura publica agendamentos futuros" ON bookings;
+CREATE POLICY "Leitura publica agendamentos futuros" ON bookings FOR SELECT
+USING (status IN ('pending', 'confirmed') AND booking_date >= CURRENT_DATE);
 
 -- Configurações: leitura pública, escrita admin
 DROP POLICY IF EXISTS "Configurações leitura pública" ON settings;
