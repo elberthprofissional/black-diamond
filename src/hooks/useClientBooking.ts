@@ -19,7 +19,11 @@ export interface ClientBookingData {
 function loadFromStorage(): ClientBookingData | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    // Validate required fields
+    if (!data.id || !data.date || !data.time) return null;
+    return data;
   } catch {
     return null;
   }
@@ -42,14 +46,23 @@ function removeFromStorage() {
 }
 
 /**
- * Calculates the end time = booking_time + 1 hour.
- * The card auto-disappears after this time.
+ * Calculates end time = booking_time + 1 hour.
+ * Card auto-disappears after this.
  */
 function getEndTime(date: string, time: string): Date {
   const [h, m] = time.split(':').map(Number);
   const end = new Date(date + 'T12:00:00');
-  end.setHours(h + 1, m, 0, 0); // +1 hour after appointment
+  end.setHours(h + 1, m, 0, 0);
   return end;
+}
+
+/**
+ * Checks if booking date is today or in the future.
+ * Past bookings should not show the card.
+ */
+function isBookingRelevant(date: string, time: string): boolean {
+  const endTime = getEndTime(date, time);
+  return Date.now() < endTime.getTime();
 }
 
 function getTimeUntil(target: Date): { hours: number; minutes: number; total: number } {
@@ -64,7 +77,15 @@ function getTimeUntil(target: Date): { hours: number; minutes: number; total: nu
 }
 
 export function useClientBooking() {
-  const [booking, setBooking] = useState<ClientBookingData | null>(loadFromStorage);
+  const [booking, setBooking] = useState<ClientBookingData | null>(() => {
+    const data = loadFromStorage();
+    // Check if still relevant on load
+    if (data && !isBookingRelevant(data.date, data.time)) {
+      removeFromStorage();
+      return null;
+    }
+    return data;
+  });
   const [isExpired, setIsExpired] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, total: 0 });
   const [cancelling, setCancelling] = useState(false);
@@ -93,7 +114,7 @@ export function useClientBooking() {
     };
 
     check();
-    intervalRef.current = setInterval(check, 30000); // check every 30s
+    intervalRef.current = setInterval(check, 30000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
@@ -101,23 +122,33 @@ export function useClientBooking() {
 
   // Auto-fire notification 30 min before
   useEffect(() => {
-    if (!booking || !booking.notificationEnabled || booking.notificationSent || notificationFiredRef.current) return;
+    if (
+      !booking ||
+      !booking.notificationEnabled ||
+      booking.notificationSent ||
+      notificationFiredRef.current
+    )
+      return;
+
+    const [h, m] = booking.time.split(':').map(Number);
+    const notifTime = new Date(booking.date + 'T12:00:00');
+    notifTime.setHours(h, m - 30, 0, 0);
 
     const checkNotif = () => {
       if (notificationFiredRef.current) return;
 
-      const [h, m] = booking.time.split(':').map(Number);
-      const notifTime = new Date(booking.date + 'T12:00:00');
-      notifTime.setHours(h, m - 30, 0, 0); // 30 min before
-
       const now = Date.now();
       if (now >= notifTime.getTime() && Notification.permission === 'granted') {
-        new Notification('Black Diamond 💈', {
-          body: `Seu horário é em 30 minutos! ${booking.serviceName} às ${booking.time}`,
-          icon: '/assets/logo.webp',
-          badge: '/assets/logo.webp',
-          tag: 'booking-reminder',
-        });
+        try {
+          new Notification('Black Diamond 💈', {
+            body: `Seu horário é em 30 minutos! ${booking.serviceName} às ${booking.time}`,
+            icon: '/assets/logo.webp',
+            badge: '/assets/logo.webp',
+            tag: 'booking-reminder',
+          });
+        } catch {
+          // Notification failed silently
+        }
 
         notificationFiredRef.current = true;
         const updated = { ...booking, notificationSent: true };
@@ -126,7 +157,6 @@ export function useClientBooking() {
       }
     };
 
-    // Check immediately and every 30s
     checkNotif();
     const notifInterval = setInterval(checkNotif, 30000);
     return () => clearInterval(notifInterval);
@@ -153,14 +183,8 @@ export function useClientBooking() {
 
   const requestNotification = useCallback(async (): Promise<boolean> => {
     if (!booking) return false;
-
-    if (!('Notification' in window)) {
-      return false;
-    }
-
-    if (Notification.permission === 'denied') {
-      return false;
-    }
+    if (!('Notification' in window)) return false;
+    if (Notification.permission === 'denied') return false;
 
     if (Notification.permission === 'granted') {
       const updated = { ...booking, notificationEnabled: true };
@@ -169,7 +193,6 @@ export function useClientBooking() {
       return true;
     }
 
-    // Request permission
     try {
       const result = await Notification.requestPermission();
       if (result === 'granted') {
@@ -184,6 +207,10 @@ export function useClientBooking() {
     }
   }, [booking]);
 
+  /**
+   * Cancel booking in database AND remove from localStorage.
+   * Returns true if successful.
+   */
   const handleCancel = useCallback(async (): Promise<boolean> => {
     if (!booking) return false;
     setCancelling(true);
@@ -200,7 +227,7 @@ export function useClientBooking() {
     }
   }, [booking]);
 
-  const notificationAvailable = 'Notification' in window;
+  const notificationAvailable = typeof window !== 'undefined' && 'Notification' in window;
 
   return {
     booking,
