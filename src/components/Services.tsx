@@ -49,9 +49,6 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
 
   const handlePlanClick = (plan: MensalistaPlan) => {
     if (barberPhone) {
-      const includedServices = (plan.included_service_ids || [])
-        .map((sid) => getServiceName(sid, services))
-        .join(', ');
       const msg = `${getGreeting}! Me interessei pelo ${plan.name} (R$ ${Number(plan.price).toFixed(0)}/mês). Poderia me explicar melhor o que está incluso?`;
       const url = `https://wa.me/${barberPhone}?text=${encodeURIComponent(msg)}`;
       window.open(url, '_blank');
