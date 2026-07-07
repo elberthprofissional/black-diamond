@@ -466,7 +466,9 @@ const SettingsMensalista: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-3 mt-1">
                       <span className="text-[12px] text-[#C5A059] font-medium">
-                        R$ {Number(plan.price).toFixed(0)}/mês
+                        R${' '}
+                        {Number(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        /mês
                       </span>
                       {plan.included_service_ids && plan.included_service_ids.length > 0 && (
                         <span className="text-[10px] text-zinc-500">
@@ -544,7 +546,9 @@ const SettingsMensalista: React.FC = () => {
                         )}
                       </div>
                       <p className="text-[11px] text-[#C5A059] font-medium">
-                        R$ {Number(plan.price).toFixed(0)}/mês
+                        R${' '}
+                        {Number(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        /mês
                       </p>
                     </div>
                   </div>

@@ -365,7 +365,9 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
                           {plan.name}
                         </p>
                         <p className="text-[11px] text-zinc-500">
-                          R$ {Number(plan.price).toFixed(0)}/mês
+                          R${' '}
+                          {Number(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          /mês
                         </p>
                       </div>
                     </button>

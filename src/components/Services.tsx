@@ -49,7 +49,7 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
 
   const handlePlanClick = (plan: MensalistaPlan) => {
     if (barberPhone) {
-      const msg = `${getGreeting}! Me interessei pelo ${plan.name} (R$ ${Number(plan.price).toFixed(0)}/mês). Poderia me explicar melhor o que está incluso?`;
+      const msg = `${getGreeting}! Me interessei pelo ${plan.name} (R$ ${Number(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês). Poderia me explicar melhor o que está incluso?`;
       const url = `https://wa.me/${barberPhone}?text=${encodeURIComponent(msg)}`;
       window.open(url, '_blank');
     }
@@ -183,7 +183,8 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
                       </div>
                       <div className="flex items-baseline gap-0.5">
                         <span className="text-lg font-bebas text-[#D4AF37]">
-                          R$ {Number(plan.price).toFixed(0)}
+                          R${' '}
+                          {Number(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </span>
                         <span className="text-[10px] text-zinc-500">/mês</span>
                       </div>
@@ -265,7 +266,10 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
                           </div>
                           <div className="flex items-baseline gap-1 mt-1 ml-3.5">
                             <span className="text-xl font-bebas text-[#D4AF37]">
-                              R$ {Number(plan.price).toFixed(0)}
+                              R${' '}
+                              {Number(plan.price).toLocaleString('pt-BR', {
+                                minimumFractionDigits: 2,
+                              })}
                             </span>
                             <span className="text-[10px] text-zinc-500">/mês</span>
                           </div>
