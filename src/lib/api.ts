@@ -57,7 +57,7 @@ export const createBooking = async (
 ) => {
   // Client-side validation before hitting the RPC
   if (!clientData.name.trim()) throw new Error('Informe seu nome.');
-  if (clientData.phone.replace(/\D/g, '').length < 10) {
+  if (clientData.phone.replace(/\D/g, '').length < 11) {
     throw new Error('Informe um telefone válido com DDD.');
   }
   if (bookingData.service_ids.length === 0) throw new Error('Selecione pelo menos um serviço.');
@@ -151,13 +151,12 @@ export const getBookingsByPhone = async (phone: string) => {
     .from('bookings')
     .select('id, booking_date, booking_time, status, total_price, service_ids')
     .gte('booking_date', today)
-    .eq('status', 'pending')
+    .in('status', ['pending', 'confirmed'])
     .order('booking_date', { ascending: true })
     .order('booking_time', { ascending: true });
 
   if (error) throw error;
 
-  // Filtra pelos clientes que tenham esse telefone
   if (!data || data.length === 0) return [];
 
   const bookingIds = data.map((b) => b.id);
