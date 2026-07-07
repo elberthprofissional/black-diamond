@@ -404,11 +404,11 @@ const SettingsMensalista: React.FC = () => {
       >
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex items-center gap-2">
             <h3 className="text-white text-[15px] font-semibold">Planos cadastrados</h3>
-            <p className="text-zinc-500 text-[12px] mt-0.5">
-              {plans.length} de {MAX_PLANS}
-            </p>
+            <span className="text-[11px] text-zinc-500">
+              ({plans.length}/{MAX_PLANS})
+            </span>
           </div>
           <button
             onClick={openAdd}
@@ -479,17 +479,6 @@ const SettingsMensalista: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={() => handleToggleActive(plan)}
-                    className="px-2 py-1 text-[10px] font-medium rounded-lg transition-all cursor-pointer hover:bg-white/[0.06]"
-                    title={plan.is_active ? 'Desativar' : 'Ativar'}
-                  >
-                    {plan.is_active ? (
-                      <span className="text-[#C5A059]">●</span>
-                    ) : (
-                      <span className="text-zinc-600">○</span>
-                    )}
-                  </button>
                   <button
                     onClick={() => openEdit(plan)}
                     className="p-2 hover:bg-white/[0.06] rounded-lg transition-all cursor-pointer"

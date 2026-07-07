@@ -292,9 +292,9 @@ const AdminProfile: React.FC = () => {
             {settingsSection === 'dados' && <SettingsDados />}
           </div>
 
-          <div className="hidden lg:flex gap-8 max-w-4xl mx-auto">
-            <div className="w-[200px] shrink-0">
-              <div className="sticky top-6 space-y-1">
+          <div className="hidden lg:flex gap-8 max-w-4xl mx-auto items-start">
+            <div className="w-[200px] shrink-0 sticky top-6 self-start">
+              <div className="space-y-1">
                 <h2 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] px-3 mb-4">
                   Configurações
                 </h2>
@@ -333,10 +333,10 @@ const AdminProfile: React.FC = () => {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={settingsSection || 'conta'}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.15 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.12 }}
                 >
                   {(!settingsSection || settingsSection === 'conta') && <SettingsConta />}
                   {settingsSection === 'galeria' && <SettingsGaleria />}

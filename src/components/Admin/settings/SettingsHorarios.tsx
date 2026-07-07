@@ -349,6 +349,8 @@ const SettingsHorarios: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [applyOpen, setApplyOpen] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [modifiedDays, setModifiedDays] = useState<Set<string>>(new Set());
+  const [justSaved, setJustSaved] = useState(false);
 
   useEffect(() => {
     if (barberHours) {
@@ -364,9 +366,13 @@ const SettingsHorarios: React.FC = () => {
   const patch = (day: string, data: Partial<{ enabled: boolean; open: string; close: string }>) => {
     setHours((prev) => ({ ...prev, [day]: { ...prev[day], ...data } }));
     setHasChanges(true);
+    setModifiedDays((prev) => new Set(prev).add(day));
+    setJustSaved(false);
   };
 
-  const toggle = (day: string) => patch(day, { enabled: !hours[day].enabled });
+  const toggle = (day: string) => {
+    patch(day, { enabled: !hours[day].enabled });
+  };
 
   const applyToAll = (open: string, close: string, days: string[]) => {
     // Anti-burro: validate open < close
@@ -384,7 +390,6 @@ const SettingsHorarios: React.FC = () => {
   };
 
   const saveAll = async () => {
-    // Anti-burro: validate all enabled days have open < close
     for (const day of DAYS_ORDER) {
       if (hours[day]?.enabled && hours[day].open >= hours[day].close) {
         showError(`${DAY_NAMES[day]}: horário de abertura deve ser anterior ao fechamento.`);
@@ -397,6 +402,11 @@ const SettingsHorarios: React.FC = () => {
     if (ok) {
       showSuccess('Horários salvos!');
       setHasChanges(false);
+      setJustSaved(true);
+      setTimeout(() => {
+        setModifiedDays(new Set());
+        setJustSaved(false);
+      }, 1500);
     } else showError('Erro ao salvar');
   };
 
@@ -441,38 +451,49 @@ const SettingsHorarios: React.FC = () => {
           </button>
         </div>
         <div className="border-t border-white/[0.06]">
-          {DAYS_ORDER.map((day) => (
-            <div
-              key={day}
-              className={`flex items-center py-4 border-b border-white/[0.04] ${!hours[day]?.enabled ? 'opacity-40' : ''}`}
-            >
-              <button
-                onClick={() => toggle(day)}
-                role="switch"
-                aria-checked={!!hours[day]?.enabled}
-                aria-label={`${DAY_NAMES[day]} ${hours[day]?.enabled ? 'ativo' : 'inativo'}`}
-                className={`relative w-9 h-5 rounded-full transition-all duration-300 shrink-0 cursor-pointer mr-4 ${
-                  hours[day]?.enabled ? 'bg-[#C5A059]' : 'bg-white/10'
-                }`}
+          {DAYS_ORDER.map((day) => {
+            const isModified = modifiedDays.has(day);
+            return (
+              <div
+                key={day}
+                className={`flex items-center py-4 border-b border-white/[0.04] transition-all ${
+                  !hours[day]?.enabled ? 'opacity-40' : ''
+                } ${isModified && !justSaved ? 'bg-[#C5A059]/[0.03]' : ''} ${justSaved && isModified ? 'bg-emerald-500/[0.03]' : ''}`}
               >
-                <span
-                  className={`absolute top-[3px] left-0 w-[14px] h-[14px] rounded-full bg-white shadow transition-transform duration-300 ${
-                    hours[day]?.enabled ? 'translate-x-[19px]' : 'translate-x-[3px]'
+                <button
+                  onClick={() => toggle(day)}
+                  role="switch"
+                  aria-checked={!!hours[day]?.enabled}
+                  aria-label={`${DAY_NAMES[day]} ${hours[day]?.enabled ? 'ativo' : 'inativo'}`}
+                  className={`relative w-9 h-5 rounded-full transition-all duration-300 shrink-0 cursor-pointer mr-4 ${
+                    hours[day]?.enabled ? 'bg-[#C5A059]' : 'bg-white/10'
                   }`}
-                />
-              </button>
-              <span
-                className={`text-[13px] w-36 shrink-0 ${hours[day]?.enabled ? 'text-white' : 'text-zinc-500'}`}
-              >
-                {DAY_NAMES[day]}
-              </span>
-              {hours[day]?.enabled ? (
-                renderInputs(day)
-              ) : (
-                <span className="text-[12px] text-zinc-600 flex-1">Fechado</span>
-              )}
-            </div>
-          ))}
+                >
+                  <span
+                    className={`absolute top-[3px] left-0 w-[14px] h-[14px] rounded-full bg-white shadow transition-transform duration-300 ${
+                      hours[day]?.enabled ? 'translate-x-[19px]' : 'translate-x-[3px]'
+                    }`}
+                  />
+                </button>
+                <span
+                  className={`text-[13px] w-36 shrink-0 ${hours[day]?.enabled ? 'text-white' : 'text-zinc-500'}`}
+                >
+                  {DAY_NAMES[day]}
+                  {isModified && !justSaved && (
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#C5A059] ml-2 align-middle" />
+                  )}
+                  {justSaved && isModified && (
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 ml-2 align-middle" />
+                  )}
+                </span>
+                {hours[day]?.enabled ? (
+                  renderInputs(day)
+                ) : (
+                  <span className="text-[12px] text-zinc-600 flex-1">Fechado</span>
+                )}
+              </div>
+            );
+          })}
         </div>
         <div className="flex items-center justify-end mt-6">
           <button
