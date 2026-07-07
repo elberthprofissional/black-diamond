@@ -1,6 +1,5 @@
 import React from 'react';
 import type { BookingWithClient, Service } from '../../../types';
-import WhatsAppReminderButton from './WhatsAppReminderButton';
 import { formatPhone } from '../../../lib/utils';
 
 interface BookingDetailPanelProps {
@@ -216,15 +215,6 @@ const BookingDetailPanel: React.FC<BookingDetailPanelProps> = React.memo(
                 Finalizar Atendimento
               </button>
             )}
-            {booking.clients?.phone && (
-              <WhatsAppReminderButton
-                booking={booking}
-                className="w-full h-9 bg-transparent text-zinc-400 hover:text-white transition-all text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
-                showLabel
-                label="Lembrar do agendamento"
-                iconType="bell"
-              />
-            )}
             <button
               onClick={onReschedule}
               className="w-full h-9 bg-transparent text-zinc-400 hover:text-white transition-all text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
@@ -348,15 +338,6 @@ const BookingDetailPanel: React.FC<BookingDetailPanelProps> = React.memo(
                 </svg>
                 Finalizar Atendimento
               </button>
-            )}
-            {booking.clients?.phone && (
-              <WhatsAppReminderButton
-                booking={booking}
-                className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-zinc-300 hover:bg-white/[0.05] hover:text-white rounded-xl transition-all active:scale-[0.99] text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
-                showLabel
-                label="Lembrar do agendamento"
-                iconType="bell"
-              />
             )}
             <button
               onClick={onReschedule}

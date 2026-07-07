@@ -706,21 +706,42 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- =========================================================================
--- 11. RESET SEMANAL AUTOMÁTICO
+-- 11. AUTO-COMPLETAR AGENDAMENTOS (DIÁRIO)
 -- =========================================================================
 
-CREATE OR REPLACE FUNCTION limpar_agendamentos_semana()
+-- Função que roda todo dia para manter a agenda limpa automaticamente.
+-- Faz 3 coisas:
+--   1. Completa agendamentos de dias anteriores (já passaram)
+--   2. Completa agendamentos de HOJE que já terminaram (hora + duração já passou)
+--   3. Cancela bloqueios de dias anteriores
+CREATE OR REPLACE FUNCTION completar_agendamentos_expirados()
 RETURNS void AS $$
+DECLARE
+    v_agora_brt time;
 BEGIN
+    -- Pega o horário atual no fuso de Brasília (America/Sao_Paulo)
+    v_agora_brt := (NOW() AT TIME ZONE 'America/Sao_Paulo')::time;
+
+    -- 1. Completa agendamentos de dias anteriores
     UPDATE bookings
     SET status = 'completed'
-    WHERE booking_date < CURRENT_DATE
+    WHERE booking_date < (NOW() AT TIME ZONE 'America/Sao_Paulo')::date
     AND status IN ('confirmed', 'pending')
     AND is_blocked = FALSE;
 
+    -- 2. Completa agendamentos de HOJE que já terminaram
+    --    (booking_time + duração já passou no horário de Brasília)
+    UPDATE bookings
+    SET status = 'completed'
+    WHERE booking_date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date
+    AND status IN ('confirmed', 'pending')
+    AND is_blocked = FALSE
+    AND (booking_time + (total_duration || ' minutes')::interval) < v_agora_brt;
+
+    -- 3. Cancela bloqueios de dias anteriores
     UPDATE bookings
     SET is_blocked = FALSE, status = 'cancelled'
-    WHERE booking_date < CURRENT_DATE
+    WHERE booking_date < (NOW() AT TIME ZONE 'America/Sao_Paulo')::date
     AND is_blocked = TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -729,18 +750,35 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 12. CRON JOBS
 -- =========================================================================
 
--- Reset semanal: todo sábado às 19:00 horário de Brasília (22:00 UTC)
+-- Remove o cron antigo (semanal) se existir
 DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'limpar-semana') THEN
         PERFORM cron.unschedule('limpar-semana');
     END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'completar-diario') THEN
+        PERFORM cron.unschedule('completar-diario');
+    END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'completar-tarde') THEN
+        PERFORM cron.unschedule('completar-tarde');
+    END IF;
 END $$;
 
+-- CRON #1: Roda TODO DIA às 3h UTC (0h Brasília - meia-noite)
+-- Pega agendamentos do DIA ANTERIOR que escaparam.
 SELECT cron.schedule(
-    'limpar-semana',
-    '0 22 * * 6',
-    $$ SELECT limpar_agendamentos_semana() $$
+    'completar-diario',
+    '0 3 * * *',
+    $$ SELECT completar_agendamentos_expirados() $$
+);
+
+-- CRON #2: Roda TODO DIA às 21h UTC (18h Brasília)
+-- Pega agendamentos de HOJE que já terminaram (mesmo dia).
+-- Ex: booking de segunda 10h vira 'completed' às 18h de segunda.
+SELECT cron.schedule(
+    'completar-tarde',
+    '0 21 * * *',
+    $$ SELECT completar_agendamentos_expirados() $$
 );
 
 -- =========================================================================

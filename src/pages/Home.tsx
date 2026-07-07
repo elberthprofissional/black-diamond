@@ -7,6 +7,7 @@ import Testimonials from '../components/TestimonialsSlider';
 import Gallery from '../components/Gallery';
 import Location from '../components/Location';
 import Footer from '../components/Footer';
+import ClientBookingCard from '../components/ClientBookingCard';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -20,6 +21,7 @@ const Home: React.FC = () => {
   return (
     <>
       <Navbar onBookingClick={handleBooking} />
+      <ClientBookingCard />
       <main id="main-content" className="bg-[#0f0f0f]">
         <Hero onBookingClick={handleBooking} />
         <About />

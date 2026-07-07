@@ -4,7 +4,6 @@ import * as webpush from 'https://esm.sh/web-push@3.6.7';
 const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') ?? '';
 const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY') ?? '';
 const VAPID_SUBJECT = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:elberthmayan2007@gmail.com';
-const FUNCTION_SECRET = Deno.env.get('FUNCTION_SECRET') ?? '';
 
 interface PushSubscription {
   endpoint: string;
@@ -17,23 +16,18 @@ if (VAPID_PRIVATE_KEY && VAPID_PUBLIC_KEY) {
   webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 }
 
-function verifyAuth(req: Request): boolean {
-  if (!FUNCTION_SECRET) return false;
-  const auth = req.headers.get('Authorization');
-  return auth === `Bearer ${FUNCTION_SECRET}`;
+interface PushPayload {
+  title: string;
+  body: string;
+  icon?: string;
+  tag?: string;
+  url?: string;
 }
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  if (!verifyAuth(req)) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
       headers: { 'Content-Type': 'application/json' },
     });
   }
@@ -46,12 +40,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const body = await req.json();
-    const { booking_id, client_name, service_names, booking_date, booking_time } = body;
+    const body: PushPayload = await req.json();
+    const { title, body: messageBody, icon, tag, url } = body;
 
-    // SEC-7: Input validation
-    if (!booking_id || !client_name || !service_names || !booking_date || !booking_time) {
-      return new Response(JSON.stringify({ error: 'Missing required booking details' }), {
+    if (!title || !messageBody) {
+      return new Response(JSON.stringify({ error: 'Missing required fields: title, body' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -62,7 +55,6 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // SEC-8: Explicit columns selection
     const { data: subscriptions, error } = await supabase
       .from('push_subscriptions')
       .select('id, endpoint, p256dh, auth');
@@ -75,14 +67,14 @@ Deno.serve(async (req) => {
     }
 
     const payload = JSON.stringify({
-      title: 'Novo Agendamento!',
-      body: `${client_name} - ${service_names} - ${booking_date} às ${booking_time}`,
-      icon: '/assets/logo.webp',
-      tag: `booking-${booking_id}`,
-      url: '/admin',
+      title,
+      body: messageBody,
+      icon: icon || '/assets/logo.webp',
+      tag: tag || 'black-diamond-notification',
+      url: url || '/admin',
     });
 
-    // PERF-2: Chunked sending with concurrency control (max 5 at a time)
+    // Send to all subscriptions with concurrency control (max 5 at a time)
     const results = [];
     const chunkSize = 5;
     for (let i = 0; i < subscriptions.length; i += chunkSize) {
@@ -116,7 +108,6 @@ Deno.serve(async (req) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err: unknown) {
-    // ERR-2: Log error context
     console.error('Error in send-push Edge Function:', err);
     return new Response(
       JSON.stringify({

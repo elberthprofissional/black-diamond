@@ -1,6 +1,5 @@
 import React from 'react';
 import { Check, ChevronRight } from 'lucide-react';
-import WhatsAppReminderButton from './WhatsAppReminderButton';
 import type { BookingWithClient } from '../../../types';
 
 interface OccupiedPanelProps {
@@ -24,7 +23,6 @@ const OccupiedPanel: React.FC<OccupiedPanelProps> = ({ bookings, selectedId, onS
             <div className="w-px h-3.5 bg-white/10 shrink-0" />
             <span className="text-[11px] font-medium text-zinc-200 truncate">{booking.clients?.name}</span>
           </div>
-          {booking.clients?.phone && <WhatsAppReminderButton booking={booking} className="p-2.5 text-zinc-500 hover:text-emerald-500 transition-colors shrink-0" />}
           <button onClick={(e) => { e.stopPropagation(); onComplete(booking); }} className="p-2.5 text-zinc-500 hover:text-emerald-400 transition-colors shrink-0 cursor-pointer" aria-label="Concluir atendimento"><Check size={15} strokeWidth={2.5} /></button>
           <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-colors shrink-0 mr-1" />
         </div>

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Check, ArrowLeft, Calendar } from 'lucide-react';
+import { Check, ArrowLeft, Bell, BellOff, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { generateGoogleCalendarUrl, formatDateBR } from '../../lib/utils';
+import { formatDateBR } from '../../lib/utils';
 import type { Service } from '../../types';
 
 interface SuccessStepProps {
@@ -23,19 +22,56 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
 }) => {
   const navigate = useNavigate();
   const formattedDate = formatDateBR(selectedDate);
-  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [notifStatus, setNotifStatus] = useState<'idle' | 'granted' | 'denied' | 'unsupported'>(
+    () => {
+      if (!('Notification' in window)) return 'unsupported';
+      if (Notification.permission === 'granted') return 'granted';
+      if (Notification.permission === 'denied') return 'denied';
+      return 'idle';
+    }
+  );
+  const [activating, setActivating] = useState(false);
 
-  const handleAddReminder = () => {
-    const serviceNames = selectedServices.map((s) => s.name).join(' + ');
-    const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
-    const gcalUrl = generateGoogleCalendarUrl(
-      serviceNames,
-      selectedDate,
-      selectedTime,
-      totalDuration
-    );
-    window.open(gcalUrl, '_blank');
-    setShowReminderModal(false);
+  // Check if booking was already saved to localStorage (meaning this is a fresh booking)
+  const [hasLocalBooking] = useState(() => {
+    try {
+      return !!localStorage.getItem('client_booking');
+    } catch {
+      return false;
+    }
+  });
+
+  const handleActivateNotification = async () => {
+    if (!('Notification' in window)) {
+      setNotifStatus('unsupported');
+      return;
+    }
+
+    setActivating(true);
+    try {
+      const result = await Notification.requestPermission();
+      if (result === 'granted') {
+        setNotifStatus('granted');
+
+        // Update localStorage to mark notification as enabled
+        try {
+          const raw = localStorage.getItem('client_booking');
+          if (raw) {
+            const data = JSON.parse(raw);
+            data.notificationEnabled = true;
+            localStorage.setItem('client_booking', JSON.stringify(data));
+          }
+        } catch {
+          // ignore
+        }
+      } else {
+        setNotifStatus('denied');
+      }
+    } catch {
+      setNotifStatus('denied');
+    } finally {
+      setActivating(false);
+    }
   };
 
   if (layout === 'desktop') {
@@ -110,70 +146,44 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
           </div>
         </div>
 
-        {/* Lembrete Google Calendar */}
-        <button
-          onClick={() => setShowReminderModal(true)}
-          className="flex items-center gap-2 text-[12px] text-zinc-500 hover:text-[#C5A059] transition-colors cursor-pointer"
-        >
-          <Calendar size={14} />
-          <span>Deseja ser lembrado do agendamento?</span>
-        </button>
-      </div>
-
-      {/* Modal Lembrete */}
-      <AnimatePresence>
-        {showReminderModal && (
-          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowReminderModal(false)}
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ y: '100%', opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: '100%', opacity: 0 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-              className="relative z-10 w-full sm:max-w-[320px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
-              role="dialog"
-              aria-modal="true"
-              aria-label="Lembrete de agendamento"
-            >
-              <div className="px-6 pt-6 pb-2 text-center">
-                <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-4">
-                  <Calendar size={20} className="text-[#C5A059]" />
-                </div>
-                <p className="text-[15px] font-semibold text-white">Deseja receber um lembrete?</p>
-                <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
-                  Enviaremos um lembrete pro seu Google Calendar para você não se esquecer do seu
-                  agendamento.
-                </p>
+        {/* Notificação no navegador */}
+        {notifStatus !== 'unsupported' && (
+          <div className="w-full space-y-3">
+            {notifStatus === 'granted' ? (
+              <div className="flex items-center justify-center gap-2 text-[12px] text-emerald-400">
+                <Bell size={14} />
+                <span>Você receberá uma notificação 30 min antes! 🔔</span>
               </div>
+            ) : notifStatus === 'denied' ? (
+              <p className="text-[11px] text-zinc-600 text-center">
+                Notificações bloqueadas. Ative nas configurações do navegador.
+              </p>
+            ) : (
+              <button
+                onClick={handleActivateNotification}
+                disabled={activating}
+                className="flex items-center gap-2 text-[12px] text-zinc-500 hover:text-[#C5A059] transition-colors cursor-pointer mx-auto disabled:opacity-50"
+              >
+                <BellOff size={14} />
+                <span>
+                  {activating
+                    ? 'Ativando...'
+                    : 'Ativar notificação no navegador para ser lembrado'}
+                </span>
+              </button>
+            )}
 
-              <div className="px-6 pb-4 space-y-2">
-                <button
-                  onClick={handleAddReminder}
-                  className="w-full py-3.5 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[11px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer"
-                >
-                  Sim
-                </button>
-                <button
-                  onClick={() => setShowReminderModal(false)}
-                  className="w-full py-3.5 text-[12px] font-medium text-zinc-500 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
-                >
-                  Não
-                </button>
-              </div>
-
-              <div className="sm:hidden flex justify-center pb-3 pt-1">
-                <div className="w-10 h-1 rounded-full bg-white/10" />
-              </div>
-            </motion.div>
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => navigate('/')}
+                className="inline-flex items-center gap-1.5 text-[11px] text-[#C5A059] hover:text-[#A68233] transition-colors cursor-pointer"
+              >
+                <ExternalLink size={12} />
+                <span>Ver na página inicial</span>
+              </button>
+            </div>
           </div>
         )}
-      </AnimatePresence>
     </div>
   );
 };

@@ -8,7 +8,6 @@ import { useBarberSettings } from '../contexts/BarberSettingsContext';
 import AdminLayout from '../components/Admin/AdminLayout';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
 import UnblockModal from '../components/Admin/shared/UnblockModal';
-import WhatsAppReminderButton from '../components/Admin/shared/WhatsAppReminderButton';
 import CompleteModal from '../components/Admin/shared/CompleteModal';
 import ThankYouModal from '../components/Admin/shared/ThankYouModal';
 import DeleteModal from '../components/Admin/shared/DeleteModal';
@@ -267,43 +266,23 @@ const AdminWeekly: React.FC = () => {
                         </span>
                       </button>
 
-                      {/* Lado direito: lembrete + seta */}
-                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                        {/* Lembrete */}
-                        {booking.clients?.phone && (
-                          <>
-                            <WhatsAppReminderButton
-                              booking={booking}
-                              className="hidden lg:flex text-zinc-400 hover:text-[#C5A059] bg-white/[0.04] hover:bg-[#C5A059]/10 border border-white/[0.06] hover:border-[#C5A059]/20 rounded-md px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer items-center"
-                              label="Lembrar"
-                              hideIcon
-                            />
-                            <WhatsAppReminderButton
-                              booking={booking}
-                              className="lg:hidden text-zinc-500 hover:text-[#C5A059] transition-colors cursor-pointer p-1"
-                              iconType="bell"
-                            />
-                            <div className="w-px h-3.5 bg-white/[0.06]" />
-                          </>
-                        )}
-                        {/* Seta — clica pra abrir dados */}
-                        <button
-                          onClick={() => mgmt.setSelectedBooking(booking)}
-                          className="p-1 text-zinc-600 hover:text-[#C5A059] transition-colors cursor-pointer"
-                          aria-label="Ver detalhes"
+                      {/* Seta */}
+                      <button
+                        onClick={() => mgmt.setSelectedBooking(booking)}
+                        className="ml-auto p-1 text-zinc-600 hover:text-[#C5A059] transition-colors cursor-pointer shrink-0"
+                        aria-label="Ver detalhes"
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
                         >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <polyline points="9 18 15 12 9 6" />
-                          </svg>
-                        </button>
-                      </div>
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                      </button>
                     </div>
                   ))
                 )}

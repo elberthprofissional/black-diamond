@@ -6,6 +6,7 @@ const STORAGE_KEY = 'bd_weekly_congrats_sent';
 /**
  * Sends a push notification congratulating the barber on Saturday evening.
  * Tracks via localStorage to avoid duplicate sends per week.
+ * Calls the send-push Edge Function once — it handles sending to all subscriptions.
  */
 export function useWeeklyCongrats(weeklyRevenue: number, weeklyCompleted: number) {
   const sentRef = useRef(false);
@@ -32,12 +33,25 @@ export function useWeeklyCongrats(weeklyRevenue: number, weeklyCompleted: number
 
     sentRef.current = true;
 
-    // Fetch barber name and send notification
+    // Fetch barber name and send notification via Edge Function
     fetchBarberName().then((name) => {
       const displayName = name || 'Barbeiro';
       const msg = `Boa noite, ${displayName}! 💈\n\nParabéns pelo trabalho durante a semana!\n\n📊 Resumo da semana:\n• Faturamento: R$ ${weeklyRevenue.toFixed(2).replace('.', ',')}\n• Atendimentos: ${weeklyCompleted}\n\nBom descanso e até segunda! 🏆`;
 
-      sendCongratsPush(msg, weekKey);
+      // Call Edge Function once — it handles sending to all subscriptions
+      supabase.functions.invoke('send-push', {
+        body: {
+          title: 'Black Diamond 🏆',
+          body: msg,
+          tag: `weekly-congrats-${weekKey}`,
+        },
+      }).then(() => {
+        try {
+          localStorage.setItem(STORAGE_KEY, weekKey);
+        } catch { /* ignore */ }
+      }).catch(() => {
+        // Silent fail - notification is nice-to-have
+      });
     });
   }, [weeklyRevenue, weeklyCompleted]);
 }
@@ -59,48 +73,5 @@ async function fetchBarberName(): Promise<string> {
     return data?.value || '';
   } catch {
     return '';
-  }
-}
-
-async function sendCongratsPush(message: string, weekKey: string) {
-  try {
-    // Get all active push subscriptions
-    const { data: subscriptions } = await supabase
-      .from('push_subscriptions')
-      .select('endpoint, p256dh, auth');
-
-    if (!subscriptions || subscriptions.length === 0) return;
-
-    // VAPID keys are handled server-side by the edge function — never expose them to the client
-    for (const sub of subscriptions) {
-      try {
-        await supabase.functions.invoke('send-push', {
-          body: {
-            subscription: {
-              endpoint: sub.endpoint,
-              keys: { p256dh: sub.p256dh, auth: sub.auth },
-            },
-            payload: {
-              title: 'Black Diamond 🏆',
-              body: message,
-              icon: '/assets/logo.webp',
-              badge: '/assets/logo.webp',
-              tag: `weekly-congrats-${weekKey}`,
-            },
-          },
-        });
-      } catch {
-        // Continue with other subscriptions
-      }
-    }
-
-    // Mark as sent
-    try {
-      localStorage.setItem(STORAGE_KEY, weekKey);
-    } catch {
-      /* ignore */
-    }
-  } catch {
-    // Silent fail - notification is nice-to-have
   }
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Calendar } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { getBookingsByPhone, cancelBooking, getAvailableSlots, createBooking } from '../lib/api';
 import { getNextDays } from '../lib/utils';
 
@@ -17,7 +18,9 @@ interface BookingEntry {
 type View = 'search' | 'list' | 'reschedule' | 'success';
 
 export default function CancelPage() {
-  const [phone, setPhone] = useState('');
+  const location = useLocation();
+  const initialPhone = (location.state as { phone?: string })?.phone || '';
+  const [phone, setPhone] = useState(initialPhone);
   const [bookings, setBookings] = useState<BookingEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
