@@ -31,7 +31,7 @@ const WhatsAppReminderButton: React.FC<WhatsAppReminderButtonProps> = ({
     const now = new Date();
     const currentHour = now.getHours();
     const greeting = currentHour < 12 ? 'Bom dia' : currentHour < 18 ? 'Boa tarde' : 'Boa noite';
-    const cancelUrl = `${window.location.origin}/cancelar`;
+    const cancelUrl = `${import.meta.env.VITE_SITE_URL || window.location.origin}/cancelar`;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -60,10 +60,10 @@ const WhatsAppReminderButton: React.FC<WhatsAppReminderButtonProps> = ({
     }
 
     if (diffDays === 1) {
-      return `${greeting}, ${firstName}! Lembrando que amanhã (${dayCapitalized}) você tem horário às ${time} no Black Diamond. Até lá! 💈\n\nPrecisa cancelar? Acesse: ${cancelUrl}`;
+      return `${greeting}, ${firstName}! Lembrando que amanhã (${dayCapitalized}) você tem horário às ${time} no Black Diamond. Até lá! 💈\n\nPrecisa cancelar ou reagendar? Acesse: ${cancelUrl}`;
     }
 
-    return `${greeting}, ${firstName}! Passando pra lembrar do seu horário ${dayCapitalized} às ${time} no Black Diamond. Nos vemos lá! 💈\n\nPrecisa cancelar? Acesse: ${cancelUrl}`;
+    return `${greeting}, ${firstName}! Passando pra lembrar do seu horário ${dayCapitalized} às ${time} no Black Diamond. Nos vemos lá! 💈\n\nPrecisa cancelar ou reagendar? Acesse: ${cancelUrl}`;
   };
 
   const handleClick = (e: React.MouseEvent) => {

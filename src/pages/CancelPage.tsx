@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { getBookingsByPhone, cancelBooking } from '../lib/api';
 
 interface BookingEntry {
@@ -8,9 +9,11 @@ interface BookingEntry {
   booking_time: string;
   total_price: number;
   service_ids: string[];
+  clients?: { name: string; phone: string } | { name: string; phone: string }[];
 }
 
 export default function CancelPage() {
+  const navigate = useNavigate();
   const [phone, setPhone] = useState('');
   const [bookings, setBookings] = useState<BookingEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -59,6 +62,15 @@ export default function CancelPage() {
     }
   };
 
+  const handleReschedule = (booking: BookingEntry) => {
+    const clientsData = Array.isArray(booking.clients) ? booking.clients[0] : booking.clients;
+    const clientName = clientsData?.name || '';
+    const clientPhone = clientsData?.phone || phone.replace(/\D/g, '');
+    navigate(
+      `/agendar?client=${encodeURIComponent(clientName)}&phone=${encodeURIComponent(clientPhone)}`
+    );
+  };
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-BR', {
       weekday: 'long',
@@ -73,9 +85,9 @@ export default function CancelPage() {
         {/* Header */}
         <div className="text-center space-y-3">
           <img src="/assets/logo.webp" alt="Black Diamond" className="w-16 h-16 mx-auto" />
-          <h1 className="text-lg font-bold text-white">Cancelar Agendamento</h1>
+          <h1 className="text-lg font-bold text-white">Cancelar ou Reagendar</h1>
           <p className="text-[12px] text-zinc-500 leading-relaxed">
-            Digite o telefone usado no agendamento para ver e cancelar seus horários.
+            Digite o telefone usado no agendamento para ver seus horários.
           </p>
         </div>
 
@@ -123,7 +135,7 @@ export default function CancelPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center"
+            className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center space-y-2"
           >
             <p className="text-[12px] text-emerald-400 font-medium">
               Agendamento cancelado com sucesso!
@@ -155,13 +167,22 @@ export default function CancelPage() {
                     R$ {Number(b.total_price).toFixed(0)}
                   </span>
                 </div>
-                <button
-                  onClick={() => handleCancel(b.id)}
-                  disabled={cancellingId === b.id}
-                  className="w-full h-9 border border-red-500/20 text-red-400/80 hover:bg-red-500/10 hover:text-red-400 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {cancellingId === b.id ? 'Cancelando...' : 'Cancelar'}
-                </button>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleReschedule(b)}
+                    className="flex-1 h-9 bg-[#C5A059]/10 border border-[#C5A059]/20 text-[#C5A059] hover:bg-[#C5A059]/20 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                  >
+                    Reagendar
+                  </button>
+                  <button
+                    onClick={() => handleCancel(b.id)}
+                    disabled={cancellingId === b.id}
+                    className="flex-1 h-9 border border-red-500/20 text-red-400/80 hover:bg-red-500/10 hover:text-red-400 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {cancellingId === b.id ? 'Cancelando...' : 'Cancelar'}
+                  </button>
+                </div>
               </div>
             ))}
           </div>

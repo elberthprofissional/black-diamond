@@ -18,7 +18,7 @@ const TITLES: Record<string, string> = {
 
   '/admin/profile': 'Perfil | Black Diamond',
   '/admin/reset-password': 'Redefinir Senha | Black Diamond',
-  '/cancelar': 'Cancelar Agendamento | Black Diamond',
+  '/cancelar': 'Cancelar ou Reagendar | Black Diamond',
 };
 
 function TitleManager() {
