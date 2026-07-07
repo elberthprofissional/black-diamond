@@ -205,71 +205,61 @@ const ApplyAllSheet: React.FC<{
         </button>
       </div>
 
-      <div className="flex items-center gap-4 lg:gap-6 mb-6 lg:mb-8">
-        <div className="flex-1">
-          <span className="text-[9px] lg:text-[10px] text-zinc-500 uppercase tracking-wider block mb-3">
-            Início
-          </span>
-          <div className="flex items-center gap-1 justify-center">
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={2}
-              value={startH}
-              onChange={(e) => {
-                const r = e.target.value.replace(/\D/g, '').slice(0, 2);
-                setStart(
-                  `${String(Math.min(parseInt(r || '0', 10), 23)).padStart(2, '0')}:${startM}`
-                );
-              }}
-              className={applyInputClass}
-            />
-            <span className="text-zinc-500 text-[18px] font-semibold">:</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={2}
-              value={startM}
-              onChange={(e) => {
-                const r = e.target.value.replace(/\D/g, '').slice(0, 2);
-                setStart(
-                  `${startH}:${String(Math.min(parseInt(r || '0', 10), 59)).padStart(2, '0')}`
-                );
-              }}
-              className={applyInputClass}
-            />
-          </div>
+      <div className="flex items-center justify-center gap-3 lg:gap-4 mb-6 lg:mb-8">
+        <div className="flex items-center gap-1">
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={2}
+            value={startH}
+            onChange={(e) => {
+              const r = e.target.value.replace(/\D/g, '').slice(0, 2);
+              setStart(
+                `${String(Math.min(parseInt(r || '0', 10), 23)).padStart(2, '0')}:${startM}`
+              );
+            }}
+            className={applyInputClass}
+          />
+          <span className="text-zinc-500 text-[18px] font-semibold">:</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={2}
+            value={startM}
+            onChange={(e) => {
+              const r = e.target.value.replace(/\D/g, '').slice(0, 2);
+              setStart(
+                `${startH}:${String(Math.min(parseInt(r || '0', 10), 59)).padStart(2, '0')}`
+              );
+            }}
+            className={applyInputClass}
+          />
         </div>
-        <span className="text-zinc-600 text-[14px] mt-6">às</span>
-        <div className="flex-1">
-          <span className="text-[9px] lg:text-[10px] text-zinc-500 uppercase tracking-wider block mb-3">
-            Fim
-          </span>
-          <div className="flex items-center gap-1 justify-center">
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={2}
-              value={endH}
-              onChange={(e) => {
-                const r = e.target.value.replace(/\D/g, '').slice(0, 2);
-                setEnd(`${String(Math.min(parseInt(r || '0', 10), 23)).padStart(2, '0')}:${endM}`);
-              }}
-              className={applyInputClass}
-            />
-            <span className="text-zinc-500 text-[18px] font-semibold">:</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={2}
-              value={endM}
-              onChange={(e) => {
-                const r = e.target.value.replace(/\D/g, '').slice(0, 2);
-                setEnd(`${endH}:${String(Math.min(parseInt(r || '0', 10), 59)).padStart(2, '0')}`);
-              }}
-              className={applyInputClass}
-            />
-          </div>
+        <span className="text-zinc-500 text-[14px]">às</span>
+        <div className="flex items-center gap-1">
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={2}
+            value={endH}
+            onChange={(e) => {
+              const r = e.target.value.replace(/\D/g, '').slice(0, 2);
+              setEnd(`${String(Math.min(parseInt(r || '0', 10), 23)).padStart(2, '0')}:${endM}`);
+            }}
+            className={applyInputClass}
+          />
+          <span className="text-zinc-500 text-[18px] font-semibold">:</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={2}
+            value={endM}
+            onChange={(e) => {
+              const r = e.target.value.replace(/\D/g, '').slice(0, 2);
+              setEnd(`${endH}:${String(Math.min(parseInt(r || '0', 10), 59)).padStart(2, '0')}`);
+            }}
+            className={applyInputClass}
+          />
         </div>
       </div>
 

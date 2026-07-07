@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Pencil, Trash2, Plus, Crown, ArrowLeft, Check } from 'lucide-react';
 import { formatPhone } from '../../../lib/utils';
-import type { ClientWithStats, BookingWithClient } from '../../../types';
+import type { ClientWithStats, BookingWithClient, MensalistaPlan } from '../../../types';
 
 interface ClientPanelProps {
   client: ClientWithStats;
@@ -13,6 +13,8 @@ interface ClientPanelProps {
   notesText: string;
   isEditingNotes: boolean;
   savingNotes: boolean;
+  plans: MensalistaPlan[];
+  planName?: string;
   onNotesChange: (value: string) => void;
   onToggleEditNotes: () => void;
   onSaveNotes: () => void;
@@ -20,7 +22,7 @@ interface ClientPanelProps {
   onDelete: () => void;
   onReminder: () => void;
   onClose: () => void;
-  onToggleMensalista: () => void;
+  onToggleMensalista: (planId?: string) => void;
 }
 
 const ClientPanel: React.FC<ClientPanelProps> = ({
@@ -31,6 +33,8 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
   notesText,
   isEditingNotes,
   savingNotes,
+  plans,
+  planName,
   onNotesChange,
   onToggleEditNotes,
   onSaveNotes,
@@ -41,6 +45,22 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
   onToggleMensalista,
 }) => {
   const navigate = useNavigate();
+  const [showPlanSelector, setShowPlanSelector] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('');
+
+  const handleMensalistaClick = () => {
+    if (client.is_mensalista) {
+      onToggleMensalista();
+    } else {
+      setShowPlanSelector(true);
+    }
+  };
+
+  const confirmToggleMensalista = () => {
+    onToggleMensalista(selectedPlanId || undefined);
+    setShowPlanSelector(false);
+    setSelectedPlanId('');
+  };
 
   return (
     <div className="fixed inset-0 z-[200] flex justify-end flex-col sm:flex-row">
@@ -103,7 +123,7 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-full shrink-0">
                     <Crown size={10} className="text-[#C5A059]" />
                     <span className="text-[8px] font-bold text-[#C5A059] uppercase">
-                      Mensalista
+                      {planName || 'Mensalista'}
                     </span>
                   </span>
                 )}
@@ -173,7 +193,7 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
           </div>
 
           <button
-            onClick={onToggleMensalista}
+            onClick={handleMensalistaClick}
             className={`w-full h-10 border rounded-xl font-bold text-[9px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               client.is_mensalista
                 ? 'border-[#C5A059]/30 bg-[#C5A059]/10 text-[#C5A059] hover:bg-[#C5A059]/20'
@@ -279,6 +299,108 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
                 autoFocus
               />
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Plan Selector Modal */}
+      <AnimatePresence>
+        {showPlanSelector && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[400] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center"
+            onClick={() => {
+              setShowPlanSelector(false);
+              setSelectedPlanId('');
+            }}
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+              className="w-full sm:max-w-[340px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-6 pt-6 pb-4">
+                <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-4">
+                  <Crown size={20} className="text-[#C5A059]" />
+                </div>
+                <p className="text-[15px] font-semibold text-white text-center">Selecionar plano</p>
+                <p className="text-[12px] text-zinc-500 mt-1.5 text-center">
+                  Escolha o plano mensalista para este cliente.
+                </p>
+              </div>
+
+              <div className="px-4 pb-4 space-y-2">
+                {plans
+                  .filter((p) => p.is_active)
+                  .map((plan) => (
+                    <button
+                      key={plan.id}
+                      onClick={() => setSelectedPlanId(plan.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer ${
+                        selectedPlanId === plan.id
+                          ? 'bg-[#C5A059]/[0.08] border border-[#C5A059]/30'
+                          : 'bg-white/[0.03] border border-white/[0.04] hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-full border-[1.5px] flex items-center justify-center transition-all shrink-0 ${
+                          selectedPlanId === plan.id
+                            ? 'border-[#C5A059] bg-[#C5A059]'
+                            : 'border-white/15'
+                        }`}
+                      >
+                        {selectedPlanId === plan.id && (
+                          <Check size={10} className="text-white stroke-[3]" />
+                        )}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p
+                          className={`text-[13px] font-medium ${selectedPlanId === plan.id ? 'text-[#C5A059]' : 'text-white'}`}
+                        >
+                          {plan.name}
+                        </p>
+                        <p className="text-[11px] text-zinc-500">
+                          R$ {Number(plan.price).toFixed(0)}/mês
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                {plans.filter((p) => p.is_active).length === 0 && (
+                  <p className="text-[12px] text-zinc-500 text-center py-4">
+                    Nenhum plano ativo. Crie um em Configurações {'>'} Mensalista.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex border-t border-white/[0.06]">
+                <button
+                  onClick={() => {
+                    setShowPlanSelector(false);
+                    setSelectedPlanId('');
+                  }}
+                  className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <div className="w-px bg-white/[0.06]" />
+                <button
+                  onClick={confirmToggleMensalista}
+                  disabled={!selectedPlanId}
+                  className="flex-1 py-4 text-[13px] font-semibold text-[#C5A059] hover:text-[#A68233] active:bg-white/[0.03] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Confirmar
+                </button>
+              </div>
+
+              <div className="sm:hidden flex justify-center pb-3 pt-1">
+                <div className="w-10 h-1 rounded-full bg-white/10" />
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

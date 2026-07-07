@@ -7,12 +7,13 @@ import {
   getBookingsForStats,
   deleteBooking,
   getClientByPhone,
+  getMensalistaPlans,
 } from '../lib/api';
 import { formatPhone, getNextDays } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../hooks/useToast';
 import { useServices } from '../hooks/useServices';
-import type { Service, Client, Booking } from '../types';
+import type { Service, Client, Booking, MensalistaPlan } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomTabs from '../components/Admin/BottomTabs';
 const BookingSearchModal = lazy(() => import('../components/Admin/shared/BookingSearchModal'));
@@ -52,6 +53,8 @@ const AdminBooking: React.FC = () => {
   const [newClient, setNewClient] = useState({ name: '', phone: '' });
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [isMensalista, setIsMensalista] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState<MensalistaPlan | null>(null);
+  const [allPlans, setAllPlans] = useState<MensalistaPlan[]>([]);
 
   const [currentStep, setCurrentStep] = useState(() => {
     if (location.state?.rescheduleBooking) return 3;
@@ -91,11 +94,14 @@ const AdminBooking: React.FC = () => {
     { step: 3, label: isPreFilled ? 'CONFIRMAR' : 'AGENDA', num: '03' },
   ];
 
-  // Filter services for mensalista
+  // Filter services for mensalista — use plan's included_service_ids if available
   const filteredServices = useMemo(() => {
     if (!isMensalista) return services;
+    if (currentPlan && currentPlan.included_service_ids?.length > 0) {
+      return services.filter((s) => !currentPlan.included_service_ids.includes(s.id));
+    }
     return services.filter((s) => !MENSALISTA_EXCLUDED_SERVICES.includes(s.name));
-  }, [services, isMensalista]);
+  }, [services, isMensalista, currentPlan]);
 
   // Filter days by working_days (from settings) + optional mensalista filter
   const nextDays = useMemo(() => {
@@ -116,15 +122,18 @@ const AdminBooking: React.FC = () => {
   // Reset selected services when mensalista status changes
   useEffect(() => {
     if (isMensalista && selectedServices.length > 0) {
-      const allowed = selectedServices.filter(
-        (s) => !MENSALISTA_EXCLUDED_SERVICES.includes(s.name)
-      );
+      let allowed: Service[];
+      if (currentPlan && currentPlan.included_service_ids?.length > 0) {
+        allowed = selectedServices.filter((s) => !currentPlan.included_service_ids.includes(s.id));
+      } else {
+        allowed = selectedServices.filter((s) => !MENSALISTA_EXCLUDED_SERVICES.includes(s.name));
+      }
       if (allowed.length !== selectedServices.length) {
         setSelectedServices(allowed);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMensalista]);
+  }, [isMensalista, currentPlan]);
 
   // Detect mensalista when typing phone manually
   useEffect(() => {
@@ -143,15 +152,24 @@ const AdminBooking: React.FC = () => {
           if (cancelled) return;
           if (client) {
             setIsMensalista(!!client.is_mensalista);
+            setCurrentPlan(
+              client.is_mensalista && client.mensalista_plan_id
+                ? allPlans.find((p) => p.id === client.mensalista_plan_id) || null
+                : null
+            );
             if (client.name && !newClient.name) {
               setNewClient((prev) => ({ ...prev, name: client.name }));
             }
           } else {
             setIsMensalista(false);
+            setCurrentPlan(null);
           }
         })
         .catch(() => {
-          if (!cancelled) setIsMensalista(false);
+          if (!cancelled) {
+            setIsMensalista(false);
+            setCurrentPlan(null);
+          }
         });
     }, 400);
 
@@ -177,6 +195,13 @@ const AdminBooking: React.FC = () => {
       }
     };
     fetchWorkingDays();
+  }, []);
+
+  // Load mensalista plans
+  useEffect(() => {
+    getMensalistaPlans(true)
+      .then(setAllPlans)
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -206,6 +231,11 @@ const AdminBooking: React.FC = () => {
             setSelectedClient(match);
             setIsManualEntry(false);
             setIsMensalista(!!match.is_mensalista);
+            setCurrentPlan(
+              match.is_mensalista && match.mensalista_plan_id
+                ? allPlans.find((p) => p.id === match.mensalista_plan_id) || null
+                : null
+            );
           } else {
             setNewClient({
               name: rescheduleBooking.clients?.name || '',
@@ -221,6 +251,11 @@ const AdminBooking: React.FC = () => {
             setSelectedClient(match);
             setIsManualEntry(false);
             setIsMensalista(!!match.is_mensalista);
+            setCurrentPlan(
+              match.is_mensalista && match.mensalista_plan_id
+                ? allPlans.find((p) => p.id === match.mensalista_plan_id) || null
+                : null
+            );
           } else {
             setNewClient({ name: prefilledClientName, phone: prefilledClientPhone });
             setIsManualEntry(true);
@@ -357,6 +392,11 @@ const AdminBooking: React.FC = () => {
         setMultipleMatches([]);
         setIsManualEntry(false);
         setIsMensalista(!!client.is_mensalista);
+        setCurrentPlan(
+          client.is_mensalista && client.mensalista_plan_id
+            ? allPlans.find((p) => p.id === client.mensalista_plan_id) || null
+            : null
+        );
       } else if (matches.length > 1) {
         setSelectedClient(null);
         setMultipleMatches(matches);
@@ -515,6 +555,7 @@ const AdminBooking: React.FC = () => {
                     services={filteredServices}
                     selectedServices={selectedServices}
                     isMensalista={isMensalista}
+                    planName={currentPlan?.name}
                     onToggleService={toggleService}
                     onNextStep={handleNextStep}
                   />
@@ -565,6 +606,11 @@ const AdminBooking: React.FC = () => {
               setIsSearchOpen(false);
               setIsManualEntry(false);
               setIsMensalista(!!client.is_mensalista);
+              setCurrentPlan(
+                client.is_mensalista && client.mensalista_plan_id
+                  ? allPlans.find((p) => p.id === client.mensalista_plan_id) || null
+                  : null
+              );
             }}
             clients={filteredClientsForModal}
           />
@@ -640,6 +686,7 @@ const AdminBooking: React.FC = () => {
                   services={filteredServices}
                   selectedServices={selectedServices}
                   isMensalista={isMensalista}
+                  planName={currentPlan?.name}
                   onToggleService={toggleService}
                 />
               </motion.div>
@@ -714,6 +761,11 @@ const AdminBooking: React.FC = () => {
             setIsSearchOpen(false);
             setIsManualEntry(false);
             setIsMensalista(!!client.is_mensalista);
+            setCurrentPlan(
+              client.is_mensalista && client.mensalista_plan_id
+                ? allPlans.find((p) => p.id === client.mensalista_plan_id) || null
+                : null
+            );
           }}
           clients={filteredClientsForModal}
         />

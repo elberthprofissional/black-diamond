@@ -6,6 +6,7 @@ interface QuickAction {
   icon: LucideIcon;
   onClick: () => void;
   active?: boolean;
+  highlight?: boolean;
 }
 
 interface ProfileMobileProps {
@@ -99,6 +100,7 @@ const ProfileMobile: React.FC<ProfileMobileProps> = ({
           {quickActions.map((action, idx) => {
             const Icon = action.icon;
             const isActive = 'active' in action ? action.active : false;
+            const isHighlight = action.highlight;
             return (
               <button
                 key={idx}
@@ -107,14 +109,18 @@ const ProfileMobile: React.FC<ProfileMobileProps> = ({
               >
                 <div
                   className={`w-14 h-14 rounded-full border flex items-center justify-center transition-all ${
-                    isActive
-                      ? 'bg-[#C5A059]/10 border-[#C5A059]/30 text-[#C5A059]'
-                      : 'bg-[#111111] hover:bg-[#161616] border-white/5 group-hover:border-[#C5A059]/30 text-zinc-400 group-hover:text-white'
+                    isHighlight
+                      ? 'bg-[#C5A059]/10 border-[#C5A059]/30 text-[#C5A059] shadow-[0_0_12px_rgba(197,160,89,0.15)]'
+                      : isActive
+                        ? 'bg-[#C5A059]/10 border-[#C5A059]/30 text-[#C5A059]'
+                        : 'bg-[#111111] hover:bg-[#161616] border-white/5 group-hover:border-[#C5A059]/30 text-zinc-400 group-hover:text-white'
                   }`}
                 >
                   <Icon size={18} className="transition-transform group-hover:scale-110" />
                 </div>
-                <span className="text-[9px] font-bold text-zinc-500 group-hover:text-zinc-300 uppercase tracking-widest transition-colors">
+                <span
+                  className={`text-[9px] font-bold uppercase tracking-widest transition-colors ${isHighlight ? 'text-[#C5A059]' : 'text-zinc-500 group-hover:text-zinc-300'}`}
+                >
                   {action.label}
                 </span>
               </button>
@@ -208,7 +214,7 @@ const ProfileMobile: React.FC<ProfileMobileProps> = ({
                       </div>
                       <div className="h-1.5 bg-white/[0.03] rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-[#C5A059] rounded-full transition-all duration-500"
+                          className="h-full bg-[#C5A059] rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(197,160,89,0.3)]"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>

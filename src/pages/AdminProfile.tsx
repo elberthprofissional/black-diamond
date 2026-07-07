@@ -13,6 +13,8 @@ import {
   Shield,
   Clock,
   Image as ImageIcon,
+  HelpCircle,
+  Crown,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
@@ -33,6 +35,8 @@ import SettingsNotificacoes from '../components/Admin/settings/SettingsNotificac
 import SettingsDados from '../components/Admin/settings/SettingsDados';
 import SettingsServicos from '../components/Admin/settings/SettingsServicos';
 import SettingsHorarios from '../components/Admin/settings/SettingsHorarios';
+import SettingsMensalista from '../components/Admin/settings/SettingsMensalista';
+import HelpModal from '../components/Admin/settings/HelpModal';
 import { SkeletonDashboard } from '../components/Skeleton';
 
 const AdminProfile: React.FC = () => {
@@ -57,6 +61,7 @@ const AdminProfile: React.FC = () => {
   const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
   const { barberName, barberPhoto, refetch } = useBarberSettings();
   const [settingsSection, setSettingsSection] = useState<string | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
   const enteredSection = useRef(false);
   const navigate = useNavigate();
 
@@ -253,13 +258,22 @@ const AdminProfile: React.FC = () => {
                       ? 'Serviços'
                       : settingsSection === 'horarios'
                         ? 'Horários'
-                        : settingsSection === 'notificacoes'
-                          ? 'Notificações'
-                          : settingsSection === 'dados'
-                            ? 'Zona de Segurança'
-                            : 'Configurações'}
+                        : settingsSection === 'mensalista'
+                          ? 'Mensalista'
+                          : settingsSection === 'notificacoes'
+                            ? 'Notificações'
+                            : settingsSection === 'dados'
+                              ? 'Zona de Segurança'
+                              : 'Configurações'}
               </h1>
             </div>
+            <button
+              onClick={() => setShowHelp(true)}
+              className="text-zinc-500 hover:text-[#C5A059] transition-colors cursor-pointer"
+              aria-label="Ajuda"
+            >
+              <HelpCircle size={20} />
+            </button>
           </div>
 
           <div className="lg:hidden">
@@ -273,6 +287,7 @@ const AdminProfile: React.FC = () => {
             {settingsSection === 'galeria' && <SettingsGaleria />}
             {settingsSection === 'servicos' && <SettingsServicos />}
             {settingsSection === 'horarios' && <SettingsHorarios />}
+            {settingsSection === 'mensalista' && <SettingsMensalista />}
             {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
             {settingsSection === 'dados' && <SettingsDados />}
           </div>
@@ -288,6 +303,7 @@ const AdminProfile: React.FC = () => {
                   { id: 'galeria', label: 'Galeria', icon: ImageIcon },
                   { id: 'servicos', label: 'Serviços', icon: Scissors },
                   { id: 'horarios', label: 'Horários', icon: Clock },
+                  { id: 'mensalista', label: 'Mensalista', icon: Crown },
                   { id: 'notificacoes', label: 'Notificações', icon: Bell },
                   { id: 'dados', label: 'Segurança', icon: Shield },
                 ].map((item) => {
@@ -304,6 +320,13 @@ const AdminProfile: React.FC = () => {
                     </button>
                   );
                 })}
+                <button
+                  onClick={() => setShowHelp(true)}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03] transition-all cursor-pointer mt-4"
+                >
+                  <HelpCircle size={15} />
+                  Ajuda
+                </button>
               </div>
             </div>
             <div className="flex-1 min-w-0 min-h-[400px]">
@@ -319,6 +342,7 @@ const AdminProfile: React.FC = () => {
                   {settingsSection === 'galeria' && <SettingsGaleria />}
                   {settingsSection === 'servicos' && <SettingsServicos />}
                   {settingsSection === 'horarios' && <SettingsHorarios />}
+                  {settingsSection === 'mensalista' && <SettingsMensalista />}
                   {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
                   {settingsSection === 'dados' && <SettingsDados />}
                 </motion.div>
@@ -576,6 +600,8 @@ const AdminProfile: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+
+      <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
 
       <ToastNotification toast={toast} />
     </AdminLayout>

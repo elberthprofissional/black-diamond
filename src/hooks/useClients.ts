@@ -1,10 +1,21 @@
+import { useState, useEffect } from 'react';
 import { useClientsData } from './useClientsData';
 import { useClientPanel } from './useClientPanel';
 import { useClientCreation } from './useClientCreation';
+import { getMensalistaPlans } from '../lib/api';
+import type { MensalistaPlan } from '../types';
 
 export function useClients() {
   const data = useClientsData();
-  const panel = useClientPanel(data.setClients);
+  const [plans, setPlans] = useState<MensalistaPlan[]>([]);
+
+  useEffect(() => {
+    getMensalistaPlans()
+      .then(setPlans)
+      .catch(() => {});
+  }, []);
+
+  const panel = useClientPanel(data.setClients, plans);
   const creation = useClientCreation(data.loadData);
 
   return {
@@ -13,6 +24,7 @@ export function useClients() {
 
     // Panel
     ...panel,
+    plans,
 
     // Creation
     ...creation,

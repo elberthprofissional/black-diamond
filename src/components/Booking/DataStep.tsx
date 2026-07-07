@@ -109,71 +109,91 @@ const DataStep: React.FC<DataStepProps> = React.memo(
       );
     }
 
-    // Mobile layout unchanged
+    // Mobile layout
     return (
-      <div className="space-y-4 pb-4">
-        <div className="space-y-3">
-          <label
-            htmlFor="name-mobile"
-            className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5"
-          >
-            <User size={12} className="text-[#C5A059]/60" />
-            Nome
-          </label>
-          <input
-            id="name-mobile"
-            type="text"
-            placeholder="Digite seu nome..."
-            aria-label="Seu nome"
-            aria-describedby={name && name.trim().length < 3 ? 'name-error-mobile' : undefined}
-            aria-invalid={!!(name && name.trim().length < 3)}
-            className="w-full bg-transparent border border-white/[0.06] focus:border-[#C5A059] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600"
-            value={name}
-            onChange={(e) => onNameChange(e.target.value)}
+      <div className="space-y-5 pb-4">
+        {/* Banner */}
+        <div className="relative h-28 rounded-2xl overflow-hidden border border-white/[0.04] bg-[#0E0E0E] flex items-center px-5">
+          <img
+            src="/assets/login.webp"
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover grayscale opacity-20 pointer-events-none"
           />
-          {name && name.trim().length < 3 && (
-            <p id="name-error-mobile" className="text-[10px] text-red-400/80" role="alert">
-              Mínimo 3 caracteres
-            </p>
-          )}
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
+          <div className="relative z-10">
+            <span className="text-[8px] font-black tracking-[0.4em] text-[#C5A059] uppercase block mb-0.5">
+              BLACK DIAMOND
+            </span>
+            <h2 className="text-xl font-black text-white tracking-tight">Preencha seus dados</h2>
+            <p className="text-[10px] text-zinc-400">Precisamos do seu nome e WhatsApp</p>
+          </div>
         </div>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
+
+        {/* Fields */}
+        <div className="space-y-4">
+          <div className="space-y-2">
             <label
-              htmlFor="phone-mobile"
+              htmlFor="name-mobile"
               className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5"
             >
-              <WhatsAppIcon className="w-3 h-3 text-[#C5A059]" />
-              WhatsApp
+              <User size={12} className="text-[#C5A059]/60" />
+              Nome
             </label>
-            {isMensalista && !clientLookupLoading && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-full">
-                <span className="w-1 h-1 rounded-full bg-[#C5A059]" />
-                <span className="text-[8px] font-bold text-[#C5A059] uppercase">Mensalista</span>
-              </span>
-            )}
-            {clientLookupLoading && (
-              <span className="text-[9px] text-zinc-600 animate-pulse">Verificando...</span>
+            <input
+              id="name-mobile"
+              type="text"
+              placeholder="Digite seu nome..."
+              aria-label="Seu nome"
+              aria-describedby={name && name.trim().length < 3 ? 'name-error-mobile' : undefined}
+              aria-invalid={!!(name && name.trim().length < 3)}
+              className="w-full bg-transparent border border-white/[0.06] focus:border-[#C5A059] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600"
+              value={name}
+              onChange={(e) => onNameChange(e.target.value)}
+            />
+            {name && name.trim().length < 3 && (
+              <p id="name-error-mobile" className="text-[10px] text-red-400/80" role="alert">
+                Mínimo 3 caracteres
+              </p>
             )}
           </div>
-          <input
-            id="phone-mobile"
-            type="tel"
-            placeholder="(00) 90000-0000"
-            aria-label="Seu número de WhatsApp com DDD"
-            aria-describedby={
-              phone && phone.replace(/\D/g, '').length < 11 ? 'phone-error-mobile' : undefined
-            }
-            aria-invalid={!!(phone && phone.replace(/\D/g, '').length < 11)}
-            className="w-full bg-transparent border border-white/[0.06] focus:border-[#C5A059] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600"
-            value={phone}
-            onChange={(e) => onPhoneChange(e.target.value)}
-          />
-          {phone && phone.replace(/\D/g, '').length < 11 && (
-            <p id="phone-error-mobile" className="text-[10px] text-red-400/80" role="alert">
-              Informe um WhatsApp válido
-            </p>
-          )}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="phone-mobile"
+                className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5"
+              >
+                <WhatsAppIcon className="w-3 h-3 text-[#C5A059]" />
+                WhatsApp
+              </label>
+              {isMensalista && !clientLookupLoading && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-full">
+                  <span className="w-1 h-1 rounded-full bg-[#C5A059]" />
+                  <span className="text-[8px] font-bold text-[#C5A059] uppercase">Mensalista</span>
+                </span>
+              )}
+              {clientLookupLoading && (
+                <span className="text-[9px] text-zinc-600 animate-pulse">Verificando...</span>
+              )}
+            </div>
+            <input
+              id="phone-mobile"
+              type="tel"
+              placeholder="(00) 90000-0000"
+              aria-label="Seu número de WhatsApp com DDD"
+              aria-describedby={
+                phone && phone.replace(/\D/g, '').length < 11 ? 'phone-error-mobile' : undefined
+              }
+              aria-invalid={!!(phone && phone.replace(/\D/g, '').length < 11)}
+              className="w-full bg-transparent border border-white/[0.06] focus:border-[#C5A059] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600"
+              value={phone}
+              onChange={(e) => onPhoneChange(e.target.value)}
+            />
+            {phone && phone.replace(/\D/g, '').length < 11 && (
+              <p id="phone-error-mobile" className="text-[10px] text-red-400/80" role="alert">
+                Informe um WhatsApp válido
+              </p>
+            )}
+          </div>
         </div>
       </div>
     );

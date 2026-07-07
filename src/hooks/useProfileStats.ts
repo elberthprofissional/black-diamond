@@ -58,7 +58,7 @@ function computeStats(bookings: Booking[], services: Service[]): ProfileStats {
 
     const price = Number(b.total_price || 0);
 
-    if (b.status !== 'cancelled') lucroTotal += price;
+    if (b.status === 'completed') lucroTotal += price;
 
     if (date >= startOfMonth) {
       if (b.status === 'cancelled') canceladosMes++;
@@ -94,7 +94,9 @@ function computeStats(bookings: Booking[], services: Service[]): ProfileStats {
       name: srv.name,
       count: currentServiceCounts[srv.id] || 0,
     }))
-    .sort((a, b) => b.count - a.count);
+    .filter((s) => s.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
 
   return {
     lucroTotal,

@@ -1,18 +1,16 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createBooking, getAvailableSlots, getBookings } from '../lib/api';
-import { getNextDays, formatPhone, fetchTimeSlotsForDate, getErrorMessage } from '../lib/utils';
-import { useServices } from './useServices';
+import { formatPhone } from '../lib/utils';
 import { useWizardStep } from './useWizardStep';
 import { useClientLookup } from './useClientLookup';
-import { useDateDragScroll } from './useDateDragScroll';
-import { supabase } from '../lib/supabase';
-import type { Service } from '../types';
-
+import { useBookingSlots } from './useBookingSlots';
+import { useBookingSubmit } from './useBookingSubmit';
+import type { Service, MensalistaPlan } from '../types';
 import { MENSALISTA_EXCLUDED_SERVICES } from '../lib/constants';
+import { useServices } from './useServices';
+import { getMensalistaPlans } from '../lib/api';
 
 export function useBookingWizard(showError: (msg: string) => void) {
-  const allNextDays = useMemo(() => getNextDays(), []);
   const navigate = useNavigate();
 
   // Step control
@@ -26,130 +24,78 @@ export function useBookingWizard(showError: (msg: string) => void) {
   } = useWizardStep();
 
   // Services
-  const { services } = useServices();
+  const { services: allServices } = useServices();
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
-
-  // Date & time
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [selectedTime, setSelectedTime] = useState<string>('');
-
-  // User info
   const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
 
-  // Submitting state
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Mensalista plans
+  const [allPlans, setAllPlans] = useState<MensalistaPlan[]>([]);
 
-  // Existing bookings & slots
-  const [existingBookings, setExistingBookings] = useState<
-    { booking_time: string; status: string }[]
-  >([]);
-  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  useEffect(() => {
+    getMensalistaPlans(true)
+      .then(setAllPlans)
+      .catch(() => {});
+  }, []);
 
-  // Client lookup & mensalista
+  // Client lookup
   const handleNameFound = useCallback((name: string) => {
     setUserInfo((prev) => ({ ...prev, name }));
   }, []);
-  const { isMensalista, clientLookupLoading } = useClientLookup(userInfo.phone, handleNameFound);
+  const { isMensalista, mensalistaPlanId, clientLookupLoading } = useClientLookup(
+    userInfo.phone,
+    handleNameFound
+  );
 
-  // Drag scroll
-  const { dateContainerRef, handleMouseDown, handleMouseLeave, handleMouseUp, handleMouseMove } =
-    useDateDragScroll();
+  // Current plan
+  const currentPlan = useMemo(
+    () => allPlans.find((p) => p.id === mensalistaPlanId) || null,
+    [allPlans, mensalistaPlanId]
+  );
 
-  // Barber settings
-  const [barberPhone, setBarberPhone] = useState('');
-  const [workingDays, setWorkingDays] = useState<string>('1,2,3,4,5,6');
+  // Date & time slots
+  const slots = useBookingSlots(showError);
 
-  // Filter days by working days
-  const nextDays = useMemo(() => {
-    const enabled = workingDays.split(',').map(Number);
-    return allNextDays.filter((d) => {
-      const dow = new Date(d.fullDate + 'T12:00:00').getDay();
-      return enabled.includes(dow);
-    });
-  }, [allNextDays, workingDays]);
+  // Submit
+  const { isSubmitting, handleConfirm: rawConfirm } = useBookingSubmit(showError, () => setStep(5));
+
+  // Filter services for mensalista — use plan's included_service_ids if available
+  const filteredServices = useMemo(() => {
+    if (!isMensalista) return allServices;
+
+    // If client has a specific plan, exclude services included in the plan
+    if (currentPlan && currentPlan.included_service_ids?.length > 0) {
+      return allServices.filter((s) => !currentPlan.included_service_ids.includes(s.id));
+    }
+
+    // Fallback: use hardcoded excluded services
+    return allServices.filter((s) => !MENSALISTA_EXCLUDED_SERVICES.includes(s.name));
+  }, [allServices, isMensalista, currentPlan]);
 
   // Filter days for mensalista (MON-THU only)
   const filteredNextDays = useMemo(() => {
-    if (!isMensalista) return nextDays;
-    return nextDays.filter((d) => {
-      const date = new Date(d.fullDate + 'T12:00:00');
-      const dow = date.getDay();
+    if (!isMensalista) return slots.nextDays;
+    return slots.nextDays.filter((d) => {
+      const dow = new Date(d.fullDate + 'T12:00:00').getDay();
       return dow >= 1 && dow <= 4;
     });
-  }, [nextDays, isMensalista]);
-
-  // Filter services for mensalista
-  const filteredServices = useMemo(() => {
-    if (!isMensalista) return services;
-    return services.filter((s) => !MENSALISTA_EXCLUDED_SERVICES.includes(s.name));
-  }, [services, isMensalista]);
+  }, [slots.nextDays, isMensalista]);
 
   // Reset selected services when mensalista status changes
   useEffect(() => {
     if (isMensalista && selectedServices.length > 0) {
-      const allowed = selectedServices.filter(
-        (s) => !MENSALISTA_EXCLUDED_SERVICES.includes(s.name)
-      );
+      let allowed: Service[];
+      if (currentPlan && currentPlan.included_service_ids?.length > 0) {
+        allowed = selectedServices.filter((s) => !currentPlan.included_service_ids.includes(s.id));
+      } else {
+        allowed = selectedServices.filter((s) => !MENSALISTA_EXCLUDED_SERVICES.includes(s.name));
+      }
       if (allowed.length !== selectedServices.length) {
         setSelectedServices(allowed);
       }
     }
-  }, [isMensalista, selectedServices]);
+  }, [isMensalista, selectedServices, currentPlan]);
 
-  // Fetch working_days and barber phone from database
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const { data } = await supabase
-          .from('settings')
-          .select('key, value')
-          .in('key', ['barber_phone', 'working_days']);
-
-        if (data) {
-          for (const row of data) {
-            if (row.key === 'barber_phone' && row.value) {
-              setBarberPhone(row.value);
-            } else if (row.key === 'working_days' && row.value) {
-              setWorkingDays(row.value);
-            }
-          }
-        }
-
-        if (!data?.find((r) => r.key === 'barber_phone')) {
-          setBarberPhone(import.meta.env.VITE_BARBER_WHATSAPP || '');
-        }
-      } catch {
-        setBarberPhone(import.meta.env.VITE_BARBER_WHATSAPP || '');
-      }
-    };
-    fetchSettings();
-  }, []);
-
-  // Load bookings & slots when date changes
-  useEffect(() => {
-    setSelectedTime('');
-    if (selectedDate) {
-      let active = true;
-      const loadData = async () => {
-        try {
-          const [bookingsData, slotsData] = await Promise.all([
-            getBookings(selectedDate).catch(() => []),
-            getAvailableSlots(selectedDate).catch(() => fetchTimeSlotsForDate(selectedDate)),
-          ]);
-          if (!active) return;
-          setExistingBookings(bookingsData);
-          setAvailableSlots(slotsData);
-        } catch {
-          if (active) showError('Erro ao carregar dados.');
-        }
-      };
-      loadData();
-      return () => {
-        active = false;
-      };
-    }
-  }, [selectedDate, showError]);
-
+  // Toggle service
   const toggleService = useCallback((service: Service) => {
     setSelectedServices((prev) =>
       prev.find((s) => s.id === service.id)
@@ -158,74 +104,32 @@ export function useBookingWizard(showError: (msg: string) => void) {
     );
   }, []);
 
+  // Total price
   const totalPrice = useMemo(
     () => selectedServices.reduce((sum, s) => sum + Number(s.price), 0),
     [selectedServices]
   );
 
-  const handleConfirm = useCallback(async () => {
-    if (
-      isSubmitting ||
-      !selectedTime ||
-      !userInfo.name ||
-      !userInfo.phone ||
-      selectedServices.length === 0
-    ) {
-      return;
-    }
-
-    if (!navigator.onLine) {
-      showError(
-        'Você está sem conexão com a internet. Por favor, verifique sua rede e tente novamente.'
-      );
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
-      await createBooking(
-        {
-          service_ids: selectedServices.map((s) => s.id),
-          booking_date: selectedDate,
-          booking_time: selectedTime,
-          total_price: totalPrice,
-          total_duration: totalDuration,
-        },
-        { name: userInfo.name, phone: userInfo.phone }
-      );
-
-      if (barberPhone) {
-        const serviceNames = selectedServices.map((s) => s.name).join(', ');
-        const formattedDate = selectedDate.split('-').reverse().join('/');
-        const mensalistaTag = isMensalista ? ' [MENSALISTA]' : '';
-        const msg = `━━━━━━━━━━━━━━━━━━━━━━━━━━\nBLACK DIAMOND BARBEARIA\nNOVO AGENDAMENTO\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nCliente:\n${userInfo.name.trim()}${mensalistaTag}\n\nServiços:\n${serviceNames
-          .split(', ')
-          .map((s) => `• ${s}`)
-          .join(
-            '\n'
-          )}\n\nData:\n${formattedDate}\n\nHorário:\n${selectedTime}\n\nValor Total:\nR$ ${totalPrice.toFixed(2).replace('.', ',')}`;
-        const waUrl = `https://wa.me/${barberPhone}?text=${encodeURIComponent(msg)}`;
-        window.open(waUrl, '_blank');
-      }
-
-      setStep(5);
-    } catch (error) {
-      showError(getErrorMessage(error));
-    } finally {
-      setIsSubmitting(false);
-    }
+  // Confirm with full params
+  const handleConfirm = useCallback(() => {
+    rawConfirm({
+      selectedServices,
+      selectedDate: slots.selectedDate,
+      selectedTime: slots.selectedTime,
+      userInfo,
+      totalPrice,
+      barberPhone: slots.barberPhone,
+      isMensalista,
+    });
   }, [
-    isSubmitting,
-    selectedTime,
-    userInfo,
+    rawConfirm,
     selectedServices,
-    selectedDate,
+    slots.selectedDate,
+    slots.selectedTime,
+    userInfo,
     totalPrice,
-    showError,
-    barberPhone,
+    slots.barberPhone,
     isMensalista,
-    setStep,
   ]);
 
   // Wrap wizardGoNext to pass handleConfirm for the last step
@@ -239,11 +143,11 @@ export function useBookingWizard(showError: (msg: string) => void) {
       name: userInfo.name,
       phone: userInfo.phone,
       selectedServices,
-      selectedDate,
-      selectedTime,
+      selectedDate: slots.selectedDate,
+      selectedTime: slots.selectedTime,
       isSubmitting,
     }),
-    [step, userInfo, selectedServices, selectedDate, selectedTime, isSubmitting]
+    [step, userInfo, selectedServices, slots.selectedDate, slots.selectedTime, isSubmitting]
   );
 
   const disabled = useMemo(
@@ -257,20 +161,20 @@ export function useBookingWizard(showError: (msg: string) => void) {
     services: filteredServices,
     selectedServices,
     toggleService,
-    selectedDate,
-    setSelectedDate,
-    selectedTime,
-    setSelectedTime,
+    selectedDate: slots.selectedDate,
+    setSelectedDate: slots.setSelectedDate,
+    selectedTime: slots.selectedTime,
+    setSelectedTime: slots.setSelectedTime,
     userInfo,
     setUserInfo,
     isSubmitting,
-    existingBookings,
-    availableSlots,
-    dateContainerRef,
-    handleMouseDown,
-    handleMouseLeave,
-    handleMouseUp,
-    handleMouseMove,
+    existingBookings: slots.existingBookings,
+    availableSlots: slots.availableSlots,
+    dateContainerRef: slots.dateContainerRef,
+    handleMouseDown: slots.handleMouseDown,
+    handleMouseLeave: slots.handleMouseLeave,
+    handleMouseUp: slots.handleMouseUp,
+    handleMouseMove: slots.handleMouseMove,
     totalPrice,
     isStepDisabled: disabled,
     stepTitle,
@@ -281,6 +185,7 @@ export function useBookingWizard(showError: (msg: string) => void) {
     nextDays: filteredNextDays,
     formatPhoneValue: formatPhone,
     isMensalista,
+    currentPlan,
     clientLookupLoading,
   };
 }

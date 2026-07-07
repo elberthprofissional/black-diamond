@@ -8,6 +8,7 @@ import { useBarberSettings } from '../contexts/BarberSettingsContext';
 import AdminLayout from '../components/Admin/AdminLayout';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
 import UnblockModal from '../components/Admin/shared/UnblockModal';
+import WhatsAppReminderButton from '../components/Admin/shared/WhatsAppReminderButton';
 import CompleteModal from '../components/Admin/shared/CompleteModal';
 import ThankYouModal from '../components/Admin/shared/ThankYouModal';
 import DeleteModal from '../components/Admin/shared/DeleteModal';
@@ -247,20 +248,63 @@ const AdminWeekly: React.FC = () => {
                   </p>
                 ) : (
                   occupiedBookings.map((booking) => (
-                    <button
+                    <div
                       key={booking.id}
-                      onClick={() => mgmt.setSelectedBooking(booking)}
-                      aria-label={`Agendamento às ${booking.booking_time.slice(0, 5)} com ${booking.clients?.name}`}
-                      className={`w-full flex items-center bg-[#111111] border border-white/5 rounded-lg px-3 py-2.5 cursor-pointer transition-all hover:border-[#C5A059]/20 text-left`}
+                      className="flex items-center bg-[#111111] border border-white/5 rounded-lg px-3 py-2 transition-all hover:border-[#C5A059]/20 group"
                     >
-                      <span className="text-sm font-bold text-white tabular-nums w-12 shrink-0">
-                        {booking.booking_time.slice(0, 5)}
-                      </span>
-                      <div className="w-px h-3.5 bg-white/[0.06] mx-3 shrink-0" />
-                      <span className="text-[11px] font-bold text-zinc-300 truncate flex-1">
-                        {booking.clients?.name}
-                      </span>
-                    </button>
+                      {/* Hora + Nome */}
+                      <button
+                        onClick={() => mgmt.setSelectedBooking(booking)}
+                        aria-label={`Agendamento às ${booking.booking_time.slice(0, 5)} com ${booking.clients?.name}`}
+                        className="flex items-center flex-1 min-w-0 text-left cursor-pointer"
+                      >
+                        <span className="text-sm font-bold text-white tabular-nums w-12 shrink-0">
+                          {booking.booking_time.slice(0, 5)}
+                        </span>
+                        <div className="w-px h-3.5 bg-white/[0.06] mx-3 shrink-0" />
+                        <span className="text-[11px] font-bold text-zinc-300 truncate flex-1">
+                          {booking.clients?.name}
+                        </span>
+                      </button>
+
+                      {/* Lado direito: lembrete + seta */}
+                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                        {/* Lembrete */}
+                        {booking.clients?.phone && (
+                          <>
+                            <WhatsAppReminderButton
+                              booking={booking}
+                              className="hidden lg:flex text-zinc-400 hover:text-[#C5A059] bg-white/[0.04] hover:bg-[#C5A059]/10 border border-white/[0.06] hover:border-[#C5A059]/20 rounded-md px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer items-center"
+                              label="Lembrar"
+                              hideIcon
+                            />
+                            <WhatsAppReminderButton
+                              booking={booking}
+                              className="lg:hidden text-zinc-500 hover:text-[#C5A059] transition-colors cursor-pointer p-1"
+                              iconType="bell"
+                            />
+                            <div className="w-px h-3.5 bg-white/[0.06]" />
+                          </>
+                        )}
+                        {/* Seta — clica pra abrir dados */}
+                        <button
+                          onClick={() => mgmt.setSelectedBooking(booking)}
+                          className="p-1 text-zinc-600 hover:text-[#C5A059] transition-colors cursor-pointer"
+                          aria-label="Ver detalhes"
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <polyline points="9 18 15 12 9 6" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
                   ))
                 )}
               </div>

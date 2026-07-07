@@ -8,10 +8,11 @@ import {
 } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
 import { useToast } from './useToast';
-import type { ClientWithStats, BookingWithClient } from '../types';
+import type { ClientWithStats, BookingWithClient, MensalistaPlan } from '../types';
 
 export function useClientPanel(
-  setClients: React.Dispatch<React.SetStateAction<ClientWithStats[]>>
+  setClients: React.Dispatch<React.SetStateAction<ClientWithStats[]>>,
+  plans: MensalistaPlan[]
 ) {
   const { showSuccess, showError } = useToast();
   const [selectedClient, setSelectedClient] = useState<ClientWithStats | null>(null);
@@ -25,6 +26,11 @@ export function useClientPanel(
   const [savingNotes, setSavingNotes] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const planName = useMemo(() => {
+    if (!selectedClient?.is_mensalista || !selectedClient?.mensalista_plan_id) return undefined;
+    return plans.find((p) => p.id === selectedClient.mensalista_plan_id)?.name;
+  }, [selectedClient, plans]);
 
   const openPanel = useCallback(async (client: ClientWithStats) => {
     setSelectedClient(client);
@@ -98,20 +104,35 @@ export function useClientPanel(
     }
   }, [selectedClient, closePanel, showSuccess, showError, setClients]);
 
-  const handleToggleMensalista = useCallback(async () => {
-    if (!selectedClient) return;
-    try {
-      const newValue = !selectedClient.is_mensalista;
-      await toggleClientMensalista(selectedClient.id, newValue);
-      setSelectedClient((prev) => (prev ? { ...prev, is_mensalista: newValue } : prev));
-      setClients((prev) =>
-        prev.map((c) => (c.id === selectedClient.id ? { ...c, is_mensalista: newValue } : c))
-      );
-      showSuccess(newValue ? 'Cliente agora é mensalista!' : 'Mensalidade removida.');
-    } catch (error) {
-      showError(getErrorMessage(error));
-    }
-  }, [selectedClient, showSuccess, showError, setClients]);
+  const handleToggleMensalista = useCallback(
+    async (planId?: string) => {
+      if (!selectedClient) return;
+      try {
+        const newValue = !selectedClient.is_mensalista;
+        await toggleClientMensalista(selectedClient.id, newValue, planId);
+        setSelectedClient((prev) =>
+          prev
+            ? {
+                ...prev,
+                is_mensalista: newValue,
+                mensalista_plan_id: newValue ? planId : undefined,
+              }
+            : prev
+        );
+        setClients((prev) =>
+          prev.map((c) =>
+            c.id === selectedClient.id
+              ? { ...c, is_mensalista: newValue, mensalista_plan_id: newValue ? planId : undefined }
+              : c
+          )
+        );
+        showSuccess(newValue ? 'Cliente agora é mensalista!' : 'Mensalidade removida.');
+      } catch (error) {
+        showError(getErrorMessage(error));
+      }
+    },
+    [selectedClient, showSuccess, showError, setClients]
+  );
 
   const panelTotal = useMemo(
     () => panelBookings.reduce((s, b) => s + Number(b.total_price), 0),
@@ -149,5 +170,6 @@ export function useClientPanel(
     handleToggleMensalista,
     panelTotal,
     panelLast,
+    planName,
   };
 }

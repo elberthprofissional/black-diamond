@@ -8,6 +8,7 @@ import { getClientByPhone } from '../lib/api';
  */
 export function useClientLookup(phone: string, onNameFound?: (name: string) => void) {
   const [isMensalista, setIsMensalista] = useState(false);
+  const [mensalistaPlanId, setMensalistaPlanId] = useState<string | null>(null);
   const [clientLookupLoading, setClientLookupLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -20,6 +21,7 @@ export function useClientLookup(phone: string, onNameFound?: (name: string) => v
     const digits = phone.replace(/\D/g, '');
     if (digits.length < 11) {
       setIsMensalista(false);
+      setMensalistaPlanId(null);
       setClientLookupLoading(false);
       return;
     }
@@ -32,12 +34,16 @@ export function useClientLookup(phone: string, onNameFound?: (name: string) => v
         .then((client) => {
           if (cancelled) return;
           setIsMensalista(!!client?.is_mensalista);
+          setMensalistaPlanId(client?.mensalista_plan_id || null);
           if (client?.name && onNameFound) {
             onNameFound(client.name);
           }
         })
         .catch(() => {
-          if (!cancelled) setIsMensalista(false);
+          if (!cancelled) {
+            setIsMensalista(false);
+            setMensalistaPlanId(null);
+          }
         })
         .finally(() => {
           if (!cancelled) setClientLookupLoading(false);
@@ -52,7 +58,10 @@ export function useClientLookup(phone: string, onNameFound?: (name: string) => v
     };
   }, [phone, onNameFound]);
 
-  const resetMensalista = useCallback(() => setIsMensalista(false), []);
+  const resetMensalista = useCallback(() => {
+    setIsMensalista(false);
+    setMensalistaPlanId(null);
+  }, []);
 
-  return { isMensalista, clientLookupLoading, resetMensalista };
+  return { isMensalista, mensalistaPlanId, clientLookupLoading, resetMensalista };
 }

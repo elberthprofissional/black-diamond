@@ -229,6 +229,13 @@ const AdminClients: React.FC = () => {
                                 <p className="text-sm font-semibold text-white truncate">
                                   {client.name}
                                 </p>
+                                <p className="text-[10px] text-zinc-500 mt-0.5">
+                                  {formatPhone(client.phone)}
+                                </p>
+                                <p className="text-[8px] text-zinc-600 uppercase tracking-wider mt-0.5">
+                                  Último corte:{' '}
+                                  <span className="text-zinc-400">{client.lastVisit}</span>
+                                </p>
                               </div>
                               <div className="shrink-0 flex items-center gap-2">
                                 {needsReminder && (
@@ -344,6 +351,8 @@ const AdminClients: React.FC = () => {
             notesText={c.notesText}
             isEditingNotes={c.isEditingNotes}
             savingNotes={c.savingNotes}
+            plans={c.plans}
+            planName={c.planName}
             onNotesChange={c.setNotesText}
             onToggleEditNotes={() => {
               if (c.isEditingNotes) {

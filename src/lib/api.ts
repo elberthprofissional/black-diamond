@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Service, Booking } from '../types';
+import type { Service, Booking, MensalistaPlan } from '../types';
 
 // Services
 
@@ -139,6 +139,42 @@ export const updateBookingStatus = async (
 export const deleteBooking = async (id: string) => {
   const { error } = await supabase.from('bookings').delete().eq('id', id);
 
+  if (error) throw error;
+};
+
+/** Busca agendamentos futuros pelo telefone do cliente (para cancelamento público). */
+export const getBookingsByPhone = async (phone: string) => {
+  const cleanPhone = phone.replace(/\D/g, '');
+  const today = new Date().toISOString().split('T')[0];
+
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('id, booking_date, booking_time, status, total_price, service_ids')
+    .gte('booking_date', today)
+    .eq('status', 'pending')
+    .order('booking_date', { ascending: true })
+    .order('booking_time', { ascending: true });
+
+  if (error) throw error;
+
+  // Filtra pelos clientes que tenham esse telefone
+  if (!data || data.length === 0) return [];
+
+  const bookingIds = data.map((b) => b.id);
+  const { data: bookingsWithClients } = await supabase
+    .from('bookings')
+    .select(
+      'id, booking_date, booking_time, status, total_price, service_ids, clients!inner(name, phone)'
+    )
+    .in('id', bookingIds)
+    .eq('clients.phone', cleanPhone);
+
+  return bookingsWithClients || [];
+};
+
+/** Cancela um agendamento (status → cancelled). */
+export const cancelBooking = async (id: string) => {
+  const { error } = await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', id);
   if (error) throw error;
 };
 
@@ -353,11 +389,18 @@ export const toggleClientFavorite = async (id: string, isFavorite: boolean) => {
   if (error) throw error;
 };
 
-/** Alterna o status de mensalista de um cliente. */
-export const toggleClientMensalista = async (id: string, isMensalista: boolean) => {
+/** Alterna o status de mensalista de um cliente, opcionalmente vinculando a um plano. */
+export const toggleClientMensalista = async (
+  id: string,
+  isMensalista: boolean,
+  planId?: string | null
+) => {
   const { error } = await supabase
     .from('clients')
-    .update({ is_mensalista: isMensalista })
+    .update({
+      is_mensalista: isMensalista,
+      mensalista_plan_id: isMensalista ? planId || null : null,
+    })
     .eq('id', id);
 
   if (error) throw error;
@@ -367,13 +410,100 @@ export const toggleClientMensalista = async (id: string, isMensalista: boolean) 
 export const getClientByPhone = async (phone: string) => {
   const { data, error } = await supabase
     .from('clients')
-    .select('id, name, phone, is_mensalista')
+    .select('id, name, phone, is_mensalista, mensalista_plan_id')
     .eq('phone', phone)
     .limit(1)
     .maybeSingle();
 
   if (error) throw error;
   return data;
+};
+
+// Mensalista Plans
+
+/** Busca todos os planos mensalistas (admin: todos, público: apenas ativos). */
+export const getMensalistaPlans = async (activeOnly = false): Promise<MensalistaPlan[]> => {
+  let query = supabase
+    .from('mensalista_plans')
+    .select('*')
+    .order('sort_order', { ascending: true });
+  if (activeOnly) {
+    query = query.eq('is_active', true);
+  }
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data || []) as MensalistaPlan[];
+};
+
+/** Cria um novo plano mensalista. */
+export const createMensalistaPlan = async (plan: {
+  name: string;
+  price: number;
+  included_service_ids: string[];
+  is_active?: boolean;
+}): Promise<MensalistaPlan> => {
+  const { data, error } = await supabase
+    .from('mensalista_plans')
+    .insert({
+      name: plan.name,
+      price: plan.price,
+      included_service_ids: plan.included_service_ids,
+      is_active: plan.is_active ?? true,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as MensalistaPlan;
+};
+
+/** Atualiza um plano mensalista. */
+export const updateMensalistaPlan = async (
+  id: string,
+  data: {
+    name?: string;
+    price?: number;
+    included_service_ids?: string[];
+    is_active?: boolean;
+    sort_order?: number;
+  }
+): Promise<void> => {
+  const { error } = await supabase.from('mensalista_plans').update(data).eq('id', id);
+  if (error) throw error;
+};
+
+/** Exclui um plano mensalista. */
+export const deleteMensalistaPlan = async (id: string): Promise<void> => {
+  const { error } = await supabase.from('mensalista_plans').delete().eq('id', id);
+  if (error) throw error;
+};
+
+/** Alterna o status ativo/inativo de um plano mensalista. */
+export const toggleMensalistaPlan = async (id: string, isActive: boolean): Promise<void> => {
+  const { error } = await supabase
+    .from('mensalista_plans')
+    .update({ is_active: isActive })
+    .eq('id', id);
+  if (error) throw error;
+};
+
+/** Busca a configuração de mensalista ativo/desativo. */
+export const getMensalistaEnabled = async (): Promise<boolean> => {
+  const { data, error } = await supabase
+    .from('settings')
+    .select('value')
+    .eq('key', 'mensalista_enabled')
+    .maybeSingle();
+  if (error) throw error;
+  return data?.value === 'true';
+};
+
+/** Atualiza a configuração de mensalista ativo/desativo. */
+export const setMensalistaEnabled = async (enabled: boolean): Promise<void> => {
+  const { error } = await supabase
+    .from('settings')
+    .upsert({ key: 'mensalista_enabled', value: String(enabled) }, { onConflict: 'key' });
+  if (error) throw error;
 };
 
 // Reviews

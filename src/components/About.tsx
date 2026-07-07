@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from 'lucide-react';
 import { useBarberSettings } from '../contexts/BarberSettingsContext';
 
 const About: React.FC = () => {
   const { barberPhoto, barberBio, barberName, barberQuote } = useBarberSettings();
+  const [photoError, setPhotoError] = useState(false);
 
-  const hasPhoto = !!barberPhoto;
+  useEffect(() => {
+    setPhotoError(false);
+  }, [barberPhoto]);
+
+  const hasPhoto = !!barberPhoto && !photoError;
   const displayBio =
     barberBio ||
     'Acredito que a barbearia é um dos poucos lugares onde o homem pode relaxar de verdade. Por isso, busco oferecer um atendimento tranquilo, com atenção aos detalhes e respeito a cada cliente.';
@@ -40,6 +45,7 @@ const About: React.FC = () => {
                       alt="Barbeiro"
                       className="w-full h-full object-cover object-top"
                       loading="lazy"
+                      onError={() => setPhotoError(true)}
                     />
                   </div>
                 ) : (
@@ -75,6 +81,7 @@ const About: React.FC = () => {
                     alt="Barbeiro"
                     className="w-full h-full object-cover object-top scale-110"
                     loading="lazy"
+                    onError={() => setPhotoError(true)}
                   />
                 </div>
               ) : (

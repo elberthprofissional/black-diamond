@@ -5,6 +5,7 @@ interface DesktopServicesStepProps {
   services: Service[];
   selectedServices: Service[];
   isMensalista?: boolean;
+  planName?: string;
   onToggleService: (service: Service) => void;
   onNextStep: () => void;
 }
@@ -13,6 +14,7 @@ export default function DesktopServicesStep({
   services,
   selectedServices,
   isMensalista = false,
+  planName,
   onToggleService,
   onNextStep,
 }: DesktopServicesStepProps) {
@@ -33,15 +35,21 @@ export default function DesktopServicesStep({
       {/* Mensalista Banner */}
       {isMensalista && (
         <div className="p-4 bg-[#C5A059]/[0.06] border border-[#C5A059]/20 rounded-xl">
-          <p className="text-[13px] text-[#C5A059] font-medium">Corte de Cabelo incluso no plano mensal</p>
-          <p className="text-[12px] text-zinc-500 mt-1">Selecione serviços adicionais ou pule esta etapa.</p>
+          <p className="text-[13px] text-[#C5A059] font-medium">
+            {planName
+              ? `Serviços inclusos no ${planName}`
+              : 'Corte de Cabelo incluso no plano mensal'}
+          </p>
+          <p className="text-[12px] text-zinc-500 mt-1">
+            Selecione serviços adicionais ou pule esta etapa.
+          </p>
         </div>
       )}
 
       {/* Services List */}
       <div className="flex-1 space-y-0.5">
-        {services.map(service => {
-          const isSelected = selectedServices.some(s => s.id === service.id);
+        {services.map((service) => {
+          const isSelected = selectedServices.some((s) => s.id === service.id);
           return (
             <button
               key={service.id}
@@ -51,22 +59,28 @@ export default function DesktopServicesStep({
               }`}
             >
               <div className="flex items-center gap-4">
-                <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
-                  isSelected
-                    ? 'bg-[#C5A059] border-[#C5A059]'
-                    : 'border-white/20 group-hover:border-white/40'
-                }`}>
+                <div
+                  className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                    isSelected
+                      ? 'bg-[#C5A059] border-[#C5A059]'
+                      : 'border-white/20 group-hover:border-white/40'
+                  }`}
+                >
                   {isSelected && <Check size={12} className="text-black" strokeWidth={3} />}
                 </div>
-                <span className={`text-[15px] font-medium transition-colors ${
-                  isSelected ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'
-                }`}>
+                <span
+                  className={`text-[15px] font-medium transition-colors ${
+                    isSelected ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'
+                  }`}
+                >
                   {service.name}
                 </span>
               </div>
-              <span className={`text-[15px] font-medium tabular-nums ${
-                isSelected ? 'text-[#C5A059]' : 'text-zinc-500'
-              }`}>
+              <span
+                className={`text-[15px] font-medium tabular-nums ${
+                  isSelected ? 'text-[#C5A059]' : 'text-zinc-500'
+                }`}
+              >
                 R$ {Number(service.price).toFixed(0)}
               </span>
             </button>
@@ -78,7 +92,9 @@ export default function DesktopServicesStep({
       <div className="pt-4 border-t border-white/[0.04] space-y-3">
         {selectedServices.length > 0 && (
           <div className="flex items-center justify-between">
-            <span className="text-[12px] font-medium text-zinc-500 uppercase tracking-wider">Total</span>
+            <span className="text-[12px] font-medium text-zinc-500 uppercase tracking-wider">
+              Total
+            </span>
             <span className="text-xl font-bold text-[#C5A059]">R$ {totalPrice.toFixed(0)}</span>
           </div>
         )}

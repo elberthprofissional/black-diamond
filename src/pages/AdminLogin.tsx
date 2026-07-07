@@ -21,6 +21,7 @@ const AdminLogin: React.FC = () => {
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [isResetSent, setIsResetSent] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const { toast, showError } = useToast();
   const navigate = useNavigate();
   const [isPWA, setIsPWA] = useState(false);
@@ -92,14 +93,16 @@ const AdminLogin: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginError(null);
+
     if (!email.trim() || !password.trim()) {
-      showError('Preencha todos os campos.');
+      setLoginError('Preencha todos os campos.');
       return;
     }
 
     if (isBlocked) {
       const remaining = Math.ceil(getTimeUntilReset() / 60000);
-      showError(`Muitas tentativas. Tente novamente em ${remaining} minuto(s).`);
+      setLoginError(`Muitas tentativas. Tente novamente em ${remaining} minuto(s).`);
       return;
     }
 
@@ -114,16 +117,16 @@ const AdminLogin: React.FC = () => {
         const allowed = recordAttempt();
         logLogin(false, email.trim());
         if (!allowed) {
-          showError('Conta bloqueada temporariamente. Tente novamente mais tarde.');
+          setLoginError('Conta bloqueada temporariamente. Tente novamente mais tarde.');
         } else {
-          showError('E-mail ou senha incorretos.');
+          setLoginError('E-mail ou senha incorretos.');
         }
       } else {
         logLogin(true, email.trim());
         navigate('/admin');
       }
     } catch {
-      showError('Erro ao tentar fazer login.');
+      setLoginError('Erro ao tentar fazer login.');
     } finally {
       setIsLoggingIn(false);
     }
@@ -192,9 +195,15 @@ const AdminLogin: React.FC = () => {
           <LoginHeader isPWA={isPWA} />
           <LoginForm
             email={email}
-            onEmailChange={setEmail}
+            onEmailChange={(v) => {
+              setEmail(v);
+              setLoginError(null);
+            }}
             password={password}
-            onPasswordChange={setPassword}
+            onPasswordChange={(v) => {
+              setPassword(v);
+              setLoginError(null);
+            }}
             showPassword={showPassword}
             onTogglePassword={() => setShowPassword(!showPassword)}
             onSubmit={handleLogin}
@@ -203,6 +212,7 @@ const AdminLogin: React.FC = () => {
             isBlocked={isBlocked}
             attempts={attempts}
             maxAttempts={maxAttempts}
+            error={loginError}
           />
         </motion.div>
       </div>

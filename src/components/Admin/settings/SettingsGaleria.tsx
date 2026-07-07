@@ -1,27 +1,15 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import ToastNotification from '../shared/ToastNotification';
-import { ImageIcon, Trash2, ArrowLeft, MoveVertical } from 'lucide-react';
+import { ImageIcon, Trash2, MoveVertical } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGallery } from '../../../hooks/useGallery';
 import GalleryPreview from './gallery/GalleryPreview';
 import GalleryDeleteModal from './gallery/GalleryDeleteModal';
 import GalleryMoveModal from './gallery/GalleryMoveModal';
 
-interface SettingsGaleriaProps {
-  onBack?: () => void;
-}
-
-const SettingsGaleria: React.FC<SettingsGaleriaProps> = ({ onBack }) => {
+const SettingsGaleria: React.FC = () => {
   const g = useGallery();
   const isSelecting = g.selectionMode || g.selectedImages.length > 0;
-
-  const handleBack = useCallback(() => {
-    if (isSelecting) {
-      g.clearSelection();
-    } else {
-      onBack?.();
-    }
-  }, [isSelecting, g, onBack]);
 
   return (
     <div className="space-y-4 overflow-hidden">
@@ -35,14 +23,8 @@ const SettingsGaleria: React.FC<SettingsGaleriaProps> = ({ onBack }) => {
       />
 
       {/* Header - Google Photos style */}
-      <div className="flex items-center justify-between h-12">
+      <div className="flex items-center justify-between h-12 px-1">
         <div className="flex items-center gap-3">
-          <button
-            onClick={handleBack}
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/[0.06] transition-colors cursor-pointer"
-          >
-            <ArrowLeft size={20} className="text-zinc-300" />
-          </button>
           <div>
             {isSelecting ? (
               <p className="text-sm font-medium text-white">
@@ -152,7 +134,7 @@ const SettingsGaleria: React.FC<SettingsGaleriaProps> = ({ onBack }) => {
 
       {/* Image Grid - Google Photos style */}
       {g.images.length > 0 && (
-        <div className="grid grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {g.images.map((image, index) => {
             const isSelected = g.selectedImages.includes(image.id);
             return (

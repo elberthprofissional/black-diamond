@@ -5,6 +5,7 @@ interface MobileServicesStepProps {
   services: Service[];
   selectedServices: Service[];
   isMensalista?: boolean;
+  planName?: string;
   onToggleService: (service: Service) => void;
 }
 
@@ -12,6 +13,7 @@ export default function MobileServicesStep({
   services,
   selectedServices,
   isMensalista = false,
+  planName,
   onToggleService,
 }: MobileServicesStepProps) {
   return (
@@ -27,14 +29,16 @@ export default function MobileServicesStep({
 
       {isMensalista && (
         <div className="p-3 bg-[#C5A059]/[0.06] border border-[#C5A059]/20 rounded-xl shrink-0">
-          <p className="text-[12px] text-[#C5A059] font-medium">Corte incluso no plano mensal</p>
+          <p className="text-[12px] text-[#C5A059] font-medium">
+            {planName ? `Serviços inclusos no ${planName}` : 'Corte incluso no plano mensal'}
+          </p>
           <p className="text-[11px] text-zinc-500 mt-0.5">Selecione adicionais ou pule.</p>
         </div>
       )}
 
       <div className="divide-y divide-white/[0.04] border-t border-b border-white/[0.04] overflow-y-auto flex-1 scrollbar-hide pb-4">
-        {services.map(service => {
-          const isSelected = selectedServices.some(s => s.id === service.id);
+        {services.map((service) => {
+          const isSelected = selectedServices.some((s) => s.id === service.id);
           return (
             <button
               key={service.id}
@@ -50,12 +54,16 @@ export default function MobileServicesStep({
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-[13px] font-bold tracking-wide uppercase ${isSelected ? 'text-[#C5A059]' : 'text-zinc-200'}`}>
+                  <p
+                    className={`text-[13px] font-bold tracking-wide uppercase ${isSelected ? 'text-[#C5A059]' : 'text-zinc-200'}`}
+                  >
                     {service.name}
                   </p>
                 </div>
               </div>
-              <span className={`font-black text-sm shrink-0 ${isSelected ? 'text-[#C5A059]' : 'text-zinc-400'}`}>
+              <span
+                className={`font-black text-sm shrink-0 ${isSelected ? 'text-[#C5A059]' : 'text-zinc-400'}`}
+              >
                 R$ {Number(service.price).toFixed(0)}
               </span>
             </button>

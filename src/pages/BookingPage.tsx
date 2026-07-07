@@ -35,6 +35,7 @@ const BookingPage: React.FC = () => {
     goBack: w.goBack,
     nextDays: w.nextDays,
     isMensalista: w.isMensalista,
+    planName: w.currentPlan?.name,
     clientLookupLoading: w.clientLookupLoading,
   };
 

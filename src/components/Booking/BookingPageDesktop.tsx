@@ -42,6 +42,7 @@ interface BookingPageDesktopProps {
     isPast: boolean;
   }[];
   isMensalista: boolean;
+  planName?: string;
   clientLookupLoading: boolean;
 }
 
@@ -66,6 +67,7 @@ const BookingPageDesktop: React.FC<BookingPageDesktopProps> = ({
   goBack,
   nextDays,
   isMensalista,
+  planName,
   clientLookupLoading,
 }) => {
   return (
@@ -255,6 +257,7 @@ const BookingPageDesktop: React.FC<BookingPageDesktopProps> = ({
                   services={services}
                   selectedServices={selectedServices}
                   isMensalista={isMensalista}
+                  planName={planName}
                   onToggle={toggleService}
                   onSkip={goNext}
                   layout="desktop"

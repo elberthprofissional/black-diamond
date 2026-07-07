@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS clients (
     notes TEXT,
     is_favorite BOOLEAN DEFAULT FALSE,
     is_mensalista BOOLEAN DEFAULT FALSE,
+    mensalista_plan_id UUID REFERENCES mensalista_plans(id) ON DELETE SET NULL,
     is_blocked BOOLEAN DEFAULT FALSE,
     manually_added BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -128,6 +129,18 @@ CREATE POLICY "System can insert audit logs" ON audit_logs
     TO authenticated
     WITH CHECK (is_admin());
 
+-- Tabela de planos mensalistas
+CREATE TABLE IF NOT EXISTS mensalista_plans (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    included_service_ids UUID[] DEFAULT '{}',
+    is_active BOOLEAN DEFAULT TRUE,
+    is_default BOOLEAN DEFAULT FALSE,
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Tabela de imagens da galeria
 CREATE TABLE IF NOT EXISTS gallery_images (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -165,7 +178,8 @@ INSERT INTO settings (key, value) VALUES
     ('saturday_closing', '18:00'),
     ('working_days', '1,2,3,4,5,6'),
     ('barber_name', 'Admin'),
-    ('barber_phone', '')
+    ('barber_phone', ''),
+    ('mensalista_enabled', 'true')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 -- =========================================================================
@@ -215,6 +229,30 @@ WHERE NOT EXISTS (
 );
 
 -- =========================================================================
+-- 5b. CARGA INICIAL DE PLANOS MENSALISTAS
+-- =========================================================================
+DO $$
+BEGIN
+  IF (SELECT COUNT(*) FROM mensalista_plans) = 0 THEN
+    INSERT INTO mensalista_plans (name, price, included_service_ids, is_active, is_default, sort_order)
+    SELECT
+      v.name,
+      v.price::DECIMAL(10,2),
+      COALESCE(
+        ARRAY(SELECT id FROM services WHERE services.name = v.service_name),
+        '{}'
+      ),
+      true,
+      true,
+      v.sort_order
+    FROM (VALUES
+      ('Plano Black', 150.00, 'Corte de Cabelo', 1),
+      ('Plano Gold', 120.00, 'Corte de Cabelo', 2)
+    ) AS v(name, price, service_name, sort_order);
+  END IF;
+END $$;
+
+-- =========================================================================
 -- 6. ROW LEVEL SECURITY (RLS)
 -- =========================================================================
 ALTER TABLE services ENABLE ROW LEVEL SECURITY;
@@ -224,6 +262,7 @@ ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE secrets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE mensalista_plans ENABLE ROW LEVEL SECURITY;
 
 -- =========================================================================
 -- 7. POLÍTICAS DE ACESSO
@@ -256,6 +295,15 @@ CREATE POLICY "Configurações leitura pública" ON settings FOR SELECT USING (t
 
 DROP POLICY IF EXISTS "Configurações gerenciamento admin" ON settings;
 CREATE POLICY "Configurações gerenciamento admin" ON settings FOR ALL TO authenticated
+USING (is_admin())
+WITH CHECK (is_admin());
+
+-- Mensalista plans: leitura pública, escrita admin
+DROP POLICY IF EXISTS "Mensalista plans leitura pública" ON mensalista_plans;
+CREATE POLICY "Mensalista plans leitura pública" ON mensalista_plans FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Mensalista plans admin" ON mensalista_plans;
+CREATE POLICY "Mensalista plans admin" ON mensalista_plans FOR ALL TO authenticated
 USING (is_admin())
 WITH CHECK (is_admin());
 
