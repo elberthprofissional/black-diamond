@@ -217,36 +217,35 @@ function NotificationListContent({
               <button
                 key={notif.id}
                 onClick={() => setSelected(notif)}
-                className="w-full flex items-center gap-3 px-5 py-4 text-left transition-all active:bg-white/[0.03]"
+                className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all active:bg-white/[0.03]"
               >
-                {/* Avatar */}
-                <div className="w-10 h-10 rounded-full bg-white/[0.06] flex items-center justify-center shrink-0">
-                  <span className="text-[13px] font-bold text-zinc-400">
+                <div
+                  className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${notif.read ? 'bg-white/[0.04]' : 'bg-[#C5A059]/10'}`}
+                >
+                  <span
+                    className={`text-[13px] font-bold ${notif.read ? 'text-zinc-500' : 'text-[#C5A059]'}`}
+                  >
                     {name.charAt(0).toUpperCase()}
                   </span>
                 </div>
-
-                {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <span
-                      className={`text-[14px] font-semibold truncate ${notif.read ? 'text-zinc-500' : 'text-white'}`}
-                    >
-                      {name}
+                  <span
+                    className={`text-[14px] font-semibold truncate block ${notif.read ? 'text-zinc-500' : 'text-white'}`}
+                  >
+                    {name}
+                  </span>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[11px] text-zinc-600 truncate flex-1">
+                      {services}
+                      {extra > 0 ? ` +${extra}` : ''}
                     </span>
                     {time && (
-                      <span className="shrink-0 text-[12px] text-[#C5A059] font-bold tabular-nums">
+                      <span className="shrink-0 text-[11px] text-[#C5A059] font-semibold tabular-nums">
                         {time}
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-zinc-600 mt-0.5 truncate">
-                    {services}
-                    {extra > 0 ? ` +${extra}` : ''}
-                  </p>
                 </div>
-
-                {/* Chevron */}
                 <ChevronRight size={14} className="shrink-0 text-zinc-700" />
               </button>
             );
@@ -273,8 +272,9 @@ const NotificationBell: React.FC<{ variant: 'mobile' | 'desktop' }> = ({ variant
         !panelRef.current.contains(e.target as Node) &&
         buttonRef.current &&
         !buttonRef.current.contains(e.target as Node)
-      )
+      ) {
         setIsOpen(false);
+      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
