@@ -107,8 +107,8 @@ export function useClientPanel(
   const [expiresAt, setExpiresAt] = useState<string>('');
 
   const handleToggleMensalista = useCallback(
-    async (planId?: string) => {
-      if (!selectedClient) return;
+    async (planId?: string): Promise<boolean> => {
+      if (!selectedClient) return false;
       try {
         const newValue = !selectedClient.is_mensalista;
         const expDate = newValue ? expiresAt || null : null;
@@ -137,8 +137,10 @@ export function useClientPanel(
         );
         setExpiresAt('');
         showSuccess(newValue ? 'Cliente agora é mensalista!' : 'Mensalidade removida.');
+        return true;
       } catch (error) {
         showError(getErrorMessage(error));
+        return false;
       }
     },
     [selectedClient, expiresAt, showSuccess, showError, setClients]
@@ -186,7 +188,7 @@ export function useClientPanel(
         showError(getErrorMessage(error));
       }
     },
-    [selectedClient, showSuccess, showError]
+    [selectedClient, showSuccess, showError, setClients]
   );
 
   const panelTotal = useMemo(

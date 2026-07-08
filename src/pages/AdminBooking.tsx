@@ -201,7 +201,9 @@ const AdminBooking: React.FC = () => {
   useEffect(() => {
     getMensalistaPlans(true)
       .then(setAllPlans)
-      .catch(() => {});
+      .catch(() => {
+        // Plans failed to load — fallback to hardcoded excluded services
+      });
   }, []);
 
   useEffect(() => {
@@ -341,7 +343,7 @@ const AdminBooking: React.FC = () => {
         try {
           await deleteBooking(rescheduleBooking.id);
         } catch {
-          showSuccess('Agendamento criado, mas não foi possível remover o anterior.');
+          showError('Agendamento criado, mas não foi possível remover o anterior.');
         }
       }
 

@@ -107,7 +107,7 @@ const BookingPageDesktop: React.FC<BookingPageDesktopProps> = ({
                 <div key={`side-${s.id}`} className="flex justify-between items-center">
                   <span className="text-[13px] text-zinc-300">{s.name}</span>
                   <span className="text-[13px] font-bold text-[#C5A059]">
-                    R$ {Number(s.price).toFixed(0)}
+                    R$ {Number(s.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
               ))}
@@ -127,7 +127,9 @@ const BookingPageDesktop: React.FC<BookingPageDesktopProps> = ({
               )}
               <div className="border-t border-white/[0.06] pt-3 flex justify-between">
                 <span className="text-[10px] font-bold text-zinc-500 uppercase">Total</span>
-                <span className="text-lg font-bold">R$ {totalPrice.toFixed(0)}</span>
+                <span className="text-lg font-bold">
+                  R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </span>
               </div>
             </div>
           )}

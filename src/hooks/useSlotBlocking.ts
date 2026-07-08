@@ -9,7 +9,12 @@ export function useSlotBlocking() {
   const [blockingDay, setBlockingDay] = useState(false);
   const { showSuccess, showError } = useToast();
 
-  const blockSlot = async (date: string, slot: string, onBlockComplete?: () => Promise<void> | void, customKey?: string) => {
+  const blockSlot = async (
+    date: string,
+    slot: string,
+    onBlockComplete?: () => Promise<void> | void,
+    customKey?: string
+  ) => {
     setBlockingSlot(customKey || slot);
     try {
       await toggleSlotBlock(date, slot);
@@ -24,7 +29,7 @@ export function useSlotBlocking() {
     }
   };
 
-  const unblockSlot = async (_bookingId: string, onUnblockComplete?: () => Promise<void> | void) => {
+  const unblockSlot = async (bookingId: string, onUnblockComplete?: () => Promise<void> | void) => {
     try {
       const booking = unblockingBooking;
       if (booking) {
@@ -40,7 +45,11 @@ export function useSlotBlocking() {
     }
   };
 
-  const blockEntireDay = async (date: string, freeSlots: string[], onComplete?: () => Promise<void> | void) => {
+  const blockEntireDay = async (
+    date: string,
+    freeSlots: string[],
+    onComplete?: () => Promise<void> | void
+  ) => {
     if (freeSlots.length === 0) return;
     setBlockingDay(true);
     try {
@@ -58,7 +67,10 @@ export function useSlotBlocking() {
     }
   };
 
-  const unblockEntireDay = async (blockedBookings: BookingWithClient[], onComplete?: () => Promise<void> | void) => {
+  const unblockEntireDay = async (
+    blockedBookings: BookingWithClient[],
+    onComplete?: () => Promise<void> | void
+  ) => {
     if (blockedBookings.length === 0) return;
     setBlockingDay(true);
     try {
@@ -86,6 +98,6 @@ export function useSlotBlocking() {
     blockSlot,
     unblockSlot,
     blockEntireDay,
-    unblockEntireDay
+    unblockEntireDay,
   };
 }

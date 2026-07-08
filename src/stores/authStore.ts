@@ -11,6 +11,7 @@ interface AuthState {
   setLoading: (loading: boolean) => void;
   checkSession: () => Promise<void>;
   logout: () => Promise<void>;
+  initListener: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -46,5 +47,20 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     await supabase.auth.signOut();
     set({ user: null, session: null, isAuthenticated: false });
+  },
+
+  initListener: () => {
+    supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        set({
+          user: { id: session.user.id, email: session.user.email || '' },
+          session,
+          isAuthenticated: true,
+          loading: false,
+        });
+      } else {
+        set({ user: null, session: null, isAuthenticated: false, loading: false });
+      }
+    });
   },
 }));

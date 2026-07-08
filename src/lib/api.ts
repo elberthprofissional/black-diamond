@@ -145,30 +145,22 @@ export const deleteBooking = async (id: string) => {
 /** Busca agendamentos futuros pelo telefone do cliente (para cancelamento público). */
 export const getBookingsByPhone = async (phone: string) => {
   const cleanPhone = phone.replace(/\D/g, '');
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   const { data, error } = await supabase
     .from('bookings')
-    .select('id, booking_date, booking_time, status, total_price, service_ids')
+    .select(
+      'id, booking_date, booking_time, status, total_price, service_ids, total_duration, clients!inner(name, phone)'
+    )
     .gte('booking_date', today)
     .in('status', ['pending', 'confirmed'])
+    .eq('clients.phone', cleanPhone)
     .order('booking_date', { ascending: true })
     .order('booking_time', { ascending: true });
 
   if (error) throw error;
-
-  if (!data || data.length === 0) return [];
-
-  const bookingIds = data.map((b) => b.id);
-  const { data: bookingsWithClients } = await supabase
-    .from('bookings')
-    .select(
-      'id, booking_date, booking_time, status, total_price, service_ids, clients!inner(name, phone)'
-    )
-    .in('id', bookingIds)
-    .eq('clients.phone', cleanPhone);
-
-  return bookingsWithClients || [];
+  return data || [];
 };
 
 /** Cancela um agendamento (status → cancelled). */

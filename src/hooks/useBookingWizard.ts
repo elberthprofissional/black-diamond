@@ -34,7 +34,9 @@ export function useBookingWizard(showError: (msg: string) => void) {
   useEffect(() => {
     getMensalistaPlans(true)
       .then(setAllPlans)
-      .catch(() => {});
+      .catch(() => {
+        // Plans failed to load — fallback to hardcoded excluded services
+      });
   }, []);
 
   // Client lookup

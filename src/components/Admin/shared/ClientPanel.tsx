@@ -23,7 +23,7 @@ interface ClientPanelProps {
   onDelete: () => void;
   onReminder: () => void;
   onClose: () => void;
-  onToggleMensalista: (planId?: string) => void;
+  onToggleMensalista: (planId?: string) => Promise<boolean> | boolean;
   onRenewMensalidade?: () => void;
 }
 
@@ -51,19 +51,27 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
   const navigate = useNavigate();
   const [showPlanSelector, setShowPlanSelector] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
+  const [savingMensalista, setSavingMensalista] = useState(false);
 
-  const handleMensalistaClick = () => {
+  const handleMensalistaClick = async () => {
     if (client.is_mensalista) {
-      onToggleMensalista();
+      setSavingMensalista(true);
+      await onToggleMensalista();
+      setSavingMensalista(false);
     } else {
       setShowPlanSelector(true);
     }
   };
 
-  const confirmToggleMensalista = () => {
-    onToggleMensalista(selectedPlanId || undefined);
-    setShowPlanSelector(false);
-    setSelectedPlanId('');
+  const confirmToggleMensalista = async () => {
+    if (!selectedPlanId || savingMensalista) return;
+    setSavingMensalista(true);
+    const success = await onToggleMensalista(selectedPlanId);
+    setSavingMensalista(false);
+    if (success) {
+      setShowPlanSelector(false);
+      setSelectedPlanId('');
+    }
   };
 
   return (
@@ -198,6 +206,7 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
 
           <button
             onClick={handleMensalistaClick}
+            disabled={savingMensalista}
             className={`w-full h-10 border rounded-xl font-bold text-[9px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               client.is_mensalista
                 ? 'border-[#C5A059]/30 bg-[#C5A059]/10 text-[#C5A059] hover:bg-[#C5A059]/20'
@@ -205,7 +214,11 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
             }`}
           >
             <Crown size={12} />
-            {client.is_mensalista ? 'Remover Mensalista' : 'Tornar Mensalista'}
+            {savingMensalista
+              ? 'Salvando...'
+              : client.is_mensalista
+                ? 'Remover Mensalista'
+                : 'Tornar Mensalista'}
           </button>
 
           {client.is_mensalista && expiresAt && (
@@ -417,10 +430,10 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
                 <div className="w-px bg-white/[0.06]" />
                 <button
                   onClick={confirmToggleMensalista}
-                  disabled={!selectedPlanId}
+                  disabled={!selectedPlanId || savingMensalista}
                   className="flex-1 py-3 text-[12px] font-semibold text-[#C5A059] hover:text-[#A68233] transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                  Confirmar
+                  {savingMensalista ? 'Salvando...' : 'Confirmar'}
                 </button>
               </div>
 

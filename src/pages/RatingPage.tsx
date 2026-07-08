@@ -19,6 +19,7 @@ const RatingPage: React.FC = () => {
       return;
     }
 
+    if (loading) return;
     setLoading(true);
     setError('');
 

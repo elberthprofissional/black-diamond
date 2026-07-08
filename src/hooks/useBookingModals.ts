@@ -65,15 +65,18 @@ export function useBookingModals(loadData: () => Promise<void>) {
   const confirmDelete = async () => {
     const id = bookingToDelete?.id;
     if (!id) return;
-    setBookingToDelete(null);
-    setSelectedBooking(null);
+    const clientName = bookingToDelete?.clients?.name;
+    const bookingDate = bookingToDelete?.booking_date;
+    const bookingTime = bookingToDelete?.booking_time;
     try {
-      logBooking('booking_cancelled', id, {
-        client_name: bookingToDelete?.clients?.name,
-        date: bookingToDelete?.booking_date,
-        time: bookingToDelete?.booking_time,
-      });
       await deleteBooking(id);
+      logBooking('booking_cancelled', id, {
+        client_name: clientName,
+        date: bookingDate,
+        time: bookingTime,
+      });
+      setBookingToDelete(null);
+      setSelectedBooking(null);
       await loadData();
       showSuccess('Agendamento excluído!');
     } catch (error) {

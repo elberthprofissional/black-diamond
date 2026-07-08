@@ -39,7 +39,7 @@ export default function CancelPage() {
 
   const nextDays = getNextDays().filter((d) => {
     const dow = new Date(d.fullDate + 'T12:00:00').getDay();
-    return dow >= 1 && dow <= 6; // Seg-Sáb
+    return dow >= 1 && dow <= 5; // Seg-Sex (sáb não disponível para reagendamento público)
   });
 
   const handleSearch = async (e: React.FormEvent) => {

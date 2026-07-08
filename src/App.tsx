@@ -19,6 +19,7 @@ const TITLES: Record<string, string> = {
   '/admin/profile': 'Perfil | Black Diamond',
   '/admin/reset-password': 'Redefinir Senha | Black Diamond',
   '/cancelar': 'Cancelar ou Reagendar | Black Diamond',
+  '/avaliar/:bookingId': 'Avaliar Atendimento | Black Diamond',
 };
 
 function TitleManager() {
@@ -52,6 +53,7 @@ const AdminProfile = lazy(() => import('./pages/AdminProfile'));
 const AdminBooking = lazy(() => import('./pages/AdminBooking'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const CancelPage = lazy(() => import('./pages/CancelPage'));
+const RatingPage = lazy(() => import('./pages/RatingPage'));
 
 function LoadingFallback() {
   return (
@@ -110,6 +112,7 @@ function App() {
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin/reset-password" element={<AdminResetPassword />} />
                 <Route path="/cancelar" element={<CancelPage />} />
+                <Route path="/avaliar/:bookingId" element={<RatingPage />} />
 
                 {/* Protected Admin Routes — single AuthGuard check */}
                 <Route

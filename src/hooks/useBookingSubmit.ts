@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { createBooking } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
 import { supabase } from '../lib/supabase';
@@ -17,6 +17,7 @@ interface SubmitParams {
 
 export function useBookingSubmit(showError: (msg: string) => void, onComplete: () => void) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
   const handleConfirm = useCallback(
     async (params: SubmitParams) => {
@@ -31,6 +32,7 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
       } = params;
 
       if (
+        submittingRef.current ||
         isSubmitting ||
         !selectedTime ||
         !userInfo.name ||
@@ -47,6 +49,7 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
         return;
       }
 
+      submittingRef.current = true;
       setIsSubmitting(true);
       try {
         const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
@@ -104,13 +107,15 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
         try {
           const serviceNames = selectedServices.map((s) => s.name).join(', ');
           const formattedDate = selectedDate.split('-').reverse().join('/');
-          supabase.functions.invoke('send-push', {
-            body: {
-              title: 'Novo Agendamento! 💈',
-              body: `${userInfo.name.trim()} - ${serviceNames} - ${formattedDate} às ${selectedTime}`,
-              tag: `booking-${Date.now()}`,
-            },
-          });
+          supabase.functions
+            .invoke('send-push', {
+              body: {
+                title: 'Novo Agendamento! 💈',
+                body: `${userInfo.name.trim()} - ${serviceNames} - ${formattedDate} às ${selectedTime}`,
+                tag: `booking-${Date.now()}`,
+              },
+            })
+            .catch(() => {});
         } catch {
           // Push notification is nice-to-have; silently ignore failures
         }
@@ -119,6 +124,7 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
       } catch (error) {
         showError(getErrorMessage(error));
       } finally {
+        submittingRef.current = false;
         setIsSubmitting(false);
       }
     },

@@ -66,7 +66,15 @@ if ('serviceWorker' in navigator && !import.meta.env.DEV) {
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'activated') {
-                window.location.reload();
+                // Only reload if user is not on a form page
+                const path = window.location.pathname;
+                const isFormPage =
+                  path.includes('/agendar') ||
+                  path.includes('/admin/agendar') ||
+                  path.includes('/cancelar');
+                if (!isFormPage) {
+                  window.location.reload();
+                }
               }
             });
           }

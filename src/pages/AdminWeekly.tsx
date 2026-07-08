@@ -86,8 +86,20 @@ const AdminWeekly: React.FC = () => {
   const selectedDate = hasVisibleDays ? visibleWeekDays[selectedVisibleIndex] : new Date();
   const selectedDateStr = getLocalDateString(selectedDate);
   const isToday = hasVisibleDays && selectedDate.toDateString() === today.toDateString();
-  const currentHour = today.getHours();
-  const currentMinutes = today.getHours() * 60 + today.getMinutes();
+  const [currentHour, setCurrentHour] = useState(() => new Date().getHours());
+  const [currentMinutes, setCurrentMinutes] = useState(
+    () => new Date().getHours() * 60 + new Date().getMinutes()
+  );
+
+  // Update time every minute so stale time values don't cause incorrect filtering
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      setCurrentHour(now.getHours());
+      setCurrentMinutes(now.getHours() * 60 + now.getMinutes());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Se todos os dias mudarem (ex: carregou barberHours), ajusta o índice selecionado
   useEffect(() => {

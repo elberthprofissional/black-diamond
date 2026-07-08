@@ -29,6 +29,7 @@ export function useGallery() {
       const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
       if (swapIdx < 0 || swapIdx >= images.length) return;
 
+      const snapshot = [...images];
       const newImages = [...images];
       const tempPos = newImages[idx].position;
       newImages[idx].position = newImages[swapIdx].position;
@@ -48,7 +49,7 @@ export function useGallery() {
       ]);
 
       if (results.some((r) => r.error)) {
-        setImages(images);
+        setImages(snapshot);
         showError('Erro ao reordenar foto');
       }
     },

@@ -49,7 +49,7 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
 
   const handlePlanClick = (plan: MensalistaPlan) => {
     if (barberPhone) {
-      const msg = `${getGreeting}! Me interessei pelo ${plan.name} (R$ ${Number(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês). Poderia me explicar melhor o que está incluso?`;
+      const msg = `${getGreeting()}! Me interessei pelo ${plan.name} (R$ ${Number(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês). Poderia me explicar melhor o que está incluso?`;
       const url = `https://wa.me/${barberPhone}?text=${encodeURIComponent(msg)}`;
       window.open(url, '_blank');
     }
