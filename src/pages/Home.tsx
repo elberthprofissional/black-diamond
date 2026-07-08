@@ -8,7 +8,6 @@ import Testimonials from '../components/TestimonialsSlider';
 import Gallery from '../components/Gallery';
 import Location from '../components/Location';
 import Footer from '../components/Footer';
-import ClientBookingCard from '../components/ClientBookingCard';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -19,7 +18,6 @@ const Home: React.FC = () => {
 
   return (
     <>
-      <ClientBookingCard />
       <Navbar onBookingClick={handleBooking} />
       <main id="main-content" className="bg-[#0f0f0f]">
         <Hero onBookingClick={handleBooking} />
