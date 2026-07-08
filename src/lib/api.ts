@@ -499,4 +499,29 @@ export const setMensalistaEnabled = async (enabled: boolean): Promise<void> => {
   if (error) throw error;
 };
 
+// Booking Management (public)
+
+export interface ManagedBooking {
+  booking_id: string;
+  booking_date: string;
+  booking_time: string;
+  status: string;
+  total_price: number;
+  total_duration: number;
+  service_names: string[];
+  client_name: string;
+  client_phone: string;
+  is_expired: boolean;
+}
+
+/** Busca agendamentos por token de gerenciamento (acesso público). */
+export const getBookingsByToken = async (token: string): Promise<ManagedBooking[]> => {
+  const { data, error } = await supabase.rpc('get_bookings_by_token', {
+    p_token: token,
+  });
+
+  if (error) throw error;
+  return (data || []) as ManagedBooking[];
+};
+
 // Reviews
