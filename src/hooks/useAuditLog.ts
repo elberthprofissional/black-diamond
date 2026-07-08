@@ -9,6 +9,7 @@ export type AuditAction =
   | 'booking_completed'
   | 'booking_cancelled'
   | 'booking_rescheduled'
+  | 'thank_you_sent'
   | 'client_created'
   | 'client_updated'
   | 'client_deleted'
@@ -59,7 +60,7 @@ export function useAuditLog() {
 
   const logBooking = useCallback(
     (
-      action: 'booking_created' | 'booking_completed' | 'booking_cancelled' | 'booking_rescheduled',
+      action: 'booking_created' | 'booking_completed' | 'booking_cancelled' | 'booking_rescheduled' | 'thank_you_sent',
       bookingId: string,
       details?: Record<string, unknown>
     ) => {

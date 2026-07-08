@@ -7,7 +7,6 @@ import {
   Scissors,
   DollarSign,
   ArrowLeft,
-  ExternalLink,
   Loader2,
 } from 'lucide-react';
 import { getBookingsByToken, cancelBooking, type ManagedBooking } from '../lib/api';

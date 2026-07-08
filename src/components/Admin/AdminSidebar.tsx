@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Users, ChevronDown, User, LogOut, Clock, Settings, Bell } from 'lucide-react';
+import { Calendar, Users, ChevronDown, User, LogOut, Clock, Settings } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
 import { useBarberSettings } from '../../contexts/BarberSettingsContext';
 import NotificationBell from './NotificationBell';

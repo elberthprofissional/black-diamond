@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, ArrowLeft, Check, Trash2, Calendar, AlertTriangle, Clock, Star } from 'lucide-react';
+import { Bell, Trash2, Calendar, AlertTriangle, Clock, Star } from 'lucide-react';
 import { useNotifications, type Notification } from '../../hooks/useNotifications';
 
 function timeAgo(dateStr: string): string {
@@ -37,7 +37,6 @@ interface NotificationBellProps {
 function NotificationListContent({
   notifications,
   unreadCount,
-  markAsRead,
   markAllAsRead,
   clearNotification,
   onNotifClick,
@@ -46,7 +45,6 @@ function NotificationListContent({
 }: {
   notifications: Notification[];
   unreadCount: number;
-  markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   clearNotification: (id: string) => void;
   onNotifClick: (notif: Notification) => void;
@@ -215,7 +213,6 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ variant }) => {
                 <NotificationListContent
                   notifications={notifications}
                   unreadCount={unreadCount}
-                  markAsRead={markAsRead}
                   markAllAsRead={markAllAsRead}
                   clearNotification={clearNotification}
                   onNotifClick={handleNotifClick}

@@ -4,9 +4,30 @@ import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
 import { motion, AnimatePresence } from 'framer-motion';
 
+interface DayHours {
+  enabled: boolean;
+  open: string;
+  close: string;
+}
+
+interface LunchBreak {
+  enabled: boolean;
+  start: string;
+  end: string;
+  days: number[];
+}
+
+type DayKey = '0' | '1' | '2' | '3' | '4' | '5' | '6';
+
 interface HoursData {
-  [key: string]: { enabled: boolean; open: string; close: string };
-  lunch_break?: { enabled: boolean; start: string; end: string; days: number[] };
+  '0': DayHours;
+  '1': DayHours;
+  '2': DayHours;
+  '3': DayHours;
+  '4': DayHours;
+  '5': DayHours;
+  '6': DayHours;
+  lunch_break?: LunchBreak;
 }
 
 const DEFAULT: HoursData = {
@@ -19,7 +40,7 @@ const DEFAULT: HoursData = {
   '0': { enabled: false, open: '09:00', close: '14:00' },
 };
 
-const DAYS_ORDER = ['1', '2', '3', '4', '5', '6', '0'];
+const DAYS_ORDER: DayKey[] = ['1', '2', '3', '4', '5', '6', '0'];
 const DAY_NAMES: Record<string, string> = {
   '1': 'Segunda',
   '2': 'Terça',
@@ -364,15 +385,15 @@ const SettingsHorarios: React.FC = () => {
     }
   }, [barberHours]);
 
-  const patch = (day: string, data: Partial<{ enabled: boolean; open: string; close: string }>) => {
-    setHours((prev) => ({ ...prev, [day]: { ...prev[day], ...data } }));
+  const patch = (day: DayKey, data: Partial<DayHours>) => {
+    setHours((prev) => ({ ...prev, [day]: { ...(prev[day] as DayHours), ...data } }));
     setHasChanges(true);
     setModifiedDays((prev) => new Set(prev).add(day));
     setJustSaved(false);
   };
 
-  const toggle = (day: string) => {
-    patch(day, { enabled: !hours[day].enabled });
+  const toggle = (day: DayKey) => {
+    patch(day, { enabled: !(hours[day] as DayHours).enabled });
   };
 
   const applyToAll = (open: string, close: string, days: string[]) => {
@@ -383,8 +404,8 @@ const SettingsHorarios: React.FC = () => {
     }
     setHours((prev) => {
       const next = { ...prev };
-      for (const d of days) next[d] = { enabled: true, open, close };
-      return next;
+      for (const d of days) (next as Record<string, DayHours | LunchBreak>)[d] = { enabled: true, open, close };
+      return next as HoursData;
     });
     setHasChanges(true);
     showSuccess('Horários aplicados!');
@@ -392,7 +413,8 @@ const SettingsHorarios: React.FC = () => {
 
   const saveAll = async () => {
     for (const day of DAYS_ORDER) {
-      if (hours[day]?.enabled && hours[day].open >= hours[day].close) {
+      const h = hours[day] as DayHours;
+      if (h.enabled && h.open >= h.close) {
         showError(`${DAY_NAMES[day]}: horário de abertura deve ser anterior ao fechamento.`);
         return;
       }
@@ -411,11 +433,12 @@ const SettingsHorarios: React.FC = () => {
     } else showError('Erro ao salvar');
   };
 
-  const activeCount = DAYS_ORDER.filter((d) => hours[d]?.enabled).length;
+  const activeCount = DAYS_ORDER.filter((d) => (hours[d] as DayHours)?.enabled).length;
 
-  const renderInputs = (day: string) => {
-    const [oH, oM] = hours[day].open.split(':');
-    const [cH, cM] = hours[day].close.split(':');
+  const renderInputs = (day: DayKey) => {
+    const h = hours[day] as DayHours;
+    const [oH, oM] = h.open.split(':');
+    const [cH, cM] = h.close.split(':');
     return (
       <div className="flex items-center gap-3 flex-1">
         <div className="flex items-center gap-0.5">
@@ -508,8 +531,7 @@ const SettingsHorarios: React.FC = () => {
             <button
               onClick={() => {
                 setHours((prev) => {
-                  const lunch = (prev as Record<string, unknown>).lunch_break as
-                    { enabled: boolean; start: string; end: string; days: number[] } | undefined;
+                  const lunch = prev.lunch_break;
                   return {
                     ...prev,
                     lunch_break: {
@@ -523,14 +545,14 @@ const SettingsHorarios: React.FC = () => {
                 setHasChanges(true);
               }}
               role="switch"
-              aria-checked={!!(hours as Record<string, unknown>).lunch_break}
+              aria-checked={!!hours.lunch_break}
               className={`relative w-9 h-5 rounded-full transition-all duration-300 cursor-pointer ${
-                (hours as Record<string, unknown>).lunch_break ? 'bg-[#C5A059]' : 'bg-white/10'
+                hours.lunch_break ? 'bg-[#C5A059]' : 'bg-white/10'
               }`}
             >
               <span
                 className={`absolute top-[3px] left-0 w-[14px] h-[14px] rounded-full bg-white shadow transition-transform duration-300 ${
-                  (hours as Record<string, unknown>).lunch_break
+                  hours.lunch_break
                     ? 'translate-x-[19px]'
                     : 'translate-x-[3px]'
                 }`}
@@ -538,15 +560,13 @@ const SettingsHorarios: React.FC = () => {
             </button>
           </div>
 
-          {(hours as Record<string, unknown>).lunch_break && (
+          {hours.lunch_break && (
             <div className="bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 space-y-4">
               {/* Time range */}
               <div className="flex items-center justify-center gap-3">
                 <div className="flex items-center gap-1">
                   {(() => {
-                    const lunch = (hours as Record<string, unknown>).lunch_break as {
-                      start: string;
-                    };
+                    const lunch = hours.lunch_break!;
                     const [h, m] = lunch.start.split(':');
                     return (
                       <>
@@ -555,12 +575,7 @@ const SettingsHorarios: React.FC = () => {
                           max={23}
                           onChange={(v) => {
                             setHours((prev) => {
-                              const lb = (prev as Record<string, unknown>).lunch_break as {
-                                enabled: boolean;
-                                start: string;
-                                end: string;
-                                days: number[];
-                              };
+                              const lb = prev.lunch_break!;
                               return {
                                 ...prev,
                                 lunch_break: { ...lb, start: `${v}:${lb.start.split(':')[1]}` },
@@ -575,12 +590,7 @@ const SettingsHorarios: React.FC = () => {
                           max={59}
                           onChange={(v) => {
                             setHours((prev) => {
-                              const lb = (prev as Record<string, unknown>).lunch_break as {
-                                enabled: boolean;
-                                start: string;
-                                end: string;
-                                days: number[];
-                              };
+                              const lb = prev.lunch_break!;
                               return {
                                 ...prev,
                                 lunch_break: { ...lb, start: `${lb.start.split(':')[0]}:${v}` },
@@ -596,9 +606,7 @@ const SettingsHorarios: React.FC = () => {
                 <span className="text-zinc-500 text-[12px]">às</span>
                 <div className="flex items-center gap-1">
                   {(() => {
-                    const lunch = (hours as Record<string, unknown>).lunch_break as {
-                      end: string;
-                    };
+                    const lunch = hours.lunch_break!;
                     const [h, m] = lunch.end.split(':');
                     return (
                       <>
@@ -607,12 +615,7 @@ const SettingsHorarios: React.FC = () => {
                           max={23}
                           onChange={(v) => {
                             setHours((prev) => {
-                              const lb = (prev as Record<string, unknown>).lunch_break as {
-                                enabled: boolean;
-                                start: string;
-                                end: string;
-                                days: number[];
-                              };
+                              const lb = prev.lunch_break!;
                               return {
                                 ...prev,
                                 lunch_break: { ...lb, end: `${v}:${lb.end.split(':')[1]}` },
@@ -627,12 +630,7 @@ const SettingsHorarios: React.FC = () => {
                           max={59}
                           onChange={(v) => {
                             setHours((prev) => {
-                              const lb = (prev as Record<string, unknown>).lunch_break as {
-                                enabled: boolean;
-                                start: string;
-                                end: string;
-                                days: number[];
-                              };
+                              const lb = prev.lunch_break!;
                               return {
                                 ...prev,
                                 lunch_break: { ...lb, end: `${lb.end.split(':')[0]}:${v}` },
@@ -650,21 +648,14 @@ const SettingsHorarios: React.FC = () => {
               {/* Days */}
               <div className="flex gap-1.5">
                 {DAYS_ORDER.map((d) => {
-                  const lunch = (hours as Record<string, unknown>).lunch_break as {
-                    days: number[];
-                  };
+                  const lunch = hours.lunch_break!;
                   const isActive = lunch.days.includes(Number(d));
                   return (
                     <button
                       key={d}
                       onClick={() => {
                         setHours((prev) => {
-                          const lb = (prev as Record<string, unknown>).lunch_break as {
-                            enabled: boolean;
-                            start: string;
-                            end: string;
-                            days: number[];
-                          };
+                          const lb = prev.lunch_break!;
                           const dayNum = Number(d);
                           const newDays = isActive
                             ? lb.days.filter((x) => x !== dayNum)
@@ -777,8 +768,7 @@ const SettingsHorarios: React.FC = () => {
             <button
               onClick={() => {
                 setHours((prev) => {
-                  const lunch = (prev as Record<string, unknown>).lunch_break as
-                    { enabled: boolean; start: string; end: string; days: number[] } | undefined;
+                  const lunch = prev.lunch_break;
                   return {
                     ...prev,
                     lunch_break: {
@@ -792,14 +782,14 @@ const SettingsHorarios: React.FC = () => {
                 setHasChanges(true);
               }}
               role="switch"
-              aria-checked={!!(hours as Record<string, unknown>).lunch_break}
+              aria-checked={!!hours.lunch_break}
               className={`relative w-9 h-5 rounded-full transition-all duration-300 cursor-pointer ${
-                (hours as Record<string, unknown>).lunch_break ? 'bg-[#C5A059]' : 'bg-white/10'
+                hours.lunch_break ? 'bg-[#C5A059]' : 'bg-white/10'
               }`}
             >
               <span
                 className={`absolute top-[3px] left-0 w-[14px] h-[14px] rounded-full bg-white shadow transition-transform duration-300 ${
-                  (hours as Record<string, unknown>).lunch_break
+                  hours.lunch_break
                     ? 'translate-x-[19px]'
                     : 'translate-x-[3px]'
                 }`}
@@ -807,26 +797,18 @@ const SettingsHorarios: React.FC = () => {
             </button>
           </div>
 
-          {(hours as Record<string, unknown>).lunch_break && (
+          {hours.lunch_break && (
             <div className="bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 space-y-3">
               <div className="flex items-center justify-center gap-3">
                 {(() => {
-                  const lunch = (hours as Record<string, unknown>).lunch_break as {
-                    start: string;
-                    end: string;
-                  };
+                  const lunch = hours.lunch_break!;
                   return (
                     <>
                       <TimePickerSheet
                         value={lunch.start}
                         onChange={(v) => {
                           setHours((prev) => {
-                            const lb = (prev as Record<string, unknown>).lunch_break as {
-                              enabled: boolean;
-                              start: string;
-                              end: string;
-                              days: number[];
-                            };
+                            const lb = prev.lunch_break!;
                             return { ...prev, lunch_break: { ...lb, start: v } };
                           });
                           setHasChanges(true);
@@ -838,12 +820,7 @@ const SettingsHorarios: React.FC = () => {
                         value={lunch.end}
                         onChange={(v) => {
                           setHours((prev) => {
-                            const lb = (prev as Record<string, unknown>).lunch_break as {
-                              enabled: boolean;
-                              start: string;
-                              end: string;
-                              days: number[];
-                            };
+                            const lb = prev.lunch_break!;
                             return { ...prev, lunch_break: { ...lb, end: v } };
                           });
                           setHasChanges(true);
@@ -856,21 +833,14 @@ const SettingsHorarios: React.FC = () => {
               </div>
               <div className="flex gap-1.5">
                 {DAYS_ORDER.map((d) => {
-                  const lunch = (hours as Record<string, unknown>).lunch_break as {
-                    days: number[];
-                  };
+                  const lunch = hours.lunch_break!;
                   const isActive = lunch.days.includes(Number(d));
                   return (
                     <button
                       key={d}
                       onClick={() => {
                         setHours((prev) => {
-                          const lb = (prev as Record<string, unknown>).lunch_break as {
-                            enabled: boolean;
-                            start: string;
-                            end: string;
-                            days: number[];
-                          };
+                          const lb = prev.lunch_break!;
                           const dayNum = Number(d);
                           const newDays = isActive
                             ? lb.days.filter((x) => x !== dayNum)

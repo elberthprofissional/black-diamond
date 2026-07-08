@@ -34,7 +34,6 @@ const NotificationsPage: React.FC = () => {
         <NotificationListContent
           notifications={notifications}
           unreadCount={unreadCount}
-          markAsRead={markAsRead}
           markAllAsRead={markAllAsRead}
           clearNotification={clearNotification}
           onNotifClick={handleNotifClick}

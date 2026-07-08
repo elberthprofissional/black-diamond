@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Calendar,
   Clock,
@@ -12,7 +12,6 @@ import {
   Bell,
   BellOff,
   X,
-  Check,
   History,
 } from 'lucide-react';
 import { getBookingsByPhone, cancelBooking } from '../lib/api';
@@ -28,7 +27,7 @@ interface BookingEntry {
   status: string;
   service_names?: string[];
   client_name?: string;
-  clients?: { name: string; phone: string } | { name: string; phone: string }[];
+  clients?: { name: string; phone: string }[];
 }
 
 interface ClientStats {
@@ -90,7 +89,7 @@ const ClientProfile: React.FC = () => {
         data.length > 0
           ? (() => {
               const c = data[0].clients;
-              return Array.isArray(c) ? c[0]?.name : c?.name || 'Cliente';
+              return c?.[0]?.name || 'Cliente';
             })()
           : 'Cliente';
 
@@ -120,12 +119,11 @@ const ClientProfile: React.FC = () => {
     }
   };
 
-  const handleReschedule = (booking: BookingEntry) => {
-    const clientPhone =
-      (() => {
-        const c = booking.clients;
-        return Array.isArray(c) ? c[0]?.phone : c?.phone;
-      })() || phone.replace(/\D/g, '');
+  const handleReschedule = (booking: BookingEntry) => {      const clientPhone =
+        (() => {
+          const c = booking.clients;
+          return c?.[0]?.phone;
+        })() || phone.replace(/\D/g, '');
     navigate('/cancelar', { state: { phone: clientPhone } });
   };
 
