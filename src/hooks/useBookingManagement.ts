@@ -7,34 +7,48 @@ export function useBookingManagement(loadData: () => Promise<void>) {
   const { services } = useServices();
   const { filter, setFilter, isDesktop } = useBookingFilters();
   const {
-    toast, showSuccess, showError,
-    completingBooking, setCompletingBooking,
-    selectedBooking, setSelectedBooking,
-    bookingToDelete, setBookingToDelete,
+    toast,
+    showSuccess,
+    showError,
+    completingBooking,
+    setCompletingBooking,
+    selectedBooking,
+    setSelectedBooking,
+    bookingToDelete,
+    setBookingToDelete,
     thankYouBooking,
     handleComplete,
     handleSendThankYou,
     handleCancelThankYou,
     confirmDelete,
-  } = useBookingModals(loadData);
+  } = useBookingModals(loadData, services);
 
   const {
     isRescheduling,
-    rescheduleServices, setRescheduleServices,
-    rescheduleDate, setRescheduleDate,
-    rescheduleTime, setRescheduleTime,
+    rescheduleServices,
+    setRescheduleServices,
+    rescheduleDate,
+    setRescheduleDate,
+    rescheduleTime,
+    setRescheduleTime,
     existingBookings: existingBookingsForReschedule,
     loadingSlots,
     isSaving: isSavingReschedule,
-    rescheduleStep, setRescheduleStep,
+    rescheduleStep,
+    setRescheduleStep,
     startReschedule: handleStartReschedule,
     confirmReschedule: handleConfirmRescheduleRaw,
     cancelReschedule,
   } = useReschedule(
     selectedBooking,
     services,
-    () => { showSuccess('Agendamento reagendado com sucesso!'); loadData(); },
-    () => { setSelectedBooking(null); },
+    () => {
+      showSuccess('Agendamento reagendado com sucesso!');
+      loadData();
+    },
+    () => {
+      setSelectedBooking(null);
+    },
     showError
   );
 
@@ -44,21 +58,31 @@ export function useBookingManagement(loadData: () => Promise<void>) {
 
   return {
     services,
-    toast, showSuccess, showError,
-    completingBooking, setCompletingBooking,
-    selectedBooking, setSelectedBooking,
-    bookingToDelete, setBookingToDelete,
+    toast,
+    showSuccess,
+    showError,
+    completingBooking,
+    setCompletingBooking,
+    selectedBooking,
+    setSelectedBooking,
+    bookingToDelete,
+    setBookingToDelete,
     thankYouBooking,
-    filter, setFilter,
+    filter,
+    setFilter,
     isDesktop,
     isRescheduling,
-    rescheduleServices, setRescheduleServices,
-    rescheduleDate, setRescheduleDate,
-    rescheduleTime, setRescheduleTime,
+    rescheduleServices,
+    setRescheduleServices,
+    rescheduleDate,
+    setRescheduleDate,
+    rescheduleTime,
+    setRescheduleTime,
     existingBookingsForReschedule,
     loadingSlots,
     isSavingReschedule,
-    rescheduleStep, setRescheduleStep,
+    rescheduleStep,
+    setRescheduleStep,
     handleStartReschedule,
     handleConfirmReschedule,
     cancelReschedule,

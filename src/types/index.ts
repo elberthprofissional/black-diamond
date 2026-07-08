@@ -49,9 +49,11 @@ export interface Client {
 
 export interface ClientWithStats extends Client {
   lastVisit: string;
+  lastVisitDate: Date | null;
   totalSpent: number;
   bookingsCount: number;
   upcomingBooking?: { date: string; time: string } | null;
+  isInactive: boolean;
 }
 
 export interface Review {

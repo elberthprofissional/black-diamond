@@ -23,20 +23,23 @@ const AdminClients: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const filterParam = searchParams.get('filter');
 
-  const [reminderFilter, setReminderFilter] = React.useState<'all' | 'pending' | 'sent'>(
-    filterParam === 'pending' || filterParam === 'sent' ? filterParam : 'all'
+  type ClientFilter = 'all' | 'pending' | 'sent' | 'inactive';
+  const [reminderFilter, setReminderFilter] = React.useState<ClientFilter>(
+    filterParam === 'pending' || filterParam === 'sent' || filterParam === 'inactive'
+      ? filterParam
+      : 'all'
   );
   const [isReminderOpen, setIsReminderOpen] = React.useState(false);
 
   React.useEffect(() => {
-    if (filterParam === 'pending' || filterParam === 'sent') {
+    if (filterParam === 'pending' || filterParam === 'sent' || filterParam === 'inactive') {
       setReminderFilter(filterParam);
     } else {
       setReminderFilter('all');
     }
   }, [filterParam]);
 
-  const handleFilterChange = (filter: 'all' | 'pending' | 'sent') => {
+  const handleFilterChange = (filter: ClientFilter) => {
     setReminderFilter(filter);
     if (filter === 'all') {
       searchParams.delete('filter');
@@ -53,17 +56,20 @@ const AdminClients: React.FC = () => {
     let matchFilter = true;
     if (reminderFilter === 'pending') matchFilter = !r.isReminderRecent(cl.id);
     else if (reminderFilter === 'sent') matchFilter = r.isReminderRecent(cl.id);
+    else if (reminderFilter === 'inactive') matchFilter = cl.isInactive;
     return matchSearch && matchFilter;
   });
 
   const counts = useMemo(() => {
     let pending = 0;
     let sent = 0;
+    let inactive = 0;
     c.clients.forEach((cl) => {
       if (r.isReminderRecent(cl.id)) sent++;
       else pending++;
+      if (cl.isInactive) inactive++;
     });
-    return { all: c.clients.length, pending, sent };
+    return { all: c.clients.length, pending, sent, inactive };
   }, [c.clients, r]);
 
   const handleOpenPanel = (client: (typeof c.clients)[0]) => {
@@ -88,6 +94,11 @@ const AdminClients: React.FC = () => {
             </h1>
             <p className="text-[9px] font-bold text-[#C5A059] uppercase tracking-widest mt-0.5">
               {c.clients.length} cadastrados
+              {counts.inactive > 0 && (
+                <span className="text-amber-400 ml-2">
+                  · {counts.inactive} inativo{counts.inactive !== 1 ? 's' : ''}
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -119,13 +130,25 @@ const AdminClients: React.FC = () => {
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-6 border-b border-white/[0.04] w-full select-none pb-0 mt-2">
-        {(['all', 'pending', 'sent'] as const).map((filter) => {
+      <div className="flex gap-5 border-b border-white/[0.04] w-full select-none pb-0 mt-2 overflow-x-auto">
+        {(['all', 'pending', 'sent', 'inactive'] as const).map((filter) => {
           const active = reminderFilter === filter;
           const label =
-            filter === 'all' ? 'Todos' : filter === 'pending' ? 'A Lembrar' : 'Lembrados';
+            filter === 'all'
+              ? 'Todos'
+              : filter === 'pending'
+                ? 'A Lembrar'
+                : filter === 'sent'
+                  ? 'Lembrados'
+                  : 'Inativos';
           const count =
-            filter === 'all' ? counts.all : filter === 'pending' ? counts.pending : counts.sent;
+            filter === 'all'
+              ? counts.all
+              : filter === 'pending'
+                ? counts.pending
+                : filter === 'sent'
+                  ? counts.sent
+                  : counts.inactive;
           return (
             <button
               key={filter}
@@ -169,7 +192,9 @@ const AdminClients: React.FC = () => {
                   ? 'Todos os clientes já foram lembrados recentemente!'
                   : reminderFilter === 'sent'
                     ? 'Nenhum lembrete enviado recentemente.'
-                    : 'Nenhum cliente cadastrado.'}
+                    : reminderFilter === 'inactive'
+                      ? 'Nenhum cliente inativo! Todos cortaram nos últimos 30 dias.'
+                      : 'Nenhum cliente cadastrado.'}
             </p>
           </div>
         ) : (
@@ -226,15 +251,26 @@ const AdminClients: React.FC = () => {
                                 )}
                               </div>
                               <div className="flex-1 min-w-0 text-left">
-                                <p className="text-sm font-semibold text-white truncate">
+                                <p className="text-sm font-semibold text-white truncate flex items-center gap-1.5">
                                   {client.name}
+                                  {client.isInactive && (
+                                    <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-400 font-bold uppercase tracking-wider shrink-0">
+                                      Inativo
+                                    </span>
+                                  )}
                                 </p>
                                 <p className="text-[10px] text-zinc-500 mt-0.5">
                                   {formatPhone(client.phone)}
                                 </p>
                                 <p className="text-[8px] text-zinc-600 uppercase tracking-wider mt-0.5">
                                   Último corte:{' '}
-                                  <span className="text-zinc-400">{client.lastVisit}</span>
+                                  <span
+                                    className={
+                                      client.isInactive ? 'text-amber-400/70' : 'text-zinc-400'
+                                    }
+                                  >
+                                    {client.lastVisit}
+                                  </span>
                                 </p>
                               </div>
                               <div className="shrink-0 flex items-center gap-2">
@@ -296,14 +332,25 @@ const AdminClients: React.FC = () => {
                       )}
                     </div>
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="text-sm font-semibold text-white truncate">{client.name}</p>
+                      <p className="text-sm font-semibold text-white truncate flex items-center gap-1.5">
+                        {client.name}
+                        {client.isInactive && (
+                          <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-400 font-bold uppercase tracking-wider shrink-0">
+                            Inativo
+                          </span>
+                        )}
+                      </p>
                       <p className="text-[11px] text-zinc-500 mt-0.5">
                         {formatPhone(client.phone)}
                       </p>
                       <div className="flex items-center gap-2 mt-2">
                         <span className="text-[9px] text-zinc-500 uppercase tracking-wider">
                           Último corte:{' '}
-                          <strong className="text-zinc-400">{client.lastVisit}</strong>
+                          <strong
+                            className={client.isInactive ? 'text-amber-400/70' : 'text-zinc-400'}
+                          >
+                            {client.lastVisit}
+                          </strong>
                         </span>
                       </div>
                     </div>

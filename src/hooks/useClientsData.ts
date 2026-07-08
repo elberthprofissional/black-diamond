@@ -3,6 +3,21 @@ import { getClients, getBookingsForStats } from '../lib/api';
 import { useToast } from './useToast';
 import type { Client, ClientWithStats } from '../types';
 
+interface ClientWithHistory extends Client {
+  historical_visits?: number;
+  historical_spent?: number;
+  last_visit_date?: string;
+}
+
+const INACTIVE_DAYS = 30;
+
+function daysSince(dateStr: string): number {
+  const d = new Date(dateStr + 'T00:00:00');
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return Math.floor((now.getTime() - d.getTime()) / 86400000);
+}
+
 export function useClientsData() {
   const { showError } = useToast();
   const [clients, setClients] = useState<ClientWithStats[]>([]);
@@ -35,6 +50,7 @@ export function useClientsData() {
             !c.is_blocked
         )
         .map((c: Client) => {
+          const ch = c as ClientWithHistory;
           const cb = bookingsByClient.get(c.id) || [];
           const upcoming = cb
             .filter((b) => {
@@ -51,11 +67,41 @@ export function useClientsData() {
           const lb = [...pastBookings].sort(
             (a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime()
           )[0];
+
+          // Current stats from active bookings
+          const currentSpent = cb.reduce((s, b) => s + Number(b.total_price || 0), 0);
+          const currentVisits = cb.length;
+
+          // Historical stats from deleted bookings
+          const histVisits = ch.historical_visits || 0;
+          const histSpent = Number(ch.historical_spent || 0);
+
+          // Combined stats
+          const totalSpent = currentSpent + histSpent;
+          const bookingsCount = currentVisits + histVisits;
+
+          // Last visit: compare current last visit with preserved historical last visit
+          const currentLastVisit = lb ? new Date(lb.booking_date + 'T00:00:00') : null;
+          const histLastVisit = ch.last_visit_date
+            ? new Date(ch.last_visit_date + 'T00:00:00')
+            : null;
+          const lastVisitDate =
+            currentLastVisit && histLastVisit
+              ? currentLastVisit > histLastVisit
+                ? currentLastVisit
+                : histLastVisit
+              : currentLastVisit || histLastVisit;
+
+          const isInactive = lastVisitDate
+            ? daysSince(lastVisitDate.toISOString().slice(0, 10)) > INACTIVE_DAYS
+            : bookingsCount === 0;
+
           return {
             ...c,
-            lastVisit: lb ? new Date(lb.booking_date).toLocaleDateString('pt-BR') : 'Nunca',
-            totalSpent: cb.reduce((s, b) => s + Number(b.total_price || 0), 0),
-            bookingsCount: cb.length,
+            lastVisit: lastVisitDate ? lastVisitDate.toLocaleDateString('pt-BR') : 'Nunca',
+            lastVisitDate,
+            totalSpent,
+            bookingsCount,
             upcomingBooking: upcoming
               ? {
                   date: new Date(upcoming.booking_date + 'T00:00:00').toLocaleDateString('pt-BR', {
@@ -65,6 +111,7 @@ export function useClientsData() {
                   time: (upcoming.booking_time || '').slice(0, 5),
                 }
               : null,
+            isInactive,
           };
         });
 
@@ -86,7 +133,7 @@ export function useClientsData() {
     let lastFetch = 0;
     const handleRefresh = () => {
       const now = Date.now();
-      if (now - lastFetch < 2000) return; // 2s cooldown
+      if (now - lastFetch < 2000) return;
       lastFetch = now;
       loadData();
     };

@@ -1,9 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { getAvailableSlots } from '../lib/api';
-import { getLocalDateString, getTimeSlotsForDate } from '../lib/utils';
-import { useBookings } from '../hooks/useBookings';
-import { useSlotBlocking } from '../hooks/useSlotBlocking';
+import React from 'react';
 import { useBookingManagement } from '../hooks/useBookingManagement';
+import { useDashboardData } from '../hooks/useDashboardData';
 import AdminLayout from '../components/Admin/AdminLayout';
 import DashboardHeader from '../components/Admin/shared/DashboardHeader';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
@@ -24,77 +21,8 @@ const LAYOUT_CLASS =
   'flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-8 pb-40 transition-all duration-300 max-w-5xl';
 
 const AdminDashboard: React.FC = () => {
-  const selectedDate = getLocalDateString();
-  const { bookings, loading, refetch: loadData } = useBookings(selectedDate);
-  const mgmt = useBookingManagement(loadData);
-  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
-
-  const {
-    blockingSlot,
-    unblockingBooking,
-    setUnblockingBooking,
-    blockSlot,
-    unblockSlot,
-    blockingDay,
-    blockEntireDay,
-    unblockEntireDay,
-  } = useSlotBlocking();
-
-  useEffect(() => {
-    let active = true;
-    const loadAvailableSlots = async () => {
-      try {
-        const slots = await getAvailableSlots(selectedDate);
-        if (active) setAvailableSlots(slots);
-      } catch {
-        try {
-          const fallbackSlots = await getTimeSlotsForDate(selectedDate);
-          if (active) setAvailableSlots(fallbackSlots);
-        } catch {
-          if (active) setAvailableSlots([]);
-        }
-      }
-    };
-    loadAvailableSlots();
-    return () => {
-      active = false;
-    };
-  }, [selectedDate]);
-
-  const handleBlockSlot = async (slot: string) => {
-    await blockSlot(selectedDate, slot, loadData);
-  };
-
-  const confirmUnblock = async () => {
-    if (!unblockingBooking) return;
-    await unblockSlot(unblockingBooking.id, loadData);
-  };
-
-  const dailyRevenue = bookings
-    .filter((b) => b.status === 'completed' || b.status === 'confirmed')
-    .reduce((sum, b) => sum + (b.total_price || 0), 0);
-
-  const occupiedBookings = bookings.filter(
-    (b) => b.status !== 'completed' && b.status !== 'cancelled' && !b.is_blocked
-  );
-  const blockedBookings = bookings.filter((b) => b.status !== 'cancelled' && b.is_blocked);
-  const isTimeOccupied = (time: string) =>
-    bookings.some((b) => b.status !== 'cancelled' && b.booking_time.slice(0, 5) === time);
-  const freeSlots = availableSlots.filter((slot) => !isTimeOccupied(slot));
-
-  const getNextBooking = () => {
-    const now = new Date();
-    const currentTime =
-      now.getHours().toString().padStart(2, '0') +
-      ':' +
-      now.getMinutes().toString().padStart(2, '0');
-    return (
-      bookings
-        .filter((b) => b.status !== 'cancelled' && b.booking_time >= currentTime && !b.is_blocked)
-        .sort((a, b) => a.booking_time.localeCompare(b.booking_time))[0] || null
-    );
-  };
-  const nextBooking = getNextBooking();
+  const data = useDashboardData();
+  const mgmt = useBookingManagement(data.loadData);
 
   const closePanel = () => {
     mgmt.setSelectedBooking(null);
@@ -200,9 +128,9 @@ const AdminDashboard: React.FC = () => {
       <div className="space-y-5">
         <div className="space-y-5">
           <DashboardHeader
-            nextBooking={nextBooking}
-            dailyRevenue={dailyRevenue}
-            onSelectNext={() => nextBooking && mgmt.setSelectedBooking(nextBooking)}
+            nextBooking={data.nextBooking}
+            dailyRevenue={data.dailyRevenue}
+            onSelectNext={() => data.nextBooking && mgmt.setSelectedBooking(data.nextBooking)}
           />
 
           <div className="flex border-b border-white/[0.04] pb-1 pt-1 justify-start">
@@ -210,19 +138,19 @@ const AdminDashboard: React.FC = () => {
               filter={mgmt.filter}
               setFilter={mgmt.setFilter}
               layoutId="dailyFilter"
-              occupiedCount={occupiedBookings.length}
-              freeCount={freeSlots.length}
-              blockedCount={blockedBookings.length}
+              occupiedCount={data.occupiedBookings.length}
+              freeCount={data.freeSlots.length}
+              blockedCount={data.blockedBookings.length}
             />
           </div>
 
-          {loading ? (
+          {data.loading ? (
             <SkeletonDashboard />
           ) : (
             <div className="pt-2">
               {mgmt.filter === 'occupied' && (
                 <OccupiedPanel
-                  bookings={occupiedBookings}
+                  bookings={data.occupiedBookings}
                   selectedId={mgmt.selectedBooking?.id ?? null}
                   onSelect={mgmt.setSelectedBooking}
                   onComplete={(b) => mgmt.setCompletingBooking(b)}
@@ -230,20 +158,22 @@ const AdminDashboard: React.FC = () => {
               )}
               {mgmt.filter === 'free' && (
                 <FreePanel
-                  freeSlots={freeSlots}
-                  selectedDate={selectedDate}
-                  blockingSlot={blockingSlot}
-                  blockingDay={blockingDay}
-                  onBlockSlot={handleBlockSlot}
-                  onBlockDay={() => blockEntireDay(selectedDate, freeSlots, loadData)}
+                  freeSlots={data.freeSlots}
+                  selectedDate={data.selectedDate}
+                  blockingSlot={data.blockingSlot}
+                  blockingDay={data.blockingDay}
+                  onBlockSlot={data.handleBlockSlot}
+                  onBlockDay={() =>
+                    data.blockEntireDay(data.selectedDate, data.freeSlots, data.loadData)
+                  }
                 />
               )}
               {mgmt.filter === 'blocked' && (
                 <BlockedPanel
-                  blockedBookings={blockedBookings}
-                  blockingDay={blockingDay}
-                  onUnblock={(b) => setUnblockingBooking(b)}
-                  onUnblockDay={() => unblockEntireDay(blockedBookings, loadData)}
+                  blockedBookings={data.blockedBookings}
+                  blockingDay={data.blockingDay}
+                  onUnblock={(b) => data.setUnblockingBooking(b)}
+                  onUnblockDay={() => data.unblockEntireDay(data.blockedBookings, data.loadData)}
                 />
               )}
             </div>
@@ -260,13 +190,14 @@ const AdminDashboard: React.FC = () => {
       />
       <ThankYouModal
         booking={mgmt.thankYouBooking}
+        services={mgmt.services}
         onConfirm={mgmt.handleSendThankYou}
         onCancel={mgmt.handleCancelThankYou}
       />
       <UnblockModal
-        booking={unblockingBooking}
-        onConfirm={confirmUnblock}
-        onCancel={() => setUnblockingBooking(null)}
+        booking={data.unblockingBooking}
+        onConfirm={data.confirmUnblock}
+        onCancel={() => data.setUnblockingBooking(null)}
       />
       <DeleteModal
         booking={mgmt.bookingToDelete}

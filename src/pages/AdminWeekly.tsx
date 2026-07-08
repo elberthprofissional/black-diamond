@@ -458,6 +458,7 @@ const AdminWeekly: React.FC = () => {
       />
       <ThankYouModal
         booking={mgmt.thankYouBooking}
+        services={mgmt.services}
         onConfirm={mgmt.handleSendThankYou}
         onCancel={mgmt.handleCancelThankYou}
       />

@@ -103,6 +103,24 @@ Deno.serve(async (req) => {
     const sent = results.filter((r) => r.status === 'fulfilled' && r.value).length;
     const failed = results.filter((r) => r.status === 'fulfilled' && !r.value).length;
 
+    // Also save to notifications table for in-app center
+    try {
+      const { data: admins } = await supabase.from('admin_users').select('user_id');
+
+      if (admins && admins.length > 0) {
+        const notifications = admins.map((admin: { user_id: string }) => ({
+          user_id: admin.user_id,
+          title,
+          body: messageBody,
+          tag: tag || null,
+          url: url || '/admin',
+        }));
+        await supabase.from('notifications').insert(notifications);
+      }
+    } catch {
+      // Notifications are best-effort; don't fail the push
+    }
+
     return new Response(JSON.stringify({ sent, failed, total: subscriptions.length }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

@@ -126,14 +126,6 @@ export const fetchTimeSlotsForDate = async (dateStr: string): Promise<string[]> 
   return getTimeSlotsForDate(dateStr);
 };
 
-export const getPeriod = (time: string) => {
-  const hour = parseInt(time.split(':')[0], 10);
-  if (isNaN(hour)) return 'Manhã';
-  if (hour < 12) return 'Manhã';
-  if (hour < 18) return 'Tarde';
-  return 'Noite';
-};
-
 export const formatPhone = (value: string | undefined | null) => {
   if (!value) return '';
   const digits = value.replace(/\D/g, '');
@@ -142,6 +134,7 @@ export const formatPhone = (value: string | undefined | null) => {
 
   if (d.length <= 2) return d;
   if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 };
 
@@ -256,106 +249,6 @@ const ERROR_MESSAGES: Record<string, string> = {
   'violates foreign key': 'Erro de integridade dos dados.',
   'duplicate key': 'Este telefone já está cadastrado para outro cliente.',
   unique_violation: 'Este telefone já está cadastrado para outro cliente.',
-};
-
-export const generateGoogleCalendarUrl = (
-  serviceName: string,
-  date: string,
-  time: string,
-  duration: number
-): string => {
-  const [year, month, day] = date.split('-').map(Number);
-  const [hours, minutes] = time.split(':').map(Number);
-
-  const startDate = new Date(year, month - 1, day, hours, minutes);
-  const endDate = new Date(startDate.getTime() + duration * 60000);
-
-  const formatGCalDate = (d: Date) => {
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
-  };
-
-  const title = `${serviceName} - Black Diamond`;
-  const details = `Seu agendamento na Black Diamond Barbearia.\n\nServiço: ${serviceName}\nHorário: ${time}\nDuração: ${duration} minutos`;
-  const start = formatGCalDate(startDate);
-  const end = formatGCalDate(endDate);
-
-  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(details)}&ctz=America/Sao_Paulo`;
-};
-
-export const generateIcsFile = (
-  serviceName: string,
-  date: string,
-  time: string,
-  duration: number
-) => {
-  const [year, month, day] = date.split('-').map(Number);
-  const [hours, minutes] = time.split(':').map(Number);
-
-  const startDate = new Date(year, month - 1, day, hours, minutes);
-  const endDate = new Date(startDate.getTime() + duration * 60000);
-
-  const formatIcsDate = (d: Date) => {
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
-  };
-
-  const now = new Date();
-  const uid = `${Date.now()}-${Math.random().toString(36).slice(2)}@blackdiamond`;
-
-  const escapeIcsText = (text: string) =>
-    text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
-
-  const formatUtcDate = (d: Date) => {
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
-  };
-
-  const ics = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Black Diamond//Barbearia//PT',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
-    'BEGIN:VTIMEZONE',
-    'TZID:America/Sao_Paulo',
-    'BEGIN:STANDARD',
-    'DTSTART:19700101T000000',
-    'TZOFFSETFROM:-0300',
-    'TZOFFSETTO:-0300',
-    'TZNAME:BRT',
-    'END:STANDARD',
-    'END:VTIMEZONE',
-    'BEGIN:VEVENT',
-    `UID:${uid}`,
-    `DTSTAMP:${formatUtcDate(now)}`,
-    `DTSTART;TZID=America/Sao_Paulo:${formatIcsDate(startDate)}`,
-    `DTEND;TZID=America/Sao_Paulo:${formatIcsDate(endDate)}`,
-    `SUMMARY:${escapeIcsText(`${serviceName} - Black Diamond`)}`,
-    `DESCRIPTION:${escapeIcsText(`Serviço: ${serviceName}\nHorário: ${time}\nData: ${date}\nDuração: ${duration} minutos`)}`,
-    'BEGIN:VALARM',
-    'TRIGGER:-PT30M',
-    'ACTION:DISPLAY',
-    'DESCRIPTION:Lembrete do seu agendamento',
-    'END:VALARM',
-    'BEGIN:VALARM',
-    'TRIGGER:-P1D',
-    'ACTION:DISPLAY',
-    'DESCRIPTION:Seu agendamento é amanhã',
-    'END:VALARM',
-    'END:VEVENT',
-    'END:VCALENDAR',
-  ].join('\r\n');
-
-  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `BlackDiamond-${serviceName.replace(/\s+/g, '-')}.ics`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 };
 
 export const getErrorMessage = (error: unknown): string => {

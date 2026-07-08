@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Users, ChevronDown, User, LogOut, Clock, Settings } from 'lucide-react';
+import { Calendar, Users, ChevronDown, User, LogOut, Clock, Settings, Bell } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
 import { useBarberSettings } from '../../contexts/BarberSettingsContext';
+import NotificationBell from './NotificationBell';
 
 const AdminSidebar: React.FC = React.memo(() => {
   const navigate = useNavigate();
@@ -80,11 +81,16 @@ const AdminSidebar: React.FC = React.memo(() => {
                 </button>
               );
             })}
+
+            {/* Notifications - Instagram style */}
+            <li className="relative">
+              <NotificationBell variant="desktop" />
+            </li>
           </nav>
         </div>
       </div>
 
-      {/* 3. PROFILE & SYSTEM ACTIONS */}
+      {/* 3. PROFILE */}
       <div className="mt-auto border-t border-white/5 p-4">
         <div className="relative">
           <button

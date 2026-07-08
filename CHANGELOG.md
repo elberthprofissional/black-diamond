@@ -5,7 +5,29 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
-## [3.5.1] - 2026-07-05
+## [3.7.0] - 2026-07-08
+
+### Added
+- **PWA do cliente** — Perfil do cliente (`/cliente`) com agendamentos, stats e gerenciamento
+- **Centro de notificacoes in-app** — Painel lateral estilo Instagram (desktop) + tela cheia (mobile)
+- **Horario de almoço recorrente** — Bloqueio automatico de slots via cron pg_cron
+- **Agradecimento com link de avaliacao** — Mensagem inclui nome do servico e link `/avaliar/:id`
+- **Card do cliente com link de gerenciamento** — Botao "Gerenciar" no card de agendamento
+- **Limpeza de dados antigos** — Cron mensal: bookings > 6 meses, audit logs > 90 dias, preservando stats
+- **Relatorio semanal via push** — Toda segunda as 8h: faturamento, atendimentos, top servico
+- **Flag de cliente inativo** — Badge amber para clientes sem visita > 30 dias
+- **SQL migrations** — notifications, lunch_break, data_cleanup, weekly_report
+
+### Fixed
+- **Step titles trocados** — Step 1 agora mostra "Seus dados" em vez de "Agende seu corte"
+- **formatPhone traço** — Numero incompleto nao mostra mais traço pendurado
+- **lunch_break CHECK constraint** — INSERT corrigido para NULL client_id e total_duration=0
+
+### Removed
+- **Zustand** — Dependencia removida do package.json (stores nao eram usadas)
+- **useCallbackRef, useDebounce** — Hooks mortos deletados
+- **7 arquivos mortos** — GalleryLightbox, ClientBookingCard, BookingSummaryPanel, WhatsAppReminderButton, InlineEditField, CalendarModal, useLatest
+- **api.ts barrel duplicado** — Consolidado em api/index.ts
 
 ### Fixed
 - **Domingo não aparecia na agenda** — corrigido lógica de geração de datas no `getNextDays`
@@ -25,11 +47,9 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 ## [3.5.0] - 2026-07-05
 
 ### Added
-- **Zustand** — State management para escalabilidade (4 stores: auth, booking, ui, connection)
 - **Sentry** — Error reporting em produção (captura automática de erros com contexto)
 - **15+ novos testes E2E** — Erro de rede, concorrência, limites, 404, acessibilidade, performance, rate limiting, proteção de rotas
 - **Coverage mínimo no CI** — Thresholds de 70% (statements, branches, functions, lines)
-- Stores: `useAuthStore`, `useBookingStore`, `useUIStore`, `useConnectionStore`
 - Variável de ambiente `VITE_SENTRY_DSN`
 - SQL de migração para colunas faltantes na tabela `clients`
 

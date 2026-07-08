@@ -1,8 +1,8 @@
-# BLACK DIAMOND
+# BLACK DIAMOND 💈
 
 Sistema de agendamento premium para barbearias.
 
-[![Version](https://img.shields.io/badge/version-3.5.0-blue)](https://github.com/seu-usuario/black-diamond)
+[![Version](https://img.shields.io/badge/version-3.7.0-blue)]()
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Build](https://img.shields.io/badge/build-passing-brightgreen)]()
 [![Coverage](https://img.shields.io/badge/coverage-80%25-yellow)]()
@@ -16,7 +16,6 @@ Sistema de agendamento premium para barbearias.
 | Estilo | Tailwind CSS 4.x |
 | Animacoes | Framer Motion 12.x |
 | Roteamento | React Router DOM 7.x |
-| State Management | Zustand |
 | Backend | Supabase (PostgreSQL + RLS + Auth) |
 | Error Reporting | Sentry |
 | Testes | Vitest 4.x + Playwright |
@@ -36,12 +35,32 @@ cp .env.example .env
 npm run dev
 ```
 
+## Instalação para Novo Cliente (100% automático)
+
+```bash
+node instalar-cliente.mjs
+```
+
+O script faz TUDO sozinho:
+1. Pede dados do cliente (nome, email, senha, WhatsApp)
+2. Cria o projeto Supabase via API
+3. Roda o `universal.sql` automaticamente (schema do banco)
+4. Cria o usuário admin
+5. Adiciona o usuário na lista de administradores
+6. Gera o arquivo `.env`
+7. Faz deploy na Vercel (opcional)
+
+**5 minutos. Zero trabalho manual. R$ 1.990 na conta.** 💈🔥
+
 ## Scripts Disponíveis
 
 ```bash
 npm run dev          # Servidor de desenvolvimento
 npm run build        # Build de produção
 npm run preview      # Preview do build
+npm run lint         # Verificar erros
+npm run lint:fix     # Corrigir erros
+npm run format       # Formatar código
 
 # Testes
 npm run test         # Watch mode
@@ -49,29 +68,29 @@ npm run test:run     # Run once
 npm run test:coverage # Com cobertura
 npm run test:e2e     # Testes E2E (Playwright)
 
-# Qualidade
-npm run lint         # Verificar erros
-npm run lint:fix     # Corrigir erros
-npm run format       # Formatar código
-npm run format:check # Verificar formatação
+# Instalação para novo cliente
+node instalar-cliente.mjs   # Modo preguiçoso 🛌
 ```
 
 ## Arquitetura
 
 ```
 src/
-├── components/     # Componentes React
-│   ├── Admin/      # Componentes do painel admin
-│   ├── Booking/    # Componentes de agendamento
-│   └── shared/     # Componentes compartilhados
-├── contexts/       # Contextos React
-├── hooks/          # Hooks customizados
-├── stores/         # Zustand stores (auth, booking, ui, connection)
-├── lib/            # Utilitários e integrações
-├── pages/          # Páginas (rotas)
-├── types/          # Tipos TypeScript
-└── test/           # Setup de testes
+├── components/          # Componentes React
+│   ├── Admin/           # Painel admin (dashboard, clientes, horários, galeria)
+│   ├── Admin/settings/  # Configurações (conta, galeria, horários, serviços)
+│   ├── Admin/shared/    # Componentes compartilhados (modais, painéis)
+│   ├── Admin/booking/   # Agendamento manual
+│   ├── Booking/         # Agendamento público (4 steps)
+│   └── ...              # Navbar, Footer, Hero, Gallery, etc.
+├── contexts/            # Contextos React
+├── hooks/               # Hooks customizados
+├── lib/                 # API, Supabase client, utils
+├── pages/               # Páginas (rotas)
+├── types/               # Tipos TypeScript
+└── test/                # Setup de testes
 ```
+
 
 ## Segurança
 
@@ -79,6 +98,7 @@ src/
 - **RLS**: Row Level Security no Supabase
 - **Audit Logs**: Registro de ações administrativas
 - **Auth Guard**: Proteção de rotas admin
+- **CSP + HSTS**: Headers de segurança no deploy
 
 ## Deploy
 
@@ -88,16 +108,7 @@ src/
 
 ### PWA
 
-O app é um PWA (Progressive Web App) que só captura as rotas `/admin`. Links públicos (`/`, `/agendar`) abrem normalmente no navegador.
-
-**Para atualizar o PWA após mudanças no manifest:**
-1. Desinstale o app do celular
-2. Acesse o site novamente
-3. Instale o PWA
-
-## Contribuição
-
-Consulte [CONTRIBUTING.md](./CONTRIBUTING.md) para guia de contribuição.
+O app é um PWA (Progressive Web App). Para instalar no celular, acesse o site e clique em "Instalar app".
 
 ## Documentação
 

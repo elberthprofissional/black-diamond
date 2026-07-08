@@ -3,9 +3,9 @@ import { updateBookingStatus, deleteBooking } from '../lib/api';
 import { useToast } from './useToast';
 import { useAuditLog } from './useAuditLog';
 import { getErrorMessage } from '../lib/utils';
-import type { BookingWithClient } from '../types';
+import type { BookingWithClient, Service } from '../types';
 
-export function useBookingModals(loadData: () => Promise<void>) {
+export function useBookingModals(loadData: () => Promise<void>, services: Service[] = []) {
   const { toast, showSuccess, showError } = useToast();
   const { logBooking } = useAuditLog();
   const [completingBooking, setCompletingBooking] = useState<BookingWithClient | null>(null);
@@ -24,11 +24,25 @@ export function useBookingModals(loadData: () => Promise<void>) {
       const completed = completingBooking;
       setCompletingBooking(null);
       loadData();
-      // Show thank you modal instead of just a toast
       setThankYouBooking(completed);
     } catch (error) {
       showError(getErrorMessage(error));
     }
+  };
+
+  const getThankYouMessage = (booking: BookingWithClient): string => {
+    const clientName = booking.clients?.name || 'Cliente';
+    const firstName = clientName.split(' ')[0];
+
+    const serviceNames = (booking.service_ids || [])
+      .map((id) => services.find((s) => s.id === id)?.name)
+      .filter(Boolean);
+    const serviceText = serviceNames.length > 0 ? serviceNames.join(' + ') : 'seu serviço';
+
+    const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
+    const reviewUrl = `${siteUrl}/avaliar/${booking.id}`;
+
+    return `Oi ${firstName}! Obrigado por cortar com a gente no Black Diamond 💈❤️\n\nServico: ${serviceText}\n\nDeixa sua avaliacao aqui, leva 30 segundos:\n${reviewUrl}\n\nAte a proxima! 🏆`;
   };
 
   const handleSendThankYou = () => {
@@ -36,23 +50,24 @@ export function useBookingModals(loadData: () => Promise<void>) {
 
     const phone = thankYouBooking.clients?.phone;
     if (!phone) {
-      showError('Cliente não tem WhatsApp cadastrado');
+      showError('Cliente nao tem WhatsApp cadastrado');
       setThankYouBooking(null);
       return;
     }
-
-    const clientName = thankYouBooking.clients?.name || 'Cliente';
-    const firstName = clientName.split(' ')[0];
 
     let cleanPhone = phone.replace(/\D/g, '');
     if (cleanPhone.length === 10 || cleanPhone.length === 11) {
       cleanPhone = '55' + cleanPhone;
     }
 
-    const message = `Oi ${firstName}! Obrigado por cortar com a gente no Black Diamond 💈❤️\n\nSe precisar de algo, é só chamar! Até a próxima!`;
+    const message = getThankYouMessage(thankYouBooking);
+
+    logBooking('thank_you_sent', thankYouBooking.id, {
+      client_name: thankYouBooking.clients?.name,
+    });
 
     setThankYouBooking(null);
-    showSuccess('Agradecimento enviado! ✅');
+    showSuccess('Agradecimento enviado!');
 
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
   };

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useToast } from '../hooks/useToast';
 import { useBookingWizard } from '../hooks/useBookingWizard';
+import { useIsDesktop } from '../hooks/useIsDesktop';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
 import BookingPageDesktop from '../components/Booking/BookingPageDesktop';
 import BookingPageMobile from '../components/Booking/BookingPageMobile';
@@ -8,6 +9,7 @@ import BookingPageMobile from '../components/Booking/BookingPageMobile';
 const BookingPage: React.FC = () => {
   const { toast, showError } = useToast();
   const w = useBookingWizard(showError);
+  const isDesktop = useIsDesktop();
 
   const sharedProps = {
     step: w.step,
@@ -44,8 +46,11 @@ const BookingPage: React.FC = () => {
   return (
     <div className="font-sans relative min-h-screen bg-[#050505] flex flex-col selection:bg-[#C5A059] selection:text-black overflow-x-hidden">
       <main id="main-content" className="flex-1 relative z-10 h-full flex flex-col">
-        <BookingPageDesktop {...sharedProps} />
-        <BookingPageMobile {...sharedProps} navigate={w.navigate} />
+        {isDesktop ? (
+          <BookingPageDesktop {...sharedProps} />
+        ) : (
+          <BookingPageMobile {...sharedProps} navigate={w.navigate} />
+        )}
       </main>
 
       <ToastNotification toast={toast} />

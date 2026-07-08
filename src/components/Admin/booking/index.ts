@@ -1,5 +1,4 @@
 export { default as RescheduleBanner } from './RescheduleBanner';
-export { default as CalendarModal } from './CalendarModal';
 export { default as BookingStepIndicator } from './BookingStepIndicator';
 export { default as DesktopClientStep } from './DesktopClientStep';
 export { default as DesktopServicesStep } from './DesktopServicesStep';

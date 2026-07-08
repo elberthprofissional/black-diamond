@@ -11,7 +11,7 @@ interface WizardValidation {
 }
 
 const STEP_TITLES: Record<number, string> = {
-  1: 'Agende seu corte',
+  1: 'Seus dados',
   2: 'Escolha os serviços',
   3: 'Data e horário',
   4: 'Revisar agendamento',
@@ -21,7 +21,15 @@ export function useWizardStep(totalSteps = 4) {
   const [step, setStep] = useState(1);
 
   const isStepDisabled = useCallback(
-    ({ step: currentStep, name, phone, selectedServices, selectedDate, selectedTime, isSubmitting }: WizardValidation) => {
+    ({
+      step: currentStep,
+      name,
+      phone,
+      selectedServices,
+      selectedDate,
+      selectedTime,
+      isSubmitting,
+    }: WizardValidation) => {
       if (currentStep === 1) {
         return (
           !name?.trim() ||
@@ -39,13 +47,16 @@ export function useWizardStep(totalSteps = 4) {
 
   const stepTitle = useMemo(() => STEP_TITLES[step] || '', [step]);
 
-  const goNext = useCallback((onConfirm?: () => void) => {
-    if (step < totalSteps) {
-      setStep((s) => s + 1);
-    } else if (onConfirm) {
-      onConfirm();
-    }
-  }, [step, totalSteps]);
+  const goNext = useCallback(
+    (onConfirm?: () => void) => {
+      if (step < totalSteps) {
+        setStep((s) => s + 1);
+      } else if (onConfirm) {
+        onConfirm();
+      }
+    },
+    [step, totalSteps]
+  );
 
   const goBack = useCallback(() => {
     if (step > 1) setStep((s) => s - 1);

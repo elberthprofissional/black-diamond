@@ -1,7 +1,7 @@
 {
   "name": "black-diamond",
   "private": true,
-  "version": "3.5.1",
+  "version": "3.7.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -36,8 +36,7 @@
     "lucide-react": "^1.23.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-router-dom": "^7.17.0",
-    "zustand": "^5.0.14"
+    "react-router-dom": "^7.17.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -2,7 +2,7 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, PWA, notificacoes push e integracao com Google Calendar.
 
-**Versao:** 3.6.0 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.7.0 | **Ultima atualizacao:** Julho 2026
 
 ---
 
@@ -52,11 +52,12 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 - Menu de foto estilo Instagram (alterar/remover foto)
 - Placeholder de perfil generico (sem foto fixa do Tato)
 - Acessibilidade: focus-visible, contraste aprimorado, skip-link
-- State management com Zustand (performance e escalabilidade)
+- Estado gerenciado com hooks + Context API (leve e sem dependências)
 - Error reporting com Sentry (captura automatica de erros)
 - Coverage minimo no CI (qualidade garantida)
 - Projeto universal: template pronto para qualquer barbearia
 - Custo operacional zero (Vercel + Supabase Free Tier + Sentry Free)
+- Instalação 100% automática: `node instalar-cliente.mjs` faz tudo
 
 ---
 
@@ -70,7 +71,6 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 | Animacoes | Framer Motion | 12.x |
 | Icones | Lucide React | 0.460 |
 | Roteamento | React Router DOM | 7.x |
-| State Management | Zustand | 5.x |
 | Backend/Banco | Supabase (PostgreSQL) | ^2.108 |
 | Error Reporting | Sentry | ^1.x |
 | Hospedagem | Vercel | Gratis |
@@ -84,14 +84,14 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 ### Visao Geral do Projeto
 O Black Diamond foi projetado para ser **universal** — pronto para qualquer barbearia. O projeto inclui:
 - `DEPLOY_GUIDE.md` — Guia passo a passo para deploy em novas barbearias
-- `setup-barbearia.js` — Script interativo para configurar novo barbeiro (pergunta dados e gera variaveis)
-- `estrutura_barbearia.sql` — Schema universal do banco (sem nomes fixos de barbeiro)
+- `instalar-cliente.mjs` — Script automático de instalação para novos clientes
+- `supabase/universal.sql` — Schema universal do banco (tabelas, RLS, funções, crons)
 - Placeholder generico na secao About (sem foto fixa do Tato)
-- Zustand para state management performatico
+- Script de instalação automática (`instalar-cliente.mjs`)
 - Sentry para error reporting em producao
 
 ### Filosofia "Template de Barbearia"
-> O projeto e feito para ser **replicado**. Cada barbeiro tem seu proprio deploy (Vercel + Supabase), seu proprio dominio, e configura tudo pelo painel. Voce so precisa mudar endereco, mapa e logo — ~10 linhas de codigo. O sistema usa Zustand para performance e Sentry para monitoramento em producao.
+> O projeto e feito para ser **replicado**. Cada barbeiro tem seu proprio deploy (Vercel + Supabase), seu proprio dominio, e configura tudo pelo painel. O sistema usa `universal.sql` para setup instantâneo do banco.
 
 ---
 
@@ -125,7 +125,7 @@ Erros → Sentry (error reporting automatico)
 - `RescheduleWizard` — Wizard de 3 steps para reagendamento
 - `BookingDetailPanel` — Painel de detalhe do agendamento
 - `BookingSearchModal` — Modal de busca de clientes
-- `BookingSummaryPanel` — Painel de resumo do agendamento
+- `NotificationBell` — Sino de notificações com painel lateral (Instagram style)
 - `FilterTabs` — Abas de filtro (ocupados/livres/bloqueados)
 - `ToastNotification` — Sistema de notificacoes
 - `CompleteModal` / `DeleteModal` / `UnblockModal` — Modais de acao
@@ -183,22 +183,13 @@ No Settings > Conta, ao clicar na foto de perfil abre um popover com opcoes:
 - `useDateDragScroll` — Drag scroll no date picker
 - `useWizardStep` — Controle de steps do wizard
 - `useBarberSettings` — Hook standalone do context
+- `useClients` — Composição de hooks para gestão de clientes
+- `useDashboardData` — Dados do dashboard (próximo booking, receita, slots)
+- `useNotifications` — Notificações in-app com polling em tempo real
+- `usePwaInstall` — Detecção e instalação do PWA
 
-### Zustand Stores
-O projeto usa Zustand para state management granular, evitando re-renders desnecessarios:
-
-| Store | Arquivo | Responsabilidade |
-|-------|---------|------------------|
-| `useAuthStore` | `stores/authStore.ts` | Autenticacao do usuario (login, logout, session) |
-| `useBookingStore` | `stores/bookingStore.ts` | Agendamentos, filtros, selectedDate |
-| `useUIStore` | `stores/uiStore.ts` | Toasts, modals, selecao de booking |
-| `useConnectionStore` | `stores/connectionStore.ts` | Status da conexao com Supabase |
-
-**Por que Zustand e nao so Context?**
-- Cada componente pega so o que precisa (granularidade)
-- Quando um dado muda, so quem usa aquele dado re-renderiza
-- Sem necessidade de Providers aninhados
-- Codigo mais limpo e performatico
+### Gerenciamento de Estado
+O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto via `AuthGuard`, e o estado compartilhado usa Context API + hooks customizados.
 
 ---
 
@@ -209,14 +200,37 @@ O projeto usa Zustand para state management granular, evitando re-renders desnec
 - Calendario semanal com slots disponiveis em tempo real
 - Formulario de dados com validacao de WhatsApp
 - Revisao antes de confirmar
-- Redirecionamento pro WhatsApp com mensagem formatada e link pro Google Calendar
-- Tela de sucesso com resumo do agendamento
+- Tela de sucesso com link de gerenciamento, copiar/enviar WhatsApp
 - Layout responsivo desktop/mobile com drag-to-scroll no date picker
+- **PWA do cliente:** Instalavel no celular, recebe lembretes push
+
+### Perfil do Cliente (`/cliente`)
+- Busca por telefone — agendamentos ativos e historico
+- Stats do cliente: total de visitas, valor gasto, ultima visita
+- Botoes de cancelar e reagendar direto do perfil
+- Ativacao de lembretes push
+
+### Gerenciamento Publico (`/gerenciar?token=xxx`)
+- Acesso via token unico gerado no agendamento
+- Lista de agendamentos ativos com opcao de cancelar
+- Redirect pra `/cancelar` pra reagendar
+
+### Cancelamento/Reagendamento (`/cancelar`)
+- Busca por telefone — traz agendamentos futuros
+- Cancelamento com confirmacao
+- Reagendamento com selecao de data/hora
 
 ### Avaliacao (`/avaliar/:bookingId`)
 - Apos concluir atendimento, cliente avalia de 1 a 5 estrelas
-- Avaliacoes 4-5 redirecionam pro Google Maps
-- Avaliacoes reais alimentam o TestimonialsSlider na home
+- Avaliacoes reais alimentam o TestimonialsSlider na homepage
+
+### Notificacoes In-App (`/admin/notificacoes`)
+- Centro de notificações estilo Instagram
+- Desktop: painel lateral que desliza da esquerda
+- Mobile: tela cheia com botao voltar
+- Badge de nao-lido, mark all as read, deletar individual
+- Realtime — novas notificacoes aparecem instantaneamente
+- Cron de limpeza: notificacoes > 30 dias sao deletadas
 
 ### Area do Admin (`/admin`)
 
@@ -225,9 +239,9 @@ O projeto usa Zustand para state management granular, evitando re-renders desnec
 | `/admin` | Dashboard do dia — agenda, lucro, proximo cliente |
 | `/admin/weekly` | Agenda da semana com navegacao por dia |
 | `/admin/agendar` | Agendamento manual com busca de cliente |
-| `/admin/clients` | Gestao de clientes com lembretes WhatsApp |
-| `/admin/available` | Visualizacao de horarios disponiveis |
-| `/admin/profile` | Relatorios, faturamento, instalacao PWA, notificacoes, logout |
+| `/admin/clients` | Gestao de clientes com filtros (Todos/A Lembrar/Lembrados/Inativos) |
+| `/admin/notificacoes` | Centro de notificacoes (tela cheia no mobile) |
+| `/admin/profile` | Relatorios, faturamento, configuracoes |
 | `/admin/login` | Login do administrador |
 | `/admin/reset-password` | Redefinicao de senha |
 
@@ -235,28 +249,30 @@ O projeto usa Zustand para state management granular, evitando re-renders desnec
 - **Dashboard do dia:** Proximo cliente, lucro do dia, filtros por ocupados/livres/bloqueados
 - **Agenda da semana:** Navegacao por 6 dias, bloqueio/desbloqueio de dia inteiro
 - **Agendamento manual:** Busca por WhatsApp/nome, selecao de servicos, data/hora
-- **Gestao de clientes:** CRUD, notas, historico, lembretes via WhatsApp, filtros por status de lembrete
+- **Gestao de clientes:** CRUD, notas, historico, lembretes via WhatsApp, filtros por status, **flag de inativo** (>30 dias sem visita)
 - **Reagendamento:** Wizard de 3 steps (servicos, data/hora, revisao)
 - **Relatorios:** Faturamento semanal/mensal, servicos mais pedidos, cancelamentos
-- **Configuracoes:** Nome do barbeiro, WhatsApp do barbeiro, notificacoes, zona de seguranca
+- **Horario de almoço recorrente:** Configuracao de bloqueio automatico (horario + dias da semana)
+- **Agradecimento automatizado:** Mensagem com nome do servico + link de avaliacao
+- **Relatorio semanal:** Push toda segunda com resumo da semana (faturamento, atendimentos, top servico)
+- **Limpeza de dados:** Cron mensal que limpa bookings > 6 meses e audit logs > 90 dias, preservando stats dos clientes
 - **Notificacoes Push:** Ativacao/desativacao de notificacoes no navegador
 - **PWA:** Instalacao na tela inicial com guia visual
 
 ### Configuracoes (`/admin/profile?tab=settings`)
-- **Conta:** Nome, WhatsApp, Bio, Frase, Instagram, foto de perfil com menu estilo Instagram (alterar/remover)
+- **Conta:** Nome, WhatsApp, Bio, Frase, Instagram, foto de perfil
 - **Galeria:** Upload, delete, reordenacao e multi-select de fotos do portfolio (max 8 fotos)
-- **Horarios:** Configuracao de dias e horarios de funcionamento
+- **Horarios:** Configuracao de dias e horarios de funcionamento + **horario de almoço recorrente**
 - **Servicos:** Gerenciamento de servicos e precos
+- **Mensalista:** Planos, servicos exclusos, gestao de clientes mensalistas
 - **Notificacoes:** Toggle de notificacoes push
 - **Zona de Seguranca:** Resetar financeiro e deletar clientes
-- **Layout Desktop:** Sidebar secundaria estilo GitHub com icones Lucide
-- **Layout Mobile:** Tela cheia com navegacao por seta
 
 ---
 
 ## 5. Schema do Banco de Dados
 
-Schema completo: `estrutura_barbearia.sql`
+Schema completo: `supabase/universal.sql`
 
 ### Tabelas
 
@@ -269,7 +285,8 @@ id UUID PK, name TEXT, description TEXT, price DECIMAL, duration INTEGER, create
 ```sql
 id UUID PK, name TEXT, phone TEXT UNIQUE, email TEXT, notes TEXT,
 is_favorite BOOLEAN, is_mensalista BOOLEAN, is_blocked BOOLEAN,
-manually_added BOOLEAN, created_at TIMESTAMPTZ
+manually_added BOOLEAN, created_at TIMESTAMPTZ,
+historical_visits INTEGER, historical_spent DECIMAL, last_visit_date DATE
 ```
 
 **bookings** — Agendamentos
@@ -277,7 +294,19 @@ manually_added BOOLEAN, created_at TIMESTAMPTZ
 id UUID PK, client_id UUID FK, service_ids UUID[], booking_date DATE,
 booking_time TIME, total_price DECIMAL, total_duration INTEGER,
 status TEXT (pending/confirmed/cancelled/completed), is_blocked BOOLEAN,
-notes TEXT, created_at TIMESTAMPTZ
+reminder_sent BOOLEAN, notes TEXT, created_at TIMESTAMPTZ
+```
+
+**notifications** — Notificacoes in-app
+```sql
+id UUID PK, user_id UUID FK (auth.users), title TEXT, body TEXT,
+tag TEXT, url TEXT, read BOOLEAN, created_at TIMESTAMPTZ
+```
+
+**reviews** — Avaliacoes de clientes
+```sql
+id UUID PK, booking_id UUID FK, client_id UUID FK,
+rating INTEGER (1-5), comment TEXT, created_at TIMESTAMPTZ
 ```
 
 **settings** — Configuracoes do sistema
@@ -415,10 +444,21 @@ cd "Black Diamond"
 npm install
 ```
 
-### Passo 2: Configurar Supabase
+### Opção A: Instalação Automática (Recomendado)
+```bash
+node instalar-cliente.mjs
+```
+O script faz tudo sozinho:
+1. Cria o projeto Supabase via API de gerenciamento
+2. Roda o `universal.sql` automaticamente
+3. Cria o usuário admin e já adiciona na tabela `admin_users`
+4. Gera o `.env` completo
+5. Faz deploy na Vercel (opcional)
+
+### Opção B: Manual
 1. Crie um projeto no [supabase.com](https://supabase.com)
 2. Acesse o SQL Editor
-3. Cole e execute o conteudo de `estrutura_barbearia.sql`
+3. Cole e execute o conteudo de `supabase/universal.sql` no SQL Editor
 4. Acesse Authentication > Users e crie o usuario admin
 
 ### Passo 3: Configurar variaveis de ambiente
@@ -676,7 +716,6 @@ Black Diamond/
 │   │   ├── useIsDesktop.ts
 │   │   ├── useLatest.ts
 │   │   ├── useModalA11y.ts
-│   │   ├── usePrefetchRoute.ts
 │   │   ├── useProfileStats.ts
 │   │   ├── usePushNotifications.ts
 │   │   ├── useRateLimit.ts
@@ -688,18 +727,17 @@ Black Diamond/
 │   │   ├── useToast.ts
 │   │   ├── useWeeklyCongrats.ts
 │   │   └── useWizardStep.ts
-│   ├── stores/
-│   │   ├── index.ts                 # Exportacao centralizada
-│   │   ├── authStore.ts             # Autenticacao
-│   │   ├── bookingStore.ts          # Agendamentos
-│   │   ├── uiStore.ts               # UI (toasts, modals)
-│   │   └── connectionStore.ts       # Status da conexao
 │   ├── lib/
-│   │   ├── api.ts              # Funcoes de API (CRUD)
+│   │   ├── api/                # Funcoes de API separadas por domínio
+│   │   │   ├── index.ts        #   Barrel export
+│   │   │   ├── bookings.ts     #   Agendamentos
+│   │   │   ├── clients.ts      #   Clientes
+│   │   │   ├── services.ts     #   Serviços
+│   │   │   └── mensalista.ts   #   Planos mensalistas
+│   │   ├── api.ts              # Funcoes de API (legado, mantido para compatibilidade)
 │   │   ├── supabase.ts         # Cliente Supabase
 │   │   └── utils.ts            # Utilitarios (formatPhone, dates, slots)
 │   ├── pages/
-│   │   ├── AdminAvailableSlots.tsx
 │   │   ├── AdminBooking.tsx
 │   │   ├── AdminClients.tsx
 │   │   ├── AdminDashboard.tsx
@@ -720,15 +758,15 @@ Black Diamond/
 │   ├── main.tsx                # Entry point + Service Worker
 │   └── vite-env.d.ts           # Tipos globais (Window, Navigator)
 ├── supabase/
+│   ├── universal.sql           # Schema completo do banco (universal)
 │   └── functions/
-│       ├── send-push/          # Edge function de notificacao push
+│       └── send-push/          # Edge function de notificacao push
 ├── e2e/                        # Testes E2E (Playwright)
 │   ├── admin.spec.ts           # Testes do admin (login, navegacao, rate limiting)
 │   ├── booking.spec.ts         # Testes do agendamento
 │   └── booking-errors.spec.ts  # Testes de erros, concorrencia, limites
-├── estrutura_barbearia.sql    # Schema completo do banco (generico)
-├── DEPLOY_GUIDE.md             # Guia passo a passo para deploy em novas barbearias
-├── setup-barbearia.js          # Script interativo para configurar novo barbeiro
+├── instalar-cliente.mjs       # Script automatico de instalacao para novos clientes
+├── supabase-helper.mjs         # Helper para debug do Supabase
 ├── vercel.json                 # Configuracao de deploy + headers de seguranca
 ├── package.json
 ├── vite.config.ts
@@ -891,9 +929,8 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [x] Layout mobile estilo Instagram (tela cheia)
 - [x] Skeleton loading nas paginas principais
 - [x] Acessibilidade: focus-visible, contraste, skip-link, aria-live
-- [x] Atualizacao em tempo real (Context API + Zustand)
+- [x] Atualizacao em tempo real (Context API + hooks customizados)
 - [x] Sistema de mensalista (servicos exclusos, dias restritos, identificacao automatica por telefone)
-- [x] State management com Zustand (4 stores: auth, booking, ui, connection)
 - [x] Error reporting com Sentry (captura automatica de erros em producao)
 - [x] Coverage minimo no CI (70% — bloqueia merge abaixo do threshold)
 - [x] Testes E2E robustos (erro de rede, concorrencia, limites, acessibilidade)
@@ -912,12 +949,12 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [x] WhatsApp dinamico (configuravel pelo admin)
 - [x] Animacao marquee na galeria
 - [x] Projeto universal: template pronto para qualquer barbearia
-- [x] Guia de deploy (DEPLOY_GUIDE.md) + script de setup (setup-barbearia.js)
+- [x] Script de instalação automática (instalar-cliente.mjs)
+- [x] Schema universal do banco (universal.sql)
 - [x] Clipping mask na foto de perfil (drag + zoom estilo Instagram)
 - [x] Anti-burro: validacao de horarios, preco minimo, DDD
 - [x] UX da galeria estilo Google Fotos (header compacto, selecao integrada)
 - [x] Scrollbar dourada so no desktop (mobile limpo)
-- [x] State management com Zustand (4 stores: auth, booking, ui, connection)
 - [x] Error reporting com Sentry (captura automatica de erros em producao)
 - [x] Coverage minimo no CI (70% — bloqueia merge abaixo do threshold)
 - [x] Testes E2E robustos (erro de rede, concorrencia, limites, acessibilidade, performance)
@@ -935,7 +972,6 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [ ] Drag and drop para reordenar fotos na galeria
 - [ ] Filtros e edicao de imagens no admin
 - [ ] Tema claro/escuro alternavel pelo admin
-- [ ] Migrar Context API para Zustand em todos os stores (BarberSettingsContext)
 - [ ] Adicionar mais testes E2E para fluxos complexos
 - [ ] Integrar Sentry com GitHub para vincular erros a commits
 - [ ] Refatorar getNextDays() para buscar working_days do Supabase em vez de localStorage
@@ -986,7 +1022,7 @@ supabase functions deploy send-push
 - `supabase/functions/send-push/index.ts` — Edge function que envia o push
 - `src/hooks/usePushNotifications.ts` — Hook React para subscribe/unsubscribe
 - `public/sw.js` — Service Worker que recebe e mostra a notificacao
-- `estrutura_barbearia.sql` — Trigger, RPCs e cron jobs
+- `supabase/universal.sql` — Trigger, RPCs e cron jobs
 
 ---
 
@@ -1004,10 +1040,7 @@ Apos cada atendimento, o cliente recebe um email com link pra avaliar de 1 a 5 e
 6. TestimonialsSlider usa avaliacoes reais
 
 ### Configuracao
-Execute as secoes de reviews do `estrutura_barbearia.sql` para criar:
-- Tabela `reviews`
-- Funcoes `get_average_rating()` e `get_top_reviews()`
-- Trigger `enviar_email_avaliacao` (AFTER UPDATE ON bookings)
+O schema completo com reviews está em `supabase/universal.sql`.
 
 ### URL do link de avaliacao
 Configure no Supabase:
@@ -1230,4 +1263,4 @@ O sistema de galeria adapta automaticamente o layout baseado na quantidade de fo
 
 ---
 
-*Documento atualizado em Julho 2026. Versao do sistema: 3.6.0*
+*Documento atualizado em Julho 2026. Versao do sistema: 3.7.0*

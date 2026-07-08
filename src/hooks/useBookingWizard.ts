@@ -106,8 +106,6 @@ export function useBookingWizard(showError: (msg: string) => void) {
     );
   }, []);
 
-  // Total price
-  const [totalPrice, setTotalPrice] = useState(0);
   const [manageUrl, setManageUrl] = useState('');
   const [token, setToken] = useState('');
 
@@ -184,7 +182,6 @@ export function useBookingWizard(showError: (msg: string) => void) {
     handleMouseLeave: slots.handleMouseLeave,
     handleMouseUp: slots.handleMouseUp,
     handleMouseMove: slots.handleMouseMove,
-    totalPrice,
     isStepDisabled: disabled,
     stepTitle,
     handleConfirm,

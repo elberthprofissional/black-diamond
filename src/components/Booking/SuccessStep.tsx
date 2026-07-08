@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
-import { Check, ArrowLeft, Bell, BellOff, ExternalLink, Copy, CheckCircle } from 'lucide-react';
+import {
+  Check,
+  ArrowLeft,
+  Bell,
+  BellOff,
+  ExternalLink,
+  Copy,
+  CheckCircle,
+  Download,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDateBR } from '../../lib/utils';
+import { usePwaInstall } from '../../hooks/usePwaInstall';
 import type { Service } from '../../types';
 
 interface SuccessStepProps {
@@ -24,6 +34,7 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
 }) => {
   const navigate = useNavigate();
   const formattedDate = formatDateBR(selectedDate);
+  const { isInstallable, isInstalled, install } = usePwaInstall();
   const [copied, setCopied] = useState(false);
   const [notifStatus, setNotifStatus] = useState<'idle' | 'granted' | 'denied' | 'unsupported'>(
     () => {
@@ -148,6 +159,19 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
           </div>
         )}
 
+        {/* PWA Install - Desktop */}
+        {isInstallable && !isInstalled && (
+          <button
+            onClick={install}
+            className="w-full max-w-sm h-11 rounded-xl bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-white hover:border-white/[0.12] flex items-center justify-center gap-2 transition-all cursor-pointer mb-4"
+          >
+            <Download size={14} />
+            <span className="text-[10px] font-bold uppercase tracking-wider">
+              Instalar app no celular
+            </span>
+          </button>
+        )}
+
         <button
           onClick={() => navigate('/')}
           aria-label="Voltar para a página inicial"
@@ -249,6 +273,19 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
               </button>
             )}
           </div>
+        )}
+
+        {/* PWA Install */}
+        {isInstallable && !isInstalled && (
+          <button
+            onClick={install}
+            className="w-full h-11 rounded-xl bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-white hover:border-white/[0.12] flex items-center justify-center gap-2 transition-all cursor-pointer"
+          >
+            <Download size={14} />
+            <span className="text-[10px] font-bold uppercase tracking-wider">
+              Instalar app no celular
+            </span>
+          </button>
         )}
 
         <button
