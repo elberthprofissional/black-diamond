@@ -29,7 +29,10 @@ export function useSlotBlocking() {
     }
   };
 
-  const unblockSlot = async (bookingId: string, onUnblockComplete?: () => Promise<void> | void) => {
+  const unblockSlot = async (
+    _bookingId: string,
+    onUnblockComplete?: () => Promise<void> | void
+  ) => {
     try {
       const booking = unblockingBooking;
       if (booking) {
