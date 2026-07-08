@@ -73,7 +73,7 @@ function NotificationListContent({
     const dateTime = parts[2].trim();
 
     // Handle both old (5 parts) and new (6 parts) formats
-    let totalPrice: string;
+    let totalPrice = '';
     let clientPhone: string;
     let manageUrl: string;
 
