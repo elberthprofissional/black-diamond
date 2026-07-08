@@ -20,6 +20,7 @@ export const createMensalistaPlan = async (plan: {
   name: string;
   price: number;
   included_service_ids: string[];
+  allowed_days: number[];
   is_active?: boolean;
 }): Promise<MensalistaPlan> => {
   const { data, error } = await supabase
@@ -28,6 +29,7 @@ export const createMensalistaPlan = async (plan: {
       name: plan.name,
       price: plan.price,
       included_service_ids: plan.included_service_ids,
+      allowed_days: plan.allowed_days,
       is_active: plan.is_active ?? true,
     })
     .select()
@@ -44,6 +46,7 @@ export const updateMensalistaPlan = async (
     name?: string;
     price?: number;
     included_service_ids?: string[];
+    allowed_days?: number[];
     is_active?: boolean;
     sort_order?: number;
   }

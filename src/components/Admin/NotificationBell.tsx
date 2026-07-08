@@ -124,60 +124,105 @@ function NotificationListContent({
       )}
 
       {/* Notification list */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full min-h-[300px]">
-            <Bell size={28} className="text-zinc-700 mb-2" />
-            <p className="text-[11px] text-zinc-500">Nenhuma notificação</p>
+            <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mb-3">
+              <Bell size={22} className="text-zinc-700" />
+            </div>
+            <p className="text-[12px] text-zinc-500 font-medium">Nenhuma notificação</p>
+            <p className="text-[10px] text-zinc-600 mt-1">Novos agendamentos aparecerão aqui</p>
           </div>
         ) : (
           notifications.map((notif) => (
             <div
               key={notif.id}
-              onClick={() => onNotifClick(notif)}
-              className={`flex items-start gap-3 px-5 py-3.5 border-b border-white/[0.04] cursor-pointer transition-colors group ${
-                notif.read ? 'hover:bg-white/[0.02]' : 'bg-white/[0.03] hover:bg-white/[0.05]'
+              className={`relative rounded-2xl border transition-all duration-200 overflow-hidden ${
+                notif.read
+                  ? 'bg-white/[0.02] border-white/[0.04]'
+                  : 'bg-gradient-to-br from-[#111] to-[#0a0a0a] border-[#C5A059]/20'
               }`}
             >
-              <div className="shrink-0 mt-0.5 w-9 h-9 rounded-xl bg-white/[0.04] flex items-center justify-center">
-                {getNotifIcon(notif.title)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p
-                    className={`text-[13px] font-semibold truncate ${
-                      notif.read ? 'text-zinc-400' : 'text-white'
+              {/* Gold accent line for unread */}
+              {!notif.read && (
+                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#C5A059]/40 to-transparent" />
+              )}
+
+              <div className="p-4">
+                {/* Header */}
+                <div className="flex items-start gap-3 mb-3">
+                  <div
+                    className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${
+                      notif.read ? 'bg-white/[0.04]' : 'bg-[#C5A059]/10'
                     }`}
                   >
-                    {notif.title}
-                  </p>
-                  {!notif.read && <span className="shrink-0 w-2 h-2 rounded-full bg-[#C5A059]" />}
-                </div>
-                <p className="text-[12px] text-zinc-500 mt-0.5 line-clamp-2">
-                  {getDisplayBody(notif.body)}
-                </p>
-                <p className="text-[10px] text-zinc-600 mt-1">{timeAgo(notif.created_at)}</p>
-              </div>
-              <div className="shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                {notif.tag?.startsWith('booking-') && (
+                    {getNotifIcon(notif.title)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p
+                        className={`text-[13px] font-semibold ${notif.read ? 'text-zinc-400' : 'text-white'}`}
+                      >
+                        {notif.title}
+                      </p>
+                      {!notif.read && <span className="w-2 h-2 rounded-full bg-[#C5A059]" />}
+                    </div>
+                    <p className={`text-[12px] ${notif.read ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                      {getDisplayBody(notif.body)}
+                    </p>
+                  </div>
                   <button
-                    onClick={(e) => handleRemindClient(notif, e)}
-                    className="p-1.5 rounded-lg hover:bg-emerald-500/10 cursor-pointer"
-                    aria-label="Lembrar cliente via WhatsApp"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearNotification(notif.id);
+                    }}
+                    className="shrink-0 p-1.5 rounded-lg hover:bg-white/[0.06] transition-all cursor-pointer"
+                    aria-label="Remover"
                   >
-                    <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-500" />
+                    <Trash2 size={13} className="text-zinc-600" />
                   </button>
+                </div>
+
+                {/* Time */}
+                <p className="text-[10px] text-zinc-600 mb-3">{timeAgo(notif.created_at)}</p>
+
+                {/* Action buttons for booking notifications */}
+                {notif.tag?.startsWith('booking-') && (
+                  <div className="flex items-center gap-2 pt-3 border-t border-white/[0.04]">
+                    <button
+                      onClick={(e) => handleRemindClient(notif, e)}
+                      className="flex-1 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <WhatsAppIcon className="w-3.5 h-3.5" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">
+                        Lembrete
+                      </span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // TODO: implement reschedule
+                      }}
+                      className="flex-1 h-9 rounded-xl bg-[#C5A059]/10 border border-[#C5A059]/20 text-[#C5A059] hover:bg-[#C5A059]/20 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <Calendar size={12} />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">
+                        Reagendar
+                      </span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // TODO: implement cancel
+                      }}
+                      className="h-9 px-3 rounded-xl border border-red-500/20 text-red-400/80 hover:bg-red-500/10 transition-all cursor-pointer flex items-center justify-center"
+                    >
+                      <span className="text-[10px] font-bold uppercase tracking-wider">
+                        Cancelar
+                      </span>
+                    </button>
+                  </div>
                 )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    clearNotification(notif.id);
-                  }}
-                  className="p-1.5 rounded-lg hover:bg-white/[0.06] cursor-pointer"
-                  aria-label="Remover"
-                >
-                  <Trash2 size={13} className="text-zinc-600" />
-                </button>
               </div>
             </div>
           ))

@@ -1,8 +1,8 @@
 # DOCUMENTACAO — BLACK DIAMOND
 
-Sistema completo de agendamento online para barbearias, com painel administrativo, PWA, notificacoes push e integracao com Google Calendar.
+Sistema completo de agendamento online para barbearias, com painel administrativo, notificacoes push e integracao com WhatsApp.
 
-**Versao:** 3.7.0 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.8.0 | **Ultima atualizacao:** Julho 2026
 
 ---
 
@@ -45,8 +45,7 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 - Agendamento online em 4 etapas com confirmacao via WhatsApp
 - Painel admin com agenda do dia, semana, clientes e relatorios
 - Notificacoes push para agendamentos em tempo real
-
-- PWA instalavel na tela inicial do celular
+- Botao WhatsApp nas notificacoes — barbeiro envia confirmacao pro cliente com 1 clique
 - Galeria editavel com lightbox e delete pelo admin
 - Conversao automatica para WebP em uploads
 - Menu de foto estilo Instagram (alterar/remover foto)
@@ -104,6 +103,8 @@ Vercel (SPA estatica)
 Supabase (PostgreSQL + RLS + Auth)
   ↓ Web Push (VAPID)
 Service Worker → Notificacao no celular do admin
+  ↓ Admin clica icone WhatsApp
+WhatsApp → Mensagem formatada pro cliente
 
 Erros → Sentry (error reporting automatico)
 ```
@@ -112,9 +113,10 @@ Erros → Sentry (error reporting automatico)
 1. O cliente seleciona servicos, data e horario no site
 2. O frontend chama a RPC `criar_agendamento` no Supabase
 3. A RPC verifica conflitos, cria o client (se novo) e insere o booking
-4. O frontend redireciona pro WhatsApp com a mensagem formatada
-5. Um trigger dispara notificacao push para o admin
-6. O booking e confirmado e notificacoes push sao enviadas
+4. Uma notificacao push + in-app e enviada pro barbeiro
+5. O barbeiro clica no icone WhatsApp na notificacao
+6. WhatsApp abre com mensagem pronta pro cliente (confirmacao + link de gerenciamento)
+7. O barbeiro aperta Enviar — pronto!
 
 ### Bloqueio de horarios
 - O sistema usa a coluna `is_blocked` na tabela `bookings`
@@ -168,7 +170,7 @@ No Settings > Conta, ao clicar na foto de perfil abre um popover com opcoes:
 - `useSlotBlocking` — Bloqueio/desbloqueio de horarios
 - `useReschedule` — Logica de reagendamento (delete + recriar)
 - `useToast` — Sistema de notificacoes toast
-- `usePushNotifications` — Inscricao/cancelamento de Web Push
+- `usePushNotifications` — Inscricao/cancelamento de Web Push (admin)
 - `useReducedMotion` — Respeita preferencia de movimento do usuario
 - `useModalA11y` — Acessibilidade de modais (Escape, focus trap)
 - `useConnectionStatus` — Monitora conectividade com o Supabase
@@ -183,10 +185,9 @@ No Settings > Conta, ao clicar na foto de perfil abre um popover com opcoes:
 - `useDateDragScroll` — Drag scroll no date picker
 - `useWizardStep` — Controle de steps do wizard
 - `useBarberSettings` — Hook standalone do context
-- `useClients` — Composição de hooks para gestão de clientes
-- `useDashboardData` — Dados do dashboard (próximo booking, receita, slots)
-- `useNotifications` — Notificações in-app com polling em tempo real
-- `usePwaInstall` — Detecção e instalação do PWA
+- `useClients` — Composicao de hooks para gestao de clientes
+- `useDashboardData` — Dados do dashboard (proximo booking, receita, slots)
+- `useNotifications` — Notificacoes in-app com realtime
 
 ### Gerenciamento de Estado
 O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto via `AuthGuard`, e o estado compartilhado usa Context API + hooks customizados.
@@ -200,9 +201,8 @@ O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto v
 - Calendario semanal com slots disponiveis em tempo real
 - Formulario de dados com validacao de WhatsApp
 - Revisao antes de confirmar
-- Tela de sucesso com link de gerenciamento, copiar/enviar WhatsApp
+- Tela de sucesso com link de gerenciamento (copiar/enviar)
 - Layout responsivo desktop/mobile com drag-to-scroll no date picker
-- **PWA do cliente:** Instalavel no celular, recebe lembretes push
 
 ### Perfil do Cliente (`/cliente`)
 - Busca por telefone — agendamentos ativos e historico
@@ -225,11 +225,12 @@ O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto v
 - Avaliacoes reais alimentam o TestimonialsSlider na homepage
 
 ### Notificacoes In-App (`/admin/notificacoes`)
-- Centro de notificações estilo Instagram
+- Centro de notificacoes estilo Instagram
 - Desktop: painel lateral que desliza da esquerda
 - Mobile: tela cheia com botao voltar
 - Badge de nao-lido, mark all as read, deletar individual
 - Realtime — novas notificacoes aparecem instantaneamente
+- **Botao WhatsApp** — icone verde ao hover em notificacoes de agendamento, abre mensagem pronta pro cliente
 - Cron de limpeza: notificacoes > 30 dias sao deletadas
 
 ### Area do Admin (`/admin`)
@@ -257,7 +258,7 @@ O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto v
 - **Relatorio semanal:** Push toda segunda com resumo da semana (faturamento, atendimentos, top servico)
 - **Limpeza de dados:** Cron mensal que limpa bookings > 6 meses e audit logs > 90 dias, preservando stats dos clientes
 - **Notificacoes Push:** Ativacao/desativacao de notificacoes no navegador
-- **PWA:** Instalacao na tela inicial com guia visual
+- **WhatsApp nas notificacoes:** Icone verde para enviar confirmacao pro cliente com mensagem formatada
 
 ### Configuracoes (`/admin/profile?tab=settings`)
 - **Conta:** Nome, WhatsApp, Bio, Frase, Instagram, foto de perfil
@@ -860,12 +861,11 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - Verifique as variaveis de ambiente no `.env`
 - Verifique se o Supabase esta acessivel
 
-### "PWA nao instala"
-- Só funciona em HTTPS (produção) ou localhost (desenvolvimento).
-- **iOS (iPhone):** O Safari não suporta instalação programática. O usuário deve clicar em **Compartilhar (quadrado com seta para cima) > Adicionar à Tela de Início**. O app exibe um guia visual passo a passo automaticamente.
-- **Android/Chrome (Instalação Inteligente):**
-  - Se o navegador permitir a instalação automática, o app acionará diretamente a janela nativa do Chrome ao clicar em "Aplicativo".
-  - Se o Chrome bloquear o prompt automático (o que ocorre temporariamente após desinstalações recentes ou cache), o aplicativo exibirá automaticamente um guia passo a passo ensinando a instalar manualmente através do menu do Chrome (três pontinhos > Instalar aplicativo).
+### "WhatsApp nao abre apos agendamento"
+- Verifique se `VITE_BARBER_WHATSAPP` esta configurado no `.env`
+- O numero deve estar no formato: `5531999999999` (_codigo_do_pais + DDD + numero)
+- O WhatsApp so abre em producao (HTTPS) ou localhost
+- Se o barbeiro nao configurou o telefone no painel, usa a env var como fallback
 
 ### "Build falha"
 - Rode `npm run lint` para ver erros
@@ -914,10 +914,9 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 ### Funcionalidades implementadas
 - [x] Agendamento online 4 steps (desktop + mobile)
 - [x] Painel admin completo (dashboard, semana, clientes, agendamento manual)
-- [x] Notificacoes push via navegador
-- [x] Lembrete no Google Calendar para o cliente (link na confirmacao)
+- [x] Notificacoes push via navegador (admin)
+- [x] Botao WhatsApp nas notificacoes — mensagem pronta pro cliente
 - [x] Sistema de avaliacoes
-- [x] PWA instalavel com guia de instalacao iOS
 - [x] CI/CD com GitHub Actions
 - [x] Headers de seguranca (CSP, X-Frame-Options, etc.)
 - [x] Configuracoes do barbeiro (nome, WhatsApp, Bio, Frase, Instagram, foto)
@@ -949,15 +948,12 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [x] WhatsApp dinamico (configuravel pelo admin)
 - [x] Animacao marquee na galeria
 - [x] Projeto universal: template pronto para qualquer barbearia
-- [x] Script de instalação automática (instalar-cliente.mjs)
+- [x] Script de instalacao automatica (instalar-cliente.mjs)
 - [x] Schema universal do banco (universal.sql)
 - [x] Clipping mask na foto de perfil (drag + zoom estilo Instagram)
 - [x] Anti-burro: validacao de horarios, preco minimo, DDD
 - [x] UX da galeria estilo Google Fotos (header compacto, selecao integrada)
 - [x] Scrollbar dourada so no desktop (mobile limpo)
-- [x] Error reporting com Sentry (captura automatica de erros em producao)
-- [x] Coverage minimo no CI (70% — bloqueia merge abaixo do threshold)
-- [x] Testes E2E robustos (erro de rede, concorrencia, limites, acessibilidade, performance)
 - [x] AdminLogin splitado em 5 componentes (melhor manutenibilidade)
 - [x] Horarios do Footer e Location dinamicos (refletem configuracoes do admin)
 - [x] Admin booking filtra dias desativados (working_days) igual o cliente
@@ -982,14 +978,35 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 ## 17. Notificacoes Push (Web Push)
 
 ### Visao Geral
-O sistema envia notificacoes push automaticamente ao criar um novo agendamento. O admin recebe a notificacao no celular/desktop mesmo com o app fechado.
+O sistema envia notificacoes push automaticamente ao criar um novo agendamento. O admin recebe a notificacao no celular/desktop mesmo com o app fechado, e pode enviar confirmacao pro cliente com 1 clique via WhatsApp.
 
 ### Como funciona
 1. Admin ativa notificacoes em **Perfil > Notificar**
 2. O browser pede permissao e salva a subscription no Supabase
-3. Quando alguem agenda, o trigger `notificar_push_agendamento` dispara
-4. A edge function `send-push` envia a notificacao criptografada (VAPID) para todos os devices inscritos
-5. O service worker recebe o push e mostra a notificacao
+3. Quando alguem agenda, o frontend invoca a edge function `send-push`
+4. A edge function envia push notification + cria notificacao in-app
+5. O barbeiro ve a notificacao no painel e clica no icone WhatsApp
+6. WhatsApp abre com mensagem pronta pro cliente (confirmacao + link de gerenciamento)
+
+### Mensagem formatada
+Quando o barbeiro clica no icone WhatsApp, a seguinte mensagem e preenchida automaticamente:
+
+```
+Agendamento confirmado, [Nome]!
+
+Na Black Diamond
+
+[Servicos]
+[Data] as [Horario]
+R$ [Valor]
+
+Para cancelar ou reagendar:
+[Link de gerenciamento]
+
+Aguardamos voce!
+```
+
+O barbeiro so aperta Enviar — pronto!
 
 ### Configuracao
 
@@ -1011,7 +1028,7 @@ VAPID_SUBJECT=mailto:seu-email@gmail.com
 SUPABASE_SERVICE_ROLE_KEY=<sua_service_role_key>
 ```
 
-#### 4. Rodar SQL no Supabase Execute as secoes de push do `estrutura_barbearia.sql`
+#### 4. Rodar SQL no Supabase Execute as secoes de push do `universal.sql`
 
 #### 5. Deploy da edge function
 ```bash
@@ -1019,8 +1036,10 @@ supabase functions deploy send-push
 ```
 
 ### Arquivos envolvidos
-- `supabase/functions/send-push/index.ts` — Edge function que envia o push
-- `src/hooks/usePushNotifications.ts` — Hook React para subscribe/unsubscribe
+- `supabase/functions/send-push/index.ts` — Edge function que envia o push e cria notificacao in-app
+- `src/hooks/usePushNotifications.ts` — Hook React para subscribe/unsubscribe (admin)
+- `src/components/Admin/NotificationBell.tsx` — Botao WhatsApp nas notificacoes
+- `src/hooks/useBookingSubmit.ts` — Envia notificacao apos criar agendamento
 - `public/sw.js` — Service Worker que recebe e mostra a notificacao
 - `supabase/universal.sql` — Trigger, RPCs e cron jobs
 

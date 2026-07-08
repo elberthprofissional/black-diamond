@@ -20,14 +20,9 @@ const ServiceStep: React.FC<ServiceStepProps> = React.memo(
       return (
         <div className="space-y-6">
           {isMensalista && (
-            <div className="p-4 bg-[#C5A059]/[0.06] border border-[#C5A059]/20 rounded-xl">
+            <div className="px-4 py-3 bg-[#C5A059]/[0.06] border border-[#C5A059]/20 rounded-xl">
               <p className="text-[13px] text-[#C5A059] font-medium">
-                {planName
-                  ? `Serviços inclusos no ${planName}`
-                  : 'Corte de Cabelo incluso no plano mensal'}
-              </p>
-              <p className="text-[12px] text-zinc-500 mt-1">
-                Selecione serviços adicionais ou pule esta etapa.
+                {planName || 'Corte de Cabelo incluso no plano mensal'}
               </p>
             </div>
           )}
@@ -74,7 +69,7 @@ const ServiceStep: React.FC<ServiceStepProps> = React.memo(
               <button
                 type="button"
                 onClick={onSkip}
-                className="px-6 py-3 bg-white/[0.04] border border-white/[0.06] text-zinc-400 text-[13px] font-medium rounded-xl hover:bg-white/[0.06] hover:text-white transition-all cursor-pointer"
+                className="w-full py-3 bg-white/[0.04] border border-white/[0.08] text-zinc-400 text-[13px] font-medium rounded-xl hover:bg-white/[0.06] hover:text-white transition-all cursor-pointer"
               >
                 Pular sem adicionar
               </button>
@@ -87,11 +82,10 @@ const ServiceStep: React.FC<ServiceStepProps> = React.memo(
     return (
       <div className="space-y-4">
         {isMensalista && (
-          <div className="p-3 bg-[#C5A059]/[0.06] border border-[#C5A059]/20 rounded-xl">
+          <div className="px-4 py-3 bg-[#C5A059]/[0.06] border border-[#C5A059]/20 rounded-xl">
             <p className="text-[12px] text-[#C5A059] font-medium">
-              {planName ? `Serviços inclusos no ${planName}` : 'Corte incluso no plano mensal'}
+              {planName || 'Corte de Cabelo incluso no plano mensal'}
             </p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">Selecione adicionais ou pule.</p>
           </div>
         )}
 
@@ -135,7 +129,7 @@ const ServiceStep: React.FC<ServiceStepProps> = React.memo(
           <button
             type="button"
             onClick={onSkip}
-            className="w-full py-3 bg-white/[0.04] border border-white/[0.06] text-zinc-400 text-[13px] font-medium rounded-xl hover:bg-white/[0.06] hover:text-white transition-all cursor-pointer"
+            className="w-full py-3 bg-white/[0.04] border border-white/[0.08] text-zinc-400 text-[13px] font-medium rounded-xl hover:bg-white/[0.06] hover:text-white transition-all cursor-pointer"
           >
             Pular sem adicionar
           </button>

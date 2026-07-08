@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS mensalista_plans (
     name TEXT NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     included_service_ids UUID[] DEFAULT '{}',
+    allowed_days INTEGER[] DEFAULT '{1,2,3,4,5}',
     is_active BOOLEAN DEFAULT TRUE,
     is_default BOOLEAN DEFAULT FALSE,
     sort_order INTEGER DEFAULT 0,

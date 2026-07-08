@@ -53,8 +53,13 @@ export function useNotifications() {
       } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Remove existing channel first
+      if (channel) {
+        await supabase.removeChannel(channel);
+      }
+
       channel = supabase
-        .channel('notifications-changes')
+        .channel(`notifications-${user.id}`)
         .on(
           'postgres_changes',
           {

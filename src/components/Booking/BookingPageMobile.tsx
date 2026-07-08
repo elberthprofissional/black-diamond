@@ -80,8 +80,6 @@ const BookingPageMobile: React.FC<BookingPageMobileProps> = ({
   isMensalista,
   planName,
   clientLookupLoading,
-  token,
-  manageUrl,
 }) => {
   return (
     <div className="lg:hidden min-h-screen bg-[#050505] flex flex-col text-white font-sans relative pb-28 overflow-x-hidden">
@@ -95,15 +93,7 @@ const BookingPageMobile: React.FC<BookingPageMobileProps> = ({
             <ArrowLeft size={20} />
           </button>
           <div className="flex-1">
-            <h1 className="text-base font-bold text-white flex items-center gap-2">
-              {stepTitle}
-              {isMensalista && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-full">
-                  <span className="w-1 h-1 rounded-full bg-[#C5A059]" />
-                  <span className="text-[8px] font-bold text-[#C5A059] uppercase">Mensalista</span>
-                </span>
-              )}
-            </h1>
+            <h1 className="text-base font-bold text-white">{stepTitle}</h1>
           </div>
         </div>
         <div className="relative flex justify-between items-center w-full mt-4 px-4 pb-1 select-none">
@@ -294,8 +284,6 @@ const BookingPageMobile: React.FC<BookingPageMobileProps> = ({
           selectedServices={selectedServices}
           clientName={userInfo.name}
           layout="mobile"
-          token={token}
-          manageUrl={manageUrl}
         />
       )}
     </div>

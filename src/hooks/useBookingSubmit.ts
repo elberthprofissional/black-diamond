@@ -3,7 +3,6 @@ import { createBooking } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import type { Service } from '../types';
-import type { ClientBookingData } from './useClientBooking';
 
 interface SubmitParams {
   selectedServices: Service[];
@@ -65,51 +64,30 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
         const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
         const manageUrl = token ? `${siteUrl}/gerenciar?token=${token}` : '';
 
-        // Save booking to localStorage
-        try {
-          const notificationsAllowed =
-            typeof window !== 'undefined' &&
-            'Notification' in window &&
-            Notification.permission === 'granted';
-
-          const bookingData: ClientBookingData = {
-            id: result?.id || '',
-            token: token,
-            clientName: userInfo.name.trim(),
-            clientPhone: userInfo.phone.replace(/\D/g, ''),
-            serviceName: selectedServices.map((s) => s.name).join(', '),
-            date: selectedDate,
-            time: selectedTime,
-            totalPrice,
-            notificationEnabled: notificationsAllowed,
-            notificationSent: false,
-            createdAt: new Date().toISOString(),
-          };
-          localStorage.setItem('client_booking', JSON.stringify(bookingData));
-        } catch {
-          // localStorage unavailable
-        }
-
-        // Send push notification to barber with booking details
+        // Create in-app notification for all admins
         try {
           const serviceNames = selectedServices.map((s) => s.name).join(', ');
           const formattedDate = selectedDate.split('-').reverse().join('/');
           const mensalistaTag = isMensalista ? ' [MENSALISTA]' : '';
           const clientPhoneClean = userInfo.phone.replace(/\D/g, '');
           const totalFormatted = `R$ ${totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-          const pushBody = `${userInfo.name.trim()}${mensalistaTag} | ${serviceNames} | ${formattedDate} às ${selectedTime} | ${totalFormatted} | ${clientPhoneClean} | ${manageUrl}`;
-          supabase.functions
-            .invoke('send-push', {
-              body: {
-                title: 'Novo Agendamento! 💈',
-                body: pushBody,
-                tag: `booking-${result?.id || Date.now()}`,
-                url: '/admin',
-              },
-            })
-            .catch(() => {});
+          const notifBody = `${userInfo.name.trim()}${mensalistaTag} | ${serviceNames} | ${formattedDate} às ${selectedTime} | ${totalFormatted} | ${clientPhoneClean} | ${manageUrl}`;
+
+          // Get all admin user_ids
+          const { data: admins } = await supabase.from('admin_users').select('user_id');
+
+          if (admins && admins.length > 0) {
+            const notifications = admins.map((admin: { user_id: string }) => ({
+              user_id: admin.user_id,
+              title: 'Novo Agendamento! 💈',
+              body: notifBody,
+              tag: `booking-${result?.id || Date.now()}`,
+              url: '/admin',
+            }));
+            await supabase.from('notifications').insert(notifications);
+          }
         } catch {
-          // Push notification is nice-to-have; silently ignore failures
+          // Notification is best-effort
         }
 
         onComplete();

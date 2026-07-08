@@ -19,6 +19,16 @@ const MAX_PLANS = 10;
 const MAX_NAME_LENGTH = 30;
 const MAX_PRICE_LENGTH = 6;
 
+const WEEK_DAYS = [
+  { value: 1, label: 'Seg' },
+  { value: 2, label: 'Ter' },
+  { value: 3, label: 'Qua' },
+  { value: 4, label: 'Qui' },
+  { value: 5, label: 'Sex' },
+  { value: 6, label: 'Sáb' },
+  { value: 0, label: 'Dom' },
+];
+
 interface PlanFormFieldsProps {
   nameInput: string;
   setNameInput: (v: string) => void;
@@ -26,6 +36,8 @@ interface PlanFormFieldsProps {
   setPriceInput: (v: string) => void;
   selectedServiceIds: string[];
   toggleService: (id: string) => void;
+  allowedDays: number[];
+  toggleDay: (day: number) => void;
   services: Service[];
   nameInputRef: React.RefObject<HTMLInputElement | null>;
   onSubmit: () => void;
@@ -38,6 +50,8 @@ const PlanFormFields: React.FC<PlanFormFieldsProps> = ({
   setPriceInput,
   selectedServiceIds,
   toggleService,
+  allowedDays,
+  toggleDay,
   services,
   nameInputRef,
   onSubmit,
@@ -138,6 +152,32 @@ const PlanFormFields: React.FC<PlanFormFieldsProps> = ({
         })}
       </div>
     </div>
+
+    <div className="space-y-3">
+      <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">
+        Dias da semana
+      </span>
+      <p className="text-[12px] text-zinc-500 -mt-1">Dias em que o plano é válido.</p>
+      <div className="flex gap-2">
+        {WEEK_DAYS.map((day) => {
+          const selected = allowedDays.includes(day.value);
+          return (
+            <button
+              key={day.value}
+              type="button"
+              onClick={() => toggleDay(day.value)}
+              className={`flex-1 py-2.5 rounded-xl text-[12px] font-semibold transition-all cursor-pointer border ${
+                selected
+                  ? 'bg-[#C5A059]/[0.1] border-[#C5A059]/30 text-[#C5A059]'
+                  : 'bg-white/[0.02] border-white/[0.06] text-zinc-500 hover:bg-white/[0.04]'
+              }`}
+            >
+              {day.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   </>
 );
 
@@ -156,6 +196,7 @@ const SettingsMensalista: React.FC = () => {
   const [nameInput, setNameInput] = useState('');
   const [priceInput, setPriceInput] = useState('');
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
+  const [allowedDays, setAllowedDays] = useState<number[]>([1, 2, 3, 4, 5]); // Seg-Sex por padrão
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   const loadData = useCallback(async () => {
@@ -205,6 +246,12 @@ const SettingsMensalista: React.FC = () => {
     );
   };
 
+  const toggleDay = (day: number) => {
+    setAllowedDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort()
+    );
+  };
+
   const handleAdd = async () => {
     const name = nameInput.trim();
     const price = parseFloat(priceInput.replace(',', '.'));
@@ -228,13 +275,22 @@ const SettingsMensalista: React.FC = () => {
       showError('Selecione um serviço');
       return;
     }
+    if (allowedDays.length === 0) {
+      showError('Selecione pelo menos um dia');
+      return;
+    }
     if (plans.length >= MAX_PLANS) {
       showError(`Máximo ${MAX_PLANS} planos`);
       return;
     }
 
     try {
-      await createMensalistaPlan({ name, price, included_service_ids: selectedServiceIds });
+      await createMensalistaPlan({
+        name,
+        price,
+        included_service_ids: selectedServiceIds,
+        allowed_days: allowedDays,
+      });
       showSuccess('Plano criado!');
       closeForm();
       loadData();
@@ -263,12 +319,17 @@ const SettingsMensalista: React.FC = () => {
       showError('Selecione um serviço');
       return;
     }
+    if (allowedDays.length === 0) {
+      showError('Selecione pelo menos um dia');
+      return;
+    }
 
     try {
       await updateMensalistaPlan(editingId, {
         name,
         price,
         included_service_ids: selectedServiceIds,
+        allowed_days: allowedDays,
       });
       showSuccess('Plano atualizado!');
       closeForm();
@@ -307,6 +368,7 @@ const SettingsMensalista: React.FC = () => {
     setNameInput('');
     setPriceInput('');
     setSelectedServiceIds([]);
+    setAllowedDays([1, 2, 3, 4, 5]); // Seg-Sex por padrão
     setEditingId(null);
     setScreen('add');
   };
@@ -315,6 +377,7 @@ const SettingsMensalista: React.FC = () => {
     setNameInput(plan.name);
     setPriceInput(String(plan.price));
     setSelectedServiceIds(plan.included_service_ids || []);
+    setAllowedDays(plan.allowed_days || [1, 2, 3, 4, 5]);
     setEditingId(plan.id);
     setScreen('edit');
   };
@@ -621,6 +684,8 @@ const SettingsMensalista: React.FC = () => {
                   setPriceInput={setPriceInput}
                   selectedServiceIds={selectedServiceIds}
                   toggleService={toggleService}
+                  allowedDays={allowedDays}
+                  toggleDay={toggleDay}
                   services={services}
                   nameInputRef={nameInputRef}
                   onSubmit={handleSubmit}
@@ -669,6 +734,8 @@ const SettingsMensalista: React.FC = () => {
                     setPriceInput={setPriceInput}
                     selectedServiceIds={selectedServiceIds}
                     toggleService={toggleService}
+                    allowedDays={allowedDays}
+                    toggleDay={toggleDay}
                     services={services}
                     nameInputRef={nameInputRef}
                     onSubmit={handleSubmit}

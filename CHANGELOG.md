@@ -5,6 +5,28 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.8.0] - 2026-07-08
+
+### Changed
+- **Fluxo de notificacao simplificado** — Cliente agenda → barbeiro recebe push + notificacao no painel → clica icone WhatsApp → mensagem pronta pro cliente
+- **Mensagem WhatsApp formatada** — Barbeiro envia confirmacao pro cliente com servicos, data, hora, valor e link de gerenciamento
+- **Navbar limpa** — Removido painel "Meu Horário" do navbar (localStorage booking card)
+- **Removido PWA do cliente** — Service Worker de push mantido apenas para admin
+- **Display de notificacoes limpo** — Corpo da notificacao mostra apenas nome, servicos e data (sem telefone/URL)
+
+### Removed
+- **PWA do cliente** — Botao "Instalar app" removido do SuccessStep
+- **PwaGuard** — Rota redirect PWA → admin removida do App.tsx
+- **Service Worker registration** — Removido do main.tsx (mantido o sw.js para cache)
+- **localStorage booking** — Logica de persistencia de agendamento no cliente removida
+- **useClientBooking hook** — Hook morto removido
+- **Beforeinstallprompt handler** — Removido do main.tsx
+
+### Added
+- **Botao WhatsApp nas notificacoes** — Icone verde aparece ao hover em notificacoes de agendamento
+- **Mensagem de confirmacao** — Template formatado com confirmacao, servicos, data, link de gerenciamento
+- **Dados enriquecidos na notificacao** — Body inclui telefone do cliente e link de gerenciamento (separados por `|`)
+
 ## [3.7.0] - 2026-07-08
 
 ### Added
