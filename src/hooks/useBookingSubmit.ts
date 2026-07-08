@@ -11,8 +11,12 @@ interface SubmitParams {
   selectedTime: string;
   userInfo: { name: string; phone: string };
   totalPrice: number;
-  barberPhone: string;
   isMensalista: boolean;
+}
+
+interface BookingResult {
+  token: string;
+  manageUrl: string;
 }
 
 export function useBookingSubmit(showError: (msg: string) => void, onComplete: () => void) {
@@ -20,16 +24,9 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
   const submittingRef = useRef(false);
 
   const handleConfirm = useCallback(
-    async (params: SubmitParams) => {
-      const {
-        selectedServices,
-        selectedDate,
-        selectedTime,
-        userInfo,
-        totalPrice,
-        barberPhone,
-        isMensalista,
-      } = params;
+    async (params: SubmitParams): Promise<BookingResult | null> => {
+      const { selectedServices, selectedDate, selectedTime, userInfo, totalPrice, isMensalista } =
+        params;
 
       if (
         submittingRef.current ||
@@ -39,14 +36,14 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
         !userInfo.phone ||
         selectedServices.length === 0
       ) {
-        return;
+        return null;
       }
 
       if (!navigator.onLine) {
         showError(
           'Você está sem conexão com a internet. Por favor, verifique sua rede e tente novamente.'
         );
-        return;
+        return null;
       }
 
       submittingRef.current = true;
@@ -69,22 +66,7 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
         const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
         const manageUrl = token ? `${siteUrl}/gerenciar?token=${token}` : '';
 
-        if (barberPhone) {
-          const serviceNames = selectedServices.map((s) => s.name).join(', ');
-          const formattedDate = selectedDate.split('-').reverse().join('/');
-          const mensalistaTag = isMensalista ? ' [MENSALISTA]' : '';
-          const linkSection = manageUrl ? `\n\n🔗 Link do cliente:\n${manageUrl}` : '';
-          const msg = `━━━━━━━━━━━━━━━━━━━━━━━━━━\nBLACK DIAMOND BARBEARIA\nNOVO AGENDAMENTO\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nCliente:\n${userInfo.name.trim()}${mensalistaTag}\n\nServiços:\n${serviceNames
-            .split(', ')
-            .map((s) => `• ${s}`)
-            .join(
-              '\n'
-            )}\n\nData:\n${formattedDate}\n\nHorário:\n${selectedTime}\n\nValor Total:\nR$ ${totalPrice.toFixed(2).replace('.', ',')}${linkSection}`;
-          const waUrl = `https://wa.me/${barberPhone}?text=${encodeURIComponent(msg)}`;
-          window.open(waUrl, '_blank');
-        }
-
-        // Save booking to localStorage for the client card on Home
+        // Save booking to localStorage
         try {
           const notificationsAllowed =
             typeof window !== 'undefined' &&
@@ -106,19 +88,22 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
           };
           localStorage.setItem('client_booking', JSON.stringify(bookingData));
         } catch {
-          // localStorage unavailable — card simply won't appear
+          // localStorage unavailable
         }
 
-        // Send push notification to barber (fire-and-forget)
+        // Send push notification to barber with booking details
         try {
           const serviceNames = selectedServices.map((s) => s.name).join(', ');
           const formattedDate = selectedDate.split('-').reverse().join('/');
+          const mensalistaTag = isMensalista ? ' [MENSALISTA]' : '';
+          const pushBody = `${userInfo.name.trim()}${mensalistaTag} - ${serviceNames} - ${formattedDate} às ${selectedTime}`;
           supabase.functions
             .invoke('send-push', {
               body: {
                 title: 'Novo Agendamento! 💈',
-                body: `${userInfo.name.trim()} - ${serviceNames} - ${formattedDate} às ${selectedTime}`,
-                tag: `booking-${Date.now()}`,
+                body: pushBody,
+                tag: `booking-${result?.id || Date.now()}`,
+                url: '/admin',
               },
             })
             .catch(() => {});
@@ -127,8 +112,10 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
         }
 
         onComplete();
+        return { token, manageUrl };
       } catch (error) {
         showError(getErrorMessage(error));
+        return null;
       } finally {
         submittingRef.current = false;
         setIsSubmitting(false);

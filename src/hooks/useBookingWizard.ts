@@ -107,30 +107,37 @@ export function useBookingWizard(showError: (msg: string) => void) {
   }, []);
 
   // Total price
-  const totalPrice = useMemo(
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [manageUrl, setManageUrl] = useState('');
+  const [token, setToken] = useState('');
+
+  // Calculate total price
+  const calculatedTotalPrice = useMemo(
     () => selectedServices.reduce((sum, s) => sum + Number(s.price), 0),
     [selectedServices]
   );
 
   // Confirm with full params
-  const handleConfirm = useCallback(() => {
-    rawConfirm({
+  const handleConfirm = useCallback(async () => {
+    const result = await rawConfirm({
       selectedServices,
       selectedDate: slots.selectedDate,
       selectedTime: slots.selectedTime,
       userInfo,
-      totalPrice,
-      barberPhone: slots.barberPhone,
+      totalPrice: calculatedTotalPrice,
       isMensalista,
     });
+    if (result) {
+      setToken(result.token);
+      setManageUrl(result.manageUrl);
+    }
   }, [
     rawConfirm,
     selectedServices,
     slots.selectedDate,
     slots.selectedTime,
     userInfo,
-    totalPrice,
-    slots.barberPhone,
+    calculatedTotalPrice,
     isMensalista,
   ]);
 
@@ -189,5 +196,8 @@ export function useBookingWizard(showError: (msg: string) => void) {
     isMensalista,
     currentPlan,
     clientLookupLoading,
+    token,
+    manageUrl,
+    totalPrice: calculatedTotalPrice,
   };
 }

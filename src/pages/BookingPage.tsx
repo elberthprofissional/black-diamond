@@ -37,6 +37,8 @@ const BookingPage: React.FC = () => {
     isMensalista: w.isMensalista,
     planName: w.currentPlan?.name,
     clientLookupLoading: w.clientLookupLoading,
+    token: w.token,
+    manageUrl: w.manageUrl,
   };
 
   return (

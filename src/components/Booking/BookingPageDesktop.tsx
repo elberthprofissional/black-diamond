@@ -44,6 +44,8 @@ interface BookingPageDesktopProps {
   isMensalista: boolean;
   planName?: string;
   clientLookupLoading: boolean;
+  token?: string;
+  manageUrl?: string;
 }
 
 const BookingPageDesktop: React.FC<BookingPageDesktopProps> = ({
@@ -69,6 +71,8 @@ const BookingPageDesktop: React.FC<BookingPageDesktopProps> = ({
   isMensalista,
   planName,
   clientLookupLoading,
+  token,
+  manageUrl,
 }) => {
   return (
     <div className="hidden lg:flex min-h-screen bg-[#0E0E0E] text-white">
@@ -322,6 +326,8 @@ const BookingPageDesktop: React.FC<BookingPageDesktopProps> = ({
                   selectedServices={selectedServices}
                   clientName={userInfo.name}
                   layout="desktop"
+                  token={token}
+                  manageUrl={manageUrl}
                 />
               </motion.div>
             )}

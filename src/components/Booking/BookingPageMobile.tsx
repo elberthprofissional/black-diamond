@@ -43,6 +43,8 @@ interface BookingPageMobileProps {
   isMensalista: boolean;
   planName?: string;
   clientLookupLoading: boolean;
+  token?: string;
+  manageUrl?: string;
 }
 
 // Inverted: 1=Data, 2=Services, 3=DateTime, 4=Review
@@ -78,6 +80,8 @@ const BookingPageMobile: React.FC<BookingPageMobileProps> = ({
   isMensalista,
   planName,
   clientLookupLoading,
+  token,
+  manageUrl,
 }) => {
   return (
     <div className="lg:hidden min-h-screen bg-[#050505] flex flex-col text-white font-sans relative pb-28 overflow-x-hidden">
@@ -290,6 +294,8 @@ const BookingPageMobile: React.FC<BookingPageMobileProps> = ({
           selectedServices={selectedServices}
           clientName={userInfo.name}
           layout="mobile"
+          token={token}
+          manageUrl={manageUrl}
         />
       )}
     </div>
