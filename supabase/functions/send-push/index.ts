@@ -22,6 +22,8 @@ interface PushPayload {
   icon?: string;
   tag?: string;
   url?: string;
+  clientPhone?: string;
+  manageUrl?: string;
 }
 
 Deno.serve(async (req) => {

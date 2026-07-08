@@ -55,36 +55,3 @@ createRoot(document.getElementById('root')!).render(
     </BarberSettingsProvider>
   </StrictMode>
 );
-
-if ('serviceWorker' in navigator && !import.meta.env.DEV) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('/sw.js')
-      .then((registration) => {
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'activated') {
-                // Only reload if user is not on a form page
-                const path = window.location.pathname;
-                const isFormPage =
-                  path.includes('/agendar') ||
-                  path.includes('/admin/agendar') ||
-                  path.includes('/cancelar');
-                if (!isFormPage) {
-                  window.location.reload();
-                }
-              }
-            });
-          }
-        });
-      })
-      .catch(() => {});
-  });
-}
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  window.deferredPrompt = e as BeforeInstallPromptEvent;
-});

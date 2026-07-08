@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Trash2, Calendar, AlertTriangle, Clock, Star } from 'lucide-react';
 import { useNotifications, type Notification } from '../../hooks/useNotifications';
+import { WhatsAppIcon } from '../WhatsAppIcon';
 
 function timeAgo(dateStr: string): string {
   const now = Date.now();
@@ -33,6 +34,16 @@ interface NotificationBellProps {
   variant: 'mobile' | 'desktop';
 }
 
+/** Extracts clean display text from notification body (strips phone/url parts) */
+function getDisplayBody(body: string): string {
+  const parts = body.split(' | ');
+  // Show only: name | services | date
+  if (parts.length >= 3) {
+    return `${parts[0].trim()} — ${parts[1].trim()} — ${parts[2].trim()}`;
+  }
+  return body;
+}
+
 /** Shared notification list content — used by both desktop panel and mobile page */
 function NotificationListContent({
   notifications,
@@ -51,6 +62,39 @@ function NotificationListContent({
   onClose?: () => void;
   hideHeader?: boolean;
 }) {
+  const handleRemindClient = (notif: Notification, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Parse body: "clientName | services | date às time | totalPrice | clientPhone | manageUrl"
+    const parts = notif.body.split(' | ');
+    if (parts.length < 5) return;
+
+    const clientName = parts[0].replace(/\s*\[MENSALISTA\]/, '').trim();
+    const services = parts[1].trim();
+    const dateTime = parts[2].trim();
+
+    // Handle both old (5 parts) and new (6 parts) formats
+    let totalPrice: string;
+    let clientPhone: string;
+    let manageUrl: string;
+
+    if (parts.length >= 6) {
+      totalPrice = parts[3].trim();
+      clientPhone = parts[4].trim();
+      manageUrl = parts[5].trim();
+    } else {
+      clientPhone = parts[3].trim();
+      manageUrl = parts[4].trim();
+    }
+
+    if (!clientPhone || clientPhone.length < 10) return;
+
+    let reminderMsg = `✅ *Agendamento confirmado, ${clientName}!*\n\nNa *Black Diamond*\n\n✂️ ${services}\n📅 ${dateTime}`;
+    if (totalPrice) reminderMsg += `\n💰 ${totalPrice}`;
+    reminderMsg += `\n\n🔗 *Para cancelar ou reagendar:*\n${manageUrl}\n\nAguardamos você! 💈`;
+
+    const waUrl = `https://wa.me/${clientPhone}?text=${encodeURIComponent(reminderMsg)}`;
+    window.open(waUrl, '_blank');
+  };
   return (
     <div className="flex flex-col h-full">
       {/* Header — hidden when parent provides its own */}
@@ -109,19 +153,32 @@ function NotificationListContent({
                   </p>
                   {!notif.read && <span className="shrink-0 w-2 h-2 rounded-full bg-[#C5A059]" />}
                 </div>
-                <p className="text-[12px] text-zinc-500 mt-0.5 line-clamp-2">{notif.body}</p>
+                <p className="text-[12px] text-zinc-500 mt-0.5 line-clamp-2">
+                  {getDisplayBody(notif.body)}
+                </p>
                 <p className="text-[10px] text-zinc-600 mt-1">{timeAgo(notif.created_at)}</p>
               </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  clearNotification(notif.id);
-                }}
-                className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-white/[0.06] cursor-pointer"
-                aria-label="Remover"
-              >
-                <Trash2 size={13} className="text-zinc-600" />
-              </button>
+              <div className="shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {notif.tag?.startsWith('booking-') && (
+                  <button
+                    onClick={(e) => handleRemindClient(notif, e)}
+                    className="p-1.5 rounded-lg hover:bg-emerald-500/10 cursor-pointer"
+                    aria-label="Lembrar cliente via WhatsApp"
+                  >
+                    <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-500" />
+                  </button>
+                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearNotification(notif.id);
+                  }}
+                  className="p-1.5 rounded-lg hover:bg-white/[0.06] cursor-pointer"
+                  aria-label="Remover"
+                >
+                  <Trash2 size={13} className="text-zinc-600" />
+                </button>
+              </div>
             </div>
           ))
         )}

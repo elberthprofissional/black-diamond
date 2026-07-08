@@ -22,7 +22,6 @@ interface BookingResult {
 export function useBookingSubmit(showError: (msg: string) => void, onComplete: () => void) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submittingRef = useRef(false);
-
   const handleConfirm = useCallback(
     async (params: SubmitParams): Promise<BookingResult | null> => {
       const { selectedServices, selectedDate, selectedTime, userInfo, totalPrice, isMensalista } =
@@ -96,7 +95,9 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
           const serviceNames = selectedServices.map((s) => s.name).join(', ');
           const formattedDate = selectedDate.split('-').reverse().join('/');
           const mensalistaTag = isMensalista ? ' [MENSALISTA]' : '';
-          const pushBody = `${userInfo.name.trim()}${mensalistaTag} - ${serviceNames} - ${formattedDate} às ${selectedTime}`;
+          const clientPhoneClean = userInfo.phone.replace(/\D/g, '');
+          const totalFormatted = `R$ ${totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+          const pushBody = `${userInfo.name.trim()}${mensalistaTag} | ${serviceNames} | ${formattedDate} às ${selectedTime} | ${totalFormatted} | ${clientPhoneClean} | ${manageUrl}`;
           supabase.functions
             .invoke('send-push', {
               body: {

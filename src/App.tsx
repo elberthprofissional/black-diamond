@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { MotionConfig } from 'framer-motion';
 import { useReducedMotion } from './hooks/useReducedMotion';
 import AuthGuard from './components/Admin/AuthGuard';
-import PwaGuard from './components/PwaGuard';
 import ErrorBoundary from './components/ErrorBoundary';
 import ConnectionStatusBanner from './components/ConnectionStatusBanner';
 
@@ -99,22 +98,8 @@ function App() {
           <ErrorBoundary>
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
-                <Route
-                  path="/"
-                  element={
-                    <PwaGuard>
-                      <Home />
-                    </PwaGuard>
-                  }
-                />
-                <Route
-                  path="/agendar"
-                  element={
-                    <PwaGuard>
-                      <BookingPage />
-                    </PwaGuard>
-                  }
-                />
+                <Route path="/" element={<Home />} />
+                <Route path="/agendar" element={<BookingPage />} />
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin/reset-password" element={<AdminResetPassword />} />
                 <Route path="/cancelar" element={<CancelPage />} />
