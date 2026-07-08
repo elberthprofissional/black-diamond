@@ -5,6 +5,7 @@ const STORAGE_KEY = 'client_booking';
 
 export interface ClientBookingData {
   id: string;
+  token: string;
   clientName: string;
   clientPhone: string;
   serviceName: string;

@@ -328,7 +328,7 @@ const AdminBooking: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      await createBooking(
+      const bookingResult = await createBooking(
         {
           service_ids: selectedServices.map((s) => s.id),
           booking_date: selectedDate,
@@ -339,12 +339,26 @@ const AdminBooking: React.FC = () => {
         { name, phone }
       );
 
+      const result = Array.isArray(bookingResult) ? bookingResult[0] : bookingResult;
+      const token = result?.token || '';
+      const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
+      const manageUrl = token ? `${siteUrl}/gerenciar?token=${token}` : '';
+
       if (rescheduleBooking?.id) {
         try {
           await deleteBooking(rescheduleBooking.id);
         } catch {
           showError('Agendamento criado, mas não foi possível remover o anterior.');
         }
+      }
+
+      // Abrir WhatsApp pro cliente com o link de gerenciamento
+      if (manageUrl && phone) {
+        const serviceNames = selectedServices.map((s) => s.name).join(', ');
+        const formattedDate = selectedDate.split('-').reverse().join('/');
+        const clientMsg = `Fala ${name}! Seu horário na Black Diamond tá confirmado!\n\n📅 ${formattedDate} às ${selectedTime}\n✂️ ${serviceNames}\n💰 R$ ${totalPrice.toFixed(2).replace('.', ',')}\n\nPrecisa trocar ou cancelar? Clica aqui:\n👉 ${manageUrl}`;
+        const clientWaUrl = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(clientMsg)}`;
+        window.open(clientWaUrl, '_blank');
       }
 
       showSuccess(

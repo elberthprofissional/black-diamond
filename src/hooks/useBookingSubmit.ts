@@ -64,23 +64,28 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
           { name: userInfo.name, phone: userInfo.phone }
         );
 
+        const result = Array.isArray(bookingResult) ? bookingResult[0] : bookingResult;
+        const token = result?.token || '';
+        const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
+        const manageUrl = token ? `${siteUrl}/gerenciar?token=${token}` : '';
+
         if (barberPhone) {
           const serviceNames = selectedServices.map((s) => s.name).join(', ');
           const formattedDate = selectedDate.split('-').reverse().join('/');
           const mensalistaTag = isMensalista ? ' [MENSALISTA]' : '';
+          const linkSection = manageUrl ? `\n\n🔗 Link do cliente:\n${manageUrl}` : '';
           const msg = `━━━━━━━━━━━━━━━━━━━━━━━━━━\nBLACK DIAMOND BARBEARIA\nNOVO AGENDAMENTO\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nCliente:\n${userInfo.name.trim()}${mensalistaTag}\n\nServiços:\n${serviceNames
             .split(', ')
             .map((s) => `• ${s}`)
             .join(
               '\n'
-            )}\n\nData:\n${formattedDate}\n\nHorário:\n${selectedTime}\n\nValor Total:\nR$ ${totalPrice.toFixed(2).replace('.', ',')}`;
+            )}\n\nData:\n${formattedDate}\n\nHorário:\n${selectedTime}\n\nValor Total:\nR$ ${totalPrice.toFixed(2).replace('.', ',')}${linkSection}`;
           const waUrl = `https://wa.me/${barberPhone}?text=${encodeURIComponent(msg)}`;
           window.open(waUrl, '_blank');
         }
 
         // Save booking to localStorage for the client card on Home
         try {
-          const result = Array.isArray(bookingResult) ? bookingResult[0] : bookingResult;
           const notificationsAllowed =
             typeof window !== 'undefined' &&
             'Notification' in window &&
@@ -88,6 +93,7 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
 
           const bookingData: ClientBookingData = {
             id: result?.id || '',
+            token: token,
             clientName: userInfo.name.trim(),
             clientPhone: userInfo.phone.replace(/\D/g, ''),
             serviceName: selectedServices.map((s) => s.name).join(', '),
