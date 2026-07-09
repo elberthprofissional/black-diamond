@@ -601,8 +601,9 @@ const SettingsHorarios: React.FC = () => {
                           setHours((prev) => {
                             if (prev.lunch_break) {
                               // Desativar: remover lunch_break completamente
-                              const { lunch_break, ...rest } = prev;
-                              return rest as HoursData;
+                              const next = { ...prev };
+                              delete next.lunch_break;
+                              return next;
                             }
                             // Ativar: criar com defaults
                             return {
@@ -809,8 +810,9 @@ const SettingsHorarios: React.FC = () => {
                         setHours((prev) => {
                           if (prev.lunch_break) {
                             // Desativar: remover lunch_break completamente
-                            const { lunch_break, ...rest } = prev;
-                            return rest as HoursData;
+                            const next = { ...prev };
+                            delete next.lunch_break;
+                            return next;
                           }
                           // Ativar: criar com defaults
                           return {

@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { createBooking } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
 import { supabase } from '../lib/supabase';
+import { useBarberSettings } from './useBarberSettings';
 import type { Service } from '../types';
 
 interface SubmitParams {
@@ -21,6 +22,7 @@ interface BookingResult {
 export function useBookingSubmit(showError: (msg: string) => void, onComplete: () => void) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submittingRef = useRef(false);
+  const { barberPhone } = useBarberSettings();
   const handleConfirm = useCallback(
     async (params: SubmitParams): Promise<BookingResult | null> => {
       const { selectedServices, selectedDate, selectedTime, userInfo, totalPrice, isMensalista } =
@@ -90,34 +92,38 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
           // Notification is best-effort
         }
 
-        // Open WhatsApp for the client with booking confirmation + manage link
+        // Open WhatsApp for the barber with new booking notification
         try {
-          const phone = userInfo.phone.replace(/\D/g, '');
-          const waDate = selectedDate.split('-').reverse().join('/');
-          const waTime = selectedTime.slice(0, 5);
-          const serviceLines = selectedServices.map((s) => `* ${s.name}`).join('\n');
-          const totalFormatted = `R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
+          if (barberPhone) {
+            const waDate = selectedDate.split('-').reverse().join('/');
+            const waTime = selectedTime.slice(0, 5);
+            const serviceLines = selectedServices.map((s) => `* ${s.name}`).join('\n');
+            const totalFormatted = `R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
 
-          const message = [
-            'BLACK DIAMOND BARBEARIA',
-            'NOVO AGENDAMENTO',
-            '\u2501'.repeat(28),
-            '',
-            `Cliente: ${userInfo.name.trim()}`,
-            '',
-            'Servi\u00e7os:',
-            serviceLines,
-            '',
-            `Data: ${waDate}`,
-            `Hor\u00e1rio: ${waTime}`,
-            '',
-            `Valor Total: ${totalFormatted}`,
-            '',
-            '\uD83D\uDCCC Para cancelar ou reagendar seu hor\u00e1rio, acesse:',
-            manageUrl || `${siteUrl}/gerenciar`,
-          ].join('\n');
+            const message = [
+              'BLACK DIAMOND BARBEARIA',
+              'NOVO AGENDAMENTO',
+              '\u2501'.repeat(28),
+              '',
+              `Cliente: ${userInfo.name.trim()}`,
+              `Tel: ${userInfo.phone.replace(/\D/g, '')}`,
+              '',
+              'Servi\u00e7os:',
+              serviceLines,
+              '',
+              `Data: ${waDate}`,
+              `Hor\u00e1rio: ${waTime}`,
+              '',
+              `Valor Total: ${totalFormatted}`,
+              '',
+              manageUrl ? `🔗 Gerenciar: ${manageUrl}` : '',
+            ].join('\n');
 
-          window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(message)}`, '_blank');
+            window.open(
+              `https://wa.me/${barberPhone}?text=${encodeURIComponent(message)}`,
+              '_blank'
+            );
+          }
         } catch {
           // WhatsApp opening is best-effort
         }

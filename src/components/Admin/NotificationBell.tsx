@@ -270,7 +270,7 @@ function NotificationListContent({
 
   const deleteSelected = () => {
     // TODO: Implementar delete real via API
-    console.log('Deleting:', Array.from(selectedIds));
+    console.warn('Deleting:', Array.from(selectedIds));
     setSelectedIds(new Set());
     setIsSelectionMode(false);
   };
