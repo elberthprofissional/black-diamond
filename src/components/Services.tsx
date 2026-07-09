@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useServices } from '../hooks/useServices';
+import { useBarberSettings } from '../hooks/useBarberSettings';
 import { getMensalistaPlans, getMensalistaEnabled } from '../lib/api';
 import type { MensalistaPlan, Service } from '../types';
 
@@ -11,7 +12,7 @@ interface ServicesProps {
 
 const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
   const { services, loading } = useServices();
-  const barberPhone = import.meta.env.VITE_BARBER_WHATSAPP || '';
+  const { barberPhone } = useBarberSettings();
 
   const [plans, setPlans] = useState<MensalistaPlan[]>([]);
   const [mensalistaEnabled, setMensalistaEnabled] = useState(false);
@@ -157,45 +158,48 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
               className="fixed inset-0 z-[500] bg-[#0A0A0A] lg:hidden flex flex-col"
             >
               {/* Header */}
-              <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between shrink-0">
+              <div className="px-5 py-4 border-b border-white/[0.04] flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setShowPlansModal(false)}
-                    className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                    className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/[0.1] transition-all cursor-pointer"
                   >
-                    <X size={20} />
+                    <X size={16} />
                   </button>
-                  <h3 className="text-[15px] font-bold text-white">Planos Mensais</h3>
+                  <h3 className="text-[15px] font-semibold text-white">Planos Mensais</h3>
                 </div>
               </div>
 
               {/* Plans List */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-3">
-                {plans.map((plan) => (
+              <div className="flex-1 overflow-y-auto">
+                {plans.map((plan, index) => (
                   <div
                     key={plan.id}
-                    className="border border-white/[0.06] rounded-xl p-4 hover:border-[#D4AF37]/30 transition-colors"
+                    className={`px-5 py-5 ${index > 0 ? 'border-t border-white/[0.04]' : ''}`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
-                        <h4 className="text-[14px] font-semibold text-white">{plan.name}</h4>
-                      </div>
-                      <div className="flex items-baseline gap-0.5">
-                        <span className="text-lg font-bebas text-[#D4AF37]">
-                          R${' '}
-                          {Number(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </span>
-                        <span className="text-[10px] text-zinc-500">/mês</span>
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-[14px] font-semibold text-white truncate">
+                          {plan.name}
+                        </h4>
+                        <div className="flex items-baseline gap-1 mt-1">
+                          <span className="text-[18px] font-bold text-[#D4AF37]">
+                            R${' '}
+                            {Number(plan.price).toLocaleString('pt-BR', {
+                              minimumFractionDigits: 2,
+                            })}
+                          </span>
+                          <span className="text-[11px] text-zinc-500">/mês</span>
+                        </div>
                       </div>
                     </div>
 
                     {plan.included_service_ids && plan.included_service_ids.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
+                      <div className="flex flex-wrap gap-1.5 mb-4">
                         {plan.included_service_ids.map((sid) => (
                           <span
                             key={sid}
-                            className="text-[10px] font-medium text-[#D4AF37]/70 bg-[#D4AF37]/[0.06] px-2 py-0.5 rounded"
+                            className="text-[10px] font-medium text-zinc-400 bg-white/[0.04] px-2.5 py-1 rounded-full"
                           >
                             {getServiceName(sid, services)}
                           </span>
@@ -205,7 +209,7 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
 
                     <button
                       onClick={() => handlePlanClick(plan)}
-                      className="w-full py-2.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-[#D4AF37] font-bold text-[10px] uppercase tracking-[0.15em] rounded-lg hover:bg-[#D4AF37]/20 transition-all cursor-pointer"
+                      className="w-full py-3.5 bg-[#D4AF37] text-black font-bold text-[11px] uppercase tracking-[0.1em] rounded-xl hover:bg-[#C5A059] transition-all cursor-pointer active:scale-[0.98]"
                     >
                       Tenho interesse
                     </button>
@@ -214,7 +218,7 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
               </div>
 
               {/* Footer */}
-              <div className="px-5 py-3 border-t border-white/[0.06] text-center shrink-0">
+              <div className="px-5 py-3 border-t border-white/[0.04] text-center shrink-0">
                 <p className="text-[10px] text-zinc-600">
                   Ao clicar, você será redirecionado para o WhatsApp
                 </p>
