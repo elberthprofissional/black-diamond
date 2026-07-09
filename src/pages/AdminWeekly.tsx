@@ -264,10 +264,14 @@ const AdminWeekly: React.FC = () => {
                       e.stopPropagation();
                       const phone = booking.clients?.phone?.replace(/\D/g, '') || '';
                       const name = booking.clients?.name || '';
-                      const services = booking.services?.name || '';
+                      const serviceNames =
+                        booking.service_ids
+                          ?.map((id) => mgmt.services.find((s) => s.id === id)?.name)
+                          .filter(Boolean)
+                          .join(', ') || '';
                       const date = booking.booking_date;
                       const time = booking.booking_time.slice(0, 5);
-                      const msg = `✅ *Agendamento confirmado, ${name}!*\n\nNa *Black Diamond*\n\n✂️ ${services}\n📅 ${date} às ${time}\n\nAguardamos você! 💈`;
+                      const msg = `✅ *Agendamento confirmado, ${name}!*\n\nNa *Black Diamond*\n\n✂️ ${serviceNames}\n📅 ${date} às ${time}\n\nAguardamos você! 💈`;
                       window.open(
                         `https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`,
                         '_blank'
