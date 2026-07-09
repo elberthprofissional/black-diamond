@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, ChevronRight } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { useNotifications, type Notification } from '../../hooks/useNotifications';
 import { WhatsAppIcon } from '../WhatsAppIcon';
 
@@ -174,8 +174,6 @@ function MobileNotifItem({
     setSelectedIds(() => new Set([notif.id]));
   });
 
-  const isBooking = notif.tag?.startsWith('booking-');
-
   return (
     <button
       key={notif.id}
@@ -269,6 +267,10 @@ function NotificationListContent({
   onSelect: externalOnSelect,
   variant = 'desktop',
   clearNotification,
+  isSelectionMode: externalIsSelectionMode,
+  setIsSelectionMode: externalSetIsSelectionMode,
+  selectedIds: externalSelectedIds,
+  setSelectedIds: externalSetSelectedIds,
 }: {
   notifications: Notification[];
   unreadCount: number;
@@ -279,12 +281,23 @@ function NotificationListContent({
   onSelect?: (notif: Notification | null) => void;
   variant?: 'mobile' | 'desktop';
   clearNotification?: (id: string) => Promise<void>;
+  isSelectionMode?: boolean;
+  setIsSelectionMode?: (v: boolean) => void;
+  selectedIds?: Set<string>;
+  setSelectedIds?: (fn: (prev: Set<string>) => Set<string>) => void;
 }) {
   const [internalSelected, setInternalSelected] = useState<Notification | null>(null);
   const selected = externalSelected !== undefined ? externalSelected : internalSelected;
   const setSelected = externalOnSelect || setInternalSelected;
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(new Set());
+  const [internalIsSelectionMode, setInternalIsSelectionMode] = useState(false);
+
+  const selectedIds = externalSelectedIds !== undefined ? externalSelectedIds : internalSelectedIds;
+  const setSelectedIds = externalSetSelectedIds || setInternalSelectedIds;
+  const isSelectionMode =
+    externalIsSelectionMode !== undefined ? externalIsSelectionMode : internalIsSelectionMode;
+  const setIsSelectionMode = externalSetIsSelectionMode || setInternalIsSelectionMode;
+
   const [activeFilter, setActiveFilter] = useState<'all' | 'bookings' | 'reminders' | 'system'>(
     'all'
   );
