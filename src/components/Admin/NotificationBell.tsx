@@ -230,6 +230,7 @@ function NotificationListContent({
   selected: externalSelected,
   onSelect: externalOnSelect,
   variant = 'desktop',
+  clearNotification,
 }: {
   notifications: Notification[];
   unreadCount: number;
@@ -246,6 +247,43 @@ function NotificationListContent({
   const setSelected = externalOnSelect || setInternalSelected;
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'bookings' | 'reminders' | 'system'>(
+    'all'
+  );
+
+  const filterNotifications = (notifs: Notification[]) => {
+    if (activeFilter === 'all') return notifs;
+    return notifs.filter((n) => {
+      if (activeFilter === 'bookings') return n.tag?.startsWith('booking-');
+      if (activeFilter === 'reminders') return n.tag?.startsWith('reminder-');
+      if (activeFilter === 'system')
+        return !n.tag?.startsWith('booking-') && !n.tag?.startsWith('reminder-');
+      return true;
+    });
+  };
+
+  const filteredNotifications = filterNotifications(notifications);
+
+  const filterTabs = [
+    { key: 'all' as const, label: 'Tudo', count: notifications.length },
+    {
+      key: 'bookings' as const,
+      label: 'Agendamentos',
+      count: notifications.filter((n) => n.tag?.startsWith('booking-')).length,
+    },
+    {
+      key: 'reminders' as const,
+      label: 'Lembretes',
+      count: notifications.filter((n) => n.tag?.startsWith('reminder-')).length,
+    },
+    {
+      key: 'system' as const,
+      label: 'Sistema',
+      count: notifications.filter(
+        (n) => !n.tag?.startsWith('booking-') && !n.tag?.startsWith('reminder-')
+      ).length,
+    },
+  ];
 
   if (selected) {
     return <NotificationDetail notif={selected} />;
@@ -268,9 +306,13 @@ function NotificationListContent({
     setSelectedIds(new Set(notifications.map((n) => n.id)));
   };
 
-  const deleteSelected = () => {
-    // TODO: Implementar delete real via API
-    console.warn('Deleting:', Array.from(selectedIds));
+  const deleteSelected = async () => {
+    if (!clearNotification) return;
+    try {
+      await Promise.all(Array.from(selectedIds).map((id) => clearNotification(id)));
+    } catch {
+      // Notificações já foram removidas do estado (clearNotification faz update otimista)
+    }
     setSelectedIds(new Set());
     setIsSelectionMode(false);
   };
@@ -483,20 +525,48 @@ function NotificationListContent({
         </div>
       )}
 
+      {/* Filter Tabs - Desktop only */}
+      {variant === 'desktop' && !isSelectionMode && notifications.length > 0 && (
+        <div className="flex gap-1 px-4 py-2 border-b border-white/[0.04] overflow-x-auto">
+          {filterTabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveFilter(tab.key)}
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all whitespace-nowrap ${
+                activeFilter === tab.key
+                  ? 'bg-[#C5A059]/15 text-[#C5A059]'
+                  : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.04]'
+              }`}
+            >
+              {tab.label}
+              {tab.count > 0 && (
+                <span
+                  className={`ml-1.5 text-[9px] ${activeFilter === tab.key ? 'text-[#C5A059]/70' : 'text-zinc-600'}`}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto">
-        {notifications.length === 0 ? (
+        {filteredNotifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full min-h-[300px] px-6 text-center">
             <div className="w-14 h-14 rounded-full bg-white/[0.03] flex items-center justify-center mb-4">
               <Bell size={24} className="text-zinc-700" />
             </div>
             <p className="text-[13px] text-zinc-400 font-medium mb-1">Nenhuma notificação</p>
             <p className="text-[11px] text-zinc-600">
-              Quando houver novidades, elas aparecerão aqui.
+              {activeFilter === 'all'
+                ? 'Quando houver novidades, elas aparecerão aqui.'
+                : 'Nenhuma notificação nesta categoria.'}
             </p>
           </div>
         ) : (
           <div>
-            {groupByDate(notifications).map((group) => (
+            {groupByDate(filteredNotifications).map((group) => (
               <div key={group.label}>
                 <div className="px-4 py-2.5 bg-white/[0.02]">
                   <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
