@@ -801,12 +801,7 @@ const SettingsHorarios: React.FC = () => {
                   <X size={22} />
                 </button>
                 <span className="text-[16px] font-bold text-white">Intervalo de almoço</span>
-                <button
-                  onClick={() => setLunchOpen(false)}
-                  className="text-[#C5A059] hover:text-[#A68233] transition-colors cursor-pointer"
-                >
-                  <Check size={22} strokeWidth={3} />
-                </button>
+                <div className="w-[22px]" />
               </div>
 
               <div className="p-5 space-y-5">
