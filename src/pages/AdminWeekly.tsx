@@ -299,7 +299,7 @@ const AdminWeekly: React.FC = () => {
                           {/* Lembrete - Desktop */}
                           <button
                             onClick={handleReminder}
-                            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-[9px] font-bold uppercase tracking-wider rounded-md transition-all cursor-pointer"
+                            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 bg-[#C5A059]/10 hover:bg-[#C5A059]/20 text-[#C5A059] text-[9px] font-bold uppercase tracking-wider rounded-md transition-all cursor-pointer"
                           >
                             <svg
                               width="10"
@@ -318,7 +318,7 @@ const AdminWeekly: React.FC = () => {
                           {/* Lembrete - Mobile (só ícone) */}
                           <button
                             onClick={handleReminder}
-                            className="lg:hidden p-1.5 text-zinc-600 hover:text-emerald-400 transition-colors cursor-pointer"
+                            className="lg:hidden p-1.5 text-zinc-600 hover:text-[#C5A059] transition-colors cursor-pointer"
                             aria-label="Enviar lembrete"
                           >
                             <svg
@@ -428,7 +428,7 @@ const AdminWeekly: React.FC = () => {
                   <button
                     onClick={() => unblockEntireDay(blockedBookings, loadData)}
                     disabled={blockingDay}
-                    className="group w-full mb-4 py-3.5 px-4 bg-zinc-900/30 hover:bg-emerald-500/[0.04] border border-white/[0.04] hover:border-emerald-500/20 text-zinc-400 hover:text-emerald-400 rounded-xl text-[9px] font-bold uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="group w-full mb-4 py-3.5 px-4 bg-zinc-900/30 hover:bg-emerald-500/[0.04] border border-white/[0.04] hover:border-emerald-500/20 text-zinc-400 hover:text-[#C5A059] rounded-xl text-[9px] font-bold uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {blockingDay ? (
                       <div className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
