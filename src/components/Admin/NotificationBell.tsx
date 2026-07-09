@@ -52,6 +52,7 @@ function NotificationDetail({ notif, onBack }: { notif: Notification; onBack: ()
   if (!data) return null;
 
   const [date, time] = data.dateTime.split(' às ');
+  const services = data.services.split(', ');
 
   const handleRemind = () => {
     const msg = `✅ *Agendamento confirmado, ${data.clientName}!*\n\nNa *Black Diamond*\n\n✂️ ${data.services}\n📅 ${data.dateTime}\n💰 ${data.totalPrice}\n\n🔗 *Para cancelar ou reagendar:*\n${data.manageUrl}\n\nAguardamos você! 💈`;
@@ -60,59 +61,112 @@ function NotificationDetail({ notif, onBack }: { notif: Notification; onBack: ()
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto px-5 pb-5 space-y-5">
+      {/* Close Button */}
+      <div className="px-5 py-4 flex justify-end shrink-0">
+        <button
+          onClick={onBack}
+          className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/[0.1] transition-all cursor-pointer"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-5 pb-6">
         {/* Client */}
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 flex items-center justify-center text-sm font-bold text-[#C5A059] shrink-0">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-14 h-14 rounded-full bg-[#C5A059]/10 border-2 border-[#C5A059]/20 flex items-center justify-center text-base font-bold text-[#C5A059] shrink-0">
             {data.clientName.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="text-[15px] font-bold text-white truncate">{data.clientName}</p>
-            <p className="text-[12px] text-zinc-500">{formatPhone(data.clientPhone)}</p>
+            <p className="text-[16px] font-bold text-white truncate">{data.clientName}</p>
+            <p className="text-[13px] text-zinc-500">{formatPhone(data.clientPhone)}</p>
           </div>
         </div>
 
         {/* Date + Time */}
-        <div className="flex items-center gap-4 text-[13px]">
-          <span className="text-zinc-500">{date}</span>
-          <span className="text-[#C5A059] font-bold">{time}</span>
-        </div>
-
-        {/* Services */}
-        <div className="space-y-3">
-          {data.services.split(', ').map((s, i) => (
-            <div key={i} className="flex justify-between items-center">
-              <span className="text-[13px] text-zinc-500">{s}</span>
-            </div>
-          ))}
-          <div className="flex justify-between items-center pt-2">
-            <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider">
-              Total
-            </span>
-            <span className="text-[15px] font-black text-[#C5A059]">{data.totalPrice}</span>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-2 px-3 py-2 bg-white/[0.03] rounded-lg">
+            <svg
+              className="w-4 h-4 text-zinc-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+              />
+            </svg>
+            <span className="text-[13px] text-zinc-400">{date}</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-2 bg-[#C5A059]/10 rounded-lg">
+            <svg
+              className="w-4 h-4 text-[#C5A059]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span className="text-[13px] text-[#C5A059] font-bold">{time}</span>
           </div>
         </div>
 
-        <div className="h-px bg-white/[0.04]" />
+        {/* Services Card */}
+        <div className="bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 mb-6">
+          <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-3">
+            Serviços
+          </span>
+          <div className="space-y-2.5">
+            {services.map((s, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#C5A059] shrink-0" />
+                <span className="text-[13px] text-zinc-300">{s}</span>
+              </div>
+            ))}
+          </div>
+          <div className="h-px bg-white/[0.04] my-3" />
+          <div className="flex justify-between items-center">
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+              Total
+            </span>
+            <span className="text-[16px] font-black text-[#C5A059]">{data.totalPrice}</span>
+          </div>
+        </div>
 
         {/* Actions */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           <button
             onClick={handleRemind}
-            className="w-full h-11 bg-[#C5A059] text-black hover:bg-[#A68233] font-bold text-[10px] uppercase tracking-[0.2em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
+            className="w-full h-12 bg-[#C5A059] text-black hover:bg-[#A68233] font-bold text-[11px] uppercase tracking-[0.15em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
           >
             <WhatsAppIcon className="w-4 h-4" />
             Enviar Lembrete
           </button>
           <button
             onClick={() => window.open(data.manageUrl, '_blank')}
-            className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-zinc-300 hover:bg-white/[0.05] hover:text-white rounded-xl transition-all text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
+            className="w-full h-12 bg-white/[0.03] border border-white/[0.06] text-zinc-300 hover:bg-white/[0.06] hover:text-white rounded-xl transition-all text-[11px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
           >
             Reagendar
           </button>
           <button
             onClick={() => window.open(data.manageUrl, '_blank')}
-            className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-zinc-400 hover:bg-red-500/[0.02] hover:border-red-500/20 hover:text-red-400 rounded-xl transition-all text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
+            className="w-full h-12 bg-white/[0.03] border border-white/[0.06] text-zinc-400 hover:bg-red-500/[0.02] hover:border-red-500/20 hover:text-red-400 rounded-xl transition-all text-[11px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
           >
             Cancelar Agendamento
           </button>
