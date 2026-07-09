@@ -367,7 +367,7 @@ const AdminBooking: React.FC = () => {
       if (barberPhone) {
         const serviceNames = selectedServices.map((s) => s.name).join(', ');
         const formattedDate = selectedDate.split('-').reverse().join('/');
-        const barberMsg = `📋 *Novo Agendamento!*\n\n👤 ${name}\n📱 ${phone}\n✂️ ${serviceNames}\n📅 ${formattedDate} às ${selectedTime}\n💰 R$ ${totalPrice.toFixed(2).replace('.', ',')}${manageUrl ? `\n\n🔗 Gerenciar: ${manageUrl}` : ''}`;
+        const barberMsg = `📋 *Novo Agendamento!*\n\n👤 ${name}\n📱 ${phone}\n✂️ ${serviceNames}\n📅 ${formattedDate} às ${selectedTime}\n💰 R$ ${totalPrice.toFixed(2).replace('.', ',')}${manageUrl ? `\n\nPara cancelar ou reagendar, acesse:\n👉 ${manageUrl}` : ''}`;
         const barberWaUrl = `https://wa.me/${barberPhone.replace(/\D/g, '')}?text=${encodeURIComponent(barberMsg)}`;
         window.open(barberWaUrl, '_blank');
       }
