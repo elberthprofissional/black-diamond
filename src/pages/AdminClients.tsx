@@ -500,9 +500,88 @@ const AdminClients: React.FC = () => {
           onSendTemplate={(template: string) =>
             r.sendWithTemplate(c.selectedClient?.phone || '', template, c.selectedClient?.id || '')
           }
-          onClose={() => setIsReminderOpen(false)}
+          onClose={() => {
+            setIsReminderOpen(false);
+            c.setSelectedClient(null);
+          }}
         />
       </Suspense>
+
+      {/* Bulk Reminder Modal - Desktop */}
+      <AnimatePresence>
+        {isReminderOpen && !c.selectedClient && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="hidden lg:flex fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm items-center justify-center p-4"
+            onClick={() => setIsReminderOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-md bg-[#111111] border border-white/[0.06] rounded-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.04]">
+                <div className="flex items-center gap-2">
+                  <Bell size={16} className="text-[#C5A059]" />
+                  <span className="text-[14px] font-semibold text-white">Enviar Lembrete</span>
+                </div>
+                <button
+                  onClick={() => setIsReminderOpen(false)}
+                  className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/[0.1] transition-all cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="p-4 max-h-[400px] overflow-y-auto">
+                <p className="text-[12px] text-zinc-500 mb-3">
+                  Selecione o cliente para enviar lembrete:
+                </p>
+                <div className="space-y-2">
+                  {c.clients
+                    .filter((client) => !r.isReminderRecent(client.id))
+                    .map((client) => (
+                      <button
+                        key={client.id}
+                        onClick={() => {
+                          c.setSelectedClient(client);
+                        }}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] transition-all cursor-pointer text-left"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-[#C5A059]/10 flex items-center justify-center text-sm font-bold text-[#C5A059] shrink-0">
+                          {client.name.charAt(0)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[13px] text-white font-medium truncate">
+                            {client.name}
+                          </p>
+                          <p className="text-[11px] text-zinc-500">{formatPhone(client.phone)}</p>
+                        </div>
+                        <svg
+                          className="w-4 h-4 text-zinc-600 shrink-0"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    ))}
+                  {c.clients.filter((client) => !r.isReminderRecent(client.id)).length === 0 && (
+                    <p className="text-center text-[12px] text-zinc-600 py-8">
+                      Todos os clientes já foram lembrados recentemente.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Suspense fallback={null}>
         <NewClientModal
