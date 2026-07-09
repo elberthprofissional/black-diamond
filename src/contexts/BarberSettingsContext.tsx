@@ -85,13 +85,6 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
 
   useEffect(() => {
     refetch();
-
-    // Re-fetch sempre que alguém salvar configurações
-    const handleSettingsChanged = () => {
-      refetch();
-    };
-    window.addEventListener('barber-settings-changed', handleSettingsChanged);
-    return () => window.removeEventListener('barber-settings-changed', handleSettingsChanged);
   }, [refetch]);
 
   const updateBarberName = useCallback(async (newName: string) => {
@@ -102,7 +95,6 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
       .upsert({ key: 'barber_name', value: trimmed }, { onConflict: 'key' });
     if (!error) {
       setBarberName(trimmed);
-      window.dispatchEvent(new CustomEvent('barber-settings-changed'));
       return true;
     }
     return false;
@@ -116,6 +108,7 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
       .upsert({ key: 'barber_phone', value: digits }, { onConflict: 'key' });
     if (!error) {
       setBarberPhone(digits);
+      // Disparar evento para outros componentes atualizarem
       window.dispatchEvent(new CustomEvent('barber-settings-changed'));
       return true;
     }
@@ -128,7 +121,6 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
       .upsert({ key: 'barber_photo', value: photoUrl }, { onConflict: 'key' });
     if (!error) {
       setBarberPhoto(photoUrl);
-      window.dispatchEvent(new CustomEvent('barber-settings-changed'));
       return true;
     }
     return false;
@@ -140,7 +132,6 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
       .upsert({ key: 'barber_bio', value: newBio }, { onConflict: 'key' });
     if (!error) {
       setBarberBio(newBio);
-      window.dispatchEvent(new CustomEvent('barber-settings-changed'));
       return true;
     }
     return false;
@@ -152,7 +143,6 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
       .upsert({ key: 'barber_quote', value: newQuote }, { onConflict: 'key' });
     if (!error) {
       setBarberQuote(newQuote);
-      window.dispatchEvent(new CustomEvent('barber-settings-changed'));
       return true;
     }
     return false;
@@ -165,7 +155,6 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
       .upsert({ key: 'barber_instagram', value: cleaned }, { onConflict: 'key' });
     if (!error) {
       setBarberInstagram(cleaned);
-      window.dispatchEvent(new CustomEvent('barber-settings-changed'));
       return true;
     }
     return false;
@@ -185,6 +174,7 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
       const closeTimes: string[] = [];
 
       for (const [day, schedule] of Object.entries(parsed)) {
+        if (day === 'lunch_break') continue;
         if ((schedule as { enabled: boolean }).enabled) {
           enabledDays.push(day);
           openTimes.push((schedule as { open: string }).open);
@@ -223,7 +213,6 @@ export function BarberSettingsProvider({ children }: { children: React.ReactNode
     } catch {
       /* ignore */
     }
-    window.dispatchEvent(new CustomEvent('barber-settings-changed'));
     return true;
   }, []);
 

@@ -214,6 +214,10 @@ const SettingsConta: React.FC<SettingsContaProps> = ({ onBack: _onBack }) => {
       if (ok) {
         showSuccess('Telefone alterado!');
         setEditingPhone(false);
+        // Forçar refetch para garantir sincronização
+        setTimeout(() => {
+          setPhoneInput(digits);
+        }, 100);
       } else showError('Erro ao alterar telefone');
     }
   };
