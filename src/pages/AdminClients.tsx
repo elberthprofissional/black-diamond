@@ -341,7 +341,7 @@ const AdminClients: React.FC = () => {
             </div>
 
             {/* Desktop */}
-            <div className="hidden lg:grid xl:grid-cols-3 lg:grid-cols-2 gap-4">
+            <div className="hidden lg:grid 2xl:grid-cols-5 xl:grid-cols-4 lg:grid-cols-3 gap-4">
               {filteredClients.map((client) => {
                 const needsReminder = !r.isReminderRecent(client.id);
                 const daysSinceVisit = client.lastVisitDate
@@ -366,13 +366,13 @@ const AdminClients: React.FC = () => {
                       if (e.key === 'Enter' || e.key === ' ') handleOpenPanel(client);
                     }}
                     aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`}
-                    className={`p-5 rounded-2xl border transition-all duration-200 cursor-pointer group text-left ${needsReminder ? 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05] hover:border-[#C5A059]/20' : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.1]'}`}
+                    className={`p-6 rounded-2xl border transition-all duration-200 cursor-pointer group text-left ${needsReminder ? 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05] hover:border-[#C5A059]/20' : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.1]'}`}
                   >
                     {/* Top: Avatar + Name + Button */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="flex items-start justify-between mb-5">
+                      <div className="flex items-center gap-4 min-w-0">
                         <div className="relative shrink-0">
-                          <div className="w-12 h-12 rounded-xl bg-[#111111] border border-white/[0.08] group-hover:border-[#C5A059]/30 flex items-center justify-center text-base font-bold text-white uppercase transition-colors">
+                          <div className="w-14 h-14 rounded-xl bg-[#111111] border border-white/[0.08] group-hover:border-[#C5A059]/30 flex items-center justify-center text-lg font-bold text-white uppercase transition-colors">
                             {client.name.charAt(0)}
                           </div>
                           {client.is_mensalista ? (
@@ -427,9 +427,9 @@ const AdminClients: React.FC = () => {
                     </div>
 
                     {/* Bottom: Phone + Last Visit */}
-                    <div className="ml-[60px] space-y-1.5">
-                      <p className="text-[12px] text-zinc-400">{formatPhone(client.phone)}</p>
-                      <p className="text-[11px] text-zinc-600">
+                    <div className="ml-[70px] space-y-2">
+                      <p className="text-[13px] text-zinc-400">{formatPhone(client.phone)}</p>
+                      <p className="text-[12px] text-zinc-600">
                         Último corte:{' '}
                         <span className={client.isInactive ? 'text-amber-400/60' : 'text-zinc-500'}>
                           {client.lastVisit}
