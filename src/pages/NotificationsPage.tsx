@@ -17,8 +17,9 @@ const NotificationsPage: React.FC = () => {
     return notifs.filter((n) => {
       if (activeFilter === 'bookings') return n.tag?.startsWith('booking-');
       if (activeFilter === 'reminders') return n.tag?.startsWith('reminder-');
-      if (activeFilter === 'system')
+      if (activeFilter === 'system') {
         return !n.tag?.startsWith('booking-') && !n.tag?.startsWith('reminder-');
+      }
       return true;
     });
   };
@@ -53,9 +54,9 @@ const NotificationsPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={() => (selected ? setSelected(null) : navigate(-1))}
-            className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/[0.1] transition-all cursor-pointer"
+            className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft size={22} />
           </button>
           <span className="text-[16px] font-bold text-white">Notificações</span>
           {unreadCount > 0 && (
