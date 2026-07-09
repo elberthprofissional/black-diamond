@@ -179,13 +179,13 @@ function MobileNotifItem({
       key={notif.id}
       onClick={() => (isSelectionMode ? toggleSelect(notif.id) : setSelected(notif))}
       {...longPressProps}
-      className={`w-full flex items-center gap-3.5 px-4 py-4 text-left transition-all active:bg-white/[0.04] border-b border-white/[0.03] ${
+      className={`w-full flex items-start gap-3 px-4 py-4 text-left transition-all active:bg-white/[0.04] ${
         isSelected ? 'bg-[#C5A059]/[0.05]' : ''
-      }`}
+      } ${!notif.read ? 'bg-white/[0.01]' : ''}`}
     >
       {isSelectionMode && (
         <div
-          className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${
+          className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
             isSelected ? 'bg-[#C5A059] border-[#C5A059]' : 'border-zinc-600'
           }`}
         >
@@ -206,35 +206,49 @@ function MobileNotifItem({
         <div
           className={`w-11 h-11 rounded-full flex items-center justify-center ${notif.read ? 'bg-white/[0.04]' : 'bg-[#C5A059]/10'}`}
         >
-          <span
-            className={`text-[13px] font-bold ${notif.read ? 'text-zinc-500' : 'text-[#C5A059]'}`}
-          >
-            {name.charAt(0).toUpperCase()}
-          </span>
-        </div>
-        {!notif.read && !isSelectionMode && (
-          <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#C5A059]" />
-        )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <span
-          className={`text-[13px] font-semibold truncate block ${notif.read ? 'text-zinc-400' : 'text-white'}`}
-        >
-          {name}
-        </span>
-        <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-[11px] text-zinc-500 truncate flex-1">
-            {services}
-            {extra > 0 ? ` +${extra}` : ''}
-          </span>
-          {time && !isSelectionMode && (
-            <span className="shrink-0 text-[11px] text-[#C5A059] font-medium tabular-nums">
-              {time}
+          {notif.read ? (
+            <Bell size={16} className="text-zinc-500" />
+          ) : (
+            <span className="text-[12px] font-bold text-[#C5A059]">
+              {name.charAt(0).toUpperCase()}
             </span>
           )}
         </div>
+        {!notif.read && !isSelectionMode && (
+          <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#C5A059] border-2 border-[#0A0A0A]" />
+        )}
       </div>
-      {!isSelectionMode && <ChevronRight size={14} className="shrink-0 text-zinc-600" />}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span
+            className={`text-[13px] font-medium ${notif.read ? 'text-zinc-400' : 'text-white'}`}
+          >
+            {name}
+          </span>
+        </div>
+        {services && (
+          <p className="text-[12px] text-zinc-500 mt-0.5 truncate">
+            {services}
+            {extra > 0 ? ` +${extra}` : ''}
+          </p>
+        )}
+        {time && !isSelectionMode && (
+          <span className="text-[11px] text-zinc-600 mt-1 block">{time}</span>
+        )}
+      </div>
+      {!isSelectionMode && (
+        <div className="shrink-0 mt-1">
+          <svg
+            className="w-4 h-4 text-zinc-700"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      )}
     </button>
   );
 }
