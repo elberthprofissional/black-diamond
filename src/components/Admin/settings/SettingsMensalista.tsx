@@ -6,7 +6,6 @@ import {
   createMensalistaPlan,
   updateMensalistaPlan,
   deleteMensalistaPlan,
-  toggleMensalistaPlan,
   getMensalistaEnabled,
   setMensalistaEnabled,
   getServices,
@@ -353,17 +352,6 @@ const SettingsMensalista: React.FC = () => {
     }
   };
 
-  const handleToggleActive = async (plan: MensalistaPlan) => {
-    try {
-      await toggleMensalistaPlan(plan.id, !plan.is_active);
-      setPlans((prev) =>
-        prev.map((p) => (p.id === plan.id ? { ...p, is_active: !p.is_active } : p))
-      );
-    } catch {
-      showError('Erro ao alterar');
-    }
-  };
-
   const openAdd = () => {
     setNameInput('');
     setPriceInput('');
@@ -433,40 +421,40 @@ const SettingsMensalista: React.FC = () => {
       </div>
 
       {/* Toggle Mobile */}
-      <div className="lg:hidden border border-white/[0.06] rounded-2xl overflow-hidden">
-        <div className="p-4 sm:p-5 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div
-              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-                enabled ? 'bg-[#C5A059]/15' : 'bg-white/[0.04]'
+      <div className="lg:hidden">
+        <div className="flex items-center justify-between py-2 px-1">
+          <div className="flex-1">
+            <p className="text-[12px] text-zinc-500">
+              {enabled ? 'Planos visíveis para clientes' : 'Oculto na página de agendamento'}
+            </p>
+          </div>
+          <div className="flex items-center gap-2.5 shrink-0">
+            <span
+              className={`text-[11px] font-medium ${enabled ? 'text-[#C5A059]' : 'text-zinc-500'}`}
+            >
+              {enabled ? 'Desativar' : 'Ativar'}
+            </span>
+            <button
+              onClick={handleToggleEnabled}
+              disabled={togglingEnabled}
+              className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer disabled:opacity-50 ${
+                enabled ? 'bg-[#C5A059]' : 'bg-zinc-700'
               }`}
             >
-              <Crown size={18} className={enabled ? 'text-[#C5A059]' : 'text-zinc-600'} />
-            </div>
-            <h3 className="text-[14px] font-semibold text-white">Sistema de Mensalista</h3>
+              <motion.div
+                className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md"
+                animate={{ left: enabled ? 22 : 2 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              />
+            </button>
           </div>
-          <button
-            onClick={handleToggleEnabled}
-            disabled={togglingEnabled}
-            className={`relative w-12 h-7 rounded-full transition-colors cursor-pointer disabled:opacity-50 ${
-              enabled ? 'bg-[#C5A059]' : 'bg-zinc-700'
-            }`}
-          >
-            <motion.div
-              className="absolute top-1 w-5 h-5 bg-white rounded-full shadow-md"
-              animate={{ left: enabled ? 26 : 4 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-            />
-          </button>
         </div>
       </div>
 
       {/* Plans */}
-      <div
-        className={`space-y-4 transition-opacity ${enabled ? '' : 'opacity-30 pointer-events-none'}`}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between">
+      <div className={`transition-opacity ${enabled ? '' : 'opacity-30 pointer-events-none'}`}>
+        {/* Header - Desktop */}
+        <div className="hidden lg:flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <h3 className="text-white text-[15px] font-semibold">Planos cadastrados</h3>
             <span className="text-[11px] text-zinc-500">
@@ -570,79 +558,83 @@ const SettingsMensalista: React.FC = () => {
 
         {/* Mobile Cards */}
         {plans.length > 0 && (
-          <div className="lg:hidden border border-white/[0.04] rounded-2xl overflow-hidden">
-            {plans.map((plan) => (
-              <div
-                key={plan.id}
-                className={`px-5 py-4 border-t border-white/[0.04] ${!plan.is_active ? 'opacity-50' : ''}`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                        plan.is_active ? 'bg-[#C5A059]/10' : 'bg-white/[0.04]'
-                      }`}
-                    >
-                      <Crown
-                        size={14}
-                        className={plan.is_active ? 'text-[#C5A059]' : 'text-zinc-600'}
-                      />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
+          <div className="lg:hidden">
+            <div className="border border-white/[0.06] rounded-2xl overflow-hidden">
+              <div className="px-5 py-3 flex items-center justify-between border-b border-white/[0.04]">
+                <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">
+                  {plans.length}/{MAX_PLANS} planos
+                </span>
+                <button
+                  onClick={openAdd}
+                  disabled={plans.length >= MAX_PLANS}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.1] text-zinc-300 text-[11px] font-medium rounded-lg transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <Plus size={12} />
+                  Adicionar
+                </button>
+              </div>
+
+              {plans.map((plan, index) => (
+                <div
+                  key={plan.id}
+                  className={`px-5 py-4 ${
+                    index > 0 ? 'border-t border-white/[0.04]' : ''
+                  } ${!plan.is_active ? 'opacity-40' : ''}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
                         <p className="text-[13px] text-white font-medium truncate">{plan.name}</p>
                         {plan.is_default && (
-                          <span className="text-[7px] font-bold text-[#C5A059] bg-[#C5A059]/10 px-1 py-0.5 rounded uppercase shrink-0">
-                            Default
+                          <span className="text-[8px] font-bold text-[#C5A059] bg-[#C5A059]/10 px-1.5 py-0.5 rounded uppercase shrink-0">
+                            Padrão
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] text-[#C5A059] font-medium">
-                        R${' '}
-                        {Number(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        /mês
-                      </p>
+                      <div className="flex items-baseline gap-1 mt-0.5">
+                        <span className="text-[14px] text-[#C5A059] font-bold">
+                          R${' '}
+                          {Number(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                        <span className="text-[10px] text-zinc-500">/mês</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0 ml-3">
+                      <button
+                        onClick={() => openEdit(plan)}
+                        className="p-2 hover:bg-white/[0.06] rounded-lg transition-all cursor-pointer"
+                      >
+                        <Pencil
+                          size={14}
+                          className="text-zinc-500 hover:text-white transition-colors"
+                        />
+                      </button>
+                      <button
+                        onClick={() => setConfirmDelete(plan.id)}
+                        className="p-2 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer"
+                      >
+                        <Trash2
+                          size={14}
+                          className="text-zinc-500 hover:text-red-400 transition-colors"
+                        />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => handleToggleActive(plan)}
-                      className="p-1.5 hover:bg-white/[0.06] rounded-lg transition-all cursor-pointer"
-                    >
-                      {plan.is_active ? (
-                        <span className="text-[#C5A059] text-[10px]">●</span>
-                      ) : (
-                        <span className="text-zinc-600 text-[10px]">○</span>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => openEdit(plan)}
-                      className="px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.1] text-zinc-400 text-[10px] font-medium rounded-lg transition-all cursor-pointer"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => setConfirmDelete(plan.id)}
-                      className="p-2 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer"
-                    >
-                      <Trash2 size={14} className="text-zinc-500 hover:text-red-400" />
-                    </button>
-                  </div>
+                  {plan.included_service_ids && plan.included_service_ids.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {plan.included_service_ids.map((sid) => (
+                        <span
+                          key={sid}
+                          className="text-[10px] font-medium text-zinc-500 bg-white/[0.04] px-2 py-0.5 rounded"
+                        >
+                          {getServiceName(sid)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {plan.included_service_ids && plan.included_service_ids.length > 0 && (
-                  <div className="mt-2 ml-11 flex flex-wrap gap-1">
-                    {plan.included_service_ids.map((sid) => (
-                      <span
-                        key={sid}
-                        className="text-[9px] font-medium text-zinc-500 bg-white/[0.04] px-1.5 py-0.5 rounded"
-                      >
-                        {getServiceName(sid)}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </div>

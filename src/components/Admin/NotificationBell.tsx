@@ -1,9 +1,31 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, ChevronRight } from 'lucide-react';
 import { useNotifications, type Notification } from '../../hooks/useNotifications';
 import { WhatsAppIcon } from '../WhatsAppIcon';
+
+function useLongPress(callback: () => void, ms = 500) {
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const start = useCallback(() => {
+    timerRef.current = setTimeout(callback, ms);
+  }, [callback, ms]);
+
+  const stop = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+  }, []);
+
+  return {
+    onMouseDown: start,
+    onMouseUp: stop,
+    onMouseLeave: stop,
+    onTouchStart: start,
+    onTouchEnd: stop,
+  };
+}
 
 function parseNotifBody(body: string) {
   const parts = body.split(' | ');
@@ -85,7 +107,7 @@ function NotificationDetail({ notif }: { notif: Notification }) {
             Enviar Lembrete
           </button>
           <button
-            onClick={() => window.open('/cancelar', '_blank')}
+            onClick={() => window.open(data.manageUrl, '_blank')}
             className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-zinc-300 hover:bg-white/[0.05] hover:text-white rounded-xl transition-all text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
           >
             Reagendar
@@ -102,6 +124,102 @@ function NotificationDetail({ notif }: { notif: Notification }) {
   );
 }
 
+/* ─── Mobile Item (separate component to use useLongPress hook) ─── */
+function MobileNotifItem({
+  notif,
+  isSelected,
+  isSelectionMode,
+  toggleSelect,
+  setSelected,
+  setIsSelectionMode,
+  setSelectedIds,
+  name,
+  time,
+  services,
+  extra,
+}: {
+  notif: Notification;
+  isSelected: boolean;
+  isSelectionMode: boolean;
+  toggleSelect: (id: string) => void;
+  setSelected: (notif: Notification) => void;
+  setIsSelectionMode: (v: boolean) => void;
+  setSelectedIds: (fn: (prev: Set<string>) => Set<string>) => void;
+  name: string;
+  time: string;
+  services: string;
+  extra: number;
+}) {
+  const longPressProps = useLongPress(() => {
+    setIsSelectionMode(true);
+    setSelectedIds(() => new Set([notif.id]));
+  });
+
+  return (
+    <button
+      key={notif.id}
+      onClick={() => (isSelectionMode ? toggleSelect(notif.id) : setSelected(notif))}
+      {...longPressProps}
+      className={`w-full flex items-center gap-3.5 px-4 py-4 text-left transition-all active:bg-white/[0.04] border-b border-white/[0.03] ${
+        isSelected ? 'bg-[#C5A059]/[0.05]' : ''
+      }`}
+    >
+      {isSelectionMode && (
+        <div
+          className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${
+            isSelected ? 'bg-[#C5A059] border-[#C5A059]' : 'border-zinc-600'
+          }`}
+        >
+          {isSelected && (
+            <svg
+              className="w-3 h-3 text-black"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={3}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+        </div>
+      )}
+      <div className="relative shrink-0">
+        <div
+          className={`w-11 h-11 rounded-full flex items-center justify-center ${notif.read ? 'bg-white/[0.04]' : 'bg-[#C5A059]/10'}`}
+        >
+          <span
+            className={`text-[13px] font-bold ${notif.read ? 'text-zinc-500' : 'text-[#C5A059]'}`}
+          >
+            {name.charAt(0).toUpperCase()}
+          </span>
+        </div>
+        {!notif.read && !isSelectionMode && (
+          <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#C5A059]" />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <span
+          className={`text-[13px] font-semibold truncate block ${notif.read ? 'text-zinc-400' : 'text-white'}`}
+        >
+          {name}
+        </span>
+        <div className="flex items-center gap-2 mt-0.5">
+          <span className="text-[11px] text-zinc-500 truncate flex-1">
+            {services}
+            {extra > 0 ? ` +${extra}` : ''}
+          </span>
+          {time && !isSelectionMode && (
+            <span className="shrink-0 text-[11px] text-[#C5A059] font-medium tabular-nums">
+              {time}
+            </span>
+          )}
+        </div>
+      </div>
+      {!isSelectionMode && <ChevronRight size={14} className="shrink-0 text-zinc-600" />}
+    </button>
+  );
+}
+
 /* ─── List Content ─── */
 function NotificationListContent({
   notifications,
@@ -111,6 +229,7 @@ function NotificationListContent({
   hideHeader = false,
   selected: externalSelected,
   onSelect: externalOnSelect,
+  variant = 'desktop',
 }: {
   notifications: Notification[];
   unreadCount: number;
@@ -119,93 +238,276 @@ function NotificationListContent({
   hideHeader?: boolean;
   selected?: Notification | null;
   onSelect?: (notif: Notification | null) => void;
+  variant?: 'mobile' | 'desktop';
+  clearNotification?: (id: string) => Promise<void>;
 }) {
   const [internalSelected, setInternalSelected] = useState<Notification | null>(null);
   const selected = externalSelected !== undefined ? externalSelected : internalSelected;
   const setSelected = externalOnSelect || setInternalSelected;
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const doDelete = clearNotification || (() => Promise.resolve());
 
   if (selected) {
     return <NotificationDetail notif={selected} />;
   }
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      if (next.size === 0) setIsSelectionMode(false);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    setSelectedIds(new Set(notifications.map((n) => n.id)));
+  };
+
+  const deleteSelected = () => {
+    const ids = Array.from(selectedIds);
+    ids.forEach((id) => doDelete(id));
+    setSelectedIds(new Set());
+    setIsSelectionMode(false);
+  };
+
+  const groupByDate = (notifs: Notification[]) => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const groups: { label: string; items: Notification[] }[] = [];
+    const todayItems: Notification[] = [];
+    const yesterdayItems: Notification[] = [];
+    const olderItems: Notification[] = [];
+
+    notifs.forEach((notif) => {
+      const notifDate = new Date(notif.created_at);
+      if (notifDate.toDateString() === today.toDateString()) {
+        todayItems.push(notif);
+      } else if (notifDate.toDateString() === yesterday.toDateString()) {
+        yesterdayItems.push(notif);
+      } else {
+        olderItems.push(notif);
+      }
+    });
+
+    if (todayItems.length > 0) groups.push({ label: 'Hoje', items: todayItems });
+    if (yesterdayItems.length > 0) groups.push({ label: 'Ontem', items: yesterdayItems });
+    if (olderItems.length > 0) groups.push({ label: 'Anteriores', items: olderItems });
+
+    return groups;
+  };
+
+  const renderNotifItem = (notif: Notification) => {
+    const data = parseNotifBody(notif.body);
+    const name = data ? data.clientName : notif.title;
+    const time = data ? data.dateTime.split(' às ')[1] : '';
+    const services = data ? data.services.split(', ').slice(0, 2).join(', ') : '';
+    const extra = data ? data.services.split(', ').length - 2 : 0;
+    const isSelected = selectedIds.has(notif.id);
+
+    if (variant === 'mobile') {
+      return (
+        <MobileNotifItem
+          key={notif.id}
+          notif={notif}
+          isSelected={isSelected}
+          isSelectionMode={isSelectionMode}
+          toggleSelect={toggleSelect}
+          setSelected={setSelected}
+          setIsSelectionMode={setIsSelectionMode}
+          setSelectedIds={setSelectedIds}
+          name={name}
+          time={time}
+          services={services}
+          extra={extra}
+        />
+      );
+    }
+
+    return (
+      <button
+        key={notif.id}
+        onClick={() => (isSelectionMode ? toggleSelect(notif.id) : setSelected(notif))}
+        onDoubleClick={() => {
+          setIsSelectionMode(true);
+          setSelectedIds(new Set([notif.id]));
+        }}
+        className={`w-full flex items-center gap-3.5 px-4 py-4 text-left transition-all hover:bg-white/[0.02] active:bg-white/[0.04] border-b border-white/[0.03] ${
+          isSelected ? 'bg-[#C5A059]/[0.05]' : ''
+        }`}
+      >
+        {isSelectionMode && (
+          <div
+            className={`w-4 h-4 rounded border-[1.5px] flex items-center justify-center shrink-0 transition-all ${
+              isSelected ? 'bg-[#C5A059] border-[#C5A059]' : 'border-zinc-600'
+            }`}
+          >
+            {isSelected && (
+              <svg
+                className="w-2.5 h-2.5 text-black"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={3}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </div>
+        )}
+        <div className="relative shrink-0">
+          <div
+            className={`w-10 h-10 rounded-full flex items-center justify-center ${notif.read ? 'bg-white/[0.04]' : 'bg-[#C5A059]/10'}`}
+          >
+            <span
+              className={`text-[12px] font-bold ${notif.read ? 'text-zinc-500' : 'text-[#C5A059]'}`}
+            >
+              {name.charAt(0).toUpperCase()}
+            </span>
+          </div>
+          {!notif.read && !isSelectionMode && (
+            <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#C5A059]" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <span
+            className={`text-[13px] font-semibold truncate block ${notif.read ? 'text-zinc-400' : 'text-white'}`}
+          >
+            {name}
+          </span>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-[11px] text-zinc-500 truncate flex-1">
+              {services}
+              {extra > 0 ? ` +${extra}` : ''}
+            </span>
+            {time && !isSelectionMode && (
+              <span className="shrink-0 text-[11px] text-[#C5A059] font-medium tabular-nums">
+                {time}
+              </span>
+            )}
+          </div>
+        </div>
+        {!isSelectionMode && <ChevronRight size={14} className="shrink-0 text-zinc-600" />}
+      </button>
+    );
+  };
+
   return (
     <div className="flex flex-col h-full">
       {!hideHeader && (
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
-          <h2 className="text-base font-bold text-white">Notificações</h2>
-          <div className="flex items-center gap-3">
-            {unreadCount > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className="text-[11px] font-bold text-[#C5A059] hover:text-[#A68233] transition-colors cursor-pointer"
-              >
-                Marcar todas como lidas
-              </button>
-            )}
-            {onClose && (
-              <button
-                onClick={onClose}
-                className="w-7 h-7 rounded-full flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer"
-                aria-label="Fechar"
-              >
-                ✕
-              </button>
-            )}
-          </div>
+          {isSelectionMode ? (
+            <>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setIsSelectionMode(false);
+                    setSelectedIds(new Set());
+                  }}
+                  className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  ✕
+                </button>
+                <span className="text-[13px] text-white font-medium">
+                  {selectedIds.size} {selectedIds.size === 1 ? 'selecionada' : 'selecionadas'}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={selectAll}
+                  className="text-[11px] font-bold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  Todas
+                </button>
+                <button
+                  onClick={deleteSelected}
+                  disabled={selectedIds.size === 0}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 text-red-400 text-[11px] font-bold rounded-lg hover:bg-red-500/20 transition-all cursor-pointer disabled:opacity-30"
+                >
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                  Excluir
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-[15px] font-bold text-white">Notificações</h2>
+              <div className="flex items-center gap-3">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="flex items-center gap-1.5 text-[11px] font-bold text-[#C5A059] hover:text-[#A68233] transition-colors cursor-pointer"
+                  >
+                    <span className="text-[10px]">✓</span>
+                    Marcar todas
+                  </button>
+                )}
+                {notifications.length > 0 && (
+                  <button
+                    onClick={() => setIsSelectionMode(true)}
+                    className="text-[11px] font-bold text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+                  >
+                    Selecionar
+                  </button>
+                )}
+                {onClose && (
+                  <button
+                    onClick={onClose}
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer"
+                    aria-label="Fechar"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
 
       <div className="flex-1 overflow-y-auto">
         {notifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full min-h-[300px]">
-            <Bell size={28} className="text-zinc-800 mb-2" />
-            <p className="text-[12px] text-zinc-600">Nenhuma notificação</p>
+          <div className="flex flex-col items-center justify-center h-full min-h-[300px] px-6 text-center">
+            <div className="w-14 h-14 rounded-full bg-white/[0.03] flex items-center justify-center mb-4">
+              <Bell size={24} className="text-zinc-700" />
+            </div>
+            <p className="text-[13px] text-zinc-400 font-medium mb-1">Nenhuma notificação</p>
+            <p className="text-[11px] text-zinc-600">
+              Quando houver novidades, elas aparecerão aqui.
+            </p>
           </div>
         ) : (
-          notifications.map((notif) => {
-            const data = parseNotifBody(notif.body);
-            const name = data ? data.clientName : notif.title;
-            const time = data ? data.dateTime.split(' às ')[1] : '';
-            const services = data ? data.services.split(', ').slice(0, 2).join(', ') : '';
-            const extra = data ? data.services.split(', ').length - 2 : 0;
-
-            return (
-              <button
-                key={notif.id}
-                onClick={() => setSelected(notif)}
-                className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all active:bg-white/[0.03]"
-              >
-                <div
-                  className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${notif.read ? 'bg-white/[0.04]' : 'bg-[#C5A059]/10'}`}
-                >
-                  <span
-                    className={`text-[13px] font-bold ${notif.read ? 'text-zinc-500' : 'text-[#C5A059]'}`}
-                  >
-                    {name.charAt(0).toUpperCase()}
+          <div>
+            {groupByDate(notifications).map((group) => (
+              <div key={group.label}>
+                <div className="px-4 py-2.5 bg-white/[0.02]">
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                    {group.label}
                   </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <span
-                    className={`text-[14px] font-semibold truncate block ${notif.read ? 'text-zinc-500' : 'text-white'}`}
-                  >
-                    {name}
-                  </span>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[11px] text-zinc-600 truncate flex-1">
-                      {services}
-                      {extra > 0 ? ` +${extra}` : ''}
-                    </span>
-                    {time && (
-                      <span className="shrink-0 text-[11px] text-[#C5A059] font-semibold tabular-nums">
-                        {time}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <ChevronRight size={14} className="shrink-0 text-zinc-700" />
-              </button>
-            );
-          })
+                {group.items.map(renderNotifItem)}
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>
@@ -215,7 +517,7 @@ function NotificationListContent({
 /* ─── Bell Component ─── */
 const NotificationBell: React.FC<{ variant: 'mobile' | 'desktop' }> = ({ variant }) => {
   const navigate = useNavigate();
-  const { notifications, unreadCount, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAllAsRead, clearNotification } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -242,15 +544,10 @@ const NotificationBell: React.FC<{ variant: 'mobile' | 'desktop' }> = ({ variant
         <button
           ref={buttonRef}
           onClick={() => setIsOpen(!isOpen)}
-          className="relative flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all cursor-pointer w-full text-left text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.02]"
+          className="relative flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-200 cursor-pointer w-full text-left text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.04] hover:shadow-[0_0_15px_rgba(197,160,89,0.05)]"
         >
           <Bell size={16} className="text-zinc-600 shrink-0" />
           <span className="text-[11px] font-bold tracking-wide flex-1">Notificações</span>
-          {unreadCount > 0 && (
-            <span className="w-5 h-5 rounded-full bg-[#C5A059] text-black text-[10px] font-bold flex items-center justify-center">
-              {unreadCount}
-            </span>
-          )}
         </button>
       ) : (
         <button
@@ -283,13 +580,15 @@ const NotificationBell: React.FC<{ variant: 'mobile' | 'desktop' }> = ({ variant
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
                 transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                className="fixed top-0 left-0 bottom-0 z-[200] w-[380px] bg-[#0E0E0E] border-r border-white/[0.06] shadow-2xl"
+                className="fixed top-0 left-0 bottom-0 z-[200] w-[420px] bg-[#0E0E0E] border-r border-white/[0.06] shadow-2xl"
               >
                 <NotificationListContent
                   notifications={notifications}
                   unreadCount={unreadCount}
                   markAllAsRead={markAllAsRead}
                   onClose={() => setIsOpen(false)}
+                  variant="desktop"
+                  clearNotification={clearNotification}
                 />
               </motion.div>
             </>

@@ -3,6 +3,7 @@ import { useBarberSettings } from '../../../contexts/BarberSettingsContext';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
 import { motion, AnimatePresence } from 'framer-motion';
+import { X, Check } from 'lucide-react';
 
 interface DayHours {
   enabled: boolean;
@@ -112,7 +113,7 @@ const TimePickerSheet: React.FC<{
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-[13px] text-white font-medium cursor-pointer active:scale-95 transition-all"
+        className="bg-white/[0.04] border border-white/[0.06] rounded-xl px-5 py-3 text-[15px] text-white font-semibold cursor-pointer active:scale-95 transition-all min-w-[80px]"
       >
         {value}
       </button>
@@ -373,6 +374,7 @@ const SettingsHorarios: React.FC = () => {
   const [hasChanges, setHasChanges] = useState(false);
   const [modifiedDays, setModifiedDays] = useState<Set<string>>(new Set());
   const [justSaved, setJustSaved] = useState(false);
+  const [lunchOpen, setLunchOpen] = useState(false);
 
   useEffect(() => {
     if (barberHours) {
@@ -404,7 +406,8 @@ const SettingsHorarios: React.FC = () => {
     }
     setHours((prev) => {
       const next = { ...prev };
-      for (const d of days) (next as Record<string, DayHours | LunchBreak>)[d] = { enabled: true, open, close };
+      for (const d of days)
+        (next as Record<string, DayHours | LunchBreak>)[d] = { enabled: true, open, close };
       return next as HoursData;
     });
     setHasChanges(true);
@@ -474,6 +477,44 @@ const SettingsHorarios: React.FC = () => {
             Aplicar para todos
           </button>
         </div>
+
+        {/* Lunch Break Card - Desktop */}
+        <div
+          className="mb-4 bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 cursor-pointer hover:bg-white/[0.04] transition-all"
+          onClick={() => setLunchOpen(true)}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-white text-[14px] font-medium block">Horário de almoço</span>
+              {hours.lunch_break ? (
+                <p className="text-[#C5A059] text-[12px] font-medium mt-0.5">
+                  {hours.lunch_break.start} às {hours.lunch_break.end}
+                </p>
+              ) : (
+                <p className="text-zinc-500 text-[11px] mt-0.5">Clique para configurar</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-600 text-[11px]">
+                {hours.lunch_break ? 'Ativo' : 'Inativo'}
+              </span>
+              <svg
+                className="w-4 h-4 text-zinc-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
         <div className="border-t border-white/[0.06]">
           {DAYS_ORDER.map((day) => {
             const isModified = modifiedDays.has(day);
@@ -519,165 +560,163 @@ const SettingsHorarios: React.FC = () => {
             );
           })}
         </div>
-        {/* Lunch Break Section */}
-        <div className="mt-8 border-t border-white/[0.06] pt-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-white text-[15px] font-semibold">Horário de almoço</h3>
-              <p className="text-zinc-500 text-[12px] mt-0.5">
-                Bloqueia automaticamente os horários do almoço
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                setHours((prev) => {
-                  const lunch = prev.lunch_break;
-                  return {
-                    ...prev,
-                    lunch_break: {
-                      enabled: !lunch?.enabled,
-                      start: lunch?.start || '12:00',
-                      end: lunch?.end || '13:00',
-                      days: lunch?.days || [1, 2, 3, 4, 5],
-                    },
-                  };
-                });
-                setHasChanges(true);
-              }}
-              role="switch"
-              aria-checked={!!hours.lunch_break}
-              className={`relative w-9 h-5 rounded-full transition-all duration-300 cursor-pointer ${
-                hours.lunch_break ? 'bg-[#C5A059]' : 'bg-white/10'
-              }`}
+
+        {/* Lunch Break Modal - Desktop */}
+        <AnimatePresence>
+          {lunchOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="hidden lg:flex fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm items-center justify-center p-4"
+              onClick={() => setLunchOpen(false)}
             >
-              <span
-                className={`absolute top-[3px] left-0 w-[14px] h-[14px] rounded-full bg-white shadow transition-transform duration-300 ${
-                  hours.lunch_break
-                    ? 'translate-x-[19px]'
-                    : 'translate-x-[3px]'
-                }`}
-              />
-            </button>
-          </div>
-
-          {hours.lunch_break && (
-            <div className="bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 space-y-4">
-              {/* Time range */}
-              <div className="flex items-center justify-center gap-3">
-                <div className="flex items-center gap-1">
-                  {(() => {
-                    const lunch = hours.lunch_break!;
-                    const [h, m] = lunch.start.split(':');
-                    return (
-                      <>
-                        <NumInput
-                          value={h}
-                          max={23}
-                          onChange={(v) => {
-                            setHours((prev) => {
-                              const lb = prev.lunch_break!;
-                              return {
-                                ...prev,
-                                lunch_break: { ...lb, start: `${v}:${lb.start.split(':')[1]}` },
-                              };
-                            });
-                            setHasChanges(true);
-                          }}
-                        />
-                        <span className="text-zinc-600 text-[12px]">:</span>
-                        <NumInput
-                          value={m}
-                          max={59}
-                          onChange={(v) => {
-                            setHours((prev) => {
-                              const lb = prev.lunch_break!;
-                              return {
-                                ...prev,
-                                lunch_break: { ...lb, start: `${lb.start.split(':')[0]}:${v}` },
-                              };
-                            });
-                            setHasChanges(true);
-                          }}
-                        />
-                      </>
-                    );
-                  })()}
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+                className="w-full max-w-[320px] bg-[#111111] border border-white/[0.06] rounded-2xl overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between px-5 h-12 border-b border-white/[0.04]">
+                  <button
+                    onClick={() => setLunchOpen(false)}
+                    className="w-7 h-7 rounded-full bg-white/[0.06] flex items-center justify-center cursor-pointer hover:bg-white/[0.1] transition-colors"
+                  >
+                    <X size={14} className="text-zinc-400" />
+                  </button>
+                  <span className="text-[13px] font-semibold text-white">Intervalo de almoço</span>
+                  <button
+                    onClick={() => setLunchOpen(false)}
+                    className="w-7 h-7 rounded-full bg-[#C5A059] flex items-center justify-center cursor-pointer hover:bg-[#A68233] transition-colors"
+                  >
+                    <Check size={14} className="text-black" strokeWidth={3} />
+                  </button>
                 </div>
-                <span className="text-zinc-500 text-[12px]">às</span>
-                <div className="flex items-center gap-1">
-                  {(() => {
-                    const lunch = hours.lunch_break!;
-                    const [h, m] = lunch.end.split(':');
-                    return (
-                      <>
-                        <NumInput
-                          value={h}
-                          max={23}
-                          onChange={(v) => {
-                            setHours((prev) => {
-                              const lb = prev.lunch_break!;
-                              return {
-                                ...prev,
-                                lunch_break: { ...lb, end: `${v}:${lb.end.split(':')[1]}` },
-                              };
-                            });
-                            setHasChanges(true);
-                          }}
-                        />
-                        <span className="text-zinc-600 text-[12px]">:</span>
-                        <NumInput
-                          value={m}
-                          max={59}
-                          onChange={(v) => {
-                            setHours((prev) => {
-                              const lb = prev.lunch_break!;
-                              return {
-                                ...prev,
-                                lunch_break: { ...lb, end: `${lb.end.split(':')[0]}:${v}` },
-                              };
-                            });
-                            setHasChanges(true);
-                          }}
-                        />
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
 
-              {/* Days */}
-              <div className="flex gap-1.5">
-                {DAYS_ORDER.map((d) => {
-                  const lunch = hours.lunch_break!;
-                  const isActive = lunch.days.includes(Number(d));
-                  return (
-                    <button
-                      key={d}
-                      onClick={() => {
-                        setHours((prev) => {
-                          const lb = prev.lunch_break!;
-                          const dayNum = Number(d);
-                          const newDays = isActive
-                            ? lb.days.filter((x) => x !== dayNum)
-                            : [...lb.days, dayNum].sort();
-                          return { ...prev, lunch_break: { ...lb, days: newDays } };
-                        });
-                        setHasChanges(true);
-                      }}
-                      className={`flex-1 py-2 rounded-lg text-[10px] font-medium transition-all cursor-pointer ${
-                        isActive
-                          ? 'bg-[#C5A059]/10 text-[#C5A059]'
-                          : 'bg-white/[0.02] text-zinc-600'
-                      }`}
-                    >
-                      {DAY_NAMES[d].slice(0, 3).toUpperCase()}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                <div className="p-5 space-y-4">
+                  {/* Toggle + Description */}
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[13px] text-white font-medium">Ativar intervalo</span>
+                      <button
+                        onClick={() => {
+                          setHours((prev) => {
+                            const lunch = prev.lunch_break;
+                            return {
+                              ...prev,
+                              lunch_break: {
+                                enabled: !lunch?.enabled,
+                                start: lunch?.start || '12:00',
+                                end: lunch?.end || '13:00',
+                                days: lunch?.days || [1, 2, 3, 4, 5],
+                              },
+                            };
+                          });
+                          setHasChanges(true);
+                        }}
+                        role="switch"
+                        aria-checked={!!hours.lunch_break}
+                        className={`relative w-10 h-[22px] rounded-full transition-colors cursor-pointer ${
+                          hours.lunch_break ? 'bg-[#C5A059]' : 'bg-zinc-700'
+                        }`}
+                      >
+                        <motion.div
+                          className="absolute top-[3px] w-4 h-4 bg-white rounded-full shadow-sm"
+                          animate={{ left: hours.lunch_break ? 20 : 3 }}
+                          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                        />
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-zinc-500 mt-1.5">
+                      As notificações serão silenciadas durante esse período.
+                    </p>
+                  </div>
+
+                  {/* Time Pickers */}
+                  {hours.lunch_break && (
+                    <div className="border-t border-white/[0.04] pt-4">
+                      <div className="flex items-center justify-center gap-3">
+                        {(() => {
+                          const lunch = hours.lunch_break!;
+                          return (
+                            <>
+                              <TimePickerSheet
+                                value={lunch.start}
+                                onChange={(v) => {
+                                  setHours((prev) => {
+                                    const lb = prev.lunch_break!;
+                                    return { ...prev, lunch_break: { ...lb, start: v } };
+                                  });
+                                  setHasChanges(true);
+                                }}
+                                label="Início"
+                              />
+                              <span className="text-zinc-500 text-[12px]">às</span>
+                              <TimePickerSheet
+                                value={lunch.end}
+                                onChange={(v) => {
+                                  setHours((prev) => {
+                                    const lb = prev.lunch_break!;
+                                    return { ...prev, lunch_break: { ...lb, end: v } };
+                                  });
+                                  setHasChanges(true);
+                                }}
+                                label="Fim"
+                              />
+                            </>
+                          );
+                        })()}
+                      </div>
+
+                      {/* Days */}
+                      <div className="mt-4">
+                        <div className="flex gap-1.5">
+                          {DAYS_ORDER.map((d) => {
+                            const lunch = hours.lunch_break!;
+                            const isActive = lunch.days.includes(Number(d));
+                            return (
+                              <button
+                                key={d}
+                                onClick={() => {
+                                  setHours((prev) => {
+                                    const lb = prev.lunch_break!;
+                                    const dayNum = Number(d);
+                                    const newDays = isActive
+                                      ? lb.days.filter((x) => x !== dayNum)
+                                      : [...lb.days, dayNum].sort();
+                                    return { ...prev, lunch_break: { ...lb, days: newDays } };
+                                  });
+                                  setHasChanges(true);
+                                }}
+                                className={`flex-1 py-2.5 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
+                                  isActive
+                                    ? 'bg-[#C5A059]/10 text-[#C5A059]'
+                                    : 'bg-white/[0.02] text-zinc-600'
+                                }`}
+                              >
+                                {DAY_NAMES[d].slice(0, 3).toUpperCase()}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Apply Button */}
+                  <button
+                    onClick={() => setLunchOpen(false)}
+                    className="w-full py-3 rounded-xl bg-[#C5A059]/10 text-[#C5A059] font-semibold text-[12px] cursor-pointer hover:bg-[#C5A059]/20 transition-all"
+                  >
+                    Aplicar
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
           )}
-        </div>
+        </AnimatePresence>
 
         <div className="flex items-center justify-end mt-6">
           <button
@@ -695,11 +734,14 @@ const SettingsHorarios: React.FC = () => {
 
       {/* Mobile */}
       <div className="lg:hidden pb-24">
-        {/* Quick apply */}
+        {/* Title */}
         <div className="flex items-center justify-between mb-4 px-1">
-          <span className="text-[11px] text-zinc-500">
-            {activeCount} {activeCount === 1 ? 'dia ativo' : 'dias ativos'}
-          </span>
+          <div>
+            <h3 className="text-white text-[15px] font-semibold">Horário de funcionamento</h3>
+            <p className="text-zinc-500 text-[11px] mt-0.5">
+              {activeCount} {activeCount === 1 ? 'dia ativo' : 'dias ativos'}
+            </p>
+          </div>
           <button
             onClick={() => setApplyOpen(true)}
             className="text-[11px] text-zinc-500 hover:text-[#C5A059] transition-colors cursor-pointer"
@@ -708,8 +750,191 @@ const SettingsHorarios: React.FC = () => {
           </button>
         </div>
 
+        {/* Lunch Break - Mobile */}
+        <div
+          className="mb-4 mx-1 bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 cursor-pointer active:bg-white/[0.04] transition-all"
+          onClick={() => setLunchOpen(true)}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-white text-[13px] font-medium block">Horário de almoço</span>
+              {hours.lunch_break ? (
+                <p className="text-[#C5A059] text-[12px] font-medium mt-0.5">
+                  {hours.lunch_break.start} às {hours.lunch_break.end}
+                </p>
+              ) : (
+                <p className="text-zinc-500 text-[11px] mt-0.5">Toque para configurar</p>
+              )}
+            </div>
+            <svg
+              className="w-4 h-4 text-zinc-600 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Lunch Break Sheet */}
+        <AnimatePresence>
+          {lunchOpen && (
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="fixed inset-0 z-[300] bg-[#0A0A0A]"
+            >
+              <div className="flex items-center justify-between px-4 h-14 border-b border-white/[0.04]">
+                <button
+                  onClick={() => setLunchOpen(false)}
+                  className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center cursor-pointer"
+                >
+                  <X size={18} className="text-zinc-400" />
+                </button>
+                <span className="text-[16px] font-bold text-white">Intervalo de almoço</span>
+                <button
+                  onClick={() => setLunchOpen(false)}
+                  className="w-9 h-9 rounded-full bg-[#C5A059] flex items-center justify-center cursor-pointer"
+                >
+                  <Check size={18} className="text-black" strokeWidth={3} />
+                </button>
+              </div>
+
+              <div className="p-5 space-y-5">
+                {/* Toggle + Description */}
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[15px] text-white font-medium">Ativar intervalo</span>
+                    <button
+                      onClick={() => {
+                        setHours((prev) => {
+                          const lunch = prev.lunch_break;
+                          return {
+                            ...prev,
+                            lunch_break: {
+                              enabled: !lunch?.enabled,
+                              start: lunch?.start || '12:00',
+                              end: lunch?.end || '13:00',
+                              days: lunch?.days || [1, 2, 3, 4, 5],
+                            },
+                          };
+                        });
+                        setHasChanges(true);
+                      }}
+                      role="switch"
+                      aria-checked={!!hours.lunch_break}
+                      className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer ${
+                        hours.lunch_break ? 'bg-[#C5A059]' : 'bg-zinc-700'
+                      }`}
+                    >
+                      <motion.div
+                        className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md"
+                        animate={{ left: hours.lunch_break ? 22 : 2 }}
+                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                      />
+                    </button>
+                  </div>
+                  <p className="text-[12px] text-zinc-500 mt-2">
+                    As notificações serão silenciadas durante esse período.
+                  </p>
+                </div>
+
+                {/* Time Pickers */}
+                {hours.lunch_break && (
+                  <div className="border-t border-white/[0.04] pt-4 space-y-4">
+                    <div>
+                      <span className="text-[12px] text-zinc-400 font-medium block mb-3">
+                        Horário
+                      </span>
+                      <div className="flex items-center justify-center gap-3">
+                        {(() => {
+                          const lunch = hours.lunch_break!;
+                          return (
+                            <>
+                              <TimePickerSheet
+                                value={lunch.start}
+                                onChange={(v) => {
+                                  setHours((prev) => {
+                                    const lb = prev.lunch_break!;
+                                    return { ...prev, lunch_break: { ...lb, start: v } };
+                                  });
+                                  setHasChanges(true);
+                                }}
+                                label="Início"
+                              />
+                              <span className="text-zinc-500 text-[13px]">às</span>
+                              <TimePickerSheet
+                                value={lunch.end}
+                                onChange={(v) => {
+                                  setHours((prev) => {
+                                    const lb = prev.lunch_break!;
+                                    return { ...prev, lunch_break: { ...lb, end: v } };
+                                  });
+                                  setHasChanges(true);
+                                }}
+                                label="Fim"
+                              />
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Days */}
+                    <div>
+                      <span className="text-[12px] text-zinc-400 font-medium block mb-3">
+                        Dias da semana
+                      </span>
+                      <div className="flex gap-2">
+                        {DAYS_ORDER.map((d) => {
+                          const lunch = hours.lunch_break!;
+                          const isActive = lunch.days.includes(Number(d));
+                          return (
+                            <button
+                              key={d}
+                              onClick={() => {
+                                setHours((prev) => {
+                                  const lb = prev.lunch_break!;
+                                  const dayNum = Number(d);
+                                  const newDays = isActive
+                                    ? lb.days.filter((x) => x !== dayNum)
+                                    : [...lb.days, dayNum].sort();
+                                  return { ...prev, lunch_break: { ...lb, days: newDays } };
+                                });
+                                setHasChanges(true);
+                              }}
+                              className={`flex-1 py-3.5 rounded-xl text-[11px] font-semibold transition-all cursor-pointer border ${
+                                isActive
+                                  ? 'bg-[#C5A059]/15 border-[#C5A059]/30 text-[#C5A059]'
+                                  : 'bg-white/[0.02] border-white/[0.06] text-zinc-500'
+                              }`}
+                            >
+                              {DAY_NAMES[d].slice(0, 3).toUpperCase()}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Apply Button */}
+                <button
+                  onClick={() => setLunchOpen(false)}
+                  className="w-full py-3.5 rounded-xl bg-[#C5A059] text-black font-bold text-[12px] uppercase tracking-wider cursor-pointer active:scale-[0.98] transition-all"
+                >
+                  Aplicar
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Days */}
-        <div className="space-y-0">
+        <div className="border-t border-white/[0.06]">
           {DAYS_ORDER.map((day) => (
             <div
               key={day}
@@ -756,112 +981,6 @@ const SettingsHorarios: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Lunch Break - Mobile */}
-        <div className="mt-6 border-t border-white/[0.06] pt-5 px-1">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <p className="text-white text-[13px] font-medium">Horário de almoço</p>
-              <p className="text-zinc-600 text-[10px] mt-0.5">Bloqueio automático dos horários</p>
-            </div>
-            <button
-              onClick={() => {
-                setHours((prev) => {
-                  const lunch = prev.lunch_break;
-                  return {
-                    ...prev,
-                    lunch_break: {
-                      enabled: !lunch?.enabled,
-                      start: lunch?.start || '12:00',
-                      end: lunch?.end || '13:00',
-                      days: lunch?.days || [1, 2, 3, 4, 5],
-                    },
-                  };
-                });
-                setHasChanges(true);
-              }}
-              role="switch"
-              aria-checked={!!hours.lunch_break}
-              className={`relative w-9 h-5 rounded-full transition-all duration-300 cursor-pointer ${
-                hours.lunch_break ? 'bg-[#C5A059]' : 'bg-white/10'
-              }`}
-            >
-              <span
-                className={`absolute top-[3px] left-0 w-[14px] h-[14px] rounded-full bg-white shadow transition-transform duration-300 ${
-                  hours.lunch_break
-                    ? 'translate-x-[19px]'
-                    : 'translate-x-[3px]'
-                }`}
-              />
-            </button>
-          </div>
-
-          {hours.lunch_break && (
-            <div className="bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 space-y-3">
-              <div className="flex items-center justify-center gap-3">
-                {(() => {
-                  const lunch = hours.lunch_break!;
-                  return (
-                    <>
-                      <TimePickerSheet
-                        value={lunch.start}
-                        onChange={(v) => {
-                          setHours((prev) => {
-                            const lb = prev.lunch_break!;
-                            return { ...prev, lunch_break: { ...lb, start: v } };
-                          });
-                          setHasChanges(true);
-                        }}
-                        label="Início"
-                      />
-                      <span className="text-zinc-500 text-[11px]">às</span>
-                      <TimePickerSheet
-                        value={lunch.end}
-                        onChange={(v) => {
-                          setHours((prev) => {
-                            const lb = prev.lunch_break!;
-                            return { ...prev, lunch_break: { ...lb, end: v } };
-                          });
-                          setHasChanges(true);
-                        }}
-                        label="Fim"
-                      />
-                    </>
-                  );
-                })()}
-              </div>
-              <div className="flex gap-1.5">
-                {DAYS_ORDER.map((d) => {
-                  const lunch = hours.lunch_break!;
-                  const isActive = lunch.days.includes(Number(d));
-                  return (
-                    <button
-                      key={d}
-                      onClick={() => {
-                        setHours((prev) => {
-                          const lb = prev.lunch_break!;
-                          const dayNum = Number(d);
-                          const newDays = isActive
-                            ? lb.days.filter((x) => x !== dayNum)
-                            : [...lb.days, dayNum].sort();
-                          return { ...prev, lunch_break: { ...lb, days: newDays } };
-                        });
-                        setHasChanges(true);
-                      }}
-                      className={`flex-1 py-2.5 rounded-lg text-[10px] font-medium transition-all cursor-pointer ${
-                        isActive
-                          ? 'bg-[#C5A059]/10 text-[#C5A059]'
-                          : 'bg-white/[0.02] text-zinc-600'
-                      }`}
-                    >
-                      {DAY_NAMES[d].slice(0, 3).toUpperCase()}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Sticky save */}

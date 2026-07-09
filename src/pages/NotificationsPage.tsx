@@ -29,6 +29,7 @@ const NotificationsPage: React.FC = () => {
         hideHeader
         selected={selected}
         onSelect={setSelected}
+        variant="mobile"
       />
     </div>
   );
