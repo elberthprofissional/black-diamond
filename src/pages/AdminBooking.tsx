@@ -13,6 +13,7 @@ import { formatPhone, getNextDays } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../hooks/useToast';
 import { useServices } from '../hooks/useServices';
+import { useBarberSettings } from '../contexts/BarberSettingsContext';
 import type { Service, Client, Booking, MensalistaPlan } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomTabs from '../components/Admin/BottomTabs';
@@ -45,6 +46,7 @@ const AdminBooking: React.FC = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { services } = useServices();
+  const { barberPhone } = useBarberSettings();
   const [filteredClientsForModal, setFilteredClientsForModal] = useState<Client[]>([]);
   const [existingBookings, setExistingBookings] = useState<Booking[]>([]);
   const { showSuccess, showError } = useToast();
@@ -359,6 +361,15 @@ const AdminBooking: React.FC = () => {
         const clientMsg = `Fala ${name}! Seu horário na Black Diamond tá confirmado!\n\n📅 ${formattedDate} às ${selectedTime}\n✂️ ${serviceNames}\n💰 R$ ${totalPrice.toFixed(2).replace('.', ',')}\n\nPrecisa trocar ou cancelar? Clica aqui:\n👉 ${manageUrl}`;
         const clientWaUrl = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(clientMsg)}`;
         window.open(clientWaUrl, '_blank');
+      }
+
+      // Abrir WhatsApp pro barbeiro com o resumo do agendamento
+      if (barberPhone) {
+        const serviceNames = selectedServices.map((s) => s.name).join(', ');
+        const formattedDate = selectedDate.split('-').reverse().join('/');
+        const barberMsg = `📋 *Novo Agendamento!*\n\n👤 ${name}\n📱 ${phone}\n✂️ ${serviceNames}\n📅 ${formattedDate} às ${selectedTime}\n💰 R$ ${totalPrice.toFixed(2).replace('.', ',')}${manageUrl ? `\n\n🔗 Gerenciar: ${manageUrl}` : ''}`;
+        const barberWaUrl = `https://wa.me/${barberPhone.replace(/\D/g, '')}?text=${encodeURIComponent(barberMsg)}`;
+        window.open(barberWaUrl, '_blank');
       }
 
       showSuccess(
