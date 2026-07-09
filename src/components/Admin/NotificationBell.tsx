@@ -174,18 +174,20 @@ function MobileNotifItem({
     setSelectedIds(() => new Set([notif.id]));
   });
 
+  const isBooking = notif.tag?.startsWith('booking-');
+
   return (
     <button
       key={notif.id}
       onClick={() => (isSelectionMode ? toggleSelect(notif.id) : setSelected(notif))}
       {...longPressProps}
-      className={`w-full flex items-start gap-3 px-4 py-4 text-left transition-all active:bg-white/[0.04] ${
+      className={`w-full flex items-start gap-3.5 px-5 py-4 text-left transition-all active:bg-white/[0.04] ${
         isSelected ? 'bg-[#C5A059]/[0.05]' : ''
       } ${!notif.read ? 'bg-white/[0.01]' : ''}`}
     >
       {isSelectionMode && (
         <div
-          className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+          className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 mt-1 transition-all ${
             isSelected ? 'bg-[#C5A059] border-[#C5A059]' : 'border-zinc-600'
           }`}
         >
@@ -202,32 +204,34 @@ function MobileNotifItem({
           )}
         </div>
       )}
+
       <div className="relative shrink-0">
         <div
-          className={`w-11 h-11 rounded-full flex items-center justify-center ${notif.read ? 'bg-white/[0.04]' : 'bg-[#C5A059]/10'}`}
+          className={`w-12 h-12 rounded-full flex items-center justify-center ${notif.read ? 'bg-white/[0.04]' : 'bg-[#C5A059]/10'}`}
         >
           {notif.read ? (
-            <Bell size={16} className="text-zinc-500" />
+            <Bell size={18} className="text-zinc-500" />
           ) : (
-            <span className="text-[12px] font-bold text-[#C5A059]">
+            <span className="text-[13px] font-bold text-[#C5A059]">
               {name.charAt(0).toUpperCase()}
             </span>
           )}
         </div>
         {!notif.read && !isSelectionMode && (
-          <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#C5A059] border-2 border-[#0A0A0A]" />
+          <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#C5A059] border-2 border-[#0A0A0A]" />
         )}
       </div>
+
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span
-            className={`text-[13px] font-medium ${notif.read ? 'text-zinc-400' : 'text-white'}`}
+            className={`text-[14px] font-medium ${notif.read ? 'text-zinc-400' : 'text-white'}`}
           >
             {name}
           </span>
         </div>
         {services && (
-          <p className="text-[12px] text-zinc-500 mt-0.5 truncate">
+          <p className="text-[12px] text-zinc-500 mt-1 truncate">
             {services}
             {extra > 0 ? ` +${extra}` : ''}
           </p>
@@ -236,6 +240,7 @@ function MobileNotifItem({
           <span className="text-[11px] text-zinc-600 mt-1 block">{time}</span>
         )}
       </div>
+
       {!isSelectionMode && (
         <div className="shrink-0 mt-1">
           <svg
