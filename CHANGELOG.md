@@ -5,6 +5,26 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.9.0] - 2026-07-10
+
+### Changed
+- **Mensalista mobile** — Cards redesignados com visual limpo e minimalista, sem toggle冗余
+- **Horário de almoço** — Agora é um card clicável que abre modal (mobile e desktop)
+- **Notificações** — Seleção profissional com checkboxes, agrupamento por data (Hoje/Ontem/Anteriores), empty state trabalhado
+- **Painel notificações desktop** — Mais largo (420px), hover effects com brilho dourado
+- **Validação de telefone** — Corrigido para 11 dígitos (padrão brasileiro)
+
+### Added
+- **PWA Guard** — Usuário fica preso no admin quando usa o PWA, sem opção de voltar pro home
+- **Modo seleção notificações** — Desktop: duplo clique; Mobile: long press (500ms)
+- **Agrupamento por data** — Notificações agrupadas em Hoje, Ontem, Anteriores
+- **Indicador de não lido** — Bolinha dourada ao lado de notificações não lidas
+- **Empty state** — Mensagem amigável quando não há notificações
+
+### Fixed
+- **Toggle almoço** — Corrigido bug onde toggle não funcionava no modal desktop
+- **Aplicar para todos** — Botão voltou para posição correta no mobile (ao lado do título)
+
 ## [3.8.0] - 2026-07-08
 
 ### Changed

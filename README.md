@@ -2,7 +2,7 @@
 
 Sistema de agendamento premium para barbearias.
 
-[![Version](https://img.shields.io/badge/version-3.7.0-blue)]()
+[![Version](https://img.shields.io/badge/version-3.9.0-blue)]()
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Build](https://img.shields.io/badge/build-passing-brightgreen)]()
 [![Coverage](https://img.shields.io/badge/coverage-80%25-yellow)]()
