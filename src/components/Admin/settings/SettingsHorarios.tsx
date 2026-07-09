@@ -406,8 +406,9 @@ const SettingsHorarios: React.FC = () => {
     }
     setHours((prev) => {
       const next = { ...prev };
-      for (const d of days)
+      for (const d of days) {
         (next as Record<string, DayHours | LunchBreak>)[d] = { enabled: true, open, close };
+      }
       return next as HoursData;
     });
     setHasChanges(true);
@@ -603,14 +604,19 @@ const SettingsHorarios: React.FC = () => {
                       <button
                         onClick={() => {
                           setHours((prev) => {
-                            const lunch = prev.lunch_break;
+                            if (prev.lunch_break) {
+                              // Desativar: remover lunch_break completamente
+                              const { lunch_break, ...rest } = prev;
+                              return rest as HoursData;
+                            }
+                            // Ativar: criar com defaults
                             return {
                               ...prev,
                               lunch_break: {
-                                enabled: !lunch?.enabled,
-                                start: lunch?.start || '12:00',
-                                end: lunch?.end || '13:00',
-                                days: lunch?.days || [1, 2, 3, 4, 5],
+                                enabled: true,
+                                start: '12:00',
+                                end: '13:00',
+                                days: [1, 2, 3, 4, 5],
                               },
                             };
                           });
@@ -710,7 +716,7 @@ const SettingsHorarios: React.FC = () => {
                     onClick={() => setLunchOpen(false)}
                     className="w-full py-3 rounded-xl bg-[#C5A059]/10 text-[#C5A059] font-semibold text-[12px] cursor-pointer hover:bg-[#C5A059]/20 transition-all"
                   >
-                    Aplicar
+                    Salvar alterações
                   </button>
                 </div>
               </motion.div>
@@ -790,16 +796,16 @@ const SettingsHorarios: React.FC = () => {
               <div className="flex items-center justify-between px-4 h-14 border-b border-white/[0.04]">
                 <button
                   onClick={() => setLunchOpen(false)}
-                  className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center cursor-pointer"
+                  className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
                 >
-                  <X size={18} className="text-zinc-400" />
+                  <X size={22} />
                 </button>
                 <span className="text-[16px] font-bold text-white">Intervalo de almoço</span>
                 <button
                   onClick={() => setLunchOpen(false)}
-                  className="w-9 h-9 rounded-full bg-[#C5A059] flex items-center justify-center cursor-pointer"
+                  className="text-[#C5A059] hover:text-[#A68233] transition-colors cursor-pointer"
                 >
-                  <Check size={18} className="text-black" strokeWidth={3} />
+                  <Check size={22} strokeWidth={3} />
                 </button>
               </div>
 
@@ -807,18 +813,23 @@ const SettingsHorarios: React.FC = () => {
                 {/* Toggle + Description */}
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[15px] text-white font-medium">Ativar intervalo</span>
+                    <span className="text-[15px] text-white font-medium">Ativar intervalo</span>{' '}
                     <button
                       onClick={() => {
                         setHours((prev) => {
-                          const lunch = prev.lunch_break;
+                          if (prev.lunch_break) {
+                            // Desativar: remover lunch_break completamente
+                            const { lunch_break, ...rest } = prev;
+                            return rest as HoursData;
+                          }
+                          // Ativar: criar com defaults
                           return {
                             ...prev,
                             lunch_break: {
-                              enabled: !lunch?.enabled,
-                              start: lunch?.start || '12:00',
-                              end: lunch?.end || '13:00',
-                              days: lunch?.days || [1, 2, 3, 4, 5],
+                              enabled: true,
+                              start: '12:00',
+                              end: '13:00',
+                              days: [1, 2, 3, 4, 5],
                             },
                           };
                         });
@@ -926,7 +937,7 @@ const SettingsHorarios: React.FC = () => {
                   onClick={() => setLunchOpen(false)}
                   className="w-full py-3.5 rounded-xl bg-[#C5A059] text-black font-bold text-[12px] uppercase tracking-wider cursor-pointer active:scale-[0.98] transition-all"
                 >
-                  Aplicar
+                  Salvar alterações
                 </button>
               </div>
             </motion.div>

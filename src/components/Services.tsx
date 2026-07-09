@@ -162,9 +162,9 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setShowPlansModal(false)}
-                    className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/[0.1] transition-all cursor-pointer"
+                    className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
                   >
-                    <X size={16} />
+                    <X size={20} />
                   </button>
                   <h3 className="text-[15px] font-semibold text-white">Planos Mensais</h3>
                 </div>
