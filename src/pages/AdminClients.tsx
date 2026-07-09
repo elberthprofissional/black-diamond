@@ -341,9 +341,21 @@ const AdminClients: React.FC = () => {
             </div>
 
             {/* Desktop */}
-            <div className="hidden lg:grid grid-cols-2 gap-4">
+            <div className="hidden lg:grid xl:grid-cols-3 lg:grid-cols-2 gap-4">
               {filteredClients.map((client) => {
                 const needsReminder = !r.isReminderRecent(client.id);
+                const daysSinceVisit = client.lastVisitDate
+                  ? Math.floor(
+                      (Date.now() - client.lastVisitDate.getTime()) / (1000 * 60 * 60 * 24)
+                    )
+                  : 999;
+                const indicatorColor =
+                  daysSinceVisit <= 14
+                    ? 'bg-emerald-500'
+                    : daysSinceVisit <= 30
+                      ? 'bg-amber-500'
+                      : 'bg-red-500';
+
                 return (
                   <div
                     key={client.id}
@@ -354,7 +366,7 @@ const AdminClients: React.FC = () => {
                       if (e.key === 'Enter' || e.key === ' ') handleOpenPanel(client);
                     }}
                     aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`}
-                    className={`w-full flex items-center gap-4 p-5 rounded-2xl border transition-all duration-200 cursor-pointer group text-left ${needsReminder ? 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05] hover:border-[#C5A059]/20' : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.1]'}`}
+                    className={`w-full flex items-center gap-4 p-6 rounded-2xl border transition-all duration-200 cursor-pointer group text-left ${needsReminder ? 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05] hover:border-[#C5A059]/20' : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.1]'}`}
                   >
                     <div className="relative shrink-0">
                       <div className="w-12 h-12 rounded-xl bg-[#111111] border border-white/[0.08] group-hover:border-[#C5A059]/30 flex items-center justify-center text-base font-bold text-white uppercase transition-colors">
@@ -370,13 +382,16 @@ const AdminClients: React.FC = () => {
                         </div>
                       ) : (
                         <div
-                          className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0A0A0A] ${needsReminder ? 'bg-red-500' : 'bg-emerald-500'}`}
+                          className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0A0A0A] ${indicatorColor}`}
                         />
                       )}
                     </div>
                     <div className="flex-1 min-w-0 text-left">
                       <div className="flex items-center gap-2">
-                        <p className="text-[13px] font-semibold text-white truncate">
+                        <p
+                          className="text-[13px] font-semibold text-white truncate max-w-[180px]"
+                          title={client.name}
+                        >
                           {client.name}
                         </p>
                         {client.isInactive && (
@@ -396,7 +411,7 @@ const AdminClients: React.FC = () => {
                       </p>
                     </div>
                     <div className="shrink-0">
-                      {needsReminder && (
+                      {needsReminder ? (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -410,6 +425,10 @@ const AdminClients: React.FC = () => {
                           </svg>
                           Lembrar
                         </button>
+                      ) : (
+                        <span className="text-[10px] text-emerald-500/70 font-medium px-2">
+                          Lembrado
+                        </span>
                       )}
                       <ChevronRight
                         size={14}
