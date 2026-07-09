@@ -405,7 +405,7 @@ const SettingsConta: React.FC<SettingsContaProps> = ({ onBack: _onBack }) => {
                     onClick={handleSavePhone}
                     disabled={
                       phoneInput.replace(/\D/g, '') === barberPhone ||
-                      phoneInput.replace(/\D/g, '').length < 11
+                      phoneInput.replace(/\D/g, '').length < 10
                     }
                     className="px-5 py-3 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
                   >
