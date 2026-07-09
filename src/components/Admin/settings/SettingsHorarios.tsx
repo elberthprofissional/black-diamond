@@ -3,7 +3,7 @@ import { useBarberSettings } from '../../../contexts/BarberSettingsContext';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface DayHours {
   enabled: boolean;
@@ -583,17 +583,12 @@ const SettingsHorarios: React.FC = () => {
                 <div className="flex items-center justify-between px-5 h-12 border-b border-white/[0.04]">
                   <button
                     onClick={() => setLunchOpen(false)}
-                    className="w-7 h-7 rounded-full bg-white/[0.06] flex items-center justify-center cursor-pointer hover:bg-white/[0.1] transition-colors"
+                    className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
                   >
-                    <X size={14} className="text-zinc-400" />
+                    <X size={18} />
                   </button>
                   <span className="text-[13px] font-semibold text-white">Intervalo de almoço</span>
-                  <button
-                    onClick={() => setLunchOpen(false)}
-                    className="w-7 h-7 rounded-full bg-[#C5A059] flex items-center justify-center cursor-pointer hover:bg-[#A68233] transition-colors"
-                  >
-                    <Check size={14} className="text-black" strokeWidth={3} />
-                  </button>
+                  <div className="w-[18px]" />
                 </div>
 
                 <div className="p-5 space-y-4">
