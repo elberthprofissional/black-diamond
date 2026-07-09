@@ -43,10 +43,18 @@ export function useBookingWizard(showError: (msg: string) => void) {
   const handleNameFound = useCallback((name: string) => {
     setUserInfo((prev) => ({ ...prev, name }));
   }, []);
-  const { isMensalista, mensalistaPlanId, clientLookupLoading } = useClientLookup(
+  const { isMensalista, mensalistaPlanId, clientLookupLoading, lastBooking } = useClientLookup(
     userInfo.phone,
     handleNameFound
   );
+
+  // Apply last booking services
+  const applyLastBooking = useCallback(() => {
+    if (!lastBooking) return;
+    const services = allServices.filter((s) => lastBooking.serviceIds.includes(s.id));
+    setSelectedServices(services);
+    wizardGoNext();
+  }, [lastBooking, allServices, wizardGoNext]);
 
   // Current plan
   const currentPlan = useMemo(
@@ -196,5 +204,7 @@ export function useBookingWizard(showError: (msg: string) => void) {
     token,
     manageUrl,
     totalPrice: calculatedTotalPrice,
+    lastBooking,
+    applyLastBooking,
   };
 }

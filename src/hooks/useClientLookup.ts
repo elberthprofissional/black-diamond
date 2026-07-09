@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getClientByPhone } from '../lib/api';
+import { getClientByPhone, getLastBookingByPhone } from '../lib/api';
+import type { Service } from '../types';
 
 /**
- * Busca cliente por telefone, detecta mensalista e auto-preenche nome.
+ * Busca cliente por telefone, detecta mensalista, auto-preenche nome e busca último agendamento.
  * Ativo apenas quando o telefone tem 11+ dígitos.
  * Usa debounce de 500ms para evitar consultas excessivas.
  */
@@ -10,6 +11,10 @@ export function useClientLookup(phone: string, onNameFound?: (name: string) => v
   const [isMensalista, setIsMensalista] = useState(false);
   const [mensalistaPlanId, setMensalistaPlanId] = useState<string | null>(null);
   const [clientLookupLoading, setClientLookupLoading] = useState(false);
+  const [lastBooking, setLastBooking] = useState<{
+    serviceIds: string[];
+    totalPrice: number;
+  } | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -23,6 +28,7 @@ export function useClientLookup(phone: string, onNameFound?: (name: string) => v
       setIsMensalista(false);
       setMensalistaPlanId(null);
       setClientLookupLoading(false);
+      setLastBooking(null);
       return;
     }
 
@@ -30,11 +36,19 @@ export function useClientLookup(phone: string, onNameFound?: (name: string) => v
     let cancelled = false;
 
     debounceRef.current = setTimeout(() => {
-      getClientByPhone(digits)
-        .then((client) => {
+      Promise.all([getClientByPhone(digits), getLastBookingByPhone(digits)])
+        .then(([client, lastBooking]) => {
           if (cancelled) return;
           setIsMensalista(!!client?.is_mensalista);
           setMensalistaPlanId(client?.mensalista_plan_id || null);
+          if (lastBooking) {
+            setLastBooking({
+              serviceIds: lastBooking.service_ids,
+              totalPrice: lastBooking.total_price,
+            });
+          } else {
+            setLastBooking(null);
+          }
           if (client?.name && onNameFound) {
             onNameFound(client.name);
           }
@@ -43,6 +57,7 @@ export function useClientLookup(phone: string, onNameFound?: (name: string) => v
           if (!cancelled) {
             setIsMensalista(false);
             setMensalistaPlanId(null);
+            setLastBooking(null);
           }
         })
         .finally(() => {
@@ -61,7 +76,8 @@ export function useClientLookup(phone: string, onNameFound?: (name: string) => v
   const resetMensalista = useCallback(() => {
     setIsMensalista(false);
     setMensalistaPlanId(null);
+    setLastBooking(null);
   }, []);
 
-  return { isMensalista, mensalistaPlanId, clientLookupLoading, resetMensalista };
+  return { isMensalista, mensalistaPlanId, clientLookupLoading, resetMensalista, lastBooking };
 }

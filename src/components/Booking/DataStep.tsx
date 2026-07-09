@@ -1,5 +1,5 @@
 import React from 'react';
-import { User } from 'lucide-react';
+import { User, Repeat } from 'lucide-react';
 import { WhatsAppIcon } from '../WhatsAppIcon';
 
 interface DataStepProps {
@@ -10,10 +10,24 @@ interface DataStepProps {
   layout: 'desktop' | 'mobile';
   isMensalista: boolean;
   clientLookupLoading: boolean;
+  lastBooking?: { serviceIds: string[]; totalPrice: number } | null;
+  onApplyLastBooking?: () => void;
+  serviceNames?: Record<string, string>;
 }
 
 const DataStep: React.FC<DataStepProps> = React.memo(
-  ({ name, phone, onNameChange, onPhoneChange, layout, isMensalista, clientLookupLoading }) => {
+  ({
+    name,
+    phone,
+    onNameChange,
+    onPhoneChange,
+    layout,
+    isMensalista,
+    clientLookupLoading,
+    lastBooking,
+    onApplyLastBooking,
+    serviceNames,
+  }) => {
     if (layout === 'desktop') {
       return (
         <div className="flex-1 flex items-center justify-center">
@@ -194,6 +208,27 @@ const DataStep: React.FC<DataStepProps> = React.memo(
               </p>
             )}
           </div>
+
+          {/* Last Booking Suggestion */}
+          {lastBooking && onApplyLastBooking && serviceNames && (
+            <div className="bg-[#C5A059]/[0.08] border border-[#C5A059]/20 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Repeat size={14} className="text-[#C5A059]" />
+                <span className="text-[11px] font-semibold text-[#C5A059]">
+                  Seu último agendamento
+                </span>
+              </div>
+              <p className="text-[12px] text-zinc-300 mb-3">
+                {lastBooking.serviceIds.map((id) => serviceNames[id] || 'Serviço').join(' + ')}
+              </p>
+              <button
+                onClick={onApplyLastBooking}
+                className="w-full py-2.5 bg-[#C5A059]/15 hover:bg-[#C5A059]/25 text-[#C5A059] text-[11px] font-semibold rounded-lg transition-all cursor-pointer"
+              >
+                Manter mesmo agendamento
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );

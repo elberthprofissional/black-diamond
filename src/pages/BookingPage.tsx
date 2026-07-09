@@ -41,6 +41,8 @@ const BookingPage: React.FC = () => {
     clientLookupLoading: w.clientLookupLoading,
     token: w.token,
     manageUrl: w.manageUrl,
+    lastBooking: w.lastBooking,
+    onApplyLastBooking: w.applyLastBooking,
   };
 
   return (

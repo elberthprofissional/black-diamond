@@ -113,6 +113,23 @@ export const getBookingsByPhone = async (phone: string) => {
   return data || [];
 };
 
+/** Busca o último agendamento do cliente (para sugestão de repetição). */
+export const getLastBookingByPhone = async (phone: string) => {
+  const cleanPhone = phone.replace(/\D/g, '');
+
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('service_ids, total_price')
+    .eq('clients.phone', cleanPhone)
+    .in('status', ['pending', 'confirmed', 'completed'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error || !data) return null;
+  return data;
+};
+
 /** Cancela um agendamento (status → cancelled). */
 export const cancelBooking = async (id: string) => {
   const { error } = await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', id);

@@ -7,6 +7,7 @@ export {
   updateBookingStatus,
   deleteBooking,
   getBookingsByPhone,
+  getLastBookingByPhone,
   cancelBooking,
   toggleSlotBlock,
   unblockDay,

@@ -45,6 +45,8 @@ interface BookingPageMobileProps {
   clientLookupLoading: boolean;
   token?: string;
   manageUrl?: string;
+  lastBooking?: { serviceIds: string[]; totalPrice: number } | null;
+  onApplyLastBooking?: () => void;
 }
 
 // Inverted: 1=Data, 2=Services, 3=DateTime, 4=Review
@@ -80,6 +82,8 @@ const BookingPageMobile: React.FC<BookingPageMobileProps> = ({
   isMensalista,
   planName,
   clientLookupLoading,
+  lastBooking,
+  onApplyLastBooking,
 }) => {
   return (
     <div className="lg:hidden min-h-screen bg-[#050505] flex flex-col text-white font-sans relative pb-28 overflow-x-hidden">
@@ -166,6 +170,9 @@ const BookingPageMobile: React.FC<BookingPageMobileProps> = ({
                 layout="mobile"
                 isMensalista={isMensalista}
                 clientLookupLoading={clientLookupLoading}
+                lastBooking={lastBooking}
+                onApplyLastBooking={onApplyLastBooking}
+                serviceNames={Object.fromEntries(services.map((s) => [s.id, s.name]))}
               />
             </motion.div>
           )}
