@@ -48,16 +48,15 @@ describe('SettingsList', () => {
     });
   });
 
-  it('renderiza descriptions de cada categoria', () => {
+  it('renderiza grupos e categorias', () => {
     const onSelect = vi.fn();
     render(<SettingsList onSelect={onSelect} />);
 
-    expect(screen.getByText('Gerencie suas informações pessoais')).toBeInTheDocument();
-    expect(screen.getByText('Gerencie as fotos exibidas aos clientes')).toBeInTheDocument();
-    expect(screen.getByText('Gerencie os serviços oferecidos')).toBeInTheDocument();
-    expect(screen.getByText('Configure seus dias e horários de atendimento')).toBeInTheDocument();
-    expect(screen.getByText('Receba alertas de novos agendamentos')).toBeInTheDocument();
-    expect(screen.getByText('Excluir permanentemente os dados')).toBeInTheDocument();
+    expect(screen.getByText('Sua Conta')).toBeInTheDocument();
+    expect(screen.getByText('Barbearia')).toBeInTheDocument();
+    expect(screen.getByText('Segurança')).toBeInTheDocument();
+    expect(screen.getByText('Mensalista')).toBeInTheDocument();
+    expect(screen.getByText('Sair')).toBeInTheDocument();
   });
 
   it('_categoria de dados tem estilo danger', () => {

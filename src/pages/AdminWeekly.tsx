@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getTimeSlotsForDate, getLocalDateString } from '../lib/utils';
+import { getLocalDateString } from '../lib/utils';
+import { getAvailableSlots } from '../lib/api';
 import { useBookings } from '../hooks/useBookings';
 import { useSlotBlocking } from '../hooks/useSlotBlocking';
 import { useBookingManagement } from '../hooks/useBookingManagement';
@@ -110,7 +111,7 @@ const AdminWeekly: React.FC = () => {
 
   useEffect(() => {
     let active = true;
-    getTimeSlotsForDate(selectedDateStr).then((slots) => {
+    getAvailableSlots(selectedDateStr).then((slots) => {
       if (active) setAllSlots(slots);
     });
     return () => {

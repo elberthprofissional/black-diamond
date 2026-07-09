@@ -20,10 +20,18 @@ export const getServices = async (): Promise<Service[]> => {
 };
 
 /** Cria um novo serviço */
-export const createService = async (service: { name: string; price: number }): Promise<boolean> => {
-  const { error } = await supabase
-    .from('services')
-    .insert({ name: service.name, price: service.price, duration: 60 });
+export const createService = async (service: {
+  name: string;
+  price: number;
+  duration?: number;
+  description?: string;
+}): Promise<boolean> => {
+  const { error } = await supabase.from('services').insert({
+    name: service.name,
+    price: service.price,
+    duration: service.duration ?? 60,
+    description: service.description || null,
+  });
 
   return !error;
 };
@@ -31,7 +39,7 @@ export const createService = async (service: { name: string; price: number }): P
 /** Atualiza um serviço existente */
 export const updateService = async (
   id: string,
-  data: { name?: string; price?: number }
+  data: { name?: string; price?: number; duration?: number; description?: string }
 ): Promise<boolean> => {
   const { error } = await supabase.from('services').update(data).eq('id', id);
 

@@ -8,8 +8,40 @@ interface SettingsNotificacoesProps {
 }
 
 const SettingsNotificacoes: React.FC<SettingsNotificacoesProps> = ({ onBack: _onBack }) => {
-  const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
+  const { isSubscribed, subscribe, unsubscribe, vapidMissing } = usePushNotifications();
   const { toast, showSuccess, showError } = useToast();
+
+  if (vapidMissing) {
+    return (
+      <div className="space-y-6">
+        <div className="w-full px-5 py-4 border border-amber-500/20 bg-amber-500/[0.04] rounded-2xl">
+          <div className="flex items-center gap-3">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#f59e0b"
+              strokeWidth="2.5"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <div className="text-left">
+              <span className="text-[13px] text-amber-400 block font-medium">
+                VAPID key não configurada
+              </span>
+              <span className="text-[11px] text-amber-500/70 block mt-0.5">
+                Adicione VITE_VAPID_PUBLIC_KEY no .env para ativar notificações push.
+              </span>
+            </div>
+          </div>
+        </div>
+        <ToastNotification toast={toast} />
+      </div>
+    );
+  }
 
   const handleToggle = async () => {
     if (isSubscribed) {

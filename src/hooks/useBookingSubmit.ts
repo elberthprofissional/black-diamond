@@ -90,6 +90,38 @@ export function useBookingSubmit(showError: (msg: string) => void, onComplete: (
           // Notification is best-effort
         }
 
+        // Open WhatsApp for the client with booking confirmation + manage link
+        try {
+          const phone = userInfo.phone.replace(/\D/g, '');
+          const waDate = selectedDate.split('-').reverse().join('/');
+          const waTime = selectedTime.slice(0, 5);
+          const serviceLines = selectedServices.map((s) => `* ${s.name}`).join('\n');
+          const totalFormatted = `R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
+
+          const message = [
+            'BLACK DIAMOND BARBEARIA',
+            'NOVO AGENDAMENTO',
+            '\u2501'.repeat(28),
+            '',
+            `Cliente: ${userInfo.name.trim()}`,
+            '',
+            'Servi\u00e7os:',
+            serviceLines,
+            '',
+            `Data: ${waDate}`,
+            `Hor\u00e1rio: ${waTime}`,
+            '',
+            `Valor Total: ${totalFormatted}`,
+            '',
+            '\uD83D\uDCCC Para cancelar ou reagendar seu hor\u00e1rio, acesse:',
+            manageUrl || `${siteUrl}/gerenciar`,
+          ].join('\n');
+
+          window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(message)}`, '_blank');
+        } catch {
+          // WhatsApp opening is best-effort
+        }
+
         onComplete();
         return { token, manageUrl };
       } catch (error) {

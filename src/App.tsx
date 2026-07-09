@@ -31,14 +31,18 @@ function TitleManager() {
     document.title = pageTitle;
 
     // Send pageview event to Google Analytics on route transition
-    const gaId = import.meta.env.VITE_GA_ID;
-    if (gaId && window.gtag) {
-      window.gtag('event', 'page_view', {
-        page_title: pageTitle,
-        page_location: window.location.href,
-        page_path: pathname,
-        send_to: gaId,
-      });
+    try {
+      const gaId = import.meta.env.VITE_GA_ID;
+      if (gaId && typeof window.gtag === 'function') {
+        window.gtag('event', 'page_view', {
+          page_title: pageTitle,
+          page_location: window.location.href,
+          page_path: pathname,
+          send_to: gaId,
+        });
+      }
+    } catch {
+      // GA is optional
     }
   }, [pathname]);
   return null;

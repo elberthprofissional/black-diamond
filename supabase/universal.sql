@@ -479,6 +479,10 @@ DECLARE
     v_closing time;
     v_server_price decimal;
     v_server_duration integer;
+    v_lunch_start time;
+    v_lunch_end time;
+    v_lunch_enabled boolean := false;
+    v_lunch_days int[];
 BEGIN
     -- VALIDAÇÃO DE INPUT
     p_cliente_nome := TRIM(p_cliente_nome);
@@ -543,6 +547,19 @@ BEGIN
 
     IF p_hora < v_opening OR p_hora >= v_closing THEN
         RAISE EXCEPTION 'O horário escolhido está fora do horário de funcionamento (%-%).', v_opening, v_closing;
+    END IF;
+
+    -- VALIDAÇÃO DE HORÁRIO DE ALMOÇO
+    IF v_hours_json IS NOT NULL AND v_hours_json ? 'lunch_break' THEN
+        v_lunch_enabled := COALESCE((v_hours_json->'lunch_break'->>'enabled')::boolean, false);
+        IF v_lunch_enabled THEN
+            v_lunch_start := (v_hours_json->'lunch_break'->>'start')::time;
+            v_lunch_end := (v_hours_json->'lunch_break'->>'end')::time;
+            v_lunch_days := ARRAY(SELECT jsonb_array_elements_text(v_hours_json->'lunch_break'->'days')::int);
+            IF v_day_of_week = ANY(v_lunch_days) AND p_hora >= v_lunch_start AND p_hora < v_lunch_end THEN
+                RAISE EXCEPTION 'Este horário está dentro do horário de almoço. Escolha outro horário.';
+            END IF;
+        END IF;
     END IF;
 
     -- LIMITE DE AGENDAMENTOS POR DIA
@@ -615,6 +632,10 @@ DECLARE
     v_hours_json jsonb;
     v_day_key text;
     v_day_enabled boolean := false;
+    v_lunch_start time;
+    v_lunch_end time;
+    v_lunch_enabled boolean := false;
+    v_lunch_days int[];
 BEGIN
     IF p_date < CURRENT_DATE THEN
         RETURN;
@@ -648,6 +669,16 @@ BEGIN
         END IF;
     END IF;
 
+    -- Lê configuração do horário de almoço
+    IF v_hours_json IS NOT NULL AND v_hours_json ? 'lunch_break' THEN
+        v_lunch_enabled := COALESCE((v_hours_json->'lunch_break'->>'enabled')::boolean, false);
+        IF v_lunch_enabled THEN
+            v_lunch_start := (v_hours_json->'lunch_break'->>'start')::time;
+            v_lunch_end := (v_hours_json->'lunch_break'->>'end')::time;
+            v_lunch_days := ARRAY(SELECT jsonb_array_elements_text(v_hours_json->'lunch_break'->'days')::int);
+        END IF;
+    END IF;
+
     IF NOT v_day_enabled THEN
         RETURN;
     END IF;
@@ -664,6 +695,12 @@ BEGIN
         WHERE b.booking_date = p_date
         AND b.booking_time = slot::time
         AND b.status != 'cancelled'
+    )
+    AND (
+        NOT v_lunch_enabled
+        OR NOT (v_day_of_week = ANY(v_lunch_days))
+        OR slot::time < v_lunch_start
+        OR slot::time >= v_lunch_end
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -961,10 +998,12 @@ DECLARE
     v_start TIME;
     v_end TIME;
     v_days INT[];
-    v_tomorrow DATE;
-    v_tomorrow_dow INT;
+    v_target_dates DATE[];
+    v_target_date DATE;
+    v_target_dow INT;
     v_slot TIME;
     v_blocked_count INT;
+    v_total_blocked INT := 0;
 BEGIN
     SELECT value::JSONB INTO v_config
     FROM settings
@@ -985,37 +1024,53 @@ BEGIN
 
     v_days := ARRAY(SELECT jsonb_array_elements_text(v_lunch->'days')::INT);
 
-    v_tomorrow := (NOW() AT TIME ZONE 'America/Sao_Paulo')::DATE + 1;
-    v_tomorrow_dow := EXTRACT(DOW FROM v_tomorrow)::INT;
+    -- Processa hoje E amanhã
+    v_target_dates := ARRAY[
+        (NOW() AT TIME ZONE 'America/Sao_Paulo')::DATE,
+        (NOW() AT TIME ZONE 'America/Sao_Paulo')::DATE + 1
+    ];
 
-    IF array_length(v_days, 1) > 0 AND NOT (v_tomorrow_dow = ANY(v_days)) THEN RETURN; END IF;
+    FOREACH v_target_date IN ARRAY v_target_dates LOOP
+        v_target_dow := EXTRACT(DOW FROM v_target_date)::INT;
 
-    v_slot := v_start;
-    v_blocked_count := 0;
+        IF array_length(v_days, 1) > 0 AND NOT (v_target_dow = ANY(v_days)) THEN
+            CONTINUE;
+        END IF;
 
-    WHILE v_slot < v_end LOOP
-        IF NOT EXISTS (
-            SELECT 1 FROM bookings
-            WHERE booking_date = v_tomorrow
-              AND booking_time = v_slot
-              AND status IN ('confirmed', 'pending')
-              AND is_blocked = FALSE
-        ) THEN
+        v_slot := v_start;
+        v_blocked_count := 0;
+
+        WHILE v_slot < v_end LOOP
             IF NOT EXISTS (
                 SELECT 1 FROM bookings
-                WHERE booking_date = v_tomorrow
+                WHERE booking_date = v_target_date
                   AND booking_time = v_slot
-                  AND is_blocked = TRUE
+                  AND status IN ('confirmed', 'pending')
+                  AND is_blocked = FALSE
             ) THEN
-                INSERT INTO bookings (client_id, service_ids, booking_date, booking_time, total_price, total_duration, status, is_blocked)
-                VALUES (NULL, ARRAY[]::UUID[], v_tomorrow, v_slot, 0, 0, 'confirmed', TRUE);
-                v_blocked_count := v_blocked_count + 1;
+                IF NOT EXISTS (
+                    SELECT 1 FROM bookings
+                    WHERE booking_date = v_target_date
+                      AND booking_time = v_slot
+                      AND is_blocked = TRUE
+                ) THEN
+                    INSERT INTO bookings (client_id, service_ids, booking_date, booking_time, total_price, total_duration, status, is_blocked)
+                    VALUES (NULL, ARRAY[]::UUID[], v_target_date, v_slot, 0, 0, 'confirmed', TRUE);
+                    v_blocked_count := v_blocked_count + 1;
+                END IF;
             END IF;
+            v_slot := v_slot + INTERVAL '1 hour';
+        END LOOP;
+
+        IF v_blocked_count > 0 THEN
+            v_total_blocked := v_total_blocked + v_blocked_count;
+            RAISE NOTICE 'Lunch break: blocked % slots for %', v_blocked_count, v_target_date;
         END IF;
-        v_slot := v_slot + INTERVAL '1 hour';
     END LOOP;
 
-    RAISE NOTICE 'Lunch break: blocked % slots for %', v_blocked_count, v_tomorrow;
+    IF v_total_blocked = 0 THEN
+        RAISE NOTICE 'Lunch break: no slots needed blocking';
+    END IF;
 END;
 $$;
 

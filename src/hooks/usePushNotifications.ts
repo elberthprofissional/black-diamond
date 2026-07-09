@@ -19,6 +19,8 @@ export function usePushNotifications() {
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [loading, setLoading] = useState(true);
   const [isSupported, setIsSupported] = useState(true);
+  const vapidMissing = !VAPID_PUBLIC_KEY;
+  const isBlocked = permission === 'denied';
 
   useEffect(() => {
     const isIOS = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
@@ -104,5 +106,14 @@ export function usePushNotifications() {
     }
   }, []);
 
-  return { isSubscribed, permission, loading, isSupported, subscribe, unsubscribe };
+  return {
+    isSubscribed,
+    permission,
+    loading,
+    isSupported,
+    subscribe,
+    unsubscribe,
+    vapidMissing,
+    isBlocked,
+  };
 }

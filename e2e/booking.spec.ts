@@ -28,10 +28,10 @@ test.describe('Fluxo de Agendamento', () => {
   test('WhatsApp abre após agendamento', async ({ page }) => {
     // Mock do window.open para verificar se é chamado
     await page.addInitScript(() => {
-      (window as any).openedUrls = [];
-      const originalOpen = window.open;
-      window.open = (url: string) => {
-        (window as any).openedUrls.push(url);
+      const openedUrls: string[] = [];
+      (window as Record<string, unknown>).__openedUrls = openedUrls;
+      window.open = (_url?: string, _target?: string, _features?: string) => {
+        if (_url) openedUrls.push(_url);
         return null;
       };
     });
@@ -40,7 +40,9 @@ test.describe('Fluxo de Agendamento', () => {
     // ... fluxo completo de agendamento ...
 
     // Verificar que WhatsApp foi chamado
-    const openedUrls = await page.evaluate(() => (window as any).openedUrls);
+    const openedUrls = await page.evaluate(
+      () => (window as Record<string, unknown>).__openedUrls as string[]
+    );
     expect(openedUrls.some((url: string) => url.includes('wa.me'))).toBeTruthy();
   });
 });

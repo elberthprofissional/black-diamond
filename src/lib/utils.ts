@@ -109,11 +109,41 @@ const getBarberHours = async (): Promise<HoursData> => {
 export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> => {
   const date = new Date(dateStr + 'T12:00:00');
   const dow = String(date.getDay());
+
+  // Tenta buscar o JSON completo primeiro (inclui lunch_break)
+  try {
+    const { data } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'barber_hours')
+      .maybeSingle();
+
+    if (data?.value) {
+      const parsed = JSON.parse(data.value);
+      const daySchedule = parsed[dow] as DaySchedule | undefined;
+
+      if (!daySchedule?.enabled) return [];
+
+      let slots = generateHourlySlots(daySchedule.open, daySchedule.close);
+
+      // Filtra horário de almoço
+      const lunchBreak = parsed.lunch_break as
+        { enabled: boolean; start: string; end: string; days: number[] } | undefined;
+
+      if (lunchBreak?.enabled && lunchBreak.days?.includes(Number(dow))) {
+        slots = slots.filter((slot) => slot < lunchBreak.start || slot >= lunchBreak.end);
+      }
+
+      return slots;
+    }
+  } catch {
+    // fallback abaixo
+  }
+
+  // Fallback: configurações individuais (legado) — sem lunch_break
   const hours = await getBarberHours();
   const daySchedule = hours[dow];
-
-  if (!daySchedule || !daySchedule.enabled) return [];
-
+  if (!daySchedule?.enabled) return [];
   return generateHourlySlots(daySchedule.open, daySchedule.close);
 };
 

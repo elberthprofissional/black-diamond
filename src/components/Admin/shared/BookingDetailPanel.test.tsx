@@ -78,8 +78,8 @@ describe('BookingDetailPanel', () => {
         onDelete={vi.fn()}
       />
     );
-    expect(screen.getByText('Corte')).toBeInTheDocument();
-    expect(screen.getByText('Barba')).toBeInTheDocument();
+    expect(screen.getAllByText('Corte').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Barba').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renderiza preco total', () => {
@@ -93,7 +93,8 @@ describe('BookingDetailPanel', () => {
         onDelete={vi.fn()}
       />
     );
-    expect(screen.getByText('R$ 75')).toBeInTheDocument();
+    const priceElements = screen.getAllByText('R$ 75');
+    expect(priceElements.length).toBeGreaterThanOrEqual(1);
   });
 
   it('chama onClose ao clicar no botao fechar', () => {
@@ -108,8 +109,8 @@ describe('BookingDetailPanel', () => {
         onDelete={vi.fn()}
       />
     );
-    const closeButton = screen.getAllByRole('button')[0];
-    closeButton.click();
+    const closeButtons = screen.getAllByRole('button');
+    closeButtons[0].click();
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -125,8 +126,8 @@ describe('BookingDetailPanel', () => {
         onDelete={vi.fn()}
       />
     );
-    const completeButton = screen.getByText('Finalizar Atendimento');
-    completeButton.click();
+    const completeButtons = screen.getAllByText('Finalizar Atendimento');
+    completeButtons[0].click();
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 

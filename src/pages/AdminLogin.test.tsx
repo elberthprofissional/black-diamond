@@ -49,6 +49,22 @@ vi.mock('../hooks/useAuditLog', () => ({
   }),
 }));
 
+vi.mock('../hooks/useRateLimit', () => ({
+  useRateLimit: () => ({
+    isBlocked: false,
+    attempts: 0,
+    maxAttempts: 5,
+    recordAttempt: vi.fn(() => true),
+    getTimeUntilReset: vi.fn(() => 0),
+  }),
+}));
+
+vi.mock('../hooks/useModalA11y', () => ({
+  useModalA11y: () => ({
+    dialogRef: { current: null },
+  }),
+}));
+
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return { ...actual, useNavigate: () => mockNavigate };
