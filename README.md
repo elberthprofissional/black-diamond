@@ -50,8 +50,6 @@ O script faz TUDO sozinho:
 6. Gera o arquivo `.env`
 7. Faz deploy na Vercel (opcional)
 
-**5 minutos. Zero trabalho manual. R$ 1.990 na conta.** 💈🔥
-
 ## Scripts Disponíveis
 
 ```bash
