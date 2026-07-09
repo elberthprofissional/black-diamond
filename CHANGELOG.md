@@ -5,6 +5,40 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.12.0] - 2026-07-10
+
+### Added
+- **Último agendamento (Login Invisível)** — Quando o cliente insere o telefone, o sistema busca o último agendamento e sugere manter os mesmos serviços. Experiência similar a Uber/iFood.
+- **Filter tabs no painel de notificações** — Abas "Tudo", "Agendamentos", "Lembretes", "Sistema" estilo Instagram
+- **Botão Lembretes no desktop** — sino no topo da lista de clientes que abre modal de seleção
+- **Indicadores de clientes** — Verde (recente), Amarelo (15-30 dias), Vermelho (30+ dias)
+- **Cards de clientes desktop** — Layout responsivo com 3 colunas, hover effects dourados
+- **Mensagem pro barbeiro** — WhatsApp com resumo do agendamento quando cliente agenda
+- **Ícone voltar no detalhe da notificação** — Botão circular para retornar à lista
+
+### Changed
+- **Notificações mobile** — Header com badge de não lidas e "Marcar todas"
+- **Notificações desktop** — Ícone de calendário para agendamentos, indicador de não lido
+- **Cor dourada padronizada** — #C5A059 em todo o site (Planos Mensais, botões, etc)
+- **Validação de telefone** — Aceita 10 ou 11 dígitos (fixos e celulares)
+- **README** — Removido texto amador "R$ 1.990 na conta"
+
+### Fixed
+- **PWA Guard** — Usuário fica preso no admin quando usa o PWA
+- **Edição de telefone** — Sincronização corrigida após salvar
+
+## [3.11.0] - 2026-07-10
+
+### Fixed
+- **WhatsApp dinâmico no Footer** — Link "Criado por Elberth Mayan" agora usa `barberPhone` do banco em vez de número hardcoded
+- **WhatsApp na confirmação do booking** — Mensagem agora vai pro BARBEIRO (não pro cliente) com o número configurado no painel admin
+- **working_days corrompido** — `lunch_break` não é mais tratado como dia da semana; bug de iteração corrigido no `updateBarberHours`
+- **Clientes Teste removidos** — 3 registros de teste deletados do banco
+- **AdminLogin.test.tsx** — Adicionado mock de `motion.form` e `motion.p`; inputs de login com placeholder
+- **AdminClients.test.tsx** — Seletor de filtro 'Todos' corrigido
+- **useBookingWizard.test.ts** — StepTitle atualizado de 'Agende seu corte' para 'Seus dados'
+- **Lint warnings** — console.log → console.warn no NotificationBell; destructuring de lunch_break corrigido
+
 ## [3.10.0] - 2026-07-10
 
 ### Fixed
