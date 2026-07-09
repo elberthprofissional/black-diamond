@@ -129,8 +129,51 @@ const AdminClients: React.FC = () => {
         </button>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-5 border-b border-white/[0.04] w-full select-none pb-0 mt-2 overflow-x-auto">
+      {/* Filter tabs - Mobile */}
+      <div className="lg:hidden flex gap-2 mt-3 overflow-x-auto pb-2 scrollbar-hide">
+        {(['all', 'pending', 'sent', 'inactive'] as const).map((filter) => {
+          const active = reminderFilter === filter;
+          const label =
+            filter === 'all'
+              ? 'Todos'
+              : filter === 'pending'
+                ? 'A Lembrar'
+                : filter === 'sent'
+                  ? 'Lembrados'
+                  : 'Inativos';
+          const count =
+            filter === 'all'
+              ? counts.all
+              : filter === 'pending'
+                ? counts.pending
+                : filter === 'sent'
+                  ? counts.sent
+                  : counts.inactive;
+          return (
+            <button
+              key={filter}
+              onClick={() => handleFilterChange(filter)}
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[11px] font-semibold transition-all cursor-pointer shrink-0 border ${
+                active
+                  ? 'bg-[#C5A059]/10 border-[#C5A059]/30 text-[#C5A059]'
+                  : 'bg-white/[0.02] border-white/[0.04] text-zinc-500'
+              }`}
+            >
+              <span>{label}</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold ${
+                  active ? 'bg-[#C5A059]/20 text-[#C5A059]' : 'bg-white/5 text-zinc-600'
+                }`}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Filter tabs - Desktop */}
+      <div className="hidden lg:flex gap-5 border-b border-white/[0.04] w-full select-none pb-0 mt-2">
         {(['all', 'pending', 'sent', 'inactive'] as const).map((filter) => {
           const active = reminderFilter === filter;
           const label =
