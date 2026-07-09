@@ -383,7 +383,7 @@ const SettingsConta: React.FC<SettingsContaProps> = ({ onBack: _onBack }) => {
                     WhatsApp
                   </span>
                   <span className="text-[10px] text-zinc-600">
-                    {phoneInput.replace(/\D/g, '').length}/10
+                    {phoneInput.replace(/\D/g, '').length}/11
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -393,7 +393,7 @@ const SettingsConta: React.FC<SettingsContaProps> = ({ onBack: _onBack }) => {
                     value={phoneInput}
                     onChange={(e) => setPhoneInput(e.target.value)}
                     placeholder="31999999999"
-                    maxLength={10}
+                    maxLength={11}
                     autoFocus
                     className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600"
                     onKeyDown={(e) => {
@@ -405,7 +405,7 @@ const SettingsConta: React.FC<SettingsContaProps> = ({ onBack: _onBack }) => {
                     onClick={handleSavePhone}
                     disabled={
                       phoneInput.replace(/\D/g, '') === barberPhone ||
-                      phoneInput.replace(/\D/g, '').length < 10
+                      phoneInput.replace(/\D/g, '').length < 11
                     }
                     className="px-5 py-3 bg-[#C5A059] hover:bg-[#A68233] text-black font-bold text-[10px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
                   >
