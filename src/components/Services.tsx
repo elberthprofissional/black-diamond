@@ -66,7 +66,7 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
             <h2 className="text-3xl md:text-5xl font-bebas tracking-[0.4em] text-white uppercase mb-4 text-center">
               Tabela de Serviços
             </h2>
-            <div className="w-24 h-px bg-[#D4AF37]/30 mx-auto" />
+            <div className="w-24 h-px bg-[#C5A059]/30 mx-auto" />
           </div>
 
           {loading ? (
@@ -97,15 +97,15 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
                       onBookingClick();
                     }
                   }}
-                  className="group py-8 md:py-12 flex items-center justify-between border-b border-white/[0.03] cursor-pointer hover:border-[#D4AF37]/30 transition-all duration-700"
+                  className="group py-8 md:py-12 flex items-center justify-between border-b border-white/[0.03] cursor-pointer hover:border-[#C5A059]/30 transition-all duration-700"
                   onClick={onBookingClick}
                 >
-                  <h4 className="text-2xl sm:text-3xl md:text-5xl font-bebas text-white uppercase tracking-wider group-hover:text-[#D4AF37] transition-all duration-700">
+                  <h4 className="text-2xl sm:text-3xl md:text-5xl font-bebas text-white uppercase tracking-wider group-hover:text-[#C5A059] transition-all duration-700">
                     {service.name}
                   </h4>
 
                   <div className="flex items-baseline gap-4 shrink-0">
-                    <span className="text-lg sm:text-xl md:text-3xl font-bebas text-[#D4AF37] whitespace-nowrap opacity-80 group-hover:opacity-100 transition-all duration-700">
+                    <span className="text-lg sm:text-xl md:text-3xl font-bebas text-[#C5A059] whitespace-nowrap opacity-80 group-hover:opacity-100 transition-all duration-700">
                       R$ {Number(service.price).toFixed(0)}
                     </span>
                   </div>
@@ -116,12 +116,12 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
 
           {/* Banner Planos Mensais */}
           {showMensalista && (
-            <div className="mt-16 md:mt-24 border border-white/[0.04] md:border-[#D4AF37]/20 rounded-2xl p-5 md:p-10 bg-white/[0.01] md:bg-[#D4AF37]/[0.03]">
+            <div className="mt-16 md:mt-24 border border-white/[0.04] md:border-[#C5A059]/20 rounded-2xl p-5 md:p-10 bg-white/[0.01] md:bg-[#C5A059]/[0.03]">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 md:gap-6">
                 <div className="space-y-2 md:space-y-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
-                    <span className="text-[9px] md:text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.3em]">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />
+                    <span className="text-[9px] md:text-[10px] font-bold text-[#C5A059] uppercase tracking-[0.3em]">
                       Planos Mensais
                     </span>
                   </div>
@@ -135,7 +135,7 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
                 </div>
                 <button
                   onClick={() => setShowPlansModal(true)}
-                  className="shrink-0 px-6 md:px-8 py-3 md:py-3.5 border border-[#D4AF37]/20 md:border-[#D4AF37]/40 text-[#D4AF37] font-bold text-[9px] md:text-[10px] uppercase tracking-[0.2em] rounded-lg md:rounded-xl hover:bg-[#D4AF37]/10 transition-all cursor-pointer"
+                  className="shrink-0 px-6 md:px-8 py-3 md:py-3.5 border border-[#C5A059]/20 md:border-[#C5A059]/40 text-[#C5A059] font-bold text-[9px] md:text-[10px] uppercase tracking-[0.2em] rounded-lg md:rounded-xl hover:bg-[#C5A059]/10 transition-all cursor-pointer"
                 >
                   Conheça os planos
                 </button>
@@ -183,7 +183,7 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
                           {plan.name}
                         </h4>
                         <div className="flex items-baseline gap-1 mt-1">
-                          <span className="text-[18px] font-bold text-[#D4AF37]">
+                          <span className="text-[18px] font-bold text-[#C5A059]">
                             R${' '}
                             {Number(plan.price).toLocaleString('pt-BR', {
                               minimumFractionDigits: 2,
@@ -209,7 +209,7 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
 
                     <button
                       onClick={() => handlePlanClick(plan)}
-                      className="w-full py-3.5 bg-[#D4AF37] text-black font-bold text-[11px] uppercase tracking-[0.1em] rounded-xl hover:bg-[#C5A059] transition-all cursor-pointer active:scale-[0.98]"
+                      className="w-full py-3.5 bg-[#C5A059] text-black font-bold text-[11px] uppercase tracking-[0.1em] rounded-xl hover:bg-[#C5A059] transition-all cursor-pointer active:scale-[0.98]"
                     >
                       Tenho interesse
                     </button>
@@ -260,16 +260,16 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
                   {plans.map((plan) => (
                     <div
                       key={plan.id}
-                      className="border border-white/[0.06] rounded-xl p-4 hover:border-[#D4AF37]/30 transition-colors"
+                      className="border border-white/[0.06] rounded-xl p-4 hover:border-[#C5A059]/30 transition-colors"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <div className="flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />
                             <h4 className="text-[14px] font-bold text-white">{plan.name}</h4>
                           </div>
                           <div className="flex items-baseline gap-1 mt-1 ml-3.5">
-                            <span className="text-xl font-bebas text-[#D4AF37]">
+                            <span className="text-xl font-bebas text-[#C5A059]">
                               R${' '}
                               {Number(plan.price).toLocaleString('pt-BR', {
                                 minimumFractionDigits: 2,
@@ -285,7 +285,7 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
                           {plan.included_service_ids.map((sid) => (
                             <span
                               key={sid}
-                              className="text-[10px] font-medium text-[#D4AF37]/80 bg-[#D4AF37]/[0.08] px-2 py-0.5 rounded-md"
+                              className="text-[10px] font-medium text-[#C5A059]/80 bg-[#C5A059]/[0.08] px-2 py-0.5 rounded-md"
                             >
                               {getServiceName(sid, services)}
                             </span>
@@ -295,7 +295,7 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
 
                       <button
                         onClick={() => handlePlanClick(plan)}
-                        className="w-full py-2.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-[#D4AF37] font-bold text-[10px] uppercase tracking-[0.15em] rounded-lg hover:bg-[#D4AF37]/20 transition-all cursor-pointer"
+                        className="w-full py-2.5 bg-[#C5A059]/10 border border-[#C5A059]/20 text-[#C5A059] font-bold text-[10px] uppercase tracking-[0.15em] rounded-lg hover:bg-[#C5A059]/20 transition-all cursor-pointer"
                       >
                         Tenho interesse
                       </button>
