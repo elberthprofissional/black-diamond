@@ -13,7 +13,7 @@ import EditClientModal from '../components/Admin/shared/EditClientModal';
 const NewClientModal = lazy(() => import('../components/Admin/shared/NewClientModal'));
 const ReminderModal = lazy(() => import('../components/Admin/shared/ReminderModal'));
 import { SkeletonClients } from '../components/Skeleton';
-import { ArrowLeft, Search, ChevronRight, Plus } from 'lucide-react';
+import { ArrowLeft, Search, ChevronRight, Plus, Bell } from 'lucide-react';
 
 const AdminClients: React.FC = () => {
   const c = useClients();
@@ -118,6 +118,16 @@ const AdminClients: React.FC = () => {
             className="w-full bg-transparent py-3.5 text-xs font-medium text-white outline-none placeholder:text-zinc-600 text-left overflow-hidden text-ellipsis"
           />
         </div>
+        {/* Bell Reminder - Desktop only */}
+        <button
+          onClick={() => setIsReminderOpen(true)}
+          className="hidden lg:flex h-[46px] px-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0"
+        >
+          <Bell size={15} className="text-[#C5A059]" />
+          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+            Lembretes
+          </span>
+        </button>
         <button
           onClick={() => c.setIsCreatingClient(true)}
           className="h-[46px] px-4 rounded-xl bg-[#C5A059] hover:bg-[#A68233] flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95"
