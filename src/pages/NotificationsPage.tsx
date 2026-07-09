@@ -19,8 +19,9 @@ const NotificationsPage: React.FC = () => {
     return notifs.filter((n) => {
       if (activeFilter === 'bookings') return n.tag?.startsWith('booking-');
       if (activeFilter === 'reminders') return n.tag?.startsWith('reminder-');
-      if (activeFilter === 'system')
+      if (activeFilter === 'system') {
         return !n.tag?.startsWith('booking-') && !n.tag?.startsWith('reminder-');
+      }
       return true;
     });
   };
@@ -116,20 +117,12 @@ const NotificationsPage: React.FC = () => {
           ) : (
             notifications.length > 0 &&
             !selected && (
-              <>
-                <button
-                  onClick={markAllAsRead}
-                  className="text-[11px] font-bold text-[#C5A059] hover:text-[#A68233] transition-colors cursor-pointer"
-                >
-                  Marcar todas
-                </button>
-                <button
-                  onClick={() => setIsSelectionMode(true)}
-                  className="text-[11px] font-bold text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
-                >
-                  Selecionar
-                </button>
-              </>
+              <button
+                onClick={() => setIsSelectionMode(true)}
+                className="text-[11px] font-bold text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+              >
+                Selecionar
+              </button>
             )
           )}
         </div>
