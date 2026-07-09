@@ -13,11 +13,14 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - **Navbar limpa** — Removido painel "Meu Horário" do navbar (localStorage booking card)
 - **Removido PWA do cliente** — Service Worker de push mantido apenas para admin
 - **Display de notificacoes limpo** — Corpo da notificacao mostra apenas nome, servicos e data (sem telefone/URL)
+- **Notificacoes minimalista** — Lista com avatar, nome, horario; detalhes com acoes (Lembrete, Reagendar, Cancelar)
+- **Visual premium** — Fundo preto original, tipografia limpa, sem cards cinza
 
 ### Removed
 - **PWA do cliente** — Botao "Instalar app" removido do SuccessStep
 - **PwaGuard** — Rota redirect PWA → admin removida do App.tsx
 - **Service Worker registration** — Removido do main.tsx (mantido o sw.js para cache)
+- **Remover notificacao** — Botao removido do detalhe (redundante)
 - **localStorage booking** — Logica de persistencia de agendamento no cliente removida
 - **useClientBooking hook** — Hook morto removido
 - **Beforeinstallprompt handler** — Removido do main.tsx

@@ -225,12 +225,16 @@ O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto v
 - Avaliacoes reais alimentam o TestimonialsSlider na homepage
 
 ### Notificacoes In-App (`/admin/notificacoes`)
-- Centro de notificacoes estilo Instagram
+- Centro de notificacoes minimalista e profissional
+- **Lista:** Avatar do cliente + nome + horario + seta
+- **Detalhes:** Tela com dados do agendamento + acoes
 - Desktop: painel lateral que desliza da esquerda
 - Mobile: tela cheia com botao voltar
-- Badge de nao-lido, mark all as read, deletar individual
 - Realtime — novas notificacoes aparecem instantaneamente
-- **Botao WhatsApp** — icone verde ao hover em notificacoes de agendamento, abre mensagem pronta pro cliente
+- **Acoes no detalhe:**
+  - Enviar Lembrete (WhatsApp pro cliente com confirmacao)
+  - Reagendar (abre pagina de cancelamento)
+  - Cancelar (abre link de gerenciamento)
 - Cron de limpeza: notificacoes > 30 dias sao deletadas
 
 ### Area do Admin (`/admin`)

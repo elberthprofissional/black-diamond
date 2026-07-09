@@ -25,7 +25,7 @@ function formatPhone(phone: string) {
 }
 
 /* ─── Detail Page ─── */
-function NotificationDetail({ notif, onDelete }: { notif: Notification; onDelete: () => void }) {
+function NotificationDetail({ notif }: { notif: Notification }) {
   const data = parseNotifBody(notif.body);
   if (!data) return null;
 
@@ -96,12 +96,6 @@ function NotificationDetail({ notif, onDelete }: { notif: Notification; onDelete
           >
             Cancelar Agendamento
           </button>
-          <button
-            onClick={onDelete}
-            className="w-full h-9 bg-transparent text-zinc-600 hover:text-red-400 transition-all text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
-          >
-            Remover notificação
-          </button>
         </div>
       </div>
     </div>
@@ -113,49 +107,25 @@ function NotificationListContent({
   notifications,
   unreadCount,
   markAllAsRead,
-  clearNotification,
   onClose,
   hideHeader = false,
+  selected: externalSelected,
+  onSelect: externalOnSelect,
 }: {
   notifications: Notification[];
   unreadCount: number;
   markAllAsRead: () => void;
-  clearNotification: (id: string) => void;
   onClose?: () => void;
   hideHeader?: boolean;
+  selected?: Notification | null;
+  onSelect?: (notif: Notification | null) => void;
 }) {
-  const [selected, setSelected] = useState<Notification | null>(null);
-
-  const handleDelete = (id: string) => {
-    clearNotification(id);
-    setSelected(null);
-  };
+  const [internalSelected, setInternalSelected] = useState<Notification | null>(null);
+  const selected = externalSelected !== undefined ? externalSelected : internalSelected;
+  const setSelected = externalOnSelect || setInternalSelected;
 
   if (selected) {
-    return (
-      <div className="flex flex-col h-full">
-        {/* Header with back arrow */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.06] shrink-0">
-          <button
-            onClick={() => setSelected(null)}
-            className="text-zinc-400 hover:text-white transition-colors cursor-pointer p-1"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <span className="text-[15px] font-bold text-white">Detalhes</span>
-        </div>
-        <NotificationDetail notif={selected} onDelete={() => handleDelete(selected.id)} />
-      </div>
-    );
+    return <NotificationDetail notif={selected} />;
   }
 
   return (
@@ -245,7 +215,7 @@ function NotificationListContent({
 /* ─── Bell Component ─── */
 const NotificationBell: React.FC<{ variant: 'mobile' | 'desktop' }> = ({ variant }) => {
   const navigate = useNavigate();
-  const { notifications, unreadCount, markAllAsRead, clearNotification } = useNotifications();
+  const { notifications, unreadCount, markAllAsRead } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -319,7 +289,6 @@ const NotificationBell: React.FC<{ variant: 'mobile' | 'desktop' }> = ({ variant
                   notifications={notifications}
                   unreadCount={unreadCount}
                   markAllAsRead={markAllAsRead}
-                  clearNotification={clearNotification}
                   onClose={() => setIsOpen(false)}
                 />
               </motion.div>
