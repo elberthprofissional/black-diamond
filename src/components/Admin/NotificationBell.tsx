@@ -59,17 +59,7 @@ function NotificationDetail({ notif, onBack }: { notif: Notification; onBack: ()
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0E0E0E]">
-      {/* Header */}
-      <div className="px-5 py-4 flex items-center shrink-0">
-        <button
-          onClick={onBack}
-          className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
-        >
-          <ArrowLeft size={22} />
-        </button>
-      </div>
-
+    <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto px-5 pb-5 space-y-5">
         {/* Client */}
         <div className="flex items-center gap-3">
