@@ -6,7 +6,7 @@ import { useNotifications, type Notification } from '../../hooks/useNotification
 import { WhatsAppIcon } from '../WhatsAppIcon';
 
 function useLongPress(callback: () => void, ms = 500) {
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const start = useCallback(() => {
     timerRef.current = setTimeout(callback, ms);
@@ -246,7 +246,6 @@ function NotificationListContent({
   const setSelected = externalOnSelect || setInternalSelected;
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isSelectionMode, setIsSelectionMode] = useState(false);
-  const doDelete = clearNotification || (() => Promise.resolve());
 
   if (selected) {
     return <NotificationDetail notif={selected} />;
