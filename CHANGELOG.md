@@ -5,25 +5,36 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.10.0] - 2026-07-10
+
+### Fixed
+- **WhatsApp do barbeiro no Services.tsx** — Botões "Tenho interesse" dos planos mensais agora usam `useBarberSettings()` (busca do banco) em vez de `import.meta.env.VITE_BARBER_WHATSAPP` (env var). Quando o barbeiro altera o WhatsApp no painel admin, o número agora reflete em todo o site.
+- **Toggle horário de almoço** — Corrigido bug onde o toggle do horário de almoço nunca desligava de verdade. Agora ao desativar, o objeto `lunch_break` é removido completamente do JSON, fazendo o toggle visual e as funções SQL respeitarem o estado desligado.
+
 ## [3.9.0] - 2026-07-10
 
 ### Changed
-- **Mensalista mobile** — Cards redesignados com visual limpo e minimalista, sem toggle冗余
-- **Horário de almoço** — Agora é um card clicável que abre modal (mobile e desktop)
-- **Notificações** — Seleção profissional com checkboxes, agrupamento por data (Hoje/Ontem/Anteriores), empty state trabalhado
-- **Painel notificações desktop** — Mais largo (420px), hover effects com brilho dourado
+- **Mensalista mobile** — Cards redesignados com visual limpo e minimalista
+- **Horário de almoço** — Card clicável que abre modal (mobile e desktop)
+- **Notificações** — Seleção profissional com checkboxes, agrupamento por data, empty state
+- **Painel notificações desktop** — Mais largo (420px), hover effects dourados
 - **Validação de telefone** — Corrigido para 11 dígitos (padrão brasileiro)
+- **Planos Mensais** — Visual minimalista com cor dourada padronizada (#C5A059)
+- **Filtros de clientes** — Pills arredondados no mobile para melhor usabilidade
+- **Botões** — Removidos círculos desnecessários (X, ✓)
 
 ### Added
-- **PWA Guard** — Usuário fica preso no admin quando usa o PWA, sem opção de voltar pro home
-- **Modo seleção notificações** — Desktop: duplo clique; Mobile: long press (500ms)
-- **Agrupamento por data** — Notificações agrupadas em Hoje, Ontem, Anteriores
-- **Indicador de não lido** — Bolinha dourada ao lado de notificações não lidas
-- **Empty state** — Mensagem amigável quando não há notificações
+- **PWA Guard** — Usuário fica preso no admin no PWA
+- **Modo seleção notificações** — Desktop: duplo clique; Mobile: long press
+- **Agrupamento por data** — Notificações em Hoje, Ontem, Anteriores
+- **Indicador de não lido** — Bolinha dourada em notificações não lidas
+- **Enviar Lembrete** — Botão na agenda semanal e no painel de detalhes do agendamento
+- **Salvar alterações** — Botão no modal de horário de almoço
 
 ### Fixed
-- **Toggle almoço** — Corrigido bug onde toggle não funcionava no modal desktop
-- **Aplicar para todos** — Botão voltou para posição correta no mobile (ao lado do título)
+- **Toggle almoço** — Bug onde toggle não funcionava no modal desktop
+- **Aplicar para todos** — Botão voltou para posição correta no mobile
+- **Cor dourada** — Padronizada para #C5A059 em todo o site
 
 ## [3.8.0] - 2026-07-08
 
