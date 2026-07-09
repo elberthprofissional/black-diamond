@@ -47,7 +47,7 @@ function formatPhone(phone: string) {
 }
 
 /* ─── Detail Page ─── */
-function NotificationDetail({ notif }: { notif: Notification }) {
+function NotificationDetail({ notif, onBack }: { notif: Notification; onBack: () => void }) {
   const data = parseNotifBody(notif.body);
   if (!data) return null;
 
@@ -59,16 +59,35 @@ function NotificationDetail({ notif }: { notif: Notification }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505]">
-      <div className="px-5 py-5 flex-1 text-left overflow-y-auto space-y-5">
+    <div className="flex flex-col h-full bg-[#0E0E0E]">
+      {/* Header */}
+      <div className="px-5 py-4 border-b border-white/[0.06] flex items-center gap-3 shrink-0">
+        <button
+          onClick={onBack}
+          className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/[0.1] transition-all cursor-pointer"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <span className="text-[14px] font-semibold text-white">Detalhes</span>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-5 space-y-5">
         {/* Client */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-white/[0.04] flex items-center justify-center text-sm font-bold text-zinc-400 shrink-0">
+          <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 flex items-center justify-center text-sm font-bold text-[#C5A059] shrink-0">
             {data.clientName.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
             <p className="text-[15px] font-bold text-white truncate">{data.clientName}</p>
-            <p className="text-[12px] text-zinc-600">{formatPhone(data.clientPhone)}</p>
+            <p className="text-[12px] text-zinc-500">{formatPhone(data.clientPhone)}</p>
           </div>
         </div>
 
@@ -97,11 +116,11 @@ function NotificationDetail({ notif }: { notif: Notification }) {
 
         <div className="h-px bg-white/[0.04]" />
 
-        {/* Actions — same style as BookingDetailPanel */}
+        {/* Actions */}
         <div className="space-y-2">
           <button
             onClick={handleRemind}
-            className="w-full h-11 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 font-black text-[10px] uppercase tracking-[0.2em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
+            className="w-full h-11 bg-[#C5A059] text-black hover:bg-[#A68233] font-bold text-[10px] uppercase tracking-[0.2em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
           >
             <WhatsAppIcon className="w-4 h-4" />
             Enviar Lembrete
@@ -287,7 +306,7 @@ function NotificationListContent({
   ];
 
   if (selected) {
-    return <NotificationDetail notif={selected} />;
+    return <NotificationDetail notif={selected} onBack={() => setSelected(null)} />;
   }
 
   const toggleSelect = (id: string) => {
