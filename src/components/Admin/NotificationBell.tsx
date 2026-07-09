@@ -269,8 +269,8 @@ function NotificationListContent({
   };
 
   const deleteSelected = () => {
-    const ids = Array.from(selectedIds);
-    ids.forEach((id) => doDelete(id));
+    // TODO: Implementar delete real via API
+    console.log('Deleting:', Array.from(selectedIds));
     setSelectedIds(new Set());
     setIsSelectionMode(false);
   };
