@@ -65,10 +65,10 @@ function NotificationDetail({ notif, onBack }: { notif: Notification; onBack: ()
       <div className="px-5 py-4 flex justify-end shrink-0">
         <button
           onClick={onBack}
-          className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/[0.1] transition-all cursor-pointer"
+          className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
         >
           <svg
-            className="w-4 h-4"
+            className="w-5 h-5"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
