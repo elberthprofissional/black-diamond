@@ -740,8 +740,18 @@ const NotificationBell: React.FC<{ variant: 'mobile' | 'desktop' }> = ({ variant
           onClick={() => setIsOpen(!isOpen)}
           className="relative flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-200 cursor-pointer w-full text-left text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.04] hover:shadow-[0_0_15px_rgba(197,160,89,0.05)]"
         >
-          <Bell size={16} className="text-zinc-600 shrink-0" />
+          <div className="relative shrink-0">
+            <Bell size={16} className="text-zinc-600" />
+            {unreadCount > 0 && (
+              <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#C5A059] border border-[#0A0A0A]" />
+            )}
+          </div>
           <span className="text-[11px] font-bold tracking-wide flex-1">Notificações</span>
+          {unreadCount > 0 && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#C5A059]/15 text-[#C5A059] font-bold">
+              {unreadCount}
+            </span>
+          )}
         </button>
       ) : (
         <button
