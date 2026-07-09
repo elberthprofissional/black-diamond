@@ -25,15 +25,7 @@ function formatPhone(phone: string) {
 }
 
 /* ─── Detail Page ─── */
-function NotificationDetail({
-  notif,
-  onBack,
-  onDelete,
-}: {
-  notif: Notification;
-  onBack: () => void;
-  onDelete: () => void;
-}) {
+function NotificationDetail({ notif, onDelete }: { notif: Notification; onDelete: () => void }) {
   const data = parseNotifBody(notif.body);
   if (!data) return null;
 
@@ -46,58 +38,35 @@ function NotificationDetail({
 
   return (
     <div className="min-h-screen bg-[#050505]">
-      {/* Header — same style as BookingDetailPanel */}
-      <div className="sticky top-0 z-10 bg-[#0E0E0E]/95 backdrop-blur-md border-b border-white/[0.04] px-5 py-3.5 flex items-center justify-between">
-        <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.25em]">
-          Detalhes do Agendamento
-        </span>
-        <button
-          onClick={onBack}
-          className="text-zinc-500 hover:text-white transition-colors cursor-pointer p-1"
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-          >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-      </div>
-
       <div className="px-5 py-5 flex-1 text-left overflow-y-auto space-y-5">
         {/* Client */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white bg-white/[0.06] shrink-0">
+          <div className="w-10 h-10 rounded-full bg-white/[0.04] flex items-center justify-center text-sm font-bold text-zinc-400 shrink-0">
             {data.clientName.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
             <p className="text-[15px] font-bold text-white truncate">{data.clientName}</p>
-            <p className="text-[12px] text-zinc-500">{formatPhone(data.clientPhone)}</p>
+            <p className="text-[12px] text-zinc-600">{formatPhone(data.clientPhone)}</p>
           </div>
         </div>
 
-        {/* Date + Time — inline like BookingDetailPanel */}
+        {/* Date + Time */}
         <div className="flex items-center gap-4 text-[13px]">
-          <span className="text-zinc-400">{date}</span>
+          <span className="text-zinc-500">{date}</span>
           <span className="text-[#C5A059] font-bold">{time}</span>
         </div>
 
         <div className="h-px bg-white/[0.04]" />
 
-        {/* Services — list with prices */}
-        <div className="space-y-2.5">
+        {/* Services */}
+        <div className="space-y-3">
           {data.services.split(', ').map((s, i) => (
             <div key={i} className="flex justify-between items-center">
-              <span className="text-[13px] text-zinc-400">{s}</span>
+              <span className="text-[13px] text-zinc-500">{s}</span>
             </div>
           ))}
           <div className="flex justify-between items-center pt-2">
-            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider">
               Total
             </span>
             <span className="text-[15px] font-black text-[#C5A059]">{data.totalPrice}</span>
@@ -164,11 +133,28 @@ function NotificationListContent({
 
   if (selected) {
     return (
-      <NotificationDetail
-        notif={selected}
-        onBack={() => setSelected(null)}
-        onDelete={() => handleDelete(selected.id)}
-      />
+      <div className="flex flex-col h-full">
+        {/* Header with back arrow */}
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.06] shrink-0">
+          <button
+            onClick={() => setSelected(null)}
+            className="text-zinc-400 hover:text-white transition-colors cursor-pointer p-1"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <span className="text-[15px] font-bold text-white">Detalhes</span>
+        </div>
+        <NotificationDetail notif={selected} onDelete={() => handleDelete(selected.id)} />
+      </div>
     );
   }
 

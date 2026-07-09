@@ -10,15 +10,15 @@ const NotificationsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] flex flex-col">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-[#0E0E0E]/95 backdrop-blur-md border-b border-white/[0.04] px-5 py-3.5 flex items-center gap-3">
+      {/* Header — clean, no background box */}
+      <div className="px-4 py-4 flex items-center gap-3">
         <button
           onClick={() => navigate(-1)}
-          className="text-zinc-400 hover:text-white transition-colors cursor-pointer p-1"
+          className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={20} />
         </button>
-        <span className="text-[15px] font-bold text-white">Notificações</span>
+        <span className="text-[16px] font-bold text-white">Notificações</span>
       </div>
 
       <NotificationListContent
