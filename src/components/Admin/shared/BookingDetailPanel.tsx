@@ -31,6 +31,20 @@ const BookingDetailPanel: React.FC<BookingDetailPanelProps> = React.memo(
     const isBlocked =
       booking.is_blocked || !booking.client_id || booking.clients?.name === 'BLOQUEADO';
 
+    const handleReminder = () => {
+      const phone = booking.clients?.phone?.replace(/\D/g, '') || '';
+      const name = booking.clients?.name || '';
+      const serviceNames =
+        booking.service_ids
+          ?.map((id) => services.find((s) => s.id === id)?.name)
+          .filter(Boolean)
+          .join(', ') || '';
+      const date = booking.booking_date;
+      const time = booking.booking_time?.slice(0, 5) || '';
+      const msg = `✅ *Agendamento confirmado, ${name}!*\n\nNa *Black Diamond*\n\n✂️ ${serviceNames}\n📅 ${date} às ${time}\n\nAguardamos você! 💈`;
+      window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    };
+
     if (isBlocked) {
       return (
         <>
@@ -216,6 +230,23 @@ const BookingDetailPanel: React.FC<BookingDetailPanelProps> = React.memo(
               </button>
             )}
             <button
+              onClick={handleReminder}
+              className="w-full h-9 bg-[#C5A059]/10 hover:bg-[#C5A059]/20 text-[#C5A059] text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5 rounded-lg transition-all"
+            >
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              Enviar Lembrete
+            </button>
+            <button
               onClick={onReschedule}
               className="w-full h-9 bg-transparent text-zinc-400 hover:text-white transition-all text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
             >
@@ -339,6 +370,23 @@ const BookingDetailPanel: React.FC<BookingDetailPanelProps> = React.memo(
                 Finalizar Atendimento
               </button>
             )}
+            <button
+              onClick={handleReminder}
+              className="w-full h-11 bg-[#C5A059]/10 border border-[#C5A059]/20 hover:bg-[#C5A059]/20 text-[#C5A059] rounded-xl transition-all active:scale-[0.99] text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              Enviar Lembrete
+            </button>
             <button
               onClick={onReschedule}
               className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-zinc-300 hover:bg-white/[0.05] hover:text-white rounded-xl transition-all active:scale-[0.99] text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
