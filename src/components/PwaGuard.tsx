@@ -31,7 +31,7 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isPWA) return;
 
-    const handlePopState = (e: PopStateEvent) => {
+    const handlePopState = () => {
       // Se tentou voltar e não está em rota admin, força voltar pro admin
       if (!ADMIN_ROUTES.some((route) => location.pathname.startsWith(route))) {
         navigate('/admin/login', { replace: true });
