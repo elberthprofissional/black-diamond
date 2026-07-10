@@ -13,34 +13,7 @@ interface BookingSearchModalProps {
   clients: Client[];
 }
 
-const avatarColors: Record<string, string> = {
-  A: 'bg-blue-500/20 text-blue-400',
-  B: 'bg-emerald-500/20 text-emerald-400',
-  C: 'bg-purple-500/20 text-purple-400',
-  D: 'bg-amber-500/20 text-amber-400',
-  E: 'bg-rose-500/20 text-rose-400',
-  F: 'bg-cyan-500/20 text-cyan-400',
-  G: 'bg-indigo-500/20 text-indigo-400',
-  H: 'bg-pink-500/20 text-pink-400',
-  I: 'bg-teal-500/20 text-teal-400',
-  J: 'bg-orange-500/20 text-orange-400',
-  K: 'bg-violet-500/20 text-violet-400',
-  L: 'bg-lime-500/20 text-lime-400',
-  M: 'bg-sky-500/20 text-sky-400',
-  N: 'bg-fuchsia-500/20 text-fuchsia-400',
-  O: 'bg-red-500/20 text-red-400',
-  P: 'bg-yellow-500/20 text-yellow-400',
-  Q: 'bg-emerald-500/20 text-emerald-400',
-  R: 'bg-blue-500/20 text-blue-400',
-  S: 'bg-purple-500/20 text-purple-400',
-  T: 'bg-amber-500/20 text-amber-400',
-  U: 'bg-rose-500/20 text-rose-400',
-  V: 'bg-cyan-500/20 text-cyan-400',
-  W: 'bg-indigo-500/20 text-indigo-400',
-  X: 'bg-pink-500/20 text-pink-400',
-  Y: 'bg-teal-500/20 text-teal-400',
-  Z: 'bg-orange-500/20 text-orange-400',
-};
+const AVATAR_STYLE = 'bg-white/[0.06] border border-white/[0.08] text-zinc-300';
 
 const BookingSearchModal: FC<BookingSearchModalProps> = ({
   isOpen,
@@ -141,7 +114,7 @@ const BookingSearchModal: FC<BookingSearchModalProps> = ({
               <div className="space-y-2">
                 {results.map((c) => {
                   const initial = (c.name || '?').charAt(0).toUpperCase();
-                  const color = avatarColors[initial] || 'bg-zinc-500/20 text-zinc-400';
+                  const color = AVATAR_STYLE;
                   return (
                     <button
                       key={c.id}

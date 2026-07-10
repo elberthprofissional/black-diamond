@@ -802,7 +802,7 @@ const NotificationBell: FC<{ variant: 'mobile' | 'desktop' }> = ({ variant }) =>
       ) : (
         <button
           onClick={() => navigate('/admin/notificacoes')}
-          className="relative w-10 h-10 rounded-full hover:bg-white/[0.06] text-zinc-400 flex items-center justify-center transition-colors cursor-pointer"
+          className="relative text-zinc-400 flex items-center justify-center transition-colors cursor-pointer"
         >
           <Bell size={20} />
           {unreadCount > 0 && (

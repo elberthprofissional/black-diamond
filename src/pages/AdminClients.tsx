@@ -16,35 +16,8 @@ import { SkeletonClients } from '../components/Skeleton';
 import { ArrowLeft, Search, ChevronRight, Plus, Bell, X } from 'lucide-react';
 import type { Client } from '../types';
 
-// Cores por inicial (mesmo padrao dos cards de clientes)
-const avatarColors: Record<string, string> = {
-  A: 'bg-blue-500/20 text-blue-400',
-  B: 'bg-emerald-500/20 text-emerald-400',
-  C: 'bg-purple-500/20 text-purple-400',
-  D: 'bg-amber-500/20 text-amber-400',
-  E: 'bg-rose-500/20 text-rose-400',
-  F: 'bg-cyan-500/20 text-cyan-400',
-  G: 'bg-indigo-500/20 text-indigo-400',
-  H: 'bg-pink-500/20 text-pink-400',
-  I: 'bg-teal-500/20 text-teal-400',
-  J: 'bg-orange-500/20 text-orange-400',
-  K: 'bg-violet-500/20 text-violet-400',
-  L: 'bg-lime-500/20 text-lime-400',
-  M: 'bg-sky-500/20 text-sky-400',
-  N: 'bg-fuchsia-500/20 text-fuchsia-400',
-  O: 'bg-red-500/20 text-red-400',
-  P: 'bg-yellow-500/20 text-yellow-400',
-  Q: 'bg-emerald-500/20 text-emerald-400',
-  R: 'bg-blue-500/20 text-blue-400',
-  S: 'bg-purple-500/20 text-purple-400',
-  T: 'bg-amber-500/20 text-amber-400',
-  U: 'bg-rose-500/20 text-rose-400',
-  V: 'bg-cyan-500/20 text-cyan-400',
-  W: 'bg-indigo-500/20 text-indigo-400',
-  X: 'bg-pink-500/20 text-pink-400',
-  Y: 'bg-teal-500/20 text-teal-400',
-  Z: 'bg-orange-500/20 text-orange-400',
-};
+// Avatar minimalista clean
+const AVATAR_STYLE = 'bg-white/[0.06] border border-white/[0.08] text-zinc-300';
 
 // Componente de lista de clientes com busca (usado no modal de lembretes)
 const ReminderClientList: FC<{ clients: Client[]; onSelect: (client: Client) => void }> = ({
@@ -77,7 +50,6 @@ const ReminderClientList: FC<{ clients: Client[]; onSelect: (client: Client) => 
         <div className="space-y-2">
           {filtered.map((client) => {
             const initial = (client.name || '?').charAt(0).toUpperCase();
-            const color = avatarColors[initial] || 'bg-zinc-500/20 text-zinc-400';
             return (
               <button
                 key={client.id}
@@ -85,7 +57,7 @@ const ReminderClientList: FC<{ clients: Client[]; onSelect: (client: Client) => 
                 className="w-full flex items-center gap-3 py-3 px-4 rounded-xl border border-white/[0.04] bg-white/[0.02] cursor-pointer group hover:bg-white/[0.04] hover:border-white/[0.08] transition-all text-left"
               >
                 <div
-                  className={`w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0`}
+                  className={`w-10 h-10 rounded-full ${AVATAR_STYLE} flex items-center justify-center shrink-0`}
                 >
                   <span className="text-[13px] font-bold">{initial}</span>
                 </div>
@@ -440,37 +412,7 @@ const AdminClients: FC = () => {
                     )
                   : 999;
 
-                // Cor do avatar baseada na inicial
-                const avatarColors: Record<string, string> = {
-                  A: 'bg-blue-500/20 text-blue-400',
-                  B: 'bg-emerald-500/20 text-emerald-400',
-                  C: 'bg-purple-500/20 text-purple-400',
-                  D: 'bg-amber-500/20 text-amber-400',
-                  E: 'bg-rose-500/20 text-rose-400',
-                  F: 'bg-cyan-500/20 text-cyan-400',
-                  G: 'bg-indigo-500/20 text-indigo-400',
-                  H: 'bg-pink-500/20 text-pink-400',
-                  I: 'bg-teal-500/20 text-teal-400',
-                  J: 'bg-orange-500/20 text-orange-400',
-                  K: 'bg-violet-500/20 text-violet-400',
-                  L: 'bg-lime-500/20 text-lime-400',
-                  M: 'bg-sky-500/20 text-sky-400',
-                  N: 'bg-fuchsia-500/20 text-fuchsia-400',
-                  O: 'bg-red-500/20 text-red-400',
-                  P: 'bg-yellow-500/20 text-yellow-400',
-                  Q: 'bg-emerald-500/20 text-emerald-400',
-                  R: 'bg-blue-500/20 text-blue-400',
-                  S: 'bg-purple-500/20 text-purple-400',
-                  T: 'bg-amber-500/20 text-amber-400',
-                  U: 'bg-rose-500/20 text-rose-400',
-                  V: 'bg-cyan-500/20 text-cyan-400',
-                  W: 'bg-indigo-500/20 text-indigo-400',
-                  X: 'bg-pink-500/20 text-pink-400',
-                  Y: 'bg-teal-500/20 text-teal-400',
-                  Z: 'bg-orange-500/20 text-orange-400',
-                };
                 const initial = (client.name || '?').charAt(0).toUpperCase();
-                const avatarColor = avatarColors[initial] || 'bg-zinc-500/20 text-zinc-400';
 
                 // Badge de status
                 let statusBadge = null;
@@ -519,7 +461,7 @@ const AdminClients: FC = () => {
                   >
                     <div className="flex items-start gap-4">
                       <div
-                        className={`w-12 h-12 rounded-xl ${avatarColor} flex items-center justify-center text-base font-bold shrink-0`}
+                        className={`w-12 h-12 rounded-xl ${AVATAR_STYLE} flex items-center justify-center text-base font-bold shrink-0`}
                       >
                         {initial}
                       </div>
