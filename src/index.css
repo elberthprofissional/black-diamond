@@ -104,6 +104,11 @@ input[type='radio'] {
   min-height: 44px;
   min-width: 44px;
 }
+/* Override for small decorative indicators (dots, badges) */
+[role='tab'] {
+  min-height: auto;
+  min-width: auto;
+}
 
 .scrollbar-hide {
   overscroll-behavior: contain;
