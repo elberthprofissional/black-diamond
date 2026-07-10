@@ -1,11 +1,11 @@
-import React from 'react';
+import { type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ToastNotificationProps {
   toast: { message: string; type: 'success' | 'error' } | null;
 }
 
-const ToastNotification: React.FC<ToastNotificationProps> = ({ toast }) => {
+const ToastNotification: FC<ToastNotificationProps> = ({ toast }) => {
   return (
     <div
       aria-live="polite"

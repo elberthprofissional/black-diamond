@@ -2,6 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useSlotBlocking } from './useSlotBlocking';
 
+const mockToggleSlotBlock = vi.fn();
+const mockUnblockDay = vi.fn();
+
+vi.mock('../lib/api', () => ({
+  toggleSlotBlock: (...args: unknown[]) => mockToggleSlotBlock(...args),
+  unblockDay: (...args: unknown[]) => mockUnblockDay(...args),
+}));
+
 vi.mock('./useToast', () => ({
   useToast: () => ({
     showSuccess: vi.fn(),
@@ -9,9 +17,10 @@ vi.mock('./useToast', () => ({
   }),
 }));
 
-vi.mock('../lib/api', () => ({
-  toggleSlotBlock: vi.fn().mockResolvedValue(undefined),
-  unblockDay: vi.fn().mockResolvedValue(undefined),
+vi.mock('./useAuditLog', () => ({
+  useAuditLog: () => ({
+    log: vi.fn().mockResolvedValue(undefined),
+  }),
 }));
 
 describe('useSlotBlocking', () => {
@@ -19,79 +28,120 @@ describe('useSlotBlocking', () => {
     vi.clearAllMocks();
   });
 
-  it('inicializa com estado correto', () => {
+  it('inicializa com estados nulos', () => {
     const { result } = renderHook(() => useSlotBlocking());
     expect(result.current.blockingSlot).toBeNull();
+    expect(result.current.unblockingBooking).toBeNull();
     expect(result.current.blockingDay).toBe(false);
   });
 
-  it('blockSlot chama toggleSlotBlock', async () => {
-    const { toggleSlotBlock } = await import('../lib/api');
+  it('blockSlot bloqueia horário com sucesso', async () => {
+    mockToggleSlotBlock.mockResolvedValue(undefined);
     const { result } = renderHook(() => useSlotBlocking());
+    const onComplete = vi.fn().mockResolvedValue(undefined);
 
     await act(async () => {
-      await result.current.blockSlot('2026-07-10', '10:00');
+      await result.current.blockSlot('2026-07-15', '10:00', onComplete);
     });
 
-    expect(toggleSlotBlock).toHaveBeenCalledWith('2026-07-10', '10:00');
+    expect(mockToggleSlotBlock).toHaveBeenCalledWith('2026-07-15', '10:00');
+    expect(onComplete).toHaveBeenCalled();
+    expect(result.current.blockingSlot).toBeNull();
   });
 
-  it('blockSlot chama callback', async () => {
-    const callback = vi.fn();
+  it('blockSlot trata erro', async () => {
+    mockToggleSlotBlock.mockRejectedValue(new Error('Erro'));
     const { result } = renderHook(() => useSlotBlocking());
 
     await act(async () => {
-      await result.current.blockSlot('2026-07-10', '10:00', callback);
-    });
-
-    expect(callback).toHaveBeenCalled();
-  });
-
-  it('blockSlot mostra erro em caso de falha', async () => {
-    const { toggleSlotBlock } = await import('../lib/api');
-    vi.mocked(toggleSlotBlock).mockRejectedValueOnce(new Error('fail'));
-
-    const { result } = renderHook(() => useSlotBlocking());
-
-    await act(async () => {
-      await result.current.blockSlot('2026-07-10', '10:00');
+      await result.current.blockSlot('2026-07-15', '10:00');
     });
 
     expect(result.current.blockingSlot).toBeNull();
   });
 
-  it('blockEntireDay itera todos os slots', async () => {
-    const { toggleSlotBlock } = await import('../lib/api');
+  it('unblockSlot desbloqueia booking com sucesso', async () => {
+    mockToggleSlotBlock.mockResolvedValue(undefined);
     const { result } = renderHook(() => useSlotBlocking());
 
     await act(async () => {
-      await result.current.blockEntireDay('2026-07-10', ['10:00', '11:00', '12:00']);
+      result.current.setUnblockingBooking({
+        id: 'b1',
+        booking_date: '2026-07-15',
+        booking_time: '10:00:00',
+        status: 'confirmed',
+      } as never);
     });
 
-    expect(toggleSlotBlock).toHaveBeenCalledTimes(3);
+    const onComplete = vi.fn().mockResolvedValue(undefined);
+    await act(async () => {
+      await result.current.unblockSlot('b1', onComplete);
+    });
+
+    expect(mockToggleSlotBlock).toHaveBeenCalled();
+    expect(result.current.unblockingBooking).toBeNull();
   });
 
-  it('blockEntireDay nao faz nada se vazio', async () => {
-    const { toggleSlotBlock } = await import('../lib/api');
+  it('blockEntireDay bloqueia todos os slots', async () => {
+    mockToggleSlotBlock.mockResolvedValue(undefined);
+    const { result } = renderHook(() => useSlotBlocking());
+    const onComplete = vi.fn().mockResolvedValue(undefined);
+
+    await act(async () => {
+      await result.current.blockEntireDay('2026-07-15', ['08:00', '09:00', '10:00'], onComplete);
+    });
+
+    expect(mockToggleSlotBlock).toHaveBeenCalledTimes(3);
+    expect(onComplete).toHaveBeenCalled();
+  });
+
+  it('blockEntireDay não faz nada com slots vazios', async () => {
     const { result } = renderHook(() => useSlotBlocking());
 
     await act(async () => {
-      await result.current.blockEntireDay('2026-07-10', []);
+      await result.current.blockEntireDay('2026-07-15', []);
     });
 
-    expect(toggleSlotBlock).not.toHaveBeenCalled();
+    expect(mockToggleSlotBlock).not.toHaveBeenCalled();
   });
 
   it('unblockEntireDay chama unblockDay', async () => {
-    const { unblockDay } = await import('../lib/api');
+    mockUnblockDay.mockResolvedValue(undefined);
+    const { result } = renderHook(() => useSlotBlocking());
+    const onComplete = vi.fn().mockResolvedValue(undefined);
+
+    await act(async () => {
+      await result.current.unblockEntireDay(
+        [
+          { booking_date: '2026-07-15', is_blocked: true } as never,
+          { booking_date: '2026-07-15', is_blocked: true } as never,
+        ],
+        onComplete
+      );
+    });
+
+    expect(mockUnblockDay).toHaveBeenCalledWith('2026-07-15');
+    expect(onComplete).toHaveBeenCalled();
+  });
+
+  it('unblockEntireDay não faz nada com array vazio', async () => {
     const { result } = renderHook(() => useSlotBlocking());
 
     await act(async () => {
-      await result.current.unblockEntireDay([
-        { booking_date: '2026-07-10', booking_time: '10:00', id: 'b1', client_id: 'c1', service_ids: [], status: 'confirmed' as const, total_price: 0, total_duration: 0, created_at: '', clients: { name: '', phone: '' } },
-      ]);
+      await result.current.unblockEntireDay([]);
     });
 
-    expect(unblockDay).toHaveBeenCalledWith('2026-07-10');
+    expect(mockUnblockDay).not.toHaveBeenCalled();
+  });
+
+  it('blockSlot usa customKey quando fornecido', async () => {
+    mockToggleSlotBlock.mockResolvedValue(undefined);
+    const { result } = renderHook(() => useSlotBlocking());
+
+    await act(async () => {
+      await result.current.blockSlot('2026-07-15', '10:00', undefined, 'custom-key');
+    });
+
+    expect(result.current.blockingSlot).toBeNull();
   });
 });

@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo, type FC } from 'react';
 import { Check } from 'lucide-react';
 import type { Service } from '../../types';
 
@@ -12,7 +12,7 @@ interface ServiceStepProps {
   layout: 'desktop' | 'mobile';
 }
 
-const ServiceStep: React.FC<ServiceStepProps> = React.memo(
+const ServiceStep: FC<ServiceStepProps> = memo(
   ({ services, selectedServices, isMensalista = false, planName, onToggle, onSkip, layout }) => {
     const isSelected = (id: string) => selectedServices.some((s) => s.id === id);
 
@@ -89,7 +89,7 @@ const ServiceStep: React.FC<ServiceStepProps> = React.memo(
           </div>
         )}
 
-        <div className="space-y-1" role="group" aria-label="Serviços disponíveis">
+        <div className="space-y-3" role="group" aria-label="Serviços disponíveis">
           {services.map((service) => {
             const selected = isSelected(service.id);
             return (
@@ -97,29 +97,32 @@ const ServiceStep: React.FC<ServiceStepProps> = React.memo(
                 key={service.id}
                 onClick={() => onToggle(service)}
                 aria-pressed={selected}
-                className={`w-full flex items-center gap-4 px-1 py-4 text-left transition-all cursor-pointer ${
-                  selected ? 'bg-transparent' : 'hover:bg-transparent'
-                }`}
+                className="w-full text-left transition-all cursor-pointer rounded-xl p-4 bg-white/[0.02] border border-white/[0.04]"
               >
-                <div
-                  className={`w-[18px] h-[18px] rounded-full border-[1.5px] flex items-center justify-center transition-all shrink-0 ${
-                    selected ? 'border-[#C5A059] bg-[#C5A059]' : 'border-white/15'
-                  }`}
-                >
-                  {selected && <Check size={10} className="text-white stroke-[3]" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p
-                    className={`text-[13px] font-medium transition-colors ${selected ? 'text-[#C5A059]' : 'text-zinc-200'}`}
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p
+                      className="text-[15px] font-extrabold tracking-tight text-white"
+                      style={{ fontFamily: 'var(--font-montserrat)' }}
+                    >
+                      {service.name}
+                    </p>
+                    <span className="text-[12px] font-medium tabular-nums text-zinc-500">
+                      R$ {Number(service.price).toFixed(2).replace('.', ',')}
+                    </span>
+                  </div>
+                  <div
+                    className={`w-11 h-6 rounded-full transition-all relative ${
+                      selected ? 'bg-[#C5A059]' : 'bg-zinc-700'
+                    }`}
                   >
-                    {service.name}
-                  </p>
+                    <div
+                      className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${
+                        selected ? 'left-[22px]' : 'left-0.5'
+                      }`}
+                    />
+                  </div>
                 </div>
-                <span
-                  className={`text-[13px] font-semibold tabular-nums transition-colors ${selected ? 'text-[#C5A059]' : 'text-zinc-400'}`}
-                >
-                  R$ {Number(service.price).toFixed(0)}
-                </span>
               </button>
             );
           })}

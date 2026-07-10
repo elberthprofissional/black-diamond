@@ -1,4 +1,4 @@
-import React from 'react';
+import { type RefObject, type FC } from 'react';
 import { Camera, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -7,16 +7,10 @@ interface PhotoMenuProps {
   onClose: () => void;
   onRemove: () => void;
   hasPhoto: boolean;
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  fileInputRef: RefObject<HTMLInputElement | null>;
 }
 
-const PhotoMenu: React.FC<PhotoMenuProps> = ({
-  show,
-  onClose,
-  onRemove,
-  hasPhoto,
-  fileInputRef,
-}) => {
+const PhotoMenu: FC<PhotoMenuProps> = ({ show, onClose, onRemove, hasPhoto, fileInputRef }) => {
   if (!show) return null;
 
   return (

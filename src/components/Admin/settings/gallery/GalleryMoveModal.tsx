@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FC } from 'react';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -12,9 +12,14 @@ interface GalleryMoveModalProps {
   onCancel: () => void;
 }
 
-const GalleryMoveModal: React.FC<GalleryMoveModalProps> = ({
-  show, moveTarget, totalImages, currentPosition,
-  onTargetChange, onConfirm, onCancel,
+const GalleryMoveModal: FC<GalleryMoveModalProps> = ({
+  show,
+  moveTarget,
+  totalImages,
+  currentPosition,
+  onTargetChange,
+  onConfirm,
+  onCancel,
 }) => {
   return (
     <AnimatePresence>
@@ -68,7 +73,11 @@ const GalleryMoveModal: React.FC<GalleryMoveModalProps> = ({
                 <div
                   key={i}
                   className={`w-2 h-2 rounded-full transition-all ${
-                    i + 1 === moveTarget ? 'bg-[#C5A059] w-5' : i + 1 === currentPosition + 1 ? 'bg-zinc-500' : 'bg-white/10'
+                    i + 1 === moveTarget
+                      ? 'bg-[#C5A059] w-5'
+                      : i + 1 === currentPosition + 1
+                        ? 'bg-zinc-500'
+                        : 'bg-white/10'
                   }`}
                 />
               ))}

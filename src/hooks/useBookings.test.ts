@@ -17,9 +17,12 @@ describe('useBookings', () => {
   });
 
   it('carrega agendamentos na montagem', async () => {
-    mockGetBookings.mockResolvedValue([
-      { id: 'b1', status: 'confirmed', booking_time: '10:00:00' },
-    ]);
+    mockGetBookings.mockResolvedValue({
+      data: [{ id: 'b1', status: 'confirmed', booking_time: '10:00:00' }],
+      total: 1,
+      page: 1,
+      pageSize: 200,
+    });
 
     const { result } = renderHook(() => useBookings('2026-07-05'));
 
@@ -34,7 +37,7 @@ describe('useBookings', () => {
   });
 
   it('chama getBookings com a data correta', async () => {
-    mockGetBookings.mockResolvedValue([]);
+    mockGetBookings.mockResolvedValue({ data: [], total: 0, page: 1, pageSize: 200 });
 
     renderHook(() => useBookings('2026-07-05'));
 
@@ -55,7 +58,12 @@ describe('useBookings', () => {
   });
 
   it('refetch recarrega os dados', async () => {
-    mockGetBookings.mockResolvedValue([{ id: 'b1', status: 'confirmed' }]);
+    mockGetBookings.mockResolvedValueOnce({
+      data: [{ id: 'b1', status: 'confirmed' }],
+      total: 1,
+      page: 1,
+      pageSize: 200,
+    });
 
     const { result } = renderHook(() => useBookings('2026-07-05'));
 
@@ -63,10 +71,15 @@ describe('useBookings', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    mockGetBookings.mockResolvedValue([
-      { id: 'b1', status: 'confirmed' },
-      { id: 'b2', status: 'pending' },
-    ]);
+    mockGetBookings.mockResolvedValueOnce({
+      data: [
+        { id: 'b1', status: 'confirmed' },
+        { id: 'b2', status: 'pending' },
+      ],
+      total: 2,
+      page: 1,
+      pageSize: 200,
+    });
 
     await act(async () => {
       await result.current.refetch();
@@ -78,7 +91,7 @@ describe('useBookings', () => {
   });
 
   it('chama autoCompleteExpiredBookings para data fornecida', async () => {
-    mockGetBookings.mockResolvedValue([]);
+    mockGetBookings.mockResolvedValue({ data: [], total: 0, page: 1, pageSize: 200 });
 
     renderHook(() => useBookings('2026-07-05'));
 
@@ -88,7 +101,7 @@ describe('useBookings', () => {
   });
 
   it('não chama autoComplete sem data', async () => {
-    mockGetBookings.mockResolvedValue([]);
+    mockGetBookings.mockResolvedValue({ data: [], total: 0, page: 1, pageSize: 200 });
 
     renderHook(() => useBookings());
 
@@ -101,8 +114,18 @@ describe('useBookings', () => {
 
   it('refetch após auto-complete quando há bookings atualizados', async () => {
     mockGetBookings
-      .mockResolvedValueOnce([{ id: 'b1', status: 'confirmed' }])
-      .mockResolvedValueOnce([{ id: 'b1', status: 'completed' }]);
+      .mockResolvedValueOnce({
+        data: [{ id: 'b1', status: 'confirmed' }],
+        total: 1,
+        page: 1,
+        pageSize: 200,
+      })
+      .mockResolvedValueOnce({
+        data: [{ id: 'b1', status: 'completed' }],
+        total: 1,
+        page: 1,
+        pageSize: 200,
+      });
     mockAutoComplete.mockResolvedValue(1);
 
     renderHook(() => useBookings('2026-07-05'));

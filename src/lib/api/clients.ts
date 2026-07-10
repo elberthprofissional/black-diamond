@@ -1,13 +1,16 @@
 import { supabase } from '../supabase';
+import { BLOCKED_NAME, BLOCKED_PHONE, NULL_UUID } from '../constants';
 
 /** Busca todos os clientes cadastrados, ordenados por nome. Exclui soft-deletados. */
 export const getClients = async () => {
   const { data, error } = await supabase
     .from('clients')
-    .select('*')
-    .not('name', 'in', '("CLIENTE EXCLUIDO","BLOQUEADO")')
-    .not('phone', 'like', 'DELETED_%')
-    .not('phone', 'eq', '00000000000')
+    .select(
+      'id, name, phone, email, notes, is_favorite, is_mensalista, mensalista_plan_id, mensalista_expires_at, is_blocked, deleted_at, manually_added, historical_visits, historical_spent, last_visit_date, created_at'
+    )
+    .is('deleted_at', null)
+    .not('name', 'in', `("${BLOCKED_NAME}")`)
+    .not('phone', 'eq', `${BLOCKED_PHONE}`)
     .order('name', { ascending: true });
   if (error) throw error;
   return data || [];
@@ -15,38 +18,36 @@ export const getClients = async () => {
 
 /** Soft-deleta todos os clientes e exclui seus agendamentos. */
 export const deleteAllClients = async (): Promise<number> => {
-  const { error: bookingError } = await supabase
-    .from('bookings')
-    .delete()
-    .neq('id', '00000000-0000-0000-0000-000000000000');
+  const { error: bookingError } = await supabase.from('bookings').delete().neq('id', NULL_UUID);
   if (bookingError) throw bookingError;
 
   const { data: clients, error: fetchError } = await supabase
     .from('clients')
     .select('id')
-    .not('name', 'in', '("BLOQUEADO","CLIENTE EXCLUIDO")')
-    .neq('phone', '00000000000');
+    .is('deleted_at', null)
+    .not('name', 'eq', BLOCKED_NAME)
+    .neq('phone', BLOCKED_PHONE);
   if (fetchError) throw fetchError;
   if (!clients || clients.length === 0) return 0;
 
-  await Promise.all(
-    clients.map((client) =>
-      supabase
-        .from('clients')
-        .update({ name: 'CLIENTE EXCLUIDO', phone: `DELETED_${client.id}` })
-        .eq('id', client.id)
-    )
-  );
+  const now = new Date().toISOString();
+  const clientIds = clients.map((c) => c.id);
+
+  // Batch update em vez de N+1
+  const { error: updateError } = await supabase
+    .from('clients')
+    .update({ deleted_at: now })
+    .in('id', clientIds);
+  if (updateError) throw updateError;
 
   return clients.length;
 };
 
-/** Soft-deleta um cliente substituindo nome e telefone. */
+/** Soft-deleta um cliente (preserva nome e telefone originais para histórico). */
 export const deleteClient = async (id: string) => {
-  const deletedPhone = `DELETED_${id}`;
   const { error } = await supabase
     .from('clients')
-    .update({ name: 'CLIENTE EXCLUIDO', phone: deletedPhone })
+    .update({ deleted_at: new Date().toISOString() })
     .eq('id', id);
 
   if (error) throw error;
@@ -100,13 +101,6 @@ export const updateClientNotes = async (id: string, notes: string) => {
   if (error) throw error;
 };
 
-/** Alterna o status de favorito de um cliente. */
-export const toggleClientFavorite = async (id: string, isFavorite: boolean) => {
-  const { error } = await supabase.from('clients').update({ is_favorite: isFavorite }).eq('id', id);
-
-  if (error) throw error;
-};
-
 /** Alterna o status de mensalista de um cliente. */
 export const toggleClientMensalista = async (
   id: string,
@@ -126,14 +120,12 @@ export const toggleClientMensalista = async (
   if (error) throw error;
 };
 
-/** Busca um cliente pelo número de telefone. */
+/** Busca um cliente pelo número de telefone (com rate limiting server-side). */
 export const getClientByPhone = async (phone: string) => {
-  const { data, error } = await supabase
-    .from('clients')
-    .select('id, name, phone, is_mensalista, mensalista_plan_id')
-    .eq('phone', phone)
-    .limit(1)
-    .maybeSingle();
+  const cleanPhone = phone.replace(/\D/g, '');
+  const { data, error } = await supabase.rpc('lookup_client_by_phone_rate_limited', {
+    p_phone: cleanPhone,
+  });
 
   if (error) throw error;
   return data;

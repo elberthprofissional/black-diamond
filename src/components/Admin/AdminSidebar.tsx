@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, memo, type FC } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users, ChevronDown, User, LogOut, Clock, Settings } from 'lucide-react';
@@ -6,7 +7,7 @@ import { useAdminLogout } from '../../hooks/useAdminLogout';
 import { useBarberSettings } from '../../contexts/BarberSettingsContext';
 import NotificationBell from './NotificationBell';
 
-const AdminSidebar: React.FC = React.memo(() => {
+const AdminSidebar: FC = memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -83,9 +84,7 @@ const AdminSidebar: React.FC = React.memo(() => {
             })}
 
             {/* Notifications - Instagram style */}
-            <li className="relative">
-              <NotificationBell variant="desktop" />
-            </li>
+            <NotificationBell variant="desktop" />
           </nav>
         </div>
       </div>
@@ -175,51 +174,53 @@ const AdminSidebar: React.FC = React.memo(() => {
       </div>
 
       {/* LOGOUT CONFIRMATION MODAL */}
-      <AnimatePresence>
-        {showLogoutConfirm && (
-          <div
-            className="fixed inset-0 z-[300] flex items-center justify-center p-4"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Confirmar saída"
-          >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowLogoutConfirm(false)}
-              className="absolute inset-0 bg-black/60"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-              className="relative z-10 w-full max-w-[260px] bg-[#1A1A1A] rounded-2xl overflow-hidden"
+      {showLogoutConfirm &&
+        createPortal(
+          <AnimatePresence>
+            <div
+              className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Confirmar saída"
             >
-              <div className="p-5 text-center">
-                <p className="text-[11px] text-zinc-300 font-medium">Sair da conta?</p>
-              </div>
-              <div className="border-t border-white/[0.06]">
-                <button
-                  onClick={handleLogout}
-                  className="w-full py-3.5 text-[11px] font-bold text-red-500 active:bg-white/[0.03] transition-colors cursor-pointer"
-                >
-                  Sair
-                </button>
-              </div>
-              <div className="border-t border-white/[0.06]">
-                <button
-                  onClick={() => setShowLogoutConfirm(false)}
-                  className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
-                >
-                  Manter
-                </button>
-              </div>
-            </motion.div>
-          </div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowLogoutConfirm(false)}
+                className="absolute inset-0 bg-black/60"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+                className="relative z-10 w-full max-w-[260px] bg-[#1A1A1A] rounded-2xl overflow-hidden"
+              >
+                <div className="p-5 text-center">
+                  <p className="text-[11px] text-zinc-300 font-medium">Sair da conta?</p>
+                </div>
+                <div className="border-t border-white/[0.06]">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full py-3.5 text-[11px] font-bold text-red-500 active:bg-white/[0.03] transition-colors cursor-pointer"
+                  >
+                    Sair
+                  </button>
+                </div>
+                <div className="border-t border-white/[0.06]">
+                  <button
+                    onClick={() => setShowLogoutConfirm(false)}
+                    className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
+                  >
+                    Manter
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>
     </aside>
   );
 });

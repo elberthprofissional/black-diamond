@@ -8,6 +8,7 @@ import {
 } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
 import { useToast } from './useToast';
+import { useAuditLog } from './useAuditLog';
 import type { ClientWithStats, BookingWithClient, MensalistaPlan } from '../types';
 
 export function useClientPanel(
@@ -15,6 +16,7 @@ export function useClientPanel(
   plans: MensalistaPlan[]
 ) {
   const { showSuccess, showError } = useToast();
+  const { log } = useAuditLog();
   const [selectedClient, setSelectedClient] = useState<ClientWithStats | null>(null);
   const [panelBookings, setPanelBookings] = useState<BookingWithClient[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -38,9 +40,9 @@ export function useClientPanel(
     setIsEditing(false);
     setIsEditingNotes(false);
     try {
-      const bookings = await getBookings();
+      const result = await getBookings();
       setPanelBookings(
-        bookings
+        result.data
           .filter((b) => b.client_id === client.id)
           .sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime())
       );
@@ -61,6 +63,11 @@ export function useClientPanel(
     setSaving(true);
     try {
       await updateClient(selectedClient.id, { name: editName.trim(), phone: editPhone.trim() });
+      log({
+        action: 'client_updated',
+        target_id: selectedClient.id,
+        details: { name: editName.trim(), phone: editPhone.trim() },
+      });
       setSelectedClient((p) => (p ? { ...p, name: editName.trim(), phone: editPhone.trim() } : p));
       setClients((prev) =>
         prev.map((c) =>
@@ -93,6 +100,11 @@ export function useClientPanel(
     setIsDeleting(true);
     try {
       await deleteClient(selectedClient.id);
+      log({
+        action: 'client_deleted',
+        target_id: selectedClient.id,
+        details: { name: selectedClient.name, phone: selectedClient.phone },
+      });
       setClients((prev) => prev.filter((c) => c.id !== selectedClient.id));
       closePanel();
       showSuccess('Cliente excluído!');

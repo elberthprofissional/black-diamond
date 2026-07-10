@@ -1,29 +1,41 @@
-# 🚀 Guia de Deploy — Sistema de Agendamento para Barbearias
+# Guia de Deploy — Sistema de Agendamento para Barbearias
 
-> Passo a passo completo para criar uma nova instância do sistema para uma barbearia parceira.
-
----
-
-## 📋 Pré-requisitos
-
-Antes de começar, tenha em mãos:
-
-- [ ] Conta no [Supabase](https://supabase.com) (gratuita)
-- [ ] Conta no [Vercel](https://vercel.com) (gratuita, conectada ao GitHub)
-- [ ] Repositório no GitHub com o código-fonte do sistema
-- [ ] Domínio da barbearia (ex: `barbeariadofulano.com.br`) — ~R$40/ano no Registro.br ou GoDaddy
-- [ ] Dados da barbearia: nome, WhatsApp, endereço, Instagram, logo, fotos
+> Passo a passo completo para criar uma nova instancia do sistema para uma barbearia parceira.
 
 ---
 
-## 🧭 Visão Geral (30 minutos)
+## Instalacao Automatica (Recomendado)
 
+O script `instalar-cliente.mjs` faz TUDO sozinho:
+
+```bash
+node instalar-cliente.mjs
 ```
-1. Supabase  → Criar banco + rodar SQL + criar admin  (10 min)
-2. Código    → Editar dados específicos da barbearia    (10 min)
-3. Vercel    → Fazer deploy + configurar domínio        (10 min)
-4. Final     → Barbeiro configura o resto pelo painel   (5 min)
-```
+
+O que ele faz:
+1. Coleta dados do cliente (nome, email, senha, WhatsApp)
+2. Valida email, senha (2x), telefone
+3. Cria o projeto Supabase via API
+4. Roda o `universal.sql` automaticamente
+5. Cria o usuario admin + cadastra na tabela admin_users
+6. Gera o arquivo `.env`
+7. Faz deploy na Vercel (com retry)
+
+---
+
+## Instalacao Manual (alternativa)
+
+Se preferir fazer manualmente, siga os passos abaixo.
+
+## Pre-requisitos
+
+Antes de comecar, tenha em maos:
+
+- Conta no Supabase (gratuita)
+- Conta no Vercel (gratuita, conectada ao GitHub)
+- Repositorio no GitHub com o codigo-fonte do sistema
+- Dominio da barbearia (opcional)
+- Dados da barbearia: nome, WhatsApp, endereco, Instagram, logo, fotos
 
 ---
 

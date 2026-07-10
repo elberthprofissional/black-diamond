@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, memo, type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useServices } from '../hooks/useServices';
@@ -10,8 +10,8 @@ interface ServicesProps {
   onBookingClick: () => void;
 }
 
-const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
-  const { services, loading } = useServices();
+const Services: FC<ServicesProps> = memo(({ onBookingClick }) => {
+  const { services, loading, isOffline } = useServices();
   const { barberPhone } = useBarberSettings();
 
   const [plans, setPlans] = useState<MensalistaPlan[]>([]);
@@ -68,6 +68,14 @@ const Services: React.FC<ServicesProps> = React.memo(({ onBookingClick }) => {
             </h2>
             <div className="w-24 h-px bg-[#C5A059]/30 mx-auto" />
           </div>
+
+          {isOffline && (
+            <div className="mb-6 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center">
+              <p className="text-[12px] text-amber-400 font-medium">
+                Sem conexao. Dados salvos no celular — voce pode continuar navegando.
+              </p>
+            </div>
+          )}
 
           {loading ? (
             <div className="space-y-4">

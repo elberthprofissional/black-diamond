@@ -3,14 +3,17 @@ import { renderHook, waitFor, act } from '@testing-library/react';
 import { useClientLookup } from './useClientLookup';
 
 const mockGetClientByPhone = vi.fn();
+const mockGetLastBookingByPhone = vi.fn();
 
 vi.mock('../lib/api', () => ({
   getClientByPhone: (...args: unknown[]) => mockGetClientByPhone(...args),
+  getLastBookingByPhone: (...args: unknown[]) => mockGetLastBookingByPhone(...args),
 }));
 
 describe('useClientLookup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetLastBookingByPhone.mockResolvedValue(null);
   });
 
   it('não busca quando telefone tem menos de 11 dígitos', async () => {

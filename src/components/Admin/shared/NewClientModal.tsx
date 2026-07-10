@@ -1,6 +1,7 @@
-import React from 'react';
+import { type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import { formatPhone } from '../../../lib/utils';
 
 interface NewClientModalProps {
   isOpen: boolean;
@@ -16,7 +17,7 @@ interface NewClientModalProps {
   onCancel: () => void;
 }
 
-const NewClientModal: React.FC<NewClientModalProps> = ({
+const NewClientModal: FC<NewClientModalProps> = ({
   isOpen,
   name,
   phone,
@@ -52,7 +53,9 @@ const NewClientModal: React.FC<NewClientModalProps> = ({
           >
             <div className="px-6 pt-6 pb-5 text-left">
               <div className="flex items-center justify-between mb-5">
-                <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.2em]">Novo cliente</span>
+                <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.2em]">
+                  Novo cliente
+                </span>
                 <button
                   onClick={onCancel}
                   aria-label="Fechar"
@@ -63,7 +66,9 @@ const NewClientModal: React.FC<NewClientModalProps> = ({
               </div>
               <div className="space-y-4">
                 <div>
-                  <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Nome</span>
+                  <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">
+                    Nome
+                  </span>
                   <input
                     type="text"
                     id="new-client-name"
@@ -77,13 +82,15 @@ const NewClientModal: React.FC<NewClientModalProps> = ({
                   />
                 </div>
                 <div>
-                  <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">WhatsApp</span>
+                  <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">
+                    WhatsApp
+                  </span>
                   <input
                     type="text"
                     id="new-client-phone"
                     value={phone}
-                    onChange={(e) => onPhoneChange(e.target.value)}
-                    placeholder="00000000000"
+                    onChange={(e) => onPhoneChange(formatPhone(e.target.value))}
+                    placeholder="(00) 00000-0000"
                     aria-label="WhatsApp do cliente"
                     className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors placeholder:text-zinc-700 tabular-nums text-left"
                   />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getLocalDateString } from '../../../lib/utils';
 import { getAvailableSlots } from '../../../lib/api';
@@ -40,7 +40,7 @@ const getNext14Days = () => {
   return list;
 };
 
-const RescheduleWizard: React.FC<RescheduleWizardProps> = ({
+const RescheduleWizard: FC<RescheduleWizardProps> = ({
   selectedBooking,
   services,
   step,
@@ -57,13 +57,18 @@ const RescheduleWizard: React.FC<RescheduleWizardProps> = ({
   onConfirm,
   onClose,
 }) => {
-  const next14Days = React.useMemo(() => getNext14Days(), []);
+  const next14Days = useMemo(() => getNext14Days(), []);
   const [rescheduleSlots, setRescheduleSlots] = useState<string[]>([]);
 
   useEffect(() => {
-    if (rescheduleDate && step === 2) {
-      getAvailableSlots(rescheduleDate).then(setRescheduleSlots);
-    }
+    if (!rescheduleDate || step !== 2) return;
+    let active = true;
+    getAvailableSlots(rescheduleDate).then((slots) => {
+      if (active) setRescheduleSlots(slots);
+    });
+    return () => {
+      active = false;
+    };
   }, [rescheduleDate, step]);
 
   const handleBack = () => {

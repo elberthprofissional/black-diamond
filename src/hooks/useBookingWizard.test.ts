@@ -30,12 +30,25 @@ vi.mock('../lib/utils', () => ({
   getTimeSlotsForDate: vi.fn(() => Promise.resolve(['08:00', '09:00', '10:00'])),
 }));
 
+vi.mock('./useBarberSettings', () => ({
+  useBarberSettings: vi.fn(() => ({
+    barberPhone: '5531999999999',
+  })),
+}));
+
 vi.mock('./useServices', () => ({
   useServices: vi.fn(() => ({
     services: [
       { id: 's1', name: 'Corte', price: 35, duration: 40 },
       { id: 's2', name: 'Barba', price: 27, duration: 20 },
     ],
+  })),
+}));
+
+vi.mock('./useMensalistaFilter', () => ({
+  useMensalistaFilter: vi.fn(({ allServices }) => ({
+    filteredServices: allServices,
+    filterDaysForMensalista: (days: unknown[]) => days,
   })),
 }));
 
@@ -57,7 +70,7 @@ describe('useBookingWizard', () => {
 
   it('stepTitle muda por step', () => {
     const { result } = renderHook(() => useBookingWizard(mockShowError));
-    expect(result.current.stepTitle).toBe('Agende seu corte');
+    expect(result.current.stepTitle).toBe('Seus dados');
 
     act(() => result.current.setStep(2));
     expect(result.current.stepTitle).toBe('Escolha os serviços');

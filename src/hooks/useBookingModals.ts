@@ -3,6 +3,7 @@ import { updateBookingStatus, deleteBooking } from '../lib/api';
 import { useToast } from './useToast';
 import { useAuditLog } from './useAuditLog';
 import { getErrorMessage } from '../lib/utils';
+import { supabase } from '../lib/supabase';
 import type { BookingWithClient, Service } from '../types';
 
 export function useBookingModals(loadData: () => Promise<void>, services: Service[] = []) {
@@ -39,10 +40,7 @@ export function useBookingModals(loadData: () => Promise<void>, services: Servic
       .filter(Boolean);
     const serviceText = serviceNames.length > 0 ? serviceNames.join(' + ') : 'seu serviço';
 
-    const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
-    const reviewUrl = `${siteUrl}/avaliar/${booking.id}`;
-
-    return `Oi ${firstName}! Obrigado por cortar com a gente no Black Diamond 💈❤️\n\nServico: ${serviceText}\n\nDeixa sua avaliacao aqui, leva 30 segundos:\n${reviewUrl}\n\nAte a proxima! 🏆`;
+    return `Oi ${firstName}! Obrigado por cortar com a gente no Black Diamond 💈❤️\n\nServico: ${serviceText}\n\nAte a proxima! 🏆`;
   };
 
   const handleSendThankYou = () => {
@@ -90,6 +88,28 @@ export function useBookingModals(loadData: () => Promise<void>, services: Servic
         date: bookingDate,
         time: bookingTime,
       });
+      supabase.auth
+        .getUser()
+        .then(({ data: { user } }) => {
+          if (!user) return;
+          supabase
+            .from('notifications')
+            .insert({
+              user_id: user.id,
+              title: 'Agendamento Cancelado',
+              body: `${clientName || 'Cliente'} — ${bookingDate} às ${bookingTime?.slice(0, 5)}`,
+              tag: `booking-cancelled-${id}`,
+              url: '/admin',
+            })
+            .then(
+              () => {},
+              () => {}
+            );
+        })
+        .then(
+          () => {},
+          () => {}
+        );
       setBookingToDelete(null);
       setSelectedBooking(null);
       await loadData();

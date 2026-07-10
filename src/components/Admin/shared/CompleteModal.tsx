@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useModalA11y } from '../../../hooks/useModalA11y';
 import type { BookingWithClient } from '../../../types';
@@ -9,7 +9,7 @@ interface CompleteModalProps {
   onCancel: () => void;
 }
 
-const CompleteModal: React.FC<CompleteModalProps> = ({ booking, onConfirm, onCancel }) => {
+const CompleteModal: FC<CompleteModalProps> = ({ booking, onConfirm, onCancel }) => {
   const { dialogRef } = useModalA11y(!!booking, onCancel);
 
   return (
@@ -17,7 +17,9 @@ const CompleteModal: React.FC<CompleteModalProps> = ({ booking, onConfirm, onCan
       {booking && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
           <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             onClick={onCancel}
             className="absolute inset-0 bg-black/60"
           />

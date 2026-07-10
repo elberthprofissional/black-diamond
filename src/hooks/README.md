@@ -89,3 +89,17 @@ Logout seguro com limpeza de sessão.
 
 ### `usePushNotifications`
 Gerencia push notifications do PWA.
+
+### `usePwaInstall`
+Gerencia instalação do PWA com detecção de plataforma.
+
+```tsx
+const { isIOS, isStandalone, isIOSChrome, handleInstall } = usePwaInstall(
+  () => showSuccess('Instalado!'),
+  (msg) => showError(msg),
+);
+```
+
+- iPhone (Safari): exibe modal com instruções passo-a-passo
+- Android (Chrome): dispara `beforeinstallprompt` nativo
+- Desktop: prompt de instalação do navegador

@@ -1,7 +1,7 @@
 {
   "name": "black-diamond",
   "private": true,
-  "version": "3.12.0",
+  "version": "3.15.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -18,7 +18,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",
     "test:lighthouse": "lhci autorun",
-    "prepare": "husky"
+    "prepare": "husky",
+    "audit": "npm audit --audit-level=high"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -36,9 +37,11 @@
     "lucide-react": "^1.23.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-helmet-async": "^3.0.0",
     "react-router-dom": "^7.17.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@eslint/js": "^10.0.1",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.61.1",
@@ -52,6 +55,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.9",
     "autoprefixer": "^10.5.0",
+    "axe-core": "^4.12.1",
     "eslint": "^10.3.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",

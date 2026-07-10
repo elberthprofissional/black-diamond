@@ -1,4 +1,4 @@
-import React from 'react';
+import { createElement, type ReactNode } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
@@ -74,10 +74,15 @@ vi.mock('framer-motion', () => {
   const MotionEl =
     (tag: string) =>
     ({ children, ...props }: Record<string, unknown>) =>
-      React.createElement(tag, props, children);
+      createElement(tag, props, children);
   return {
-    motion: { div: MotionEl('div'), button: MotionEl('button') },
-    AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+    motion: {
+      div: MotionEl('div'),
+      button: MotionEl('button'),
+      form: MotionEl('form'),
+      p: MotionEl('p'),
+    },
+    AnimatePresence: ({ children }: { children: ReactNode }) => children,
   };
 });
 
@@ -151,7 +156,22 @@ describe('AdminLogin — Comportamental', () => {
     fireEvent.click(screen.getByRole('button', { name: /entrar/i }));
 
     await waitFor(() => {
-      expect(mockShowError).toHaveBeenCalledWith('E-mail ou senha incorretos.');
+      expect(screen.getByText(/e-mail ou senha incorretos/i)).toBeInTheDocument();
+    });
+  });
+
+  it('registra tentativa falha no audit log', async () => {
+    mockSignIn.mockResolvedValue({ error: { message: 'Invalid' } });
+    renderLogin();
+
+    fireEvent.change(screen.getByPlaceholderText(/email/i), {
+      target: { value: 'admin@test.com' },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/senha/i), { target: { value: 'errada' } });
+    fireEvent.click(screen.getByRole('button', { name: /entrar/i }));
+
+    await waitFor(() => {
+      expect(mockLogLogin).toHaveBeenCalledWith(false, 'admin@test.com');
     });
   });
 
@@ -172,7 +192,7 @@ describe('AdminLogin — Comportamental', () => {
 
   it('abre modal de esqueceu senha ao clicar no link', async () => {
     renderLogin();
-    const forgotLink = screen.getByText(/esqueceu/i);
+    const forgotLink = screen.getAllByText(/esqueceu/i)[0];
     fireEvent.click(forgotLink);
 
     await waitFor(() => {

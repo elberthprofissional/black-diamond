@@ -27,7 +27,7 @@ test.describe('Booking - Tratamento de Erros', () => {
     await page.click('[data-testid="time-slot"]:first-child');
 
     // Intercept a chamada de criação e retorna erro
-    await page.route('**/rest/v1/rpc/criar_agendamento', (route) =>
+    await page.route('**/rest/v1/rpc/criar_agendamento_rate_limited', (route) =>
       route.fulfill({
         status: 500,
         body: JSON.stringify({ message: 'Erro interno do servidor' }),
@@ -163,16 +163,16 @@ test.describe('Admin - Autenticação', () => {
 
   test('login com credenciais inválidas mostra erro', async ({ page }) => {
     await page.goto('/admin/login');
-    await page.fill('#login-email', 'wrong@email.com');
-    await page.fill('#login-password', 'wrongpassword');
-    await page.click('[data-testid="login-submit"]');
+    await page.fill('[data-testid="input-email"]', 'wrong@email.com');
+    await page.fill('[data-testid="input-password"]', 'wrongpassword');
+    await page.click('[data-testid="btn-login"]');
 
     await expect(page.locator('text=incorretos')).toBeVisible({ timeout: 10000 });
   });
 
   test('login com campos vazios mostra erro', async ({ page }) => {
     await page.goto('/admin/login');
-    await page.click('[data-testid="login-submit"]');
+    await page.click('[data-testid="btn-login"]');
 
     await expect(page.locator('text=Preencha')).toBeVisible({ timeout: 5000 });
   });
@@ -183,13 +183,15 @@ test.describe('Admin - Rate Limiting', () => {
     await page.goto('/admin/login');
 
     for (let i = 0; i < 5; i++) {
-      await page.fill('#login-email', 'test@test.com');
-      await page.fill('#login-password', 'wrong');
-      await page.click('[data-testid="login-submit"]');
+      await page.fill('[data-testid="input-email"]', 'test@test.com');
+      await page.fill('[data-testid="input-password"]', 'wrong');
+      await page.click('[data-testid="btn-login"]');
       await page.waitForTimeout(500);
     }
 
-    await expect(page.locator('text=bloqueada')).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.locator('text=Muitas tentativas').or(page.locator('text=Conta bloqueada'))
+    ).toBeVisible({ timeout: 10000 });
   });
 });
 
@@ -208,6 +210,6 @@ test.describe('Navegação - PWA', () => {
     const response = await page.goto('/manifest.json');
     expect(response?.status()).toBe(200);
     const manifest = await response?.json();
-    expect(manifest?.name).toBe('Black Diamond');
+    expect(manifest?.name).toBe('Black Diamond Barbearia');
   });
 });

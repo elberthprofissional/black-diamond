@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
 
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
+
 test.describe('Admin - Login/Logout', () => {
   test('login com credenciais inválidas', async ({ page }) => {
     await page.goto('/admin/login');
@@ -8,52 +11,55 @@ test.describe('Admin - Login/Logout', () => {
     await page.fill('[data-testid="input-password"]', 'wrongpassword');
     await page.click('[data-testid="btn-login"]');
 
-    await expect(page.locator('text=E-mail ou senha incorretos')).toBeVisible();
+    await expect(page.locator('text=E-mail ou senha incorretos')).toBeVisible({ timeout: 10000 });
+  });
+
+  test('login com campos vazios mostra erro', async ({ page }) => {
+    await page.goto('/admin/login');
+    await page.click('[data-testid="btn-login"]');
+    await expect(page.locator('text=Preencha')).toBeVisible({ timeout: 5000 });
   });
 
   test('logout funciona corretamente', async ({ page }) => {
-    // Login primeiro
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'ADMIN_EMAIL and ADMIN_PASSWORD env vars required');
+
     await page.goto('/admin/login');
-    await page.fill('[data-testid="input-email"]', process.env.VITE_ADMIN_EMAIL || '');
-    await page.fill('[data-testid="input-password"]', process.env.VITE_ADMIN_PASSWORD || '');
+    await page.fill('[data-testid="input-email"]', ADMIN_EMAIL);
+    await page.fill('[data-testid="input-password"]', ADMIN_PASSWORD);
     await page.click('[data-testid="btn-login"]');
 
-    await page.waitForURL('/admin');
+    await page.waitForURL('/admin', { timeout: 15000 });
 
-    // Clicar no botão de logout
     await page.click('[data-testid="btn-logout"]');
-
-    // Verificar redirecionamento para login
-    await expect(page).toHaveURL('/admin/login');
+    await expect(page).toHaveURL('/admin/login', { timeout: 10000 });
   });
 });
 
 test.describe('Admin - Dashboard', () => {
   test('dashboard carrega com agendamentos', async ({ page }) => {
-    // Login
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'ADMIN_EMAIL and ADMIN_PASSWORD env vars required');
+
     await page.goto('/admin/login');
-    await page.fill('[data-testid="input-email"]', process.env.VITE_ADMIN_EMAIL || '');
-    await page.fill('[data-testid="input-password"]', process.env.VITE_ADMIN_PASSWORD || '');
+    await page.fill('[data-testid="input-email"]', ADMIN_EMAIL);
+    await page.fill('[data-testid="input-password"]', ADMIN_PASSWORD);
     await page.click('[data-testid="btn-login"]');
 
-    await page.waitForURL('/admin');
-
-    // Verificar que o dashboard carregou
-    await expect(page.locator('text=Agenda do Dia')).toBeVisible();
+    await page.waitForURL('/admin', { timeout: 15000 });
+    await expect(page.locator('text=Agenda do Dia')).toBeVisible({ timeout: 10000 });
   });
 });
 
 test.describe('Admin - Clientes', () => {
   test('pode visualizar lista de clientes', async ({ page }) => {
-    // Login
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'ADMIN_EMAIL and ADMIN_PASSWORD env vars required');
+
     await page.goto('/admin/login');
-    await page.fill('[data-testid="input-email"]', process.env.VITE_ADMIN_EMAIL || '');
-    await page.fill('[data-testid="input-password"]', process.env.VITE_ADMIN_PASSWORD || '');
+    await page.fill('[data-testid="input-email"]', ADMIN_EMAIL);
+    await page.fill('[data-testid="input-password"]', ADMIN_PASSWORD);
     await page.click('[data-testid="btn-login"]');
 
-    await page.waitForURL('/admin');
+    await page.waitForURL('/admin', { timeout: 15000 });
 
-    // Navegar para clientes
     await page.click('[data-testid="nav-clients"]');
     await expect(page).toHaveURL('/admin/clients');
     await expect(page.locator('text=Clientes')).toBeVisible();
@@ -71,32 +77,30 @@ test.describe('Admin - Rate Limiting', () => {
       await page.waitForTimeout(500);
     }
 
-    // Após 5 tentativas, deve mostrar mensagem de bloqueio
-    await expect(page.locator('text=Bloqueado')).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.locator('text=Muitas tentativas').or(page.locator('text=Conta bloqueada'))
+    ).toBeVisible({ timeout: 10000 });
   });
 });
 
 test.describe('Admin - Navegação', () => {
   test('pode navegar entre todas as páginas admin', async ({ page }) => {
-    // Login
-    await page.goto('/admin/login');
-    await page.fill('[data-testid="input-email"]', process.env.VITE_ADMIN_EMAIL || '');
-    await page.fill('[data-testid="input-password"]', process.env.VITE_ADMIN_PASSWORD || '');
-    await page.click('[data-testid="btn-login"]');
-    await page.waitForURL('/admin');
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'ADMIN_EMAIL and ADMIN_PASSWORD env vars required');
 
-    // Dashboard
+    await page.goto('/admin/login');
+    await page.fill('[data-testid="input-email"]', ADMIN_EMAIL);
+    await page.fill('[data-testid="input-password"]', ADMIN_PASSWORD);
+    await page.click('[data-testid="btn-login"]');
+
+    await page.waitForURL('/admin', { timeout: 15000 });
     await expect(page).toHaveURL('/admin');
 
-    // Navegar para Weekly
     await page.click('[data-testid="nav-weekly"]');
     await expect(page).toHaveURL('/admin/weekly');
 
-    // Navegar para Clients
     await page.click('[data-testid="nav-clients"]');
     await expect(page).toHaveURL('/admin/clients');
 
-    // Navegar para Profile
     await page.click('[data-testid="nav-profile"]');
     await expect(page).toHaveURL('/admin/profile');
   });
@@ -109,32 +113,27 @@ test.describe('Admin - Proteção de Rotas', () => {
   });
 
   test('redireciona para login ao acessar rotas protegidas diretamente', async ({ page }) => {
-    await page.goto('/admin/weekly');
-    await expect(page).toHaveURL('/admin/login', { timeout: 10000 });
+    const protectedRoutes = ['/admin/weekly', '/admin/clients', '/admin/profile'];
 
-    await page.goto('/admin/clients');
-    await expect(page).toHaveURL('/admin/login', { timeout: 10000 });
-
-    await page.goto('/admin/profile');
-    await expect(page).toHaveURL('/admin/login', { timeout: 10000 });
+    for (const route of protectedRoutes) {
+      await page.goto(route);
+      await expect(page).toHaveURL('/admin/login', { timeout: 10000 });
+    }
   });
 });
 
 test.describe('Admin - Esqueci a Senha', () => {
   test('modal de recuperação de senha abre', async ({ page }) => {
     await page.goto('/admin/login');
-
     await page.click('text=Esqueceu a senha?');
     await expect(page.locator('text=Encontre sua conta')).toBeVisible();
   });
 
   test('fechar modal funciona', async ({ page }) => {
     await page.goto('/admin/login');
-
     await page.click('text=Esqueceu a senha?');
     await expect(page.locator('text=Encontre sua conta')).toBeVisible();
 
-    // Fechar
     await page.click('[aria-label="Fechar"]');
     await expect(page.locator('text=Encontre sua conta')).not.toBeVisible();
   });

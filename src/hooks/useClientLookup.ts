@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getClientByPhone, getLastBookingByPhone } from '../lib/api';
-import type { Service } from '../types';
 
 /**
  * Busca cliente por telefone, detecta mensalista, auto-preenche nome e busca último agendamento.
@@ -73,11 +72,5 @@ export function useClientLookup(phone: string, onNameFound?: (name: string) => v
     };
   }, [phone, onNameFound]);
 
-  const resetMensalista = useCallback(() => {
-    setIsMensalista(false);
-    setMensalistaPlanId(null);
-    setLastBooking(null);
-  }, []);
-
-  return { isMensalista, mensalistaPlanId, clientLookupLoading, resetMensalista, lastBooking };
+  return { isMensalista, mensalistaPlanId, clientLookupLoading, lastBooking };
 }

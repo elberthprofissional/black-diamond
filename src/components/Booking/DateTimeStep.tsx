@@ -1,4 +1,4 @@
-import React from 'react';
+import { type RefObject, type MouseEvent, type FC } from 'react';
 import { isTimeOccupied } from '../../lib/utils';
 
 interface DayInfo {
@@ -18,14 +18,14 @@ interface DateTimeStepProps {
   availableSlots: string[];
   existingBookings: { booking_time: string; status: string }[];
   layout: 'desktop' | 'mobile';
-  dateContainerRef?: React.RefObject<HTMLDivElement | null>;
-  onMouseDown?: (e: React.MouseEvent) => void;
+  dateContainerRef?: RefObject<HTMLDivElement | null>;
+  onMouseDown?: (e: MouseEvent) => void;
   onMouseLeave?: () => void;
   onMouseUp?: () => void;
-  onMouseMove?: (e: React.MouseEvent) => void;
+  onMouseMove?: (e: MouseEvent) => void;
 }
 
-const DateTimeStep: React.FC<DateTimeStepProps> = ({
+const DateTimeStep: FC<DateTimeStepProps> = ({
   nextDays,
   selectedDate,
   selectedTime,
@@ -64,16 +64,26 @@ const DateTimeStep: React.FC<DateTimeStepProps> = ({
                         : 'bg-white/[0.02] text-zinc-400 hover:bg-white/[0.05] hover:text-zinc-200'
                 }`}
               >
-                <span className={`text-[8px] font-bold uppercase tracking-widest ${isSelected ? 'text-black/60' : 'opacity-50'}`}>{day.dayName}</span>
+                <span
+                  className={`text-[8px] font-bold uppercase tracking-widest ${isSelected ? 'text-black/60' : 'opacity-50'}`}
+                >
+                  {day.dayName}
+                </span>
                 <span className="text-lg font-black">{day.dayNumber}</span>
               </button>
             );
           })}
         </div>
 
-        <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.25em] mb-4">Horários</p>
+        <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.25em] mb-4">
+          Horários
+        </p>
         {selectedDate ? (
-          <div className="grid grid-cols-7 gap-2" role="radiogroup" aria-label="Horários disponíveis">
+          <div
+            className="grid grid-cols-7 gap-2"
+            role="radiogroup"
+            aria-label="Horários disponíveis"
+          >
             {availableSlots.map((time) => {
               const occupied = isTimeOccupied(time, existingBookings);
               const isSelected = selectedTime === time;
@@ -87,10 +97,10 @@ const DateTimeStep: React.FC<DateTimeStepProps> = ({
                   onClick={() => onSelectTime(time)}
                   aria-label={`${time}${occupied ? ' (indisponível)' : ''}${isSelected ? ' (selecionado)' : ''}`}
                   className={`py-3 rounded-lg text-[12px] font-medium transition-all duration-200 border border-white/[0.08] ${
-                    occupied 
-                      ? 'text-zinc-800 cursor-not-allowed line-through' 
-                      : isSelected 
-                        ? 'text-black bg-[#C5A059]' 
+                    occupied
+                      ? 'text-zinc-800 cursor-not-allowed line-through'
+                      : isSelected
+                        ? 'text-black bg-[#C5A059]'
                         : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
                   }`}
                 >
@@ -100,7 +110,9 @@ const DateTimeStep: React.FC<DateTimeStepProps> = ({
             })}
           </div>
         ) : (
-          <p className="text-zinc-500 text-xs py-4 text-center">Selecione um dia da semana acima para ver os horários disponíveis.</p>
+          <p className="text-zinc-500 text-xs py-4 text-center">
+            Selecione um dia da semana acima para ver os horários disponíveis.
+          </p>
         )}
       </>
     );
@@ -108,7 +120,7 @@ const DateTimeStep: React.FC<DateTimeStepProps> = ({
 
   return (
     <div className="space-y-6 w-full">
-      <div 
+      <div
         ref={dateContainerRef}
         onMouseDown={onMouseDown}
         onMouseLeave={onMouseLeave}
@@ -118,7 +130,7 @@ const DateTimeStep: React.FC<DateTimeStepProps> = ({
         aria-label="Selecione uma data"
         className="flex overflow-x-auto gap-2.5 pb-2 scrollbar-hide -mx-5 px-5 snap-x shrink-0 cursor-grab active:cursor-grabbing select-none"
       >
-        {nextDays.map(day => {
+        {nextDays.map((day) => {
           const isSelected = selectedDate === day.fullDate;
           return (
             <button
@@ -138,22 +150,36 @@ const DateTimeStep: React.FC<DateTimeStepProps> = ({
                       : 'bg-transparent border border-white/[0.04] text-zinc-400 hover:bg-white/[0.02]'
               }`}
             >
-              <span className={`text-[9px] font-bold uppercase tracking-widest ${
-                isSelected ? 'text-black/60' : day.isToday ? 'text-[#C5A059]' : 'text-zinc-500'
-              }`}>{day.dayName}</span>
-              <span className={`text-[19px] font-black leading-none ${
-                isSelected ? 'text-black' : day.isToday ? 'text-[#C5A059]' : 'text-white'
-              }`}>{day.dayNumber}</span>
+              <span
+                className={`text-[9px] font-bold uppercase tracking-widest ${
+                  isSelected ? 'text-black/60' : day.isToday ? 'text-[#C5A059]' : 'text-zinc-500'
+                }`}
+              >
+                {day.dayName}
+              </span>
+              <span
+                className={`text-[19px] font-black leading-none ${
+                  isSelected ? 'text-black' : day.isToday ? 'text-[#C5A059]' : 'text-white'
+                }`}
+              >
+                {day.dayNumber}
+              </span>
             </button>
           );
         })}
       </div>
 
       <div>
-        <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Horários</p>
+        <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-3">
+          Horários
+        </p>
         {selectedDate ? (
-          <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Horários disponíveis">
-            {availableSlots.map(time => {
+          <div
+            className="grid grid-cols-3 gap-2"
+            role="radiogroup"
+            aria-label="Horários disponíveis"
+          >
+            {availableSlots.map((time) => {
               const occupied = isTimeOccupied(time, existingBookings);
               const isSelected = selectedTime === time;
               return (

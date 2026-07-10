@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type FC } from 'react';
 import { useBarberSettings } from '../../../contexts/BarberSettingsContext';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
@@ -65,7 +65,7 @@ const inputClass =
 /** Input numérico controlado que só formata/valida no onBlur.
  *  Enquanto digita, deixa o usuário digitar livremente.
  *  No onBlur: clamp + padStart + dispara onChange. */
-const NumInput: React.FC<{ value: string; onChange: (v: string) => void; max: number }> = ({
+const NumInput: FC<{ value: string; onChange: (v: string) => void; max: number }> = ({
   value,
   onChange,
   max,
@@ -102,7 +102,7 @@ const NumInput: React.FC<{ value: string; onChange: (v: string) => void; max: nu
   );
 };
 
-const TimePickerSheet: React.FC<{
+const TimePickerSheet: FC<{
   value: string;
   onChange: (v: string) => void;
   label: string;
@@ -169,7 +169,7 @@ const TimePickerSheet: React.FC<{
   );
 };
 
-const ApplyAllSheet: React.FC<{
+const ApplyAllSheet: FC<{
   open: boolean;
   onClose: () => void;
   onApply: (open: string, close: string, days: string[]) => void;
@@ -365,7 +365,7 @@ const ApplyAllSheet: React.FC<{
   );
 };
 
-const SettingsHorarios: React.FC = () => {
+const SettingsHorarios: FC = () => {
   const { barberHours, updateBarberHours } = useBarberSettings();
   const { toast, showSuccess, showError } = useToast();
   const [hours, setHours] = useState<HoursData>(DEFAULT);
@@ -386,6 +386,17 @@ const SettingsHorarios: React.FC = () => {
       }
     }
   }, [barberHours]);
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [hasChanges]);
 
   const patch = (day: DayKey, data: Partial<DayHours>) => {
     setHours((prev) => ({ ...prev, [day]: { ...(prev[day] as DayHours), ...data } }));
@@ -421,6 +432,30 @@ const SettingsHorarios: React.FC = () => {
       if (h.enabled && h.open >= h.close) {
         showError(`${DAY_NAMES[day]}: horário de abertura deve ser anterior ao fechamento.`);
         return;
+      }
+    }
+    if (hours.lunch_break && hours.lunch_break.start >= hours.lunch_break.end) {
+      showError('Horário de início do almoço deve ser anterior ao fim.');
+      return;
+    }
+    if (hours.lunch_break?.enabled && hours.lunch_break.days.length > 0) {
+      for (const day of DAYS_ORDER) {
+        const dayNum = parseInt(day, 10);
+        const h = hours[day] as DayHours;
+        if (hours.lunch_break.days.includes(dayNum) && h.enabled) {
+          if (hours.lunch_break.start < h.open) {
+            showError(
+              `${DAY_NAMES[day]}: horário de almoço não pode começar antes da abertura (${h.open}).`
+            );
+            return;
+          }
+          if (hours.lunch_break.end > h.close) {
+            showError(
+              `${DAY_NAMES[day]}: horário de almoço não pode terminar depois do fechamento (${h.close}).`
+            );
+            return;
+          }
+        }
       }
     }
     setSaving(true);
@@ -712,7 +747,7 @@ const SettingsHorarios: React.FC = () => {
                     onClick={() => setLunchOpen(false)}
                     className="w-full py-3 rounded-xl bg-[#C5A059]/10 text-[#C5A059] font-semibold text-[12px] cursor-pointer hover:bg-[#C5A059]/20 transition-all"
                   >
-                    Salvar alterações
+                    Concluir
                   </button>
                 </div>
               </motion.div>
@@ -929,7 +964,7 @@ const SettingsHorarios: React.FC = () => {
                   onClick={() => setLunchOpen(false)}
                   className="w-full py-3.5 rounded-xl bg-[#C5A059] text-black font-bold text-[12px] uppercase tracking-wider cursor-pointer active:scale-[0.98] transition-all"
                 >
-                  Salvar alterações
+                  Concluir
                 </button>
               </div>
             </motion.div>

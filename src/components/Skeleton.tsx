@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FC, type CSSProperties } from 'react';
 
 interface SkeletonProps {
   className?: string;
@@ -7,7 +7,7 @@ interface SkeletonProps {
   height?: string | number;
 }
 
-const Skeleton: React.FC<SkeletonProps> = ({ className = '', variant = 'text', width, height }) => {
+const Skeleton: FC<SkeletonProps> = ({ className = '', variant = 'text', width, height }) => {
   const baseClass = 'animate-pulse bg-white/[0.04] rounded';
 
   const variantClass = {
@@ -16,24 +16,27 @@ const Skeleton: React.FC<SkeletonProps> = ({ className = '', variant = 'text', w
     rect: 'rounded-xl',
   }[variant];
 
-  const style: React.CSSProperties = {};
+  const style: CSSProperties = {};
   if (width) style.width = typeof width === 'number' ? `${width}px` : width;
   if (height) style.height = typeof height === 'number' ? `${height}px` : height;
 
-  return (
-    <div className={`${baseClass} ${variantClass} ${className}`} style={style} />
-  );
+  return <div className={`${baseClass} ${variantClass} ${className}`} style={style} />;
 };
 
-export const SkeletonCard: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <div className={`bg-white/[0.02] border border-white/[0.04] rounded-2xl p-5 space-y-4 ${className}`}>
+export const SkeletonCard: FC<{ className?: string }> = ({ className = '' }) => (
+  <div
+    className={`bg-white/[0.02] border border-white/[0.04] rounded-2xl p-5 space-y-4 ${className}`}
+  >
     <Skeleton variant="text" width="40%" height={20} />
     <Skeleton variant="text" width="100%" height={16} />
     <Skeleton variant="text" width="60%" height={16} />
   </div>
 );
 
-export const SkeletonList: React.FC<{ count?: number; className?: string }> = ({ count = 5, className = '' }) => (
+export const SkeletonList: FC<{ count?: number; className?: string }> = ({
+  count = 5,
+  className = '',
+}) => (
   <div className={`space-y-3 ${className}`}>
     {Array.from({ length: count }).map((_, i) => (
       <div key={i} className="flex items-center gap-4 py-3">
@@ -47,7 +50,7 @@ export const SkeletonList: React.FC<{ count?: number; className?: string }> = ({
   </div>
 );
 
-export const SkeletonDashboard: React.FC = () => (
+export const SkeletonDashboard: FC = () => (
   <div className="space-y-6">
     <div className="flex items-center justify-between">
       <Skeleton variant="text" width={200} height={28} />
@@ -62,7 +65,7 @@ export const SkeletonDashboard: React.FC = () => (
   </div>
 );
 
-export const SkeletonBooking: React.FC = () => (
+export const SkeletonBooking: FC = () => (
   <div className="space-y-6">
     <div className="flex items-center gap-4">
       <Skeleton variant="circle" width={44} height={44} />
@@ -80,7 +83,7 @@ export const SkeletonBooking: React.FC = () => (
   </div>
 );
 
-export const SkeletonClients: React.FC = () => (
+export const SkeletonClients: FC = () => (
   <div className="space-y-6">
     <div className="flex items-center justify-between">
       <Skeleton variant="text" width={160} height={28} />

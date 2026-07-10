@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import { NULL_UUID } from '../constants';
 import type { Booking } from '../../types';
 
 /** Cria um agendamento via RPC, criando o cliente automaticamente se necessário. */
@@ -15,7 +16,7 @@ export const createBooking = async (
   if (!bookingData.booking_time) throw new Error('Selecione um horário.');
   if (bookingData.total_price <= 0) throw new Error('O preço total deve ser maior que zero.');
 
-  const { data, error } = await supabase.rpc('criar_agendamento', {
+  const { data, error } = await supabase.rpc('criar_agendamento_rate_limited', {
     p_cliente_nome: clientData.name.trim(),
     p_cliente_telefone: clientData.phone.replace(/\D/g, ''),
     p_cliente_email: clientData.email || null,
@@ -51,8 +52,15 @@ export const getAvailableSlots = async (date: string) => {
     .filter(Boolean);
 };
 
-/** Busca agendamentos, opcionalmente filtrados por data. */
-export const getBookings = async (date?: string) => {
+/** Busca agendamentos, opcionalmente filtrados por data, com paginação. */
+export const getBookings = async (
+  date?: string,
+  options?: { page?: number; pageSize?: number }
+) => {
+  const { page = 1, pageSize = 200 } = options || {};
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
   let query = supabase
     .from('bookings')
     .select(
@@ -62,17 +70,19 @@ export const getBookings = async (date?: string) => {
         name,
         phone
       )
-    `
+    `,
+      { count: 'exact' }
     )
-    .order('booking_time', { ascending: true });
+    .order('booking_time', { ascending: true })
+    .range(from, to);
 
   if (date) {
     query = query.eq('booking_date', date);
   }
 
-  const { data, error } = await query;
+  const { data, error, count } = await query;
   if (error) throw error;
-  return data || [];
+  return { data: data || [], total: count || 0, page, pageSize };
 };
 
 /** Atualiza o status de um agendamento. */
@@ -92,22 +102,12 @@ export const deleteBooking = async (id: string) => {
   if (error) throw error;
 };
 
-/** Busca agendamentos futuros pelo telefone do cliente (para cancelamento público). */
+/** Busca agendamentos futuros pelo telefone do cliente (com rate limiting server-side). */
 export const getBookingsByPhone = async (phone: string) => {
   const cleanPhone = phone.replace(/\D/g, '');
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
-  const { data, error } = await supabase
-    .from('bookings')
-    .select(
-      'id, booking_date, booking_time, status, total_price, service_ids, total_duration, clients!inner(name, phone)'
-    )
-    .gte('booking_date', today)
-    .in('status', ['pending', 'confirmed'])
-    .eq('clients.phone', cleanPhone)
-    .order('booking_date', { ascending: true })
-    .order('booking_time', { ascending: true });
+  const { data, error } = await supabase.rpc('get_bookings_by_phone_rate_limited', {
+    p_phone: cleanPhone,
+  });
 
   if (error) throw error;
   return data || [];
@@ -116,24 +116,23 @@ export const getBookingsByPhone = async (phone: string) => {
 /** Busca o último agendamento do cliente (para sugestão de repetição). */
 export const getLastBookingByPhone = async (phone: string) => {
   const cleanPhone = phone.replace(/\D/g, '');
-
-  const { data, error } = await supabase
-    .from('bookings')
-    .select('service_ids, total_price')
-    .eq('clients.phone', cleanPhone)
-    .in('status', ['pending', 'confirmed', 'completed'])
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
+  const { data, error } = await supabase.rpc('get_last_booking_by_phone', {
+    p_phone: cleanPhone,
+  });
 
   if (error || !data) return null;
   return data;
 };
 
-/** Cancela um agendamento (status → cancelled). */
-export const cancelBooking = async (id: string) => {
-  const { error } = await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', id);
+/** Cancela um agendamento (status → cancelled) via RPC seguro.
+ *  Público: exige token de gerenciamento.
+ *  Admin: pode cancelar sem token (autenticado via RLS). */
+export const cancelBooking = async (id: string, token?: string) => {
+  const params: Record<string, string> = { p_booking_id: id };
+  if (token) params.p_token = token;
+  const { data, error } = await supabase.rpc('cancel_booking_public', params);
   if (error) throw error;
+  if (!data) throw new Error('Não foi possível cancelar o agendamento.');
 };
 
 /** Alterna o bloqueio de um horário específico via RPC. */
@@ -197,27 +196,20 @@ export const autoCompleteExpiredBookings = async (date: string): Promise<number>
   return expiredIds.length;
 };
 
-/** Busca todos os bookings para cálculo de estatísticas. */
-export const getBookingsForStats = async () => {
+/** Busca bookings para cálculo de estatísticas. Limita aos últimos 12 meses por padrão. */
+export const getBookingsForStats = async (monthsBack: number = 12) => {
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - monthsBack);
+  const cutoffStr = cutoff.toISOString().split('T')[0];
+
   const { data, error } = await supabase
     .from('bookings')
     .select('id, client_id, booking_date, booking_time, total_price, status')
+    .gte('booking_date', cutoffStr)
     .order('booking_date', { ascending: false });
 
   if (error) throw error;
   return data || [];
-};
-
-/** Marca todos os agendamentos ativos como concluídos (reset de dados). */
-export const completeAllActiveBookings = async (): Promise<number> => {
-  const { data, error } = await supabase
-    .from('bookings')
-    .update({ status: 'completed' })
-    .in('status', ['confirmed', 'pending'])
-    .eq('is_blocked', false)
-    .select('id');
-  if (error) throw error;
-  return data?.length || 0;
 };
 
 /** Exclui todos os agendamentos permanentemente. */
@@ -225,7 +217,7 @@ export const deleteAllBookings = async (): Promise<number> => {
   const { data, error } = await supabase
     .from('bookings')
     .delete()
-    .neq('id', '00000000-0000-0000-0000-000000000000')
+    .neq('id', NULL_UUID)
     .select('id');
   if (error) throw error;
   return data?.length || 0;

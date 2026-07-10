@@ -6,11 +6,14 @@ import { useClientLookup } from './useClientLookup';
 import { useBookingSlots } from './useBookingSlots';
 import { useBookingSubmit } from './useBookingSubmit';
 import type { Service, MensalistaPlan } from '../types';
-import { MENSALISTA_EXCLUDED_SERVICES } from '../lib/constants';
 import { useServices } from './useServices';
 import { getMensalistaPlans } from '../lib/api';
+import { useMensalistaFilter } from './useMensalistaFilter';
 
-export function useBookingWizard(showError: (msg: string) => void) {
+export function useBookingWizard(
+  showError: (msg: string) => void,
+  showSuccess?: (msg: string) => void
+) {
   const navigate = useNavigate();
 
   // Step control
@@ -34,9 +37,7 @@ export function useBookingWizard(showError: (msg: string) => void) {
   useEffect(() => {
     getMensalistaPlans(true)
       .then(setAllPlans)
-      .catch(() => {
-        // Plans failed to load — fallback to hardcoded excluded services
-      });
+      .catch(() => {});
   }, []);
 
   // Client lookup
@@ -66,44 +67,30 @@ export function useBookingWizard(showError: (msg: string) => void) {
   const slots = useBookingSlots(showError);
 
   // Submit
-  const { isSubmitting, handleConfirm: rawConfirm } = useBookingSubmit(showError, () => setStep(5));
+  const { isSubmitting, handleConfirm: rawConfirm } = useBookingSubmit(
+    showError,
+    () => setStep(5),
+    showSuccess
+  );
 
-  // Filter services for mensalista — use plan's included_service_ids if available
-  const filteredServices = useMemo(() => {
-    if (!isMensalista) return allServices;
+  // Mensalista filter (shared hook)
+  const handleServicesChange = useCallback((services: Service[]) => {
+    setSelectedServices(services);
+  }, []);
 
-    // If client has a specific plan, exclude services included in the plan
-    if (currentPlan && currentPlan.included_service_ids?.length > 0) {
-      return allServices.filter((s) => !currentPlan.included_service_ids.includes(s.id));
-    }
+  const { filteredServices, filterDaysForMensalista } = useMensalistaFilter({
+    isMensalista,
+    currentPlan,
+    allServices,
+    selectedServices,
+    onServicesChange: handleServicesChange,
+  });
 
-    // Fallback: use hardcoded excluded services
-    return allServices.filter((s) => !MENSALISTA_EXCLUDED_SERVICES.includes(s.name));
-  }, [allServices, isMensalista, currentPlan]);
-
-  // Filter days for mensalista (MON-THU only)
-  const filteredNextDays = useMemo(() => {
-    if (!isMensalista) return slots.nextDays;
-    return slots.nextDays.filter((d) => {
-      const dow = new Date(d.fullDate + 'T12:00:00').getDay();
-      return dow >= 1 && dow <= 4;
-    });
-  }, [slots.nextDays, isMensalista]);
-
-  // Reset selected services when mensalista status changes
-  useEffect(() => {
-    if (isMensalista && selectedServices.length > 0) {
-      let allowed: Service[];
-      if (currentPlan && currentPlan.included_service_ids?.length > 0) {
-        allowed = selectedServices.filter((s) => !currentPlan.included_service_ids.includes(s.id));
-      } else {
-        allowed = selectedServices.filter((s) => !MENSALISTA_EXCLUDED_SERVICES.includes(s.name));
-      }
-      if (allowed.length !== selectedServices.length) {
-        setSelectedServices(allowed);
-      }
-    }
-  }, [isMensalista, selectedServices, currentPlan]);
+  // Apply days filter
+  const filteredNextDays = useMemo(
+    () => filterDaysForMensalista(slots.nextDays),
+    [filterDaysForMensalista, slots.nextDays]
+  );
 
   // Toggle service
   const toggleService = useCallback((service: Service) => {
@@ -116,6 +103,7 @@ export function useBookingWizard(showError: (msg: string) => void) {
 
   const [manageUrl, setManageUrl] = useState('');
   const [token, setToken] = useState('');
+  const [isOfflineBooking, setIsOfflineBooking] = useState(false);
 
   // Calculate total price
   const calculatedTotalPrice = useMemo(
@@ -136,6 +124,9 @@ export function useBookingWizard(showError: (msg: string) => void) {
     if (result) {
       setToken(result.token);
       setManageUrl(result.manageUrl);
+      if (result.queued) {
+        setIsOfflineBooking(true);
+      }
     }
   }, [
     rawConfirm,
@@ -206,5 +197,6 @@ export function useBookingWizard(showError: (msg: string) => void) {
     totalPrice: calculatedTotalPrice,
     lastBooking,
     applyLastBooking,
+    isOfflineBooking,
   };
 }

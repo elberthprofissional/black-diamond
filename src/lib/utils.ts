@@ -147,15 +147,6 @@ export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> =>
   return generateHourlySlots(daySchedule.open, daySchedule.close);
 };
 
-/** Fetch slots directly from Supabase settings (for use when RPC fails) */
-/**
- * Fetch slots diretamente das configurações individuais do Supabase (fallback quando RPC falha).
- * Agora delega para getTimeSlotsForDate que tem fallback próprio.
- */
-export const fetchTimeSlotsForDate = async (dateStr: string): Promise<string[]> => {
-  return getTimeSlotsForDate(dateStr);
-};
-
 export const formatPhone = (value: string | undefined | null) => {
   if (!value) return '';
   const digits = value.replace(/\D/g, '');
@@ -175,44 +166,34 @@ export const getLocalDateString = (d: Date = new Date()) => {
   return `${year}-${month}-${day}`;
 };
 
-export const getNextDays = () => {
+export const getNextDays = (barberHoursJson?: string) => {
   const days = [];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const currentDay = today.getDay();
   const currentHour = new Date().getHours();
 
-  // Read closing hours from localStorage (set by admin panel)
+  // Read closing hours — try parameter first, then fallback to defaults
   let saturdayCloseHour = 18;
-  let sundayCloseHour = 14;
-  try {
-    const saved = localStorage.getItem('barber_hours');
-    if (saved) {
-      const parsed = JSON.parse(saved);
+  if (barberHoursJson) {
+    try {
+      const parsed = JSON.parse(barberHoursJson);
       if (parsed['6']?.close) {
         saturdayCloseHour = parseInt(parsed['6'].close.split(':')[0], 10);
       }
-      if (parsed['0']?.close) {
-        sundayCloseHour = parseInt(parsed['0'].close.split(':')[0], 10);
-      }
+    } catch {
+      /* use defaults */
     }
-  } catch {
-    /* use default */
   }
 
-  // If Saturday after closing or Sunday after closing, start from next week's Monday
-  if (
-    (currentDay === 6 && currentHour >= saturdayCloseHour) ||
-    (currentDay === 0 && currentHour >= sundayCloseHour)
-  ) {
+  // Sábado após fechar: mostra a próxima semana (segunda a sábado)
+  if (currentDay === 6 && currentHour >= saturdayCloseHour) {
     const nextMonday = new Date(today);
     nextMonday.setDate(today.getDate() + ((1 - currentDay + 7) % 7 || 7));
     for (let i = 0; i < 7; i++) {
       const date = new Date(nextMonday);
       date.setDate(nextMonday.getDate() + i);
       date.setHours(0, 0, 0, 0);
-      const isPast = date.getTime() < today.getTime();
-      if (isPast) continue;
       days.push({
         fullDate: getLocalDateString(date),
         dayName: date
@@ -227,19 +208,34 @@ export const getNextDays = () => {
     return days;
   }
 
-  // Otherwise start from today (or next valid day)
-  const startDate = new Date(today);
+  // Domingo: barbearia fechada, mostra direto a próxima semana
+  if (currentDay === 0) {
+    const nextMonday = new Date(today);
+    nextMonday.setDate(today.getDate() + ((1 - currentDay + 7) % 7));
+    for (let i = 0; i < 6; i++) {
+      const date = new Date(nextMonday);
+      date.setDate(nextMonday.getDate() + i);
+      date.setHours(0, 0, 0, 0);
+      days.push({
+        fullDate: getLocalDateString(date),
+        dayName: date
+          .toLocaleDateString('pt-BR', { weekday: 'short' })
+          .replace('.', '')
+          .toUpperCase(),
+        dayNumber: date.getDate(),
+        isToday: false,
+        isPast: false,
+      });
+    }
+    return days;
+  }
 
-  for (let i = 0; i < 14; i++) {
-    const date = new Date(startDate);
-    date.setDate(startDate.getDate() + i);
+  // De segunda a sábado: mostra de HOJE até SÁBADO (sem pular dias!)
+  const daysUntilSaturday = 6 - currentDay;
+  for (let i = 0; i <= daysUntilSaturday; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
     date.setHours(0, 0, 0, 0);
-
-    const isToday = date.getTime() === today.getTime();
-    const isPast = date.getTime() < today.getTime();
-
-    // Pula dias que ja passaram
-    if (isPast) continue;
 
     days.push({
       fullDate: getLocalDateString(date),
@@ -248,12 +244,9 @@ export const getNextDays = () => {
         .replace('.', '')
         .toUpperCase(),
       dayNumber: date.getDate(),
-      isToday,
+      isToday: i === 0,
       isPast: false,
     });
-
-    // Stop after 7 available days
-    if (days.length >= 7) break;
   }
   return days;
 };

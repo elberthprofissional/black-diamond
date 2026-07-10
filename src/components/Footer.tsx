@@ -1,4 +1,4 @@
-import React from 'react';
+import { useMemo, type FC } from 'react';
 import { Link } from 'react-router-dom';
 // Instagram icon replaced with inline SVG (lucide-react v1 removed brand icons)
 const InstagramIcon = () => (
@@ -33,10 +33,10 @@ interface HoursData {
   [key: string]: DaySchedule;
 }
 
-const Footer: React.FC = () => {
+const Footer: FC = () => {
   const { barberPhone, barberInstagram, barberHours } = useBarberSettings();
 
-  const hours: HoursData | null = React.useMemo(() => {
+  const hours: HoursData | null = useMemo(() => {
     if (!barberHours) return null;
     try {
       return JSON.parse(barberHours);
@@ -184,12 +184,13 @@ const Footer: React.FC = () => {
           </p>
 
           <a
-            href="https://wa.me/5531980159559"
+            href={`https://wa.me/${barberPhone}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-[8px] md:text-[9px] font-roboto font-light text-zinc-600 hover:text-zinc-400 uppercase tracking-[0.3em] transition-colors"
+            aria-label="Criado por Elberth Mayan"
           >
-            desenvolvimento
+            Criado por Elberth Mayan
           </a>
 
           <Link

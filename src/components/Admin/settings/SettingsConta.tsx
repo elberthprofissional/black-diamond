@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type FC, type ChangeEvent } from 'react';
 import { useBarberSettings } from '../../../contexts/BarberSettingsContext';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
@@ -12,7 +12,7 @@ interface SettingsContaProps {
   onBack?: () => void;
 }
 
-const SettingsConta: React.FC<SettingsContaProps> = ({ onBack: _onBack }) => {
+const SettingsConta: FC<SettingsContaProps> = ({ onBack: _onBack }) => {
   const {
     barberName,
     barberPhone,
@@ -88,7 +88,7 @@ const SettingsConta: React.FC<SettingsContaProps> = ({ onBack: _onBack }) => {
     else showError('Erro ao remover foto');
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -450,7 +450,9 @@ const SettingsConta: React.FC<SettingsContaProps> = ({ onBack: _onBack }) => {
               <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">
                 WhatsApp
               </span>
-              <span className="text-[13px] text-white">{barberPhone || 'Não configurado'}</span>
+              <span className="text-[13px] text-white">
+                {barberPhone ? formatPhone(barberPhone) : 'Não configurado'}
+              </span>
             </div>
             <ChevronRight size={16} className="text-zinc-600 shrink-0" />
           </button>

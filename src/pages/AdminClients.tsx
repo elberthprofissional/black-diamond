@@ -1,4 +1,4 @@
-import React, { useMemo, lazy, Suspense } from 'react';
+import { useState, useMemo, lazy, Suspense, useEffect, type FC } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatPhone } from '../lib/utils';
@@ -13,9 +13,106 @@ import EditClientModal from '../components/Admin/shared/EditClientModal';
 const NewClientModal = lazy(() => import('../components/Admin/shared/NewClientModal'));
 const ReminderModal = lazy(() => import('../components/Admin/shared/ReminderModal'));
 import { SkeletonClients } from '../components/Skeleton';
-import { ArrowLeft, Search, ChevronRight, Plus, Bell } from 'lucide-react';
+import { ArrowLeft, Search, ChevronRight, Plus, Bell, X } from 'lucide-react';
+import type { Client } from '../types';
 
-const AdminClients: React.FC = () => {
+// Cores por inicial (mesmo padrao dos cards de clientes)
+const avatarColors: Record<string, string> = {
+  A: 'bg-blue-500/20 text-blue-400',
+  B: 'bg-emerald-500/20 text-emerald-400',
+  C: 'bg-purple-500/20 text-purple-400',
+  D: 'bg-amber-500/20 text-amber-400',
+  E: 'bg-rose-500/20 text-rose-400',
+  F: 'bg-cyan-500/20 text-cyan-400',
+  G: 'bg-indigo-500/20 text-indigo-400',
+  H: 'bg-pink-500/20 text-pink-400',
+  I: 'bg-teal-500/20 text-teal-400',
+  J: 'bg-orange-500/20 text-orange-400',
+  K: 'bg-violet-500/20 text-violet-400',
+  L: 'bg-lime-500/20 text-lime-400',
+  M: 'bg-sky-500/20 text-sky-400',
+  N: 'bg-fuchsia-500/20 text-fuchsia-400',
+  O: 'bg-red-500/20 text-red-400',
+  P: 'bg-yellow-500/20 text-yellow-400',
+  Q: 'bg-emerald-500/20 text-emerald-400',
+  R: 'bg-blue-500/20 text-blue-400',
+  S: 'bg-purple-500/20 text-purple-400',
+  T: 'bg-amber-500/20 text-amber-400',
+  U: 'bg-rose-500/20 text-rose-400',
+  V: 'bg-cyan-500/20 text-cyan-400',
+  W: 'bg-indigo-500/20 text-indigo-400',
+  X: 'bg-pink-500/20 text-pink-400',
+  Y: 'bg-teal-500/20 text-teal-400',
+  Z: 'bg-orange-500/20 text-orange-400',
+};
+
+// Componente de lista de clientes com busca (usado no modal de lembretes)
+const ReminderClientList: FC<{ clients: Client[]; onSelect: (client: Client) => void }> = ({
+  clients,
+  onSelect,
+}) => {
+  const [search, setSearch] = useState('');
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return clients;
+    const term = search.toLowerCase();
+    return clients.filter(
+      (c) => c.name.toLowerCase().includes(term) || c.phone.includes(term.replace(/\D/g, ''))
+    );
+  }, [search, clients]);
+
+  return (
+    <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0 scrollbar-hide">
+      <div className="relative mb-4">
+        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+        <input
+          type="text"
+          placeholder="Buscar cliente..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3 pl-11 pr-4 text-[14px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#C5A059]/50 focus:bg-white/[0.05]"
+        />
+      </div>
+      {filtered.length > 0 ? (
+        <div className="space-y-2">
+          {filtered.map((client) => {
+            const initial = (client.name || '?').charAt(0).toUpperCase();
+            const color = avatarColors[initial] || 'bg-zinc-500/20 text-zinc-400';
+            return (
+              <button
+                key={client.id}
+                onClick={() => onSelect(client)}
+                className="w-full flex items-center gap-3 py-3 px-4 rounded-xl border border-white/[0.04] bg-white/[0.02] cursor-pointer group hover:bg-white/[0.04] hover:border-white/[0.08] transition-all text-left"
+              >
+                <div
+                  className={`w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0`}
+                >
+                  <span className="text-[13px] font-bold">{initial}</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13px] font-semibold text-white truncate">{client.name}</p>
+                  <p className="text-[11px] text-zinc-500">{formatPhone(client.phone)}</p>
+                </div>
+                <ChevronRight
+                  size={16}
+                  className="text-zinc-600 shrink-0 group-hover:text-zinc-400 transition-colors"
+                />
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="py-12 text-center">
+          <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">
+            Nenhum cliente encontrado
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const AdminClients: FC = () => {
   const c = useClients();
   const r = useReminders();
   const { toast } = useToast();
@@ -24,14 +121,14 @@ const AdminClients: React.FC = () => {
   const filterParam = searchParams.get('filter');
 
   type ClientFilter = 'all' | 'pending' | 'sent' | 'inactive';
-  const [reminderFilter, setReminderFilter] = React.useState<ClientFilter>(
+  const [reminderFilter, setReminderFilter] = useState<ClientFilter>(
     filterParam === 'pending' || filterParam === 'sent' || filterParam === 'inactive'
       ? filterParam
       : 'all'
   );
-  const [isReminderOpen, setIsReminderOpen] = React.useState(false);
+  const [isReminderOpen, setIsReminderOpen] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (filterParam === 'pending' || filterParam === 'sent' || filterParam === 'inactive') {
       setReminderFilter(filterParam);
     } else {
@@ -78,7 +175,7 @@ const AdminClients: React.FC = () => {
   };
 
   return (
-    <AdminLayout mainClassName="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 pt-28 lg:pt-6 pb-40 space-y-5">
+    <AdminLayout mainClassName="flex-1 w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-10 pt-28 lg:pt-6 pb-40 space-y-6 lg:space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-white/[0.04]">
         <div className="flex items-center gap-2">
@@ -163,15 +260,15 @@ const AdminClients: React.FC = () => {
             <button
               key={filter}
               onClick={() => handleFilterChange(filter)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[11px] font-semibold transition-all cursor-pointer shrink-0 border ${
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer shrink-0 border ${
                 active
-                  ? 'bg-[#C5A059]/10 border-[#C5A059]/30 text-[#C5A059]'
+                  ? 'bg-[#C5A059]/10 border-[#C5A059]/30 text-[#C5A059] shadow-[0_0_12px_rgba(197,160,89,0.1)]'
                   : 'bg-white/[0.02] border-white/[0.04] text-zinc-500'
               }`}
             >
               <span>{label}</span>
               <span
-                className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold ${
+                className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold transition-colors ${
                   active ? 'bg-[#C5A059]/20 text-[#C5A059]' : 'bg-white/5 text-zinc-600'
                 }`}
               >
@@ -183,7 +280,7 @@ const AdminClients: React.FC = () => {
       </div>
 
       {/* Filter tabs - Desktop */}
-      <div className="hidden lg:flex gap-5 border-b border-white/[0.04] w-full select-none pb-0 mt-2">
+      <div className="hidden lg:flex gap-2 mt-2">
         {(['all', 'pending', 'sent', 'inactive'] as const).map((filter) => {
           const active = reminderFilter === filter;
           const label =
@@ -206,27 +303,20 @@ const AdminClients: React.FC = () => {
             <button
               key={filter}
               onClick={() => handleFilterChange(filter)}
-              className="relative pb-3 text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5 outline-none focus:outline-none"
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer border ${
+                active
+                  ? 'bg-[#C5A059]/10 border-[#C5A059]/30 text-[#C5A059] shadow-[0_0_12px_rgba(197,160,89,0.1)]'
+                  : 'bg-white/[0.02] border-white/[0.04] text-zinc-500 hover:text-zinc-300 hover:border-white/[0.08]'
+              }`}
             >
+              <span>{label}</span>
               <span
-                className={
-                  active ? 'text-white' : 'text-zinc-500 hover:text-zinc-300 transition-colors'
-                }
-              >
-                {label}
-              </span>
-              <span
-                className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold transition-colors ${active ? 'bg-[#C5A059]/15 text-[#C5A059]' : 'bg-white/5 text-zinc-500'}`}
+                className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold transition-colors ${
+                  active ? 'bg-[#C5A059]/20 text-[#C5A059]' : 'bg-white/5 text-zinc-600'
+                }`}
               >
                 {count}
               </span>
-              {active && (
-                <motion.div
-                  layoutId="activeFilterTabClients"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#C5A059]"
-                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                />
-              )}
             </button>
           );
         })}
@@ -271,7 +361,7 @@ const AdminClients: React.FC = () => {
                         </span>
                       </div>
                       <div className="space-y-1">
-                        {clients.map((client) => {
+                        {clients.map((client, idx) => {
                           const needsReminder = !r.isReminderRecent(client.id);
                           return (
                             <div
@@ -283,47 +373,38 @@ const AdminClients: React.FC = () => {
                                 if (e.key === 'Enter' || e.key === ' ') handleOpenPanel(client);
                               }}
                               aria-label={`Cliente ${client.name}`}
-                              className={`w-full flex items-center gap-3 py-3.5 px-4 rounded-xl cursor-pointer border transition-all group text-left ${needsReminder ? 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05]' : 'bg-white/[0.01] border-white/[0.03] hover:bg-white/[0.03]'}`}
+                              className="w-full flex items-center gap-3 py-4 px-4 rounded-xl cursor-pointer border border-white/[0.04] bg-white/[0.02] transition-all duration-200 group text-left hover:bg-white/[0.04] active:scale-[0.98]"
+                              style={{ animationDelay: `${idx * 30}ms` }}
                             >
                               <div className="relative shrink-0">
                                 <div className="w-10 h-10 rounded-full bg-[#111111] border border-white/[0.08] flex items-center justify-center text-sm font-bold text-white uppercase">
                                   {client.name.charAt(0)}
                                 </div>
                                 {client.is_mensalista ? (
-                                  <div
-                                    className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-[#0A0A0A] flex items-center justify-center ${needsReminder ? 'bg-[#C5A059]' : 'bg-emerald-500'}`}
-                                  >
+                                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-[#0A0A0A] bg-[#C5A059] flex items-center justify-center">
                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
                                       <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14v2H5v-2z" />
                                     </svg>
                                   </div>
                                 ) : (
-                                  <div
-                                    className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0A0A0A] ${needsReminder ? 'bg-red-500' : 'bg-emerald-500'}`}
-                                  />
+                                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0A0A0A] bg-emerald-500" />
                                 )}
                               </div>
                               <div className="flex-1 min-w-0 text-left">
-                                <p className="text-sm font-semibold text-white truncate flex items-center gap-1.5">
+                                <p className="text-[14px] font-semibold text-[#FFFFFF] truncate flex items-center gap-1.5">
                                   {client.name}
                                   {client.isInactive && (
-                                    <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-400 font-bold uppercase tracking-wider shrink-0">
+                                    <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400 font-bold uppercase tracking-wider shrink-0">
                                       Inativo
                                     </span>
                                   )}
                                 </p>
-                                <p className="text-[10px] text-zinc-500 mt-0.5">
+                                <p className="text-[11px] text-[#8A8A8A] mt-0.5">
                                   {formatPhone(client.phone)}
                                 </p>
-                                <p className="text-[8px] text-zinc-600 uppercase tracking-wider mt-0.5">
+                                <p className="text-[9px] text-zinc-600 uppercase tracking-wider mt-1">
                                   Último corte:{' '}
-                                  <span
-                                    className={
-                                      client.isInactive ? 'text-amber-400/70' : 'text-zinc-400'
-                                    }
-                                  >
-                                    {client.lastVisit}
-                                  </span>
+                                  <span className="text-zinc-400">{client.lastVisit}</span>
                                 </p>
                               </div>
                               <div className="shrink-0 flex items-center gap-2">
@@ -351,20 +432,78 @@ const AdminClients: React.FC = () => {
             </div>
 
             {/* Desktop */}
-            <div className="hidden lg:grid lg:grid-cols-3 gap-4">
+            <div className="hidden lg:grid lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
               {filteredClients.map((client) => {
-                const needsReminder = !r.isReminderRecent(client.id);
                 const daysSinceVisit = client.lastVisitDate
                   ? Math.floor(
                       (Date.now() - client.lastVisitDate.getTime()) / (1000 * 60 * 60 * 24)
                     )
                   : 999;
-                const indicatorColor =
-                  daysSinceVisit <= 14
-                    ? 'bg-emerald-500'
-                    : daysSinceVisit <= 30
-                      ? 'bg-amber-500'
-                      : 'bg-red-500';
+
+                // Cor do avatar baseada na inicial
+                const avatarColors: Record<string, string> = {
+                  A: 'bg-blue-500/20 text-blue-400',
+                  B: 'bg-emerald-500/20 text-emerald-400',
+                  C: 'bg-purple-500/20 text-purple-400',
+                  D: 'bg-amber-500/20 text-amber-400',
+                  E: 'bg-rose-500/20 text-rose-400',
+                  F: 'bg-cyan-500/20 text-cyan-400',
+                  G: 'bg-indigo-500/20 text-indigo-400',
+                  H: 'bg-pink-500/20 text-pink-400',
+                  I: 'bg-teal-500/20 text-teal-400',
+                  J: 'bg-orange-500/20 text-orange-400',
+                  K: 'bg-violet-500/20 text-violet-400',
+                  L: 'bg-lime-500/20 text-lime-400',
+                  M: 'bg-sky-500/20 text-sky-400',
+                  N: 'bg-fuchsia-500/20 text-fuchsia-400',
+                  O: 'bg-red-500/20 text-red-400',
+                  P: 'bg-yellow-500/20 text-yellow-400',
+                  Q: 'bg-emerald-500/20 text-emerald-400',
+                  R: 'bg-blue-500/20 text-blue-400',
+                  S: 'bg-purple-500/20 text-purple-400',
+                  T: 'bg-amber-500/20 text-amber-400',
+                  U: 'bg-rose-500/20 text-rose-400',
+                  V: 'bg-cyan-500/20 text-cyan-400',
+                  W: 'bg-indigo-500/20 text-indigo-400',
+                  X: 'bg-pink-500/20 text-pink-400',
+                  Y: 'bg-teal-500/20 text-teal-400',
+                  Z: 'bg-orange-500/20 text-orange-400',
+                };
+                const initial = (client.name || '?').charAt(0).toUpperCase();
+                const avatarColor = avatarColors[initial] || 'bg-zinc-500/20 text-zinc-400';
+
+                // Badge de status
+                let statusBadge = null;
+                const hasTodayBooking =
+                  client.upcomingBooking?.date === new Date().toISOString().slice(0, 10);
+
+                if (hasTodayBooking) {
+                  statusBadge = (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#C5A059]/10 text-[#C5A059] text-[9px] font-bold uppercase tracking-wider">
+                      Hoje
+                    </span>
+                  );
+                } else if (client.isInactive) {
+                  statusBadge = (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-500/10 text-red-400 text-[9px] font-bold uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                      Inativo
+                    </span>
+                  );
+                } else if (daysSinceVisit <= 14) {
+                  statusBadge = (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      Ativo
+                    </span>
+                  );
+                } else if (daysSinceVisit <= 30) {
+                  statusBadge = (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 text-[9px] font-bold uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />A Lembrar
+                    </span>
+                  );
+                }
 
                 return (
                   <div
@@ -376,51 +515,54 @@ const AdminClients: React.FC = () => {
                       if (e.key === 'Enter' || e.key === ' ') handleOpenPanel(client);
                     }}
                     aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`}
-                    className={`p-5 rounded-2xl border transition-all duration-200 cursor-pointer group text-left ${needsReminder ? 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05] hover:border-[#C5A059]/20' : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.1]'}`}
+                    className="p-5 rounded-2xl border border-white/[0.04] bg-white/[0.02] transition-all duration-200 cursor-pointer group text-left hover:-translate-y-[3px] hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] hover:shadow-[#C5A059]/5 hover:border-[#C5A059]/35 hover:bg-white/[0.04]"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="relative shrink-0">
-                        <div className="w-12 h-12 rounded-xl bg-[#111111] border border-white/[0.08] group-hover:border-[#C5A059]/30 flex items-center justify-center text-base font-bold text-white uppercase transition-colors">
-                          {client.name.charAt(0)}
-                        </div>
-                        {client.is_mensalista ? (
-                          <div
-                            className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-[#0A0A0A] flex items-center justify-center ${needsReminder ? 'bg-[#C5A059]' : 'bg-emerald-500'}`}
-                          >
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
-                              <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14v2H5v-2z" />
-                            </svg>
-                          </div>
-                        ) : (
-                          <div
-                            className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0A0A0A] ${indicatorColor}`}
-                          />
-                        )}
+                    <div className="flex items-start gap-4">
+                      <div
+                        className={`w-12 h-12 rounded-xl ${avatarColor} flex items-center justify-center text-base font-bold shrink-0`}
+                      >
+                        {initial}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p
-                          className="text-[14px] font-semibold text-white truncate"
-                          title={client.name}
-                        >
-                          {client.name}
-                          {client.isInactive && (
-                            <span className="ml-2 text-[8px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-bold uppercase align-middle">
-                              Inativo
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <p
+                            className="text-[15px] font-bold text-[#FFFFFF] truncate"
+                            title={client.name}
+                            style={{ fontFamily: 'var(--font-montserrat)' }}
+                          >
+                            {client.name}
+                          </p>
+                          {client.is_mensalista && (
+                            <span className="text-[8px] px-1.5 py-0.5 rounded bg-[#C5A059]/10 text-[#C5A059] font-bold shrink-0">
+                              {c.plans.find((p) => p.id === client.mensalista_plan_id)?.name ||
+                                'Plano'}
                             </span>
                           )}
-                        </p>
-                        <p className="text-[12px] text-zinc-500 mt-0.5 truncate">
+                        </div>
+                        <p className="text-[12px] text-[#8A8A8A] truncate">
                           {formatPhone(client.phone)}
                         </p>
-                        <p className="text-[11px] text-zinc-600 mt-1">
-                          Último corte:{' '}
-                          <span
-                            className={client.isInactive ? 'text-amber-400/60' : 'text-zinc-500'}
-                          >
-                            {client.lastVisit}
-                          </span>
-                        </p>
                       </div>
+                      <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <svg
+                          className="w-4 h-4 text-zinc-600"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/[0.03]">
+                      <p className="text-[11px] text-zinc-600">
+                        Último corte:{' '}
+                        <span className={client.isInactive ? 'text-amber-400/60' : 'text-zinc-400'}>
+                          {client.lastVisit}
+                        </span>
+                      </p>
+                      {statusBadge}
                     </div>
                   </div>
                 );
@@ -509,78 +651,57 @@ const AdminClients: React.FC = () => {
 
       {/* Bulk Reminder Modal - Desktop */}
       <AnimatePresence>
-        {isReminderOpen && !c.selectedClient && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="hidden lg:flex fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm items-center justify-center p-4"
-            onClick={() => setIsReminderOpen(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-md bg-[#111111] border border-white/[0.06] rounded-2xl overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.04]">
-                <div className="flex items-center gap-2">
-                  <Bell size={16} className="text-[#C5A059]" />
-                  <span className="text-[14px] font-semibold text-white">Enviar Lembrete</span>
-                </div>
-                <button
-                  onClick={() => setIsReminderOpen(false)}
-                  className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/[0.1] transition-all cursor-pointer"
+        {isReminderOpen &&
+          !c.selectedClient &&
+          (() => {
+            const clientsNeedingReminder = c.clients.filter(
+              (client) => !r.isReminderRecent(client.id)
+            );
+            return (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="hidden lg:flex fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm items-center justify-center p-4"
+                onClick={() => setIsReminderOpen(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  className="w-full max-w-[400px] bg-[#0E0E0E] border border-white/[0.06] rounded-2xl overflow-hidden max-h-[80vh] flex flex-col"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  ✕
-                </button>
-              </div>
-              <div className="p-4 max-h-[400px] overflow-y-auto">
-                <p className="text-[12px] text-zinc-500 mb-3">
-                  Selecione o cliente para enviar lembrete:
-                </p>
-                <div className="space-y-2">
-                  {c.clients
-                    .filter((client) => !r.isReminderRecent(client.id))
-                    .map((client) => (
-                      <button
-                        key={client.id}
-                        onClick={() => {
-                          c.setSelectedClient(client);
-                        }}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] transition-all cursor-pointer text-left"
-                      >
-                        <div className="w-10 h-10 rounded-lg bg-[#C5A059]/10 flex items-center justify-center text-sm font-bold text-[#C5A059] shrink-0">
-                          {client.name.charAt(0)}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[13px] text-white font-medium truncate">
-                            {client.name}
-                          </p>
-                          <p className="text-[11px] text-zinc-500">{formatPhone(client.phone)}</p>
-                        </div>
-                        <svg
-                          className="w-4 h-4 text-zinc-600 shrink-0"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
-                    ))}
-                  {c.clients.filter((client) => !r.isReminderRecent(client.id)).length === 0 && (
-                    <p className="text-center text-[12px] text-zinc-600 py-8">
-                      Todos os clientes já foram lembrados recentemente.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
+                  <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.04]">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-[#C5A059]/10 flex items-center justify-center">
+                        <Bell size={14} className="text-[#C5A059]" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.25em] block">
+                          Enviar Lembrete
+                        </span>
+                        <p className="text-[12px] font-medium text-zinc-400 mt-0.5">
+                          Selecione o cliente
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setIsReminderOpen(false)}
+                      className="w-8 h-8 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-all flex items-center justify-center cursor-pointer"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  <ReminderClientList
+                    clients={clientsNeedingReminder}
+                    onSelect={(client) => c.setSelectedClient(client as any)}
+                  />
+                </motion.div>
+              </motion.div>
+            );
+          })()}
       </AnimatePresence>
 
       <Suspense fallback={null}>

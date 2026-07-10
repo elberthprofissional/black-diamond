@@ -47,6 +47,13 @@ vi.mock('../hooks/useIsDesktop', () => ({
   useIsDesktop: () => true,
 }));
 
+vi.mock('../hooks/useMensalistaFilter', () => ({
+  useMensalistaFilter: vi.fn(({ allServices }) => ({
+    filteredServices: allServices,
+    filterDaysForMensalista: (days: unknown[]) => days,
+  })),
+}));
+
 import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 import AdminBooking from './AdminBooking';
 

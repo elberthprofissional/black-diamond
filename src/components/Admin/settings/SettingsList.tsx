@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FC } from 'react';
 import {
   User,
   Bell,
@@ -43,7 +43,7 @@ const groups = [
   },
 ];
 
-const SettingsList: React.FC<SettingsListProps> = ({ onSelect, onLogoutClick }) => {
+const SettingsList: FC<SettingsListProps> = ({ onSelect, onLogoutClick }) => {
   return (
     <div className="max-w-lg mx-auto space-y-6 px-4 sm:px-0">
       {groups.map((group) => (

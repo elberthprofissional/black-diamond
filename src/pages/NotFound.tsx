@@ -1,7 +1,7 @@
-import React from 'react';
+import { type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const NotFound: React.FC = () => {
+const NotFound: FC = () => {
   const navigate = useNavigate();
 
   return (

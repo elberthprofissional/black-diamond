@@ -62,8 +62,6 @@ export function useWizardStep(totalSteps = 4) {
     if (step > 1) setStep((s) => s - 1);
   }, [step]);
 
-  const reset = useCallback(() => setStep(1), []);
-
   return {
     step,
     setStep,
@@ -71,6 +69,5 @@ export function useWizardStep(totalSteps = 4) {
     stepTitle,
     goNext,
     goBack,
-    reset,
   };
 }

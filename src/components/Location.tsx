@@ -1,4 +1,4 @@
-import React from 'react';
+import { useMemo, Fragment, type FC } from 'react';
 import { MapPin, Clock, Navigation } from 'lucide-react';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 import { formatPhone } from '../lib/utils';
@@ -14,10 +14,10 @@ interface HoursData {
   [key: string]: DaySchedule;
 }
 
-const Location: React.FC = () => {
+const Location: FC = () => {
   const { barberPhone, barberHours } = useBarberSettings();
 
-  const hours: HoursData | null = React.useMemo(() => {
+  const hours: HoursData | null = useMemo(() => {
     if (!barberHours) return null;
     try {
       return JSON.parse(barberHours);
@@ -31,21 +31,22 @@ const Location: React.FC = () => {
 
   const hoursLines: string[] = [];
   if (
+    hours &&
     weekEnabled &&
     satEnabled &&
-    hours!['1'].open === hours!['6'].open &&
-    hours!['1'].close === hours!['6'].close
+    hours['1'].open === hours['6'].open &&
+    hours['1'].close === hours['6'].close
   ) {
     hoursLines.push(`Segunda a Sábado`);
-    hoursLines.push(`${hours!['1'].open} às ${hours!['1'].close}`);
+    hoursLines.push(`${hours['1'].open} às ${hours['1'].close}`);
   } else {
-    if (weekEnabled) {
+    if (hours && weekEnabled) {
       hoursLines.push(`Segunda a Sexta`);
-      hoursLines.push(`${hours!['1'].open} às ${hours!['1'].close}`);
+      hoursLines.push(`${hours['1'].open} às ${hours['1'].close}`);
     }
-    if (satEnabled) {
+    if (hours && satEnabled) {
       hoursLines.push(`Sábado`);
-      hoursLines.push(`${hours!['6'].open} às ${hours!['6'].close}`);
+      hoursLines.push(`${hours['6'].open} às ${hours['6'].close}`);
     }
   }
 
@@ -107,10 +108,10 @@ const Location: React.FC = () => {
                   <p className="text-zinc-400 font-light text-sm md:text-base leading-relaxed">
                     {hoursLines.length > 0
                       ? hoursLines.map((l, i) => (
-                          <React.Fragment key={i}>
+                          <Fragment key={i}>
                             {i > 0 && <br />}
                             {l}
-                          </React.Fragment>
+                          </Fragment>
                         ))
                       : 'Consulte nossos horários'}
                   </p>

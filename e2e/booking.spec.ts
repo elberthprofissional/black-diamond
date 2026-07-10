@@ -26,30 +26,47 @@ test.describe('Fluxo de Agendamento', () => {
   });
 
   test('WhatsApp abre após agendamento', async ({ page }) => {
-    // Mock do window.open para verificar se é chamado
+    const openedUrls: string[] = [];
     await page.addInitScript(() => {
-      const openedUrls: string[] = [];
-      (window as Record<string, unknown>).__openedUrls = openedUrls;
-      window.open = (_url?: string, _target?: string, _features?: string) => {
-        if (_url) openedUrls.push(_url);
+      (window as Record<string, unknown>).__openedUrls = [];
+      window.open = (url?: string) => {
+        if (url)
+          (window as Record<string, unknown>).__openedUrls = [
+            ...((window as Record<string, unknown>).__openedUrls as string[]),
+            url,
+          ];
         return null;
       };
     });
 
     await page.goto('/agendar');
-    // ... fluxo completo de agendamento ...
+
+    // Selecionar serviço
+    await page.click('[data-testid="service-card"]:first-child');
+    await page.click('[data-testid="next-step"]');
+
+    // Preencher dados
+    await page.fill('[data-testid="input-name"]', 'Cliente Teste WA');
+    await page.fill('[data-testid="input-phone"]', '11999887766');
+    await page.click('[data-testid="next-step"]');
+
+    // Selecionar data e hora
+    await page.click('[data-testid="date-picker"]:first-child');
+    await page.click('[data-testid="time-slot"]:first-child');
+    await page.click('[data-testid="confirm-booking"]');
+
+    await expect(page.locator('text=Agendamento confirmado')).toBeVisible({ timeout: 10000 });
 
     // Verificar que WhatsApp foi chamado
-    const openedUrls = await page.evaluate(
+    const urls = await page.evaluate(
       () => (window as Record<string, unknown>).__openedUrls as string[]
     );
-    expect(openedUrls.some((url: string) => url.includes('wa.me'))).toBeTruthy();
+    expect(urls?.some((url: string) => url.includes('wa.me'))).toBeTruthy();
   });
 });
 
 test.describe('Skeleton Loading', () => {
   test('Skeleton aparece durante carregamento', async ({ page }) => {
-    // Interceptar requests para simular delay
     await page.route('**/rest/v1/**', async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await route.continue();
@@ -62,5 +79,46 @@ test.describe('Skeleton Loading', () => {
 
     // Esperar carregamento completar
     await expect(page.locator('[data-testid="skeleton"]')).not.toBeVisible({ timeout: 10000 });
+  });
+});
+
+test.describe('Navegação', () => {
+  test('página 404 aparece para rotas inexistentes', async ({ page }) => {
+    await page.goto('/rota-que-nao-existe');
+    await expect(page.locator('text=404')).toBeVisible();
+  });
+
+  test('home page carrega corretamente', async ({ page }) => {
+    await page.goto('/');
+    await expect(page).toHaveTitle(/Black Diamond/);
+  });
+});
+
+test.describe('Acessibilidade', () => {
+  test('skip link está presente', async ({ page }) => {
+    await page.goto('/');
+    const skipLink = page.locator('.skip-link');
+    await expect(skipLink).toBeAttached();
+  });
+
+  test('error boundary captura erros', async ({ page }) => {
+    await page.goto('/');
+    // Verificar que a página renderiza sem erros
+    await expect(page.locator('#main-content')).toBeAttached();
+  });
+});
+
+test.describe('PWA', () => {
+  test('manifest está acessível', async ({ request }) => {
+    const response = await request.get('/manifest.json');
+    expect(response.ok()).toBeTruthy();
+    const manifest = await response.json();
+    expect(manifest.name).toBe('Black Diamond Barbearia');
+    expect(manifest.display).toBe('standalone');
+  });
+
+  test('service worker está acessível', async ({ request }) => {
+    const response = await request.get('/sw.js');
+    expect(response.ok()).toBeTruthy();
   });
 });

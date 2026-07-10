@@ -1,18 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type FC } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Calendar,
-  Clock,
-  Scissors,
-  DollarSign,
-  ArrowLeft,
-  Loader2,
-} from 'lucide-react';
+import { Calendar, Clock, Scissors, DollarSign, ArrowLeft, Loader2 } from 'lucide-react';
 import { getBookingsByToken, cancelBooking, type ManagedBooking } from '../lib/api';
 import { formatDateBR } from '../lib/utils';
 
-const ManageBooking: React.FC = () => {
+const ManageBooking: FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get('token');
@@ -47,8 +40,10 @@ const ManageBooking: React.FC = () => {
   const handleCancel = async (bookingId: string) => {
     setCancellingId(bookingId);
     try {
-      await cancelBooking(bookingId);
+      await cancelBooking(bookingId, token || undefined);
       setCancelledIds((prev) => new Set(prev).add(bookingId));
+      // Notificação via trigger do banco (handle_booking_token_inserted)
+      // Não inserir diretamente — RLS bloqueia inserts anônimos
     } catch {
       setError('Erro ao cancelar. Tente novamente.');
     } finally {
@@ -56,10 +51,9 @@ const ManageBooking: React.FC = () => {
     }
   };
 
-  const handleReschedule = (booking: ManagedBooking) => {
+  const handleReschedule = () => {
     navigate('/cancelar', {
       state: {
-        phone: booking.client_phone,
         token: token,
       },
     });
@@ -174,7 +168,7 @@ const ManageBooking: React.FC = () => {
                 {/* Actions */}
                 <div className="flex items-center gap-2 pt-2">
                   <button
-                    onClick={() => handleReschedule(booking)}
+                    onClick={() => handleReschedule()}
                     className="flex-1 h-10 rounded-xl bg-[#C5A059] text-black font-black text-[10px] uppercase tracking-[0.15em] hover:bg-[#d4b06a] active:scale-[0.98] transition-all cursor-pointer"
                   >
                     Reagendar

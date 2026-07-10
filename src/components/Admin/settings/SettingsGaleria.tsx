@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FC, type TouchEvent } from 'react';
 import ToastNotification from '../shared/ToastNotification';
 import { ImageIcon, Trash2, MoveVertical } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,7 +7,7 @@ import GalleryPreview from './gallery/GalleryPreview';
 import GalleryDeleteModal from './gallery/GalleryDeleteModal';
 import GalleryMoveModal from './gallery/GalleryMoveModal';
 
-const SettingsGaleria: React.FC = () => {
+const SettingsGaleria: FC = () => {
   const g = useGallery();
   const isSelecting = g.selectionMode || g.selectedImages.length > 0;
 
@@ -229,8 +229,8 @@ const SettingsGaleria: React.FC = () => {
         onPrev={g.goToPrevPreview}
         onNext={g.goToNextPreview}
         touchStart={g.touchStart}
-        onTouchStart={(e: React.TouchEvent) => g.setTouchStart(e.touches[0].clientX)}
-        onTouchEnd={(e: React.TouchEvent) => {
+        onTouchStart={(e: TouchEvent) => g.setTouchStart(e.touches[0].clientX)}
+        onTouchEnd={(e: TouchEvent) => {
           if (g.touchStart === null) return;
           const diff = g.touchStart - e.changedTouches[0].clientX;
           if (Math.abs(diff) > 50) {

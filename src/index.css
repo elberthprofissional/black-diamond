@@ -23,6 +23,7 @@
 
   --font-sans: 'Plus Jakarta Sans', sans-serif;
   --font-bebas: 'Bebas Neue', sans-serif;
+  --font-montserrat: 'Montserrat', sans-serif;
   --font-roboto: 'Roboto', sans-serif;
 }
 
@@ -122,9 +123,6 @@
 
 .animate-marquee {
   animation: marquee 14s linear infinite;
-}
-.animate-marquee:hover {
-  animation-play-state: paused;
 }
 
 @media (min-width: 768px) {

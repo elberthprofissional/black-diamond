@@ -61,15 +61,6 @@ export const deleteMensalistaPlan = async (id: string): Promise<void> => {
   if (error) throw error;
 };
 
-/** Alterna o status ativo/inativo de um plano mensalista. */
-export const toggleMensalistaPlan = async (id: string, isActive: boolean): Promise<void> => {
-  const { error } = await supabase
-    .from('mensalista_plans')
-    .update({ is_active: isActive })
-    .eq('id', id);
-  if (error) throw error;
-};
-
 /** Busca a configuração de mensalista ativo/desativo. */
 export const getMensalistaEnabled = async (): Promise<boolean> => {
   const { data, error } = await supabase

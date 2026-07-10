@@ -82,14 +82,14 @@ export function useGalleryUpload(images: GalleryImage[], onUploadComplete: () =>
         const webpBlob = await convertToWebP(file);
         const filePath = `gallery/${Date.now()}.webp`;
         const { error: uploadError } = await supabase.storage
-          .from('avatars')
+          .from('gallery')
           .upload(filePath, webpBlob, { contentType: 'image/webp' });
         if (uploadError) {
           showError(`Erro: ${uploadError.message}`);
           return;
         }
 
-        const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+        const { data: urlData } = supabase.storage.from('gallery').getPublicUrl(filePath);
         if (urlData?.publicUrl) {
           const imageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
           const nextPosition =

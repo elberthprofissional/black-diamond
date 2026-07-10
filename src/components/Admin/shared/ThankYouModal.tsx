@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useModalA11y } from '../../../hooks/useModalA11y';
 import type { BookingWithClient, Service } from '../../../types';
@@ -10,12 +10,7 @@ interface ThankYouModalProps {
   onCancel: () => void;
 }
 
-const ThankYouModal: React.FC<ThankYouModalProps> = ({
-  booking,
-  services,
-  onConfirm,
-  onCancel,
-}) => {
+const ThankYouModal: FC<ThankYouModalProps> = ({ booking, services, onConfirm, onCancel }) => {
   const { dialogRef } = useModalA11y(!!booking, onCancel);
 
   const clientName = booking?.clients?.name || 'Cliente';
@@ -25,9 +20,6 @@ const ThankYouModal: React.FC<ThankYouModalProps> = ({
     .map((id) => services.find((s) => s.id === id)?.name)
     .filter(Boolean);
   const serviceText = serviceNames.length > 0 ? serviceNames.join(' + ') : 'servico';
-
-  const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
-  const reviewUrl = booking?.id ? `${siteUrl}/avaliar/${booking.id}` : '';
 
   return (
     <AnimatePresence>
@@ -70,8 +62,7 @@ const ThankYouModal: React.FC<ThankYouModalProps> = ({
                 <p className="text-sm font-bold text-white">Atendimento concluido!</p>
                 <p className="text-xs text-zinc-400 leading-relaxed">
                   Enviar agradecimento para{' '}
-                  <span className="text-[#C5A059] font-semibold">{firstName}</span> com link de
-                  avaliacao?
+                  <span className="text-[#C5A059] font-semibold">{firstName}</span>?
                 </p>
               </div>
 
@@ -81,12 +72,6 @@ const ThankYouModal: React.FC<ThankYouModalProps> = ({
                 </p>
                 <p className="text-[11px] text-zinc-300 leading-relaxed">
                   Oi {firstName}, obrigado por cortar com a gente! Servico: {serviceText}.
-                  {reviewUrl && (
-                    <>
-                      <br />
-                      <span className="text-[#C5A059] break-all">{reviewUrl}</span>
-                    </>
-                  )}
                 </p>
               </div>
             </div>

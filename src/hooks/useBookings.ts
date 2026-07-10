@@ -17,9 +17,9 @@ export function useBookings(date?: string) {
     setLoading(true);
     setError(null);
     try {
-      const data = await getBookings(date);
+      const result = await getBookings(date);
       if (controller.signal.aborted) return;
-      setBookings((data || []) as BookingWithClient[]);
+      setBookings((result.data || []) as BookingWithClient[]);
 
       if (date) {
         autoCompleteExpiredBookings(date)

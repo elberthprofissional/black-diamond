@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ReactNode, type FC } from 'react';
 import { X, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -8,10 +8,10 @@ interface MobileEditScreenProps {
   onSave: () => void;
   title: string;
   canSave: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-const MobileEditScreen: React.FC<MobileEditScreenProps> = ({
+const MobileEditScreen: FC<MobileEditScreenProps> = ({
   isOpen,
   onClose,
   onSave,

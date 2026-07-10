@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState } from 'react';
+import { useRef, useCallback, useState, type FC, type MouseEvent } from 'react';
 import { User, Star } from 'lucide-react';
 
 interface Review {
@@ -32,33 +32,21 @@ const REVIEWS: Review[] = [
   { name: 'MATHEUS', rating: 5, text: 'Tato é bom demais, cara sabe como cuidar de um cabelo.' },
 ];
 
-const Testimonials: React.FC = () => {
+const Testimonials: FC = () => {
   const sliderRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeftVal = useRef(0);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const reviews = REVIEWS;
 
   const handleScroll = useCallback(() => {
-    if (!sliderRef.current || reviews.length <= 1) return;
+    if (!sliderRef.current) return;
     const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
-    const cardWidth = (scrollWidth - clientWidth) / (reviews.length - 1);
-    const index = Math.round(scrollLeft / cardWidth);
-    setActiveIndex(Math.min(index, reviews.length - 1));
-  }, [reviews.length]);
+    const cardWidth = (scrollWidth - clientWidth) / Math.max(REVIEWS.length - 1, 1);
+    setActiveIndex(Math.min(Math.round(scrollLeft / cardWidth), REVIEWS.length - 1));
+  }, []);
 
-  const scrollToIndex = useCallback(
-    (index: number) => {
-      if (!sliderRef.current || reviews.length <= 1) return;
-      const { scrollWidth, clientWidth } = sliderRef.current;
-      const cardWidth = (scrollWidth - clientWidth) / (reviews.length - 1);
-      sliderRef.current.scrollTo({ left: cardWidth * index, behavior: 'smooth' });
-    },
-    [reviews.length]
-  );
-
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+  const handleMouseDown = useCallback((e: MouseEvent) => {
     if (!sliderRef.current) return;
     isDragging.current = true;
     startX.current = e.pageX - sliderRef.current.offsetLeft;
@@ -67,12 +55,11 @@ const Testimonials: React.FC = () => {
     sliderRef.current.style.userSelect = 'none';
   }, []);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging.current || !sliderRef.current) return;
     e.preventDefault();
     const x = e.pageX - sliderRef.current.offsetLeft;
-    const walk = (x - startX.current) * 1.5;
-    sliderRef.current.scrollLeft = scrollLeftVal.current - walk;
+    sliderRef.current.scrollLeft = scrollLeftVal.current - (x - startX.current);
   }, []);
 
   const handleMouseUp = useCallback(() => {
@@ -83,55 +70,15 @@ const Testimonials: React.FC = () => {
     }
   }, []);
 
-  const touchStartX = useRef(0);
-  const touchStartScrollLeft = useRef(0);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+  const scrollToIndex = useCallback((index: number) => {
     if (!sliderRef.current) return;
-    touchStartX.current = e.touches[0].clientX;
-    touchStartScrollLeft.current = sliderRef.current.scrollLeft;
+    const card = sliderRef.current.children[index] as HTMLElement | undefined;
+    card?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }, []);
-
-  const handleTouchEnd = useCallback(
-    (e: React.TouchEvent) => {
-      if (!sliderRef.current || reviews.length <= 1) return;
-      const touchEndX = e.changedTouches[0].clientX;
-      const diff = touchStartX.current - touchEndX;
-
-      if (Math.abs(diff) > 50) {
-        const { scrollWidth, clientWidth } = sliderRef.current;
-        const cardWidth = (scrollWidth - clientWidth) / (reviews.length - 1);
-        const currentCardIndex = Math.round(sliderRef.current.scrollLeft / cardWidth);
-
-        if (diff > 0) {
-          scrollToIndex(Math.min(currentCardIndex + 1, reviews.length - 1));
-        } else {
-          scrollToIndex(Math.max(currentCardIndex - 1, 0));
-        }
-      }
-    },
-    [reviews.length, scrollToIndex]
-  );
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        const next = Math.min(activeIndex + 1, reviews.length - 1);
-        scrollToIndex(next);
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        const prev = Math.max(activeIndex - 1, 0);
-        scrollToIndex(prev);
-      }
-    },
-    [activeIndex, reviews.length, scrollToIndex]
-  );
 
   return (
     <section id="depoimentos" className="py-20 md:py-40 bg-[#141414] text-white overflow-hidden">
       <div className="container mx-auto px-6">
-        {/* Header Section */}
         <div className="max-w-4xl mx-auto text-center mb-12 md:mb-20">
           <h3 className="text-2xl sm:text-3xl md:text-5xl font-serif text-white mb-6 uppercase tracking-tight">
             O QUE DIZEM NOSSOS <span className="text-[#D4AF37] italic font-light">CLIENTES.</span>
@@ -161,37 +108,27 @@ const Testimonials: React.FC = () => {
           </div>
         </div>
 
-        {/* Cards Slider */}
         <div
           ref={sliderRef}
           role="region"
           tabIndex={0}
           aria-roledescription="carousel"
-          aria-label="Depoimentos de clientes (use setas para navegar)"
+          aria-label="Depoimentos de clientes"
           className="flex gap-5 mb-8 items-stretch overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 scroll-smooth cursor-grab outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/50 rounded-lg"
+          onScroll={handleScroll}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          onScroll={handleScroll}
-          onKeyDown={handleKeyDown}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          onWheel={(e) => {
-            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-              e.currentTarget.scrollLeft += e.deltaY;
-            }
-          }}
         >
-          {reviews.map((review, index) => (
+          {REVIEWS.map((review, index) => (
             <div
               key={index}
               role="group"
               aria-roledescription="slide"
-              aria-label={`Depoimento ${index + 1} de ${reviews.length}`}
+              aria-label={`Depoimento ${index + 1} de ${REVIEWS.length}`}
               className="bg-[#1a1a1a] border border-white/[0.02] p-7 md:p-10 rounded-2xl flex flex-col gap-6 h-auto hover:border-[#D4AF37]/20 transition-all duration-500 w-[80vw] sm:w-[75vw] md:w-[340px] snap-center shrink-0"
             >
-              {/* Header: Avatar, Name and Stars */}
               <div className="flex items-center gap-4">
                 <div className="w-11 h-11 md:w-12 md:h-12 bg-[#222222] rounded-full shrink-0 flex items-center justify-center border border-white/5">
                   <User size={18} className="text-zinc-500" />
@@ -211,22 +148,19 @@ const Testimonials: React.FC = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Review Text */}
               <p className="text-zinc-400 font-roboto font-light text-[15px] md:text-base leading-relaxed">
-                "{review.text}"
+                &ldquo;{review.text}&rdquo;
               </p>
             </div>
           ))}
         </div>
 
-        {/* Navigation Dots */}
         <div
           className="flex justify-center gap-2 mb-6"
           role="tablist"
           aria-label="Navegação dos depoimentos"
         >
-          {reviews.map((_, index) => (
+          {REVIEWS.map((_, index) => (
             <button
               key={index}
               role="tab"
@@ -239,8 +173,6 @@ const Testimonials: React.FC = () => {
             />
           ))}
         </div>
-
-        {/* Google Reviews Link */}
       </div>
     </section>
   );

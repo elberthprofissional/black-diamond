@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FC } from 'react';
 import { Eye, EyeOff, TrendingUp, User, type LucideIcon } from 'lucide-react';
 
 interface QuickAction {
@@ -26,7 +26,7 @@ interface ProfileMobileProps {
   quickActions: QuickAction[];
 }
 
-const ProfileMobile: React.FC<ProfileMobileProps> = ({
+const ProfileMobile: FC<ProfileMobileProps> = ({
   greeting,
   barberName,
   barberPhoto,

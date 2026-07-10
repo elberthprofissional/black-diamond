@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, type RefObject, type FC } from 'react';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
 import {
@@ -38,11 +38,11 @@ interface PlanFormFieldsProps {
   allowedDays: number[];
   toggleDay: (day: number) => void;
   services: Service[];
-  nameInputRef: React.RefObject<HTMLInputElement | null>;
+  nameInputRef: RefObject<HTMLInputElement | null>;
   onSubmit: () => void;
 }
 
-const PlanFormFields: React.FC<PlanFormFieldsProps> = ({
+const PlanFormFields: FC<PlanFormFieldsProps> = ({
   nameInput,
   setNameInput,
   priceInput,
@@ -180,7 +180,7 @@ const PlanFormFields: React.FC<PlanFormFieldsProps> = ({
   </>
 );
 
-const SettingsMensalista: React.FC = () => {
+const SettingsMensalista: FC = () => {
   const { toast, showSuccess, showError } = useToast();
   const [plans, setPlans] = useState<MensalistaPlan[]>([]);
   const [services, setServices] = useState<Service[]>([]);

@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FC } from 'react';
 import { Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -11,8 +11,13 @@ interface GalleryDeleteModalProps {
   onCancel: () => void;
 }
 
-const GalleryDeleteModal: React.FC<GalleryDeleteModalProps> = ({
-  show, deleting, isBulk, bulkCount, onConfirm, onCancel,
+const GalleryDeleteModal: FC<GalleryDeleteModalProps> = ({
+  show,
+  deleting,
+  isBulk,
+  bulkCount,
+  onConfirm,
+  onCancel,
 }) => {
   return (
     <AnimatePresence>

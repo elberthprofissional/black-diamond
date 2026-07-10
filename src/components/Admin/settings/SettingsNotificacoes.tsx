@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FC } from 'react';
 import { usePushNotifications } from '../../../hooks/usePushNotifications';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
@@ -7,7 +7,7 @@ interface SettingsNotificacoesProps {
   onBack?: () => void;
 }
 
-const SettingsNotificacoes: React.FC<SettingsNotificacoesProps> = ({ onBack: _onBack }) => {
+const SettingsNotificacoes: FC<SettingsNotificacoesProps> = ({ onBack: _onBack }) => {
   const { isSubscribed, subscribe, unsubscribe, vapidMissing } = usePushNotifications();
   const { toast, showSuccess, showError } = useToast();
 

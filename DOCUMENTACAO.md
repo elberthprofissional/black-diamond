@@ -2,7 +2,7 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, notificacoes push e integracao com WhatsApp.
 
-**Versao:** 3.8.0 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.15.0 | **Ultima atualizacao:** Julho 2026
 
 ---
 
@@ -25,7 +25,7 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 15. [Troubleshooting](#15-troubleshooting)
 16. [Notas de Negocio](#16-notas-de-negocio)
 17. [Notificacoes Push (Web Push)](#17-notificacoes-push-web-push)
-18. [Sistema de Avaliacao](#18-sistema-de-avaliacao)
+18. [Instalação PWA (Smart Install)](#18-instalacao-pwa-smart-install)
 19. [Sistema de Mensalista](#19-sistema-de-mensalista)
 20. [Skeleton Loading](#20-skeleton-loading)
 21. [Sistema de Galeria](#21-sistema-de-galeria)
@@ -139,9 +139,16 @@ Erros → Sentry (error reporting automatico)
 - `LoginForm` — Formulario de login
 - `LoginToast` — Toast do login
 
-### Componentes de agendamento (Booking)
-- `ServiceStep` — Selecao de servicos (desktop + mobile)
-- `DateTimeStep` — Date picker + time grid (desktop + mobile)
+### Componentes de agendamento (Admin Booking - Responsivos)
+- `ResponsiveClientStep` — Busca de cliente por nome/telefone (desktop: inline, mobile: overlay tela cheia)
+- `ResponsiveServicesStep` — Seleção de serviços com detecção de mensalista
+- `ResponsiveDateTimeStep` — Date picker + grade de horários
+- `BookingStepIndicator` — Indicador de progresso do wizard
+- `RescheduleBanner` — Banner de reagendamento
+
+### Componentes de agendamento (Booking - Público)
+- `ServiceStep` — Selecao de servicos
+- `DateTimeStep` — Date picker + time grid
 - `DataStep` — Formulario nome + WhatsApp
 - `ReviewStep` — Card de resumo do agendamento
 - `SuccessStep` — Tela de confirmacao
@@ -187,7 +194,8 @@ No Settings > Conta, ao clicar na foto de perfil abre um popover com opcoes:
 - `useBarberSettings` — Hook standalone do context
 - `useClients` — Composicao de hooks para gestao de clientes
 - `useDashboardData` — Dados do dashboard (proximo booking, receita, slots)
-- `useNotifications` — Notificacoes in-app com realtime
+- `useNotifications` — Notificacoes in-app com realtime, som, badge, preview toast
+- `usePwaInstall` — Deteccao de plataforma e instalacao PWA
 
 ### Gerenciamento de Estado
 O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto via `AuthGuard`, e o estado compartilhado usa Context API + hooks customizados.
@@ -231,10 +239,16 @@ O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto v
 - Desktop: painel lateral que desliza da esquerda
 - Mobile: tela cheia com botao voltar
 - Realtime — novas notificacoes aparecem instantaneamente
-- **Acoes no detalhe:**
+- **Som:** Dois tons (800Hz → 1000Hz) via Web Audio API quando chega notificacao nova (sem arquivo externo)
+- **Badge:** Titulo da aba atualiza com contador de nao lidas — `(3) Black Diamond`
+- **Preview Toast:** Card dourado desliza do topo quando chega notificacao nova, com auto-dismiss em 5s
+- **Cancelamento:** Quando um agendamento e cancelado, a notificacao antiga de "Novo Agendamento" e automaticamente deletada e substituida por "Agendamento Cancelado ❌" com banner vermelho
+- **Acoes no detalhe (agendamento ativo):**
   - Enviar Lembrete (WhatsApp pro cliente com confirmacao)
   - Reagendar (abre pagina de cancelamento)
   - Cancelar (abre link de gerenciamento)
+- **Acoes no detalhe (cancelado):**
+  - Falar com Cliente (WhatsApp direto)
 - Cron de limpeza: notificacoes > 30 dias sao deletadas
 
 ### Area do Admin (`/admin`)
@@ -346,6 +360,21 @@ user_id UUID PK (FK para auth.users), created_at TIMESTAMPTZ
 id UUID PK, image_url TEXT, alt TEXT, position INTEGER, created_at TIMESTAMPTZ
 ```
 
+**booking_tokens** — Tokens de gerenciamento de agendamentos
+```sql
+id UUID PK, booking_id UUID FK, token TEXT UNIQUE, expires_at TIMESTAMPTZ, created_at TIMESTAMPTZ
+```
+
+**whatsapp_templates** — Templates de mensagens WhatsApp
+```sql
+id UUID PK, key TEXT, name TEXT, body TEXT, created_at TIMESTAMPTZ, updated_at TIMESTAMPTZ
+```
+
+**rate_limits** — Rate limiting server-side
+```sql
+id UUID PK, key TEXT, ip_address TEXT, attempts INTEGER, window_start TIMESTAMPTZ, created_at TIMESTAMPTZ
+```
+
 ### Indexes
 - `idx_no_double_booking` — Unique em (booking_date, booking_time) WHERE status != 'cancelled'
 - `idx_bookings_client_id` — Index em (client_id) para queries por cliente
@@ -355,6 +384,7 @@ id UUID PK, image_url TEXT, alt TEXT, position INTEGER, created_at TIMESTAMPTZ
 | Funcao | Descricao |
 |--------|-----------|
 | `criar_agendamento` | Cria booking de forma transacional com rate limit (max 3/dia por telefone) |
+| `criar_agendamento_rate_limited` | Wrapper com rate limit server-side (3 por minuto por IP) |
 | `get_occupied_slots` | Retorna horarios ocupados de uma data |
 | `get_available_slots` | Retorna slots livres (respeitando horarios de funcionamento e almoco) |
 | `get_business_hours` | Retorna configuracoes de horario como JSON |
@@ -362,15 +392,20 @@ id UUID PK, image_url TEXT, alt TEXT, position INTEGER, created_at TIMESTAMPTZ
 | `unblock_day` | Desbloqueia todos os horarios de um dia |
 | `save_push_subscription` | Salva inscricao push do admin |
 | `delete_push_subscription` | Remove inscricao push |
-| `get_average_rating` | Retorna media e total de avaliacoes |
-| `get_top_reviews` | Retorna melhores avaliacoes |
+| `cancel_booking_public` | Cancela booking com token (publico) ou auth (admin) |
+| `check_rate_limit` | Verifica e registra tentativa de rate limit server-side |
+| `lookup_client_by_phone` | Busca cliente por telefone (com rate limit) |
+| `get_bookings_by_phone` | Busca agendamentos futuros por telefone |
+| `get_bookings_by_token` | Busca agendamentos por token de gerenciamento |
+| `auto_block_lunch_break` | Bloqueia slots de almoco automaticamente |
+| `health_check` | Verifica status do banco e retorna metricas basicas |
 
 ### Views
 - `faturamento_diario` — Calcula faturamento por data (security_invoker)
 
 ### Triggers
-- `notificar_push_agendamento` — AFTER INSERT ON bookings, envia push notification
-- `limpar_subscriptions_antigas` — Cron diario que remove inscricoes antigas
+- `trg_booking_token_inserted` — AFTER INSERT ON booking_tokens: cria notificacao "Novo Agendamento! 💈"
+- `trg_booking_status_cancelled` — AFTER UPDATE OF status ON bookings WHEN status = 'cancelled': deleta notificacao antiga e insere "Agendamento Cancelado ❌"
 
 ---
 
@@ -398,7 +433,11 @@ DELETE FROM admin_users WHERE user_id = 'UUID_DO_ADMIN';
 ```
 
 ### Protecoes implementadas
-- **Rate limit:** Max 3 agendamentos por telefone por dia
+- **Rate limit agendamento:** Max 3 agendamentos por telefone por dia (server-side)
+- **Rate limit login:** Max 5 tentativas de login em 15 minutos via `check_rate_limit` RPC (server-side)
+- **Rate limit booking submit:** Max 3 tentativas por minuto client-side + server-side
+- **Confirmação de cancelamento:** Modal antes de executar cancelamento no perfil do cliente (evita acidentes)
+- **Senha no reset de dados:** Fluxo de 2 etapas: digitar ZERAR/DELETAR + senha do admin
 - **Double-booking:** Index unique impede dois agendamentos no mesmo horario
 - **SQL injection:** Todas as consultas usam PostgREST parametrizado
 - **XSS:** React escapa inputs automaticamente
@@ -637,17 +676,13 @@ Black Diamond/
 │   │   │   ├── LoginForm.tsx            # Formulario de login
 │   │   │   ├── LoginToast.tsx           # Toast do login
 │   │   │   ├── Navbar.tsx
-│   │   │   ├── booking/        # Componentes de agendamento admin
+│   │   │   ├── booking/        # Componentes de agendamento admin (responsivos)
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── BookingStepIndicator.tsx
-│   │   │   │   ├── CalendarModal.tsx
 │   │   │   │   ├── RescheduleBanner.tsx
-│   │   │   │   ├── DesktopClientStep.tsx
-│   │   │   │   ├── DesktopServicesStep.tsx
-│   │   │   │   ├── DesktopDateTimeStep.tsx
-│   │   │   │   ├── MobileClientStep.tsx
-│   │   │   │   ├── MobileServicesStep.tsx
-│   │   │   │   └── MobileDateTimeStep.tsx
+│   │   │   │   ├── ResponsiveClientStep.tsx    # Busca cliente (desktop + mobile)
+│   │   │   │   ├── ResponsiveServicesStep.tsx  # Seleção serviços (desktop + mobile)
+│   │   │   │   └── ResponsiveDateTimeStep.tsx   # Data/hora (desktop + mobile)
 │   │   │   └── shared/         # Componentes compartilhados
 │   │   │       ├── BlockedPanel.tsx
 │   │   │       ├── BookingDetailPanel.tsx
@@ -871,6 +906,18 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - O WhatsApp so abre em producao (HTTPS) ou localhost
 - Se o barbeiro nao configurou o telefone no painel, usa a env var como fallback
 
+### "WhatsApp do barbeiro mostra numero errado no site"
+- O `Services.tsx` agora usa `useBarberSettings()` (busca do banco de dados)
+- Se o barbeiro alterou o WhatsApp no painel (Settings > Conta), o site reflete automaticamente
+- O `.env` com `VITE_BARBER_WHATSAPP` funciona apenas como fallback quando o banco esta vazio
+- Para forçar a atualizacao, va em Settings > Conta, altere o WhatsApp e salve novamente
+
+### "Horario de almoco nao desliga"
+- O toggle de horario de almoco agora remove o objeto `lunch_break` do JSON ao desativar
+- Antes: o toggle so alternava `enabled` de true pra false, mas visualmente continuava ligado
+- Agora: ao desligar, o `lunch_break` e completamente removido, e o toggle mostra corretamente como desligado
+- Lembre-se de clicar em "Salvar alteracoes" apos desligar
+
 ### "Build falha"
 - Rode `npm run lint` para ver erros
 - Rode `npm run test:run` para verificar testes
@@ -962,6 +1009,27 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [x] Horarios do Footer e Location dinamicos (refletem configuracoes do admin)
 - [x] Admin booking filtra dias desativados (working_days) igual o cliente
 - [x] Login com inputs transparentes, borda dourada no focus e altura maior no desktop
+- [x] WhatsApp do barbeiro integrado ao contexto (useBarberSettings) — alteração no admin reflete em todo o site
+- [x] Toggle de horário de almoço funcional — desativar remove o objeto do JSON completamente
+- [x] WhatsApp dinâmico no Footer — 'Criado por Elberth Mayan' com número do banco
+- [x] WhatsApp na confirmação do booking — mensagem vai pro barbeiro com número configurado
+- [x] working_days não corrompe mais com 'lunch_break' — bug de iteração corrigido
+- [x] Desktop/Mobile Steps unificados — 6 componentes virarem 3 responsivos (menos código duplicado)
+- [x] Som de notificação — dois tons via Web Audio API quando chega agendamento novo
+- [x] Badge no título da aba — `(3) Black Diamond` mostra notificações não lidas
+- [x] Preview toast dourado — card desliza do topo com auto-dismiss de 5s
+- [x] Confirmação de cancelamento — modal antes de cancelar no ClientProfile.tsx
+- [x] Rate limit server-side no login — 5 tentativas em 15 minutos via `check_rate_limit` RPC
+- [x] Senha no reset de dados — SettingsDados.tsx exige senha do admin antes de zerar/deletar
+- [x] Trigger de cancelamento no banco — notificação antiga é deletada e substituída por "Agendamento Cancelado ❌"
+- [x] Fix auto_block_lunch_break — NOT NULL violation corrigida no INSERT
+- [x] DailyRevenue corrigido — só conta bookings 'completed' (não mais 'confirmed')
+- [x] Calendário sem dias pulados — getNextDays gera de hoje até sábado, sem pular domingo
+- [x] Realtime notifications com DELETE/UPDATE — notificação some em tempo real ao cancelar
+- [x] Auto-reconnect WebSocket — reconexão automática com backoff exponencial
+- [x] Settings desktop sem tremor — min-h-[600px] evita layout shift ao trocar de aba
+- [x] Realtime ativado no banco — ALTER PUBLICATION supabase_realtime ADD TABLE notifications e bookings
+- [x] Dashboard em tempo real — cancela/cria agendamento e os cards atualizam sozinhos
 
 ### Possiveis melhorias futuras
 - [ ] Multi-tenancy (varias barbearias no mesmo sistema)
@@ -1049,29 +1117,53 @@ supabase functions deploy send-push
 
 ---
 
-## 18. Sistema de Avaliacao
+## 18. Instalação PWA (Smart Install)
 
 ### Visao Geral
-Apos cada atendimento, o cliente recebe um email com link pra avaliar de 1 a 5 estrelas. Avaliacoes 4-5 redirecionam pro Google Maps.
+O sistema detecta automaticamente a plataforma do usuário e oferece a melhor experiência de instalação:
 
-### Como funciona
-1. Admin clica "Concluir Atendimento"
-2. Trigger `enviar_email_avaliacao` envia email automaticamente
-3. Cliente abre `/avaliar/:bookingId` e avalia
-4. Avaliacoes ficam salvas na tabela `reviews`
-5. Dashboard mostra media de avaliacao
-6. TestimonialsSlider usa avaliacoes reais
+- **iPhone (Safari):** Abre um modal com instruções passo-a-passo ilustradas (ícone Compartilhar → Adicionar à Tela de Início → Confirmar)
+- **Android (Chrome):** Dispara o prompt nativo do navegador (`beforeinstallprompt`) — o próprio Chrome gerencia a instalação
+- **Desktop:** Mostra o prompt de instalação do navegador
 
-### Configuracao
-O schema completo com reviews está em `supabase/universal.sql`.
+### Banner público
+Um banner fixo no rodapé das páginas públicas convida o visitante a instalar o app. O banner:
+- Não aparece em páginas admin (o admin tem botão próprio no perfil)
+- Não aparece se o app já estiver instalado (`display-mode: standalone`)
+- Pode ser dispensado pelo usuário (armazenado em `sessionStorage`)
 
-### URL do link de avaliacao
-Configure no Supabase:
-- Authentication > URL Configuration > Redirect URLs: adicione `https://seu-supabase-id.supabase.co/**`
+### Componentes
+
+| Arquivo | Função |
+|---------|--------|
+| `src/hooks/usePwaInstall.ts` | Hook reutilizável com detecção de plataforma, listeners `beforeinstallprompt`/`appinstalled`, e handlers de instalação |
+| `src/components/PwaInstallModal.tsx` | Modal de instruções para iOS + botão de confirmação para Android |
+| `src/components/PwaInstallBanner.tsx` | Banner flutuante no rodapé das páginas públicas |
+
+### Hook `usePwaInstall`
+
+```typescript
+const {
+  isIOS,          // boolean — Safari no iPhone/iPad/iPod
+  isStandalone,   // boolean — app já instalado
+  isIOSChrome,    // boolean — Chrome no iOS (não suporta instalação)
+  canInstall,     // boolean — pode instalar
+  showPrompt,     // boolean — controla visibilidade do modal
+  deferredPrompt, // BeforeInstallPromptEvent | null
+  setShowPrompt,  // (v: boolean) => void
+  handleInstall,  // () => Promise<void> — lógica principal
+  handleConfirmInstall, // () => Promise<void> — confirmar no modal
+} = usePwaInstall(onSuccess?, onError?);
+```
+
+### Detecção de plataforma
+A lógica decide automaticamente:
+1. Se já instalado → mostra mensagem "Já instalado"
+2. Se iOS Chrome → avisa para abrir no Safari
+3. Se Android com `deferredPrompt` → dispara prompt nativo
+4. Se iOS ou sem `deferredPrompt` → abre modal de instruções
 
 ---
-
-
 ## 19. Sistema de Mensalista
 
 ### Visao Geral
@@ -1286,4 +1378,4 @@ O sistema de galeria adapta automaticamente o layout baseado na quantidade de fo
 
 ---
 
-*Documento atualizado em Julho 2026. Versao do sistema: 3.7.0*
+*Documento atualizado em Julho 2026. Versao do sistema: 3.15.0*

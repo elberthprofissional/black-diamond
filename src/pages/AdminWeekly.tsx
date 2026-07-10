@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, type FC, type MouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getLocalDateString } from '../lib/utils';
 import { getAvailableSlots } from '../lib/api';
 import { useBookings } from '../hooks/useBookings';
 import { useSlotBlocking } from '../hooks/useSlotBlocking';
 import { useBookingManagement } from '../hooks/useBookingManagement';
-import { useBarberSettings } from '../contexts/BarberSettingsContext';
+import { useBarberSettings } from '../hooks/useBarberSettings';
 import AdminLayout from '../components/Admin/AdminLayout';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
 import UnblockModal from '../components/Admin/shared/UnblockModal';
@@ -18,7 +18,7 @@ import BookingDetailPanel from '../components/Admin/shared/BookingDetailPanel';
 import { SkeletonDashboard } from '../components/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const AdminWeekly: React.FC = () => {
+const AdminWeekly: FC = () => {
   const { bookings, loading, refetch: loadData } = useBookings();
   const mgmt = useBookingManagement(loadData);
   const navigate = useNavigate();
@@ -44,7 +44,7 @@ const AdminWeekly: React.FC = () => {
   });
 
   // Dias habilitados nas configurações
-  const enabledDays = React.useMemo(() => {
+  const enabledDays = useMemo(() => {
     if (!barberHours) return null;
     try {
       const parsed = JSON.parse(barberHours);
@@ -220,14 +220,24 @@ const AdminWeekly: React.FC = () => {
           {visibleWeekDays.map((day, idx) => {
             const isSelected = idx === selectedVisibleIndex;
             const isToday = day.toDateString() === today.toDateString();
+            const isPast = day < today && !isToday;
             return (
               <button
                 key={idx}
-                onClick={() => setSelectedVisibleIndex(idx)}
-                className={`flex-1 py-4 rounded-lg transition-all duration-200 flex flex-col items-center gap-0.5 relative ${isSelected ? 'bg-[#C5A059] text-black' : isToday ? 'bg-white/[0.04] text-[#C5A059]' : 'bg-white/[0.02] text-zinc-400 hover:bg-white/[0.05] hover:text-zinc-200'}`}
+                onClick={() => !isPast && setSelectedVisibleIndex(idx)}
+                disabled={isPast}
+                className={`flex-1 py-4 rounded-lg transition-all duration-200 flex flex-col items-center gap-0.5 relative ${
+                  isPast
+                    ? 'bg-white/[0.01] text-zinc-700 cursor-not-allowed opacity-40'
+                    : isSelected
+                      ? 'bg-[#C5A059] text-black'
+                      : isToday
+                        ? 'bg-white/[0.04] text-[#C5A059]'
+                        : 'bg-white/[0.02] text-zinc-400 hover:bg-white/[0.05] hover:text-zinc-200'
+                }`}
               >
                 <span
-                  className={`text-[8px] font-bold uppercase tracking-widest ${isSelected ? 'text-black/60' : 'opacity-50'}`}
+                  className={`text-[8px] font-bold uppercase tracking-widest ${isSelected ? 'text-black/60' : isPast ? 'text-zinc-700' : 'opacity-50'}`}
                 >
                   {day.toLocaleDateString('pt-BR', { weekday: 'short' }).replace(/\./g, '')}
                 </span>
@@ -260,7 +270,7 @@ const AdminWeekly: React.FC = () => {
                   </p>
                 ) : (
                   occupiedBookings.map((booking) => {
-                    const handleReminder = (e: React.MouseEvent) => {
+                    const handleReminder = (e: MouseEvent) => {
                       e.stopPropagation();
                       const phone = booking.clients?.phone?.replace(/\D/g, '') || '';
                       const name = booking.clients?.name || '';

@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Search, X } from 'lucide-react';
+import { useState, useMemo, type FC } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, X, ChevronRight } from 'lucide-react';
 import { useModalA11y } from '../../../hooks/useModalA11y';
+import { formatPhone } from '../../../lib/utils';
+import { BLOCKED_NAME, BLOCKED_PHONE } from '../../../lib/constants';
 import type { Client } from '../../../types';
 
 interface BookingSearchModalProps {
@@ -11,7 +13,36 @@ interface BookingSearchModalProps {
   clients: Client[];
 }
 
-const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
+const avatarColors: Record<string, string> = {
+  A: 'bg-blue-500/20 text-blue-400',
+  B: 'bg-emerald-500/20 text-emerald-400',
+  C: 'bg-purple-500/20 text-purple-400',
+  D: 'bg-amber-500/20 text-amber-400',
+  E: 'bg-rose-500/20 text-rose-400',
+  F: 'bg-cyan-500/20 text-cyan-400',
+  G: 'bg-indigo-500/20 text-indigo-400',
+  H: 'bg-pink-500/20 text-pink-400',
+  I: 'bg-teal-500/20 text-teal-400',
+  J: 'bg-orange-500/20 text-orange-400',
+  K: 'bg-violet-500/20 text-violet-400',
+  L: 'bg-lime-500/20 text-lime-400',
+  M: 'bg-sky-500/20 text-sky-400',
+  N: 'bg-fuchsia-500/20 text-fuchsia-400',
+  O: 'bg-red-500/20 text-red-400',
+  P: 'bg-yellow-500/20 text-yellow-400',
+  Q: 'bg-emerald-500/20 text-emerald-400',
+  R: 'bg-blue-500/20 text-blue-400',
+  S: 'bg-purple-500/20 text-purple-400',
+  T: 'bg-amber-500/20 text-amber-400',
+  U: 'bg-rose-500/20 text-rose-400',
+  V: 'bg-cyan-500/20 text-cyan-400',
+  W: 'bg-indigo-500/20 text-indigo-400',
+  X: 'bg-pink-500/20 text-pink-400',
+  Y: 'bg-teal-500/20 text-teal-400',
+  Z: 'bg-orange-500/20 text-orange-400',
+};
+
+const BookingSearchModal: FC<BookingSearchModalProps> = ({
   isOpen,
   onClose,
   onSelectClient,
@@ -21,12 +52,8 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
   const { dialogRef } = useModalA11y(isOpen, onClose);
 
   const filteredClients = useMemo(() => {
-    return clients.filter(c =>
-      c && c.name &&
-      c.name !== 'CLIENTE EXCLUIDO' &&
-      c.name !== 'BLOQUEADO' &&
-      !c.phone.startsWith('DELETED_') &&
-      c.phone !== '00000000000'
+    return clients.filter(
+      (c) => c && c.name && !c.deleted_at && c.name !== BLOCKED_NAME && c.phone !== BLOCKED_PHONE
     );
   }, [clients]);
 
@@ -36,93 +63,124 @@ const BookingSearchModal: React.FC<BookingSearchModalProps> = ({
     const isPhone = /^\d/.test(term);
     if (isPhone) {
       const digits = term.replace(/\D/g, '');
-      return filteredClients.filter(c => c.phone.replace(/\D/g, '').includes(digits));
+      return filteredClients.filter((c) => c.phone.replace(/\D/g, '').includes(digits));
     }
-    return filteredClients.filter(c => c.name.toLowerCase().includes(term));
+    return filteredClients.filter((c) => c.name.toLowerCase().includes(term));
   }, [query, filteredClients]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex flex-col lg:items-center lg:justify-center lg:p-4 bg-[#0A0A0A] lg:bg-black/60">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm hidden lg:block"
-      />
-      <motion.div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Buscar cliente"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="relative z-10 w-full h-full lg:h-auto lg:max-w-md lg:bg-[#0A0A0A] lg:border lg:border-white/[0.06] lg:rounded-2xl overflow-hidden max-h-full flex flex-col"
-      >
-        <div className="px-5 pt-14 pb-4 lg:pt-5 flex items-center justify-between shrink-0">
-          <div>
-            <h3 className="text-sm font-bold text-[#C5A059]/70 uppercase tracking-wider">Buscar Cliente</h3>
-            <p className="text-[10px] text-zinc-500 mt-1">Pesquise por nome ou whatsapp</p>
-          </div>
-          <button
-            onClick={onClose}
-            aria-label="Fechar busca"
-            className="w-8 h-8 rounded-lg hover:bg-white/5 text-zinc-500 hover:text-white transition-all flex items-center justify-center cursor-pointer"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        <div className="px-5 py-3 shrink-0">
-          <div className="relative">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-            <input
-              type="text"
-              id="booking-search"
-              placeholder="Digite o nome ou número..."
-              aria-label="Buscar cliente por nome ou WhatsApp"
-              autoFocus
-              className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[14px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#C5A059]/50 focus:bg-white/[0.05]"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-5 py-4 min-h-0 scrollbar-hide">
-          {results.length > 0 ? (
-            <div className="divide-y divide-white/5 border-t border-b border-white/5">
-              {results.map(c => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => {
-                    onSelectClient(c);
-                    setQuery('');
-                  }}
-                  aria-label={`Selecionar cliente ${c.name}`}
-                  className="w-full text-left py-3.5 flex items-center gap-3 cursor-pointer group"
-                >
-                  <div className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center shrink-0">
-                    <span className="text-[11px] font-bold text-zinc-400">{c.name.charAt(0)}</span>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-zinc-300 group-hover:text-white uppercase tracking-wider transition-colors truncate">{c.name}</p>
-                  </div>
-                </button>
-              ))}
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+        />
+        <motion.div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Buscar cliente"
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          className="relative z-10 w-full max-w-[400px] bg-[#0E0E0E] border border-white/[0.06] rounded-2xl overflow-hidden max-h-[80vh] flex flex-col shadow-2xl"
+        >
+          {/* Header — Igual ao ReminderModal */}
+          <div className="px-6 py-5 flex items-center justify-between border-b border-white/[0.04] shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-[#C5A059]/10 flex items-center justify-center">
+                <Search size={14} className="text-[#C5A059]" />
+              </div>
+              <div>
+                <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.25em] block">
+                  Buscar Cliente
+                </span>
+                <p className="text-[12px] font-medium text-zinc-400 mt-0.5">
+                  Pesquise por nome ou WhatsApp
+                </p>
+              </div>
             </div>
-          ) : (
-            <div className="py-12 text-center">
-              <p className="text-[9px] text-zinc-500 uppercase tracking-widest font-bold italic">Nenhum cliente encontrado</p>
+            <button
+              onClick={onClose}
+              aria-label="Fechar busca"
+              className="w-8 h-8 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-all flex items-center justify-center cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Search */}
+          <div className="px-6 py-4 shrink-0">
+            <div className="relative">
+              <Search
+                size={16}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"
+              />
+              <input
+                type="text"
+                id="booking-search"
+                placeholder="Digite o nome ou numero..."
+                aria-label="Buscar cliente por nome ou WhatsApp"
+                autoFocus
+                className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[14px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#C5A059]/50 focus:bg-white/[0.05]"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
             </div>
-          )}
-        </div>
-      </motion.div>
-    </div>
+          </div>
+
+          {/* Client List */}
+          <div className="flex-1 overflow-y-auto px-6 py-2 min-h-0 scrollbar-hide">
+            {results.length > 0 ? (
+              <div className="space-y-2">
+                {results.map((c) => {
+                  const initial = (c.name || '?').charAt(0).toUpperCase();
+                  const color = avatarColors[initial] || 'bg-zinc-500/20 text-zinc-400';
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        onSelectClient(c);
+                        setQuery('');
+                      }}
+                      aria-label={`Selecionar cliente ${c.name}`}
+                      className="w-full text-left py-3.5 px-4 flex items-center gap-3 rounded-xl border border-white/[0.04] bg-white/[0.02] cursor-pointer group hover:bg-white/[0.04] hover:border-white/[0.08] transition-all"
+                    >
+                      <div
+                        className={`w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0`}
+                      >
+                        <span className="text-[13px] font-bold">{initial}</span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[13px] font-semibold text-white truncate">{c.name}</p>
+                        <p className="text-[11px] text-zinc-500">{formatPhone(c.phone)}</p>
+                      </div>
+                      <ChevronRight
+                        size={16}
+                        className="text-zinc-600 shrink-0 group-hover:text-zinc-400 transition-colors"
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-12 text-center">
+                <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">
+                  Nenhum cliente encontrado
+                </p>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
   );
 };
 

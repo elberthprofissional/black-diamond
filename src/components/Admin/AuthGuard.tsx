@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 
 interface AuthGuardProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
+const AuthGuard: FC<AuthGuardProps> = ({ children }) => {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
   const hasRedirectedRef = useRef(false);
@@ -24,7 +24,9 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
 
     const checkAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (!active) return;
 
         if (!session) {
@@ -32,9 +34,18 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
           return;
         }
 
+        // Registrar Service Worker apenas para o Admin
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/sw.js').catch((err) => {
+            console.error('Erro ao registrar Service Worker do Admin:', err);
+          });
+        }
+
         setChecking(false);
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const {
+          data: { subscription },
+        } = supabase.auth.onAuthStateChange((_event, session) => {
           if (!active) return;
           if (!session) {
             redirect();

@@ -3,9 +3,7 @@ import { supabase } from '../lib/supabase';
 
 type ConnectionStatus = 'connected' | 'disconnected' | 'checking';
 
-const INITIAL_INTERVAL = 30000;
-const MAX_INTERVAL = 300000;
-const BACKOFF_MULTIPLIER = 2;
+const CHECK_INTERVAL = 60000;
 
 let globalStatus: ConnectionStatus = 'connected';
 const listeners: Set<(s: ConnectionStatus) => void> = new Set();
@@ -17,9 +15,9 @@ function notifyListeners(status: ConnectionStatus) {
 
 export function useConnectionStatus() {
   const [status, setStatus] = useState<ConnectionStatus>(globalStatus);
-  const intervalRef = useRef(INITIAL_INTERVAL);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const mountedRef = useRef(true);
+  const heartbeatRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     listeners.add(setStatus);
@@ -30,43 +28,76 @@ export function useConnectionStatus() {
 
   const checkConnection = useCallback(async () => {
     if (!mountedRef.current) return;
+
+    if (!navigator.onLine) {
+      notifyListeners('disconnected');
+      return;
+    }
+
     try {
       const { error } = await supabase.from('settings').select('key').limit(1);
       if (!mountedRef.current) return;
       if (error) {
         notifyListeners('disconnected');
-        intervalRef.current = Math.min(intervalRef.current * BACKOFF_MULTIPLIER, MAX_INTERVAL);
       } else {
         notifyListeners('connected');
-        intervalRef.current = INITIAL_INTERVAL;
       }
     } catch {
       if (!mountedRef.current) return;
       notifyListeners('disconnected');
-      intervalRef.current = Math.min(intervalRef.current * BACKOFF_MULTIPLIER, MAX_INTERVAL);
     }
   }, []);
 
   useEffect(() => {
     mountedRef.current = true;
 
-    const scheduleNext = () => {
-      if (!mountedRef.current) return;
-      timeoutRef.current = setTimeout(async () => {
+    const handleOnline = () => checkConnection();
+    const handleOffline = () => notifyListeners('disconnected');
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    const channel = supabase.channel('connection-heartbeat');
+    channel
+      .on('system', { event: 'connected' }, () => {
+        if (!mountedRef.current) return;
+        notifyListeners('connected');
+      })
+      .on('system', { event: 'disconnected' }, () => {
+        if (!mountedRef.current) return;
+        notifyListeners('disconnected');
+      })
+      .subscribe((s) => {
+        if (!mountedRef.current) return;
+        if (s === 'SUBSCRIBED') {
+          notifyListeners('connected');
+        } else if (s === 'CHANNEL_ERROR') {
+          notifyListeners('disconnected');
+        }
+      });
+
+    channelRef.current = channel;
+
+    const startHeartbeat = () => {
+      heartbeatRef.current = setTimeout(async () => {
         if (!mountedRef.current) return;
         await checkConnection();
-        scheduleNext();
-      }, intervalRef.current);
+        startHeartbeat();
+      }, CHECK_INTERVAL);
     };
-
-    checkConnection();
-    scheduleNext();
+    startHeartbeat();
 
     return () => {
       mountedRef.current = false;
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+      if (heartbeatRef.current) {
+        clearTimeout(heartbeatRef.current);
+        heartbeatRef.current = null;
       }
     };
   }, [checkConnection]);

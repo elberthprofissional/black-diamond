@@ -1,70 +1,44 @@
-import React from 'react';
-import { Check, ArrowLeft, Scissors } from 'lucide-react';
+import { type FC } from 'react';
+import { Check, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { formatDateBR } from '../../lib/utils';
-import type { Service } from '../../types';
 
 interface SuccessStepProps {
-  selectedDate: string;
-  selectedTime: string;
-  totalPrice: number;
-  selectedServices: Service[];
   clientName: string;
   layout: 'desktop' | 'mobile';
+  isOffline?: boolean;
 }
 
-const SuccessStep: React.FC<SuccessStepProps> = ({
-  selectedDate,
-  selectedTime,
-  totalPrice,
-  selectedServices,
-  layout,
-}) => {
+const SuccessStep: FC<SuccessStepProps> = ({ clientName, layout, isOffline = false }) => {
   const navigate = useNavigate();
-  const formattedDate = formatDateBR(selectedDate);
+
+  const title = isOffline
+    ? `${clientName ? `${clientName}, seu ` : 'Seu '}agendamento foi salvo!`
+    : `${clientName ? `${clientName}, seu ` : 'Seu '}horário foi agendado!`;
+
+  const subtitle = isOffline
+    ? 'Sem internet no momento. Seu agendamento será enviado automaticamente quando a conexão voltar. 📡'
+    : 'Você já garantiu seu horário! Aguardamos você. 💈';
+
+  const icon = isOffline ? '📡' : '💈';
 
   if (layout === 'desktop') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-center max-w-lg mx-auto">
-        <div className="w-20 h-20 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-8">
-          <Check size={36} className="text-[#C5A059]" />
+        <div
+          className={`w-20 h-20 rounded-full ${isOffline ? 'bg-amber-500/10' : 'bg-[#C5A059]/10'} flex items-center justify-center mx-auto mb-8`}
+        >
+          {isOffline ? (
+            <span className="text-3xl">{icon}</span>
+          ) : (
+            <Check size={36} className="text-[#C5A059]" />
+          )}
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2">Agendamento confirmado!</h2>
-        <p className="text-base text-zinc-500 mb-8">Seu horário foi reservado com sucesso.</p>
-
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 space-y-4 w-full max-w-sm mb-8 text-left">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Scissors size={12} className="text-zinc-600" />
-              <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Serviços</span>
-            </div>
-            <div className="space-y-1 pl-5">
-              {selectedServices.map((s) => (
-                <p key={s.id} className="text-[12px] text-zinc-400">
-                  {s.name}
-                </p>
-              ))}
-            </div>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Data</span>
-            <span className="text-sm font-bold text-white">{formattedDate}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Horário</span>
-            <span className="text-sm font-bold text-[#C5A059]">{selectedTime}</span>
-          </div>
-          <div className="flex justify-between border-t border-white/[0.06] pt-3">
-            <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Total</span>
-            <span className="text-sm font-bold text-white">
-              R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </span>
-          </div>
-        </div>
+        <h2 className="text-2xl font-bold text-white mb-2">{title}</h2>
+        <p className="text-base text-zinc-500 mb-8">{subtitle}</p>
 
         <button
           onClick={() => navigate('/')}
-          className="text-[11px] text-zinc-500 hover:text-white transition-colors cursor-pointer"
+          className="px-6 py-3 bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-white rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer"
         >
           Voltar ao início
         </button>
@@ -84,49 +58,25 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center w-full space-y-8">
-        <div className="w-20 h-20 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center mx-auto">
-          <Check size={32} className="text-[#C5A059]" />
+      <div className="flex-1 flex flex-col items-center justify-center w-full space-y-6">
+        <div
+          className={`w-20 h-20 rounded-full ${isOffline ? 'bg-amber-500/10 border-amber-500/20' : 'bg-[#C5A059]/10 border-[#C5A059]/20'} border flex items-center justify-center mx-auto`}
+        >
+          {isOffline ? (
+            <span className="text-3xl">{icon}</span>
+          ) : (
+            <Check size={32} className="text-[#C5A059]" />
+          )}
         </div>
 
         <div className="space-y-3">
-          <h2 className="text-2xl font-bold text-white">Corte confirmado!</h2>
-          <p className="text-sm text-zinc-500">Seu horário foi reservado com sucesso.</p>
-        </div>
-
-        <div className="bg-[#111111] border border-white/[0.04] rounded-2xl p-6 space-y-4 text-left w-full">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Scissors size={12} className="text-zinc-600" />
-              <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Serviços</span>
-            </div>
-            <div className="space-y-1 pl-5">
-              {selectedServices.map((s) => (
-                <p key={s.id} className="text-[12px] text-zinc-400">
-                  {s.name}
-                </p>
-              ))}
-            </div>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Data</span>
-            <span className="text-sm font-bold text-white">{formattedDate}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Horário</span>
-            <span className="text-sm font-bold text-[#C5A059]">{selectedTime}</span>
-          </div>
-          <div className="flex justify-between items-center border-t border-white/[0.04] pt-4">
-            <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Total</span>
-            <span className="text-base font-bold text-white">
-              R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </span>
-          </div>
+          <h2 className="text-2xl font-bold text-white">{title}</h2>
+          <p className="text-sm text-zinc-500">{subtitle}</p>
         </div>
 
         <button
           onClick={() => navigate('/')}
-          className="text-[11px] text-zinc-500 hover:text-white transition-colors cursor-pointer"
+          className="px-6 py-3 bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-white rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer mt-4"
         >
           Voltar ao início
         </button>

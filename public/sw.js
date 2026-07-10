@@ -1,18 +1,68 @@
-const CACHE_VERSION = 'v7';
-const API_CACHE = 'api-v2';
+const CACHE_VERSION = 'v10';
+const STATIC_CACHE = 'static-v10';
+const API_CACHE = 'api-v10';
+const NAV_CACHE = 'nav-v10';
+const QUEUE_CACHE = 'queue-v10';
+
+const PRECACHE_URLS = [
+  '/assets/logo.webp',
+  '/manifest.json',
+];
 
 self.addEventListener('install', (e) => {
-  self.skipWaiting();
+  e.waitUntil(
+    caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE_URLS)).then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => caches.delete(key))
-      );
-    }).then(() => self.clients.claim())
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => key !== STATIC_CACHE && key !== API_CACHE && key !== NAV_CACHE && key !== QUEUE_CACHE)
+          .map((key) => caches.delete(key))
+      )
+    ).then(() => {
+      // Notify all clients that a new version is available
+      self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'SW_UPDATED', version: CACHE_VERSION });
+        });
+      });
+      return self.clients.claim();
+    })
   );
+});
+
+// Handle messages from the main thread
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+
+  if (e.data && e.data.type === 'GET_VERSION') {
+    e.source.postMessage({ type: 'SW_VERSION', version: CACHE_VERSION });
+  }
+
+  // Background Sync: register a sync event for offline bookings
+  if (e.data && e.data.type === 'SYNC_BOOKING') {
+    e.waitUntil(
+      caches.open(QUEUE_CACHE).then((cache) => {
+        return cache.put(
+          new Request(`/sync-booking-${Date.now()}`),
+          new Response(JSON.stringify(e.data.payload), {
+            headers: { 'Content-Type': 'application/json' },
+          })
+        );
+      })
+    );
+
+    // Request a sync
+    if ('sync' in self.registration) {
+      e.waitUntil(self.registration.sync.register('sync-bookings'));
+    }
+  }
 });
 
 self.addEventListener('fetch', (e) => {
@@ -21,58 +71,122 @@ self.addEventListener('fetch', (e) => {
 
   const url = new URL(e.request.url);
 
+  // Navigations: network-first with offline fallback
   if (e.request.mode === 'navigate') {
-    e.respondWith(fetch(e.request));
-    return;
-  }
-
-  if (url.pathname.startsWith('/assets/') || url.pathname.endsWith('.webp') || url.pathname.endsWith('.woff2')) {
     e.respondWith(
-      caches.open(CACHE_VERSION).then((cache) => {
-        return cache.match(e.request).then((cached) => {
-          if (cached) return cached;
-          return fetch(e.request).then((response) => {
-            if (response.ok) {
-              cache.put(e.request, response.clone());
-            }
-            return response;
-          });
-        });
+      fetch(e.request).then((response) => {
+        const clone = response.clone();
+        caches.open(NAV_CACHE).then((cache) => cache.put(e.request, clone));
+        return response;
+      }).catch(async () => {
+        const cached = await caches.match(e.request);
+        if (cached) return cached;
+        return new Response(
+          '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline</title><style>body{background:#0A0A0A;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;text-align:center;padding:2rem}h1{color:#C5A059}</style></head><body><div><h1>Voc est offline</h1><p>Conecte-se  internet para acessar o painel.</p><p style="margin-top:1rem;font-size:0.8rem;color:#666">Black Diamond Admin</p></div></body></html>',
+          { status: 503, headers: { 'Content-Type': 'text/html;charset=UTF-8' } }
+        );
       })
     );
     return;
   }
 
-  if (url.hostname.endsWith('.supabase.co')) {
+  // Static assets: cache-first with background update
+  if (
+    url.pathname.startsWith('/assets/') ||
+    url.pathname.endsWith('.webp') ||
+    url.pathname.endsWith('.woff2') ||
+    url.pathname.endsWith('.css') ||
+    url.pathname.endsWith('.js')
+  ) {
     e.respondWith(
-      caches.open(API_CACHE).then((cache) => {
-        return cache.match(e.request).then((cached) => {
+      caches.open(STATIC_CACHE).then((cache) =>
+        cache.match(e.request).then((cached) => {
+          // Return cached version immediately, update in background
           const fetched = fetch(e.request).then((response) => {
             if (response.ok) {
               cache.put(e.request, response.clone());
             }
             return response;
+          }).catch(() => cached);
+
+          if (cached) {
+            // Return cached, but wait for background update
+            e.waitUntil(fetched.catch(() => {}));
+            return cached;
+          }
+
+          return fetched;
+        })
+      )
+    );
+    return;
+  }
+
+  // Supabase API: stale-while-revalidate
+  if (url.hostname.endsWith('.supabase.co')) {
+    e.respondWith(
+      caches.open(API_CACHE).then((cache) =>
+        cache.match(e.request).then((cached) => {
+          const fetched = fetch(e.request).then((response) => {
+            if (response.ok) cache.put(e.request, response.clone());
+            return response;
           }).catch(() => cached || new Response('{"error":"offline"}', { status: 503, headers: { 'Content-Type': 'application/json' } }));
 
           if (cached) {
             e.waitUntil(fetched.then((response) => {
-              if (response.ok) {
-                cache.put(e.request, response.clone());
-              }
+              if (response.ok) cache.put(e.request, response.clone());
             }).catch(() => {}));
             return cached;
           }
 
           return fetched;
-        });
-      })
+        })
+      )
     );
     return;
   }
 });
 
+// Background Sync: send offline bookings when connection is restored
+self.addEventListener('sync', (e) => {
+  if (e.tag === 'sync-bookings') {
+    e.waitUntil(syncOfflineBookings());
+  }
+});
+
+async function syncOfflineBookings() {
+  try {
+    const cache = await caches.open(QUEUE_CACHE);
+    const keys = await cache.keys();
+
+    for (const request of keys) {
+      if (request.url.includes('/sync-booking-')) {
+        const response = await cache.match(request);
+        if (response) {
+          const booking = await response.json();
+          // Attempt to send the booking
+          try {
+            await fetch('/api/sync-booking', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(booking),
+            });
+            // Remove from queue on success
+            await cache.delete(request);
+          } catch {
+            // Will retry on next sync
+          }
+        }
+      }
+    }
+  } catch {
+    // Sync failed, will retry later
+  }
+}
+
+// Push notifications
 self.addEventListener('push', async (e) => {
-  let data = { title: 'Black Diamond', body: 'Nova notificação', icon: '/assets/logo.webp' };
+  let data = { title: 'Black Diamond', body: 'Nova notificao', icon: '/assets/logo.webp' };
   if (e.data) {
     try {
       const text = await e.data.text();
@@ -89,7 +203,7 @@ self.addEventListener('push', async (e) => {
       vibrate: [200, 100, 200],
       tag: data.tag || 'black-diamond-notification',
       renotify: true,
-      data: data.url || '/admin',
+      data: { url: data.url || '/admin' },
       actions: [
         { action: 'open', title: 'Abrir Painel' },
         { action: 'dismiss', title: 'Dispensar' }
@@ -101,12 +215,14 @@ self.addEventListener('push', async (e) => {
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
   if (e.action === 'dismiss') return;
+  const targetUrl = e.notification.data?.url || '/admin';
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
       for (const client of windowClients) {
-        if (new URL(client.url).pathname.startsWith('/admin') && 'focus' in client) return client.focus();
+        const clientUrl = new URL(client.url);
+        if (clientUrl.pathname.startsWith('/admin') && 'focus' in client) return client.focus();
       }
-      if (clients.openWindow) return clients.openWindow(e.notification.data || '/admin');
+      if (clients.openWindow) return clients.openWindow(targetUrl);
     })
   );
 });

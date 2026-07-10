@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FC } from 'react';
 import { useBookingManagement } from '../hooks/useBookingManagement';
 import { useDashboardData } from '../hooks/useDashboardData';
 import AdminLayout from '../components/Admin/AdminLayout';
@@ -20,7 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const LAYOUT_CLASS =
   'flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-8 pb-40 transition-all duration-300 max-w-5xl';
 
-const AdminDashboard: React.FC = () => {
+const AdminDashboard: FC = () => {
   const data = useDashboardData();
   const mgmt = useBookingManagement(data.loadData);
 

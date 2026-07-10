@@ -46,13 +46,6 @@ CREATE TABLE IF NOT EXISTS mensalista_plans (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2b. Segredos (API keys) — sem RLS de leitura
-CREATE TABLE IF NOT EXISTS secrets (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
 -- 2c. Serviços
 CREATE TABLE IF NOT EXISTS services (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -79,6 +72,7 @@ CREATE TABLE IF NOT EXISTS clients (
     historical_visits INTEGER DEFAULT 0,
     historical_spent DECIMAL(10,2) DEFAULT 0,
     last_visit_date DATE,
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -95,6 +89,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     is_blocked BOOLEAN DEFAULT FALSE,
     reminder_sent BOOLEAN DEFAULT FALSE,
     notes TEXT,
+    stats_preserved BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -111,16 +106,6 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
     endpoint TEXT NOT NULL UNIQUE,
     p256dh TEXT NOT NULL,
     auth TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 2h. Avaliações
-CREATE TABLE IF NOT EXISTS reviews (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE,
-    client_id UUID REFERENCES clients(id) ON DELETE CASCADE,
-    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
-    comment TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -145,12 +130,22 @@ CREATE TABLE IF NOT EXISTS gallery_images (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 2j2. Templates de WhatsApp
+CREATE TABLE IF NOT EXISTS whatsapp_templates (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    key TEXT NOT NULL,
+    name TEXT NOT NULL,
+    body TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- 2k. Tokens de gerenciamento de agendamentos
 CREATE TABLE IF NOT EXISTS booking_tokens (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
     token TEXT NOT NULL UNIQUE,
-    expires_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '90 days'),
+    expires_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '30 days'),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -194,16 +189,15 @@ ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 DROP INDEX IF EXISTS idx_no_double_booking;
 CREATE UNIQUE INDEX idx_no_double_booking
 ON bookings (booking_date, booking_time)
-WHERE (status != 'cancelled');
+WHERE (status != 'cancelled' AND is_blocked = FALSE);
 
 -- Índices de performance
 CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(booking_date);
 CREATE INDEX IF NOT EXISTS idx_bookings_date_status ON bookings(booking_date, status);
 CREATE INDEX IF NOT EXISTS idx_bookings_client_id ON bookings(client_id);
-CREATE INDEX IF NOT EXISTS idx_reviews_booking_id ON reviews(booking_id);
-CREATE INDEX IF NOT EXISTS idx_reviews_client_id ON reviews(client_id);
 CREATE INDEX IF NOT EXISTS idx_clients_mensalista ON clients(id) WHERE is_mensalista;
 CREATE INDEX IF NOT EXISTS idx_clients_blocked ON clients(id) WHERE is_blocked;
+CREATE INDEX IF NOT EXISTS idx_clients_deleted_at ON clients(deleted_at);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
@@ -211,18 +205,6 @@ CREATE INDEX IF NOT EXISTS idx_mensalista_plans_active ON mensalista_plans(is_ac
 CREATE INDEX IF NOT EXISTS idx_booking_tokens_token ON booking_tokens(token);
 CREATE INDEX IF NOT EXISTS idx_booking_tokens_booking_id ON booking_tokens(booking_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON notifications (user_id, read, created_at DESC);
-
--- View de faturamento diário
-CREATE OR REPLACE VIEW faturamento_diario
-WITH (security_invoker = true) AS
-SELECT
-  booking_date,
-  SUM(total_price) as total_arrecadado,
-  COUNT(id) as total_cortes
-FROM bookings
-WHERE status = 'completed' OR status = 'confirmed'
-GROUP BY booking_date
-ORDER BY booking_date DESC;
 
 -- Constraint: regras de bloqueio vs agendamento real
 ALTER TABLE bookings DROP CONSTRAINT IF EXISTS chk_booking_block_rules;
@@ -278,26 +260,18 @@ ALTER TABLE services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE secrets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mensalista_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gallery_images ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE booking_tokens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE whatsapp_templates ENABLE ROW LEVEL SECURITY;
 
 -- =========================================================================
 -- 7. POLÍTICAS DE ACESSO
 -- =========================================================================
-
--- Secrets: NINGUÉM acessa via client (apenas edge functions com service_role)
-DROP POLICY IF EXISTS "Secrets no access" ON secrets;
-CREATE POLICY "Secrets no access" ON secrets
-    FOR ALL
-    USING (false)
-    WITH CHECK (false);
 
 -- Serviços: leitura pública, escrita admin
 DROP POLICY IF EXISTS "Serviços leitura pública" ON services;
@@ -321,8 +295,12 @@ USING (is_admin())
 WITH CHECK (is_admin());
 
 DROP POLICY IF EXISTS "Leitura publica agendamentos futuros" ON bookings;
-CREATE POLICY "Leitura publica agendamentos futuros" ON bookings FOR SELECT
-USING (status IN ('pending', 'confirmed') AND booking_date >= CURRENT_DATE);
+DROP POLICY IF EXISTS "Leitura pública de agendamentos" ON bookings;
+CREATE POLICY "Leitura pública de agendamentos" ON bookings FOR SELECT
+USING (
+    (status IN ('pending', 'confirmed') AND booking_date >= CURRENT_DATE)
+    OR status = 'completed'
+);
 
 -- Configurações: leitura pública, escrita admin
 DROP POLICY IF EXISTS "Configurações leitura pública" ON settings;
@@ -347,28 +325,6 @@ DROP POLICY IF EXISTS "Push subscriptions admin" ON push_subscriptions;
 CREATE POLICY "Push subscriptions admin" ON push_subscriptions FOR ALL TO authenticated
 USING (is_admin())
 WITH CHECK (is_admin());
-
--- Reviews: leitura pública, admin gerencia, inserção pública para bookings concluídos
-DROP POLICY IF EXISTS "Reviews leitura pública" ON reviews;
-CREATE POLICY "Reviews leitura pública" ON reviews FOR SELECT USING (true);
-
-DROP POLICY IF EXISTS "Reviews admin gerencia" ON reviews;
-CREATE POLICY "Reviews admin gerencia" ON reviews FOR ALL TO authenticated
-USING (is_admin())
-WITH CHECK (is_admin());
-
-DROP POLICY IF EXISTS "Reviews inserção pública" ON reviews;
-CREATE POLICY "Reviews inserção pública" ON reviews FOR INSERT
-WITH CHECK (
-    EXISTS (
-        SELECT 1 FROM bookings b
-        WHERE b.id = reviews.booking_id
-        AND b.status = 'completed'
-        AND NOT EXISTS (
-            SELECT 1 FROM reviews r WHERE r.booking_id = reviews.booking_id
-        )
-    )
-);
 
 -- Gallery: admin gerencia, público leitura
 DROP POLICY IF EXISTS "Admin can manage gallery" ON gallery_images;
@@ -411,9 +367,9 @@ CREATE POLICY "Users see own notifications"
     USING (auth.uid() = user_id);
 
 DROP POLICY IF EXISTS "Service role can insert notifications" ON notifications;
-CREATE POLICY "Service role can insert notifications"
-    ON notifications FOR INSERT
-    WITH CHECK (true);
+CREATE POLICY "Admins can insert own notifications"
+    ON notifications FOR INSERT TO authenticated
+    WITH CHECK (auth.uid() = user_id);
 
 DROP POLICY IF EXISTS "Users can mark own as read" ON notifications;
 CREATE POLICY "Users can mark own as read"
@@ -429,6 +385,12 @@ CREATE POLICY "Users can delete own notifications"
 -- Admin users: apenas admin gerencia
 DROP POLICY IF EXISTS "Admin users apenas admin" ON admin_users;
 CREATE POLICY "Admin users apenas admin" ON admin_users FOR ALL TO authenticated
+USING (is_admin())
+WITH CHECK (is_admin());
+
+-- WhatsApp Templates: apenas admin gerencia
+DROP POLICY IF EXISTS "Admin gerencia templates WhatsApp" ON whatsapp_templates;
+CREATE POLICY "Admin gerencia templates WhatsApp" ON whatsapp_templates FOR ALL TO authenticated
 USING (is_admin())
 WITH CHECK (is_admin());
 
@@ -483,6 +445,16 @@ DECLARE
     v_lunch_end time;
     v_lunch_enabled boolean := false;
     v_lunch_days int[];
+    v_service_ends_at time;
+    
+    -- Variáveis para correção de mensalistas
+    v_is_mensalista boolean := false;
+    v_plan_id uuid;
+    v_expires_at timestamptz;
+    v_plan_services uuid[];
+    v_service_id uuid;
+    v_service_price decimal;
+    v_total_calculated_price decimal := 0;
 BEGIN
     -- VALIDAÇÃO DE INPUT
     p_cliente_nome := TRIM(p_cliente_nome);
@@ -556,8 +528,22 @@ BEGIN
             v_lunch_start := (v_hours_json->'lunch_break'->>'start')::time;
             v_lunch_end := (v_hours_json->'lunch_break'->>'end')::time;
             v_lunch_days := ARRAY(SELECT jsonb_array_elements_text(v_hours_json->'lunch_break'->'days')::int);
+
+            -- Valida se o INÍCIO do serviço cai no horário de almoço
             IF v_day_of_week = ANY(v_lunch_days) AND p_hora >= v_lunch_start AND p_hora < v_lunch_end THEN
                 RAISE EXCEPTION 'Este horário está dentro do horário de almoço. Escolha outro horário.';
+            END IF;
+
+            -- Valida se o SERVIÇO CRUZA o horário de almoço (duração acumulada)
+            SELECT COALESCE(SUM(duration), 0) INTO v_server_duration
+            FROM services WHERE id = ANY(p_servicos);
+
+            v_service_ends_at := p_hora + (v_server_duration || ' minutes')::interval;
+
+            IF v_day_of_week = ANY(v_lunch_days)
+               AND p_hora < v_lunch_start
+               AND v_service_ends_at > v_lunch_start THEN
+                RAISE EXCEPTION 'Seu serviço terminaria durante o horário de almoço (%). Escolha um horário mais cedo ou um serviço mais curto.', v_lunch_start;
             END IF;
         END IF;
     END IF;
@@ -574,19 +560,7 @@ BEGIN
         RAISE EXCEPTION 'Limite de 3 agendamentos por dia atingido.';
     END IF;
 
-    -- CÁLCULO DO LADO DO SERVIDOR (impede manipulação pelo cliente)
-    SELECT COALESCE(SUM(price), 0), COALESCE(SUM(duration), 0)
-    INTO v_server_price, v_server_duration
-    FROM services WHERE id = ANY(p_servicos);
-
-    IF v_server_price = 0 AND array_length(p_servicos, 1) > 0 THEN
-        RAISE EXCEPTION 'Serviço(s) inválido(s).';
-    END IF;
-
-    p_preco_total := v_server_price;
-    p_duracao_total := v_server_duration;
-
-    -- BUSCA OU CRIA CLIENTE
+    -- BUSCA OU CRIA CLIENTE PRIMEIRO (para poder verificar se é mensalista)
     SELECT id INTO v_client_id FROM clients WHERE phone = p_cliente_telefone LIMIT 1;
 
     IF v_client_id IS NULL THEN
@@ -597,6 +571,45 @@ BEGIN
         UPDATE clients SET email = p_cliente_email WHERE id = v_client_id AND (email IS NULL OR email = '');
     END IF;
 
+    -- CONSULTA PLANO DE MENSALISTA ATIVO
+    SELECT is_mensalista, mensalista_plan_id, mensalista_expires_at
+    INTO v_is_mensalista, v_plan_id, v_expires_at
+    FROM clients
+    WHERE id = v_client_id;
+
+    IF v_is_mensalista = TRUE AND (v_expires_at IS NULL OR v_expires_at >= NOW()) AND v_plan_id IS NOT NULL THEN
+        SELECT included_service_ids INTO v_plan_services 
+        FROM mensalista_plans 
+        WHERE id = v_plan_id AND is_active = TRUE;
+    END IF;
+
+    -- CÁLCULO DE VALOR E DURAÇÃO NO SERVIDOR
+    v_total_calculated_price := 0;
+    
+    FOREACH v_service_id IN ARRAY p_servicos
+    LOOP
+        SELECT price INTO v_service_price
+        FROM services WHERE id = v_service_id;
+        
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'Serviço inválido.';
+        END IF;
+        
+        -- Se o cliente for mensalista e o serviço estiver incluso no seu plano, custa R$ 0,00
+        IF v_is_mensalista = TRUE AND v_plan_services IS NOT NULL AND (v_service_id = ANY(v_plan_services)) THEN
+            v_service_price := 0;
+        END IF;
+        
+        v_total_calculated_price := v_total_calculated_price + v_service_price;
+    END LOOP;
+
+    -- Duração total acumulada dos serviços
+    SELECT COALESCE(SUM(duration), 0) INTO v_server_duration
+    FROM services WHERE id = ANY(p_servicos);
+
+    p_preco_total := v_total_calculated_price;
+    p_duracao_total := v_server_duration;
+
     -- CRIA O AGENDAMENTO
     INSERT INTO bookings (client_id, service_ids, booking_date, booking_time, total_price, total_duration, status)
     VALUES (v_client_id, p_servicos, p_data, p_hora, p_preco_total, p_duracao_total, 'confirmed')
@@ -605,7 +618,7 @@ BEGIN
     -- GERA TOKEN ÚNICO PARA GERENCIAMENTO
     v_token := encode(gen_random_bytes(16), 'hex');
     INSERT INTO booking_tokens (booking_id, token, expires_at)
-    VALUES (v_booking_id, v_token, NOW() + INTERVAL '90 days');
+    VALUES (v_booking_id, v_token, NOW() + INTERVAL '30 days');
 
     SELECT jsonb_build_object(
         'id', b.id,
@@ -716,13 +729,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 9d. Bloquear/desbloquear horário
+-- 9d. Bloquear/desbloquear horário (apenas admin)
 CREATE OR REPLACE FUNCTION toggle_slot_block(p_date date, p_time time)
 RETURNS jsonb AS $$
 DECLARE
     v_existing_id uuid;
     v_result jsonb;
 BEGIN
+    IF NOT is_admin() THEN
+        RAISE EXCEPTION 'Acesso negado. Apenas administradores podem bloquear horários.';
+    END IF;
+
     SELECT b.id INTO v_existing_id
     FROM bookings b
     WHERE b.booking_date = p_date AND b.booking_time = p_time AND b.status != 'cancelled'
@@ -745,10 +762,14 @@ EXCEPTION
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 9e. Desbloquear dia inteiro
+-- 9e. Desbloquear dia inteiro (apenas admin)
 CREATE OR REPLACE FUNCTION unblock_day(p_date date)
 RETURNS void AS $$
 BEGIN
+    IF NOT is_admin() THEN
+        RAISE EXCEPTION 'Acesso negado. Apenas administradores podem desbloquear horários.';
+    END IF;
+
     UPDATE bookings
     SET is_blocked = FALSE, status = 'cancelled'
     WHERE booking_date = p_date AND is_blocked = TRUE AND status != 'cancelled';
@@ -767,41 +788,6 @@ BEGIN
     RETURN COALESCE(v_result, '{}'::jsonb);
 END;
 $$ LANGUAGE plpgsql SECURITY INVOKER;
-
--- 9g. Média de avaliações (SECURITY INVOKER)
-CREATE OR REPLACE FUNCTION get_average_rating()
-RETURNS jsonb AS $$
-DECLARE
-    v_result jsonb;
-BEGIN
-    SELECT jsonb_build_object(
-        'average', COALESCE(ROUND(AVG(rating), 1), 0),
-        'count', COUNT(id)
-    ) INTO v_result
-    FROM reviews;
-    RETURN v_result;
-END;
-$$ LANGUAGE plpgsql SECURITY INVOKER;
-
--- 9h. Top reviews (com máscara LGPD)
-CREATE OR REPLACE FUNCTION get_top_reviews(p_limit integer DEFAULT 10)
-RETURNS TABLE(
-    id UUID,
-    client_name TEXT,
-    rating INTEGER,
-    comment TEXT,
-    created_at TIMESTAMPTZ
-) AS $$
-BEGIN
-    RETURN QUERY
-    SELECT r.id, CONCAT(LEFT(c.name, 1), '****') as client_name, r.rating, r.comment, r.created_at
-    FROM reviews r
-    JOIN clients c ON c.id = r.client_id
-    WHERE r.rating >= 4
-    ORDER BY r.created_at DESC
-    LIMIT p_limit;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 9i. Salvar push subscription (com verificação admin)
 CREATE OR REPLACE FUNCTION save_push_subscription(
@@ -862,23 +848,6 @@ BEGIN
     UPDATE bookings
     SET is_blocked = FALSE, status = 'cancelled'
     WHERE booking_date < (NOW() AT TIME ZONE 'America/Sao_Paulo')::date
-    AND is_blocked = TRUE;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 9l. Limpar agendamentos da semana (legado, mantido para compatibilidade)
-CREATE OR REPLACE FUNCTION limpar_agendamentos_semana()
-RETURNS void AS $$
-BEGIN
-    UPDATE bookings
-    SET status = 'completed'
-    WHERE booking_date < CURRENT_DATE
-    AND status IN ('confirmed', 'pending')
-    AND is_blocked = FALSE;
-
-    UPDATE bookings
-    SET is_blocked = FALSE, status = 'cancelled'
-    WHERE booking_date < CURRENT_DATE
     AND is_blocked = TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -972,8 +941,8 @@ BEGIN
             WHERE s.id = ANY(b.service_ids)
             ORDER BY s.name
         ) AS service_names,
-        c.name AS client_name,
-        c.phone AS client_phone,
+        CONCAT(LEFT(c.name, 1), '****') AS client_name,
+        CONCAT(LEFT(c.phone, 3), '****', RIGHT(c.phone, 2)) AS client_phone,
         (bt.expires_at < NOW()) AS is_expired
     FROM booking_tokens bt
     JOIN bookings b ON b.id = bt.booking_id
@@ -983,7 +952,7 @@ BEGIN
     AND b.booking_date >= CURRENT_DATE
     ORDER BY b.booking_date ASC, b.booking_time ASC;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 9o. Auto-bloquear horário de almoço
 CREATE OR REPLACE FUNCTION auto_block_lunch_break()
@@ -1055,7 +1024,7 @@ BEGIN
                       AND is_blocked = TRUE
                 ) THEN
                     INSERT INTO bookings (client_id, service_ids, booking_date, booking_time, total_price, total_duration, status, is_blocked)
-                    VALUES (NULL, ARRAY[]::UUID[], v_target_date, v_slot, 0, 0, 'confirmed', TRUE);
+                    VALUES (NULL, '{}'::UUID[], v_target_date, v_slot, 0, 0, 'confirmed', TRUE);
                     v_blocked_count := v_blocked_count + 1;
                 END IF;
             END IF;
@@ -1086,7 +1055,19 @@ BEGIN
 END;
 $$;
 
--- 9q. Preservar estatísticas do cliente antes de deletar agendamentos antigos
+-- 9q. Limpar tokens de gerenciamento expirados
+CREATE OR REPLACE FUNCTION cleanup_expired_tokens()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    DELETE FROM booking_tokens
+    WHERE expires_at < NOW();
+END;
+$$;
+
+-- 9r. Preservar estatísticas do cliente antes de deletar agendamentos antigos
 CREATE OR REPLACE FUNCTION preserve_client_stats()
 RETURNS void
 LANGUAGE plpgsql
@@ -1105,6 +1086,7 @@ BEGIN
         WHERE booking_date < v_cutoff
           AND status = 'completed'
           AND is_blocked = FALSE
+          AND stats_preserved = FALSE
           AND client_id IS NOT NULL
     LOOP
         SELECT
@@ -1116,19 +1098,30 @@ BEGIN
         WHERE client_id = v_client.client_id
           AND booking_date < v_cutoff
           AND status = 'completed'
-          AND is_blocked = FALSE;
+          AND is_blocked = FALSE
+          AND stats_preserved = FALSE;
 
-        UPDATE clients
-        SET
-            historical_visits = COALESCE(historical_visits, 0) + v_old_stats.visit_count,
-            historical_spent = COALESCE(historical_spent, 0) + v_old_stats.total_spent,
-            last_visit_date = GREATEST(COALESCE(last_visit_date, '1900-01-01'::date), v_old_stats.last_date)
-        WHERE id = v_client.client_id;
+        IF v_old_stats.visit_count > 0 THEN
+            UPDATE clients
+            SET
+                historical_visits = COALESCE(historical_visits, 0) + v_old_stats.visit_count,
+                historical_spent = COALESCE(historical_spent, 0) + v_old_stats.total_spent,
+                last_visit_date = GREATEST(COALESCE(last_visit_date, '1900-01-01'::date), v_old_stats.last_date)
+            WHERE id = v_client.client_id;
+
+            UPDATE bookings
+            SET stats_preserved = TRUE
+            WHERE client_id = v_client.client_id
+              AND booking_date < v_cutoff
+              AND status = 'completed'
+              AND is_blocked = FALSE
+              AND stats_preserved = FALSE;
+        END IF;
     END LOOP;
 END;
 $$;
 
--- 9r. Limpeza mensal de dados antigos
+-- 9s. Limpeza mensal de dados antigos
 CREATE OR REPLACE FUNCTION cleanup_old_data()
 RETURNS void
 LANGUAGE plpgsql
@@ -1158,7 +1151,7 @@ BEGIN
 END;
 $$;
 
--- 9s. Relatório semanal por push notification
+-- 9t. Relatório semanal por push notification
 CREATE OR REPLACE FUNCTION send_weekly_report()
 RETURNS void
 LANGUAGE plpgsql
@@ -1253,6 +1246,215 @@ END;
 $$;
 
 -- =========================================================================
+-- 9u. RATE LIMITING SERVER-SIDE
+-- =========================================================================
+
+-- Tabela de rate limiting
+CREATE TABLE IF NOT EXISTS rate_limits (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    key TEXT NOT NULL,
+    ip_address TEXT NOT NULL,
+    attempts INTEGER DEFAULT 1,
+    window_start TIMESTAMPTZ DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_rate_limits_key_ip ON rate_limits(key, ip_address);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_window ON rate_limits(window_start);
+
+ALTER TABLE rate_limits ENABLE ROW LEVEL SECURITY;
+
+-- Função para verificar e registrar tentativa de rate limit
+CREATE OR REPLACE FUNCTION check_rate_limit(
+    p_key TEXT,
+    p_max_attempts INTEGER DEFAULT 5,
+    p_window_seconds INTEGER DEFAULT 900
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    v_ip TEXT;
+    v_current_attempts INTEGER;
+    v_window_start TIMESTAMPTZ;
+BEGIN
+    -- Obter IP do cliente (fallback para 'unknown')
+    v_ip := COALESCE(
+        current_setting('request.headers', true)::jsonb->>'x-forwarded-for',
+        current_setting('request.headers', true)::jsonb->>'x-real-ip',
+        'unknown'
+    );
+    -- Extrair primeiro IP se houver múltiplos
+    v_ip := split_part(v_ip, ',', 1);
+
+    -- Limpar registros antigos da janela
+    DELETE FROM rate_limits
+    WHERE key = p_key
+    AND ip_address = v_ip
+    AND created_at < NOW() - (p_window_seconds || ' seconds')::interval;
+
+    -- Contar tentativas na janela atual
+    SELECT COUNT(*), MIN(window_start)
+    INTO v_current_attempts, v_window_start
+    FROM rate_limits
+    WHERE key = p_key
+    AND ip_address = v_ip
+    AND window_start >= NOW() - (p_window_seconds || ' seconds')::interval;
+
+    -- Se excedeu limite, bloquear
+    IF v_current_attempts >= p_max_attempts THEN
+        RETURN FALSE;
+    END IF;
+
+    -- Registrar tentativa
+    INSERT INTO rate_limits (key, ip_address, attempts, window_start)
+    VALUES (p_key, v_ip, 1, COALESCE(v_window_start, NOW()));
+
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Rate limit para criar agendamento (3 por minuto por IP)
+CREATE OR REPLACE FUNCTION criar_agendamento_rate_limited(
+    p_cliente_nome text,
+    p_cliente_telefone text,
+    p_servicos uuid[],
+    p_data date,
+    p_hora time,
+    p_preco_total decimal,
+    p_duracao_total integer,
+    p_cliente_email text DEFAULT NULL
+)
+RETURNS jsonb AS $$
+BEGIN
+    IF NOT check_rate_limit('criar_agendamento', 3, 60) THEN
+        RAISE EXCEPTION 'Muitas tentativas. Aguarde 1 minuto e tente novamente.';
+    END IF;
+
+    RETURN criar_agendamento(
+        p_cliente_nome, p_cliente_telefone, p_servicos,
+        p_data, p_hora, p_preco_total, p_duracao_total, p_cliente_email
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Rate limit para lookup de cliente (10 por minuto por IP)
+CREATE OR REPLACE FUNCTION lookup_client_by_phone_rate_limited(p_phone text)
+RETURNS TABLE(
+    id UUID,
+    name TEXT,
+    phone TEXT,
+    is_mensalista BOOLEAN,
+    mensalista_plan_id UUID
+) AS $$
+BEGIN
+    IF NOT check_rate_limit('lookup_client', 10, 60) THEN
+        RAISE EXCEPTION 'Muitas tentativas. Aguarde e tente novamente.';
+    END IF;
+
+    RETURN QUERY SELECT * FROM lookup_client_by_phone(p_phone);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Rate limit para buscar agendamentos por telefone (5 por minuto por IP)
+CREATE OR REPLACE FUNCTION get_bookings_by_phone_rate_limited(p_phone text)
+RETURNS TABLE(
+    id UUID,
+    booking_date DATE,
+    booking_time TIME,
+    status TEXT,
+    total_price DECIMAL,
+    total_duration INTEGER,
+    service_ids UUID[],
+    clients JSONB,
+    has_token BOOLEAN
+) AS $$
+BEGIN
+    IF NOT check_rate_limit('get_bookings_by_phone', 5, 60) THEN
+        RAISE EXCEPTION 'Muitas tentativas. Aguarde e tente novamente.';
+    END IF;
+
+    RETURN QUERY SELECT * FROM get_bookings_by_phone(p_phone);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Função de limpeza automática de rate limits antigos
+CREATE OR REPLACE FUNCTION cleanup_rate_limits()
+RETURNS void AS $$
+BEGIN
+    DELETE FROM rate_limits WHERE window_start < NOW() - INTERVAL '1 hour';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =========================================================================
+-- 9v. HEALTH CHECK ENDPOINT
+-- =========================================================================
+
+CREATE OR REPLACE FUNCTION health_check()
+RETURNS jsonb AS $$
+DECLARE
+    v_db_status TEXT := 'ok';
+    v_services_count INTEGER;
+    v_bookings_count INTEGER;
+    v_clients_count INTEGER;
+BEGIN
+    -- Verificar conectividade do banco
+    BEGIN
+        SELECT COUNT(*) INTO v_services_count FROM services;
+        SELECT COUNT(*) INTO v_bookings_count FROM bookings;
+        SELECT COUNT(*) INTO v_clients_count FROM clients;
+    EXCEPTION WHEN OTHERS THEN
+        v_db_status := 'error';
+    END;
+
+    RETURN jsonb_build_object(
+        'status', v_db_status,
+        'timestamp', NOW(),
+        'version', '3.12.0',
+        'database', jsonb_build_object(
+            'services', v_services_count,
+            'bookings', v_bookings_count,
+            'clients', v_clients_count
+        ),
+        'uptime', EXTRACT(EPOCH FROM (NOW() - pg_postmaster_start_time()))::integer
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY INVOKER;
+
+-- =========================================================================
+-- 9w. STRUCTURED AUDIT LOGGING
+-- =========================================================================
+
+-- Função para logging estruturado de operações
+CREATE OR REPLACE FUNCTION log_structured_operation(
+    p_action TEXT,
+    p_entity TEXT,
+    p_entity_id UUID DEFAULT NULL,
+    p_details JSONB DEFAULT NULL,
+    p_old_values JSONB DEFAULT NULL,
+    p_new_values JSONB DEFAULT NULL
+)
+RETURNS void AS $$
+DECLARE
+    v_user_id UUID;
+BEGIN
+    v_user_id := auth.uid();
+
+    INSERT INTO audit_logs (user_id, action, target_id, details, user_agent)
+    VALUES (
+        v_user_id,
+        p_action,
+        p_entity_id,
+        jsonb_build_object(
+            'entity', p_entity,
+            'details', p_details,
+            'old_values', p_old_values,
+            'new_values', p_new_values
+        ),
+        current_setting('request.headers', true)::jsonb->>'user-agent'
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =========================================================================
 -- 10. CRON JOBS
 -- =========================================================================
 
@@ -1283,6 +1485,12 @@ BEGIN
     IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'weekly-report') THEN
         PERFORM cron.unschedule('weekly-report');
     END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'cleanup-rate-limits') THEN
+        PERFORM cron.unschedule('cleanup-rate-limits');
+    END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'cleanup-tokens') THEN
+        PERFORM cron.unschedule('cleanup-tokens');
+    END IF;
 END $$;
 
 -- CRON #1: Completar agendamentos automaticamente (00h BRT)
@@ -1297,14 +1505,332 @@ SELECT cron.schedule('verificar-mensalistas', '0 14 * * *', $$ SELECT verificar_
 -- CRON #4: Limpar notificações antigas (1h BRT)
 SELECT cron.schedule('clean-notifications', '0 4 * * *', $$ SELECT clean_old_notifications() $$);
 
--- CRON #5: Auto-bloquear horário de almoço (23h BRT)
-SELECT cron.schedule('auto-block-lunch', '2 * * * *', $$ SELECT auto_block_lunch_break() $$);
+-- CRON #5: Auto-bloquear horário de almoço (1x ao dia à 0h BRT = 3h UTC)
+SELECT cron.schedule('auto-block-lunch', '0 3 * * *', $$ SELECT auto_block_lunch_break() $$);
 
 -- CRON #6: Limpeza mensal de dados (1o dia do mês, 1h BRT)
 SELECT cron.schedule('monthly-data-cleanup', '0 4 1 * *', $$ SELECT cleanup_old_data() $$);
 
 -- CRON #7: Relatório semanal (segunda-feira, 8h BRT)
 SELECT cron.schedule('weekly-report', '0 11 * * 1', $$ SELECT send_weekly_report() $$);
+
+-- CRON #8: Limpeza de tokens expirados (diário às 4h BRT = 7h UTC)
+SELECT cron.schedule('cleanup-tokens', '0 7 * * *', $$ SELECT cleanup_expired_tokens() $$);
+
+-- CRON #9: Limpeza de rate limits antigos (a cada hora)
+SELECT cron.schedule('cleanup-rate-limits', '7 * * * *', $$ SELECT cleanup_rate_limits() $$);
+
+-- =========================================================================
+-- SECURE PUBLIC RPC FUNCTIONS
+-- =========================================================================
+
+-- RPC para busca segura de cliente por telefone (com rate limiting server-side)
+CREATE OR REPLACE FUNCTION lookup_client_by_phone(p_phone text)
+RETURNS TABLE(
+    id UUID,
+    name TEXT,
+    phone TEXT,
+    is_mensalista BOOLEAN,
+    mensalista_plan_id UUID
+) AS $$
+DECLARE
+    v_client_ip text;
+    v_rate_key text;
+BEGIN
+    -- Rate limiting: máximo 10 consultas por telefone por minuto
+    v_client_ip := COALESCE(
+        current_setting('request.headers', true)::jsonb->>'x-forwarded-for',
+        'unknown'
+    );
+    v_rate_key := 'lookup_client:' || p_phone;
+
+    IF NOT check_rate_limit(v_rate_key, 10, 60) THEN
+        RAISE EXCEPTION 'Muitas consultas. Aguarde um momento e tente novamente.';
+    END IF;
+
+    RETURN QUERY
+    SELECT c.id, c.name, c.phone, c.is_mensalista, c.mensalista_plan_id
+    FROM clients c
+    WHERE c.phone = p_phone
+    LIMIT 1;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- RPC para buscar último agendamento do cliente (evita SELECT/join público)
+CREATE OR REPLACE FUNCTION get_last_booking_by_phone(p_phone text)
+RETURNS TABLE(
+    service_ids UUID[],
+    total_price DECIMAL
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT b.service_ids, b.total_price
+    FROM bookings b
+    JOIN clients c ON c.id = b.client_id
+    WHERE c.phone = p_phone
+    AND b.status IN ('pending', 'confirmed', 'completed')
+    ORDER BY b.created_at DESC
+    LIMIT 1;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- RPC para buscar agendamentos futuros por telefone (com has_token, sem expor token real)
+CREATE OR REPLACE FUNCTION get_bookings_by_phone(p_phone text)
+RETURNS TABLE(
+    id UUID,
+    booking_date DATE,
+    booking_time TIME,
+    status TEXT,
+    total_price DECIMAL,
+    total_duration INTEGER,
+    service_ids UUID[],
+    clients JSONB,
+    has_token BOOLEAN
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        b.id,
+        b.booking_date,
+        b.booking_time,
+        b.status::text,
+        b.total_price,
+        b.total_duration,
+        b.service_ids,
+        jsonb_build_object('name', c.name, 'phone', c.phone) AS clients,
+        EXISTS(
+            SELECT 1 FROM booking_tokens bt
+            WHERE bt.booking_id = b.id AND bt.expires_at > NOW()
+        ) AS has_token
+    FROM bookings b
+    JOIN clients c ON c.id = b.client_id
+    WHERE c.phone = p_phone
+    AND b.status IN ('pending', 'confirmed')
+    AND b.booking_date >= CURRENT_DATE
+    ORDER BY b.booking_date ASC, b.booking_time ASC;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- RPC para cancelamento público — exige token OU autenticação admin
+CREATE OR REPLACE FUNCTION cancel_booking_public(
+    p_booking_id UUID,
+    p_token TEXT DEFAULT NULL
+)
+RETURNS BOOLEAN AS $$
+BEGIN
+    -- Admin autenticado pode cancelar sem token
+    IF auth.uid() IS NOT NULL AND is_admin() THEN
+        UPDATE bookings
+        SET status = 'cancelled'
+        WHERE id = p_booking_id
+        AND status IN ('pending', 'confirmed')
+        AND booking_date >= CURRENT_DATE;
+        RETURN FOUND;
+    END IF;
+
+    -- Público: exige token válido
+    IF p_token IS NULL OR p_token = '' THEN
+        RAISE EXCEPTION 'Token de gerenciamento necessário para cancelar.';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM booking_tokens
+        WHERE booking_id = p_booking_id
+        AND token = p_token
+        AND expires_at > NOW()
+    ) THEN
+        RAISE EXCEPTION 'Token inválido ou expirado.';
+    END IF;
+
+    UPDATE bookings
+    SET status = 'cancelled'
+    WHERE id = p_booking_id
+    AND status IN ('pending', 'confirmed')
+    AND booking_date >= CURRENT_DATE;
+
+    RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =========================================================================
+-- 9t. Gatilho de Notificações Automáticas de Agendamento
+-- =========================================================================
+
+-- Garante a configuração padrão da URL do site
+INSERT INTO settings (key, value) VALUES ('site_url', 'https://black-diamond.vercel.app')
+ON CONFLICT (key) DO NOTHING;
+
+-- Redefine a função do gatilho completa
+CREATE OR REPLACE FUNCTION handle_booking_token_inserted()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_booking RECORD;
+    v_client RECORD;
+    v_service_names text;
+    v_formatted_date text;
+    v_formatted_price text;
+    v_mensalista_tag text := '';
+    v_clean_phone text;
+    v_site_url text;
+    v_manage_url text;
+    v_notif_body text;
+    v_admin_id uuid;
+BEGIN
+    SELECT * INTO v_booking FROM bookings WHERE id = NEW.booking_id;
+    IF NOT FOUND THEN
+        RETURN NEW;
+    END IF;
+
+    SELECT * INTO v_client FROM clients WHERE id = v_booking.client_id;
+    IF NOT FOUND THEN
+        RETURN NEW;
+    END IF;
+
+    SELECT string_agg(s.name, ', ' ORDER BY s.name) INTO v_service_names
+    FROM services s
+    WHERE s.id = ANY(v_booking.service_ids);
+
+    v_formatted_date := to_char(v_booking.booking_date, 'DD/MM/YYYY') || ' às ' || substring(v_booking.booking_time::text from 1 for 5);
+    v_formatted_price := 'R$ ' || replace(to_char(v_booking.total_price, 'FM999990.00'), '.', ',');
+
+    IF v_client.is_mensalista = TRUE AND (v_client.mensalista_expires_at IS NULL OR v_client.mensalista_expires_at >= NOW()) THEN
+        v_mensalista_tag := ' [MENSALISTA]';
+    END IF;
+
+    v_clean_phone := regexp_replace(v_client.phone, '\D', '', 'g');
+
+    SELECT COALESCE(value, 'https://black-diamond.vercel.app') INTO v_site_url
+    FROM settings
+    WHERE key = 'site_url';
+
+    v_manage_url := v_site_url || '/gerenciar?token=' || NEW.token;
+
+    v_notif_body := TRIM(v_client.name) || v_mensalista_tag || ' | ' || 
+                    COALESCE(v_service_names, 'Serviço') || ' | ' || 
+                    v_formatted_date || ' | ' || 
+                    v_formatted_price || ' | ' || 
+                    v_clean_phone || ' | ' || 
+                    v_manage_url;
+
+    FOR v_admin_id IN SELECT user_id FROM admin_users LOOP
+        INSERT INTO notifications (user_id, title, body, tag, url)
+        VALUES (
+            v_admin_id,
+            'Novo Agendamento! 💈',
+            v_notif_body,
+            'booking-' || NEW.booking_id::text,
+            '/admin'
+        );
+    END LOOP;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS trg_booking_token_inserted ON booking_tokens;
+CREATE TRIGGER trg_booking_token_inserted
+AFTER INSERT ON booking_tokens
+FOR EACH ROW
+EXECUTE FUNCTION handle_booking_token_inserted();
+
+-- =========================================================================
+-- 9x. GATILHO DE CANCELAMENTO DE AGENDAMENTO
+-- =========================================================================
+
+-- Quando um agendamento é cancelado:
+-- 1. Deleta a notificação antiga de "Novo Agendamento"
+-- 2. Insere uma notificação de "Agendamento Cancelado"
+CREATE OR REPLACE FUNCTION handle_booking_cancelled()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_client_name TEXT;
+    v_service_names TEXT;
+    v_formatted_date TEXT;
+    v_formatted_time TEXT;
+    v_clean_phone TEXT;
+    v_admin_id UUID;
+BEGIN
+    SELECT name, phone INTO v_client_name, v_clean_phone
+    FROM clients WHERE id = NEW.client_id;
+    
+    SELECT string_agg(s.name, ', ' ORDER BY s.name) INTO v_service_names
+    FROM services s WHERE s.id = ANY(NEW.service_ids);
+
+    v_formatted_date := to_char(NEW.booking_date, 'DD/MM/YYYY');
+    v_formatted_time := substring(NEW.booking_time::text from 1 for 5);
+    
+    IF v_clean_phone IS NOT NULL THEN
+        v_clean_phone := regexp_replace(v_clean_phone, '\D', '', 'g');
+    END IF;
+
+    -- Só processa notificação se for um agendamento real (não slot bloqueado)
+    IF NEW.client_id IS NOT NULL THEN
+        -- Deleta a notificação antiga de "Novo Agendamento"
+        DELETE FROM notifications 
+        WHERE tag = 'booking-' || NEW.id::text;
+
+        -- Insere notificação de cancelamento para cada admin
+        FOR v_admin_id IN SELECT user_id FROM admin_users LOOP
+            INSERT INTO notifications (user_id, title, body, tag, url)
+            VALUES (
+                v_admin_id,
+                'Agendamento Cancelado ❌',
+                COALESCE(v_client_name, 'Cliente') || ' | ' || 
+                COALESCE(v_service_names, 'Serviço') || ' | ' || 
+                v_formatted_date || ' às ' || v_formatted_time || ' | ' || 
+                'R$ ' || replace(to_char(NEW.total_price, 'FM999990.00'), '.', ',') || ' | ' ||
+                COALESCE(v_clean_phone, '---') || ' | ' || 
+                'Cancelado',
+                'cancelled-' || NEW.id::text,
+                '/admin/agendamentos'
+            );
+        END LOOP;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS trg_booking_status_cancelled ON bookings;
+CREATE TRIGGER trg_booking_status_cancelled
+AFTER UPDATE OF status ON bookings
+FOR EACH ROW
+WHEN (NEW.status = 'cancelled' AND OLD.status IS DISTINCT FROM 'cancelled')
+EXECUTE FUNCTION handle_booking_cancelled();
+
+-- =========================================================================
+-- HABILITA REPLICACAO EM TEMPO REAL PARA A TABELA DE NOTIFICACOES
+-- Necessário para o sistema de notificações em tempo real funcionar
+-- =========================================================================
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' 
+    AND tablename = 'notifications'
+    AND schemaname = 'public'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+    RAISE NOTICE 'Realtime ativado para notifications';
+  ELSE
+    RAISE NOTICE 'Realtime já estava ativado para notifications';
+  END IF;
+
+  -- Habilita Realtime para bookings (dashboard em tempo real)
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' 
+    AND tablename = 'bookings'
+    AND schemaname = 'public'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE bookings;
+    RAISE NOTICE 'Realtime ativado para bookings';
+  ELSE
+    RAISE NOTICE 'Realtime já estava ativado para bookings';
+  END IF;
+END
+$$;
 
 -- =========================================================================
 -- ✅ SISTEMA INSTALADO COM SUCESSO!

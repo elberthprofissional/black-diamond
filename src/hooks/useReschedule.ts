@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getBookings, deleteBooking, createBooking } from '../lib/api';
+import { supabase } from '../lib/supabase';
+import { useAuditLog } from './useAuditLog';
 import type { Booking, BookingWithClient, Service } from '../types';
 
 export function useReschedule(
@@ -17,14 +19,15 @@ export function useReschedule(
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [rescheduleStep, setRescheduleStep] = useState(1);
+  const { logBooking } = useAuditLog();
 
   useEffect(() => {
     if (!isRescheduling || !rescheduleDate) return;
     let active = true;
     setLoadingSlots(true);
     getBookings(rescheduleDate)
-      .then((data) => {
-        if (active) setExistingBookings(data || []);
+      .then((result) => {
+        if (active) setExistingBookings(result.data || []);
       })
       .catch(() => {
         showError('Erro ao carregar horários.');
@@ -70,6 +73,35 @@ export function useReschedule(
         }
       );
       await deleteBooking(selectedBooking.id);
+      supabase.auth
+        .getUser()
+        .then(({ data: { user } }) => {
+          if (!user) return;
+          supabase
+            .from('notifications')
+            .insert({
+              user_id: user.id,
+              title: 'Agendamento Reagendado',
+              body: `${selectedBooking.clients?.name || 'Cliente'} — agora em ${rescheduleDate} às ${rescheduleTime?.slice(0, 5)}`,
+              tag: `booking-rescheduled-${selectedBooking.id}`,
+              url: '/admin',
+            })
+            .then(
+              () => {},
+              () => {}
+            );
+        })
+        .then(
+          () => {},
+          () => {}
+        );
+      logBooking('booking_rescheduled', selectedBooking.id, {
+        client_name: selectedBooking.clients?.name,
+        old_date: selectedBooking.booking_date,
+        old_time: selectedBooking.booking_time,
+        new_date: rescheduleDate,
+        new_time: rescheduleTime,
+      });
       setIsRescheduling(false);
       onDone();
       onSuccess();

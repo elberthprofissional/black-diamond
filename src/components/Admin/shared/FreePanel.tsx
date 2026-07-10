@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface FreePanelProps {
@@ -10,7 +10,7 @@ interface FreePanelProps {
   onBlockDay: () => void;
 }
 
-const FreePanel: React.FC<FreePanelProps> = ({
+const FreePanel: FC<FreePanelProps> = ({
   freeSlots,
   selectedDate,
   blockingSlot,
@@ -84,4 +84,4 @@ const FreePanel: React.FC<FreePanelProps> = ({
   );
 };
 
-export default React.memo(FreePanel);
+export default memo(FreePanel);

@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface DeleteClientModalProps {
@@ -9,7 +9,7 @@ interface DeleteClientModalProps {
   onCancel: () => void;
 }
 
-const DeleteClientModal: React.FC<DeleteClientModalProps> = ({
+const DeleteClientModal: FC<DeleteClientModalProps> = ({
   isOpen,
   clientName,
   isDeleting,
@@ -37,7 +37,8 @@ const DeleteClientModal: React.FC<DeleteClientModalProps> = ({
             className="relative z-10 w-full sm:max-w-xs bg-[#111] border-t sm:border border-white/[0.06] sm:rounded-2xl rounded-t-2xl p-5 space-y-4"
           >
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Excluir <span className="text-white font-semibold">{clientName}</span>? Essa ação não pode ser desfeita.
+              Excluir <span className="text-white font-semibold">{clientName}</span>? Essa ação não
+              pode ser desfeita.
             </p>
             <div className="flex gap-2">
               <button

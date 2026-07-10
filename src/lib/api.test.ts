@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-let queryResult: { data: unknown; error: unknown } = { data: [], error: null };
+let queryResult: { data: unknown; error: unknown; count?: number } = {
+  data: [],
+  error: null,
+  count: 0,
+};
 const mockRpc = vi.fn();
 const mockFrom = vi.fn();
 
@@ -12,8 +16,10 @@ function createQueryBuilder() {
     neq: vi.fn().mockReturnThis(),
     in: vi.fn().mockReturnThis(),
     not: vi.fn().mockReturnThis(),
+    is: vi.fn().mockReturnThis(),
     gte: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
+    range: vi.fn().mockReturnThis(),
     maybeSingle: vi.fn().mockImplementation(() => Promise.resolve(queryResult)),
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
@@ -110,7 +116,7 @@ describe('createBooking', () => {
 
     const result = await createBooking(bookingData, clientData);
 
-    expect(mockRpc).toHaveBeenCalledWith('criar_agendamento', {
+    expect(mockRpc).toHaveBeenCalledWith('criar_agendamento_rate_limited', {
       p_cliente_nome: 'Joao',
       p_cliente_telefone: '31999999999',
       p_cliente_email: 'joao@test.com',
@@ -232,14 +238,16 @@ describe('getBookings', () => {
     queryResult = {
       data: [{ id: 'b1', clients: { name: 'Joao', phone: '123' } }],
       error: null,
+      count: 1,
     };
 
     const result = await getBookings('2026-07-01');
-    expect(result).toHaveLength(1);
+    expect(result.data).toHaveLength(1);
+    expect(result.total).toBe(1);
   });
 
   it('filtra por data quando fornecida', async () => {
-    queryResult = { data: [], error: null };
+    queryResult = { data: [], error: null, count: 0 };
     await getBookings('2026-07-01');
     expect(queryBuilder.eq).toHaveBeenCalledWith('booking_date', '2026-07-01');
   });

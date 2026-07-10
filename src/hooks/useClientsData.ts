@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useDeferredValue } from 'react';
 import { getClients, getBookingsForStats } from '../lib/api';
 import { useToast } from './useToast';
+import { BLOCKED_NAME, BLOCKED_PHONE, INACTIVE_DAYS } from '../lib/constants';
 import type { Client, ClientWithStats } from '../types';
 
 interface ClientWithHistory extends Client {
@@ -8,8 +9,6 @@ interface ClientWithHistory extends Client {
   historical_spent?: number;
   last_visit_date?: string;
 }
-
-const INACTIVE_DAYS = 30;
 
 function daysSince(dateStr: string): number {
   const d = new Date(dateStr + 'T00:00:00');
@@ -44,9 +43,9 @@ export function useClientsData() {
           (c: Client) =>
             c &&
             c.name &&
-            c.name !== 'BLOQUEADO' &&
-            c.name !== 'CLIENTE EXCLUIDO' &&
-            c.phone !== '00000000000' &&
+            !c.deleted_at &&
+            c.name !== BLOCKED_NAME &&
+            c.phone !== BLOCKED_PHONE &&
             !c.is_blocked
         )
         .map((c: Client) => {
@@ -115,7 +114,7 @@ export function useClientsData() {
           };
         });
 
-      const enriched = allEnriched.filter((c) => c.bookingsCount >= 2 || c.manually_added);
+      const enriched = allEnriched;
       enriched.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       setClients(enriched);
     } catch {

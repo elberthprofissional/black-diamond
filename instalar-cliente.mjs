@@ -1,22 +1,23 @@
 #!/usr/bin/env node
 
 /**
- * 🚀 INSTALAR CLIENTE — Black Diamond 💈
- * 
+ * INSTALAR CLIENTE — Black Diamond
+ *
  * Uso:  node instalar-cliente.mjs
- * 
+ *
  * O que faz:
- *   1. Pede seus dados (email, nome da barbearia)
- *   2. Cria um projeto Supabase via API (ou modo manual)
- *   3. Roda o universal.sql no banco
- *   4. Cria o usuário admin
- *   5. Gera o .env
- *   6. (Opcional) Deploy na Vercel
- * 
- * Pré-requisitos:
+ *   1. Coleta dados da barbearia
+ *   2. Valida email, senha, telefone
+ *   3. Cria projeto Supabase via API (ou modo manual)
+ *   4. Roda universal.sql no banco
+ *   5. Cria usuario admin + cadastra na tabela admin_users
+ *   6. Gera .env
+ *   7. Deploy na Vercel (com retry)
+ *
+ * Pre-requisitos:
  *   - Node.js 18+
- *   - Uma conta no Supabase (criar em https://supabase.com)
- *   - Supabase Access Token (Settings → API → Access Token)
+ *   - Conta no Supabase (https://supabase.com)
+ *   - Supabase Access Token (Settings > API > Access Token)
  */
 
 import { createInterface } from 'readline';
@@ -26,61 +27,26 @@ import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-
 const rl = createInterface({ input: process.stdin, output: process.stdout });
+
+// ─── Cores ──────────────────────────────────────────────
+const C = {
+  green: '\x1b[32m', yellow: '\x1b[33m', cyan: '\x1b[36m',
+  red: '\x1b[31m', bold: '\x1b[1m', dim: '\x1b[2m',
+  reset: '\x1b[0m', bgGreen: '\x1b[42m', bgRed: '\x1b[41m',
+};
+
+// ─── Helpers ────────────────────────────────────────────
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 const ask = (q) => new Promise((r) => rl.question(q, (a) => r(a.trim())));
 
-const GREEN = '\x1b[32m';
-const YELLOW = '\x1b[33m';
-const CYAN = '\x1b[36m';
-const RED = '\x1b[31m';
-const BOLD = '\x1b[1m';
-const RESET = '\x1b[0m';
-
-const logo = `
-${YELLOW}╔══════════════════════════════════════════════════╗${RESET}
-${YELLOW}║${RESET}   ${BOLD}💈 BLACK DIAMOND — Instalação Automática${RESET}   ${YELLOW}║${RESET}
-${YELLOW}║${RESET}   Modo Preguiçoso Ativado 🛌                      ${YELLOW}║${RESET}
-${YELLOW}╚══════════════════════════════════════════════════╝${RESET}
-`;
-
-function sleep(ms) {
-  return new Promise((r) => setTimeout(r, ms));
-}
-
-function step(text) {
-  console.log(`\n${CYAN}▸ ${text}${RESET}`);
-}
-
-function ok(text) {
-  console.log(`  ${GREEN}✅ ${text}${RESET}`);
-}
-
-function warn(text) {
-  console.log(`  ${YELLOW}⚠️  ${text}${RESET}`);
-}
-
-function fail(text) {
-  console.log(`  ${RED}❌ ${text}${RESET}`);
-}
-
-// ─── Main ───────────────────────────────────────────────
-async function main() {
-  console.log(logo);
-
-  // ── 1. COLETA DE DADOS ──────────────────────────────
-  step('1. Dados do cliente');
-  const nomeBarbearia = await ask(`  ${BOLD}Nome da barbearia:${RESET} `);
-  const adminEmail = await ask(`  ${BOLD}Email do admin:${RESET} `);
-
-  // Oculta a digitação da senha
-  console.log(`  ${YELLOW}(a senha não aparecerá enquanto digita)${RESET}`);
-
-  // Cleanup raw mode on Ctrl+C pra não travar o terminal
+async function askPassword(label) {
+  console.log(`  ${C.dim}(senhas nao aparecem enquanto digita)${C.reset}`);
   const cleanup = () => process.stdin.setRawMode?.(false);
   process.on('SIGINT', cleanup);
 
-  const adminSenha = await new Promise((resolve) => {
+  const read = () => new Promise((resolve) => {
     const buf = [];
     process.stdin.setRawMode?.(true);
     const onData = (chunk) => {
@@ -91,82 +57,158 @@ async function main() {
         resolve(buf.join(''));
       } else if (input === '\x7f' || input === '\b') {
         buf.pop();
+        process.stdout.write('\b \b');
       } else {
         buf.push(input);
+        process.stdout.write('*');
       }
     };
     process.stdin.on('data', onData);
   });
 
+  const senha = await read();
   process.removeListener('SIGINT', cleanup);
+  console.log('');
+  return senha;
+}
 
-  const telefone = await ask(`\n  ${BOLD}WhatsApp (só números, com DDD):${RESET} `);
-  const siteUrl = await ask(`  ${BOLD}URL do site (Enter = https://meu-site.vercel.app):${RESET} `);
-  const finalSiteUrl = siteUrl || `https://${nomeBarbearia.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}.vercel.app`;
+function validateEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 
-  // ── 2. SUPABASE ─────────────────────────────────────
-  step('2. Conexão com Supabase');
+function validatePhone(phone) {
+  const digits = phone.replace(/\D/g, '');
+  return digits.length >= 10 && digits.length <= 15;
+}
 
-  console.log(`  Precisa de um token? Vá em: ${CYAN}https://supabase.com/dashboard/account/tokens${RESET}`);
-  console.log(`  Crie um token com escopo e cole abaixo.\n`);
+function slugify(text) {
+  return text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 48);
+}
 
-  const usarManual = await ask(`  ${YELLOW}Tem um Supabase Access Token? (s/N):${RESET} `);
+function box(title, lines) {
+  const w = 52;
+  const pad = (s) => `  ${C.yellow}║${C.reset}  ${s}${' '.repeat(Math.max(0, w - 6 - s.length))}${C.yellow}║${C.reset}`;
+  console.log(`${C.yellow}╔${'═'.repeat(w)}╗${C.reset}`);
+  console.log(pad(`${C.bold}${title}${C.reset}`));
+  console.log(`${C.yellow}╠${'═'.repeat(w)}╣${C.reset}`);
+  for (const l of lines) console.log(pad(l));
+  console.log(`${C.yellow}╚${'═'.repeat(w)}╝${C.reset}`);
+}
+
+function step(n, text) {
+  console.log(`\n${C.cyan}── Etapa ${n} ${'─'.repeat(40)}${C.reset}`);
+  console.log(`${C.bold}  ${text}${C.reset}`);
+}
+
+function ok(text) { console.log(`  ${C.green}OK ${C.reset} ${text}`); }
+function warn(text) { console.log(`  ${C.yellow}!! ${C.reset} ${text}`); }
+function fail(text) { console.log(`  ${C.red}ERRO ${C.reset} ${text}`); }
+function info(text) { console.log(`  ${C.dim}${text}${C.reset}`); }
+
+// ─── Main ───────────────────────────────────────────────
+async function main() {
+  console.clear?.();
+  box('BLACK DIAMOND — Instalacao', [
+    'Sistema de agendamento para barbearias',
+    'Configure uma nova instancia em minutos',
+  ]);
+
+  // ════════════════════════════════════════════════════════
+  // 1. COLETA DE DADOS COM VALIDACAO
+  // ════════════════════════════════════════════════════════
+  step(1, 'Dados da barbearia');
+
+  let nomeBarbearia = '';
+  while (!nomeBarbearia) {
+    nomeBarbearia = await ask(`  Nome da barbearia: `);
+    if (!nomeBarbearia) fail('Nome e obrigatorio.');
+  }
+
+  let adminEmail = '';
+  while (!adminEmail || !validateEmail(adminEmail)) {
+    adminEmail = await ask(`  Email do admin: `);
+    if (!validateEmail(adminEmail)) fail('Email invalido. Exemplo: admin@barbearia.com');
+  }
+
+  let adminSenha = '';
+  let confirmSenha = '';
+  while (adminSenha.length < 8 || adminSenha !== confirmSenha) {
+    console.log(`  ${C.bold}Senha do admin:${C.reset}`);
+    adminSenha = await askPassword('  > ');
+    if (adminSenha.length < 8) { fail('Minimo 8 caracteres.'); continue; }
+    console.log(`  ${C.bold}Confirmar senha:${C.reset}`);
+    confirmSenha = await askPassword('  > ');
+    if (adminSenha !== confirmSenha) fail('Senhas nao coincidem.');
+  }
+  ok('Senha validada.');
+
+  let telefone = '';
+  while (!validatePhone(telefone)) {
+    telefone = await ask(`  WhatsApp (com DDD, so numeros): `);
+    if (!validatePhone(telefone)) fail('Telefone invalido. Exemplo: 31999998888');
+  }
+
+  const telefoneFormatado = '55' + telefone.replace(/\D/g, '');
+  const slug = slugify(nomeBarbearia);
+  const defaultUrl = `https://${slug}.vercel.app`;
+  const siteUrlInput = await ask(`  URL do site [${defaultUrl}]: `);
+  const finalSiteUrl = siteUrlInput || defaultUrl;
+
+  // ════════════════════════════════════════════════════════
+  // 2. CONEXAO COM SUPABASE
+  // ════════════════════════════════════════════════════════
+  step(2, 'Conexao com Supabase');
+  info('Precisa de um token? Crie em:');
+  info('https://supabase.com/dashboard/account/tokens');
+
+  const usarToken = await ask(`  Tem Supabase Access Token? (s/N): `);
   let supabaseUrl, supabaseAnonKey, projectRef;
 
-  if (usarManual.toLowerCase() === 's') {
-    const token = await ask(`  ${BOLD}Cole seu Supabase Access Token:${RESET} `);
+  if (usarToken.toLowerCase() === 's') {
+    const token = await ask(`  Cole o Supabase Access Token: `);
 
-    // Listar organizações pra ajudar o usuário
+    // Buscar organizacoes
     let orgId;
     try {
-      const orgsRes = await fetch('https://api.supabase.com/v1/organizations', {
-        headers: { 'Authorization': `Bearer ${token}` },
+      const res = await fetch('https://api.supabase.com/v1/organizations', {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      if (orgsRes.ok) {
-        const orgs = await orgsRes.json();
+      if (res.ok) {
+        const orgs = await res.json();
         if (orgs.length === 0) {
-          fail('Nenhuma organização encontrada. Crie uma em supabase.com primeiro.');
+          fail('Nenhuma organizacao encontrada. Crie uma em supabase.com.');
           process.exit(1);
         } else if (orgs.length === 1) {
           orgId = orgs[0].id;
-          ok(`Organização: ${orgs[0].name}`);
+          ok(`Organizacao: ${orgs[0].name}`);
         } else {
-          console.log(`\n  Organizações disponíveis:`);
+          console.log(`\n  Organizacoes disponiveis:`);
           orgs.forEach((o, i) => console.log(`    ${i + 1}. ${o.name} (${o.id})`));
-          const escolha = await ask(`  ${BOLD}Digite o número da organização:${RESET} `);
+          const escolha = await ask(`  Digite o numero: `);
           orgId = orgs[parseInt(escolha) - 1]?.id;
-          if (!orgId) {
-            fail('Opção inválida.');
-            process.exit(1);
-          }
+          if (!orgId) { fail('Opcao invalida.'); process.exit(1); }
         }
       }
     } catch (err) {
-      fail(`Erro ao listar organizações: ${err.message}`);
-      orgId = await ask(`  ${BOLD}ID da organização (ver em supabase.com/settings):${RESET} `);
+      fail(`Erro ao listar organizacoes: ${err.message}`);
+      orgId = await ask(`  ID da organizacao: `);
     }
 
-    const regiao = await ask(`  ${BOLD}Região [sa-east-1]:${RESET} `) || 'sa-east-1';
+    const regiao = await ask(`  Regiao [sa-east-1]: `) || 'sa-east-1';
 
-    // ── 3. CRIAR PROJETO ─────────────────────────────
-    step('3. Criando projeto Supabase (~2 min)');
+    // ══════════════════════════════════════════════════════
+    // 3. CRIAR PROJETO SUPABASE
+    // ══════════════════════════════════════════════════════
+    step(3, 'Criando projeto Supabase (~2 min)');
 
     const dbPass = Math.random().toString(36).slice(-12) + 'Aa1!';
-    console.log(`     Aguardando...`);
 
     try {
       const createRes = await fetch('https://api.supabase.com/v1/projects', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: nomeBarbearia.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-          organization_id: orgId,
-          plan: 'free',
-          region: regiao,
-          db_pass: dbPass,
+          name: slug, organization_id: orgId, plan: 'free', region: regiao, db_pass: dbPass,
         }),
       });
 
@@ -179,228 +221,227 @@ async function main() {
       projectRef = project.ref;
       ok(`Projeto criado: ${projectRef}`);
 
-      // Aguardar ficar online (até 2.5 min)
+      // Aguardar ficar online
+      info('Aguardando banco ficar online');
       let online = false;
       for (let i = 0; i < 30; i++) {
         await sleep(5000);
         process.stdout.write('.');
-        const statusRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
-        if (!statusRes.ok) continue;
-        const status = await statusRes.json();
-        if (status.status === 'ACTIVE_HEALTHY') {
-          online = true;
-          break;
-        }
+        try {
+          const statusRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (statusRes.ok) {
+            const status = await statusRes.json();
+            if (status.status === 'ACTIVE_HEALTHY') { online = true; break; }
+          }
+        } catch { /* retry */ }
       }
       console.log('');
-      if (online) {
-        ok('Banco online!');
-      } else {
-        warn('Projeto pode não estar 100% pronto. Continuando...');
-      }
+      if (online) ok('Banco online!');
+      else warn('Projeto pode nao estar 100% pronto. Continuando...');
 
       // Pegar anon key
       const apiRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/api-keys`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!apiRes.ok) throw new Error('Falha ao obter chaves da API');
       const keys = await apiRes.json();
       supabaseUrl = `https://${projectRef}.supabase.co`;
-      supabaseAnonKey = keys.find((k) => k.name === 'anon')?.api_key;
-
-      if (!supabaseAnonKey) {
-        const keyData = keys[0];
-        supabaseAnonKey = keyData?.api_key || keyData?.apiKey;
-      }
+      supabaseAnonKey = keys.find((k) => k.name === 'anon')?.api_key || keys[0]?.api_key;
       ok(`Supabase URL: ${supabaseUrl}`);
 
-      // ── 4. RODAR UNIVERSAL.SQL ────────────────────────
-      step('4. Rodando universal.sql no banco');
+      // ════════════════════════════════════════════════════
+      // 4. RODAR UNIVERSAL.SQL
+      // ════════════════════════════════════════════════════
+      step(4, 'Instalando schema do banco');
 
       const sqlPath = join(__dirname, 'supabase', 'universal.sql');
       if (existsSync(sqlPath)) {
-        const universalSql = readFileSync(sqlPath, 'utf-8');
-        console.log(`     Enviando ${universalSql.split('\n').length} linhas...`);
+        const sql = readFileSync(sqlPath, 'utf-8');
+        const lines = sql.split('\n').length;
+        info(`Enviando ${lines} linhas de SQL...`);
 
-        // A API aceita SQL puro, mas precisamos escapar aspas simples duplicadas
-        // e mandar como query única
         const sqlRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ query: universalSql }),
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: sql }),
         });
 
         if (sqlRes.ok) {
-          ok('Schema do banco instalado!');
+          ok('Schema instalado com sucesso!');
         } else {
           const errText = await sqlRes.text();
-          warn(`SQL rodou com avisos (alguns já existiam): ${errText.slice(0, 100)}`);
+          if (errText.includes('already exists')) {
+            ok('Schema ja existente (tudo certo).');
+          } else {
+            fail(`SQL com erros: ${errText.slice(0, 200)}`);
+            warn('Execute manualmente no SQL Editor do Supabase.');
+          }
         }
       } else {
-        warn('universal.sql não encontrado. Pule esta etapa.');
+        warn('universal.sql nao encontrado. Execute manualmente no SQL Editor.');
       }
 
-      // ── 5. CRIAR USUÁRIO ADMIN ──────────────────────
-      step('5. Criando usuário admin');
+      // ════════════════════════════════════════════════════
+      // 5. CRIAR USUARIO ADMIN
+      // ════════════════════════════════════════════════════
+      step(5, 'Criando usuario admin');
+
       const userRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/auth/users`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: adminEmail,
-          password: adminSenha,
-          email_confirm: true,
-        }),
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: adminEmail, password: adminSenha, email_confirm: true }),
       });
 
       let userId = null;
       if (userRes.ok) {
         const newUser = await userRes.json();
         userId = newUser.id;
-        ok(`Usuário ${adminEmail} criado!`);
+        ok(`Usuario ${adminEmail} criado!`);
       } else {
-        warn('Crie o usuário manualmente: Authentication > Users > Add user');
+        warn('Crie o usuario manualmente: Authentication > Users > Add user');
       }
 
-      // ── 6. ADICIONAR À TABELA ADMIN_USERS ───────────
+      // Cadastrar na tabela admin_users
       if (userId) {
-        console.log('     Adicionando à lista de administradores...');
+        info('Cadastrando na lista de administradores...');
+        // Usar UUID com validacao basica pra evitar injection
+        const safeUuid = userId.replace(/[^a-f0-9-]/g, '');
         const adminRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            query: `INSERT INTO admin_users (user_id) VALUES ('${userId}') ON CONFLICT DO NOTHING;`
+            query: `INSERT INTO admin_users (user_id) VALUES ('${safeUuid}') ON CONFLICT DO NOTHING;`,
           }),
         });
 
-        if (adminRes.ok) {
-          ok('Admin cadastrado no sistema!');
-        } else {
-          warn('Execute manualmente no SQL Editor:');
-          console.log(`     INSERT INTO admin_users (user_id)`);
-          console.log(`     SELECT id FROM auth.users WHERE email = '${adminEmail}'`);
-          console.log(`     ON CONFLICT DO NOTHING;`);
-        }
+        if (adminRes.ok) ok('Admin cadastrado no sistema!');
+        else warn('Execute manualmente no SQL Editor.');
       }
 
     } catch (err) {
       fail(err.message);
-      warn('Falha na criação automática. Vamos pro modo manual.');
+      warn('Falha na criacao automatica. Modo manual ativado.');
       projectRef = null;
     }
   }
 
+  // ════════════════════════════════════════════════════════
+  // MODO MANUAL (fallback)
+  // ════════════════════════════════════════════════════════
   if (!projectRef) {
-    step('3. Modo manual');
-    supabaseUrl = await ask(`  ${BOLD}Supabase Project URL:${RESET} `);
-    supabaseAnonKey = await ask(`  ${BOLD}Supabase Anon Key:${RESET} `);
+    step('3M', 'Configuracao manual');
+    supabaseUrl = await ask(`  Supabase Project URL: `);
+    supabaseAnonKey = await ask(`  Supabase Anon Key: `);
 
-    console.log(`\n  ${YELLOW}📋 Checklist pra você não esquecer:${RESET}`);
-    console.log(`  1️⃣  ${CYAN}${supabaseUrl}/project/${supabaseUrl.split('.')[0].replace('https://', '')}/sql/new${RESET}`);
-    console.log(`  2️⃣  Cole o conteúdo de supabase/universal.sql`);
-    console.log(`  3️⃣  Clique em RUN`);
-    console.log(`  4️⃣  Authentication → Users → Add user`);
-    console.log(`  5️⃣  Email: ${adminEmail} / Senha: (a que você escolheu)`);
-    console.log(`  6️⃣  SQL Editor:`);
-    console.log(`     ${YELLOW}INSERT INTO admin_users (user_id)`);
+    const sqlUrl = `${supabaseUrl}/project/${supabaseUrl.split('//')[1]?.split('.')[0] || 'xxx'}/sql/new`;
+    console.log(`\n  ${C.yellow}Checklist:${C.reset}`);
+    console.log(`  1. Abra: ${C.cyan}${sqlUrl}${C.reset}`);
+    console.log(`  2. Cole o conteudo de supabase/universal.sql`);
+    console.log(`  3. Clique em RUN`);
+    console.log(`  4. Authentication > Users > Add user`);
+    console.log(`     Email: ${adminEmail}`);
+    console.log(`  5. SQL Editor — cole:`);
+    console.log(`     ${C.yellow}INSERT INTO admin_users (user_id)`);
     console.log(`     SELECT id FROM auth.users WHERE email = '${adminEmail}'`);
-    console.log(`     ON CONFLICT DO NOTHING;${RESET}`);
+    console.log(`     ON CONFLICT DO NOTHING;${C.reset}`);
   }
 
-  // ── 7. GERAR .env ─────────────────────────────────
-  step('7. Gerando arquivo .env');
+  // ════════════════════════════════════════════════════════
+  // 7. GERAR .ENV
+  // ════════════════════════════════════════════════════════
+  step(7, 'Gerando arquivo .env');
 
-  console.log(`  ${YELLOW}(VAPID é necessário para notificações push funcionarem)${RESET}`);
-  const vapidKey = await ask(`  ${BOLD}VAPID Public Key (Enter pra pular — push não funcionará):${RESET} `);
-  const sentryDsn = await ask(`  ${BOLD}Sentry DSN (opcional — Enter pra pular):${RESET} `);
-  const gaId = await ask(`  ${BOLD}Google Analytics ID (opcional — Enter pra pular):${RESET} `);
+  const vapidKey = await ask(`  VAPID Public Key (Enter pra pular): `);
+  const sentryDsn = await ask(`  Sentry DSN (Enter pra pular): `);
+  const gaId = await ask(`  Google Analytics ID (Enter pra pular): `);
 
-  const envContent = `# Black Diamond — ${nomeBarbearia}
-# Gerado automaticamente em ${new Date().toISOString().slice(0, 10)}
+  const envContent = [
+    `# Black Diamond — ${nomeBarbearia}`,
+    `# Gerado em ${new Date().toISOString().slice(0, 10)}`,
+    '',
+    `VITE_SUPABASE_URL=${supabaseUrl}`,
+    `VITE_SUPABASE_ANON_KEY=${supabaseAnonKey}`,
+    `VITE_BARBER_WHATSAPP=${telefoneFormatado}`,
+    `VITE_VAPID_PUBLIC_KEY=${vapidKey || ''}`,
+    `VITE_ADMIN_EMAIL=${adminEmail}`,
+    `VITE_ADMIN_NAME=${nomeBarbearia}`,
+    `VITE_SENTRY_DSN=${sentryDsn || ''}`,
+    `VITE_GA_ID=${gaId || ''}`,
+    `VITE_SITE_URL=${finalSiteUrl}`,
+  ].join('\n');
 
-VITE_SUPABASE_URL=${supabaseUrl}
-VITE_SUPABASE_ANON_KEY=${supabaseAnonKey}
-VITE_BARBER_WHATSAPP=55${telefone.replace(/\D/g, '')}
-VITE_VAPID_PUBLIC_KEY=${vapidKey || ''}
-VITE_ADMIN_EMAIL=${adminEmail}
-VITE_ADMIN_NAME=${nomeBarbearia}
-VITE_SENTRY_DSN=${sentryDsn || ''}
-VITE_GA_ID=${gaId || ''}
-VITE_SITE_URL=${finalSiteUrl}
-`;
+  writeFileSync(join(__dirname, '.env'), envContent, 'utf-8');
+  ok('.env criado com sucesso!');
 
-  const envPath = join(__dirname, '.env');
-  writeFileSync(envPath, envContent, 'utf-8');
-  ok(`.env criado em ${envPath}`);
-
-  // ── 8. DEPLOY ──────────────────────────────────────
-  step('8. Deploy na Vercel');
-  const querDeploy = await ask(`  ${YELLOW}Fazer deploy agora? (s/N):${RESET} `);
+  // ════════════════════════════════════════════════════════
+  // 8. DEPLOY NA VERCEL (com retry)
+  // ════════════════════════════════════════════════════════
+  step(8, 'Deploy na Vercel');
+  const querDeploy = await ask(`  Fazer deploy agora? (s/N): `);
 
   if (querDeploy.toLowerCase() === 's') {
-    console.log('     ⏳ Rodando build + deploy...');
-    try {
-      execSync('npx vercel --prod --yes', {
-        cwd: __dirname,
-        stdio: 'inherit',
-        timeout: 180000,
-      });
-      ok(`Deploy concluído! 🚀`);
-      ok(`Acesse: ${finalSiteUrl}`);
-    } catch {
-      warn('Deploy falhou. Tente manualmente:');
-      console.log(`     ${CYAN}npx vercel --prod${RESET}`);
-      console.log(`  Ou conecte o repositório no GitHub na Vercel.`);
+    let deployOk = false;
+    let tentativas = 0;
+    const maxTentativas = 3;
+
+    while (!deployOk && tentativas < maxTentativas) {
+      tentativas++;
+      info(`Tentativa ${tentativas}/${maxTentativas}...`);
+      try {
+        execSync('npx vercel --prod --yes', {
+          cwd: __dirname, stdio: 'inherit', timeout: 180000,
+        });
+        deployOk = true;
+      } catch {
+        if (tentativas < maxTentativas) {
+          const retry = await ask(`  Deploy falhou. Tentar de novo? (s/N): `);
+          if (retry.toLowerCase() !== 's') break;
+        }
+      }
+    }
+
+    if (deployOk) {
+      ok(`Deploy concluido! Acesse: ${finalSiteUrl}`);
+    } else {
+      warn('Deploy manual. Rode: npx vercel --prod');
     }
   } else {
     warn('Depois rode: npx vercel --prod');
   }
 
-  // ── RESUMO FINAL ──────────────────────────────────
+  // ════════════════════════════════════════════════════════
+  // RESUMO FINAL
+  // ════════════════════════════════════════════════════════
   const pendentes = [];
   if (!projectRef) {
     pendentes.push('Rodar universal.sql no SQL Editor');
-    pendentes.push('Criar usuário admin em Authentication');
+    pendentes.push('Criar usuario admin em Authentication');
     pendentes.push('Rodar INSERT INTO admin_users');
   }
-  if (!vapidKey) pendentes.push('Configurar VAPID key para push notifications');
+  if (!vapidKey) pendentes.push('Configurar VAPID key para push');
+  pendentes.push('Configurar logo/fotos em /public/assets/');
+  pendentes.push('Ajustar endereco no Location.tsx');
+  pendentes.push('Ajustar Instagram no Footer.tsx');
 
-  console.log(`\n${YELLOW}╔══════════════════════════════════════════════════╗`);
-  console.log(`║   🎉 SISTEMA PRONTO PRA VENDER!              ║`);
-  console.log(`╚══════════════════════════════════════════════════╝${RESET}`);
-  console.log(`
-  ${BOLD}Barbearia:${RESET}  ${nomeBarbearia}
-  ${BOLD}Admin:${RESET}      ${adminEmail}
-  ${BOLD}URL:${RESET}        ${finalSiteUrl}
-  ${BOLD}Supabase:${RESET}   ${supabaseUrl}
+  console.log('');
+  box('INSTALACAO CONCLUIDA', [
+    `Barbearia:  ${nomeBarbearia}`,
+    `Admin:      ${adminEmail}`,
+    `URL:        ${finalSiteUrl}`,
+    `Supabase:   ${supabaseUrl}`,
+    '',
+    `Proximos passos:`,
+    ...pendentes.map((p, i) => `  ${i + 1}. ${p}`),
+  ]);
 
-  ${GREEN}💰 Lucro: R$ 1.990 (ou o preço que você definir)${RESET}
-
-  ${YELLOW}📋 PENDENTES${RESET}
-${pendentes.map((p, i) => `  ${i + 1}. ${p}`).join('\n')}
-  ${pendentes.length + 1}. Configurar logo/fotos em /public/assets/
-  ${pendentes.length + 2}. Ajustar endereço no Location.tsx
-  ${pendentes.length + 3}. Ajustar Instagram no Footer.tsx
-  ${pendentes.length + 4}. Configurar domínio (se tiver)
-
-  ${GREEN}Bora vender! 💈🔥${RESET}
-`);
-
+  console.log(`  ${C.green}Bora vender!${C.reset}\n`);
   rl.close();
 }
 
 main().catch((err) => {
-  console.error(`\n${RED}Erro:${RESET} ${err.message}`);
+  console.error(`\n${C.red}Erro fatal:${C.reset} ${err.message}`);
   rl.close();
   process.exit(1);
 });

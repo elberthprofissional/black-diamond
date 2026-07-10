@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
@@ -9,7 +9,7 @@ import Gallery from '../components/Gallery';
 import Location from '../components/Location';
 import Footer from '../components/Footer';
 
-const Home: React.FC = () => {
+const Home: FC = () => {
   const navigate = useNavigate();
 
   const handleBooking = () => {

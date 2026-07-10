@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, memo, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface NavbarProps {
   onBookingClick: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = React.memo(({ onBookingClick }) => {
+const Navbar: FC<NavbarProps> = memo(({ onBookingClick }) => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
 

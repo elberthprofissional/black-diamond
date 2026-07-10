@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type FC } from 'react';
 import { User } from 'lucide-react';
-import { useBarberSettings } from '../contexts/BarberSettingsContext';
+import { useBarberSettings } from '../hooks/useBarberSettings';
 
-const About: React.FC = () => {
+const About: FC = () => {
   const { barberPhoto, barberBio, barberName, barberQuote } = useBarberSettings();
   const [photoError, setPhotoError] = useState(false);
 

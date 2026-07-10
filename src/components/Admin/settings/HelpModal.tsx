@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, HelpCircle, X } from 'lucide-react';
 
 interface FAQItem {
   question: string;
-  answer: React.ReactNode;
+  answer: ReactNode;
 }
 
 const InstallAnswer = () => (

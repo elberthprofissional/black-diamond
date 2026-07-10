@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type FC, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
@@ -12,12 +12,12 @@ import LoginForm from '../components/Admin/LoginForm';
 import ForgotPasswordModal from '../components/Admin/ForgotPasswordModal';
 import LoginToast from '../components/Admin/LoginToast';
 
-const AdminLogin: React.FC = () => {
+const AdminLogin: FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isForgotOpen, setIsForgotOpen] = useState(false);
-  const [recoveryEmail, setRecoveryEmail] = useState(import.meta.env.VITE_ADMIN_EMAIL || '');
+  const [recoveryEmail, setRecoveryEmail] = useState('');
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [isResetSent, setIsResetSent] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -91,7 +91,7 @@ const AdminLogin: React.FC = () => {
     };
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setLoginError(null);
 
@@ -104,6 +104,23 @@ const AdminLogin: React.FC = () => {
       const remaining = Math.ceil(getTimeUntilReset() / 60000);
       setLoginError(`Muitas tentativas. Tente novamente em ${remaining} minuto(s).`);
       return;
+    }
+
+    // Server-side rate limit check via Supabase RPC
+    try {
+      const { data: allowed, error: rateError } = await supabase.rpc('check_rate_limit', {
+        p_key: 'admin_login',
+        p_max_attempts: 5,
+        p_window_seconds: 900,
+      });
+      if (rateError || allowed === false) {
+        setLoginError('Muitas tentativas de login. Aguarde 15 minutos e tente novamente.');
+        recordAttempt();
+        setIsLoggingIn(false);
+        return;
+      }
+    } catch {
+      // Fallback: se RPC falhar, continua com rate limit client-side apenas
     }
 
     setIsLoggingIn(true);
@@ -132,7 +149,7 @@ const AdminLogin: React.FC = () => {
     }
   };
 
-  const handleResetPassword = async (e: React.FormEvent) => {
+  const handleResetPassword = async (e: FormEvent) => {
     e.preventDefault();
     if (!recoveryEmail.trim()) {
       showError('Digite seu e-mail.');

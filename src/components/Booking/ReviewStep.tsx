@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo, type FC } from 'react';
 import { formatPhone, formatDateBR } from '../../lib/utils';
 import type { Service } from '../../types';
 
@@ -12,7 +12,7 @@ interface ReviewStepProps {
   layout: 'desktop' | 'mobile';
 }
 
-const ReviewStep: React.FC<ReviewStepProps> = React.memo(
+const ReviewStep: FC<ReviewStepProps> = memo(
   ({ userName, userPhone, selectedDate, selectedTime, selectedServices, totalPrice, layout }) => {
     const formattedDate = formatDateBR(selectedDate);
 

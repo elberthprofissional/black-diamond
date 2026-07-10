@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toggleSlotBlock, unblockDay } from '../lib/api';
 import { useToast } from './useToast';
+import { useAuditLog } from './useAuditLog';
 import type { BookingWithClient } from '../types';
 
 export function useSlotBlocking() {
@@ -8,6 +9,7 @@ export function useSlotBlocking() {
   const [unblockingBooking, setUnblockingBooking] = useState<BookingWithClient | null>(null);
   const [blockingDay, setBlockingDay] = useState(false);
   const { showSuccess, showError } = useToast();
+  const { log } = useAuditLog();
 
   const blockSlot = async (
     date: string,
@@ -21,6 +23,7 @@ export function useSlotBlocking() {
       if (onBlockComplete) {
         await onBlockComplete();
       }
+      log({ action: 'slot_blocked', details: { date, slot } });
       showSuccess(`Horário ${slot} bloqueado com sucesso!`);
     } catch {
       showError('Erro ao bloquear horário.');
@@ -38,6 +41,7 @@ export function useSlotBlocking() {
       if (booking) {
         await toggleSlotBlock(booking.booking_date, booking.booking_time.slice(0, 5));
       }
+      log({ action: 'slot_unblocked', details: { booking_id: _bookingId } });
       setUnblockingBooking(null);
       if (onUnblockComplete) {
         await onUnblockComplete();
@@ -62,6 +66,7 @@ export function useSlotBlocking() {
       if (onComplete) {
         await onComplete();
       }
+      log({ action: 'slot_blocked', details: { date, slots: freeSlots.join(',') } });
       showSuccess('Dia bloqueado com sucesso!');
     } catch {
       showError('Erro ao bloquear o dia.');
@@ -81,6 +86,7 @@ export function useSlotBlocking() {
       if (date) {
         await unblockDay(date);
       }
+      log({ action: 'slot_unblocked', details: { date, bookings_count: blockedBookings.length } });
       if (onComplete) {
         await onComplete();
       }

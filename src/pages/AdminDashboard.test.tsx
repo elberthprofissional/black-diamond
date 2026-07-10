@@ -1,30 +1,35 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 
-const mockGetBookings = vi.fn().mockResolvedValue([
-  {
-    id: 'b1',
-    client_id: 'c1',
-    booking_date: '2026-07-05',
-    booking_time: '10:00:00',
-    total_price: 35,
-    status: 'confirmed',
-    is_blocked: false,
-    service_ids: ['s1'],
-    clients: { name: 'João Silva', phone: '11999999999' },
-  },
-  {
-    id: 'b2',
-    client_id: 'c2',
-    booking_date: '2026-07-05',
-    booking_time: '11:00:00',
-    total_price: 27,
-    status: 'completed',
-    is_blocked: false,
-    service_ids: ['s2'],
-    clients: { name: 'Maria Souza', phone: '11888888888' },
-  },
-]);
+const mockGetBookings = vi.fn().mockResolvedValue({
+  data: [
+    {
+      id: 'b1',
+      client_id: 'c1',
+      booking_date: '2026-07-05',
+      booking_time: '10:00:00',
+      total_price: 35,
+      status: 'confirmed',
+      is_blocked: false,
+      service_ids: ['s1'],
+      clients: { name: 'João Silva', phone: '11999999999' },
+    },
+    {
+      id: 'b2',
+      client_id: 'c2',
+      booking_date: '2026-07-05',
+      booking_time: '11:00:00',
+      total_price: 27,
+      status: 'completed',
+      is_blocked: false,
+      service_ids: ['s2'],
+      clients: { name: 'Maria Souza', phone: '11888888888' },
+    },
+  ],
+  total: 2,
+  page: 1,
+  pageSize: 200,
+});
 
 vi.mock('../lib/api', () => ({
   getBookings: (...args: unknown[]) => mockGetBookings(...args),

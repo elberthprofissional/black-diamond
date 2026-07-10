@@ -23,9 +23,6 @@ describe('useAuditLog', () => {
     expect(typeof result.current.log).toBe('function');
     expect(typeof result.current.logLogin).toBe('function');
     expect(typeof result.current.logBooking).toBe('function');
-    expect(typeof result.current.logClient).toBe('function');
-    expect(typeof result.current.logService).toBe('function');
-    expect(typeof result.current.logSettings).toBe('function');
   });
 
   it('log não lança erro mesmo com falha', async () => {

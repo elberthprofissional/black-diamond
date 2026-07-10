@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, User, LogOut, Settings } from 'lucide-react';
@@ -6,7 +6,7 @@ import { useAdminLogout } from '../../hooks/useAdminLogout';
 import { useBarberSettings } from '../../contexts/BarberSettingsContext';
 import NotificationBell from './NotificationBell';
 
-const AdminNavbar: React.FC = () => {
+const AdminNavbar: FC = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -23,30 +23,26 @@ const AdminNavbar: React.FC = () => {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-
-      // If at the very top (or bounce on iOS), keep visible
       if (currentScrollY <= 10) {
         setVisible(true);
         setLastScrollY(currentScrollY);
         return;
       }
-
       if (currentScrollY > lastScrollY) {
-        setVisible(false); // scrolling down
-        setIsMenuOpen(false); // close user dropdown menu
+        setVisible(false);
+        setIsMenuOpen(false);
       } else {
-        setVisible(true); // scrolling up
+        setVisible(true);
       }
-
       setLastScrollY(currentScrollY);
     };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
   return (
     <>
+      {/* ─── MOBILE TOP BAR ─── */}
       <nav
         className={`fixed top-0 left-0 right-0 h-16 bg-[#0E0E0E]/90 backdrop-blur-md border-b border-white/[0.06] z-[100] px-6 lg:hidden transition-transform duration-300 ${visible ? 'translate-y-0' : '-translate-y-full'}`}
       >
@@ -60,7 +56,6 @@ const AdminNavbar: React.FC = () => {
               Black Diamond
             </span>
           </div>
-
           <div className="flex items-center gap-1">
             <NotificationBell variant="mobile" />
             <div className="relative">
@@ -88,7 +83,6 @@ const AdminNavbar: React.FC = () => {
                   className={`text-zinc-600 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`}
                 />
               </button>
-
               <AnimatePresence>
                 {isMenuOpen && (
                   <>
@@ -141,7 +135,7 @@ const AdminNavbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* LOGOUT CONFIRMATION MODAL */}
+      {/* ─── LOGOUT CONFIRMATION MODAL ─── */}
       <AnimatePresence>
         {showLogoutConfirm && (
           <div

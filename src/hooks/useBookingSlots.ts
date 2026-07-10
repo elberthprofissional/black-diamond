@@ -1,14 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getNextDays, fetchTimeSlotsForDate } from '../lib/utils';
+import { getNextDays, getTimeSlotsForDate } from '../lib/utils';
 import { getAvailableSlots, getBookings } from '../lib/api';
 import { useDateDragScroll } from './useDateDragScroll';
 import { supabase } from '../lib/supabase';
 
 export function useBookingSlots(showError: (msg: string) => void) {
-  const allNextDays = useMemo(() => getNextDays(), []);
+  const [barberHoursJson, setBarberHoursJson] = useState('');
+  const allNextDays = useMemo(() => getNextDays(barberHoursJson || undefined), [barberHoursJson]);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
-  const [barberPhone, setBarberPhone] = useState('');
   const [workingDays, setWorkingDays] = useState('1,2,3,4,5,6');
   const [existingBookings, setExistingBookings] = useState<
     { booking_time: string; status: string }[]
@@ -32,19 +32,16 @@ export function useBookingSlots(showError: (msg: string) => void) {
         const { data } = await supabase
           .from('settings')
           .select('key, value')
-          .in('key', ['barber_phone', 'working_days']);
+          .in('key', ['working_days', 'barber_hours']);
 
         if (data) {
           for (const row of data) {
-            if (row.key === 'barber_phone' && row.value) setBarberPhone(row.value);
-            else if (row.key === 'working_days' && row.value) setWorkingDays(row.value);
+            if (row.key === 'working_days' && row.value) setWorkingDays(row.value);
+            else if (row.key === 'barber_hours' && row.value) setBarberHoursJson(row.value);
           }
         }
-        if (!data?.find((r) => r.key === 'barber_phone')) {
-          setBarberPhone(import.meta.env.VITE_BARBER_WHATSAPP || '');
-        }
       } catch {
-        setBarberPhone(import.meta.env.VITE_BARBER_WHATSAPP || '');
+        // settings fetch failed, keep defaults
       }
     };
     fetchSettings();
@@ -56,12 +53,12 @@ export function useBookingSlots(showError: (msg: string) => void) {
       let active = true;
       const loadData = async () => {
         try {
-          const [bookingsData, slotsData] = await Promise.all([
-            getBookings(selectedDate).catch(() => []),
-            getAvailableSlots(selectedDate).catch(() => fetchTimeSlotsForDate(selectedDate)),
+          const [bookingsResult, slotsData] = await Promise.all([
+            getBookings(selectedDate).catch(() => ({ data: [] })),
+            getAvailableSlots(selectedDate).catch(() => getTimeSlotsForDate(selectedDate)),
           ]);
           if (!active) return;
-          setExistingBookings(bookingsData);
+          setExistingBookings(bookingsResult.data);
           setAvailableSlots(slotsData);
         } catch {
           if (active) showError('Erro ao carregar dados.');
@@ -82,7 +79,6 @@ export function useBookingSlots(showError: (msg: string) => void) {
     existingBookings,
     availableSlots,
     nextDays,
-    barberPhone,
     dateContainerRef,
     handleMouseDown,
     handleMouseLeave,

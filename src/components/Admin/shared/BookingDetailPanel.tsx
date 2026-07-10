@@ -1,6 +1,7 @@
-import React from 'react';
+import { memo, type FC } from 'react';
 import type { BookingWithClient, Service } from '../../../types';
 import { formatPhone } from '../../../lib/utils';
+import { BLOCKED_NAME } from '../../../lib/constants';
 
 interface BookingDetailPanelProps {
   booking: BookingWithClient;
@@ -26,10 +27,10 @@ const XIcon = () => (
   </svg>
 );
 
-const BookingDetailPanel: React.FC<BookingDetailPanelProps> = React.memo(
+const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
   ({ booking, services, onClose, onComplete, onReschedule, onDelete, onUnblock }) => {
     const isBlocked =
-      booking.is_blocked || !booking.client_id || booking.clients?.name === 'BLOQUEADO';
+      booking.is_blocked || !booking.client_id || booking.clients?.name === BLOCKED_NAME;
 
     const handleReminder = () => {
       const phone = booking.clients?.phone?.replace(/\D/g, '') || '';

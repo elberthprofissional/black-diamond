@@ -1,9 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, ArrowLeft } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { useNotifications, type Notification } from '../../hooks/useNotifications';
 import { WhatsAppIcon } from '../WhatsAppIcon';
+import { formatPhone } from '../../lib/utils';
 
 function useLongPress(callback: () => void, ms = 500) {
   const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
@@ -39,18 +40,12 @@ function parseNotifBody(body: string) {
     manageUrl: parts[5].trim(),
   };
 }
-
-function formatPhone(phone: string) {
-  const d = phone.replace(/\D/g, '');
-  if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
-  return phone;
-}
-
 /* ─── Detail Page ─── */
 function NotificationDetail({ notif, onBack }: { notif: Notification; onBack: () => void }) {
   const data = parseNotifBody(notif.body);
   if (!data) return null;
 
+  const isCancelled = notif.tag?.startsWith('cancelled-') || data.manageUrl === 'Cancelado';
   const [date, time] = data.dateTime.split(' às ');
   const services = data.services.split(', ');
 
@@ -80,6 +75,31 @@ function NotificationDetail({ notif, onBack }: { notif: Notification; onBack: ()
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 pb-6">
+        {/* Cancelled Banner */}
+        {isCancelled && (
+          <div className="flex items-center gap-2.5 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl mb-5">
+            <svg
+              className="w-5 h-5 text-red-400 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+              />
+            </svg>
+            <div>
+              <p className="text-[13px] font-bold text-red-400">Agendamento Cancelado</p>
+              <p className="text-[11px] text-red-400/70">
+                Este agendamento foi cancelado e não está mais ativo.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Client */}
         <div className="flex items-center gap-3 mb-6">
           <div className="w-14 h-14 rounded-full bg-[#C5A059]/10 border-2 border-[#C5A059]/20 flex items-center justify-center text-base font-bold text-[#C5A059] shrink-0">
@@ -150,27 +170,38 @@ function NotificationDetail({ notif, onBack }: { notif: Notification; onBack: ()
         </div>
 
         {/* Actions */}
-        <div className="space-y-3">
-          <button
-            onClick={handleRemind}
-            className="w-full h-12 bg-[#C5A059] text-black hover:bg-[#A68233] font-bold text-[11px] uppercase tracking-[0.15em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
-          >
-            <WhatsAppIcon className="w-4 h-4" />
-            Enviar Lembrete
-          </button>
-          <button
-            onClick={() => window.open(data.manageUrl, '_blank')}
-            className="w-full h-12 bg-white/[0.03] border border-white/[0.06] text-zinc-300 hover:bg-white/[0.06] hover:text-white rounded-xl transition-all text-[11px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
-          >
-            Reagendar
-          </button>
-          <button
-            onClick={() => window.open(data.manageUrl, '_blank')}
-            className="w-full h-12 bg-white/[0.03] border border-white/[0.06] text-zinc-400 hover:bg-red-500/[0.02] hover:border-red-500/20 hover:text-red-400 rounded-xl transition-all text-[11px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
-          >
-            Cancelar Agendamento
-          </button>
-        </div>
+        {isCancelled ? (
+          <div className="space-y-3">
+            <button
+              onClick={() => window.open(`https://wa.me/${data.clientPhone}`, '_blank')}
+              className="w-full h-12 bg-white/[0.03] border border-white/[0.06] text-zinc-300 hover:bg-white/[0.06] hover:text-white rounded-xl transition-all text-[11px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              Falar com Cliente
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <button
+              onClick={handleRemind}
+              className="w-full h-12 bg-[#C5A059] text-black hover:bg-[#A68233] font-bold text-[11px] uppercase tracking-[0.15em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
+            >
+              <WhatsAppIcon className="w-4 h-4" />
+              Enviar Lembrete
+            </button>
+            <button
+              onClick={() => window.open(data.manageUrl, '_blank')}
+              className="w-full h-12 bg-white/[0.03] border border-white/[0.06] text-zinc-300 hover:bg-white/[0.06] hover:text-white rounded-xl transition-all text-[11px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              Reagendar
+            </button>
+            <button
+              onClick={() => window.open(data.manageUrl, '_blank')}
+              className="w-full h-12 bg-white/[0.03] border border-white/[0.06] text-zinc-400 hover:bg-red-500/[0.02] hover:border-red-500/20 hover:text-red-400 rounded-xl transition-all text-[11px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              Cancelar Agendamento
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -398,7 +429,7 @@ function NotificationListContent({
   };
 
   const selectAll = () => {
-    setSelectedIds(new Set(notifications.map((n) => n.id)));
+    setSelectedIds(() => new Set(notifications.map((n) => n.id)));
   };
 
   const deleteSelected = async () => {
@@ -408,7 +439,7 @@ function NotificationListContent({
     } catch {
       // Notificações já foram removidas do estado (clearNotification faz update otimista)
     }
-    setSelectedIds(new Set());
+    setSelectedIds(() => new Set());
     setIsSelectionMode(false);
   };
 
@@ -473,7 +504,7 @@ function NotificationListContent({
         onClick={() => (isSelectionMode ? toggleSelect(notif.id) : setSelected(notif))}
         onDoubleClick={() => {
           setIsSelectionMode(true);
-          setSelectedIds(new Set([notif.id]));
+          setSelectedIds(() => new Set([notif.id]));
         }}
         className={`w-full flex items-start gap-3 px-5 py-4 text-left transition-all hover:bg-white/[0.02] active:bg-white/[0.04] ${
           isSelected ? 'bg-[#C5A059]/[0.05]' : ''
@@ -570,7 +601,7 @@ function NotificationListContent({
                   <button
                     onClick={() => {
                       setIsSelectionMode(false);
-                      setSelectedIds(new Set());
+                      setSelectedIds(() => new Set());
                     }}
                     className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
                   >
@@ -709,7 +740,7 @@ function NotificationListContent({
 }
 
 /* ─── Bell Component ─── */
-const NotificationBell: React.FC<{ variant: 'mobile' | 'desktop' }> = ({ variant }) => {
+const NotificationBell: FC<{ variant: 'mobile' | 'desktop' }> = ({ variant }) => {
   const navigate = useNavigate();
   const { notifications, unreadCount, markAllAsRead, clearNotification } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
@@ -743,15 +774,12 @@ const NotificationBell: React.FC<{ variant: 'mobile' | 'desktop' }> = ({ variant
           <div className="relative shrink-0">
             <Bell size={16} className="text-zinc-600" />
             {unreadCount > 0 && (
-              <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#C5A059] border border-[#0A0A0A]" />
+              <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-[#C5A059] text-black text-[9px] font-bold flex items-center justify-center leading-none">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
             )}
           </div>
           <span className="text-[11px] font-bold tracking-wide flex-1">Notificações</span>
-          {unreadCount > 0 && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#C5A059]/15 text-[#C5A059] font-bold">
-              {unreadCount}
-            </span>
-          )}
         </button>
       ) : (
         <button
@@ -760,8 +788,8 @@ const NotificationBell: React.FC<{ variant: 'mobile' | 'desktop' }> = ({ variant
         >
           <Bell size={20} />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#C5A059] text-black text-[9px] font-bold flex items-center justify-center">
-              {unreadCount}
+            <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#C5A059] text-black text-[9px] font-bold flex items-center justify-center leading-none">
+              {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
         </button>

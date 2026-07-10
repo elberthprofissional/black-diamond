@@ -22,7 +22,7 @@ export interface Booking {
   clients?: {
     name: string;
     phone: string;
-  };
+  } | null;
 }
 
 export interface BookingWithClient extends Booking {
@@ -43,7 +43,11 @@ export interface Client {
   mensalista_plan_id?: string;
   mensalista_expires_at?: string;
   is_blocked?: boolean;
+  deleted_at?: string | null;
   manually_added?: boolean;
+  historical_visits?: number;
+  historical_spent?: number;
+  last_visit_date?: string;
   created_at: string;
 }
 
@@ -54,15 +58,6 @@ export interface ClientWithStats extends Client {
   bookingsCount: number;
   upcomingBooking?: { date: string; time: string } | null;
   isInactive: boolean;
-}
-
-export interface Review {
-  id: string;
-  booking_id: string;
-  client_id: string;
-  rating: number;
-  comment?: string;
-  created_at: string;
 }
 
 export interface MensalistaPlan {

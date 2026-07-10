@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, type FC } from 'react';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
 import { supabase } from '../../../lib/supabase';
@@ -15,7 +15,7 @@ const MAX_SERVICES = 15;
 const MAX_NAME_LENGTH = 30;
 const MAX_PRICE_LENGTH = 6;
 
-const SettingsServicos: React.FC = () => {
+const SettingsServicos: FC = () => {
   const { toast, showSuccess, showError } = useToast();
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +26,7 @@ const SettingsServicos: React.FC = () => {
 
   const [nameInput, setNameInput] = useState('');
   const [priceInput, setPriceInput] = useState('');
+  const [durationInput, setDurationInput] = useState('60');
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   const loadServices = useCallback(async () => {
@@ -78,7 +79,8 @@ const SettingsServicos: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase.from('services').insert({ name, price, duration: 60 });
+      const duration = parseInt(durationInput, 10) || 60;
+      const { error } = await supabase.from('services').insert({ name, price, duration });
       if (error) throw error;
       showSuccess('Serviço adicionado!');
       setNameInput('');
@@ -108,7 +110,11 @@ const SettingsServicos: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase.from('services').update({ name, price }).eq('id', editingId);
+      const duration = parseInt(durationInput, 10) || 60;
+      const { error } = await supabase
+        .from('services')
+        .update({ name, price, duration })
+        .eq('id', editingId);
       if (error) throw error;
       showSuccess('Serviço atualizado!');
       setScreen('list');
@@ -136,18 +142,21 @@ const SettingsServicos: React.FC = () => {
   const openAdd = () => {
     setNameInput('');
     setPriceInput('');
+    setDurationInput('60');
     setEditingId(null);
     setScreen('add');
   };
   const openEdit = (service: Service) => {
     setNameInput(service.name);
     setPriceInput(String(service.price));
+    setDurationInput('60');
     setEditingId(service.id);
     setScreen('edit');
   };
   const closeForm = () => {
     setNameInput('');
     setPriceInput('');
+    setDurationInput('60');
     setEditingId(null);
     setScreen('list');
   };
@@ -340,6 +349,24 @@ const SettingsServicos: React.FC = () => {
                     if (e.key === 'Enter') handleSubmit();
                   }}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">
+                  Duração (min)
+                </span>
+                <select
+                  value={durationInput}
+                  onChange={(e) => setDurationInput(e.target.value)}
+                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[15px] text-white outline-none focus:border-[#C5A059]/40 transition-all"
+                >
+                  <option value="15">15 min</option>
+                  <option value="30">30 min</option>
+                  <option value="45">45 min</option>
+                  <option value="60">60 min</option>
+                  <option value="90">90 min</option>
+                  <option value="120">120 min</option>
+                </select>
               </div>
 
               <div className="space-y-2">

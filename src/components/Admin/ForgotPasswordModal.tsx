@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FormEvent, type RefObject } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
@@ -7,10 +7,10 @@ interface ForgotPasswordModalProps {
   onClose: () => void;
   recoveryEmail: string;
   onEmailChange: (email: string) => void;
-  onResetPassword: (e: React.FormEvent) => Promise<void>;
+  onResetPassword: (e: FormEvent) => Promise<void>;
   isSendingReset: boolean;
   isResetSent: boolean;
-  dialogRef: React.RefObject<HTMLDivElement | null>;
+  dialogRef: RefObject<HTMLDivElement | null>;
 }
 
 export default function ForgotPasswordModal({

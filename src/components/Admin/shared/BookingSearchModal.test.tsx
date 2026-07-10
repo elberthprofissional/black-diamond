@@ -74,9 +74,15 @@ describe('BookingSearchModal', () => {
   it('nao mostra clientes deletados', () => {
     const clientsWithDeleted = [
       ...mockClients,
-      { id: '4', name: 'CLIENTE EXCLUIDO', phone: 'DELETED_123', created_at: '2024-01-01' },
+      {
+        id: '4',
+        name: 'Fulano',
+        phone: '31966666666',
+        created_at: '2024-01-01',
+        deleted_at: '2024-06-01T00:00:00Z',
+      },
     ];
     render(<BookingSearchModal {...defaultProps} clients={clientsWithDeleted} />);
-    expect(screen.queryByText('CLIENTE EXCLUIDO')).not.toBeInTheDocument();
+    expect(screen.queryByText('Fulano')).not.toBeInTheDocument();
   });
 });

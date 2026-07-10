@@ -1,9 +1,132 @@
 # Changelog
 
-Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
+Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 
-O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
+O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
+
+## [3.17.0] - 2026-07-10
+
+### Added
+- **Cache offline de serviços** — Serviços agora são salvos no localStorage com validade de 24h. Se o cliente ficar sem internet, os serviços carregam do cache em vez de mostrar erro. Quando a internet volta, recarrega automaticamente.
+- **Banner offline amigável** — `ConnectionStatusBanner` mudou de vermelho (alerta crítico) para âmbar (aviso) com ícone WifiOff e mensagem "Sem conexão com a internet. Dados salvos no celular — você pode continuar navegando."
+- **Booking offline (fila)** — Quando sem internet, o agendamento é salvo no `localStorage`. Quando a internet volta, é enviado automaticamente. O cliente vê tela de sucesso "Agendamento salvo! Será enviado quando a conexão voltar." e recebe toast de confirmação quando for processado.
+
+### Changed
+- **useServices.ts** — Estado `isOffline` indica se os dados vieram do cache. Listener `online` recarrega serviços silenciosamente quando a internet volta.
+- **ConnectionStatusBanner.tsx** — Design menos alarmista (âmbar em vez de vermelho, sem pulse no indicador).
+
+## [3.16.0] - 2026-07-10
+
+### Added
+- **Realtime notifications com DELETE/UPDATE** — Subscription agora escuta `event: '*'` em vez de só `INSERT`. Quando trigger de cancelamento deleta notificação antiga, ela some da tela em tempo real. UPDATE sincroniza read status entre abas.
+- **Auto-reconnect nas notificações** — Se o WebSocket cair, tenta reconectar automaticamente com backoff exponencial (até 15 tentativas, máximo 15s de intervalo). Prevenção de duplicatas.
+- **Realtime ativado no banco** — `ALTER PUBLICATION supabase_realtime ADD TABLE notifications` e `ADD TABLE bookings` adicionados ao `universal.sql`.
+- **Dashboard em tempo real** — `useDashboardData.ts` agora escuta INSERT/UPDATE/DELETE na tabela `bookings`. Quando um agendamento é cancelado/criado/alterado, os cards de Ocupados, Livres e Bloqueados atualizam automaticamente sem refresh.
+
+### Changed
+- **getNextDays — Calendário não pula mais dias** — ANTES: gerava 7 dias corridos (incluindo domingo) e filtrava depois, criando sequência quebrada (ex: Qua, Qui, Sex, Sáb, ~~Dom~~, Seg, Ter). AGORA: gera de HOJE até SÁBADO inclusive. Sem pular dias. Ex: quarta mostra Qua, Qui, Sex, Sáb (4 dias). Sábado após fechar mostra a próxima semana.
+- **DailyRevenue corrigido** — Só conta bookings com status `'completed'`. ANTES contava `confirmed` também (agendamentos futuros que ainda não foram realizados).
+- **Settings desktop — Layout fixo** — Container de configurações mudou de `min-h-[400px]` para `min-h-[600px]` para evitar tremor (layout shift) ao alternar entre abas com alturas diferentes.
+
+### Fixed
+- **Lucro do Dia inflado** — Estava somando agendamentos futuros (`confirmed`) como lucro. Agora só conta atendimentos concluídos (`completed`).
+- **Calendário pulava dias** — Não mostrava mais sequência quebrada com domingo no meio.
+- **Notificações não sumiam em tempo real** — Agora DELETE é escutado, então trigger de cancelamento remove notificação antiga da tela instantaneamente.
+- **Reconexão de WebSocket** — Se a conexão caísse, notificações paravam pra sempre. Agora reconecta automaticamente.
+
+## [3.15.0] - 2026-07-10
+
+### Added
+- **Hook useMensalistaFilter** — Hook compartilhado entre booking publico e admin. Extrai logica de filtragem de servicos mensalista, reset de servicos, e filtragem de dias (Seg-Qui).
+- **API layer para templates** — `lib/api/templates.ts` com CRUD para tabela `whatsapp_templates`.
+- **Testes unitarios** — `AdminResetPassword.test.tsx` (12 testes) e `CancelPage.test.tsx` (11 testes).
+- **Testes visuais** — `e2e/visual.spec.ts` com 13 testes de screenshot comparison (Playwright).
+- **Tabela whatsapp_templates** — Nova tabela no Supabase para templates de WhatsApp (substitui localStorage).
+- **Tabela rate_limits** — Nova tabela para rate limiting server-side.
+- **Coluna deleted_at** — Soft delete na tabela clients (migration 20260713).
+- **Funcao check_rate_limit** — Rate limiting customizado por IP.
+- **Funcao cleanup_expired_tokens** — Cleanup automatico de tokens expirados.
+- **Indice idx_clients_deleted_at** — Performance para queries de soft delete.
+
+### Changed
+- **useReminders.ts** — Migrado de localStorage para Supabase (tabela whatsapp_templates). Templates agora persistem entre dispositivos.
+- **ReminderModal.tsx** — Interface atualizada para receber `WhatsAppTemplate[]` em vez de `string[]`. Delete por ID em vez de index.
+- **NotificationBell.tsx** — Badge estilo Instagram (bolinha dourada com numero, colada no sino). Removido `<li>` wrapper que causava bug visual.
+- **ConnectionStatusBanner.tsx** — Simplificado: so aparece quando offline (sem banner de "dados desatualizados" que causava spam).
+- **ServiceStep.tsx (mobile)** — Redesign: toggle switches dourados, nome + preco, sem duracao (redundante), sem banner decorativo.
+- **SuccessStep.tsx** — Tela de sucesso simplificada: sem dados repetidos da tela anterior, com mensagem personalizada.
+- **DashboardHeader.tsx** — Formatacao pt-BR com `toLocaleString`.
+- **useBookingSlots.ts** — Removido `barberPhone` (dead code nunca consumido).
+- **useBookingWizard.ts** — Removeu 3 blocos de logica mensalista duplicada (agora usa useMensalistaFilter).
+- **AdminBooking.tsx** — Removeu 3 blocos de logica mensalista duplicada + import MENSALISTA_EXCLUDED_SERVICES removido.
+- **4 arquivos** — Imports do useBarberSettings padronizados para `'../hooks/useBarberSettings'`.
+- **NotificationBell.tsx** — Corrigido useEffect duplicado dentro do JSX (bug pre-existente).
+- **instalar-cliente.mjs** — Reescrito com validacao de email/senha (2x), retry no deploy, UUID sanitizado.
+- **universal.sql** — Atualizado com deleted_at, whatsapp_templates, e todos os indexes.
+
+### Fixed
+- **RescheduleWizard.tsx** — Adicionada flag `active` no useEffect de slots (previne state update em componente desmontado).
+- **Location.tsx** — Removidas non-null assertions (`hours!`) que podiam explodir.
+- **Edge Function send-push** — CORS limpo (removido localhost em producao).
+- **DataStep.tsx** — Fix `lastBooking?.serviceIds` (previne crash quando serviceIds e undefined).
+- **useAdminClientSearch.ts** — Interface TypeScript reconstruida (estava quebrada com tipo invalido e fechamento ausente).
+- **clients.ts:47** — Caractere UTF-8 corrompido (`histrico` -> `historico`).
+- **NotificationBell.tsx:786** — useEffect e return duplicados removidos (bug pre-existente).
+
+### Removed
+- **6 arquivos desnecessarios** — audit-banco.mjs, audit-banco-v2.mjs, audit-banco-v3.mjs, audit-verificar.mjs, supabase-helper.mjs, AUDIT_REPORT.md.
+- **setup-barbearia.js** — Script redundante (instalar-cliente.mjs ja faz tudo).
+- **Banner decorativo** — Removido da tela de selecao de servicos (redundante com indicador de passos).
+- **Hover pause na galeria** — Removido `animation-play-state: paused` no hover (desnecessario para galeria de fotos).
+- **Bolinha fantasma** — Removido indicador visual que aparecia ao lado de "Notificacoes" no sidebar.
+
+### Security
+- **DROP FUNCTION antes de CREATE OR REPLACE** — Migration 20260716 corrigida para evitar erro de return type.
+- **UUID sanitizado** — instalar-cliente.mjs sanitiza UUIDs antes de inserir no SQL.
+- **Service role key removida** — audit-banco.mjs com key hardcoded deletado do repositorio.
+
+## [3.14.0] - 2026-07-10
+
+### Added
+- **Notificações Premium** — Som de dois tons via Web Audio API, badge no título da aba (`(3) Black Diamond`), preview toast dourado que desliza do topo com auto-dismiss de 5s.
+- **Trigger de cancelamento no banco** — Quando um agendamento é cancelado, a notificação antiga "Novo Agendamento" é automaticamente deletada e uma nova notificação "Agendamento Cancelado ❌" é inserida com banner vermelho na UI.
+- **Confirmação de cancelamento** — Modal de confirmação no `ClientProfile.tsx` antes de executar o cancelamento, evitando cancelamentos acidentais.
+- **Rate limit server-side no login** — `AdminLogin.tsx` agora chama `check_rate_limit` RPC antes de tentar login, bloqueando após 5 tentativas em 15 minutos.
+- **Senha no reset de dados** — `SettingsDados.tsx` com fluxo de 2 etapas: digitar ZERAR/DELETAR + senha do admin.
+
+### Changed
+- **Desktop/Mobile Steps unificados** — 6 componentes (DesktopClientStep, MobileClientStep, DesktopServicesStep, MobileServicesStep, DesktopDateTimeStep, MobileDateTimeStep) substituídos por 3 componentes responsivos (ResponsiveClientStep, ResponsiveServicesStep, ResponsiveDateTimeStep) que usam `useIsDesktop()` internamente.
+- **AdminBooking.tsx** — Importa 3 componentes em vez de 6. Menos código duplicado, mais fácil de manter.
+- **auto_block_lunch_break** — Corrigido com `'{}'::UUID[]` no lugar de `ARRAY[]::UUID[]` para evitar NOT NULL violation.
+- **Notificações canceladas na UI** — `NotificationDetail` detecta automaticamente notificações de cancelamento e mostra apenas botão "Falar com Cliente" + banner vermelho, sem os botões quebrados de ação.
+
+### Removed
+- **6 arquivos mortos** — DesktopClientStep.tsx, MobileClientStep.tsx, DesktopServicesStep.tsx, MobileServicesStep.tsx, DesktopDateTimeStep.tsx, MobileDateTimeStep.tsx (substituídos pelos responsivos).
+- **Variável `prevCountRef`** — Dead code removido do `useNotifications.ts`.
+
+### Fixed
+- **Notificação de agendamento cancelado** — Notificações de agendamentos cancelados não aparecem mais como se estivessem ativas. Ao clicar, mostra UI de cancelado em vez de botões que não funcionam.
+- **Edge case `unblock_day`** — Trigger de cancelamento ignora slots bloqueados (client_id IS NULL) para não gerar notificações falsas.
+- **auto_block_lunch_break** — NOT NULL violation (23502) corrigida no INSERT de blocos de almoço.
+
+## [3.13.0] - 2026-07-10
+
+### Added
+- **PWA Install Inteligente** — Hook `usePwaInstall` + componente `PwaInstallModal` reutilizáveis. Banner público no rodapé convidando a instalar. No iPhone mostra instruções passo-a-passo com ícones; no Android dispara prompt nativo do navegador (`beforeinstallprompt`).
+- **Banner PWA no site público** — Pequeno card fixo no rodapé das páginas públicas com botão "Instalar". Pode ser dispensado pelo usuário.
+
+### Changed
+- **AdminProfile refatorado** — Lógica de instalação PWA extraída para hook compartilhado `usePwaInstall`.
+
+### Removed
+- **Sistema de Avaliação removido** — `RatingPage.tsx`, tabela `reviews`, funções `get_average_rating`/`get_top_reviews`, rota `/avaliar/:bookingId`, link de review no modal de agradecimento. (Funcionalidade nunca usada, código morto.)
+
+### Fixed
+- **ClientProfile.tsx cancelamento sem token** — `BookingEntry` agora passa o `token` do booking para `cancelBooking`, que o RPC `get_bookings_by_phone` já retornava mas o frontend ignorava.
+- **`get_admin_user_ids()` exposta** — Função SQL removida do banco e do `universal.sql` (nunca era usada no frontend).
+- **Shadowing em `useNotifications.ts`** — Variável `prev` renomeada para evitar conflito com escopo externo.
+- **Diretório `scripts/` vazio removido** — Falsa pista de código não utilizado.
 
 ## [3.12.0] - 2026-07-10
 

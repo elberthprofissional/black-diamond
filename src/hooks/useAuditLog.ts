@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
-export type AuditAction =
+type AuditAction =
   | 'login_success'
   | 'login_failed'
   | 'logout'
@@ -60,7 +60,12 @@ export function useAuditLog() {
 
   const logBooking = useCallback(
     (
-      action: 'booking_created' | 'booking_completed' | 'booking_cancelled' | 'booking_rescheduled' | 'thank_you_sent',
+      action:
+        | 'booking_created'
+        | 'booking_completed'
+        | 'booking_cancelled'
+        | 'booking_rescheduled'
+        | 'thank_you_sent',
       bookingId: string,
       details?: Record<string, unknown>
     ) => {
@@ -69,41 +74,9 @@ export function useAuditLog() {
     [log]
   );
 
-  const logClient = useCallback(
-    (
-      action: 'client_created' | 'client_updated' | 'client_deleted',
-      clientId: string,
-      details?: Record<string, unknown>
-    ) => {
-      log({ action, target_id: clientId, details });
-    },
-    [log]
-  );
-
-  const logService = useCallback(
-    (
-      action: 'service_created' | 'service_updated' | 'service_deleted',
-      serviceId: string,
-      details?: Record<string, unknown>
-    ) => {
-      log({ action, target_id: serviceId, details });
-    },
-    [log]
-  );
-
-  const logSettings = useCallback(
-    (details?: Record<string, unknown>) => {
-      log({ action: 'settings_updated', details });
-    },
-    [log]
-  );
-
   return {
     log,
     logLogin,
     logBooking,
-    logClient,
-    logService,
-    logSettings,
   };
 }

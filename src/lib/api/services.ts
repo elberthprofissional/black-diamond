@@ -18,37 +18,3 @@ export const getServices = async (): Promise<Service[]> => {
     return true;
   });
 };
-
-/** Cria um novo serviço */
-export const createService = async (service: {
-  name: string;
-  price: number;
-  duration?: number;
-  description?: string;
-}): Promise<boolean> => {
-  const { error } = await supabase.from('services').insert({
-    name: service.name,
-    price: service.price,
-    duration: service.duration ?? 60,
-    description: service.description || null,
-  });
-
-  return !error;
-};
-
-/** Atualiza um serviço existente */
-export const updateService = async (
-  id: string,
-  data: { name?: string; price?: number; duration?: number; description?: string }
-): Promise<boolean> => {
-  const { error } = await supabase.from('services').update(data).eq('id', id);
-
-  return !error;
-};
-
-/** Remove um serviço */
-export const deleteService = async (id: string): Promise<boolean> => {
-  const { error } = await supabase.from('services').delete().eq('id', id);
-
-  return !error;
-};

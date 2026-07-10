@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import { EyeOff, Eye } from 'lucide-react';
 
@@ -9,7 +9,7 @@ interface LoginFormProps {
   onPasswordChange: (password: string) => void;
   showPassword: boolean;
   onTogglePassword: () => void;
-  onSubmit: (e: React.FormEvent) => Promise<void>;
+  onSubmit: (e: FormEvent) => Promise<void>;
   onForgotPassword: () => void;
   isLoggingIn: boolean;
   isBlocked: boolean;
@@ -54,6 +54,7 @@ export default function LoginForm({
             type="email"
             value={email}
             onChange={(e) => onEmailChange(e.target.value)}
+            placeholder="seu@email.com"
             className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl px-5 text-sm font-medium text-zinc-100 outline-none focus:border-[#C5A059] transition-all lg:h-14 lg:text-base"
             required
           />
@@ -73,6 +74,7 @@ export default function LoginForm({
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => onPasswordChange(e.target.value)}
+              placeholder="Sua senha"
               className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl px-5 pr-12 text-sm font-medium text-zinc-100 outline-none focus:border-[#C5A059] transition-all lg:h-14 lg:text-base"
               required
             />

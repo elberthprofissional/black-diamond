@@ -53,7 +53,7 @@ describe('Footer', () => {
 
   it('links externos tem target=_blank e rel=noopener', () => {
     renderWithRouter(<Footer />);
-    const devLink = screen.getByText('desenvolvimento');
+    const devLink = screen.getByText('Criado por Elberth Mayan');
     expect(devLink).toHaveAttribute('target', '_blank');
     expect(devLink).toHaveAttribute('rel', 'noopener noreferrer');
   });

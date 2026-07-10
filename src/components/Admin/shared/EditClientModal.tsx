@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface EditClientModalProps {
@@ -12,7 +12,7 @@ interface EditClientModalProps {
   onCancel: () => void;
 }
 
-const EditClientModal: React.FC<EditClientModalProps> = ({
+const EditClientModal: FC<EditClientModalProps> = ({
   isOpen,
   name,
   phone,
@@ -45,7 +45,9 @@ const EditClientModal: React.FC<EditClientModalProps> = ({
             <h3 className="text-sm font-semibold text-white mb-4">Editar Cliente</h3>
             <div className="space-y-3">
               <div>
-                <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">Nome</span>
+                <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">
+                  Nome
+                </span>
                 <input
                   type="text"
                   id="edit-client-name"
@@ -56,7 +58,9 @@ const EditClientModal: React.FC<EditClientModalProps> = ({
                 />
               </div>
               <div>
-                <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">WhatsApp</span>
+                <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">
+                  WhatsApp
+                </span>
                 <input
                   type="text"
                   id="edit-client-phone"

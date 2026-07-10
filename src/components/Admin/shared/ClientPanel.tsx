@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Pencil, Trash2, Plus, Crown, ArrowLeft, Check } from 'lucide-react';
@@ -27,7 +27,7 @@ interface ClientPanelProps {
   onRenewMensalidade?: () => void;
 }
 
-const ClientPanel: React.FC<ClientPanelProps> = ({
+const ClientPanel: FC<ClientPanelProps> = ({
   client,
   panelBookings,
   panelTotal,

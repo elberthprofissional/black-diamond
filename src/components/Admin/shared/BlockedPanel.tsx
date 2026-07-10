@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo, type FC } from 'react';
 import type { BookingWithClient } from '../../../types';
 
 interface BlockedPanelProps {
@@ -8,7 +8,7 @@ interface BlockedPanelProps {
   onUnblockDay: () => void;
 }
 
-const BlockedPanel: React.FC<BlockedPanelProps> = ({
+const BlockedPanel: FC<BlockedPanelProps> = ({
   blockedBookings,
   blockingDay,
   onUnblock,
@@ -70,4 +70,4 @@ const BlockedPanel: React.FC<BlockedPanelProps> = ({
   );
 };
 
-export default React.memo(BlockedPanel);
+export default memo(BlockedPanel);

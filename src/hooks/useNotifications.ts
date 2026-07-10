@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 
 export interface Notification {
@@ -11,9 +11,52 @@ export interface Notification {
   created_at: string;
 }
 
+// Generate notification sound using Web Audio API (no external files needed)
+function playNotificationSound() {
+  try {
+    const ctx = new (
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    )();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    // Pleasant two-tone chime
+    oscillator.frequency.setValueAtTime(800, ctx.currentTime);
+    oscillator.frequency.setValueAtTime(1000, ctx.currentTime + 0.1);
+    oscillator.type = 'sine';
+
+    gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.3);
+
+    // Cleanup
+    setTimeout(() => ctx.close(), 500);
+  } catch {
+    // Audio not available — silently fail
+  }
+}
+
+// Update document title with unread count badge
+function updateTitleBadge(count: number) {
+  const baseTitle = 'Black Diamond';
+  if (count > 0) {
+    document.title = `(${count}) ${baseTitle}`;
+  } else {
+    document.title = baseTitle;
+  }
+}
+
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPreview, setShowPreview] = useState<Notification | null>(null);
+  const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -32,7 +75,7 @@ export function useNotifications() {
 
       setNotifications(data || []);
     } catch {
-      // silent
+      setNotifications([]);
     } finally {
       setLoading(false);
     }
@@ -42,77 +85,175 @@ export function useNotifications() {
     fetchNotifications();
   }, [fetchNotifications]);
 
-  // Realtime subscription for new notifications
+  // Update document title badge when unread count changes
   useEffect(() => {
-    let channel: ReturnType<typeof supabase.channel> | null = null;
+    const count = notifications.filter((n) => !n.read).length;
+    updateTitleBadge(count);
+  }, [notifications]);
+
+  // Realtime subscription with auto-reconnect
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryCountRef = useRef(0);
+  const channelIdRef = useRef(0);
+  const isSettingUpRef = useRef(false);
+  const MAX_RETRIES = 15;
+
+  useEffect(() => {
+    let mounted = true;
 
     const setupRealtime = async () => {
-      if (!supabase?.auth?.getUser) return;
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
+      // Guard contra execução concorrente (ex: retry + outro erro)
+      if (isSettingUpRef.current) return;
+      isSettingUpRef.current = true;
 
-      // Remove existing channel first
-      if (channel) {
-        await supabase.removeChannel(channel);
+      try {
+        if (!mounted) return;
+        if (!supabase?.auth?.getUser) return;
+
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user || !mounted) return;
+
+        // Remove canal anterior se existir
+        if (channelRef.current) {
+          await supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
+        }
+
+        // Nome único para evitar que o Supabase reutilize o canal antigo (já subscrito)
+        channelIdRef.current++;
+        const channelName = `notifications-${user.id}-${channelIdRef.current}`;
+
+        const channel = supabase
+          .channel(channelName)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'notifications',
+              filter: `user_id=eq.${user.id}`,
+            },
+            (payload) => {
+              if (payload.eventType === 'INSERT') {
+                const newNotif = payload.new as Notification;
+                setNotifications((prev) => {
+                  // Evita duplicatas
+                  if (prev.some((n) => n.id === newNotif.id)) return prev;
+                  return [newNotif, ...prev].slice(0, 50);
+                });
+
+                // Toca som
+                playNotificationSound();
+
+                // Preview toast
+                setShowPreview(newNotif);
+                if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+                previewTimerRef.current = setTimeout(() => setShowPreview(null), 5000);
+              } else if (payload.eventType === 'DELETE') {
+                // Remove notificação deletada (ex: trigger de cancelamento)
+                const deletedId = (payload.old as Notification).id;
+                setNotifications((prev) => prev.filter((n) => n.id !== deletedId));
+              } else if (payload.eventType === 'UPDATE') {
+                // Atualiza notificação em tempo real (ex: marcou como lida em outra aba)
+                const updated = payload.new as Notification;
+                setNotifications((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
+              }
+            }
+          )
+          .subscribe((status) => {
+            if (!mounted) return;
+
+            if (status === 'SUBSCRIBED') {
+              // Conexão OK — reseta contagem de retry
+              retryCountRef.current = 0;
+            } else if (
+              status === 'CHANNEL_ERROR' ||
+              status === 'TIMED_OUT' ||
+              status === 'CLOSED'
+            ) {
+              // Reconexão automática com backoff exponencial
+              if (retryCountRef.current < MAX_RETRIES) {
+                const delay = Math.min(1000 * Math.pow(1.5, retryCountRef.current), 15000);
+                retryCountRef.current++;
+
+                if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+                retryTimerRef.current = setTimeout(() => {
+                  if (mounted) setupRealtime();
+                }, delay);
+              }
+            }
+          });
+
+        channelRef.current = channel;
+      } finally {
+        isSettingUpRef.current = false;
       }
-
-      channel = supabase
-        .channel(`notifications-${user.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${user.id}`,
-          },
-          (payload) => {
-            const newNotif = payload.new as Notification;
-            setNotifications((prev) => [newNotif, ...prev].slice(0, 50));
-          }
-        )
-        .subscribe();
     };
 
     setupRealtime();
 
     return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
+      mounted = false;
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
       }
+      if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
     };
+  }, []);
+
+  const dismissPreview = useCallback(() => {
+    setShowPreview(null);
+    if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
   }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const markAsRead = useCallback(async (id: string) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
-
-    await supabase.from('notifications').update({ read: true }).eq('id', id);
+    const { error } = await supabase.from('notifications').update({ read: true }).eq('id', id);
+    if (error) {
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: false } : n)));
+    }
   }, []);
 
   const markAllAsRead = useCallback(async () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-
+    const snapshot = notifications;
+    setNotifications((current) => current.map((n) => ({ ...n, read: true })));
     if (!supabase?.auth?.getUser) return;
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return;
-
-    await supabase
+    const { error } = await supabase
       .from('notifications')
       .update({ read: true })
       .eq('user_id', user.id)
       .eq('read', false);
-  }, []);
+    if (error) {
+      setNotifications(snapshot);
+    }
+  }, [notifications]);
 
-  const clearNotification = useCallback(async (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-    await supabase.from('notifications').delete().eq('id', id);
-  }, []);
+  const clearNotification = useCallback(
+    async (id: string) => {
+      const removed = notifications.find((n) => n.id === id);
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      const { error } = await supabase.from('notifications').delete().eq('id', id);
+      if (error && removed) {
+        setNotifications((prev) =>
+          [...prev, removed].sort(
+            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          )
+        );
+      }
+    },
+    [notifications]
+  );
 
   return {
     notifications,
@@ -122,5 +263,7 @@ export function useNotifications() {
     markAllAsRead,
     clearNotification,
     refetch: fetchNotifications,
+    showPreview,
+    dismissPreview,
   };
 }

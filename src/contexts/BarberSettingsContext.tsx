@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 
 const SETTINGS_KEYS = [
@@ -32,7 +32,7 @@ interface BarberSettingsContextType {
 
 const BarberSettingsContext = createContext<BarberSettingsContextType | null>(null);
 
-export function BarberSettingsProvider({ children }: { children: React.ReactNode }) {
+export function BarberSettingsProvider({ children }: { children: ReactNode }) {
   const defaultPhone = import.meta.env.VITE_BARBER_WHATSAPP || '';
 
   const [barberName, setBarberName] = useState<string>('Admin');

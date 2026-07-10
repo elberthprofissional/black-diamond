@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, memo, type FC } from 'react';
 import { supabase } from '../lib/supabase';
 import { ImageIcon } from 'lucide-react';
 import Skeleton from './Skeleton';
@@ -11,7 +11,7 @@ interface GalleryImage {
   position: number;
 }
 
-const Gallery: React.FC = React.memo(() => {
+const Gallery: FC = memo(() => {
   const { barberInstagram } = useBarberSettings();
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);

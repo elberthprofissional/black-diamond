@@ -117,8 +117,8 @@ export function useProfileStats() {
 
   const loadData = useCallback(async () => {
     try {
-      const [bookingsData, servicesData] = await Promise.all([getBookings(), getServices()]);
-      setBookings(bookingsData || []);
+      const [bookingsResult, servicesData] = await Promise.all([getBookings(), getServices()]);
+      setBookings(bookingsResult.data || []);
       setServices(servicesData || []);
     } catch {
       // ignored

@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ReactNode, type FC } from 'react';
 import AdminSidebar from './AdminSidebar';
 import AdminNavbar from './Navbar';
 import BottomTabs from './BottomTabs';
@@ -6,12 +6,12 @@ import BottomTabs from './BottomTabs';
 interface SecondarySidebarItem {
   id: string;
   label: string;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   danger?: boolean;
 }
 
 interface AdminLayoutProps {
-  children: React.ReactNode;
+  children: ReactNode;
   wrapperClassName?: string;
   innerClassName?: string;
   mainClassName?: string;
@@ -25,11 +25,11 @@ interface AdminLayoutProps {
   };
 }
 
-const AdminLayout: React.FC<AdminLayoutProps> = ({
+const AdminLayout: FC<AdminLayoutProps> = ({
   children,
-  wrapperClassName = "min-h-screen bg-[#0A0A0A] text-white font-sans flex selection:bg-[#C5A059]/30",
-  innerClassName = "flex-1 lg:ml-[260px] flex flex-col min-h-screen bg-[#0A0A0A] overflow-x-hidden",
-  mainClassName = "flex-1 w-full max-w-5xl mx-auto px-5 sm:px-8 lg:px-12 pt-24 lg:pt-12 pb-40",
+  wrapperClassName = 'min-h-screen bg-[#0A0A0A] text-white font-sans flex selection:bg-[#C5A059]/30',
+  innerClassName = 'flex-1 lg:ml-[260px] flex flex-col min-h-screen bg-[#0A0A0A] overflow-x-hidden',
+  mainClassName = 'flex-1 w-full max-w-5xl mx-auto px-5 sm:px-8 lg:px-12 pt-24 lg:pt-12 pb-40',
   hideNavbar = false,
   hideBottomTabs = false,
   secondarySidebar,
@@ -45,7 +45,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
           {secondarySidebar && (
             <aside className="hidden lg:flex flex-col w-[240px] border-r border-white/5 bg-[#0A0A0A] sticky top-0 h-screen shrink-0">
               <div className="px-6 h-28 flex items-center">
-                <h2 className="text-sm font-black tracking-[0.25em] text-white uppercase">{secondarySidebar.title}</h2>
+                <h2 className="text-sm font-black tracking-[0.25em] text-white uppercase">
+                  {secondarySidebar.title}
+                </h2>
               </div>
               <div className="px-6">
                 <nav className="space-y-1">

@@ -1,4 +1,4 @@
-export { getServices, createService, updateService, deleteService } from './services';
+export { getServices } from './services';
 
 export {
   createBooking,
@@ -13,7 +13,6 @@ export {
   unblockDay,
   autoCompleteExpiredBookings,
   getBookingsForStats,
-  completeAllActiveBookings,
   deleteAllBookings,
   getBookingsByToken,
 } from './bookings';
@@ -26,7 +25,6 @@ export {
   createClient,
   updateClient,
   updateClientNotes,
-  toggleClientFavorite,
   toggleClientMensalista,
   getClientByPhone,
 } from './clients';
@@ -36,7 +34,9 @@ export {
   createMensalistaPlan,
   updateMensalistaPlan,
   deleteMensalistaPlan,
-  toggleMensalistaPlan,
   getMensalistaEnabled,
   setMensalistaEnabled,
 } from './mensalista';
+
+export { getTemplates, createTemplate, deleteTemplate } from './templates';
+export type { WhatsAppTemplate } from './templates';

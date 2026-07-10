@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Calendar } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
-import { getBookingsByPhone, cancelBooking, getAvailableSlots, createBooking } from '../lib/api';
-import { getNextDays } from '../lib/utils';
+import {
+  getBookingsByPhone,
+  getBookingsByToken,
+  cancelBooking,
+  getAvailableSlots,
+  createBooking,
+} from '../lib/api';
+import { getLocalDateString } from '../lib/utils';
 
 interface BookingEntry {
   id: string;
@@ -13,21 +19,27 @@ interface BookingEntry {
   service_ids: string[];
   total_duration?: number;
   clients?: { name: string; phone: string } | { name: string; phone: string }[];
+  has_token?: boolean;
 }
 
 type View = 'search' | 'list' | 'reschedule' | 'success';
 
 export default function CancelPage() {
   const location = useLocation();
-  const initialPhone = (location.state as { phone?: string })?.phone || '';
+  const state = location.state as { phone?: string; token?: string } | null;
+  const initialPhone = state?.phone || '';
+  const initialToken = state?.token || '';
   const [phone, setPhone] = useState(initialPhone);
   const [bookings, setBookings] = useState<BookingEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [view, setView] = useState<View>('search');
+  const [view, setView] = useState<View>(initialToken ? 'list' : 'search');
 
   // Cancel state
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [tokenInput, setTokenInput] = useState('');
+  const [showTokenModal, setShowTokenModal] = useState(false);
+  const [pendingCancelId, setPendingCancelId] = useState<string | null>(null);
 
   // Reschedule state
   const [rescheduleBooking, setRescheduleBooking] = useState<BookingEntry | null>(null);
@@ -36,13 +48,78 @@ export default function CancelPage() {
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [rescheduling, setRescheduling] = useState(false);
+  const [rescheduleName, setRescheduleName] = useState('');
+  const [reschedulePhone, setReschedulePhone] = useState('');
 
-  const nextDays = getNextDays().filter((d) => {
-    const dow = new Date(d.fullDate + 'T12:00:00').getDay();
-    return dow >= 1 && dow <= 5; // Seg-Sex (sáb não disponível para reagendamento público)
-  });
+  // Gera dias de segunda a sexta para reagendamento (busca até ter opções suficientes)
+  const nextDays = (() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const result: {
+      fullDate: string;
+      dayName: string;
+      dayNumber: number;
+      isToday: boolean;
+      isPast: boolean;
+    }[] = [];
+    for (let i = 0; i < 21; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      const dow = date.getDay();
+      if (dow >= 1 && dow <= 5) {
+        result.push({
+          fullDate: getLocalDateString(date),
+          dayName: date
+            .toLocaleDateString('pt-BR', { weekday: 'short' })
+            .replace('.', '')
+            .toUpperCase(),
+          dayNumber: date.getDate(),
+          isToday: i === 0,
+          isPast: false,
+        });
+      }
+      if (result.length >= 7) break;
+    }
+    return result;
+  })();
 
-  const handleSearch = async (e: React.FormEvent) => {
+  // Se veio com token (ex: do ManageBooking), busca agendamentos automaticamente
+  useEffect(() => {
+    if (!initialToken) return;
+    let active = true;
+    setLoading(true);
+    getBookingsByToken(initialToken)
+      .then((data) => {
+        if (!active) return;
+        const mapped: BookingEntry[] = data.map((b) => ({
+          id: b.booking_id,
+          booking_date: b.booking_date,
+          booking_time: b.booking_time,
+          total_price: b.total_price,
+          service_ids: [],
+          total_duration: b.total_duration,
+          clients: { name: b.client_name, phone: b.client_phone },
+          has_token: true,
+        }));
+        setBookings(mapped);
+        if (mapped.length === 0) {
+          setError('Nenhum agendamento futuro encontrado.');
+          setView('search');
+        }
+      })
+      .catch(() => {
+        if (active) setError('Erro ao buscar agendamentos.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
     const cleanPhone = phone.replace(/\D/g, '');
     if (cleanPhone.length < 11) {
@@ -55,7 +132,7 @@ export default function CancelPage() {
     setBookings([]);
 
     try {
-      const data = await getBookingsByPhone(phone);
+      const data = await getBookingsByPhone(cleanPhone);
       setBookings(data);
       setView('list');
       if (data.length === 0) {
@@ -69,24 +146,50 @@ export default function CancelPage() {
     }
   };
 
-  const handleCancel = async (id: string) => {
+  const handleCancel = async (id: string, token?: string) => {
     setCancellingId(id);
     try {
-      await cancelBooking(id);
+      await cancelBooking(id, token || undefined);
       setBookings((prev) => prev.filter((b) => b.id !== id));
-      if (bookings.length === 1) setView('search');
-    } catch {
-      setError('Erro ao cancelar.');
+      setShowTokenModal(false);
+      setTokenInput('');
+      setPendingCancelId(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao cancelar.');
     } finally {
       setCancellingId(null);
     }
   };
+
+  const handleCancelClick = (id: string) => {
+    const booking = bookings.find((b) => b.id === id);
+    if (booking?.has_token) {
+      setPendingCancelId(id);
+      setShowTokenModal(true);
+    } else {
+      handleCancel(id);
+    }
+  };
+
+  const handleTokenSubmit = () => {
+    if (!pendingCancelId || !tokenInput.trim()) return;
+    handleCancel(pendingCancelId, tokenInput.trim());
+  };
+
+  useEffect(() => {
+    if (bookings.length === 0 && view === 'list') setView('search');
+  }, [bookings.length, view]);
 
   const startReschedule = async (booking: BookingEntry) => {
     setRescheduleBooking(booking);
     setSelectedDate('');
     setSelectedTime('');
     setAvailableSlots([]);
+    // Se os dados estão mascarados, pedir ao usuário que informe
+    const clientsData = Array.isArray(booking.clients) ? booking.clients[0] : booking.clients;
+    const isMasked = clientsData?.name?.includes('****') || clientsData?.phone?.includes('****');
+    setRescheduleName(isMasked ? '' : clientsData?.name || '');
+    setReschedulePhone(isMasked ? '' : clientsData?.phone || phone.replace(/\D/g, ''));
     setView('reschedule');
   };
 
@@ -119,16 +222,22 @@ export default function CancelPage() {
   const handleConfirmReschedule = async () => {
     if (!rescheduleBooking || !selectedDate || !selectedTime) return;
 
-    const clientsData = Array.isArray(rescheduleBooking.clients)
-      ? rescheduleBooking.clients[0]
-      : rescheduleBooking.clients;
-    const clientName = clientsData?.name || '';
-    const clientPhone = clientsData?.phone || phone.replace(/\D/g, '');
+    const clientName = rescheduleName.trim();
+    const clientPhone = reschedulePhone.replace(/\D/g, '');
+
+    if (!clientName || clientName.length < 2) {
+      setError('Informe seu nome completo.');
+      return;
+    }
+    if (clientPhone.length < 11) {
+      setError('Informe um telefone válido com DDD.');
+      return;
+    }
 
     setRescheduling(true);
     try {
-      // Cancel old booking
-      await cancelBooking(rescheduleBooking.id);
+      // Cancel old booking (with token)
+      await cancelBooking(rescheduleBooking.id, initialToken || undefined);
 
       // Create new booking
       await createBooking(
@@ -258,7 +367,7 @@ export default function CancelPage() {
                       Reagendar
                     </button>
                     <button
-                      onClick={() => handleCancel(b.id)}
+                      onClick={() => handleCancelClick(b.id)}
                       disabled={cancellingId === b.id}
                       className="flex-1 h-9 border border-red-500/20 text-red-400/80 hover:bg-red-500/10 hover:text-red-400 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
                     >
@@ -267,12 +376,14 @@ export default function CancelPage() {
                   </div>
                 </div>
               ))}
-              <button
-                onClick={() => setView('search')}
-                className="w-full py-3 text-[11px] text-zinc-500 hover:text-white transition-colors cursor-pointer"
-              >
-                Buscar outro telefone
-              </button>
+              {!initialToken && (
+                <button
+                  onClick={() => setView('search')}
+                  className="w-full py-3 text-[11px] text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                >
+                  Buscar outro telefone
+                </button>
+              )}
             </motion.div>
           )}
 
@@ -300,6 +411,29 @@ export default function CancelPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Client info (shown when data is masked) */}
+              {(!rescheduleName || !reschedulePhone) && (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                    Seus dados
+                  </p>
+                  <input
+                    type="text"
+                    value={rescheduleName}
+                    onChange={(e) => setRescheduleName(e.target.value)}
+                    placeholder="Seu nome"
+                    className="w-full h-10 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 text-[13px] text-white outline-none focus:border-[#C5A059] transition-all placeholder:text-zinc-600"
+                  />
+                  <input
+                    type="tel"
+                    value={reschedulePhone}
+                    onChange={(e) => setReschedulePhone(e.target.value)}
+                    placeholder="(00) 00000-0000"
+                    className="w-full h-10 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 text-[13px] text-white outline-none focus:border-[#C5A059] transition-all placeholder:text-zinc-600"
+                  />
+                </div>
+              )}
 
               {/* Date selection */}
               <div>
@@ -409,6 +543,65 @@ export default function CancelPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Token Input Modal */}
+        {showTokenModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-5"
+            onClick={() => {
+              setShowTokenModal(false);
+              setTokenInput('');
+              setPendingCancelId(null);
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              className="bg-[#111] border border-white/[0.08] rounded-2xl p-5 w-full max-w-sm space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center space-y-1">
+                <p className="text-[13px] font-bold text-white">Token de gerenciamento</p>
+                <p className="text-[11px] text-zinc-500">
+                  Informe o token enviado no link de gerenciamento do agendamento.
+                </p>
+              </div>
+              <input
+                type="text"
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                placeholder="Cole o token aqui"
+                className="w-full h-10 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 text-[13px] text-white outline-none focus:border-[#C5A059] transition-all placeholder:text-zinc-600"
+                autoFocus
+              />
+              {error && showTokenModal && (
+                <p className="text-[11px] text-red-400/80 text-center">{error}</p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setShowTokenModal(false);
+                    setTokenInput('');
+                    setPendingCancelId(null);
+                  }}
+                  className="px-4 h-10 border border-white/[0.08] text-zinc-400 hover:text-white rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  Voltar
+                </button>
+                <button
+                  onClick={handleTokenSubmit}
+                  disabled={!tokenInput.trim() || cancellingId === pendingCancelId}
+                  className="flex-1 h-10 bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-40"
+                >
+                  {cancellingId === pendingCancelId ? 'Cancelando...' : 'Confirmar cancelamento'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </div>
     </div>
   );

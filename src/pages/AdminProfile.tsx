@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type FC } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { deleteAllClients } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
@@ -22,9 +22,9 @@ import { useAdminLogout } from '../hooks/useAdminLogout';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
 import { useToast } from '../hooks/useToast';
 import { usePushNotifications } from '../hooks/usePushNotifications';
-import { useBarberSettings } from '../contexts/BarberSettingsContext';
+import { useBarberSettings } from '../hooks/useBarberSettings';
 import { useProfileStats } from '../hooks/useProfileStats';
-import { useWeeklyCongrats } from '../hooks/useWeeklyCongrats';
+
 import ProfileMobile from '../components/Admin/shared/ProfileMobile';
 import ProfileDesktopMetrics from '../components/Admin/shared/ProfileDesktopMetrics';
 import ProfileServicesChart from '../components/Admin/shared/ProfileServicesChart';
@@ -38,26 +38,37 @@ import SettingsHorarios from '../components/Admin/settings/SettingsHorarios';
 import SettingsMensalista from '../components/Admin/settings/SettingsMensalista';
 import HelpModal from '../components/Admin/settings/HelpModal';
 import { SkeletonDashboard } from '../components/Skeleton';
+import { usePwaInstall } from '../hooks/usePwaInstall';
+import PwaInstallModal from '../components/PwaInstallModal';
 
-const AdminProfile: React.FC = () => {
+const AdminProfile: FC = () => {
   const [searchParams] = useSearchParams();
   const showSettings = searchParams.get('tab') === 'settings';
   const { stats, loading, loadData } = useProfileStats();
-  useWeeklyCongrats(stats.lucroSemana, stats.concluidosSemana);
   const [timeRange, setTimeRange] = useState<'week' | 'month'>('week');
   const [showBalance, setShowBalance] = useState(
     () => localStorage.getItem('barber_show_balance') !== 'false'
   );
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(
-    window.deferredPrompt || null
+
+  const { toast, showSuccess, showError } = useToast();
+
+  const {
+    isIOS,
+    isStandalone,
+    showPrompt: showInstallPrompt,
+    deferredPrompt,
+    setShowPrompt: setShowInstallPrompt,
+    handleInstall: handleInstallClick,
+    handleConfirmInstall,
+  } = usePwaInstall(
+    () => showSuccess('Aplicativo instalado!'),
+    (msg) => showError(msg)
   );
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetText, setResetText] = useState('');
   const [resetting, setResetting] = useState(false);
   const handleLogout = useAdminLogout();
-  const { toast, showSuccess, showError } = useToast();
   const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
   const { barberName, barberPhoto, refetch } = useBarberSettings();
   const [settingsSection, setSettingsSection] = useState<string | null>(null);
@@ -97,27 +108,6 @@ const AdminProfile: React.FC = () => {
   }, [settingsSection, navigate]);
 
   useEffect(() => {
-    const handleAppInstalled = () => {
-      setDeferredPrompt(null);
-      window.deferredPrompt = undefined;
-      localStorage.setItem('barber_pwa_installed', 'true');
-      setShowInstallPrompt(false);
-    };
-    window.addEventListener('appinstalled', handleAppInstalled);
-    return () => window.removeEventListener('appinstalled', handleAppInstalled);
-  }, []);
-
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      window.deferredPrompt = e as BeforeInstallPromptEvent;
-    };
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-  }, []);
-
-  useEffect(() => {
     refetch();
   }, [refetch]);
 
@@ -137,47 +127,7 @@ const AdminProfile: React.FC = () => {
   const currentConcluidos = timeRange === 'week' ? stats.concluidosSemana : stats.concluidosMes;
   const currentCancelados = timeRange === 'week' ? stats.canceladosSemana : stats.canceladosMes;
 
-  const isIOS = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-  const isStandalone =
-    window.matchMedia('(display-mode: standalone)').matches ||
-    (navigator as unknown as { standalone?: boolean }).standalone === true;
-  const isIOSChrome = isIOS && window.navigator.userAgent.includes('CriOS');
   const isIOSNotInstalled = isIOS && !isStandalone;
-
-  const handleInstallClick = async () => {
-    if (isStandalone) {
-      showSuccess('Aplicativo já instalado!');
-      return;
-    }
-    if (isIOSChrome) {
-      showError('No iPhone, abra este link pelo Safari primeiro');
-      return;
-    }
-    // Se o prompt automático do navegador estiver pronto, dispara direto!
-    if (!isIOS && deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') showSuccess('Aplicativo instalado!');
-      setDeferredPrompt(null);
-      return;
-    }
-    // Caso contrário (iOS ou Android com prompt manual), abre o modal com orientações
-    setShowInstallPrompt(true);
-  };
-
-  const handleConfirmInstall = async () => {
-    if (isIOS) {
-      setShowInstallPrompt(false);
-      return;
-    }
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') showSuccess('Aplicativo instalado!');
-      setDeferredPrompt(null);
-    }
-    setShowInstallPrompt(false);
-  };
 
   const handleToggleNotifications = async () => {
     if (isSubscribed) {
@@ -329,7 +279,7 @@ const AdminProfile: React.FC = () => {
                 </button>
               </div>
             </div>
-            <div className="flex-1 min-w-0 min-h-[400px]">
+            <div className="flex-1 min-w-0 min-h-[600px]">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={settingsSection || 'conta'}
@@ -441,98 +391,13 @@ const AdminProfile: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {showInstallPrompt && (
-          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowInstallPrompt(false)}
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ y: '100%', opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: '100%', opacity: 0 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-              className="relative z-10 w-full sm:max-w-[340px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
-            >
-              {isIOS || (!isIOS && !deferredPrompt) ? (
-                <>
-                  <div className="px-6 pt-6 pb-4">
-                    <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 flex items-center justify-center mx-auto mb-4">
-                      <Download size={20} className="text-[#C5A059]" />
-                    </div>
-                    <p className="text-[15px] font-semibold text-white text-center">
-                      Instalar o app
-                    </p>
-                    <p className="text-[12px] text-zinc-500 mt-2 text-center leading-relaxed">
-                      Siga os passos abaixo para adicionar o app à sua tela de início.
-                    </p>
-                  </div>
-                  <div className="px-6 pb-5 space-y-4">
-                    {isIOS
-                      ? [
-                          'Toque no ícone de Compartilhar — é o quadrado com seta pra cima, na parte de baixo da tela.',
-                          'Role pra baixo e toque em Adicionar à Tela de Início.',
-                          'Confirme tocando em Adicionar no canto superior direito. Pronto!',
-                        ].map((text, i) => (
-                          <div key={i} className="flex gap-3">
-                            <div className="w-6 h-6 rounded-full bg-[#C5A059]/10 flex items-center justify-center shrink-0 mt-0.5">
-                              <span className="text-[10px] font-bold text-[#C5A059]">{i + 1}</span>
-                            </div>
-                            <p className="text-[12px] text-zinc-400 leading-relaxed">{text}</p>
-                          </div>
-                        ))
-                      : [
-                          'Abra o menu do Chrome tocando nos três pontinhos no canto superior direito.',
-                          'Role a lista e selecione "Instalar aplicativo" ou "Adicionar à tela inicial".',
-                          'Confirme tocando em Instalar / Adicionar. Pronto!',
-                        ].map((text, i) => (
-                          <div key={i} className="flex gap-3">
-                            <div className="w-6 h-6 rounded-full bg-[#C5A059]/10 flex items-center justify-center shrink-0 mt-0.5">
-                              <span className="text-[10px] font-bold text-[#C5A059]">{i + 1}</span>
-                            </div>
-                            <p className="text-[12px] text-zinc-400 leading-relaxed">{text}</p>
-                          </div>
-                        ))}
-                  </div>
-                </>
-              ) : (
-                <div className="px-6 pt-6 pb-4">
-                  <p className="text-[15px] font-semibold text-white">Instalar aplicativo</p>
-                  <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
-                    Adicione o Black Diamond à sua tela de início para acesso rápido.
-                  </p>
-                </div>
-              )}
-              <div className="flex border-t border-white/[0.06]">
-                <button
-                  onClick={() => setShowInstallPrompt(false)}
-                  className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
-                >
-                  {isIOS || (!isIOS && !deferredPrompt) ? 'Entendi' : 'Cancelar'}
-                </button>
-                {!isIOS && deferredPrompt && (
-                  <>
-                    <div className="w-px bg-white/[0.06]" />
-                    <button
-                      onClick={handleConfirmInstall}
-                      className="flex-1 py-4 text-[13px] font-semibold text-[#C5A059] hover:text-[#A68233] active:bg-white/[0.03] transition-all cursor-pointer"
-                    >
-                      Instalar
-                    </button>
-                  </>
-                )}
-              </div>
-              <div className="sm:hidden flex justify-center pb-3 pt-1">
-                <div className="w-10 h-1 rounded-full bg-white/10" />
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <PwaInstallModal
+        open={showInstallPrompt}
+        isIOS={isIOS}
+        hasDeferredPrompt={!!deferredPrompt}
+        onClose={() => setShowInstallPrompt(false)}
+        onConfirm={handleConfirmInstall}
+      />
 
       <AnimatePresence>
         {showResetConfirm && (

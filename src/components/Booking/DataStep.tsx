@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo, type FC } from 'react';
 import { User, Repeat } from 'lucide-react';
 import { WhatsAppIcon } from '../WhatsAppIcon';
 
@@ -15,7 +15,7 @@ interface DataStepProps {
   serviceNames?: Record<string, string>;
 }
 
-const DataStep: React.FC<DataStepProps> = React.memo(
+const DataStep: FC<DataStepProps> = memo(
   ({
     name,
     phone,
@@ -210,7 +210,7 @@ const DataStep: React.FC<DataStepProps> = React.memo(
           </div>
 
           {/* Last Booking Suggestion */}
-          {lastBooking && onApplyLastBooking && serviceNames && (
+          {lastBooking?.serviceIds && onApplyLastBooking && serviceNames && (
             <div className="bg-[#C5A059]/[0.08] border border-[#C5A059]/20 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Repeat size={14} className="text-[#C5A059]" />
