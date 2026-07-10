@@ -1,3 +1,6 @@
+# Windows reserved names (nul is reserved on Windows)
+nul
+
 # Logs
 logs
 *.log
