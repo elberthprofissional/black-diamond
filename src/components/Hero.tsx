@@ -18,6 +18,7 @@ const Hero: FC<HeroProps> = ({ onBookingClick }) => {
             src="/assets/hero-bg.webp"
             alt="Black Diamond"
             loading="eager"
+            fetchPriority="high"
             decoding="async"
             className="w-full h-full object-cover object-center opacity-50"
           />

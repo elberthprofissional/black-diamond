@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
@@ -7,48 +6,53 @@ import './index.css';
 import App from './App.tsx';
 import { BarberSettingsProvider } from './contexts/BarberSettingsContext';
 
-// Google Analytics
-const gaId = import.meta.env.VITE_GA_ID;
-if (gaId) {
-  const script = document.createElement('script');
-  script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
-  document.head.appendChild(script);
-  window.dataLayer = window.dataLayer || [];
+// Defer non-critical initialization to after first paint
+requestIdleCallback(() => {
+  // Google Analytics
+  const gaId = import.meta.env.VITE_GA_ID;
+  if (gaId) {
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+    document.head.appendChild(script);
+    window.dataLayer = window.dataLayer || [];
 
-  // Define global gtag function on window
-  window.gtag = function (...args: unknown[]) {
-    window.dataLayer!.push(args);
-  };
+    // Define global gtag function on window
+    window.gtag = function (...args: unknown[]) {
+      window.dataLayer!.push(args);
+    };
 
-  window.gtag('js', new Date());
-  window.gtag('config', gaId, { send_page_view: false });
-}
+    window.gtag('js', new Date());
+    window.gtag('config', gaId, { send_page_view: false });
+  }
 
-const dsn = import.meta.env.VITE_SENTRY_DSN;
-
-if (dsn) {
-  Sentry.init({
-    dsn,
-    environment: import.meta.env.DEV ? 'development' : 'production',
-    integrations: [
-      Sentry.browserTracingIntegration(),
-      Sentry.replayIntegration({
-        maskAllText: true,
-        blockAllMedia: true,
-      }),
-    ],
-    tracesSampleRate: import.meta.env.DEV ? 1.0 : 0.2,
-    replaysSessionSampleRate: 0,
-    replaysOnErrorSampleRate: 1.0,
-    beforeSend(event) {
-      if (import.meta.env.DEV) {
-        return null;
-      }
-      return event;
-    },
-  });
-}
+  // Sentry (heavy SDK — only load after first paint)
+  const dsn = import.meta.env.VITE_SENTRY_DSN;
+  if (dsn) {
+    import('@sentry/react').then((Sentry) => {
+      Sentry.init({
+        dsn,
+        environment: import.meta.env.DEV ? 'development' : 'production',
+        integrations: [
+          Sentry.browserTracingIntegration(),
+          Sentry.replayIntegration({
+            maskAllText: true,
+            blockAllMedia: true,
+          }),
+        ],
+        tracesSampleRate: import.meta.env.DEV ? 1.0 : 0.2,
+        replaysSessionSampleRate: 0,
+        replaysOnErrorSampleRate: 1.0,
+        beforeSend(event) {
+          if (import.meta.env.DEV) {
+            return null;
+          }
+          return event;
+        },
+      });
+    });
+  }
+});
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

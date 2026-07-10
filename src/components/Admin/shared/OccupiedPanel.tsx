@@ -1,5 +1,6 @@
 import { memo, type FC } from 'react';
 import { Check, ChevronRight } from 'lucide-react';
+import { formatDisplayName } from '../../../lib/utils';
 import type { BookingWithClient } from '../../../types';
 
 interface OccupiedPanelProps {
@@ -43,7 +44,7 @@ const OccupiedPanel: FC<OccupiedPanelProps> = ({ bookings, selectedId, onSelect,
             </span>
             <div className="w-px h-3.5 bg-white/10 shrink-0" />
             <span className="text-[11px] font-medium text-zinc-200 truncate">
-              {booking.clients?.name}
+              {formatDisplayName(booking.clients?.name)}
             </span>
           </div>
           <button

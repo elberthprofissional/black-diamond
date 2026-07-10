@@ -95,9 +95,9 @@ export const updateBookingStatus = async (
   if (error) throw error;
 };
 
-/** Exclui permanentemente um agendamento pelo ID. */
+/** Cancela permanentemente um agendamento (status → cancelled, preserva dados históricos). */
 export const deleteBooking = async (id: string) => {
-  const { error } = await supabase.from('bookings').delete().eq('id', id);
+  const { error } = await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', id);
 
   if (error) throw error;
 };
@@ -153,47 +153,11 @@ export const unblockDay = async (date: string) => {
   if (error) throw error;
 };
 
-/** Marca como concluídos os agendamentos cujo horário já passou. */
-export const autoCompleteExpiredBookings = async (date: string): Promise<number> => {
-  const { data: bookings, error } = await supabase
-    .from('bookings')
-    .select('id, booking_time, total_duration, status')
-    .eq('booking_date', date)
-    .in('status', ['confirmed', 'pending'])
-    .eq('is_blocked', false);
-
-  if (error || !bookings || bookings.length === 0) return 0;
-
-  const now = new Date();
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    minute: 'numeric',
-    hour12: false,
-    timeZone: 'America/Sao_Paulo',
-  });
-  const [h, m] = formatter.format(now).split(':').map(Number);
-  const currentTimeMinutes = h * 60 + m;
-
-  const expiredIds: string[] = [];
-
-  for (const booking of bookings) {
-    const [hours, minutes] = booking.booking_time.slice(0, 5).split(':').map(Number);
-    const bookingEndMinutes = hours * 60 + minutes + (booking.total_duration || 60);
-
-    if (currentTimeMinutes >= bookingEndMinutes) {
-      expiredIds.push(booking.id);
-    }
-  }
-
-  if (expiredIds.length === 0) return 0;
-
-  const { error: updateError } = await supabase
-    .from('bookings')
-    .update({ status: 'completed' })
-    .in('id', expiredIds);
-
-  if (updateError) return 0;
-  return expiredIds.length;
+/** Marca como concluídos os agendamentos cujo horário já passou (delega ao RPC server-side). */
+export const autoCompleteExpiredBookings = async (_date?: string): Promise<number> => {
+  const { error } = await supabase.rpc('completar_agendamentos_expirados');
+  if (error) return 0;
+  return 0; // RPC doesn't return count, but triggers the update
 };
 
 /** Busca bookings para cálculo de estatísticas. Limita aos últimos 12 meses por padrão. */

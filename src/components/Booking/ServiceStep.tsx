@@ -34,6 +34,8 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                 <button
                   key={service.id}
                   onClick={() => onToggle(service)}
+                  data-testid="service-card"
+                  data-selected={selected}
                   aria-pressed={selected}
                   aria-label={`Serviço ${service.name}. Preço: R$ ${Number(service.price).toFixed(0)}. Duração: ${service.duration} minutos. ${selected ? 'Selecionado' : 'Não selecionado'}`}
                   className={`w-full flex items-center gap-5 px-6 py-5 rounded-xl transition-all duration-200 text-left group ${
@@ -96,6 +98,8 @@ const ServiceStep: FC<ServiceStepProps> = memo(
               <button
                 key={service.id}
                 onClick={() => onToggle(service)}
+                data-testid="service-card"
+                data-selected={selected}
                 aria-pressed={selected}
                 className="w-full text-left transition-all cursor-pointer rounded-xl p-4 bg-white/[0.02] border border-white/[0.04]"
               >

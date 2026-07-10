@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getLocalDateString } from '../../../lib/utils';
+import { getLocalDateString, formatDisplayName } from '../../../lib/utils';
 import { getAvailableSlots } from '../../../lib/api';
 import type { Service, Booking, BookingWithClient } from '../../../types';
 
@@ -104,7 +104,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                 Reagendamento
               </span>
               <h3 className="text-sm font-bold text-white uppercase tracking-wider mt-0.5 truncate max-w-[180px]">
-                {selectedBooking.clients?.name}
+                {formatDisplayName(selectedBooking.clients?.name)}
               </h3>
             </div>
           </div>

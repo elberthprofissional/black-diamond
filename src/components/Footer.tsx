@@ -179,7 +179,7 @@ const Footer: FC = () => {
 
         {/* Footer Bottom */}
         <div className="pt-8 border-t border-white/[0.05] flex flex-col items-center gap-3">
-          <p className="text-[9px] md:text-[10px] font-roboto font-light text-zinc-500 uppercase tracking-[0.4em] text-center">
+          <p className="text-[9px] md:text-[10px] font-roboto font-light text-zinc-400 uppercase tracking-[0.4em] text-center">
             © 2026 Black Diamond — Todos os direitos reservados.
           </p>
 
@@ -187,7 +187,7 @@ const Footer: FC = () => {
             href={`https://wa.me/${barberPhone}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[8px] md:text-[9px] font-roboto font-light text-zinc-600 hover:text-zinc-400 uppercase tracking-[0.3em] transition-colors"
+            className="text-[8px] md:text-[9px] font-roboto font-light text-zinc-500 hover:text-zinc-400 uppercase tracking-[0.3em] transition-colors"
             aria-label="Criado por Elberth Mayan"
           >
             Criado por Elberth Mayan

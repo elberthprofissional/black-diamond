@@ -236,10 +236,10 @@ export default function CancelPage() {
 
     setRescheduling(true);
     try {
-      // Cancel old booking (with token)
+      // Cancel old booking FIRST to free the slot
       await cancelBooking(rescheduleBooking.id, initialToken || undefined);
 
-      // Create new booking
+      // Then create new booking
       await createBooking(
         {
           service_ids: rescheduleBooking.service_ids,

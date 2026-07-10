@@ -318,12 +318,12 @@ const BookingPageView: FC<BookingPageViewProps> = ({
                             ? 'bg-[#C5A059] text-black'
                             : step > s
                               ? 'bg-white/10 text-white'
-                              : 'bg-white/[0.04] text-zinc-600'
+                              : 'bg-white/[0.04] text-zinc-500'
                         }`}
                       >
                         {step > s ? '✓' : s}
                       </span>
-                      <span className="hidden xl:inline">
+                      <span className="hidden xl:inline text-zinc-400">
                         {s === 1 && 'Dados'}
                         {s === 2 && 'Serviços'}
                         {s === 3 && 'Horário'}
@@ -349,6 +349,7 @@ const BookingPageView: FC<BookingPageViewProps> = ({
                 <button
                   onClick={goNext}
                   disabled={isStepDisabled}
+                  data-testid={step === 4 ? 'confirm-booking' : 'next-step'}
                   aria-label={
                     step === 4
                       ? 'Confirmar e concluir agendamento'
@@ -485,6 +486,7 @@ const BookingPageView: FC<BookingPageViewProps> = ({
             <button
               onClick={goNext}
               disabled={isStepDisabled}
+              data-testid={step < 4 ? 'next-step' : 'confirm-booking'}
               aria-label={
                 step < 4 ? 'Continuar para a próxima etapa' : 'Confirmar e concluir agendamento'
               }

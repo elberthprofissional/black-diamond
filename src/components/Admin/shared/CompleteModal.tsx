@@ -1,6 +1,7 @@
 import { type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useModalA11y } from '../../../hooks/useModalA11y';
+import { formatDisplayName } from '../../../lib/utils';
 import type { BookingWithClient } from '../../../types';
 
 interface CompleteModalProps {
@@ -35,7 +36,7 @@ const CompleteModal: FC<CompleteModalProps> = ({ booking, onConfirm, onCancel })
           >
             <div className="p-5 text-center space-y-1">
               <p className="text-sm font-semibold text-white">Concluir atendimento?</p>
-              <p className="text-xs text-zinc-500">{booking.clients?.name}</p>
+              <p className="text-xs text-zinc-500">{formatDisplayName(booking.clients?.name)}</p>
             </div>
             <div className="flex border-t border-white/[0.04]">
               <button

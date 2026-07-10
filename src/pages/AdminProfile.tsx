@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, type FC } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { deleteAllClients } from '../lib/api';
+import { supabase } from '../lib/supabase';
 import { getErrorMessage } from '../lib/utils';
 import {
   Download,
@@ -67,6 +68,9 @@ const AdminProfile: FC = () => {
   );
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetText, setResetText] = useState('');
+  const [resetStep, setResetStep] = useState<'confirm' | 'password'>('confirm');
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetPasswordError, setResetPasswordError] = useState('');
   const [resetting, setResetting] = useState(false);
   const handleLogout = useAdminLogout();
   const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
@@ -164,12 +168,38 @@ const AdminProfile: FC = () => {
   ];
 
   const handleResetData = async () => {
+    if (resetStep === 'confirm') {
+      setResetStep('password');
+      return;
+    }
+    // Verify password
+    setResetPasswordError('');
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const email = session?.user?.email;
+      if (!email) {
+        setResetPasswordError('Sessão expirada.');
+        return;
+      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password: resetPassword });
+      if (error) {
+        setResetPasswordError('Senha incorreta.');
+        return;
+      }
+    } catch {
+      setResetPasswordError('Erro ao verificar senha.');
+      return;
+    }
     setResetting(true);
     try {
       await deleteAllClients();
       showSuccess('Dados limpos com sucesso!');
       setShowResetConfirm(false);
       setResetText('');
+      setResetStep('confirm');
+      setResetPassword('');
       await loadData();
     } catch (error) {
       showError(getErrorMessage(error));
@@ -409,6 +439,9 @@ const AdminProfile: FC = () => {
               onClick={() => {
                 setShowResetConfirm(false);
                 setResetText('');
+                setResetStep('confirm');
+                setResetPassword('');
+                setResetPasswordError('');
               }}
               className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             />
@@ -420,42 +453,86 @@ const AdminProfile: FC = () => {
               className="relative z-10 w-full sm:max-w-[340px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
             >
               <div className="px-6 pt-6 pb-4">
-                <p className="text-[15px] font-semibold text-white">Limpar dados</p>
-                <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
-                  Todos os dados da barbearia vão ser apagados permanentemente.
-                </p>
+                {resetStep === 'password' ? (
+                  <>
+                    <p className="text-[15px] font-semibold text-white text-center">
+                      Confirme sua senha
+                    </p>
+                    <p className="text-[12px] text-zinc-500 mt-1.5 text-center leading-relaxed">
+                      Digite sua senha de administrador para limpar os dados.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-[15px] font-semibold text-white">Limpar dados</p>
+                    <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
+                      Todos os dados da barbearia vão ser apagados permanentemente.
+                    </p>
+                  </>
+                )}
               </div>
               <div className="px-6 pb-5">
-                <input
-                  type="text"
-                  value={resetText}
-                  onChange={(e) => setResetText(e.target.value.toUpperCase())}
-                  placeholder="Digite LIMPAR para confirmar"
-                  aria-label="Digite LIMPAR para confirmar a limpeza dos dados"
-                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-red-500/40 focus:ring-1 focus:ring-red-500/10 transition-all placeholder:text-zinc-600"
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && resetText === 'LIMPAR') handleResetData();
-                  }}
-                />
+                {resetStep === 'password' ? (
+                  <input
+                    type="password"
+                    value={resetPassword}
+                    onChange={(e) => {
+                      setResetPassword(e.target.value);
+                      setResetPasswordError('');
+                    }}
+                    placeholder="Sua senha"
+                    aria-label="Senha do administrador"
+                    className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-red-500/40 transition-all placeholder:text-zinc-600"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && resetPassword.trim()) handleResetData();
+                    }}
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    value={resetText}
+                    onChange={(e) => setResetText(e.target.value.toUpperCase())}
+                    placeholder="Digite LIMPAR para confirmar"
+                    aria-label="Digite LIMPAR para confirmar a limpeza dos dados"
+                    className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-red-500/40 focus:ring-1 focus:ring-red-500/10 transition-all placeholder:text-zinc-600"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && resetText === 'LIMPAR') handleResetData();
+                    }}
+                  />
+                )}
+                {resetPasswordError && (
+                  <p className="text-[11px] text-red-400 mt-2">{resetPasswordError}</p>
+                )}
               </div>
               <div className="flex border-t border-white/[0.06]">
                 <button
                   onClick={() => {
-                    setShowResetConfirm(false);
-                    setResetText('');
+                    if (resetStep === 'password') {
+                      setResetStep('confirm');
+                      setResetPassword('');
+                      setResetPasswordError('');
+                    } else {
+                      setShowResetConfirm(false);
+                      setResetText('');
+                    }
                   }}
                   className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
                 >
-                  Cancelar
+                  {resetStep === 'password' ? 'Voltar' : 'Cancelar'}
                 </button>
                 <div className="w-px bg-white/[0.06]" />
                 <button
                   onClick={handleResetData}
-                  disabled={resetText !== 'LIMPAR' || resetting}
+                  disabled={
+                    resetStep === 'confirm'
+                      ? resetText !== 'LIMPAR' || resetting
+                      : !resetPassword.trim() || resetting
+                  }
                   className="flex-1 py-4 text-[13px] font-semibold text-red-500 hover:text-red-400 active:bg-white/[0.03] transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
                 >
-                  {resetting ? '...' : 'Limpar'}
+                  {resetting ? '...' : resetStep === 'password' ? 'Confirmar' : 'Limpar'}
                 </button>
               </div>
               <div className="sm:hidden flex justify-center pb-3 pt-1">

@@ -35,7 +35,7 @@ const DataStep: FC<DataStepProps> = memo(
             {/* Header */}
             <div className="space-y-2">
               <h2 className="text-2xl font-bold tracking-tight text-white">Seus dados</h2>
-              <p className="text-[14px] text-zinc-500">Preencha suas informações para continuar.</p>
+              <p className="text-[14px] text-zinc-400">Preencha suas informações para continuar.</p>
             </div>
 
             {/* Form */}
@@ -51,6 +51,7 @@ const DataStep: FC<DataStepProps> = memo(
                   id="name-desktop"
                   type="text"
                   placeholder="Digite seu nome completo"
+                  data-testid="input-name"
                   aria-label="Seu nome"
                   aria-describedby={
                     name && name.trim().length < 3 ? 'name-error-desktop' : undefined
@@ -91,6 +92,7 @@ const DataStep: FC<DataStepProps> = memo(
                   id="phone-desktop"
                   type="tel"
                   placeholder="(00) 00000-0000"
+                  data-testid="input-phone"
                   aria-label="Seu número de WhatsApp com DDD"
                   aria-describedby={
                     phone && phone.replace(/\D/g, '').length < 11
@@ -112,7 +114,7 @@ const DataStep: FC<DataStepProps> = memo(
 
             {/* Helper */}
             <div className="pt-4">
-              <p className="text-[12px] text-zinc-600">
+              <p className="text-[12px] text-zinc-500">
                 {isMensalista
                   ? 'Seus dados já estão salvos. Confirme para continuar.'
                   : 'Seus dados ficam salvos para próximos agendamentos.'}
@@ -157,6 +159,7 @@ const DataStep: FC<DataStepProps> = memo(
               id="name-mobile"
               type="text"
               placeholder="Digite seu nome..."
+              data-testid="input-name"
               aria-label="Seu nome"
               aria-describedby={name && name.trim().length < 3 ? 'name-error-mobile' : undefined}
               aria-invalid={!!(name && name.trim().length < 3)}
@@ -193,6 +196,7 @@ const DataStep: FC<DataStepProps> = memo(
               id="phone-mobile"
               type="tel"
               placeholder="(00) 90000-0000"
+              data-testid="input-phone"
               aria-label="Seu número de WhatsApp com DDD"
               aria-describedby={
                 phone && phone.replace(/\D/g, '').length < 11 ? 'phone-error-mobile' : undefined

@@ -51,6 +51,7 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
                 key={day.fullDate}
                 onClick={() => onSelectDate(day.fullDate)}
                 disabled={day.isPast}
+                data-testid="date-picker"
                 role="radio"
                 aria-checked={isSelected}
                 aria-label={`${day.dayName} ${day.dayNumber}${day.isToday ? ' (hoje)' : ''}${day.isPast ? ' (indisponível)' : ''}`}
@@ -75,7 +76,7 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
           })}
         </div>
 
-        <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.25em] mb-4">
+        <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-[0.25em] mb-4">
           Horários
         </p>
         {selectedDate ? (
@@ -93,6 +94,7 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
                   disabled={occupied}
                   type="button"
                   role="radio"
+                  data-testid="time-slot"
                   aria-checked={isSelected}
                   onClick={() => onSelectTime(time)}
                   aria-label={`${time}${occupied ? ' (indisponível)' : ''}${isSelected ? ' (selecionado)' : ''}`}
@@ -137,6 +139,7 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
               key={day.fullDate}
               onClick={() => onSelectDate(day.fullDate)}
               disabled={day.isPast}
+              data-testid="date-picker"
               role="radio"
               aria-checked={isSelected}
               aria-label={`${day.dayName} ${day.dayNumber}${day.isToday ? ' (hoje)' : ''}${day.isPast ? ' (indisponível)' : ''}`}
@@ -188,6 +191,7 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
                   type="button"
                   disabled={occupied}
                   role="radio"
+                  data-testid="time-slot"
                   aria-checked={isSelected}
                   onClick={() => onSelectTime(time)}
                   aria-label={`${time}${occupied ? ' (indisponível)' : ''}${isSelected ? ' (selecionado)' : ''}`}

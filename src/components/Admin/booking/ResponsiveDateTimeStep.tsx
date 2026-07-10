@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getTimeSlotsForDate, isTimeOccupied } from '../../../lib/utils';
+import { getTimeSlotsForDate, isTimeOccupied, formatDisplayName } from '../../../lib/utils';
 import { useIsDesktop } from '../../../hooks/useIsDesktop';
 import type { Booking, BookingWithClient, Service } from '../../../types';
 
@@ -227,7 +227,7 @@ export default function ResponsiveDateTimeStep({
               REAGENDANDO ATENDIMENTO
             </span>
             <h3 className="text-sm font-bold text-white uppercase tracking-wide leading-none">
-              {rescheduleBooking.clients?.name}
+              {formatDisplayName(rescheduleBooking.clients?.name)}
             </h3>
             <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5">
               Original:{' '}

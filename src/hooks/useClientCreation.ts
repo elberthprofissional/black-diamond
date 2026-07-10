@@ -66,6 +66,7 @@ export function useClientCreation(loadData: () => Promise<void>) {
         .from('clients')
         .select('id')
         .ilike('name', name)
+        .is('deleted_at', null)
         .limit(1)
         .maybeSingle();
       if (existingName) {

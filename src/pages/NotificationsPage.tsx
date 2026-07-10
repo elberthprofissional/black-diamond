@@ -5,6 +5,24 @@ import { useNotifications, type Notification } from '../hooks/useNotifications';
 import { NotificationListContent } from '../components/Admin/NotificationBell';
 
 function parseNotifBody(body: string) {
+  // Try JSON format first (new format)
+  try {
+    const parsed = JSON.parse(body);
+    if (parsed && typeof parsed.clientName === 'string') {
+      return {
+        clientName: parsed.clientName.replace(/\s*\[MENSALISTA\]/, '').trim(),
+        services: parsed.services || '',
+        dateTime: parsed.dateTime || '',
+        totalPrice: parsed.totalPrice || '',
+        clientPhone: parsed.clientPhone || '',
+        manageUrl: parsed.manageUrl || '',
+      };
+    }
+  } catch {
+    // Not JSON — fall through to legacy format
+  }
+
+  // Legacy pipe-separated format (backwards compatibility)
   const parts = body.split(' | ');
   if (parts.length < 6) return null;
   return {
@@ -90,8 +108,9 @@ const NotificationsPage: FC = () => {
   const filterNotifications = (notifs: Notification[]) => {
     if (activeFilter === 'all') return notifs;
     return notifs.filter((n) => {
-      if (activeFilter === 'bookings')
+      if (activeFilter === 'bookings') {
         return n.tag?.startsWith('booking-') || n.tag?.startsWith('cancelled-');
+      }
       if (activeFilter === 'reminders') return n.tag?.startsWith('reminder-');
       if (activeFilter === 'system') {
         return (

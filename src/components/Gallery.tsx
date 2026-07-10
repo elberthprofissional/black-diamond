@@ -155,7 +155,7 @@ const Gallery: FC = memo(() => {
               href={`https://www.instagram.com/${barberInstagram}/`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[8px] md:text-[10px] font-medium text-zinc-600 uppercase tracking-[0.4em] hover:text-[#D4AF37] transition-colors duration-300"
+              className="text-[8px] md:text-[10px] font-medium text-zinc-500 uppercase tracking-[0.4em] hover:text-[#D4AF37] transition-colors duration-300"
             >
               Para mais, siga a gente no{' '}
               <span className="text-[#D4AF37] underline underline-offset-4 decoration-[#D4AF37]/50 hover:decoration-[#D4AF37]">

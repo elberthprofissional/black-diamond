@@ -14,6 +14,7 @@ export default function LoginHeader({ isPWA }: LoginHeaderProps) {
       {!isPWA && (
         <button
           onClick={() => navigate('/')}
+          aria-label="Voltar para a página inicial"
           className="fixed top-6 left-6 z-50 text-white hover:text-[#C5A059] transition-colors cursor-pointer active:scale-95"
         >
           <ArrowLeft size={20} />

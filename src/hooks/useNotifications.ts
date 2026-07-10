@@ -57,6 +57,10 @@ export function useNotifications() {
   const [loading, setLoading] = useState(true);
   const [showPreview, setShowPreview] = useState<Notification | null>(null);
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const notificationsRef = useRef<Notification[]>([]);
+
+  // Keep ref in sync with state
+  notificationsRef.current = notifications;
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -222,7 +226,7 @@ export function useNotifications() {
   }, []);
 
   const markAllAsRead = useCallback(async () => {
-    const snapshot = notifications;
+    const snapshot = notificationsRef.current;
     setNotifications((current) => current.map((n) => ({ ...n, read: true })));
     if (!supabase?.auth?.getUser) return;
     const {
@@ -237,23 +241,20 @@ export function useNotifications() {
     if (error) {
       setNotifications(snapshot);
     }
-  }, [notifications]);
+  }, []);
 
-  const clearNotification = useCallback(
-    async (id: string) => {
-      const removed = notifications.find((n) => n.id === id);
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-      const { error } = await supabase.from('notifications').delete().eq('id', id);
-      if (error && removed) {
-        setNotifications((prev) =>
-          [...prev, removed].sort(
-            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          )
-        );
-      }
-    },
-    [notifications]
-  );
+  const clearNotification = useCallback(async (id: string) => {
+    const removed = notificationsRef.current.find((n) => n.id === id);
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    const { error } = await supabase.from('notifications').delete().eq('id', id);
+    if (error && removed) {
+      setNotifications((prev) =>
+        [...prev, removed].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )
+      );
+    }
+  }, []);
 
   return {
     notifications,

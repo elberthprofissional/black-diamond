@@ -66,7 +66,7 @@ const ClientProfile: FC = () => {
     setCancellingId(booking.id);
     setConfirmCancel(null);
     try {
-      await cancelBooking(booking.id, booking.token);
+      await cancelBooking(booking.id);
       setBookings((prev) => prev.filter((b) => b.id !== booking.id));
     } catch {
       setError('Erro ao cancelar. Tente novamente.');

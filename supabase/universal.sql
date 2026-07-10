@@ -1524,7 +1524,7 @@ SELECT cron.schedule('cleanup-rate-limits', '7 * * * *', $$ SELECT cleanup_rate_
 -- SECURE PUBLIC RPC FUNCTIONS
 -- =========================================================================
 
--- RPC para busca segura de cliente por telefone (com rate limiting server-side)
+-- RPC para busca segura de cliente por telefone
 CREATE OR REPLACE FUNCTION lookup_client_by_phone(p_phone text)
 RETURNS TABLE(
     id UUID,
@@ -1533,21 +1533,7 @@ RETURNS TABLE(
     is_mensalista BOOLEAN,
     mensalista_plan_id UUID
 ) AS $$
-DECLARE
-    v_client_ip text;
-    v_rate_key text;
 BEGIN
-    -- Rate limiting: máximo 10 consultas por telefone por minuto
-    v_client_ip := COALESCE(
-        current_setting('request.headers', true)::jsonb->>'x-forwarded-for',
-        'unknown'
-    );
-    v_rate_key := 'lookup_client:' || p_phone;
-
-    IF NOT check_rate_limit(v_rate_key, 10, 60) THEN
-        RAISE EXCEPTION 'Muitas consultas. Aguarde um momento e tente novamente.';
-    END IF;
-
     RETURN QUERY
     SELECT c.id, c.name, c.phone, c.is_mensalista, c.mensalista_plan_id
     FROM clients c
@@ -1705,12 +1691,15 @@ BEGIN
 
     v_manage_url := v_site_url || '/gerenciar?token=' || NEW.token;
 
-    v_notif_body := TRIM(v_client.name) || v_mensalista_tag || ' | ' || 
-                    COALESCE(v_service_names, 'Serviço') || ' | ' || 
-                    v_formatted_date || ' | ' || 
-                    v_formatted_price || ' | ' || 
-                    v_clean_phone || ' | ' || 
-                    v_manage_url;
+    v_notif_body := jsonb_build_object(
+        'clientName', TRIM(v_client.name),
+        'isMensalista', (v_client.is_mensalista = TRUE AND (v_client.mensalista_expires_at IS NULL OR v_client.mensalista_expires_at >= NOW())),
+        'services', COALESCE(v_service_names, 'Serviço'),
+        'dateTime', v_formatted_date,
+        'totalPrice', v_formatted_price,
+        'clientPhone', v_clean_phone,
+        'manageUrl', v_manage_url
+    )::text;
 
     FOR v_admin_id IN SELECT user_id FROM admin_users LOOP
         INSERT INTO notifications (user_id, title, body, tag, url)
@@ -1775,12 +1764,14 @@ BEGIN
             VALUES (
                 v_admin_id,
                 'Agendamento Cancelado ❌',
-                COALESCE(v_client_name, 'Cliente') || ' | ' || 
-                COALESCE(v_service_names, 'Serviço') || ' | ' || 
-                v_formatted_date || ' às ' || v_formatted_time || ' | ' || 
-                'R$ ' || replace(to_char(NEW.total_price, 'FM999990.00'), '.', ',') || ' | ' ||
-                COALESCE(v_clean_phone, '---') || ' | ' || 
-                'Cancelado',
+                jsonb_build_object(
+                    'clientName', COALESCE(v_client_name, 'Cliente'),
+                    'services', COALESCE(v_service_names, 'Serviço'),
+                    'dateTime', v_formatted_date || ' às ' || v_formatted_time,
+                    'totalPrice', 'R$ ' || replace(to_char(NEW.total_price, 'FM999990.00'), '.', ','),
+                    'clientPhone', COALESCE(v_clean_phone, '---'),
+                    'manageUrl', 'Cancelado'
+                )::text,
                 'cancelled-' || NEW.id::text,
                 '/admin/agendamentos'
             );

@@ -22,9 +22,9 @@ const AdminSidebar: FC = memo(() => {
   const isActive = (path: string) => location.pathname === path;
 
   const mainMenuItems = [
-    { label: 'Agenda do Dia', path: '/admin', icon: Clock },
-    { label: 'Agenda Semanal', path: '/admin/weekly', icon: Calendar },
-    { label: 'Meus Clientes', path: '/admin/clients', icon: Users },
+    { label: 'Agenda do Dia', path: '/admin', icon: Clock, testId: 'nav-today' },
+    { label: 'Agenda Semanal', path: '/admin/weekly', icon: Calendar, testId: 'nav-weekly' },
+    { label: 'Meus Clientes', path: '/admin/clients', icon: Users, testId: 'nav-clients' },
   ];
 
   return (
@@ -55,6 +55,7 @@ const AdminSidebar: FC = memo(() => {
                 <button
                   key={item.path}
                   onClick={() => navigate(item.path)}
+                  data-testid={item.testId}
                   aria-current={active ? 'page' : undefined}
                   className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all group relative ${
                     active
@@ -137,6 +138,7 @@ const AdminSidebar: FC = memo(() => {
                       setIsProfileOpen(false);
                       navigate('/admin/profile');
                     }}
+                    data-testid="nav-profile"
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all"
                   >
                     <User size={14} className="text-zinc-500 shrink-0" />
@@ -161,6 +163,7 @@ const AdminSidebar: FC = memo(() => {
                       setIsProfileOpen(false);
                       setShowLogoutConfirm(true);
                     }}
+                    data-testid="btn-logout"
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/[0.06] transition-all"
                   >
                     <LogOut size={14} className="shrink-0" />

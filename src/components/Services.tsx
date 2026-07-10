@@ -136,7 +136,7 @@ const Services: FC<ServicesProps> = memo(({ onBookingClick }) => {
                   <h3 className="text-lg md:text-2xl font-bebas text-white uppercase tracking-wider">
                     Economize com um plano mensal
                   </h3>
-                  <p className="text-[13px] md:text-sm text-zinc-500 leading-relaxed max-w-lg">
+                  <p className="text-[13px] md:text-sm text-zinc-400 leading-relaxed max-w-lg">
                     Escolha um plano e tenha serviços inclusos todo mês.
                     <span className="text-zinc-400"> Conheça nossos planos!</span>
                   </p>

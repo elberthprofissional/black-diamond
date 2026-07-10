@@ -20,7 +20,13 @@ const Skeleton: FC<SkeletonProps> = ({ className = '', variant = 'text', width, 
   if (width) style.width = typeof width === 'number' ? `${width}px` : width;
   if (height) style.height = typeof height === 'number' ? `${height}px` : height;
 
-  return <div className={`${baseClass} ${variantClass} ${className}`} style={style} />;
+  return (
+    <div
+      data-testid="skeleton"
+      className={`${baseClass} ${variantClass} ${className}`}
+      style={style}
+    />
+  );
 };
 
 export const SkeletonCard: FC<{ className?: string }> = ({ className = '' }) => (

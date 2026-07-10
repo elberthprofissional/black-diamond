@@ -1,10 +1,12 @@
-const CACHE_VERSION = 'v10';
-const STATIC_CACHE = 'static-v10';
-const API_CACHE = 'api-v10';
-const NAV_CACHE = 'nav-v10';
-const QUEUE_CACHE = 'queue-v10';
+const CACHE_VERSION = 'v11';
+const STATIC_CACHE = 'static-v11';
+const API_CACHE = 'api-v11';
+const NAV_CACHE = 'nav-v11';
+const QUEUE_CACHE = 'queue-v11';
 
 const PRECACHE_URLS = [
+  '/',
+  '/index.html',
   '/assets/logo.webp',
   '/manifest.json',
 ];
@@ -82,7 +84,7 @@ self.addEventListener('fetch', (e) => {
         const cached = await caches.match(e.request);
         if (cached) return cached;
         return new Response(
-          '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline</title><style>body{background:#0A0A0A;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;text-align:center;padding:2rem}h1{color:#C5A059}</style></head><body><div><h1>Voc est offline</h1><p>Conecte-se  internet para acessar o painel.</p><p style="margin-top:1rem;font-size:0.8rem;color:#666">Black Diamond Admin</p></div></body></html>',
+          '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline</title><style>body{background:#0A0A0A;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;text-align:center;padding:2rem}h1{color:#C5A059}</style></head><body><div><h1>Voc&#234; est&#225; offline</h1><p>Conecte-se &#224; internet para acessar o painel.</p><p style="margin-top:1rem;font-size:0.8rem;color:#666">Black Diamond Admin</p></div></body></html>',
           { status: 503, headers: { 'Content-Type': 'text/html;charset=UTF-8' } }
         );
       })
@@ -122,8 +124,27 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Supabase API: stale-while-revalidate
+  // Supabase API: network-first (never cache personal data)
   if (url.hostname.endsWith('.supabase.co')) {
+    // Only cache GET requests for read-only public data (services, settings)
+    // Never cache POST/PUT/DELETE or responses with personal data
+    if (e.request.method !== 'GET') {
+      e.respondWith(fetch(e.request).catch(() => new Response('{"error":"offline"}', { status: 503, headers: { 'Content-Type': 'application/json' } })));
+      return;
+    }
+
+    // Check if this is a safe public endpoint to cache
+    const path = url.pathname;
+    const isPublicEndpoint = path.includes('/services') || path.includes('/settings') || path.includes('/mensalista_plans');
+    const isRealtime = url.searchParams.get('apikey') && url.pathname.includes('/rest/v1/');
+
+    if (!isPublicEndpoint || !isRealtime) {
+      // Network-only for sensitive data (bookings, clients, etc)
+      e.respondWith(fetch(e.request).catch(() => new Response('{"error":"offline"}', { status: 503, headers: { 'Content-Type': 'application/json' } })));
+      return;
+    }
+
+    // Stale-while-revalidate only for safe public data
     e.respondWith(
       caches.open(API_CACHE).then((cache) =>
         cache.match(e.request).then((cached) => {

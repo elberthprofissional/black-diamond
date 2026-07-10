@@ -1,6 +1,7 @@
 import { type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useModalA11y } from '../../../hooks/useModalA11y';
+import { formatDisplayName } from '../../../lib/utils';
 import type { BookingWithClient, Service } from '../../../types';
 
 interface ThankYouModalProps {
@@ -13,7 +14,7 @@ interface ThankYouModalProps {
 const ThankYouModal: FC<ThankYouModalProps> = ({ booking, services, onConfirm, onCancel }) => {
   const { dialogRef } = useModalA11y(!!booking, onCancel);
 
-  const clientName = booking?.clients?.name || 'Cliente';
+  const clientName = formatDisplayName(booking?.clients?.name) || 'Cliente';
   const firstName = clientName.split(' ')[0];
 
   const serviceNames = (booking?.service_ids || [])

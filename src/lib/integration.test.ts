@@ -189,10 +189,10 @@ describe('Fluxo admin: concluir atendimento', () => {
   });
 });
 
-describe('Fluxo admin: excluir agendamento', () => {
-  it('deleta booking por id', async () => {
+describe('Fluxo admin: cancelar agendamento', () => {
+  it('cancela booking por id (status update)', async () => {
     const mockChain = {
-      delete: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
       eq: vi.fn().mockResolvedValue({ error: null }),
     };
     vi.mocked(supabase.from).mockReturnValue(mockChain as ReturnType<typeof supabase.from>);
@@ -200,7 +200,7 @@ describe('Fluxo admin: excluir agendamento', () => {
     const { deleteBooking } = await import('../lib/api');
     await deleteBooking('booking-99');
 
-    expect(mockChain.delete).toHaveBeenCalled();
+    expect(mockChain.update).toHaveBeenCalledWith({ status: 'cancelled' });
     expect(mockChain.eq).toHaveBeenCalledWith('id', 'booking-99');
   });
 });

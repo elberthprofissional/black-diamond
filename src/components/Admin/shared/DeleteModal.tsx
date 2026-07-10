@@ -2,6 +2,7 @@ import { type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useModalA11y } from '../../../hooks/useModalA11y';
+import { formatDisplayName } from '../../../lib/utils';
 import type { BookingWithClient } from '../../../types';
 
 interface DeleteModalProps {
@@ -47,8 +48,9 @@ const DeleteModal: FC<DeleteModalProps> = ({ booking, onConfirm, onCancel }) => 
                 </button>
               </div>
               <p className="text-[11px] text-zinc-500 leading-relaxed">
-                O agendamento de <span className="text-zinc-300">{booking.clients?.name}</span> será
-                removido permanentemente.
+                O agendamento de{' '}
+                <span className="text-zinc-300">{formatDisplayName(booking.clients?.name)}</span>{' '}
+                será removido permanentemente.
               </p>
             </div>
 

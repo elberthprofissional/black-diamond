@@ -55,6 +55,7 @@ export default function LoginForm({
             value={email}
             onChange={(e) => onEmailChange(e.target.value)}
             placeholder="seu@email.com"
+            data-testid="input-email"
             className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl px-5 text-sm font-medium text-zinc-100 outline-none focus:border-[#C5A059] transition-all lg:h-14 lg:text-base"
             required
           />
@@ -75,6 +76,7 @@ export default function LoginForm({
               value={password}
               onChange={(e) => onPasswordChange(e.target.value)}
               placeholder="Sua senha"
+              data-testid="input-password"
               className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl px-5 pr-12 text-sm font-medium text-zinc-100 outline-none focus:border-[#C5A059] transition-all lg:h-14 lg:text-base"
               required
             />
@@ -120,7 +122,7 @@ export default function LoginForm({
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
         type="submit"
-        data-testid="login-submit"
+        data-testid="btn-login"
         disabled={isLoggingIn || isBlocked}
         className="w-full h-11 lg:h-12 bg-[#C5A059] text-black font-black uppercase tracking-[0.5em] text-[11px] rounded-2xl lg:rounded-sm hover:bg-white transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed"
       >

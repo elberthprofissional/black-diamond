@@ -63,10 +63,14 @@ export function useGallery() {
         setShowMoveModal(false);
         return;
       }
-      const oldIdx = preview.previewImage.position;
-      const newIdx = targetPosition - 1;
+      const currentIdx = images.findIndex((img) => img.id === preview.previewImage!.id);
+      if (currentIdx === -1) {
+        setShowMoveModal(false);
+        return;
+      }
+      const newIdx = Math.min(targetPosition - 1, images.length - 1);
       const updated = [...images];
-      const [moved] = updated.splice(oldIdx, 1);
+      const [moved] = updated.splice(currentIdx, 1);
       updated.splice(newIdx, 0, moved);
       await Promise.all(
         updated.map((img, i) =>

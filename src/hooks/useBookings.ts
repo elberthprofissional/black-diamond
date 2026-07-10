@@ -8,6 +8,7 @@ export function useBookings(date?: string) {
   const [error, setError] = useState<Error | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const fetchRef = useRef<() => void>(() => {});
+  const autoCompleteScheduledRef = useRef(false);
 
   const fetchBookings = useCallback(async () => {
     abortControllerRef.current?.abort();
@@ -21,15 +22,20 @@ export function useBookings(date?: string) {
       if (controller.signal.aborted) return;
       setBookings((result.data || []) as BookingWithClient[]);
 
-      if (date) {
+      // Schedule autoComplete only if not already scheduled (prevents race condition)
+      if (date && !autoCompleteScheduledRef.current) {
+        autoCompleteScheduledRef.current = true;
         autoCompleteExpiredBookings(date)
           .then((count) => {
+            autoCompleteScheduledRef.current = false;
             if (controller.signal.aborted) return;
             if (count > 0) {
               fetchRef.current();
             }
           })
-          .catch(() => {});
+          .catch(() => {
+            autoCompleteScheduledRef.current = false;
+          });
       }
     } catch (err) {
       if (controller.signal.aborted) return;

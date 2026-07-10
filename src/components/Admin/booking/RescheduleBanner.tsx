@@ -1,4 +1,5 @@
 import { RefreshCw } from 'lucide-react';
+import { formatDisplayName } from '../../../lib/utils';
 import type { BookingWithClient } from '../../../types';
 
 interface RescheduleBannerProps {
@@ -13,16 +14,26 @@ export default function RescheduleBanner({ booking }: RescheduleBannerProps) {
           <RefreshCw size={18} />
         </div>
         <div>
-          <span className="text-[9px] font-black text-[#C5A059] tracking-[0.2em] uppercase block">Modo Reagendamento</span>
+          <span className="text-[9px] font-black text-[#C5A059] tracking-[0.2em] uppercase block">
+            Modo Reagendamento
+          </span>
           <h3 className="text-sm font-bold text-white uppercase tracking-wide">
-            Reagendando o cliente <span className="text-[#C5A059]">{booking.clients?.name}</span>
+            Reagendando o cliente{' '}
+            <span className="text-[#C5A059]">{formatDisplayName(booking.clients?.name)}</span>
           </h3>
         </div>
       </div>
       <div className="text-right">
-        <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block">Original</span>
+        <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block">
+          Original
+        </span>
         <span className="text-xs font-bold text-zinc-300">
-          {new Date(booking.booking_date.replace(/-/g, '/')).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} às {booking.booking_time.slice(0, 5)}
+          {new Date(booking.booking_date.replace(/-/g, '/')).toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+          })}{' '}
+          às {booking.booking_time.slice(0, 5)}
         </span>
       </div>
     </div>

@@ -296,3 +296,14 @@ export const getErrorMessage = (error: unknown): string => {
 export const formatDateBR = (dateStr: string): string => {
   return dateStr.split('-').reverse().join('/');
 };
+
+/**
+ * Returns first name + last name only (e.g. "Felipe Silva Figueiredo" → "Felipe Figueiredo").
+ * If name has 1 or 2 words, returns as-is.
+ */
+export const formatDisplayName = (name: string | null | undefined): string => {
+  if (!name) return '';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length <= 2) return name.trim();
+  return `${parts[0]} ${parts[parts.length - 1]}`;
+};

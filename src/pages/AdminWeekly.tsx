@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type FC, type MouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getLocalDateString } from '../lib/utils';
+import { getLocalDateString, formatDisplayName } from '../lib/utils';
 import { getAvailableSlots } from '../lib/api';
 import { useBookings } from '../hooks/useBookings';
 import { useSlotBlocking } from '../hooks/useSlotBlocking';
@@ -304,7 +304,7 @@ const AdminWeekly: FC = () => {
                           </span>
                           <div className="w-px h-3.5 bg-white/[0.06] mx-3 shrink-0" />
                           <span className="text-[11px] font-bold text-zinc-300 truncate flex-1">
-                            {booking.clients?.name}
+                            {formatDisplayName(booking.clients?.name)}
                           </span>
                         </button>
 

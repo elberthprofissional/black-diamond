@@ -1,5 +1,6 @@
 import { type FC } from 'react';
 import { ChevronRight } from 'lucide-react';
+import { formatDisplayName } from '../../../lib/utils';
 import type { BookingWithClient } from '../../../types';
 
 interface DashboardHeaderProps {
@@ -28,7 +29,7 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({ nextBooking, dailyRevenue, 
             {nextBooking ? (
               <div className="flex items-baseline gap-2.5 mt-0.5 min-w-0">
                 <span className="text-[13px] font-bold text-white uppercase tracking-wide truncate">
-                  {nextBooking.clients?.name ?? ''}
+                  {formatDisplayName(nextBooking.clients?.name) ?? ''}
                 </span>
                 <span className="text-[11px] font-semibold text-[#C5A059] tabular-nums shrink-0">
                   {nextBooking.booking_time.slice(0, 5)}

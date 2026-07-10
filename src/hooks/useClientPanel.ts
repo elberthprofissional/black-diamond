@@ -1,11 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
-import {
-  getBookings,
-  updateClient,
-  updateClientNotes,
-  deleteClient,
-  toggleClientMensalista,
-} from '../lib/api';
+import { updateClient, updateClientNotes, deleteClient, toggleClientMensalista } from '../lib/api';
+import { supabase } from '../lib/supabase';
 import { getErrorMessage } from '../lib/utils';
 import { useToast } from './useToast';
 import { useAuditLog } from './useAuditLog';
@@ -40,12 +35,12 @@ export function useClientPanel(
     setIsEditing(false);
     setIsEditingNotes(false);
     try {
-      const result = await getBookings();
-      setPanelBookings(
-        result.data
-          .filter((b) => b.client_id === client.id)
-          .sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime())
-      );
+      const { data } = await supabase
+        .from('bookings')
+        .select('*, clients(name, phone)')
+        .eq('client_id', client.id)
+        .order('booking_date', { ascending: false });
+      setPanelBookings((data || []) as BookingWithClient[]);
     } catch {
       setPanelBookings([]);
     }

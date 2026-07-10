@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { updateBookingStatus, deleteBooking } from '../lib/api';
+import { updateBookingStatus } from '../lib/api';
 import { useToast } from './useToast';
 import { useAuditLog } from './useAuditLog';
 import { getErrorMessage } from '../lib/utils';
@@ -82,38 +82,31 @@ export function useBookingModals(loadData: () => Promise<void>, services: Servic
     const bookingDate = bookingToDelete?.booking_date;
     const bookingTime = bookingToDelete?.booking_time;
     try {
-      await deleteBooking(id);
+      await updateBookingStatus(id, 'cancelled');
       logBooking('booking_cancelled', id, {
         client_name: clientName,
         date: bookingDate,
         time: bookingTime,
       });
-      supabase.auth
-        .getUser()
-        .then(({ data: { user } }) => {
-          if (!user) return;
-          supabase
-            .from('notifications')
-            .insert({
-              user_id: user.id,
-              title: 'Agendamento Cancelado',
-              body: `${clientName || 'Cliente'} — ${bookingDate} às ${bookingTime?.slice(0, 5)}`,
-              tag: `booking-cancelled-${id}`,
-              url: '/admin',
-            })
-            .then(
-              () => {},
-              () => {}
-            );
-        })
-        .then(
-          () => {},
-          () => {}
-        );
+
+      // Close panel + refresh dashboard immediately
       setBookingToDelete(null);
       setSelectedBooking(null);
       await loadData();
-      showSuccess('Agendamento excluído!');
+
+      // Fire-and-forget: create notification (don't block UI)
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (!user) return;
+        supabase.from('notifications').insert({
+          user_id: user.id,
+          title: 'Agendamento Cancelado',
+          body: `${clientName || 'Cliente'} — ${bookingDate} às ${bookingTime?.slice(0, 5)}`,
+          tag: `booking-cancelled-${id}`,
+          url: '/admin',
+        });
+      });
+
+      showSuccess('Agendamento cancelado!');
     } catch (error) {
       showError(getErrorMessage(error));
     }

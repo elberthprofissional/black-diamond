@@ -72,26 +72,19 @@ export const createClient = async (data: {
   return newClient;
 };
 
-/** Atualiza dados de um cliente. Verifica se o telefone não pertence a outro cliente. */
+/** Atualiza dados de um cliente. Trata violação de unique constraint no telefone. */
 export const updateClient = async (
   id: string,
   data: { name: string; phone: string; email?: string }
 ) => {
-  const { data: existing } = await supabase
-    .from('clients')
-    .select('id')
-    .eq('phone', data.phone)
-    .neq('id', id)
-    .limit(1)
-    .maybeSingle();
-
-  if (existing) {
-    throw new Error('Este telefone já está cadastrado para outro cliente.');
-  }
-
   const { error } = await supabase.from('clients').update(data).eq('id', id);
 
-  if (error) throw error;
+  if (error) {
+    if (error.code === '23505') {
+      throw new Error('Este telefone já está cadastrado para outro cliente.');
+    }
+    throw error;
+  }
 };
 
 /** Atualiza as notas de um cliente. */

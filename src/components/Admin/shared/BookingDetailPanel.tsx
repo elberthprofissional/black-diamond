@@ -1,6 +1,6 @@
 import { memo, type FC } from 'react';
 import type { BookingWithClient, Service } from '../../../types';
-import { formatPhone } from '../../../lib/utils';
+import { formatPhone, formatDisplayName } from '../../../lib/utils';
 import { BLOCKED_NAME } from '../../../lib/constants';
 
 interface BookingDetailPanelProps {
@@ -169,7 +169,9 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
               {booking.clients?.name?.charAt(0) || 'U'}
             </div>
             <div className="min-w-0">
-              <p className="text-[15px] font-bold text-white truncate">{booking.clients?.name}</p>
+              <p className="text-[15px] font-bold text-white truncate">
+                {formatDisplayName(booking.clients?.name)}
+              </p>
               <p className="text-[12px] text-zinc-500">
                 {formatPhone(booking.clients?.phone) || ''}
               </p>
@@ -294,7 +296,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="text-base font-black text-white uppercase tracking-tight truncate">
-                {booking.clients?.name}
+                {formatDisplayName(booking.clients?.name)}
               </h3>
               <p className="text-xs text-zinc-500 mt-0.5">
                 {formatPhone(booking.clients?.phone) || 'Sem telefone'}

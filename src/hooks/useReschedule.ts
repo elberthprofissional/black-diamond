@@ -59,6 +59,10 @@ export function useReschedule(
     try {
       const totalPrice = rescheduleServices.reduce((sum, s) => sum + Number(s.price || 0), 0);
       const totalDuration = rescheduleServices.reduce((sum, s) => sum + (s.duration || 0), 0);
+
+      // Cancel old booking FIRST, then create new one
+      // This prevents double-booking if creation fails
+      await deleteBooking(selectedBooking.id);
       await createBooking(
         {
           service_ids: rescheduleServices.map((s) => s.id),
@@ -72,7 +76,6 @@ export function useReschedule(
           phone: selectedBooking.clients?.phone || '',
         }
       );
-      await deleteBooking(selectedBooking.id);
       supabase.auth
         .getUser()
         .then(({ data: { user } }) => {

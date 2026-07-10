@@ -263,10 +263,10 @@ describe('updateBookingStatus', () => {
 });
 
 describe('deleteBooking', () => {
-  it('deleta booking por id', async () => {
+  it('cancela booking por id (status update)', async () => {
     queryResult = { data: null, error: null };
     await deleteBooking('b1');
-    expect(queryBuilder.delete).toHaveBeenCalled();
+    expect(queryBuilder.update).toHaveBeenCalledWith({ status: 'cancelled' });
     expect(queryBuilder.eq).toHaveBeenCalledWith('id', 'b1');
   });
 });
