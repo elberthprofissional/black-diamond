@@ -394,12 +394,12 @@ const SettingsConta: FC<SettingsContaProps> = ({ onBack: _onBack }) => {
                   <input
                     ref={phoneInputRef}
                     type="tel"
-                    value={phoneInput}
-                    onChange={(e) => setPhoneInput(e.target.value)}
-                    placeholder="31999999999"
-                    maxLength={11}
+                    value={formatPhone(phoneInput)}
+                    onChange={(e) => setPhoneInput(formatPhone(e.target.value))}
+                    placeholder="(00) 00000-0000"
+                    maxLength={15}
                     autoFocus
-                    className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600"
+                    className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600 tabular-nums"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSavePhone();
                       if (e.key === 'Escape') setEditingPhone(false);
@@ -742,11 +742,11 @@ const SettingsConta: FC<SettingsContaProps> = ({ onBack: _onBack }) => {
         <input
           ref={phoneInputRef}
           type="tel"
-          value={phoneInput}
-          onChange={(e) => setPhoneInput(e.target.value)}
-          placeholder="31999999999"
+          value={formatPhone(phoneInput)}
+          onChange={(e) => setPhoneInput(formatPhone(e.target.value))}
+          placeholder="(00) 00000-0000"
           maxLength={15}
-          className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[15px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600"
+          className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[15px] text-white outline-none focus:border-[#C5A059]/40 transition-all placeholder:text-zinc-600 tabular-nums"
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleSavePhone();
           }}

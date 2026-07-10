@@ -58,7 +58,7 @@ const Hero: FC<HeroProps> = ({ onBookingClick }) => {
 
       {/* Decorative side text - Hidden on small mobile */}
       <div className="absolute bottom-10 left-10 hidden sm:block">
-        <p className="text-[7px] font-bold text-zinc-900 uppercase tracking-[0.4em] rotate-90 origin-left">
+        <p className="text-[7px] font-bold text-zinc-600 uppercase tracking-[0.4em] rotate-90 origin-left">
           Since 2026
         </p>
       </div>

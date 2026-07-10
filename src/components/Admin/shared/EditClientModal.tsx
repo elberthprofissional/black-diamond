@@ -1,5 +1,6 @@
 import { type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatPhone } from '../../../lib/utils';
 
 interface EditClientModalProps {
   isOpen: boolean;
@@ -64,8 +65,8 @@ const EditClientModal: FC<EditClientModalProps> = ({
                 <input
                   type="text"
                   id="edit-client-phone"
-                  value={phone}
-                  onChange={(e) => onPhoneChange(e.target.value)}
+                  value={formatPhone(phone)}
+                  onChange={(e) => onPhoneChange(formatPhone(e.target.value))}
                   aria-label="WhatsApp do cliente"
                   className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#C5A059]/35 transition-colors tabular-nums"
                 />
