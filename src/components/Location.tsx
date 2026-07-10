@@ -66,7 +66,7 @@ const Location: FC = () => {
             {/* Mapa */}
             <div className="w-full h-[300px] lg:h-[400px] bg-[#1a1a1a] border border-white/[0.03] overflow-hidden shadow-2xl">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d60047.792673869924!2d-43.9588257!3d-19.8405012!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xa685e76e58e90f%3A0xf899efab3913f3f7!2sBarbearia%20Black%20Diamond!5e0!3m2!1spt-BR!2sbr!4v1782578430638!5m2!1spt-BR!2sbr"
+                src="https://www.google.com/maps?q=-19.8405012,-43.9588257&z=15&output=embed"
                 style={{ border: 0, width: '100%', height: '100%' }}
                 allowFullScreen
                 loading="lazy"
