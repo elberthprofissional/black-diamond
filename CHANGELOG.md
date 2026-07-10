@@ -5,6 +5,42 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.18.0] - 2026-07-10
+
+### Fixed
+- **Race condition em updateClient** — Removido check-then-update não atômico. Agora trata violação de unique constraint (23505) diretamente do banco.
+- **Hard delete de bookings** — `deleteBooking` agora faz `status='cancelled'` em vez de `DELETE`. Preserva dados históricos e estatísticas.
+- **Reagendamento não atômico** — `useReschedule` e `CancelPage` agora cancelam agendamento antigo ANTES de criar o novo. Evita booking duplicado ou perda.
+- **Stale closure em notifications** — `markAllAsRead` e `clearNotification` agora usam `notificationsRef` em vez de closure desatualizado.
+- **Rate limit duplo no SQL** — `lookup_client_by_phone` não tem mais rate limit interno (wrapper já faz).
+- **Notifications JSON parsing** — Triggers SQL agora emitem JSON em vez de `|` separado. Parser frontend suporta JSON + fallback legado para backwards compatibility.
+- **ClientProfile token inexistente** — Removido passagem de `booking.token` que sempre era `undefined`.
+- **openPanel performance** — Query direta com `eq('client_id', id)` em vez de carregar todos os bookings.
+- **Verificação de nome ignora soft-deletados** — `useClientCreation` agora filtra `deleted_at IS NULL`.
+- **showError dependency** — `useBookingSlots` removido do array de dependências (causava re-fetch desnecessário).
+- **Gallery move position** — Usa `findIndex` pelo id em vez de position como índice de array.
+- **NotificationsPage parser** — Atualizado para JSON + fallback legado (era o único lugar com parser antigo).
+- **Touch targets CSS** — `min-height: 44px` para botões/links (WCAG 2.5.8), com override para `[role="tab"]`.
+- **Contraste "Since 2026"** — `text-zinc-900` → `text-zinc-600` (passa WCAG AA).
+- **Offline fallback encoding** — HTML entities para caracteres acentuados (é, á, à).
+- **Service Worker precache** — Adicionado `index.html` ao `PRECACHE_URLS` + bump para v11.
+- **SW cache de dados sensíveis** — Supabase API agora é network-only para bookings/clients. Cache só para services/settings.
+- **Auto-complete server-side** — `autoCompleteExpiredBookings` agora chama RPC `completar_agendamentos_expirados()`.
+
+### Changed
+- **Sentry deferred** — SDK carrega via `requestIdleCallback` + dynamic import() em vez de síncrono no main.tsx.
+- **Google Analytics deferred** — GA inicializa após first paint via `requestIdleCallback`.
+- **Fonts async** — Plus Jakarta Sans/Bebas Neue via preload, Roboto/Montserrat via `onload` async. Remove render-blocking.
+- **Hero fetchPriority** — Adicionado `fetchPriority="high"` na imagem LCP.
+- **Phone formatting** — `formatPhone` aplicado em todos os campos de telefone (Editar Cliente, SettingsConta, mobile).
+- **Footer WhatsApp** — Link "Criado por Elberth Mayan" agora aponta para o WhatsApp do desenvolvedor (31 98015-9559).
+- **OG Image** — Criada imagem 1200x630 PNG para meta tags. Atualizado `index.html` com `og:image`, `og:image:width`, `og:image:height`.
+- **AdminProfile mass delete** — Adicionada verificação de senha (digitar "LIMPAR" + senha) consistente com SettingsDados.
+- **CSS touch targets** — Override para `[role="tab"]` (dots de paginação) não ter min-height 44px.
+
+### Security
+- **CSP sem unsafe-eval** — Removido `'unsafe-eval'` do Content-Security-Policy em produção.
+
 ## [3.17.0] - 2026-07-10
 
 ### Added
