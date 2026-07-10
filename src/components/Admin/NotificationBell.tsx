@@ -171,7 +171,7 @@ function NotificationDetail({ notif, onBack }: { notif: Notification; onBack: ()
             Serviços
           </span>
           <div className="space-y-2.5">
-            {services.map((s, i) => (
+            {services.map((s: string, i: number) => (
               <div key={i} className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#C5A059] shrink-0" />
                 <span className="text-[13px] text-zinc-300">{s}</span>
