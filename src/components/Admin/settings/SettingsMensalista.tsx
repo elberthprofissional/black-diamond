@@ -408,6 +408,8 @@ const SettingsMensalista: FC = () => {
         <button
           onClick={handleToggleEnabled}
           disabled={togglingEnabled}
+          role="switch"
+          aria-checked={enabled}
           className={`relative w-12 h-7 rounded-full transition-colors cursor-pointer disabled:opacity-50 ${
             enabled ? 'bg-[#C5A059]' : 'bg-zinc-700'
           }`}
@@ -437,6 +439,8 @@ const SettingsMensalista: FC = () => {
             <button
               onClick={handleToggleEnabled}
               disabled={togglingEnabled}
+              role="switch"
+              aria-checked={enabled}
               className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer disabled:opacity-50 ${
                 enabled ? 'bg-[#C5A059]' : 'bg-zinc-700'
               }`}

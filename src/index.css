@@ -95,20 +95,7 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/* Minimum touch target size for interactive elements (WCAG 2.5.8) */
-button,
-a,
-[role='button'],
-input[type='checkbox'],
-input[type='radio'] {
-  min-height: 44px;
-  min-width: 44px;
-}
-/* Override for small decorative indicators (dots, badges) */
-[role='tab'] {
-  min-height: auto;
-  min-width: auto;
-}
+/* Touch target sizing — handled per-component where needed */
 
 .scrollbar-hide {
   overscroll-behavior: contain;

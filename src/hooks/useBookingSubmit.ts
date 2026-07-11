@@ -205,7 +205,7 @@ export function useBookingSubmit(
               '',
               `Valor Total: ${totalFormatted}`,
               '',
-              manageUrl ? `🔗 Gerenciar: ${manageUrl}` : '',
+              manageUrl ? `🔗 Cancelar ou reagendar: ${manageUrl}` : '',
             ].join('\n');
 
             window.open(

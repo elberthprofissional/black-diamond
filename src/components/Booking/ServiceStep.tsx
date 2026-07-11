@@ -39,7 +39,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                   aria-pressed={selected}
                   aria-label={`Serviço ${service.name}. Preço: R$ ${Number(service.price).toFixed(0)}. Duração: ${service.duration} minutos. ${selected ? 'Selecionado' : 'Não selecionado'}`}
                   className={`w-full flex items-center gap-5 px-6 py-5 rounded-xl transition-all duration-200 text-left group ${
-                    selected ? 'bg-[#C5A059]/[0.06]' : 'hover:bg-white/[0.03]'
+                    selected ? '' : 'hover:bg-white/[0.03]'
                   }`}
                 >
                   <div
@@ -50,14 +50,10 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                     {selected && <Check size={11} className="text-white stroke-[3px]" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p
-                      className={`text-[14px] font-medium ${selected ? 'text-[#C5A059]' : 'text-white'}`}
-                    >
-                      {service.name}
-                    </p>
+                    <p className={`text-[14px] font-medium text-white`}>{service.name}</p>
                   </div>
                   <span
-                    className={`text-[14px] font-semibold tabular-nums w-16 text-right ${selected ? 'text-[#C5A059]' : 'text-zinc-400'}`}
+                    className={`text-[14px] font-semibold tabular-nums w-16 text-right text-zinc-400`}
                   >
                     R$ {Number(service.price).toFixed(0)}
                   </span>
