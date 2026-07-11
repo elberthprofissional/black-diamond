@@ -650,7 +650,11 @@ const AdminClients: FC = () => {
 
                   <ReminderClientList
                     clients={clientsNeedingReminder}
-                    onSelect={(client) => c.setSelectedClient(client as any)}
+                    onSelect={(client) => {
+                      // Fechar modal primeiro, depois abrir painel do cliente
+                      setIsReminderOpen(false);
+                      setTimeout(() => c.setSelectedClient(client as any), 100);
+                    }}
                   />
                 </motion.div>
               </motion.div>

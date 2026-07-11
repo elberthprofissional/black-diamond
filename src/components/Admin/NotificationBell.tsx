@@ -74,70 +74,93 @@ function NotificationDetail({ notif, onBack }: { notif: Notification; onBack: ()
 
   return (
     <div className="flex flex-col h-full">
-      {/* Close Button */}
-      <div className="px-5 py-4 flex justify-end shrink-0">
+      {/* Header */}
+      <div className="px-5 py-4 flex items-center gap-3 border-b border-white/[0.04] shrink-0">
         <button
           onClick={onBack}
-          className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
+          className="w-8 h-8 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
         >
           <svg
-            className="w-5 h-5"
+            className="w-4 h-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
-            strokeWidth={2}
+            strokeWidth="2"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+        </button>
+        <div className="flex-1">
+          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+            {isCancelled ? 'Cancelado' : 'Agendamento'}
+          </span>
+        </div>
+        <button
+          onClick={onBack}
+          className="w-8 h-8 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2"
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 pb-6">
+      <div className="flex-1 overflow-y-auto px-5 py-5">
         {/* Cancelled Banner */}
         {isCancelled && (
-          <div className="flex items-center gap-2.5 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl mb-5">
-            <svg
-              className="w-5 h-5 text-red-400 shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-              />
-            </svg>
+          <div className="flex items-center gap-3 px-4 py-3.5 bg-red-500/[0.06] border border-red-500/15 rounded-xl mb-5">
+            <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
+              <svg
+                className="w-4 h-4 text-red-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                />
+              </svg>
+            </div>
             <div>
               <p className="text-[13px] font-bold text-red-400">Agendamento Cancelado</p>
-              <p className="text-[11px] text-red-400/70">
-                Este agendamento foi cancelado e não está mais ativo.
-              </p>
+              <p className="text-[11px] text-red-400/60">Este agendamento não está mais ativo.</p>
             </div>
           </div>
         )}
 
-        {/* Client */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-14 h-14 rounded-full bg-[#C5A059]/10 border-2 border-[#C5A059]/20 flex items-center justify-center text-base font-bold text-[#C5A059] shrink-0">
-            {data.clientName.charAt(0).toUpperCase()}
-          </div>
-          <div className="min-w-0">
-            <p className="text-[16px] font-bold text-white truncate">{data.clientName}</p>
-            <p className="text-[13px] text-zinc-500">{formatPhone(data.clientPhone)}</p>
+        {/* Client Card */}
+        <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-4 mb-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-white/[0.04] flex items-center justify-center text-sm font-bold text-zinc-400 shrink-0">
+              {data.clientName.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[15px] font-bold text-white truncate">{data.clientName}</p>
+              <p className="text-[12px] text-zinc-500 tabular-nums">
+                {formatPhone(data.clientPhone)}
+              </p>
+            </div>
           </div>
         </div>
 
         {/* Date + Time */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center gap-2 px-3 py-2 bg-white/[0.03] rounded-lg">
+        <div className="flex gap-2 mb-4">
+          <div className="flex-1 flex items-center gap-2.5 px-3.5 py-2.5 bg-white/[0.02] border border-white/[0.04] rounded-xl">
             <svg
-              className="w-4 h-4 text-zinc-500"
+              className="w-4 h-4 text-zinc-500 shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={1.5}
+              strokeWidth="1.5"
             >
               <path
                 strokeLinecap="round"
@@ -145,79 +168,71 @@ function NotificationDetail({ notif, onBack }: { notif: Notification; onBack: ()
                 d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
               />
             </svg>
-            <span className="text-[13px] text-zinc-400">{date}</span>
+            <span className="text-[13px] text-zinc-300">{date}</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-2 bg-[#C5A059]/10 rounded-lg">
-            <svg
-              className="w-4 h-4 text-[#C5A059]"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+          <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-[#C5A059]/[0.06] border border-[#C5A059]/15 rounded-xl">
             <span className="text-[13px] text-[#C5A059] font-bold">{time}</span>
           </div>
         </div>
 
         {/* Services Card */}
-        <div className="bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 mb-6">
-          <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-3">
-            Serviços
+        <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-4 mb-5">
+          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-3">
+            Serviços ({services.length})
           </span>
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {services.map((s: string, i: number) => (
-              <div key={i} className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#C5A059] shrink-0" />
+              <div key={i} className="flex items-center gap-2.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#C5A059]/50 shrink-0" />
                 <span className="text-[13px] text-zinc-300">{s}</span>
               </div>
             ))}
           </div>
           <div className="h-px bg-white/[0.04] my-3" />
           <div className="flex justify-between items-center">
-            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
               Total
             </span>
-            <span className="text-[16px] font-black text-[#C5A059]">{data.totalPrice}</span>
+            <span className="text-[18px] font-black text-[#C5A059] tabular-nums">
+              {data.totalPrice}
+            </span>
           </div>
         </div>
 
         {/* Actions */}
         {isCancelled ? (
-          <div className="space-y-3">
-            <button
-              onClick={() => window.open(`https://wa.me/${data.clientPhone}`, '_blank')}
-              className="w-full h-12 bg-white/[0.03] border border-white/[0.06] text-zinc-300 hover:bg-white/[0.06] hover:text-white rounded-xl transition-all text-[11px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
-            >
-              Falar com Cliente
-            </button>
-          </div>
+          <button
+            onClick={() => window.open(`https://wa.me/${data.clientPhone}`, '_blank')}
+            className="w-full h-11 bg-white/[0.04] border border-white/[0.06] text-zinc-300 hover:bg-white/[0.06] hover:text-white rounded-xl transition-all text-[11px] font-bold uppercase tracking-[0.12em] cursor-pointer flex items-center justify-center gap-2"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+            </svg>
+            Falar com Cliente
+          </button>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <button
               onClick={handleRemind}
-              className="w-full h-12 bg-[#C5A059] text-black hover:bg-[#A68233] font-bold text-[11px] uppercase tracking-[0.15em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
+              className="w-full h-11 bg-[#C5A059] text-black hover:bg-[#A68233] font-bold text-[11px] uppercase tracking-[0.12em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl active:scale-[0.98]"
             >
               <WhatsAppIcon className="w-4 h-4" />
               Enviar Lembrete
             </button>
-            <button
-              onClick={() => window.open(data.manageUrl, '_blank')}
-              className="w-full h-12 bg-white/[0.03] border border-white/[0.06] text-zinc-300 hover:bg-white/[0.06] hover:text-white rounded-xl transition-all text-[11px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
-            >
-              Reagendar
-            </button>
-            <button
-              onClick={() => window.open(data.manageUrl, '_blank')}
-              className="w-full h-12 bg-white/[0.03] border border-white/[0.06] text-zinc-400 hover:bg-red-500/[0.02] hover:border-red-500/20 hover:text-red-400 rounded-xl transition-all text-[11px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
-            >
-              Cancelar Agendamento
-            </button>
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                onClick={() => window.open(data.manageUrl, '_blank')}
+                className="h-10 bg-white/[0.03] border border-white/[0.06] text-zinc-400 hover:bg-white/[0.06] hover:text-white rounded-xl transition-all text-[10px] font-bold uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                Reagendar
+              </button>
+              <button
+                onClick={() => window.open(data.manageUrl, '_blank')}
+                className="h-10 bg-white/[0.03] border border-white/[0.06] text-zinc-400 hover:bg-red-500/[0.03] hover:border-red-500/20 hover:text-red-400 rounded-xl transition-all text-[10px] font-bold uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -286,13 +301,11 @@ function MobileNotifItem({
       )}
 
       <div className="relative shrink-0">
-        <div
-          className={`w-12 h-12 rounded-full flex items-center justify-center ${notif.read ? 'bg-white/[0.04]' : 'bg-[#C5A059]/10'}`}
-        >
+        <div className="w-12 h-12 rounded-xl bg-white/[0.04] flex items-center justify-center">
           {notif.read ? (
             <Bell size={18} className="text-zinc-500" />
           ) : (
-            <span className="text-[13px] font-bold text-[#C5A059]">
+            <span className="text-[13px] font-bold text-zinc-400">
               {name.charAt(0).toUpperCase()}
             </span>
           )}
@@ -422,10 +435,10 @@ function NotificationListContent({
   if (selected) {
     return (
       <motion.div
-        initial={{ x: '100%' }}
-        animate={{ x: 0 }}
-        exit={{ x: '100%' }}
-        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.15 }}
         className="h-full"
       >
         <NotificationDetail notif={selected} onBack={() => setSelected(null)} />
@@ -524,8 +537,10 @@ function NotificationListContent({
           setIsSelectionMode(true);
           setSelectedIds(() => new Set([notif.id]));
         }}
-        className={`w-full flex items-start gap-3 px-5 py-4 text-left transition-all hover:bg-white/[0.02] active:bg-white/[0.04] ${
-          isSelected ? 'bg-[#C5A059]/[0.05]' : ''
+        className={`w-full flex items-start gap-3.5 px-5 py-4 text-left transition-all duration-150 border-b border-white/[0.03] hover:bg-white/[0.03] active:bg-white/[0.05] ${
+          isSelected
+            ? 'bg-[#C5A059]/[0.04] border-l-2 border-l-[#C5A059]'
+            : 'border-l-2 border-l-transparent'
         } ${!notif.read ? 'bg-white/[0.01]' : ''}`}
       >
         {isSelectionMode && (
@@ -549,19 +564,17 @@ function NotificationListContent({
         )}
 
         <div className="relative shrink-0">
-          <div
-            className={`w-11 h-11 rounded-full flex items-center justify-center ${notif.read ? 'bg-white/[0.04]' : 'bg-[#C5A059]/10'}`}
-          >
+          <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center">
             {notif.read ? (
-              <Bell size={16} className="text-zinc-500" />
+              <Bell size={14} className="text-zinc-500" />
             ) : (
-              <span className="text-[12px] font-bold text-[#C5A059]">
+              <span className="text-[11px] font-bold text-zinc-400">
                 {name.charAt(0).toUpperCase()}
               </span>
             )}
           </div>
           {!notif.read && !isSelectionMode && (
-            <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#C5A059] border-2 border-[#0E0E0E]" />
+            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#C5A059] border-2 border-[#0E0E0E]" />
           )}
         </div>
 
@@ -660,7 +673,15 @@ function NotificationListContent({
               </>
             ) : (
               <>
-                <h2 className="text-[15px] font-bold text-white">Notificações</h2>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />
+                  <h2 className="text-[14px] font-bold text-white tracking-wide">Notificações</h2>
+                  {unreadCount > 0 && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#C5A059]/15 text-[#C5A059] font-bold">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-3">
                   {unreadCount > 0 && (
                     <button
@@ -726,10 +747,12 @@ function NotificationListContent({
 
         <div className="flex-1 overflow-y-auto">
           {filteredNotifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full min-h-[300px] px-6 text-center">
-              <Bell size={24} className="text-zinc-700 mb-4" />
-              <p className="text-[13px] text-zinc-400 font-medium mb-1">Nenhuma notificação</p>
-              <p className="text-[11px] text-zinc-600">
+            <div className="flex flex-col items-center justify-center h-full min-h-[400px] px-8 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-center mb-5">
+                <Bell size={28} className="text-zinc-700" />
+              </div>
+              <p className="text-[14px] text-zinc-400 font-semibold mb-1.5">Nenhuma notificação</p>
+              <p className="text-[12px] text-zinc-600 leading-relaxed max-w-[240px]">
                 {activeFilter === 'all'
                   ? 'Quando houver novidades, elas aparecerão aqui.'
                   : 'Nenhuma notificação nesta categoria.'}
@@ -820,7 +843,7 @@ const NotificationBell: FC<{ variant: 'mobile' | 'desktop' }> = ({ variant }) =>
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setIsOpen(false)}
-                className="fixed inset-0 z-[190] bg-black/50"
+                className="fixed inset-0 z-[190] bg-black/40 backdrop-blur-[2px]"
               />
               <motion.div
                 ref={panelRef}
@@ -828,7 +851,7 @@ const NotificationBell: FC<{ variant: 'mobile' | 'desktop' }> = ({ variant }) =>
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
                 transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                className="fixed top-0 left-0 bottom-0 z-[200] w-[420px] bg-[#0E0E0E] border-r border-white/[0.06] shadow-2xl"
+                className="fixed top-0 left-0 bottom-0 z-[200] w-[400px] bg-gradient-to-b from-[#0E0E0E] to-[#0A0A0A] border-r border-[#C5A059]/10 shadow-[4px_0_24px_rgba(0,0,0,0.5)]"
               >
                 <NotificationListContent
                   notifications={notifications}

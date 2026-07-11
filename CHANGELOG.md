@@ -5,6 +5,24 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.19.0] - 2026-07-10
+
+### Fixed
+- **Notificações avatar quadrado** — Todos os avatares de notificação agora são quadrados (rounded-lg/rounded-xl) em vez de circulos, consistente com o padrão de cards de cliente.
+- **Notificações cinza padronizado** — Avatar sempre `bg-white/[0.04]` com `text-zinc-400`, sem variação de cor por tipo de notificação.
+- **Detalhe da notificação** — Redesign completo: header com botão voltar, client card, data/hora em cards separados, services card com contagem, ações em grid.
+- **Animação de detalhe** — Trocado slide lateral por fade simples (0.15s) para transição mais suave.
+- **Toggles de configuração** — Adicionado `role="switch"` em toggles do SettingsMensalista (desktop e mobile) para evitar min-height 44px indesejado.
+- **Touch targets CSS** — Removida regra global min-height 44px que causava bugs visuais em toggles, dots e cards.
+
+### Changed
+- **Painel de notificações desktop** — Gradiente de fundo, borda dourada sutil, header com dot dourado e badge de não lidas, itens com borda separadora e indicador lateral.
+- **Mensagem WhatsApp do barbeiro** — "Gerenciar" trocado por "Caso precise cancelar ou reagendar seu horário, acesse: URL".
+- **Detalhe notificação** — Botão "Falar com Cliente" com ícone WhatsApp, botões "Reagendar" e "Cancelar" em grid lado a lado.
+- **Estado vazio notificações** — Container estilizado com borda, texto melhor espaçado.
+- **Script de instalação** — Reescrito com banner, progress bar, links diretos, resumo final com links úteis, WhatsApp do desenvolvedor para suporte.
+- **README** — Reescrito com instalação recomendada primeiro, pré-requisitos com links, seção de suporte.
+
 ## [3.18.0] - 2026-07-10
 
 ### Fixed

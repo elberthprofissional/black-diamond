@@ -375,7 +375,7 @@ const BookingPageView: FC<BookingPageViewProps> = ({
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.3 }}
-                className="flex-1"
+                className="flex-1 flex flex-col"
               >
                 <SuccessStep
                   clientName={userInfo.name}

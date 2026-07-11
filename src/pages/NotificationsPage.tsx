@@ -1,6 +1,6 @@
 import { useState, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bell, Calendar, Clock, Settings } from 'lucide-react';
+import { ArrowLeft, Bell } from 'lucide-react';
 import { useNotifications, type Notification } from '../hooks/useNotifications';
 import { NotificationListContent } from '../components/Admin/NotificationBell';
 
@@ -53,14 +53,8 @@ function relativeTime(dateStr: string): string {
 }
 
 // Ícone por tipo de notificação
-function getNotifIcon(tag: string | null) {
-  if (tag?.startsWith('booking-') || tag?.startsWith('cancelled-')) {
-    return { icon: Calendar, color: 'text-blue-400', bg: 'bg-blue-500/10' };
-  }
-  if (tag?.startsWith('reminder-')) {
-    return { icon: Clock, color: 'text-amber-400', bg: 'bg-amber-500/10' };
-  }
-  return { icon: Settings, color: 'text-zinc-400', bg: 'bg-white/[0.04]' };
+function getNotifIcon(_tag: string | null) {
+  return { icon: Bell, color: 'text-zinc-400', bg: 'bg-white/[0.04]' };
 }
 
 // Agrupar por período
@@ -352,10 +346,8 @@ const NotificationsPage: FC = () => {
                     )}
 
                     {/* Icon by type */}
-                    <div
-                      className={`w-10 h-10 rounded-full ${bg} flex items-center justify-center shrink-0`}
-                    >
-                      <Icon size={16} className={color} />
+                    <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center shrink-0">
+                      <Bell size={16} className="text-zinc-400" />
                     </div>
 
                     {/* Content */}

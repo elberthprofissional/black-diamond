@@ -205,7 +205,9 @@ export function useBookingSubmit(
               '',
               `Valor Total: ${totalFormatted}`,
               '',
-              manageUrl ? `🔗 Cancelar ou reagendar: ${manageUrl}` : '',
+              manageUrl
+                ? `Caso precise cancelar ou reagendar seu horário, acesse: ${manageUrl}`
+                : '',
             ].join('\n');
 
             window.open(

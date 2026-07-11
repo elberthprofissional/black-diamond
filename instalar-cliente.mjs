@@ -1,23 +1,36 @@
 #!/usr/bin/env node
 
 /**
- * INSTALAR CLIENTE — Black Diamond
+ * ══════════════════════════════════════════════════════════════
+ * BLACK DIAMOND — Instalador Automatizado
+ * ══════════════════════════════════════════════════════════════
  *
- * Uso:  node instalar-cliente.mjs
+ * Como usar:
+ *   node instalar-cliente.mjs
  *
- * O que faz:
- *   1. Coleta dados da barbearia
- *   2. Valida email, senha, telefone
- *   3. Cria projeto Supabase via API (ou modo manual)
- *   4. Roda universal.sql no banco
- *   5. Cria usuario admin + cadastra na tabela admin_users
- *   6. Gera .env
- *   7. Deploy na Vercel (com retry)
+ * O que este script faz (tudo automatico):
+ *   1. Coleta dados da barbearia (nome, email, senha, WhatsApp)
+ *   2. Valida todos os dados
+ *   3. Cria projeto no Supabase via API
+ *   4. Roda o schema do banco (universal.sql)
+ *   5. Cria o usuario admin no Supabase Auth
+ *   6. Gera o arquivo .env com as credenciais
+ *   7. Faz deploy na Vercel
  *
- * Pre-requisitos:
- *   - Node.js 18+
- *   - Conta no Supabase (https://supabase.com)
- *   - Supabase Access Token (Settings > API > Access Token)
+ * Pre-requisitos (tudo gratuito):
+ *   - Node.js 18+ (https://nodejs.org)
+ *   - Conta no Supabase (https://supabase.com) — plano free
+ *   - Conta na Vercel (https://vercel.com) — plano free
+ *   - Supabase Access Token (veja como criar abaixo)
+ *
+ * Como criar o Supabase Access Token:
+ *   1. Acesse https://supabase.com/dashboard
+ *   2. Clique no seu avatar (canto superior direito)
+ *   3. Va em "Access Tokens"
+ *   4. Clique "Generate new token"
+ *   5. Cole o token aqui no script
+ *
+ * Duvidas? WhatsApp do desenvolvedor: (31) 98015-9559
  */
 
 import { createInterface } from 'readline';
@@ -29,20 +42,19 @@ import { execSync } from 'child_process';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rl = createInterface({ input: process.stdin, output: process.stdout });
 
-// ─── Cores ──────────────────────────────────────────────
+// ─── Cores do terminal ────────────────────────────────
 const C = {
   green: '\x1b[32m', yellow: '\x1b[33m', cyan: '\x1b[36m',
   red: '\x1b[31m', bold: '\x1b[1m', dim: '\x1b[2m',
-  reset: '\x1b[0m', bgGreen: '\x1b[42m', bgRed: '\x1b[41m',
+  reset: '\x1b[0m', white: '\x1b[37m',
 };
 
-// ─── Helpers ────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
 const ask = (q) => new Promise((r) => rl.question(q, (a) => r(a.trim())));
 
 async function askPassword(label) {
-  console.log(`  ${C.dim}(senhas nao aparecem enquanto digita)${C.reset}`);
+  console.log(`  ${C.dim}(a senha nao aparece enquanto voce digita)${C.reset}`);
   const cleanup = () => process.stdin.setRawMode?.(false);
   process.on('SIGINT', cleanup);
 
@@ -72,68 +84,68 @@ async function askPassword(label) {
   return senha;
 }
 
-function validateEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+function validateEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+function validatePhone(phone) { const d = phone.replace(/\D/g, ''); return d.length >= 10 && d.length <= 15; }
+function slugify(text) { return text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 48); }
+
+// ─── Interface visual ─────────────────────────────────
+function banner() {
+  console.log('');
+  console.log(`${C.yellow}  ╔══════════════════════════════════════════════════════╗${C.reset}`);
+  console.log(`${C.yellow}  ║${C.reset}${C.bold}         BLACK DIAMOND — Instalador Automatico       ${C.reset}${C.yellow}║${C.reset}`);
+  console.log(`${C.yellow}  ║${C.reset}    Sistema de agendamento para barbearias           ${C.yellow}║${C.reset}`);
+  console.log(`${C.yellow}  ║${C.reset}    by Elberth Mayan — (31) 98015-9559              ${C.yellow}║${C.reset}`);
+  console.log(`${C.yellow}  ╚══════════════════════════════════════════════════════╝${C.reset}`);
+  console.log('');
 }
 
-function validatePhone(phone) {
-  const digits = phone.replace(/\D/g, '');
-  return digits.length >= 10 && digits.length <= 15;
-}
-
-function slugify(text) {
-  return text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 48);
-}
-
-function box(title, lines) {
-  const w = 52;
-  const pad = (s) => `  ${C.yellow}║${C.reset}  ${s}${' '.repeat(Math.max(0, w - 6 - s.length))}${C.yellow}║${C.reset}`;
-  console.log(`${C.yellow}╔${'═'.repeat(w)}╗${C.reset}`);
-  console.log(pad(`${C.bold}${title}${C.reset}`));
-  console.log(`${C.yellow}╠${'═'.repeat(w)}╣${C.reset}`);
-  for (const l of lines) console.log(pad(l));
-  console.log(`${C.yellow}╚${'═'.repeat(w)}╝${C.reset}`);
-}
-
-function step(n, text) {
-  console.log(`\n${C.cyan}── Etapa ${n} ${'─'.repeat(40)}${C.reset}`);
+function step(n, total, text) {
+  console.log(`\n${C.cyan}  ── Passo ${n}/${total} ${'─'.repeat(40)}${C.reset}`);
   console.log(`${C.bold}  ${text}${C.reset}`);
 }
 
-function ok(text) { console.log(`  ${C.green}OK ${C.reset} ${text}`); }
-function warn(text) { console.log(`  ${C.yellow}!! ${C.reset} ${text}`); }
-function fail(text) { console.log(`  ${C.red}ERRO ${C.reset} ${text}`); }
-function info(text) { console.log(`  ${C.dim}${text}${C.reset}`); }
+function ok(text) { console.log(`  ${C.green}  OK  ${C.reset} ${text}`); }
+function warn(text) { console.log(`  ${C.yellow}  !!  ${C.reset} ${text}`); }
+function fail(text) { console.log(`  ${C.red} ERRO ${C.reset} ${text}`); }
+function info(text) { console.log(`  ${C.dim}      ${text}${C.reset}`); }
+function link(text) { console.log(`  ${C.cyan}  ->  ${C.reset} ${text}`); }
 
-// ─── Main ───────────────────────────────────────────────
+function progress(pct, text) {
+  const bar = 30;
+  const filled = Math.round(bar * pct / 100);
+  const empty = bar - filled;
+  const barStr = '█'.repeat(filled) + '░'.repeat(empty);
+  process.stdout.write(`\r  ${C.cyan}${barStr}${C.reset} ${pct}% ${text}    `);
+}
+
+// ─── Main ─────────────────────────────────────────────
 async function main() {
   console.clear?.();
-  box('BLACK DIAMOND — Instalacao', [
-    'Sistema de agendamento para barbearias',
-    'Configure uma nova instancia em minutos',
-  ]);
+  banner();
+
+  const TOTAL_STEPS = 7;
 
   // ════════════════════════════════════════════════════════
-  // 1. COLETA DE DADOS COM VALIDACAO
+  // PASSO 1: DADOS DA BARBEARIA
   // ════════════════════════════════════════════════════════
-  step(1, 'Dados da barbearia');
+  step(1, TOTAL_STEPS, 'Dados da barbearia');
 
   let nomeBarbearia = '';
   while (!nomeBarbearia) {
     nomeBarbearia = await ask(`  Nome da barbearia: `);
-    if (!nomeBarbearia) fail('Nome e obrigatorio.');
+    if (!nomeBarbearia) fail('Nome obrigatorio.');
   }
 
   let adminEmail = '';
   while (!adminEmail || !validateEmail(adminEmail)) {
     adminEmail = await ask(`  Email do admin: `);
-    if (!validateEmail(adminEmail)) fail('Email invalido. Exemplo: admin@barbearia.com');
+    if (!validateEmail(adminEmail)) fail('Email invalido. Ex: admin@barbearia.com');
   }
 
   let adminSenha = '';
   let confirmSenha = '';
   while (adminSenha.length < 8 || adminSenha !== confirmSenha) {
-    console.log(`  ${C.bold}Senha do admin:${C.reset}`);
+    console.log(`  ${C.bold}Senha do admin (minimo 8 caracteres):${C.reset}`);
     adminSenha = await askPassword('  > ');
     if (adminSenha.length < 8) { fail('Minimo 8 caracteres.'); continue; }
     console.log(`  ${C.bold}Confirmar senha:${C.reset}`);
@@ -145,7 +157,7 @@ async function main() {
   let telefone = '';
   while (!validatePhone(telefone)) {
     telefone = await ask(`  WhatsApp (com DDD, so numeros): `);
-    if (!validatePhone(telefone)) fail('Telefone invalido. Exemplo: 31999998888');
+    if (!validatePhone(telefone)) fail('Telefone invalido. Ex: 31999998888');
   }
 
   const telefoneFormatado = '55' + telefone.replace(/\D/g, '');
@@ -155,13 +167,13 @@ async function main() {
   const finalSiteUrl = siteUrlInput || defaultUrl;
 
   // ════════════════════════════════════════════════════════
-  // 2. CONEXAO COM SUPABASE
+  // PASSO 2: CONEXAO COM SUPABASE
   // ════════════════════════════════════════════════════════
-  step(2, 'Conexao com Supabase');
-  info('Precisa de um token? Crie em:');
-  info('https://supabase.com/dashboard/account/tokens');
+  step(2, TOTAL_STEPS, 'Conexao com Supabase');
+  info('Para criar o token, acesse:');
+  link('https://supabase.com/dashboard/account/tokens');
 
-  const usarToken = await ask(`  Tem Supabase Access Token? (s/N): `);
+  const usarToken = await ask(`  Voce tem o Supabase Access Token? (s/N): `);
   let supabaseUrl, supabaseAnonKey, projectRef;
 
   if (usarToken.toLowerCase() === 's') {
@@ -176,14 +188,15 @@ async function main() {
       if (res.ok) {
         const orgs = await res.json();
         if (orgs.length === 0) {
-          fail('Nenhuma organizacao encontrada. Crie uma em supabase.com.');
+          fail('Nenhuma organizacao encontrada.');
+          info('Crie uma em: https://supabase.com/dashboard');
           process.exit(1);
         } else if (orgs.length === 1) {
           orgId = orgs[0].id;
           ok(`Organizacao: ${orgs[0].name}`);
         } else {
           console.log(`\n  Organizacoes disponiveis:`);
-          orgs.forEach((o, i) => console.log(`    ${i + 1}. ${o.name} (${o.id})`));
+          orgs.forEach((o, i) => console.log(`    ${i + 1}. ${o.name}`));
           const escolha = await ask(`  Digite o numero: `);
           orgId = orgs[parseInt(escolha) - 1]?.id;
           if (!orgId) { fail('Opcao invalida.'); process.exit(1); }
@@ -197,13 +210,14 @@ async function main() {
     const regiao = await ask(`  Regiao [sa-east-1]: `) || 'sa-east-1';
 
     // ══════════════════════════════════════════════════════
-    // 3. CRIAR PROJETO SUPABASE
+    // PASSO 3: CRIAR PROJETO SUPABASE
     // ══════════════════════════════════════════════════════
-    step(3, 'Criando projeto Supabase (~2 min)');
+    step(3, TOTAL_STEPS, 'Criando projeto no Supabase (~2 min)');
 
     const dbPass = Math.random().toString(36).slice(-12) + 'Aa1!';
 
     try {
+      progress(10, 'Criando projeto...');
       const createRes = await fetch('https://api.supabase.com/v1/projects', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -219,14 +233,14 @@ async function main() {
 
       const project = await createRes.json();
       projectRef = project.ref;
-      ok(`Projeto criado: ${projectRef}`);
+      progress(30, 'Projeto criado!');
 
-      // Aguardar ficar online
-      info('Aguardando banco ficar online');
+      // Aguardar banco online
+      progress(40, 'Aguardando banco online...');
       let online = false;
       for (let i = 0; i < 30; i++) {
         await sleep(5000);
-        process.stdout.write('.');
+        progress(40 + Math.min(i * 2, 20), 'Banco iniciando...');
         try {
           const statusRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -239,28 +253,29 @@ async function main() {
       }
       console.log('');
       if (online) ok('Banco online!');
-      else warn('Projeto pode nao estar 100% pronto. Continuando...');
+      else warn('Banco pode ainda estar iniciando. Continuando...');
 
       // Pegar anon key
+      progress(65, 'Obtendo chaves da API...');
       const apiRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/api-keys`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!apiRes.ok) throw new Error('Falha ao obter chaves da API');
+      if (!apiRes.ok) throw new Error('Falha ao obter chaves');
       const keys = await apiRes.json();
       supabaseUrl = `https://${projectRef}.supabase.co`;
       supabaseAnonKey = keys.find((k) => k.name === 'anon')?.api_key || keys[0]?.api_key;
       ok(`Supabase URL: ${supabaseUrl}`);
 
       // ════════════════════════════════════════════════════
-      // 4. RODAR UNIVERSAL.SQL
+      // PASSO 4: RODAR UNIVERSAL.SQL
       // ════════════════════════════════════════════════════
-      step(4, 'Instalando schema do banco');
+      step(4, TOTAL_STEPS, 'Instalando schema do banco de dados');
 
       const sqlPath = join(__dirname, 'supabase', 'universal.sql');
       if (existsSync(sqlPath)) {
         const sql = readFileSync(sqlPath, 'utf-8');
+        progress(70, 'Enviando schema SQL...');
         const lines = sql.split('\n').length;
-        info(`Enviando ${lines} linhas de SQL...`);
 
         const sqlRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
           method: 'POST',
@@ -268,15 +283,16 @@ async function main() {
           body: JSON.stringify({ query: sql }),
         });
 
+        progress(90, 'Schema instalado!');
         if (sqlRes.ok) {
-          ok('Schema instalado com sucesso!');
+          ok(`${lines} linhas de SQL executadas com sucesso!`);
         } else {
           const errText = await sqlRes.text();
           if (errText.includes('already exists')) {
             ok('Schema ja existente (tudo certo).');
           } else {
             fail(`SQL com erros: ${errText.slice(0, 200)}`);
-            warn('Execute manualmente no SQL Editor do Supabase.');
+            info('Execute manualmente no SQL Editor do Supabase.');
           }
         }
       } else {
@@ -284,10 +300,11 @@ async function main() {
       }
 
       // ════════════════════════════════════════════════════
-      // 5. CRIAR USUARIO ADMIN
+      // PASSO 5: CRIAR USUARIO ADMIN
       // ════════════════════════════════════════════════════
-      step(5, 'Criando usuario admin');
+      step(5, TOTAL_STEPS, 'Criando usuario admin');
 
+      progress(92, 'Criando usuario...');
       const userRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/auth/users`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -300,13 +317,11 @@ async function main() {
         userId = newUser.id;
         ok(`Usuario ${adminEmail} criado!`);
       } else {
-        warn('Crie o usuario manualmente: Authentication > Users > Add user');
+        warn('Crie manualmente: Authentication > Users > Add user');
       }
 
-      // Cadastrar na tabela admin_users
       if (userId) {
-        info('Cadastrando na lista de administradores...');
-        // Usar UUID com validacao basica pra evitar injection
+        progress(95, 'Cadastrando admin no sistema...');
         const safeUuid = userId.replace(/[^a-f0-9-]/g, '');
         const adminRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
           method: 'POST',
@@ -322,7 +337,7 @@ async function main() {
 
     } catch (err) {
       fail(err.message);
-      warn('Falha na criacao automatica. Modo manual ativado.');
+      warn('Modo manual ativado.');
       projectRef = null;
     }
   }
@@ -331,27 +346,31 @@ async function main() {
   // MODO MANUAL (fallback)
   // ════════════════════════════════════════════════════════
   if (!projectRef) {
-    step('3M', 'Configuracao manual');
+    step('3M', TOTAL_STEPS, 'Configuracao manual');
+    info('Siga os passos abaixo:');
+    console.log('');
+    info('1. Crie um projeto em: https://supabase.com/dashboard/new');
+    info('2. Va em Settings > API e copie a URL e a Anon Key');
     supabaseUrl = await ask(`  Supabase Project URL: `);
     supabaseAnonKey = await ask(`  Supabase Anon Key: `);
-
-    const sqlUrl = `${supabaseUrl}/project/${supabaseUrl.split('//')[1]?.split('.')[0] || 'xxx'}/sql/new`;
-    console.log(`\n  ${C.yellow}Checklist:${C.reset}`);
-    console.log(`  1. Abra: ${C.cyan}${sqlUrl}${C.reset}`);
-    console.log(`  2. Cole o conteudo de supabase/universal.sql`);
-    console.log(`  3. Clique em RUN`);
-    console.log(`  4. Authentication > Users > Add user`);
-    console.log(`     Email: ${adminEmail}`);
-    console.log(`  5. SQL Editor — cole:`);
+    console.log('');
+    info('3. Abra o SQL Editor no Supabase:');
+    link(`${supabaseUrl.replace('.supabase.co', '')}/sql/new`);
+    info('4. Cole todo o conteudo de supabase/universal.sql e clique RUN');
+    info('5. Va em Authentication > Users > Add user');
+    info(`   Email: ${adminEmail}`);
+    info('6. No SQL Editor, cole:');
     console.log(`     ${C.yellow}INSERT INTO admin_users (user_id)`);
     console.log(`     SELECT id FROM auth.users WHERE email = '${adminEmail}'`);
     console.log(`     ON CONFLICT DO NOTHING;${C.reset}`);
+    console.log('');
+    await ask(`  Pressione Enter quando terminar...`);
   }
 
   // ════════════════════════════════════════════════════════
-  // 7. GERAR .ENV
+  // PASSO 6: GERAR .ENV
   // ════════════════════════════════════════════════════════
-  step(7, 'Gerando arquivo .env');
+  step(6, TOTAL_STEPS, 'Gerando arquivo de configuracao (.env)');
 
   const vapidKey = await ask(`  VAPID Public Key (Enter pra pular): `);
   const sentryDsn = await ask(`  Sentry DSN (Enter pra pular): `);
@@ -376,9 +395,15 @@ async function main() {
   ok('.env criado com sucesso!');
 
   // ════════════════════════════════════════════════════════
-  // 8. DEPLOY NA VERCEL (com retry)
+  // PASSO 7: DEPLOY NA VERCEL
   // ════════════════════════════════════════════════════════
-  step(8, 'Deploy na Vercel');
+  step(7, TOTAL_STEPS, 'Deploy na Vercel');
+  info('Para fazer deploy, voce precisa:');
+  info('1. Conta na Vercel: https://vercel.com/signup');
+  info('2. Instalar CLI: npm i -g vercel');
+  info('3. Login: vercel login');
+  console.log('');
+
   const querDeploy = await ask(`  Fazer deploy agora? (s/N): `);
 
   if (querDeploy.toLowerCase() === 's') {
@@ -408,40 +433,53 @@ async function main() {
       warn('Deploy manual. Rode: npx vercel --prod');
     }
   } else {
-    warn('Depois rode: npx vercel --prod');
+    info('Para fazer deploy depois, rode:');
+    console.log(`  ${C.yellow}npx vercel --prod${C.reset}`);
   }
 
   // ════════════════════════════════════════════════════════
   // RESUMO FINAL
   // ════════════════════════════════════════════════════════
+  console.log('');
+  console.log(`${C.green}  ╔══════════════════════════════════════════════════════╗${C.reset}`);
+  console.log(`${C.green}  ║${C.reset}${C.bold}              INSTALACAO CONCLUIDA!                  ${C.reset}${C.green}║${C.reset}`);
+  console.log(`${C.green}  ╚══════════════════════════════════════════════════════╝${C.reset}`);
+  console.log('');
+  console.log(`  ${C.bold}Barbearia:${C.reset}  ${nomeBarbearia}`);
+  console.log(`  ${C.bold}Admin:${C.reset}      ${adminEmail}`);
+  console.log(`  ${C.bold}URL:${C.reset}        ${finalSiteUrl}`);
+  console.log(`  ${C.bold}Supabase:${C.reset}   ${supabaseUrl}`);
+  console.log('');
+
+  console.log(`  ${C.bold}Links uteis:${C.reset}`);
+  link(`Painel Admin: ${finalSiteUrl}/admin/login`);
+  link(`Supabase Dashboard: https://supabase.com/dashboard`);
+  link(`Vercel Dashboard: https://vercel.com/dashboard`);
+  console.log('');
+
   const pendentes = [];
   if (!projectRef) {
-    pendentes.push('Rodar universal.sql no SQL Editor');
-    pendentes.push('Criar usuario admin em Authentication');
-    pendentes.push('Rodar INSERT INTO admin_users');
+    pendentes.push('Rodar universal.sql no SQL Editor do Supabase');
+    pendentes.push('Criar usuario admin em Authentication > Users');
+    pendentes.push('Rodar INSERT INTO admin_users no SQL Editor');
   }
-  if (!vapidKey) pendentes.push('Configurar VAPID key para push');
+  if (!vapidKey) pendentes.push('Configurar VAPID key para push notifications');
   pendentes.push('Configurar logo/fotos em /public/assets/');
-  pendentes.push('Ajustar endereco no Location.tsx');
-  pendentes.push('Ajustar Instagram no Footer.tsx');
+  pendentes.push('Ajustar endereco no Footer.tsx');
 
-  console.log('');
-  box('INSTALACAO CONCLUIDA', [
-    `Barbearia:  ${nomeBarbearia}`,
-    `Admin:      ${adminEmail}`,
-    `URL:        ${finalSiteUrl}`,
-    `Supabase:   ${supabaseUrl}`,
-    '',
-    `Proximos passos:`,
-    ...pendentes.map((p, i) => `  ${i + 1}. ${p}`),
-  ]);
+  if (pendentes.length > 0) {
+    console.log(`  ${C.bold}Proximos passos:${C.reset}`);
+    pendentes.forEach((p, i) => console.log(`    ${i + 1}. ${p}`));
+    console.log('');
+  }
 
-  console.log(`  ${C.green}Bora vender!${C.reset}\n`);
+  console.log(`  ${C.green}Bora vender! ${C.reset}💈\n`);
   rl.close();
 }
 
 main().catch((err) => {
   console.error(`\n${C.red}Erro fatal:${C.reset} ${err.message}`);
+  console.log(`  WhatsApp do desenvolvedor: (31) 98015-9559`);
   rl.close();
   process.exit(1);
 });
