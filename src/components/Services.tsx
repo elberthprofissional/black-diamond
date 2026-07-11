@@ -72,7 +72,7 @@ const Services: FC<ServicesProps> = memo(({ onBookingClick }) => {
           {isOffline && (
             <div className="mb-6 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center">
               <p className="text-[12px] text-amber-400 font-medium">
-                Sem conexao. Dados salvos no celular — voce pode continuar navegando.
+                Sem conexão. Dados salvos no celular — você pode continuar navegando.
               </p>
             </div>
           )}

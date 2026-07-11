@@ -315,7 +315,14 @@ function App() {
               />
 
               {/* Catch-all 404 Route */}
-              <Route path="*" element={<NotFound />} />
+              <Route
+                path="*"
+                element={
+                  <SectionErrorBoundary name="Página não encontrada">
+                    <NotFound />
+                  </SectionErrorBoundary>
+                }
+              />
             </Routes>
           </Suspense>
         </ErrorBoundary>

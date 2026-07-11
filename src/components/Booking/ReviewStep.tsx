@@ -146,7 +146,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                       <span className="text-sm text-zinc-300">{s.name}</span>
                     </div>
                     <span className="text-sm font-bold text-white tabular-nums">
-                      $ {Number(s.price).toFixed(0)}
+                      R$ {Number(s.price).toFixed(0)}
                     </span>
                   </div>
                 ))}
@@ -208,7 +208,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                       Subtotal
                     </span>
                     <span className="text-sm font-bold text-zinc-500 tabular-nums line-through">
-                      $ {originalPrice.toFixed(0)}
+                      R$ {originalPrice.toFixed(0)}
                     </span>
                   </div>
                 )}
@@ -218,7 +218,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                       Desconto
                     </span>
                     <span className="text-sm font-bold text-emerald-400 tabular-nums">
-                      -$ {coupon.discount_amount.toFixed(2).replace('.', ',')}
+                      -R$ {coupon.discount_amount.toFixed(2).replace('.', ',')}
                     </span>
                   </div>
                 )}
@@ -227,7 +227,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                     Total
                   </span>
                   <span className="text-2xl font-black text-[#C5A059] tracking-tight tabular-nums">
-                    $ {totalPrice.toFixed(0)}
+                    R$ {totalPrice.toFixed(0)}
                   </span>
                 </div>
               </div>
@@ -409,7 +409,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                   <div className="flex-1 flex justify-between items-center">
                     <span className="text-[10px] text-zinc-500 line-through">Subtotal</span>
                     <span className="text-[13px] font-bold text-zinc-500 tabular-nums line-through">
-                      $ {originalPrice.toFixed(2).replace('.', ',')}
+                      R$ {originalPrice.toFixed(2).replace('.', ',')}
                     </span>
                   </div>
                 </div>
@@ -420,7 +420,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                   <div className="flex-1 flex justify-between items-center">
                     <span className="text-[10px] text-emerald-400 font-medium">Desconto</span>
                     <span className="text-[13px] font-bold text-emerald-400 tabular-nums">
-                      -$ {coupon.discount_amount.toFixed(2).replace('.', ',')}
+                      -R$ {coupon.discount_amount.toFixed(2).replace('.', ',')}
                     </span>
                   </div>
                 </div>
@@ -442,7 +442,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                 <div className="flex-1 min-w-0 flex justify-between items-center">
                   <p className="text-[11px] text-zinc-500 font-medium">Valor</p>
                   <p className="text-[18px] font-black text-white tabular-nums">
-                    $ {totalPrice.toFixed(2).replace('.', ',')}
+                    R$ {totalPrice.toFixed(2).replace('.', ',')}
                   </p>
                 </div>
               </div>
