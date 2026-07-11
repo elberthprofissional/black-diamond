@@ -52,10 +52,8 @@ function relativeTime(dateStr: string): string {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 }
 
-// Ícone por tipo de notificação
-function getNotifIcon(_tag: string | null) {
-  return { icon: Bell, color: 'text-zinc-400', bg: 'bg-white/[0.04]' };
-}
+// Ícone padrão para notificações
+// Mantido para compatibilidade mas todos usam Bell agora
 
 // Agrupar por período
 function groupByPeriod(notifs: Notification[]) {
@@ -251,28 +249,32 @@ const NotificationsPage: FC = () => {
 
       {/* Filter Tabs */}
       {!isSelectionMode && notifications.length > 0 && (
-        <div className="flex gap-2 px-4 py-3 border-b border-white/[0.04] overflow-x-auto scrollbar-hide">
-          {filterTabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveFilter(tab.key)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all whitespace-nowrap ${
-                activeFilter === tab.key
-                  ? 'bg-[#C5A059]/15 text-[#C5A059] border border-[#C5A059]/20'
-                  : 'text-zinc-500 bg-white/[0.03] border border-transparent'
-              }`}
-            >
-              {tab.label}
-              {tab.count > 0 && (
-                <span
-                  className={`text-[9px] px-1.5 py-0.5 rounded-full ${activeFilter === tab.key ? 'bg-[#C5A059]/20 text-[#C5A059]' : 'bg-white/[0.06] text-zinc-500'}`}
-                >
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+        <>
+          <div className="flex gap-2 px-4 py-3 overflow-x-auto scrollbar-hide notifications-tabs">
+            {filterTabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveFilter(tab.key)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all whitespace-nowrap ${
+                  activeFilter === tab.key
+                    ? 'bg-[#C5A059]/15 text-[#C5A059] border border-[#C5A059]/20'
+                    : 'text-zinc-500 bg-white/[0.03] border border-transparent'
+                }`}
+              >
+                {tab.label}
+                {tab.count > 0 && (
+                  <span
+                    className={`text-[9px] px-1.5 py-0.5 rounded-full ${activeFilter === tab.key ? 'bg-[#C5A059]/20 text-[#C5A059]' : 'bg-white/[0.06] text-zinc-500'}`}
+                  >
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+          {/* Scroll indicator line */}
+          <div className="h-px bg-gradient-to-r from-transparent via-[#C5A059]/30 to-transparent" />
+        </>
       )}
 
       {/* Empty State */}
@@ -290,7 +292,7 @@ const NotificationsPage: FC = () => {
 
       {/* Notification List — Agrupada por período */}
       {!isSelectionMode && grouped.length > 0 && (
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
           {grouped.map((group) => (
             <div key={group.label}>
               {/* Section header */}
@@ -306,7 +308,6 @@ const NotificationsPage: FC = () => {
                 const name = data ? data.clientName : notif.title;
                 const services = data ? data.services.split(', ').slice(0, 2).join(', ') : '';
                 const extra = data ? Math.max(0, data.services.split(', ').length - 2) : 0;
-                const { icon: Icon, color, bg } = getNotifIcon(notif.tag);
                 const isSelected = selectedIds.has(notif.id);
 
                 return (

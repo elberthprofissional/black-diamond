@@ -103,7 +103,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
               </div>
 
               <div className="space-y-3">
-                {selectedServices.map((s, i) => (
+                {selectedServices.map((s) => (
                   <div key={`ticket-${s.id}`} className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
                       <div className="w-1.5 h-1.5 rounded-full bg-[#C5A059]/40 shrink-0" />

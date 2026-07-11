@@ -99,6 +99,7 @@ const AdminClients: FC = () => {
       : 'all'
   );
   const [isReminderOpen, setIsReminderOpen] = useState(false);
+  const [reminderClient, setReminderClient] = useState<Client | null>(null);
 
   useEffect(() => {
     if (filterParam === 'pending' || filterParam === 'sent' || filterParam === 'inactive') {
@@ -588,17 +589,17 @@ const AdminClients: FC = () => {
 
       <Suspense fallback={null}>
         <ReminderModal
-          isOpen={isReminderOpen && !!c.selectedClient}
-          clientName={c.selectedClient?.name || ''}
+          isOpen={isReminderOpen && !!reminderClient}
+          clientName={reminderClient?.name || ''}
           templates={r.templates}
           onDeleteTemplate={r.handleDeleteTemplate}
           onSaveTemplate={r.handleSaveTemplate}
           onSendTemplate={(template: string) =>
-            r.sendWithTemplate(c.selectedClient?.phone || '', template, c.selectedClient?.id || '')
+            r.sendWithTemplate(reminderClient?.phone || '', template, reminderClient?.id || '')
           }
           onClose={() => {
             setIsReminderOpen(false);
-            c.setSelectedClient(null);
+            setReminderClient(null);
           }}
         />
       </Suspense>
@@ -606,7 +607,7 @@ const AdminClients: FC = () => {
       {/* Bulk Reminder Modal - Desktop */}
       <AnimatePresence>
         {isReminderOpen &&
-          !c.selectedClient &&
+          !reminderClient &&
           (() => {
             const clientsNeedingReminder = c.clients.filter(
               (client) => !r.isReminderRecent(client.id)
@@ -651,9 +652,8 @@ const AdminClients: FC = () => {
                   <ReminderClientList
                     clients={clientsNeedingReminder}
                     onSelect={(client) => {
-                      // Fechar modal primeiro, depois abrir painel do cliente
-                      setIsReminderOpen(false);
-                      setTimeout(() => c.setSelectedClient(client as any), 100);
+                      // Abrir modal de lembrete para o cliente selecionado
+                      setReminderClient(client as Client);
                     }}
                   />
                 </motion.div>
