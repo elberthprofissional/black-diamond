@@ -78,7 +78,7 @@ function NotificationDetail({ notif, onBack }: { notif: Notification; onBack: ()
       <div className="px-5 py-4 flex items-center gap-3 border-b border-white/[0.04] shrink-0">
         <button
           onClick={onBack}
-          className="w-8 h-8 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
+          className="text-zinc-400 hover:text-white transition-all cursor-pointer"
         >
           <svg
             className="w-4 h-4"
@@ -97,7 +97,7 @@ function NotificationDetail({ notif, onBack }: { notif: Notification; onBack: ()
         </div>
         <button
           onClick={onBack}
-          className="w-8 h-8 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
+          className="text-zinc-400 hover:text-white transition-all cursor-pointer"
         >
           <svg
             className="w-4 h-4"

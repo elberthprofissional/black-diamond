@@ -53,12 +53,6 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
             <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.25em]">
               Horário Bloqueado
             </span>
-            <button
-              onClick={onClose}
-              className="text-zinc-500 hover:text-white transition-colors cursor-pointer p-1"
-            >
-              <XIcon />
-            </button>
           </div>
           <div className="px-5 lg:px-6 py-5 lg:py-6 flex-1 text-left overflow-y-auto scrollbar-hide">
             {/* Mobile: minimal */}
@@ -154,12 +148,6 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
           <span className="text-[9px] font-black text-[#C5A059] uppercase tracking-[0.25em]">
             Dados do Agendamento
           </span>
-          <button
-            onClick={onClose}
-            className="text-zinc-500 hover:text-white transition-colors cursor-pointer p-1"
-          >
-            <XIcon />
-          </button>
         </div>
 
         {/* ==================== MOBILE: minimal ==================== */}
@@ -193,7 +181,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                   <div key={id} className="flex justify-between items-center">
                     <span className="text-[13px] text-zinc-400">{srv?.name || 'Serviço'}</span>
                     <span className="text-[13px] font-semibold text-zinc-300 tabular-nums">
-                      R$ {Number(srv?.price || 0).toFixed(0)}
+                      $ {Number(srv?.price || 0).toFixed(0)}
                     </span>
                   </div>
                 );
@@ -203,7 +191,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                   Total
                 </span>
                 <span className="text-[15px] font-black text-[#C5A059]">
-                  R$ {(booking.total_price || 0).toFixed(0)}
+                  $ {(booking.total_price || 0).toFixed(0)}
                 </span>
               </div>
             </div>
@@ -332,7 +320,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                     <div key={id} className="flex justify-between items-center text-sm px-1">
                       <span className="text-zinc-400 font-medium">{srv?.name || 'Serviço'}</span>
                       <span className="font-bold text-white tabular-nums">
-                        R$ {Number(srv?.price || 0).toFixed(0)}
+                        $ {Number(srv?.price || 0).toFixed(0)}
                       </span>
                     </div>
                   );
@@ -344,7 +332,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                   Total
                 </span>
                 <span className="text-base font-black text-[#C5A059]">
-                  R$ {(booking.total_price || 0).toFixed(0)}
+                  $ {(booking.total_price || 0).toFixed(0)}
                 </span>
               </div>
             </div>
