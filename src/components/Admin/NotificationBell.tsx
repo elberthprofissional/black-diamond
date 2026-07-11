@@ -727,9 +727,7 @@ function NotificationListContent({
         <div className="flex-1 overflow-y-auto">
           {filteredNotifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full min-h-[300px] px-6 text-center">
-              <div className="w-14 h-14 rounded-full bg-white/[0.03] flex items-center justify-center mb-4">
-                <Bell size={24} className="text-zinc-700" />
-              </div>
+              <Bell size={24} className="text-zinc-700 mb-4" />
               <p className="text-[13px] text-zinc-400 font-medium mb-1">Nenhuma notificação</p>
               <p className="text-[11px] text-zinc-600">
                 {activeFilter === 'all'

@@ -460,10 +460,22 @@ const AdminClients: FC = () => {
                     className="p-5 rounded-2xl border border-white/[0.04] bg-white/[0.02] transition-all duration-200 cursor-pointer group text-left hover:-translate-y-[3px] hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] hover:shadow-[#C5A059]/5 hover:border-[#C5A059]/35 hover:bg-white/[0.04]"
                   >
                     <div className="flex items-start gap-4">
-                      <div
-                        className={`w-12 h-12 rounded-xl ${AVATAR_STYLE} flex items-center justify-center text-base font-bold shrink-0`}
-                      >
-                        {initial}
+                      <div className="relative">
+                        <div
+                          className={`w-12 h-12 rounded-xl ${AVATAR_STYLE} flex items-center justify-center text-base font-bold shrink-0`}
+                        >
+                          {initial}
+                        </div>
+                        {/* Status dot */}
+                        <div
+                          className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-[#0E0E0E] ${
+                            client.isInactive
+                              ? 'bg-red-500'
+                              : r.isReminderRecent(client.id)
+                                ? 'bg-emerald-500'
+                                : 'bg-amber-500'
+                          }`}
+                        />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-0.5">

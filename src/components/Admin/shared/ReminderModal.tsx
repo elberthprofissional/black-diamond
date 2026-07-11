@@ -53,7 +53,7 @@ const ReminderModal: FC<ReminderModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[250] flex justify-end flex-col sm:flex-row">
+        <div className="fixed inset-0 z-[250] flex items-center justify-center sm:items-center p-0 sm:p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -62,11 +62,11 @@ const ReminderModal: FC<ReminderModalProps> = ({
             className="absolute inset-0 bg-black/75 backdrop-blur-sm"
           />
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
+            initial={{ y: '100%', opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: '100%', opacity: 0 }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="relative w-full sm:w-[440px] h-[100dvh] sm:h-full mt-auto sm:mt-0 bg-[#0E0E0E] border-t sm:border-t-0 sm:border-l border-[#C5A059]/20 shadow-2xl overflow-y-auto scrollbar-hide flex flex-col text-white"
+            className="relative w-full sm:w-[480px] sm:max-h-[80vh] h-[100dvh] sm:h-auto sm:rounded-2xl mt-auto sm:mt-0 bg-[#0E0E0E] border-t sm:border border-[#C5A059]/20 shadow-2xl overflow-y-auto scrollbar-hide flex flex-col text-white"
           >
             <div className="sticky top-0 bg-[#0E0E0E]/95 backdrop-blur-md z-10 px-6 py-5 flex items-center justify-between border-b border-white/[0.04] shrink-0">
               <div className="flex items-center gap-3">
