@@ -1,8 +1,8 @@
-const CACHE_VERSION = 'v11';
-const STATIC_CACHE = 'static-v11';
-const API_CACHE = 'api-v11';
-const NAV_CACHE = 'nav-v11';
-const QUEUE_CACHE = 'queue-v11';
+const CACHE_VERSION = 'v12';
+const STATIC_CACHE = 'static-v12';
+const API_CACHE = 'api-v12';
+const NAV_CACHE = 'nav-v12';
+const QUEUE_CACHE = 'queue-v12';
 
 const PRECACHE_URLS = [
   '/',
