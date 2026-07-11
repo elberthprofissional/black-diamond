@@ -10,6 +10,7 @@ import {
   Scissors,
   LogOut,
   Crown,
+  Users,
 } from 'lucide-react';
 
 interface SettingsListProps {
@@ -28,6 +29,7 @@ const groups = [
   {
     title: 'Barbearia',
     items: [
+      { id: 'barbers', label: 'Profissionais', icon: Users, danger: false },
       { id: 'servicos', label: 'Serviços', icon: Scissors, danger: false },
       { id: 'horarios', label: 'Horários', icon: Clock, danger: false },
       { id: 'mensalista', label: 'Mensalista', icon: Crown, danger: false },

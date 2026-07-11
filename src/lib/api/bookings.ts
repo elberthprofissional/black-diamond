@@ -5,7 +5,8 @@ import type { Booking } from '../../types';
 /** Cria um agendamento via RPC, criando o cliente automaticamente se necessário. */
 export const createBooking = async (
   bookingData: Omit<Booking, 'id' | 'created_at' | 'status' | 'client_id'>,
-  clientData: { name: string; phone: string; email?: string }
+  clientData: { name: string; phone: string; email?: string },
+  barberId?: string | null
 ) => {
   if (!clientData.name.trim()) throw new Error('Informe seu nome.');
   if (clientData.phone.replace(/\D/g, '').length < 11) {
@@ -25,6 +26,7 @@ export const createBooking = async (
     p_hora: bookingData.booking_time,
     p_preco_total: bookingData.total_price,
     p_duracao_total: bookingData.total_duration,
+    p_barber_id: barberId || null,
   });
 
   if (error) {

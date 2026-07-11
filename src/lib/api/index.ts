@@ -40,3 +40,12 @@ export {
 
 export { getTemplates, createTemplate, deleteTemplate } from './templates';
 export type { WhatsAppTemplate } from './templates';
+
+export {
+  getActiveBarbers,
+  getAllBarbers,
+  createBarber,
+  updateBarber,
+  deleteBarber,
+  getBarberStats,
+} from './barbers';

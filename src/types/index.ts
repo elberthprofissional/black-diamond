@@ -1,3 +1,15 @@
+export interface Barber {
+  id: string;
+  name: string;
+  phone?: string;
+  photo_url?: string;
+  commission: number;
+  working_days: Record<string, { enabled: boolean; open?: string; close?: string }>;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+}
+
 export interface Service {
   id: string;
   name: string;
@@ -18,6 +30,8 @@ export interface Booking {
   is_blocked?: boolean;
   reminder_sent?: boolean;
   notes?: string;
+  barber_id?: string | null;
+  no_show?: boolean;
   created_at: string;
   clients?: {
     name: string;
