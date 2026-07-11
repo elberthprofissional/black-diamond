@@ -44,6 +44,12 @@ const BookingPage: FC = () => {
           manageUrl={w.manageUrl}
           lastBooking={w.lastBooking}
           onApplyLastBooking={w.applyLastBooking}
+          coupon={w.coupon}
+          couponLoading={w.couponLoading}
+          couponError={w.couponError}
+          originalPrice={w.originalPrice}
+          onCouponValidate={w.onCouponValidate}
+          onCouponRemove={w.onCouponRemove}
         />
       </main>
 

@@ -21,7 +21,7 @@
       "destination": "/favicon.ico"
     },
     {
-      "source": "/((?!assets/|sw\\.js|manifest\\.json|favicon\\.ico).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],

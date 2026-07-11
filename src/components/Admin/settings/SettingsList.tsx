@@ -10,6 +10,9 @@ import {
   Scissors,
   LogOut,
   Crown,
+  UserX,
+  Gift,
+  Tag,
 } from 'lucide-react';
 
 interface SettingsListProps {
@@ -31,6 +34,9 @@ const groups = [
       { id: 'servicos', label: 'Serviços', icon: Scissors, danger: false },
       { id: 'horarios', label: 'Horários', icon: Clock, danger: false },
       { id: 'mensalista', label: 'Mensalista', icon: Crown, danger: false },
+      { id: 'faltas', label: 'Controle de Faltas', icon: UserX, danger: false },
+      { id: 'fidelidade', label: 'Fidelidade', icon: Gift, danger: false },
+      { id: 'cupons', label: 'Cupons', icon: Tag, danger: false },
       { id: 'galeria', label: 'Galeria', icon: ImageIcon, danger: false },
     ],
   },

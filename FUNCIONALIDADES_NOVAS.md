@@ -14,6 +14,7 @@
 6. [Marcacao Nao Compareceu](#6-marcacao-nao-compareceu)
 7. [Taxa de Ocupacao](#7-taxa-de-ocupacao)
 8. [Grafico de Faturamento](#8-grafico-de-faturamento)
+9. [Notas da Versao 3.20.0](#9-notas-da-versao-3200)
 
 ---
 
@@ -1214,13 +1215,13 @@ $$ LANGUAGE plpgsql;
 
 | # | Funcionalidade | Status | Prioridade |
 |---|---------------|--------|-----------|
-| 1 | Programa de Fidelidade | A implementar | Alta |
+| 1 | Programa de Fidelidade | Implementado (migration rodada) | Alta |
 | 2 | Multi-Barbeiro | A implementar | Alta |
-| 3 | Cupons e Promocoes | A implementar | Media |
-| 4 | Export CSV/PDF | A implementar | Media |
-| 5 | Marcacao Nao Compareceu | A implementar | Alta |
-| 6 | Taxa de Ocupacao | A implementar | Media |
-| 7 | Grafico de Faturamento | A implementar | Alta |
+| 3 | Cupons e Promocoes | Implementado (migration rodada) | Media |
+| 4 | Export CSV/PDF | Parcial (CSV sim, PDF/XLSX nao) | Media |
+| 5 | Marcacao Nao Compareceu | Implementado (parcial - falta UI historico) | Alta |
+| 6 | Taxa de Ocupacao | Implementado (dia atual, sem graficos historicos) | Media |
+| 7 | Grafico de Faturamento | Implementado | Alta |
 
 ### Impacto no preco
 
@@ -1250,4 +1251,51 @@ $$ LANGUAGE plpgsql;
 
 ---
 
-*Documento atualizado em Julho 2026. Versao planejada: 4.0.0*
+*Documento atualizado em Julho 2026. Versao atual: 3.20.0*
+
+---
+
+## 9. Notas da Versao 3.20.0
+
+### Mudancas de UI/UX
+
+| Mudanca | Antes | Depois |
+|---------|-------|--------|
+| CSV export | Tudo na coluna A (virgula) | Colunas separadas (ponto e virgula) |
+| Badge "Ocupados" | Laranja | Branco sutil |
+| Taxa de Ocupacao | Laranja | Neutro (branco/zinc) |
+| Botao "Marcar todas" | Presente | Removido |
+| Botao "Todas" (selecao) | Presente | Removido |
+| Avatar clientes (modais) | Circulo | Quadrado arredondado |
+| Ranking servicos | Icones (Coroa, Grafico) | Numeros (1, 2, 3) |
+| Graficos mobile | Acima do ProfileMobile | Abaixo do ProfileMobile |
+| Faturamento Total | 2x (ProfileMetrics + RevenueChart) | 1x (só ProfileMetrics) |
+| Atendimentos | 2x (ProfileMetrics + RevenueChart) | 1x (só ProfileMetrics) |
+
+### Migrations rodadas no Supabase
+
+```sql
+-- Fidelidade
+CREATE TABLE loyalty_config (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  visit_threshold integer NOT NULL,
+  reward_service_id uuid NOT NULL,
+  enabled boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- Cupons
+CREATE TABLE coupons (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  code text NOT NULL UNIQUE,
+  discount_type text NOT NULL CHECK (discount_type IN ('percentage', 'fixed', 'free')),
+  discount_value numeric NOT NULL DEFAULT 0,
+  valid_from date NOT NULL DEFAULT CURRENT_DATE,
+  valid_until date,
+  max_uses integer,
+  current_uses integer NOT NULL DEFAULT 0,
+  is_active boolean NOT NULL DEFAULT true,
+  applicable_service_ids uuid[] DEFAULT '{}',
+  created_at timestamp with time zone DEFAULT now()
+);
+```

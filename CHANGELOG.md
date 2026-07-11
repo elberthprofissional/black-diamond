@@ -5,6 +5,24 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.20.0] - 2026-07-11
+
+### Fixed
+- **CSV export separador** — Trocado separador de `,` para `;` (ponto e vírgula) no CSV. Excel brasileiro agora abre com colunas corretas em vez de tudo na coluna A. Aspas inteligentes: só envolve campos que contêm o separador.
+- **Gráficos no mobile** — RevenueChart movido para BAIXO do ProfileMobile no mobile. Antes os gráficos apareciam no topo, empurrando as informações do período para baixo.
+- **Faturamento Total duplicado** — Removido card "Faturamento Total" do RevenueChart (já existia no ProfileDesktopMetrics). Grid alterado de 4 para 3 colunas, depois para 2 (Média Diária + Melhor Dia).
+- **Atendimentos duplicado** — Removido card "Atendimentos" do RevenueChart (já existia no ProfileDesktopMetrics).
+
+### Changed
+- **Badge de filtro "Ocupados"** — Cor trocada de laranja (#C5A059) para branco sutil (bg-white/10, text-white, border-white/10). Combina com o visual clean do app.
+- **Taxa de Ocupação** — Cor trocada de laranja para tons neutros (branco/zinc). Ícone, porcentagem e barra de progresso agora usam bg-white/5, text-zinc-300, bg-white/20.
+- **Notificações** — Removido botão "Marcar todas" do header do NotificationBell. No modo seleção, removido botão "Todas" (selecionar todas). Agora só fica "Selecionar" + "Excluir".
+- **Avatares quadrados** — Avatar dos clientes nos modais de lembretes e busca trocado de `rounded-full` (círculo) para `rounded-xl` (quadrado arredondado). Consistente com o resto do app.
+- **Top Serviços ranking** — Ícones (Crown, TrendingUp, BarChart) trocados por números de ranking (1, 2, 3). Primeiro lugar com cor dourada, resto neutro.
+
+### Added
+- **Migrations de Fidelidade e Cupons** — Tabelas `loyalty_config` e `coupons` criadas no Supabase. RPCs `validate_coupon` e `apply_coupon` para validação e aplicação de cupons.
+
 ## [3.19.0] - 2026-07-10
 
 ### Fixed

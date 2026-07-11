@@ -1,9 +1,11 @@
 import { useState, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Pencil, Trash2, Plus, Crown, ArrowLeft, Check } from 'lucide-react';
+import { X, Pencil, Trash2, Plus, Crown, Gift, ArrowLeft, Check } from 'lucide-react';
 import { formatPhone } from '../../../lib/utils';
 import type { ClientWithStats, BookingWithClient, MensalistaPlan } from '../../../types';
+
+import type { MilestoneProgress } from '../../../lib/api';
 
 interface ClientPanelProps {
   client: ClientWithStats;
@@ -16,6 +18,7 @@ interface ClientPanelProps {
   plans: MensalistaPlan[];
   planName?: string;
   expiresAt?: string;
+  milestoneProgress?: MilestoneProgress[];
   onNotesChange: (value: string) => void;
   onToggleEditNotes: () => void;
   onSaveNotes: () => void;
@@ -37,6 +40,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
   savingNotes,
   plans,
   planName,
+  milestoneProgress,
   onNotesChange,
   onToggleEditNotes,
   onSaveNotes,
@@ -220,6 +224,66 @@ const ClientPanel: FC<ClientPanelProps> = ({
                 ? 'Remover Mensalista'
                 : 'Tornar Mensalista'}
           </button>
+
+          {/* Loyalty Milestones */}
+          {milestoneProgress && milestoneProgress.length > 0 && (
+            <div className="bg-[#121212] border border-[#C5A059]/10 rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Gift size={14} className="text-[#C5A059]" />
+                <span className="text-[9px] font-bold text-[#C5A059] uppercase tracking-widest">
+                  Fidelidade — {milestoneProgress[0]?.progress || 0} visitas
+                </span>
+              </div>
+              <div className="space-y-2.5">
+                {milestoneProgress.map((mp) => {
+                  const progress = mp.progress;
+                  const needed = mp.milestone.visits_required;
+                  const ratio = Math.min(progress / needed, 1);
+                  const isClaimed = mp.already_claimed;
+
+                  return (
+                    <div key={mp.milestone.id} className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span
+                          className={`text-[11px] ${isClaimed ? 'text-emerald-400' : 'text-zinc-400'}`}
+                        >
+                          {needed} visitas
+                        </span>
+                        {isClaimed ? (
+                          <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider flex items-center gap-1">
+                            <Check size={10} /> GANHOU!
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-zinc-500">
+                            {Math.min(progress, needed)}/{needed}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex gap-1">
+                        {Array.from({ length: Math.min(needed, 10) }).map((_, i) => (
+                          <div
+                            key={i}
+                            className={`flex-1 h-1.5 rounded-full transition-all ${
+                              isClaimed
+                                ? 'bg-emerald-500 shadow-[0_0_6px_rgba(52,211,153,0.4)]'
+                                : i < Math.min(progress, needed)
+                                  ? 'bg-[#C5A059] shadow-[0_0_6px_rgba(197,160,89,0.4)]'
+                                  : 'bg-white/[0.06]'
+                            }`}
+                          />
+                        ))}
+                        {needed > 10 && (
+                          <span className="text-[8px] text-zinc-600 ml-1 self-center">
+                            +{needed - 10}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {client.is_mensalista && expiresAt && (
             <div className="flex items-center justify-between px-4 py-3 bg-[#121212] border border-white/[0.04] rounded-xl">

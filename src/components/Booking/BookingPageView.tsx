@@ -49,6 +49,17 @@ interface BookingPageViewProps {
   lastBooking?: { serviceIds: string[]; totalPrice: number } | null;
   onApplyLastBooking?: () => void;
   isOfflineBooking?: boolean;
+  coupon?: {
+    coupon_id: string;
+    code: string;
+    discount_type: string;
+    discount_amount: number;
+  } | null;
+  couponLoading?: boolean;
+  couponError?: string;
+  originalPrice?: number;
+  onCouponValidate?: (code: string) => Promise<void>;
+  onCouponRemove?: () => void;
 }
 
 const stepIcons = [User, Scissors, Clock, Check];
@@ -86,6 +97,12 @@ const BookingPageView: FC<BookingPageViewProps> = ({
   lastBooking,
   onApplyLastBooking,
   isOfflineBooking = false,
+  coupon,
+  couponLoading,
+  couponError,
+  originalPrice,
+  onCouponValidate,
+  onCouponRemove,
 }) => {
   const renderSteps = (layout: 'desktop' | 'mobile') => (
     <AnimatePresence mode="wait">
@@ -179,6 +196,12 @@ const BookingPageView: FC<BookingPageViewProps> = ({
             selectedServices={selectedServices}
             totalPrice={totalPrice}
             layout={layout}
+            coupon={coupon}
+            couponLoading={couponLoading}
+            couponError={couponError}
+            originalPrice={originalPrice}
+            onCouponValidate={onCouponValidate}
+            onCouponRemove={onCouponRemove}
           />
         </motion.div>
       )}

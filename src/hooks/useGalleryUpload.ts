@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useToast } from './useToast';
 import type { GalleryImage } from './useGalleryData';
 
-const MAX_PHOTOS = 8;
+const MAX_PHOTOS = 20;
 
 export function useGalleryUpload(images: GalleryImage[], onUploadComplete: () => void) {
   const { showError, showSuccess } = useToast();

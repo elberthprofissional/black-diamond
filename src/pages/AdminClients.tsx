@@ -57,7 +57,7 @@ const ReminderClientList: FC<{ clients: Client[]; onSelect: (client: Client) => 
                 className="w-full flex items-center gap-3 py-3 px-4 rounded-xl border border-white/[0.04] bg-white/[0.02] cursor-pointer group hover:bg-white/[0.04] hover:border-white/[0.08] transition-all text-left"
               >
                 <div
-                  className={`w-10 h-10 rounded-full ${AVATAR_STYLE} flex items-center justify-center shrink-0`}
+                  className={`w-10 h-10 rounded-xl ${AVATAR_STYLE} flex items-center justify-center shrink-0`}
                 >
                   <span className="text-[13px] font-bold">{initial}</span>
                 </div>
@@ -563,6 +563,7 @@ const AdminClients: FC = () => {
             onToggleMensalista={c.handleToggleMensalista}
             expiresAt={c.expiresAt}
             onRenewMensalidade={c.handleRenewMensalidade}
+            loyaltyProgress={c.loyaltyProgress}
           />
         )}
       </AnimatePresence>

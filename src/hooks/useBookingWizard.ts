@@ -5,9 +5,9 @@ import { useWizardStep } from './useWizardStep';
 import { useClientLookup } from './useClientLookup';
 import { useBookingSlots } from './useBookingSlots';
 import { useBookingSubmit } from './useBookingSubmit';
-import type { Service, MensalistaPlan } from '../types';
+import type { Service, MensalistaPlan, CouponValidation } from '../types';
 import { useServices } from './useServices';
-import { getMensalistaPlans } from '../lib/api';
+import { getMensalistaPlans, validateCoupon, applyCoupon } from '../lib/api';
 import { useMensalistaFilter } from './useMensalistaFilter';
 
 export function useBookingWizard(
@@ -105,11 +105,68 @@ export function useBookingWizard(
   const [token, setToken] = useState('');
   const [isOfflineBooking, setIsOfflineBooking] = useState(false);
 
+  // Coupon state
+  const [coupon, setCoupon] = useState<{
+    coupon_id: string;
+    code: string;
+    discount_type: string;
+    discount_amount: number;
+  } | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
+
   // Calculate total price
   const calculatedTotalPrice = useMemo(
     () => selectedServices.reduce((sum, s) => sum + Number(s.price), 0),
     [selectedServices]
   );
+
+  // Final price after coupon discount
+  const finalPrice = useMemo(
+    () => Math.max(0, calculatedTotalPrice - (coupon?.discount_amount || 0)),
+    [calculatedTotalPrice, coupon]
+  );
+
+  // Validate coupon code
+  const handleCouponValidate = useCallback(
+    async (code: string) => {
+      if (!code.trim()) {
+        setCouponError('Informe um código.');
+        return;
+      }
+      setCouponLoading(true);
+      setCouponError('');
+      try {
+        const result = await validateCoupon(
+          code,
+          selectedServices.map((s) => s.id)
+        );
+        if (result.valid) {
+          setCoupon({
+            coupon_id: result.coupon_id!,
+            code: result.code!,
+            discount_type: result.discount_type!,
+            discount_amount: result.discount_amount!,
+          });
+        } else {
+          setCoupon(null);
+          setCouponError(result.error || 'Cupom inválido.');
+        }
+      } catch {
+        setCoupon(null);
+        setCouponError('Erro ao validar cupom.');
+      } finally {
+        setCouponLoading(false);
+      }
+    },
+    [selectedServices]
+  );
+
+  // Remove applied coupon
+  const handleCouponRemove = useCallback(() => {
+    setCoupon(null);
+    setCouponError('');
+  }, []);
 
   // Confirm with full params
   const handleConfirm = useCallback(async () => {
@@ -118,14 +175,20 @@ export function useBookingWizard(
       selectedDate: slots.selectedDate,
       selectedTime: slots.selectedTime,
       userInfo,
-      totalPrice: calculatedTotalPrice,
+      totalPrice: finalPrice,
       isMensalista,
+      couponId: coupon?.coupon_id,
+      discountAmount: coupon?.discount_amount,
     });
     if (result) {
       setToken(result.token);
       setManageUrl(result.manageUrl);
       if (result.queued) {
         setIsOfflineBooking(true);
+      }
+      // Apply coupon usage after successful booking
+      if (coupon?.coupon_id && !result.queued) {
+        applyCoupon(coupon.coupon_id).catch(() => {});
       }
     }
   }, [
@@ -134,8 +197,9 @@ export function useBookingWizard(
     slots.selectedDate,
     slots.selectedTime,
     userInfo,
-    calculatedTotalPrice,
+    finalPrice,
     isMensalista,
+    coupon,
   ]);
 
   // Wrap wizardGoNext to pass handleConfirm for the last step
@@ -198,5 +262,12 @@ export function useBookingWizard(
     lastBooking,
     applyLastBooking,
     isOfflineBooking,
+    coupon,
+    couponLoading,
+    couponError,
+    finalPrice,
+    onCouponValidate: handleCouponValidate,
+    onCouponRemove: handleCouponRemove,
+    originalPrice: calculatedTotalPrice,
   };
 }

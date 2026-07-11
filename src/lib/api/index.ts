@@ -40,3 +40,22 @@ export {
 
 export { getTemplates, createTemplate, deleteTemplate } from './templates';
 export type { WhatsAppTemplate } from './templates';
+export { getMaxNoShows, isClientNoShowBlocked, checkPhoneNoShowBlock } from './noShow';
+export type { LoyaltyMilestone, MilestoneProgress } from '../types';
+export {
+  getMilestones,
+  saveMilestones,
+  setLoyaltyEnabled,
+  getClientMilestones,
+  claimMilestone,
+  incrementVisit,
+  getClaimedCount,
+} from './loyalty';
+export {
+  getCoupons,
+  createCoupon,
+  updateCoupon,
+  deleteCoupon,
+  validateCoupon,
+  applyCoupon,
+} from './coupons';

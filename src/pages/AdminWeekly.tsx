@@ -29,7 +29,9 @@ const AdminWeekly: FC = () => {
     const day = date.getDay();
     const hour = date.getHours();
     let diff = date.getDate() - day + (day === 0 ? -6 : 1);
-    if (day === 0 || (day === 6 && hour >= 18)) diff += 7;
+    // Só pula para a próxima semana se hoje for sábado após o fechamento
+    // Domingo agora é controlado pelo enabledDays (settings → barber_hours)
+    if (day === 6 && hour >= 18) diff += 7;
     return new Date(date.setDate(diff));
   };
 

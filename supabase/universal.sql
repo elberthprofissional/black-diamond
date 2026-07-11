@@ -1313,6 +1313,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Rate limit para criar agendamento (3 por minuto por IP)
+-- Inclui verificação de bloqueio por excesso de faltas (no-show)
 CREATE OR REPLACE FUNCTION criar_agendamento_rate_limited(
     p_cliente_nome text,
     p_cliente_telefone text,
@@ -1324,9 +1325,18 @@ CREATE OR REPLACE FUNCTION criar_agendamento_rate_limited(
     p_cliente_email text DEFAULT NULL
 )
 RETURNS jsonb AS $$
+DECLARE
+    v_client_id uuid;
 BEGIN
     IF NOT check_rate_limit('criar_agendamento', 3, 60) THEN
         RAISE EXCEPTION 'Muitas tentativas. Aguarde 1 minuto e tente novamente.';
+    END IF;
+
+    -- Busca o cliente ANTES de criar para verificar bloqueio por faltas
+    SELECT id INTO v_client_id FROM clients WHERE phone = p_cliente_telefone LIMIT 1;
+    
+    IF v_client_id IS NOT NULL THEN
+        PERFORM check_client_no_show_block(v_client_id);
     END IF;
 
     RETURN criar_agendamento(

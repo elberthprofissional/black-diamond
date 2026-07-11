@@ -16,6 +16,9 @@ import {
   Image as ImageIcon,
   HelpCircle,
   Crown,
+  UserX,
+  Gift,
+  Tag,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
@@ -29,6 +32,9 @@ import { useProfileStats } from '../hooks/useProfileStats';
 import ProfileMobile from '../components/Admin/shared/ProfileMobile';
 import ProfileDesktopMetrics from '../components/Admin/shared/ProfileDesktopMetrics';
 import ProfileServicesChart from '../components/Admin/shared/ProfileServicesChart';
+import RevenueChart from '../components/Admin/shared/RevenueChart';
+import { useRevenueChartData } from '../hooks/useRevenueChartData';
+import ExportButton from '../components/Admin/shared/ExportButton';
 import SettingsList from '../components/Admin/settings/SettingsList';
 import SettingsConta from '../components/Admin/settings/SettingsConta';
 import SettingsGaleria from '../components/Admin/settings/SettingsGaleria';
@@ -37,6 +43,9 @@ import SettingsDados from '../components/Admin/settings/SettingsDados';
 import SettingsServicos from '../components/Admin/settings/SettingsServicos';
 import SettingsHorarios from '../components/Admin/settings/SettingsHorarios';
 import SettingsMensalista from '../components/Admin/settings/SettingsMensalista';
+import SettingsFaltas from '../components/Admin/settings/SettingsFaltas';
+import SettingsFidelidade from '../components/Admin/settings/SettingsFidelidade';
+import SettingsCupons from '../components/Admin/settings/SettingsCupons';
 import HelpModal from '../components/Admin/settings/HelpModal';
 import { SkeletonDashboard } from '../components/Skeleton';
 import { usePwaInstall } from '../hooks/usePwaInstall';
@@ -45,7 +54,8 @@ import PwaInstallModal from '../components/PwaInstallModal';
 const AdminProfile: FC = () => {
   const [searchParams] = useSearchParams();
   const showSettings = searchParams.get('tab') === 'settings';
-  const { stats, loading, loadData } = useProfileStats();
+  const { bookings, stats, loading, loadData } = useProfileStats();
+  const chartData = useRevenueChartData(bookings);
   const [timeRange, setTimeRange] = useState<'week' | 'month'>('week');
   const [showBalance, setShowBalance] = useState(
     () => localStorage.getItem('barber_show_balance') !== 'false'
@@ -240,11 +250,17 @@ const AdminProfile: FC = () => {
                         ? 'Horários'
                         : settingsSection === 'mensalista'
                           ? 'Mensalista'
-                          : settingsSection === 'notificacoes'
-                            ? 'Notificações'
-                            : settingsSection === 'dados'
-                              ? 'Zona de Segurança'
-                              : 'Configurações'}
+                          : settingsSection === 'faltas'
+                            ? 'Controle de Faltas'
+                            : settingsSection === 'fidelidade'
+                              ? 'Fidelidade'
+                              : settingsSection === 'cupons'
+                                ? 'Cupons'
+                                : settingsSection === 'notificacoes'
+                                  ? 'Notificações'
+                                  : settingsSection === 'dados'
+                                    ? 'Zona de Segurança'
+                                    : 'Configurações'}
               </h1>
             </div>
             <button
@@ -268,6 +284,9 @@ const AdminProfile: FC = () => {
             {settingsSection === 'servicos' && <SettingsServicos />}
             {settingsSection === 'horarios' && <SettingsHorarios />}
             {settingsSection === 'mensalista' && <SettingsMensalista />}
+            {settingsSection === 'faltas' && <SettingsFaltas />}
+            {settingsSection === 'fidelidade' && <SettingsFidelidade />}
+            {settingsSection === 'cupons' && <SettingsCupons />}
             {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
             {settingsSection === 'dados' && <SettingsDados />}
           </div>
@@ -284,6 +303,9 @@ const AdminProfile: FC = () => {
                   { id: 'servicos', label: 'Serviços', icon: Scissors },
                   { id: 'horarios', label: 'Horários', icon: Clock },
                   { id: 'mensalista', label: 'Mensalista', icon: Crown },
+                  { id: 'faltas', label: 'Controle de Faltas', icon: UserX },
+                  { id: 'fidelidade', label: 'Fidelidade', icon: Gift },
+                  { id: 'cupons', label: 'Cupons', icon: Tag },
                   { id: 'notificacoes', label: 'Notificações', icon: Bell },
                   { id: 'dados', label: 'Segurança', icon: Shield },
                 ].map((item) => {
@@ -323,6 +345,9 @@ const AdminProfile: FC = () => {
                   {settingsSection === 'servicos' && <SettingsServicos />}
                   {settingsSection === 'horarios' && <SettingsHorarios />}
                   {settingsSection === 'mensalista' && <SettingsMensalista />}
+                  {settingsSection === 'faltas' && <SettingsFaltas />}
+                  {settingsSection === 'fidelidade' && <SettingsFidelidade />}
+                  {settingsSection === 'cupons' && <SettingsCupons />}
                   {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
                   {settingsSection === 'dados' && <SettingsDados />}
                 </motion.div>
@@ -347,10 +372,24 @@ const AdminProfile: FC = () => {
         />
       )}
 
+      {/* EXPORT BUTTON — desktop */}
+      {!showSettings && (
+        <div className="hidden lg:flex justify-end px-8 -mt-4 mb-2">
+          <ExportButton />
+        </div>
+      )}
+
       {/* DESKTOP SERVICES CHART */}
       {!showSettings && (
         <div className="hidden lg:block">
           <ProfileServicesChart topServices={stats.topServices} />
+        </div>
+      )}
+
+      {/* DESKTOP REVENUE CHART */}
+      {!showSettings && (
+        <div className="hidden lg:block">
+          <RevenueChart data={chartData} />
         </div>
       )}
 
@@ -377,6 +416,13 @@ const AdminProfile: FC = () => {
           topServices={stats.topServices}
           quickActions={quickActions}
         />
+      )}
+
+      {/* MOBILE REVENUE CHART */}
+      {!showSettings && (
+        <div className="lg:hidden px-4">
+          <RevenueChart data={chartData} />
+        </div>
       )}
 
       {/* Modals */}

@@ -1,5 +1,12 @@
 import { useState, useCallback, useMemo } from 'react';
-import { updateClient, updateClientNotes, deleteClient, toggleClientMensalista } from '../lib/api';
+import {
+  updateClient,
+  updateClientNotes,
+  deleteClient,
+  toggleClientMensalista,
+  type MilestoneProgress,
+} from '../lib/api';
+import { getClientMilestones } from '../lib/api/loyalty';
 import { supabase } from '../lib/supabase';
 import { getErrorMessage } from '../lib/utils';
 import { useToast } from './useToast';
@@ -23,6 +30,7 @@ export function useClientPanel(
   const [savingNotes, setSavingNotes] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [milestoneProgress, setMilestoneProgress] = useState<MilestoneProgress[]>([]);
 
   const planName = useMemo(() => {
     if (!selectedClient?.is_mensalista || !selectedClient?.mensalista_plan_id) return undefined;
@@ -35,14 +43,19 @@ export function useClientPanel(
     setIsEditing(false);
     setIsEditingNotes(false);
     try {
-      const { data } = await supabase
-        .from('bookings')
-        .select('*, clients(name, phone)')
-        .eq('client_id', client.id)
-        .order('booking_date', { ascending: false });
-      setPanelBookings((data || []) as BookingWithClient[]);
+      const [bookingsRes, milestones] = await Promise.all([
+        supabase
+          .from('bookings')
+          .select('*, clients(name, phone)')
+          .eq('client_id', client.id)
+          .order('booking_date', { ascending: false }),
+        getClientMilestones(client.id).catch(() => [] as MilestoneProgress[]),
+      ]);
+      setPanelBookings((bookingsRes.data || []) as BookingWithClient[]);
+      setMilestoneProgress(milestones);
     } catch {
       setPanelBookings([]);
+      setMilestoneProgress([]);
     }
   }, []);
 
@@ -153,14 +166,12 @@ export function useClientPanel(
     [selectedClient, expiresAt, showSuccess, showError, setClients]
   );
 
-  // Preenche expiresAt quando abre o painel de um mensalista
   const openPanelWithExpiry = useCallback(
     async (client: ClientWithStats) => {
       await openPanel(client);
       if (client.mensalista_expires_at) {
         setExpiresAt(client.mensalista_expires_at);
       } else {
-        // Default: +30 days from today
         const d = new Date();
         d.setDate(d.getDate() + 30);
         setExpiresAt(d.toISOString().split('T')[0]);
@@ -169,7 +180,6 @@ export function useClientPanel(
     [openPanel]
   );
 
-  // Atualiza a data de expiração separadamente (para renovação)
   const handleRenewMensalidade = useCallback(
     async (days: number = 30) => {
       if (!selectedClient || !selectedClient.is_mensalista) return;
@@ -218,6 +228,7 @@ export function useClientPanel(
     editPhone,
     setEditPhone,
     saving,
+    milestoneProgress,
     notesText,
     setNotesText,
     isEditingNotes,

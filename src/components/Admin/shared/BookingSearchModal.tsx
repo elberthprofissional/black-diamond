@@ -127,7 +127,7 @@ const BookingSearchModal: FC<BookingSearchModalProps> = ({
                       className="w-full text-left py-3.5 px-4 flex items-center gap-3 rounded-xl border border-white/[0.04] bg-white/[0.02] cursor-pointer group hover:bg-white/[0.04] hover:border-white/[0.08] transition-all"
                     >
                       <div
-                        className={`w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0`}
+                        className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center shrink-0`}
                       >
                         <span className="text-[13px] font-bold">{initial}</span>
                       </div>

@@ -3,6 +3,7 @@ import { useBookingManagement } from '../hooks/useBookingManagement';
 import { useDashboardData } from '../hooks/useDashboardData';
 import AdminLayout from '../components/Admin/AdminLayout';
 import DashboardHeader from '../components/Admin/shared/DashboardHeader';
+import OccupancyRateCard from '../components/Admin/shared/OccupancyRateCard';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
 import OccupiedPanel from '../components/Admin/shared/OccupiedPanel';
 import FreePanel from '../components/Admin/shared/FreePanel';
@@ -131,6 +132,12 @@ const AdminDashboard: FC = () => {
             nextBooking={data.nextBooking}
             dailyRevenue={data.dailyRevenue}
             onSelectNext={() => data.nextBooking && mgmt.setSelectedBooking(data.nextBooking)}
+          />
+
+          {/* Taxa de Ocupação */}
+          <OccupancyRateCard
+            occupiedCount={data.occupiedBookings.length}
+            totalSlots={data.occupiedBookings.length + data.freeSlots.length}
           />
 
           <div className="flex border-b border-white/[0.04] pb-1 pt-1 justify-start">

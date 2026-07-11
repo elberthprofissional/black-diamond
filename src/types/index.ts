@@ -71,3 +71,51 @@ export interface MensalistaPlan {
   sort_order: number;
   created_at: string;
 }
+
+export interface Coupon {
+  id: string;
+  code: string;
+  description: string;
+  discount_type: 'percentage' | 'fixed' | 'free';
+  discount_value: number;
+  valid_from: string;
+  valid_until: string | null;
+  max_uses: number | null;
+  current_uses: number;
+  is_active: boolean;
+  applicable_service_ids: string[];
+  created_at: string;
+}
+
+export interface LoyaltyMilestone {
+  id: string;
+  visits_required: number;
+  reward_service_id: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ClientMilestone {
+  id: string;
+  client_id: string;
+  milestone_id: string;
+  claimed_at: string;
+}
+
+// Progresso de um cliente em relação a uma milestone
+export interface MilestoneProgress {
+  milestone: LoyaltyMilestone;
+  progress: number; // visitas atuais do cliente
+  already_claimed: boolean;
+}
+
+export interface CouponValidation {
+  valid: boolean;
+  coupon_id?: string;
+  code?: string;
+  discount_type?: string;
+  discount_value?: number;
+  discount_amount?: number;
+  original_price?: number;
+  error?: string;
+}

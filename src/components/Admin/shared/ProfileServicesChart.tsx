@@ -1,12 +1,10 @@
 import { type FC } from 'react';
-import { BarChart, TrendingUp, Crown } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import type { TopService } from '../../../hooks/useProfileStats';
 
 interface ProfileServicesChartProps {
   topServices: TopService[];
 }
-
-const RANK_ICONS = [Crown, TrendingUp, BarChart];
 
 const ProfileServicesChart: FC<ProfileServicesChartProps> = ({ topServices }) => {
   const hasAnyRequested = topServices.length > 0 && topServices.some((s) => s.count > 0);
@@ -18,7 +16,7 @@ const ProfileServicesChart: FC<ProfileServicesChartProps> = ({ topServices }) =>
           Top serviços mais pedidos no mês
         </h2>
         <div className="flex flex-col items-center py-6 gap-3">
-          <BarChart size={24} className="text-zinc-700" />
+          <BarChart3 size={24} className="text-zinc-700" />
           <p className="text-[11px] text-zinc-600 text-center max-w-xs">
             Nenhum serviço foi solicitado neste período. Os dados aparecerão assim que houver
             agendamentos concluídos.
@@ -44,7 +42,6 @@ const ProfileServicesChart: FC<ProfileServicesChartProps> = ({ topServices }) =>
           const percentage = maxCount > 0 ? (srv.count / maxCount) * 100 : 0;
           const percentOfTotal = totalCount > 0 ? ((srv.count / totalCount) * 100).toFixed(0) : '0';
           const isFirst = idx === 0;
-          const RankIcon = RANK_ICONS[idx] || BarChart;
 
           return (
             <div key={idx} className="space-y-1.5">
@@ -54,7 +51,11 @@ const ProfileServicesChart: FC<ProfileServicesChartProps> = ({ topServices }) =>
                     isFirst ? 'bg-[#C5A059]/20 text-[#C5A059]' : 'bg-white/[0.04] text-zinc-500'
                   }`}
                 >
-                  <RankIcon size={12} />
+                  <span
+                    className={`text-[11px] font-black ${isFirst ? 'text-[#C5A059]' : 'text-zinc-500'}`}
+                  >
+                    {idx + 1}
+                  </span>
                 </div>
 
                 <div className="flex-1 min-w-0">

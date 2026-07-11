@@ -2,7 +2,7 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, notificacoes push e integracao com WhatsApp.
 
-**Versao:** 3.15.0 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.20.0 | **Ultima atualizacao:** Julho 2026
 
 ---
 
@@ -284,6 +284,9 @@ O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto v
 - **Horarios:** Configuracao de dias e horarios de funcionamento + **horario de almoço recorrente**
 - **Servicos:** Gerenciamento de servicos e precos
 - **Mensalista:** Planos, servicos exclusos, gestao de clientes mensalistas
+- **Controle de Faltas:** Configuracao de limite de faltas e bloqueio automatico
+- **Fidelidade:** Configuracao de meta de visitas e servico premio
+- **Cupons:** Gerenciamento de cupons de desconto (CRUD)
 - **Notificacoes:** Toggle de notificacoes push
 - **Zona de Seguranca:** Resetar financeiro e deletar clientes
 
@@ -375,6 +378,18 @@ id UUID PK, key TEXT, name TEXT, body TEXT, created_at TIMESTAMPTZ, updated_at T
 id UUID PK, key TEXT, ip_address TEXT, attempts INTEGER, window_start TIMESTAMPTZ, created_at TIMESTAMPTZ
 ```
 
+**loyalty_config** — Configuracao do programa de fidelidade
+```sql
+id UUID PK, visit_threshold INTEGER, reward_service_id UUID, enabled BOOLEAN, created_at TIMESTAMPTZ
+```
+
+**coupons** — Cupons de desconto
+```sql
+id UUID PK, code TEXT UNIQUE, description TEXT, discount_type TEXT ('percentage'|'fixed'|'free'),
+discount_value NUMERIC, valid_from DATE, valid_until DATE, max_uses INTEGER,
+current_uses INTEGER, is_active BOOLEAN, applicable_service_ids UUID[], created_at TIMESTAMPTZ
+```
+
 ### Indexes
 - `idx_no_double_booking` — Unique em (booking_date, booking_time) WHERE status != 'cancelled'
 - `idx_bookings_client_id` — Index em (client_id) para queries por cliente
@@ -399,6 +414,10 @@ id UUID PK, key TEXT, ip_address TEXT, attempts INTEGER, window_start TIMESTAMPT
 | `get_bookings_by_token` | Busca agendamentos por token de gerenciamento |
 | `auto_block_lunch_break` | Bloqueia slots de almoco automaticamente |
 | `health_check` | Verifica status do banco e retorna metricas basicas |
+| `validate_coupon` | Valida cupom por codigo, verifica validade, usos e servicos elegiveis |
+| `apply_coupon` | Incrementa contador de usos do cupom |
+| `is_client_blocked_by_no_show` | Verifica se cliente esta bloqueado por excesso de faltas |
+| `check_client_no_show_block` | Bloqueia agendamento se cliente exceder limite de faltas |
 
 ### Views
 - `faturamento_diario` — Calcula faturamento por data (security_invoker)
@@ -1030,12 +1049,21 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [x] Settings desktop sem tremor — min-h-[600px] evita layout shift ao trocar de aba
 - [x] Realtime ativado no banco — ALTER PUBLICATION supabase_realtime ADD TABLE notifications e bookings
 - [x] Dashboard em tempo real — cancela/cria agendamento e os cards atualizam sozinhos
+- [x] Programa de Fidelidade — Configuracao de meta de visitas, incremento automatico, barra de progresso
+- [x] Cupons e Promocoes — CRUD completo, validacao, aplicacao no agendamento, desconto
+- [x] Controle de Faltas — Marcar no-show, bloqueio automatico apos N faltas
+- [x] Taxa de Ocupacao — Card com percentual do dia, abas com contadores
+- [x] Graficos de Faturamento — Diario, semanal, comparativo mensal (recharts)
+- [x] Top Servicos — Ranking 1-2-3 com barras de progresso
+- [x] CSV export corrigido — Separador ponto e virgula para Excel brasileiro
+- [x] UI limpa notificacoes — Removido "Marcar todas" e "Todas" (selecao)
+- [x] Avatares quadrados — Consistencia visual nos modais de clientes
 
 ### Possiveis melhorias futuras
 - [ ] Multi-tenancy (varias barbearias no mesmo sistema)
 - [ ] Pagamento online (Stripe/Mercado Pago)
 - [ ] API de WhatsApp (Evolution API) para lembretes automaticos
-- [ ] Grafico de faturamento mensal no dashboard
+- [ ] Export PDF e Excel (XLSX) para relatorios
 - [ ] App nativo Android (APK) via Capacitor
 - [ ] Drag and drop para reordenar fotos na galeria
 - [ ] Filtros e edicao de imagens no admin
@@ -1043,7 +1071,12 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [ ] Adicionar mais testes E2E para fluxos complexos
 - [ ] Integrar Sentry com GitHub para vincular erros a commits
 - [ ] Refatorar getNextDays() para buscar working_days do Supabase em vez de localStorage
-- [ ] Adicionar observer de `barber-settings-changed` no admin booking para atualizar dias em tempo real
+- [ ] Historico de faltas no perfil do cliente
+- [ ] Indicador de "cliente bloqueado" na lista de clientes
+- [ ] Grafico de ocupacao ao longo do tempo
+- [ ] Faturamento por servico (receita, nao apenas contagem)
+- [ ] Analise por dia da semana (qual dia rende mais)
+- [ ] Refatoracao do NotificationBell (~700 linhas → God Component simplificado)
 
 ---
 
@@ -1378,4 +1411,172 @@ O sistema de galeria adapta automaticamente o layout baseado na quantidade de fo
 
 ---
 
-*Documento atualizado em Julho 2026. Versao do sistema: 3.15.0*
+## 23. Programa de Fidelidade
+
+### Visao Geral
+O programa de fidelidade permite que clientes acumulem visitas a cada atendimento e ganhem um servico gratuito ao atingir a meta configurada pelo admin.
+
+### Configuracao no Admin
+- **Acessar:** Perfil > Configuracoes > Fidelidade
+- **Ativar/Desativar:** Toggle liga/desliga o programa
+- **Meta de visitas:** Slider de 3 a 30 visitas
+- **Servico premio:** Selecionar qual servico sera gratuito
+
+### Fluxo
+1. Admin configura a meta (ex: 5 visitas) e o servico premio
+2. A cada booking concluido, o sistema soma 1 visita no cliente
+3. Ao atingir a meta, o cliente recebe uma notificacao "GANHOU!"
+4. As visitas sao resetadas para 0
+
+### Componentes
+- `src/lib/api/loyalty.ts` — API layer (getLoyaltyConfig, saveLoyaltyConfig, incrementVisitAndReward, getLoyaltyProgress)
+- `src/components/Admin/settings/SettingsFidelidade.tsx` — Painel de configuracao
+- `src/components/Admin/shared/ClientPanel.tsx` — Barra de progresso por cliente
+- `src/hooks/useClientPanel.ts` — Hook que busca progresso do cliente
+- `src/hooks/useBookingModals.ts` — Chama incrementVisitAndReward apos completar booking
+
+### Tabela no Banco
+```sql
+CREATE TABLE loyalty_config (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  visit_threshold integer NOT NULL,
+  reward_service_id uuid NOT NULL,
+  enabled boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT now()
+);
+```
+
+---
+
+## 24. Cupons e Promocoes
+
+### Visao Geral
+O sistema de cupons permite criar cupons de desconto (porcentagem, valor fixo ou servico gratuito) com controle de validade e limite de utilizacoes.
+
+### Configuracao no Admin
+- **Acessar:** Perfil > Configuracoes > Cupons
+- **Tipos:** Porcentagem (%), Fixo (R$), Gratuito (servico gratis)
+- **Validade:** Data de inicio e fim (opcional)
+- **Limite:** Numero maximo de usos (opcional)
+- **Servicos:** Quais servicos o cupom se aplica (todos ou especificos)
+
+### Fluxo do Cliente
+1. Na tela de revisao do agendamento, cliente digita o codigo do cupom
+2. Sistema valida o cupom (validade, usos restantes, servicos elegiveis)
+3. Desconto e aplicado no preco total
+4. Cupom e registrado no booking
+
+### Componentes
+- `src/lib/api/coupons.ts` — API layer (CRUD + validate + apply)
+- `src/components/Admin/settings/SettingsCupons.tsx` — Painel de gerenciamento
+- `src/components/Booking/ReviewStep.tsx` — Input de cupom no agendamento
+- `src/hooks/useBookingWizard.ts` — Validacao e aplicacao do cupom
+
+### Tabela no Banco
+```sql
+CREATE TABLE coupons (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  code text NOT NULL UNIQUE,
+  discount_type text NOT NULL CHECK (discount_type IN ('percentage', 'fixed', 'free')),
+  discount_value numeric NOT NULL DEFAULT 0,
+  valid_from date NOT NULL DEFAULT CURRENT_DATE,
+  valid_until date,
+  max_uses integer,
+  current_uses integer NOT NULL DEFAULT 0,
+  is_active boolean NOT NULL DEFAULT true,
+  applicable_service_ids uuid[] DEFAULT '{}',
+  created_at timestamp with time zone DEFAULT now()
+);
+```
+
+### RPCs
+- `validate_coupon(p_code, p_service_ids)` — Valida cupom e calcula desconto
+- `apply_coupon(p_coupon_id)` — Incrementa contador de usos
+
+---
+
+## 25. Controle de Faltas (No-Show)
+
+### Visao Geral
+Permite marcar quando um cliente nao comparece. Apos um numero configuravel de faltas em 90 dias, o cliente e automaticamente bloqueado de novos agendamentos.
+
+### Configuracao no Admin
+- **Acessar:** Perfil > Configuracoes > Controle de Faltas
+- **Limite de faltas:** Slider de 1 a 10 (validado 1-20)
+- **Periodo:** Ultimos 90 dias
+
+### Funcionamento
+- Botao "Nao Compareceu" no painel de detalhe do agendamento
+- Contagem de faltas por cliente (ultimos 90 dias)
+- Bloqueio automatico na criacao de agendamento via RPC
+
+### Componentes
+- `src/lib/api/noShow.ts` — API layer
+- `src/hooks/useNoShow.ts` — Hook (markAsNoShow, undoNoShow, getClientNoShowCount, isClientBlocked)
+- `src/components/Admin/settings/SettingsFaltas.tsx` — Painel de configuracao
+- `src/components/Admin/shared/BookingDetailPanel.tsx` — Botao "Nao Compareceu"
+
+### Limitacoes Atuais
+- Botao "Desfazer No-Show" existe no hook mas nao tem UI
+- Contagem de faltas nao aparece no perfil do cliente
+- Clientes bloqueados somem da lista sem indicacao visual
+
+---
+
+## 26. Taxa de Ocupacao
+
+### Visao Geral
+Metrica de quantos percentuais dos horarios disponiveis estao ocupados no dia atual.
+
+### Onde Aparece
+- Dashboard do admin (card com barra de progresso)
+- Abas de filtro (Ocupados / Livres / Bloqueados com contadores)
+
+### Funcionamento
+- Calcula: ocupados / total de slots x 100
+- Verde (>60%), Neutro (30-60%), Baixo (<30%)
+- Dados em tempo real via realtime subscription
+
+### Componentes
+- `src/components/Admin/shared/OccupancyRateCard.tsx` — Card com percentual e barra
+- `src/components/Admin/shared/FilterTabs.tsx` — Abas com contadores
+- `src/hooks/useDashboardData.ts` — Calculo de slots
+
+### Limitacoes Atuais
+- Apenas dia atual (sem historico)
+- Sem grafico de tendencia ao longo do tempo
+- Sem analise por horario especifico
+
+---
+
+## 27. Graficos de Faturamento
+
+### Visao Geral
+Visualizacao completa do faturamento com 3 modos: diario, semanal e comparativo mensal.
+
+### Modos de Exibicao
+1. **Diario (mes)** — Grafico de barras com faturamento por dia do mes atual
+2. **Semanal** — Grafico de barras com faturamento das ultimas 8 semanas
+3. **Comparacao Mensal** — Grafico de linha com ultimos 8 meses + indicador de variacao
+
+### Cards de Estatisticas
+- **Media Diaria** — Media de faturamento por dia com receita
+- **Melhor Dia** — Dia com maior faturamento no mes
+
+### Componentes
+- `src/components/Admin/shared/RevenueChart.tsx` — Grafico principal (recharts)
+- `src/components/Admin/shared/ProfileServicesChart.tsx` — Top 3 servicos mais pedidos
+- `src/components/Admin/shared/ProfileDesktopMetrics.tsx` — Metricas desktop
+- `src/components/Admin/shared/ProfileMobile.tsx` — Metricas mobile
+- `src/hooks/useRevenueChartData.ts` — Calculo dos dados
+- `src/hooks/useProfileStats.ts` — Estatisticas gerais
+
+### Limitacoes Atuais
+- Sem faturamento por servico (apenas contagem)
+- Sem grafico de pizza/rosca
+- Sem analise por dia da semana
+- Sem comparacao entre periodos customizados
+
+---
+
+*Documento atualizado em Julho 2026. Versao do sistema: 3.20.0*

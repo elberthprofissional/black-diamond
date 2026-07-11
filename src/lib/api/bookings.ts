@@ -4,7 +4,10 @@ import type { Booking } from '../../types';
 
 /** Cria um agendamento via RPC, criando o cliente automaticamente se necessário. */
 export const createBooking = async (
-  bookingData: Omit<Booking, 'id' | 'created_at' | 'status' | 'client_id'>,
+  bookingData: Omit<Booking, 'id' | 'created_at' | 'status' | 'client_id'> & {
+    coupon_id?: string;
+    discount_amount?: number;
+  },
   clientData: { name: string; phone: string; email?: string }
 ) => {
   if (!clientData.name.trim()) throw new Error('Informe seu nome.');
@@ -25,6 +28,8 @@ export const createBooking = async (
     p_hora: bookingData.booking_time,
     p_preco_total: bookingData.total_price,
     p_duracao_total: bookingData.total_duration,
+    p_coupon_id: bookingData.coupon_id || null,
+    p_discount_amount: bookingData.discount_amount || 0,
   });
 
   if (error) {

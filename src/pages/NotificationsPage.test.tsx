@@ -25,11 +25,7 @@ vi.mock('../hooks/useNotifications', () => ({
 }));
 
 vi.mock('../components/Admin/NotificationBell', () => ({
-  NotificationListContent: () => <div>NotificationListContent</div>,
-}));
-
-vi.mock('framer-motion', () => ({
-  motion: { div: 'div', button: 'button' },
+  NotificationDetail: () => <div>NotificationDetail</div>,
 }));
 
 import NotificationsPage from './NotificationsPage';

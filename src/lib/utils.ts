@@ -173,24 +173,29 @@ export const getNextDays = (barberHoursJson?: string) => {
   const currentDay = today.getDay();
   const currentHour = new Date().getHours();
 
-  // Read closing hours — try parameter first, then fallback to defaults
+  // Lê configurações do JSON de horários
   let saturdayCloseHour = 18;
+  let sundayEnabled = false;
   if (barberHoursJson) {
     try {
       const parsed = JSON.parse(barberHoursJson);
       if (parsed['6']?.close) {
         saturdayCloseHour = parseInt(parsed['6'].close.split(':')[0], 10);
       }
+      if (parsed['0']) {
+        sundayEnabled = parsed['0'].enabled !== false;
+      }
     } catch {
       /* use defaults */
     }
   }
 
-  // Sábado após fechar: mostra a próxima semana (segunda a sábado)
+  // Sábado após fechar: mostra a próxima semana
   if (currentDay === 6 && currentHour >= saturdayCloseHour) {
     const nextMonday = new Date(today);
     nextMonday.setDate(today.getDate() + ((1 - currentDay + 7) % 7 || 7));
-    for (let i = 0; i < 7; i++) {
+    const totalDays = sundayEnabled ? 7 : 6;
+    for (let i = 0; i < totalDays; i++) {
       const date = new Date(nextMonday);
       date.setDate(nextMonday.getDate() + i);
       date.setHours(0, 0, 0, 0);
@@ -208,8 +213,8 @@ export const getNextDays = (barberHoursJson?: string) => {
     return days;
   }
 
-  // Domingo: barbearia fechada, mostra direto a próxima semana
-  if (currentDay === 0) {
+  // Domingo: se NÃO estiver habilitado, pula para a próxima semana
+  if (currentDay === 0 && !sundayEnabled) {
     const nextMonday = new Date(today);
     nextMonday.setDate(today.getDate() + ((1 - currentDay + 7) % 7));
     for (let i = 0; i < 6; i++) {
@@ -230,9 +235,10 @@ export const getNextDays = (barberHoursJson?: string) => {
     return days;
   }
 
-  // De segunda a sábado: mostra de HOJE até SÁBADO (sem pular dias!)
-  const daysUntilSaturday = 6 - currentDay;
-  for (let i = 0; i <= daysUntilSaturday; i++) {
+  // De segunda a domingo (ou só até sábado se domingo desabilitado): mostra de HOJE até o ÚLTIMO DIA HABILITADO
+  const lastDay = sundayEnabled ? 0 : 6;
+  const daysUntilLast = (lastDay - currentDay + 7) % 7;
+  for (let i = 0; i <= daysUntilLast; i++) {
     const date = new Date(today);
     date.setDate(today.getDate() + i);
     date.setHours(0, 0, 0, 0);

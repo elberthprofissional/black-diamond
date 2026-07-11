@@ -14,6 +14,8 @@ interface SubmitParams {
   userInfo: { name: string; phone: string };
   totalPrice: number;
   isMensalista: boolean;
+  couponId?: string;
+  discountAmount?: number;
 }
 
 interface QueuedBooking {
@@ -75,8 +77,15 @@ export function useBookingSubmit(
 
         for (const item of queue) {
           try {
-            const { selectedServices, selectedDate, selectedTime, userInfo, totalPrice } =
-              item.params;
+            const {
+              selectedServices,
+              selectedDate,
+              selectedTime,
+              userInfo,
+              totalPrice,
+              couponId,
+              discountAmount,
+            } = item.params;
             const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
 
             await createBooking(
@@ -86,6 +95,8 @@ export function useBookingSubmit(
                 booking_time: selectedTime,
                 total_price: totalPrice,
                 total_duration: totalDuration,
+                coupon_id: couponId,
+                discount_amount: discountAmount,
               },
               { name: userInfo.name, phone: userInfo.phone }
             );
@@ -132,7 +143,15 @@ export function useBookingSubmit(
 
   const handleConfirm = useCallback(
     async (params: SubmitParams): Promise<BookingResult | null> => {
-      const { selectedServices, selectedDate, selectedTime, userInfo, totalPrice } = params;
+      const {
+        selectedServices,
+        selectedDate,
+        selectedTime,
+        userInfo,
+        totalPrice,
+        couponId,
+        discountAmount,
+      } = params;
 
       if (
         submittingRef.current ||
@@ -172,6 +191,8 @@ export function useBookingSubmit(
             booking_time: selectedTime,
             total_price: totalPrice,
             total_duration: totalDuration,
+            coupon_id: couponId,
+            discount_amount: discountAmount,
           },
           { name: userInfo.name, phone: userInfo.phone }
         );

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { updateBookingStatus } from '../lib/api';
+import { incrementVisit } from '../lib/api/loyalty';
 import { useToast } from './useToast';
 import { useAuditLog } from './useAuditLog';
 import { getErrorMessage } from '../lib/utils';
@@ -22,6 +23,14 @@ export function useBookingModals(loadData: () => Promise<void>, services: Servic
         client_name: completingBooking.clients?.name,
         services: completingBooking.service_ids,
       });
+
+      // Incrementa fidelidade (visitas acumulativas, checa milestones)
+      if (completingBooking.client_id) {
+        incrementVisit(completingBooking.client_id).catch(() => {
+          // falha silenciosa — não trava o fluxo
+        });
+      }
+
       const completed = completingBooking;
       setCompletingBooking(null);
       loadData();

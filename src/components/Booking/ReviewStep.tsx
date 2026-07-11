@@ -1,5 +1,6 @@
-import { memo, type FC } from 'react';
+import { memo, useState, type FC } from 'react';
 import { formatPhone } from '../../lib/utils';
+import { Tag, X, Loader2, Check } from 'lucide-react';
 import type { Service } from '../../types';
 
 const MESES = [
@@ -30,11 +31,46 @@ interface ReviewStepProps {
   selectedServices: Service[];
   totalPrice: number;
   layout: 'desktop' | 'mobile';
+  // Coupon props
+  coupon?: {
+    coupon_id: string;
+    code: string;
+    discount_type: string;
+    discount_amount: number;
+  } | null;
+  couponLoading?: boolean;
+  couponError?: string;
+  originalPrice?: number;
+  onCouponValidate?: (code: string) => Promise<void>;
+  onCouponRemove?: () => void;
 }
 
 const ReviewStep: FC<ReviewStepProps> = memo(
-  ({ userName, userPhone, selectedDate, selectedTime, selectedServices, totalPrice, layout }) => {
+  ({
+    userName,
+    userPhone,
+    selectedDate,
+    selectedTime,
+    selectedServices,
+    totalPrice,
+    layout,
+    coupon,
+    couponLoading,
+    couponError,
+    originalPrice,
+    onCouponValidate,
+    onCouponRemove,
+  }) => {
     const formattedDate = formatarDataBR(selectedDate);
+    const [couponInput, setCouponInput] = useState('');
+    const hasCoupon = !!coupon;
+    const hasDiscount = hasCoupon && originalPrice && originalPrice > totalPrice;
+
+    const handleApply = () => {
+      if (couponInput.trim() && onCouponValidate) {
+        onCouponValidate(couponInput.trim());
+      }
+    };
 
     if (layout === 'desktop') {
       return (
@@ -116,13 +152,84 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                 ))}
               </div>
 
-              <div className="mt-5 pt-4 border-t border-white/[0.06] flex justify-between items-center">
-                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
-                  Total
-                </span>
-                <span className="text-2xl font-black text-[#C5A059] tracking-tight tabular-nums">
-                  $ {totalPrice.toFixed(0)}
-                </span>
+              {/* Coupon Input */}
+              <div className="mt-4 pt-4 border-t border-white/[0.06]">
+                {hasCoupon ? (
+                  <div className="flex items-center justify-between bg-[#C5A059]/[0.06] border border-[#C5A059]/20 rounded-xl px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <Tag size={13} className="text-[#C5A059]" />
+                      <span className="text-[12px] font-bold text-[#C5A059] tracking-wider">
+                        {coupon.code}
+                      </span>
+                      {hasDiscount && (
+                        <span className="text-[10px] text-[#C5A059]/70">
+                          -R$ {coupon.discount_amount.toFixed(2).replace('.', ',')}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={onCouponRemove}
+                      className="p-1 hover:bg-white/[0.06] rounded cursor-pointer"
+                    >
+                      <X size={12} className="text-zinc-500" />
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                        placeholder="Código do cupom"
+                        className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-[12px] text-white font-bold tracking-wider outline-none focus:border-[#C5A059]/50 transition-all placeholder:text-zinc-600 placeholder:font-normal placeholder:tracking-normal uppercase"
+                        onKeyDown={(e) => e.key === 'Enter' && handleApply()}
+                      />
+                      <button
+                        onClick={handleApply}
+                        disabled={couponLoading || !couponInput.trim()}
+                        className="px-4 py-2.5 bg-[#C5A059]/10 border border-[#C5A059]/20 text-[#C5A059] text-[11px] font-bold rounded-xl hover:bg-[#C5A059]/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        {couponLoading ? <Loader2 size={13} className="animate-spin" /> : 'Aplicar'}
+                      </button>
+                    </div>
+                    {couponError && (
+                      <p className="text-[10px] text-red-400 mt-1.5">{couponError}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Totals */}
+              <div className="mt-4 pt-4 border-t border-white/[0.06] space-y-2">
+                {hasDiscount && originalPrice && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
+                      Subtotal
+                    </span>
+                    <span className="text-sm font-bold text-zinc-500 tabular-nums line-through">
+                      $ {originalPrice.toFixed(0)}
+                    </span>
+                  </div>
+                )}
+                {hasDiscount && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-widest">
+                      Desconto
+                    </span>
+                    <span className="text-sm font-bold text-emerald-400 tabular-nums">
+                      -$ {coupon.discount_amount.toFixed(2).replace('.', ',')}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center pt-2 border-t border-white/[0.06]">
+                  <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
+                    Total
+                  </span>
+                  <span className="text-2xl font-black text-[#C5A059] tracking-tight tabular-nums">
+                    $ {totalPrice.toFixed(0)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -132,11 +239,9 @@ const ReviewStep: FC<ReviewStepProps> = memo(
 
     return (
       <div className="space-y-4 pb-4">
-        {/* Título acima do card */}
         <p className="text-[13px] text-zinc-400 px-1">Revise os dados do seu agendamento</p>
 
         <div className="w-full border border-white/[0.06] rounded-2xl overflow-hidden">
-          {/* Fields with icons */}
           <div className="px-5 py-4 space-y-0">
             {/* Cliente */}
             <div className="flex items-center gap-4 py-3.5 border-b border-white/[0.03]">
@@ -245,26 +350,101 @@ const ReviewStep: FC<ReviewStepProps> = memo(
               </div>
             </div>
 
+            {/* Cupom */}
+            <div className="py-3.5 border-b border-white/[0.03]">
+              {hasCoupon ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Tag size={18} className="text-[#C5A059] shrink-0" />
+                    <div>
+                      <p className="text-[11px] text-zinc-500 font-medium">Cupom</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[14px] font-bold text-[#C5A059] tracking-wider">
+                          {coupon.code}
+                        </p>
+                        {hasDiscount && (
+                          <span className="text-[10px] text-[#C5A059]/70">
+                            -R$ {coupon.discount_amount.toFixed(2).replace('.', ',')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={onCouponRemove}
+                    className="p-1.5 hover:bg-white/[0.06] rounded-lg cursor-pointer"
+                  >
+                    <X size={14} className="text-zinc-500" />
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                      placeholder="Código do cupom"
+                      className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-[12px] text-white font-bold tracking-wider outline-none focus:border-[#C5A059]/50 transition-all placeholder:text-zinc-600 placeholder:font-normal placeholder:tracking-normal uppercase"
+                      onKeyDown={(e) => e.key === 'Enter' && handleApply()}
+                    />
+                    <button
+                      onClick={handleApply}
+                      disabled={couponLoading || !couponInput.trim()}
+                      className="px-4 py-2.5 bg-[#C5A059]/10 border border-[#C5A059]/20 text-[#C5A059] text-[11px] font-bold rounded-xl hover:bg-[#C5A059]/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center min-w-[60px]"
+                    >
+                      {couponLoading ? <Loader2 size={13} className="animate-spin" /> : 'Aplicar'}
+                    </button>
+                  </div>
+                  {couponError && <p className="text-[10px] text-red-400 mt-1.5">{couponError}</p>}
+                </div>
+              )}
+            </div>
+
             {/* Valor */}
-            <div className="flex items-center gap-4 py-3.5">
-              <svg
-                className="w-5 h-5 text-[#C5A059] shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <div className="flex-1 min-w-0">
-                <p className="text-[11px] text-zinc-500 font-medium">Valor</p>
-                <p className="text-[18px] font-black text-white tabular-nums">
-                  $ {totalPrice.toFixed(2).replace('.', ',')}
-                </p>
+            <div className="space-y-2 pt-3">
+              {hasDiscount && originalPrice && (
+                <div className="flex items-center gap-4 px-1">
+                  <div className="w-5 shrink-0" />
+                  <div className="flex-1 flex justify-between items-center">
+                    <span className="text-[10px] text-zinc-500 line-through">Subtotal</span>
+                    <span className="text-[13px] font-bold text-zinc-500 tabular-nums line-through">
+                      $ {originalPrice.toFixed(2).replace('.', ',')}
+                    </span>
+                  </div>
+                </div>
+              )}
+              {hasDiscount && (
+                <div className="flex items-center gap-4 px-1">
+                  <div className="w-5 shrink-0" />
+                  <div className="flex-1 flex justify-between items-center">
+                    <span className="text-[10px] text-emerald-400 font-medium">Desconto</span>
+                    <span className="text-[13px] font-bold text-emerald-400 tabular-nums">
+                      -$ {coupon.discount_amount.toFixed(2).replace('.', ',')}
+                    </span>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center gap-4">
+                <svg
+                  className="w-5 h-5 text-[#C5A059] shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <div className="flex-1 min-w-0 flex justify-between items-center">
+                  <p className="text-[11px] text-zinc-500 font-medium">Valor</p>
+                  <p className="text-[18px] font-black text-white tabular-nums">
+                    $ {totalPrice.toFixed(2).replace('.', ',')}
+                  </p>
+                </div>
               </div>
             </div>
           </div>

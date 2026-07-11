@@ -50,7 +50,7 @@ const FilterTabs: FC<FilterTabsProps> = memo(
               <span
                 className={`px-1.5 py-0.5 rounded text-[9px] font-bold transition-all ${
                   active
-                    ? 'bg-[#C5A059]/10 text-[#C5A059] border border-[#C5A059]/20'
+                    ? 'bg-white/10 text-white border border-white/10'
                     : 'bg-white/[0.02] text-zinc-500 border border-transparent'
                 }`}
               >
