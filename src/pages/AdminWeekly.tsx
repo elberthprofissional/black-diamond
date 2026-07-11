@@ -8,7 +8,6 @@ import { useBookingManagement } from '../hooks/useBookingManagement';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 import AdminLayout from '../components/Admin/AdminLayout';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
-import AdminBarberFilter from '../components/Admin/shared/AdminBarberFilter';
 import UnblockModal from '../components/Admin/shared/UnblockModal';
 import CompleteModal from '../components/Admin/shared/CompleteModal';
 import ThankYouModal from '../components/Admin/shared/ThankYouModal';
@@ -20,7 +19,6 @@ import { SkeletonDashboard } from '../components/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const AdminWeekly: FC = () => {
-  const [barberFilterId, setBarberFilterId] = useState<string | null>(null);
   const { bookings, loading, refetch: loadData } = useBookings();
   const mgmt = useBookingManagement(loadData);
   const navigate = useNavigate();
@@ -133,10 +131,7 @@ const AdminWeekly: FC = () => {
   const dayBookings = bookings.filter(
     (b) => b.booking_date === selectedDateStr && b.status !== 'cancelled'
   );
-  const filteredDayBookings = barberFilterId
-    ? dayBookings.filter((b) => b.barber_id === barberFilterId)
-    : dayBookings;
-  const occupiedBookings = filteredDayBookings.filter((b) => {
+  const occupiedBookings = dayBookings.filter((b) => {
     if (b.status === 'cancelled') return false;
     if (b.is_blocked) return false;
     if (!isToday) return true;
@@ -145,18 +140,14 @@ const AdminWeekly: FC = () => {
     return bookingEndMinutes > currentMinutes;
   });
   const freeSlots = allSlots.filter((slot) => {
-    if (
-      filteredDayBookings.some(
-        (b) => b.booking_time.slice(0, 5) === slot && b.status !== 'cancelled'
-      )
-    ) {
+    if (dayBookings.some((b) => b.booking_time.slice(0, 5) === slot && b.status !== 'cancelled')) {
       return false;
     }
     if (!isToday) return true;
     const slotHour = parseInt(slot.split(':')[0], 10);
     return slotHour >= currentHour;
   });
-  const blockedBookings = filteredDayBookings.filter((b) => {
+  const blockedBookings = dayBookings.filter((b) => {
     if (b.status === 'cancelled') return false;
     if (!b.is_blocked) return false;
     if (!isToday) return true;
@@ -256,7 +247,7 @@ const AdminWeekly: FC = () => {
           })}
         </div>
 
-        <div className="flex items-center justify-between border-b border-white/[0.04] pb-1 pt-1">
+        <div className="flex border-b border-white/[0.04] pb-1 pt-1 justify-start">
           <FilterTabs
             filter={mgmt.filter}
             setFilter={mgmt.setFilter}
@@ -265,7 +256,6 @@ const AdminWeekly: FC = () => {
             freeCount={freeSlots.length}
             blockedCount={blockedBookings.length}
           />
-          <AdminBarberFilter selectedBarberId={barberFilterId} onSelect={setBarberFilterId} />
         </div>
 
         {loading ? (

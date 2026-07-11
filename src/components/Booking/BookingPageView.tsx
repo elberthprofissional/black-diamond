@@ -6,9 +6,8 @@ import DateTimeStep from './DateTimeStep';
 import DataStep from './DataStep';
 import ReviewStep from './ReviewStep';
 import SuccessStep from './SuccessStep';
-import BarberStep from './BarberStep';
 import { formatDateBR } from '../../lib/utils';
-import type { Service, Barber } from '../../types';
+import type { Service } from '../../types';
 
 interface BookingPageViewProps {
   step: number;
@@ -50,9 +49,6 @@ interface BookingPageViewProps {
   lastBooking?: { serviceIds: string[]; totalPrice: number } | null;
   onApplyLastBooking?: () => void;
   isOfflineBooking?: boolean;
-  barbers?: Barber[];
-  selectedBarberId?: string | null;
-  onSelectBarber?: (barberId: string) => void;
 }
 
 const stepIcons = [User, Scissors, Clock, Check];
@@ -90,9 +86,6 @@ const BookingPageView: FC<BookingPageViewProps> = ({
   lastBooking,
   onApplyLastBooking,
   isOfflineBooking = false,
-  barbers = [],
-  selectedBarberId = null,
-  onSelectBarber,
 }) => {
   const renderSteps = (layout: 'desktop' | 'mobile') => (
     <AnimatePresence mode="wait">
@@ -121,16 +114,6 @@ const BookingPageView: FC<BookingPageViewProps> = ({
                 : undefined
             }
           />
-          {onSelectBarber && (
-            <div className={layout === 'mobile' ? 'mt-6' : 'mt-8'}>
-              <BarberStep
-                barbers={barbers}
-                selectedBarberId={selectedBarberId}
-                onSelect={onSelectBarber}
-                layout={layout}
-              />
-            </div>
-          )}
         </motion.div>
       )}
       {step === 2 && (

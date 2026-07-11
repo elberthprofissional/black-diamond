@@ -30,7 +30,6 @@ export function useBookingWizard(
   const { services: allServices } = useServices();
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
-  const [selectedBarberId, setSelectedBarberId] = useState<string | null>(null);
 
   // Mensalista plans
   const [allPlans, setAllPlans] = useState<MensalistaPlan[]>([]);
@@ -121,7 +120,6 @@ export function useBookingWizard(
       userInfo,
       totalPrice: calculatedTotalPrice,
       isMensalista,
-      selectedBarberId,
     });
     if (result) {
       setToken(result.token);
@@ -140,6 +138,11 @@ export function useBookingWizard(
     isMensalista,
   ]);
 
+  // Wrap wizardGoNext to pass handleConfirm for the last step
+  const goNext = useCallback(() => {
+    wizardGoNext(handleConfirm);
+  }, [wizardGoNext, handleConfirm]);
+
   const validationInput = useMemo(
     () => ({
       step,
@@ -157,11 +160,6 @@ export function useBookingWizard(
     () => isStepDisabled(validationInput),
     [isStepDisabled, validationInput]
   );
-
-  // Wrap wizardGoNext to pass handleConfirm and validation for the last step
-  const goNext = useCallback(() => {
-    wizardGoNext(handleConfirm, validationInput);
-  }, [wizardGoNext, handleConfirm, validationInput]);
 
   return {
     step,
@@ -200,7 +198,5 @@ export function useBookingWizard(
     lastBooking,
     applyLastBooking,
     isOfflineBooking,
-    selectedBarberId,
-    setSelectedBarberId,
   };
 }

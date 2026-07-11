@@ -1,10 +1,9 @@
-import { type FC, useState } from 'react';
+import { type FC } from 'react';
 import { useBookingManagement } from '../hooks/useBookingManagement';
 import { useDashboardData } from '../hooks/useDashboardData';
 import AdminLayout from '../components/Admin/AdminLayout';
 import DashboardHeader from '../components/Admin/shared/DashboardHeader';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
-import AdminBarberFilter from '../components/Admin/shared/AdminBarberFilter';
 import OccupiedPanel from '../components/Admin/shared/OccupiedPanel';
 import FreePanel from '../components/Admin/shared/FreePanel';
 import BlockedPanel from '../components/Admin/shared/BlockedPanel';
@@ -22,7 +21,6 @@ const LAYOUT_CLASS =
   'flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-8 pb-40 transition-all duration-300 max-w-5xl';
 
 const AdminDashboard: FC = () => {
-  const [barberFilterId, setBarberFilterId] = useState<string | null>(null);
   const data = useDashboardData();
   const mgmt = useBookingManagement(data.loadData);
 
@@ -67,7 +65,6 @@ const AdminDashboard: FC = () => {
         onComplete={() => mgmt.setCompletingBooking(mgmt.selectedBooking)}
         onReschedule={mgmt.handleStartReschedule}
         onDelete={() => mgmt.setBookingToDelete(mgmt.selectedBooking)}
-        onBookingUpdated={data.loadData}
       />
     );
   };
@@ -136,24 +133,15 @@ const AdminDashboard: FC = () => {
             onSelectNext={() => data.nextBooking && mgmt.setSelectedBooking(data.nextBooking)}
           />
 
-          <div className="flex items-center justify-between border-b border-white/[0.04] pb-1 pt-1">
+          <div className="flex border-b border-white/[0.04] pb-1 pt-1 justify-start">
             <FilterTabs
               filter={mgmt.filter}
               setFilter={mgmt.setFilter}
               layoutId="dailyFilter"
-              occupiedCount={
-                barberFilterId
-                  ? data.occupiedBookings.filter((b) => b.barber_id === barberFilterId).length
-                  : data.occupiedBookings.length
-              }
+              occupiedCount={data.occupiedBookings.length}
               freeCount={data.freeSlots.length}
-              blockedCount={
-                barberFilterId
-                  ? data.blockedBookings.filter((b) => b.barber_id === barberFilterId).length
-                  : data.blockedBookings.length
-              }
+              blockedCount={data.blockedBookings.length}
             />
-            <AdminBarberFilter selectedBarberId={barberFilterId} onSelect={setBarberFilterId} />
           </div>
 
           {data.loading ? (
@@ -162,11 +150,7 @@ const AdminDashboard: FC = () => {
             <div className="pt-2">
               {mgmt.filter === 'occupied' && (
                 <OccupiedPanel
-                  bookings={
-                    barberFilterId
-                      ? data.occupiedBookings.filter((b) => b.barber_id === barberFilterId)
-                      : data.occupiedBookings
-                  }
+                  bookings={data.occupiedBookings}
                   selectedId={mgmt.selectedBooking?.id ?? null}
                   onSelect={mgmt.setSelectedBooking}
                   onComplete={(b) => mgmt.setCompletingBooking(b)}
@@ -186,11 +170,7 @@ const AdminDashboard: FC = () => {
               )}
               {mgmt.filter === 'blocked' && (
                 <BlockedPanel
-                  blockedBookings={
-                    barberFilterId
-                      ? data.blockedBookings.filter((b) => b.barber_id === barberFilterId)
-                      : data.blockedBookings
-                  }
+                  blockedBookings={data.blockedBookings}
                   blockingDay={data.blockingDay}
                   onUnblock={(b) => data.setUnblockingBooking(b)}
                   onUnblockDay={() => data.unblockEntireDay(data.blockedBookings, data.loadData)}

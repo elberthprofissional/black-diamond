@@ -14,7 +14,6 @@ interface SubmitParams {
   userInfo: { name: string; phone: string };
   totalPrice: number;
   isMensalista: boolean;
-  selectedBarberId?: string | null;
 }
 
 interface QueuedBooking {
@@ -88,8 +87,7 @@ export function useBookingSubmit(
                 total_price: totalPrice,
                 total_duration: totalDuration,
               },
-              { name: userInfo.name, phone: userInfo.phone },
-              item.params.selectedBarberId
+              { name: userInfo.name, phone: userInfo.phone }
             );
 
             removeFromQueue(item.id);
@@ -175,8 +173,7 @@ export function useBookingSubmit(
             total_price: totalPrice,
             total_duration: totalDuration,
           },
-          { name: userInfo.name, phone: userInfo.phone },
-          params.selectedBarberId
+          { name: userInfo.name, phone: userInfo.phone }
         );
 
         const result = Array.isArray(bookingResult) ? bookingResult[0] : bookingResult;

@@ -48,14 +48,15 @@ export function useWizardStep(totalSteps = 4) {
   const stepTitle = useMemo(() => STEP_TITLES[step] || '', [step]);
 
   const goNext = useCallback(
-    (onConfirm?: () => void) => {
+    (onConfirm?: () => void, validationInput?: WizardValidation) => {
+      if (validationInput && isStepDisabled(validationInput)) return;
       if (step < totalSteps) {
         setStep((s) => s + 1);
       } else if (onConfirm) {
         onConfirm();
       }
     },
-    [step, totalSteps]
+    [step, totalSteps, isStepDisabled]
   );
 
   const goBack = useCallback(() => {

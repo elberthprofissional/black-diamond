@@ -2,6 +2,7 @@ import { memo, type FC } from 'react';
 import type { BookingWithClient, Service } from '../../../types';
 import { formatPhone, formatDisplayName } from '../../../lib/utils';
 import { BLOCKED_NAME } from '../../../lib/constants';
+import { useNoShow } from '../../../hooks/useNoShow';
 
 interface BookingDetailPanelProps {
   booking: BookingWithClient;
@@ -11,10 +12,21 @@ interface BookingDetailPanelProps {
   onReschedule: () => void;
   onDelete: () => void;
   onUnblock?: () => void;
+  onBookingUpdated?: () => void;
 }
 
 const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
-  ({ booking, services, onClose, onComplete, onReschedule, onDelete, onUnblock }) => {
+  ({
+    booking,
+    services,
+    onClose,
+    onComplete,
+    onReschedule,
+    onDelete,
+    onUnblock,
+    onBookingUpdated,
+  }) => {
+    const { markAsNoShow, markingNoShow } = useNoShow({ onBookingUpdated });
     const isBlocked =
       booking.is_blocked || !booking.client_id || booking.clients?.name === BLOCKED_NAME;
 
@@ -259,6 +271,31 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
               </svg>
               Cancelar Agendamento
             </button>
+            {booking.status !== 'completed' && (
+              <button
+                onClick={() => {
+                  markAsNoShow(booking.id);
+                  onClose();
+                }}
+                disabled={markingNoShow === booking.id}
+                className="w-full h-9 bg-transparent text-orange-400/40 hover:text-orange-400/70 transition-all text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
+                  <line x1="9" y1="9" x2="9.01" y2="9" />
+                  <line x1="15" y1="9" x2="15.01" y2="9" />
+                </svg>
+                {markingNoShow === booking.id ? 'Marcando...' : 'Não Compareceu'}
+              </button>
+            )}
           </div>
         </div>
 
@@ -403,6 +440,32 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
               </svg>
               Cancelar Agendamento
             </button>
+            {booking.status !== 'completed' && (
+              <button
+                onClick={() => {
+                  markAsNoShow(booking.id);
+                  onClose();
+                }}
+                disabled={markingNoShow === booking.id}
+                className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-orange-400/40 hover:bg-orange-500/[0.02] hover:border-orange-500/20 hover:text-orange-400 rounded-xl transition-all active:scale-[0.99] text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  className="mb-0.5"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
+                  <line x1="9" y1="9" x2="9.01" y2="9" />
+                  <line x1="15" y1="9" x2="15.01" y2="9" />
+                </svg>
+                {markingNoShow === booking.id ? 'Marcando...' : 'Não Compareceu'}
+              </button>
+            )}
           </div>
         </div>
       </>

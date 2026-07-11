@@ -10,7 +10,6 @@ import {
   Trash2,
   Scissors,
   User,
-  Users,
   ArrowLeft,
   Shield,
   Clock,
@@ -38,7 +37,6 @@ import SettingsDados from '../components/Admin/settings/SettingsDados';
 import SettingsServicos from '../components/Admin/settings/SettingsServicos';
 import SettingsHorarios from '../components/Admin/settings/SettingsHorarios';
 import SettingsMensalista from '../components/Admin/settings/SettingsMensalista';
-import SettingsBarbers from '../components/Admin/settings/SettingsBarbers';
 import HelpModal from '../components/Admin/settings/HelpModal';
 import { SkeletonDashboard } from '../components/Skeleton';
 import { usePwaInstall } from '../hooks/usePwaInstall';
@@ -246,9 +244,7 @@ const AdminProfile: FC = () => {
                             ? 'Notificações'
                             : settingsSection === 'dados'
                               ? 'Zona de Segurança'
-                              : settingsSection === 'barbers'
-                                ? 'Profissionais'
-                                : 'Configurações'}
+                              : 'Configurações'}
               </h1>
             </div>
             <button
@@ -274,7 +270,6 @@ const AdminProfile: FC = () => {
             {settingsSection === 'mensalista' && <SettingsMensalista />}
             {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
             {settingsSection === 'dados' && <SettingsDados />}
-            {settingsSection === 'barbers' && <SettingsBarbers />}
           </div>
 
           <div className="hidden lg:flex gap-8 max-w-4xl mx-auto items-start">
@@ -290,7 +285,6 @@ const AdminProfile: FC = () => {
                   { id: 'horarios', label: 'Horários', icon: Clock },
                   { id: 'mensalista', label: 'Mensalista', icon: Crown },
                   { id: 'notificacoes', label: 'Notificações', icon: Bell },
-                  { id: 'barbers', label: 'Profissionais', icon: Users },
                   { id: 'dados', label: 'Segurança', icon: Shield },
                 ].map((item) => {
                   const Icon = item.icon;
