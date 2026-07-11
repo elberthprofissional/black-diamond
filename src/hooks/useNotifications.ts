@@ -124,6 +124,8 @@ export function useNotifications() {
         if (channelRef.current) {
           await supabase.removeChannel(channelRef.current);
           channelRef.current = null;
+          // Espera um tick para garantir que o canal foi removido completamente
+          await new Promise((r) => setTimeout(r, 100));
         }
 
         // Nome único para evitar que o Supabase reutilize o canal antigo (já subscrito)
