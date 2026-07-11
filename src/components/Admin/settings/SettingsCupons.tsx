@@ -5,13 +5,12 @@ import {
   updateCoupon,
   deleteCoupon,
   getServices,
-  type Service,
 } from '../../../lib/api';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
 import { Tag, Plus, Trash2, X, Check, Pencil, DollarSign, Gift, Copy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Coupon } from '../../../types';
+import type { Coupon, Service } from '../../../types';
 
 const MAX_CODE_LENGTH = 20;
 
@@ -161,8 +160,6 @@ const SettingsCupons: FC = () => {
       showSuccess(`Código "${couponCode}" copiado!`);
     });
   };
-
-  const getServiceName = (id: string) => services.find((s) => s.id === id)?.name || '?';
 
   const isExpired = (coupon: Coupon) =>
     coupon.valid_until && new Date(coupon.valid_until) < new Date();

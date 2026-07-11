@@ -238,7 +238,6 @@ const ClientPanel: FC<ClientPanelProps> = ({
                 {milestoneProgress.map((mp) => {
                   const progress = mp.progress;
                   const needed = mp.milestone.visits_required;
-                  const ratio = Math.min(progress / needed, 1);
                   const isClaimed = mp.already_claimed;
 
                   return (

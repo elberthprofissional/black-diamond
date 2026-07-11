@@ -9,6 +9,8 @@ type AuditAction =
   | 'booking_completed'
   | 'booking_cancelled'
   | 'booking_rescheduled'
+  | 'booking_no_show'
+  | 'booking_no_show_undone'
   | 'thank_you_sent'
   | 'client_created'
   | 'client_updated'

@@ -25,7 +25,7 @@ export function useCsvExport(showError: (msg: string) => void) {
             header: 'Serviços',
             accessor: (b) =>
               (b.service_ids || [])
-                .map((id) => services.find((s) => s.id === id)?.name || id)
+                .map((id: string) => services.find((s) => s.id === id)?.name || id)
                 .join(', '),
           },
           { header: 'Duração (min)', accessor: (b) => b.total_duration },
@@ -89,10 +89,6 @@ export function useCsvExport(showError: (msg: string) => void) {
       const stats = await getBookingsForStats(12);
 
       const completed = stats.filter((b) => b.status === 'completed');
-      const cancelled = stats.filter((b) => b.status === 'cancelled');
-      const totalRevenue = completed.reduce((sum, b) => sum + Number(b.total_price), 0);
-      const avgTicket = completed.length > 0 ? totalRevenue / completed.length : 0;
-      const cancelRate = stats.length > 0 ? (cancelled.length / stats.length) * 100 : 0;
 
       // Group by month
       const monthly: Record<string, { count: number; revenue: number; cancelled: number }> = {};

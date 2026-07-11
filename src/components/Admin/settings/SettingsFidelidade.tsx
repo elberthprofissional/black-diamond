@@ -1,11 +1,11 @@
 import { useState, useEffect, type FC } from 'react';
-import { getServices, type Service } from '../../../lib/api';
+import { getServices } from '../../../lib/api';
 import { getMilestones, saveMilestones, setLoyaltyEnabled } from '../../../lib/api/loyalty';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
 import { Gift, Plus, Trash2, Check, X, Sparkles, Star, ChevronDown } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import type { LoyaltyMilestone } from '../../../types';
+import { motion } from 'framer-motion';
+import type { LoyaltyMilestone, Service } from '../../../types';
 
 const SettingsFidelidade: FC = () => {
   const { toast, showSuccess, showError } = useToast();
@@ -193,7 +193,7 @@ const SettingsFidelidade: FC = () => {
           {/* Milestones list */}
           {milestones.length > 0 && (
             <div className="space-y-2">
-              {milestones.map((m, idx) => {
+              {milestones.map((m) => {
                 const svcName = getServiceName(m.reward_service_id);
                 return (
                   <div

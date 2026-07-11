@@ -5,7 +5,7 @@ import { useWizardStep } from './useWizardStep';
 import { useClientLookup } from './useClientLookup';
 import { useBookingSlots } from './useBookingSlots';
 import { useBookingSubmit } from './useBookingSubmit';
-import type { Service, MensalistaPlan, CouponValidation } from '../types';
+import type { Service, MensalistaPlan } from '../types';
 import { useServices } from './useServices';
 import { getMensalistaPlans, validateCoupon, applyCoupon } from '../lib/api';
 import { useMensalistaFilter } from './useMensalistaFilter';

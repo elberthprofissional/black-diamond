@@ -1,4 +1,5 @@
 export { getServices } from './services';
+export type { Service } from '../../types';
 
 export {
   createBooking,
@@ -41,7 +42,7 @@ export {
 export { getTemplates, createTemplate, deleteTemplate } from './templates';
 export type { WhatsAppTemplate } from './templates';
 export { getMaxNoShows, isClientNoShowBlocked, checkPhoneNoShowBlock } from './noShow';
-export type { LoyaltyMilestone, MilestoneProgress } from '../types';
+export type { LoyaltyMilestone, MilestoneProgress } from '../../types';
 export {
   getMilestones,
   saveMilestones,

@@ -1,6 +1,6 @@
 import { memo, useState, type FC } from 'react';
 import { formatPhone } from '../../lib/utils';
-import { Tag, X, Loader2, Check } from 'lucide-react';
+import { Tag, X, Loader2 } from 'lucide-react';
 import type { Service } from '../../types';
 
 const MESES = [

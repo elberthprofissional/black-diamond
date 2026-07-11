@@ -5,7 +5,7 @@ import { useToast } from '../../../hooks/useToast';
 
 const ExportButton: FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { toast, showError } = useToast();
+  const { showError } = useToast();
   const { isExporting, exportBookings, exportClients, exportFinancial } = useCsvExport(showError);
   const menuRef = useRef<HTMLDivElement>(null);
 

@@ -11,7 +11,7 @@ import {
   LineChart,
 } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
-import type { RevenueChartData } from '../../hooks/useRevenueChartData';
+import type { RevenueChartData } from '../../../hooks/useRevenueChartData';
 
 interface RevenueChartProps {
   data: RevenueChartData;

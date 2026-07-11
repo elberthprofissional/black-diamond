@@ -563,7 +563,7 @@ const AdminClients: FC = () => {
             onToggleMensalista={c.handleToggleMensalista}
             expiresAt={c.expiresAt}
             onRenewMensalidade={c.handleRenewMensalidade}
-            loyaltyProgress={c.loyaltyProgress}
+            milestoneProgress={c.milestoneProgress}
           />
         )}
       </AnimatePresence>
