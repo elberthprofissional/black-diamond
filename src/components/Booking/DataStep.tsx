@@ -1,5 +1,5 @@
-import { memo, type FC } from 'react';
-import { User, Repeat } from 'lucide-react';
+import { memo, useState, type FC } from 'react';
+import { User, Repeat, Tag, Loader2 } from 'lucide-react';
 import { WhatsAppIcon } from '../WhatsAppIcon';
 
 interface DataStepProps {
@@ -13,6 +13,16 @@ interface DataStepProps {
   lastBooking?: { serviceIds: string[]; totalPrice: number } | null;
   onApplyLastBooking?: () => void;
   serviceNames?: Record<string, string>;
+  coupon?: {
+    coupon_id: string;
+    code: string;
+    discount_type: string;
+    discount_amount: number;
+  } | null;
+  couponLoading?: boolean;
+  couponError?: string;
+  onCouponValidate?: (code: string) => void;
+  onCouponRemove?: () => void;
 }
 
 const DataStep: FC<DataStepProps> = memo(
@@ -27,7 +37,19 @@ const DataStep: FC<DataStepProps> = memo(
     lastBooking,
     onApplyLastBooking,
     serviceNames,
+    coupon,
+    couponLoading,
+    couponError,
+    onCouponValidate,
+    onCouponRemove,
   }) => {
+    const [couponInput, setCouponInput] = useState('');
+
+    const handleApplyCoupon = () => {
+      if (couponInput.trim() && onCouponValidate) {
+        onCouponValidate(couponInput.trim());
+      }
+    };
     if (layout === 'desktop') {
       return (
         <div className="flex-1 flex items-center justify-center">
@@ -110,6 +132,58 @@ const DataStep: FC<DataStepProps> = memo(
                   </p>
                 )}
               </div>
+            </div>
+
+            {/* Coupon Section */}
+            <div className="pt-2">
+              {coupon ? (
+                <div className="flex items-center justify-between bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-xl px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <Tag size={14} className="text-[#C5A059]" />
+                    <span className="text-[12px] font-semibold text-[#C5A059]">{coupon.code}</span>
+                    <span className="text-[11px] text-zinc-400">
+                      -R$ {coupon.discount_amount.toFixed(2).replace('.', ',')}
+                    </span>
+                  </div>
+                  <button
+                    onClick={onCouponRemove}
+                    className="text-[10px] text-zinc-500 hover:text-red-400 transition-colors cursor-pointer"
+                  >
+                    Remover
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Tag size={13} className="text-zinc-600" />
+                  <button
+                    onClick={() => document.getElementById('coupon-input-desktop')?.focus()}
+                    className="text-[12px] text-zinc-500 hover:text-[#C5A059] transition-colors cursor-pointer"
+                  >
+                    Adicionar cupom de desconto
+                  </button>
+                </div>
+              )}
+              {!coupon && (
+                <div className="flex items-center gap-2 mt-3">
+                  <input
+                    id="coupon-input-desktop"
+                    type="text"
+                    placeholder="Código do cupom"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                    className="flex-1 bg-transparent border-b border-white/10 focus:border-[#C5A059] py-2 px-0 text-[13px] text-white outline-none transition-all placeholder:text-zinc-600"
+                  />
+                  <button
+                    onClick={handleApplyCoupon}
+                    disabled={couponLoading || !couponInput.trim()}
+                    className="px-3 py-1.5 bg-[#C5A059]/10 hover:bg-[#C5A059]/20 text-[#C5A059] text-[11px] font-semibold rounded-lg transition-all cursor-pointer disabled:opacity-30"
+                  >
+                    {couponLoading ? <Loader2 size={12} className="animate-spin" /> : 'Aplicar'}
+                  </button>
+                </div>
+              )}
+              {couponError && <p className="text-[10px] text-red-400 mt-1.5">{couponError}</p>}
             </div>
 
             {/* Helper */}
@@ -211,6 +285,58 @@ const DataStep: FC<DataStepProps> = memo(
                 Informe um WhatsApp válido
               </p>
             )}
+          </div>
+
+          {/* Coupon Section */}
+          <div className="space-y-2">
+            {coupon ? (
+              <div className="flex items-center justify-between bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-xl px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <Tag size={14} className="text-[#C5A059]" />
+                  <span className="text-[12px] font-semibold text-[#C5A059]">{coupon.code}</span>
+                  <span className="text-[11px] text-zinc-400">
+                    -R$ {coupon.discount_amount.toFixed(2).replace('.', ',')}
+                  </span>
+                </div>
+                <button
+                  onClick={onCouponRemove}
+                  className="text-[10px] text-zinc-500 hover:text-red-400 transition-colors cursor-pointer"
+                >
+                  Remover
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <Tag size={12} className="text-zinc-600" />
+                  <button
+                    onClick={() => document.getElementById('coupon-input-mobile')?.focus()}
+                    className="text-[11px] text-zinc-500 hover:text-[#C5A059] transition-colors cursor-pointer"
+                  >
+                    Adicionar cupom de desconto
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="coupon-input-mobile"
+                    type="text"
+                    placeholder="Código do cupom"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                    className="flex-1 bg-transparent border border-white/[0.06] focus:border-[#C5A059] rounded-xl px-4 py-3 text-[13px] text-white outline-none transition-all placeholder:text-zinc-600"
+                  />
+                  <button
+                    onClick={handleApplyCoupon}
+                    disabled={couponLoading || !couponInput.trim()}
+                    className="px-4 py-3 bg-[#C5A059]/10 hover:bg-[#C5A059]/20 text-[#C5A059] text-[11px] font-semibold rounded-xl transition-all cursor-pointer disabled:opacity-30"
+                  >
+                    {couponLoading ? <Loader2 size={12} className="animate-spin" /> : 'Aplicar'}
+                  </button>
+                </div>
+              </>
+            )}
+            {couponError && <p className="text-[10px] text-red-400">{couponError}</p>}
           </div>
 
           {/* Last Booking Suggestion */}

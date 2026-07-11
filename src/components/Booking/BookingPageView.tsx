@@ -130,6 +130,11 @@ const BookingPageView: FC<BookingPageViewProps> = ({
                 ? Object.fromEntries(services.map((s) => [s.id, s.name]))
                 : undefined
             }
+            coupon={coupon}
+            couponLoading={couponLoading}
+            couponError={couponError}
+            onCouponValidate={onCouponValidate}
+            onCouponRemove={onCouponRemove}
           />
         </motion.div>
       )}
