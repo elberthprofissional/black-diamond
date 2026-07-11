@@ -146,7 +146,7 @@ const AdminDashboard: FC = () => {
                   ? data.occupiedBookings.filter((b) => b.barber_id === barberFilterId).length
                   : data.occupiedBookings.length
               }
-              freeCount={barberFilterId ? 0 : data.freeSlots.length}
+              freeCount={data.freeSlots.length}
               blockedCount={
                 barberFilterId
                   ? data.blockedBookings.filter((b) => b.barber_id === barberFilterId).length
