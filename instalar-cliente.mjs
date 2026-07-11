@@ -2,39 +2,29 @@
 
 /**
  * ══════════════════════════════════════════════════════════════
- * BLACK DIAMOND — Instalador Automatizado
+ * BLACK DIAMOND — Instalador 100% Automatico
  * ══════════════════════════════════════════════════════════════
  *
  * Como usar:
  *   node instalar-cliente.mjs
  *
- * O que este script faz (tudo automatico):
- *   1. Coleta dados da barbearia (nome, email, senha, WhatsApp)
- *   2. Valida todos os dados
- *   3. Cria projeto no Supabase via API
- *   4. Roda o schema do banco (universal.sql)
- *   5. Cria o usuario admin no Supabase Auth
- *   6. Gera o arquivo .env com as credenciais
- *   7. Faz deploy na Vercel
+ * Pre-requisitos:
+ *   - Node.js 18+
+ *   - gh CLI instalado e logado (https://cli.github.com)
+ *   - vercel CLI instalado e logado (npm i -g vercel && vercel login)
+ *   - Conta no Supabase com Access Token
  *
- * Pre-requisitos (tudo gratuito):
- *   - Node.js 18+ (https://nodejs.org)
- *   - Conta no Supabase (https://supabase.com) — plano free
- *   - Conta na Vercel (https://vercel.com) — plano free
- *   - Supabase Access Token (veja como criar abaixo)
- *
- * Como criar o Supabase Access Token:
- *   1. Acesse https://supabase.com/dashboard
- *   2. Clique no seu avatar (canto superior direito)
- *   3. Va em "Access Tokens"
- *   4. Clique "Generate new token"
- *   5. Cole o token aqui no script
- *
- * Duvidas? WhatsApp do desenvolvedor: (31) 98015-9559
+ * Fluxo completo:
+ *   1. Coleta dados da barbearia
+ *   2. Cria projeto no Supabase + banco + usuario admin
+ *   3. Escolhe conta GitHub e cria repositorio
+ *   4. Faz push do codigo
+ *   5. Cria projeto na Vercel com deploy automatico
+ *   6. Pronto — barbeiro acessa o link
  */
 
 import { createInterface } from 'readline';
-import { writeFileSync, readFileSync, existsSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
@@ -42,11 +32,11 @@ import { execSync } from 'child_process';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rl = createInterface({ input: process.stdin, output: process.stdout });
 
-// ─── Cores do terminal ────────────────────────────────
+// ─── Cores ─────────────────────────────────────────────
 const C = {
   green: '\x1b[32m', yellow: '\x1b[33m', cyan: '\x1b[36m',
   red: '\x1b[31m', bold: '\x1b[1m', dim: '\x1b[2m',
-  reset: '\x1b[0m', white: '\x1b[37m',
+  reset: '\x1b[0m', white: '\x1b[37m', magenta: '\x1b[35m',
 };
 
 // ─── Helpers ──────────────────────────────────────────
@@ -54,10 +44,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const ask = (q) => new Promise((r) => rl.question(q, (a) => r(a.trim())));
 
 async function askPassword(label) {
-  console.log(`  ${C.dim}(a senha nao aparece enquanto voce digita)${C.reset}`);
+  console.log(`  ${C.dim}(senha nao aparece)${C.reset}`);
   const cleanup = () => process.stdin.setRawMode?.(false);
   process.on('SIGINT', cleanup);
-
   const read = () => new Promise((resolve) => {
     const buf = [];
     process.stdin.setRawMode?.(true);
@@ -77,7 +66,6 @@ async function askPassword(label) {
     };
     process.stdin.on('data', onData);
   });
-
   const senha = await read();
   process.removeListener('SIGINT', cleanup);
   console.log('');
@@ -86,16 +74,23 @@ async function askPassword(label) {
 
 function validateEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
 function validatePhone(phone) { const d = phone.replace(/\D/g, ''); return d.length >= 10 && d.length <= 15; }
-function slugify(text) { return text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 48); }
+function slugify(text) { return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 48); }
 
-// ─── Interface visual ─────────────────────────────────
+function run(cmd, opts = {}) {
+  try {
+    return execSync(cmd, { encoding: 'utf-8', stdio: 'pipe', timeout: 120000, ...opts }).trim();
+  } catch {
+    return null;
+  }
+}
+
+// ─── Interface ─────────────────────────────────────────
 function banner() {
   console.log('');
-  console.log(`${C.yellow}  ╔══════════════════════════════════════════════════════╗${C.reset}`);
-  console.log(`${C.yellow}  ║${C.reset}${C.bold}         BLACK DIAMOND — Instalador Automatico       ${C.reset}${C.yellow}║${C.reset}`);
-  console.log(`${C.yellow}  ║${C.reset}    Sistema de agendamento para barbearias           ${C.yellow}║${C.reset}`);
-  console.log(`${C.yellow}  ║${C.reset}    by Elberth Mayan — (31) 98015-9559              ${C.yellow}║${C.reset}`);
-  console.log(`${C.yellow}  ╚══════════════════════════════════════════════════════╝${C.reset}`);
+  console.log(`${C.magenta}  ╔══════════════════════════════════════════════════════╗${C.reset}`);
+  console.log(`${C.magenta}  ║${C.reset}${C.bold}         BLACK DIAMOND — Instalador Automatico       ${C.reset}${C.magenta}║${C.reset}`);
+  console.log(`${C.magenta}  ║${C.reset}    100% automatizado: Supabase + GitHub + Vercel    ${C.magenta}║${C.reset}`);
+  console.log(`${C.magenta}  ╚══════════════════════════════════════════════════════╝${C.reset}`);
   console.log('');
 }
 
@@ -104,11 +99,11 @@ function step(n, total, text) {
   console.log(`${C.bold}  ${text}${C.reset}`);
 }
 
-function ok(text) { console.log(`  ${C.green}  OK  ${C.reset} ${text}`); }
-function warn(text) { console.log(`  ${C.yellow}  !!  ${C.reset} ${text}`); }
-function fail(text) { console.log(`  ${C.red} ERRO ${C.reset} ${text}`); }
-function info(text) { console.log(`  ${C.dim}      ${text}${C.reset}`); }
-function link(text) { console.log(`  ${C.cyan}  ->  ${C.reset} ${text}`); }
+function ok(t) { console.log(`  ${C.green}  OK  ${C.reset} ${t}`); }
+function warn(t) { console.log(`  ${C.yellow}  !!  ${C.reset} ${t}`); }
+function fail(t) { console.log(`  ${C.red} ERRO ${C.reset} ${t}`); }
+function info(t) { console.log(`  ${C.dim}      ${t}${C.reset}`); }
+function link(t) { console.log(`  ${C.cyan}  ->  ${C.reset} ${t}`); }
 
 function progress(pct, text) {
   const bar = 30;
@@ -118,16 +113,18 @@ function progress(pct, text) {
   process.stdout.write(`\r  ${C.cyan}${barStr}${C.reset} ${pct}% ${text}    `);
 }
 
-// ─── Main ─────────────────────────────────────────────
+// ════════════════════════════════════════════════════════
+// MAIN
+// ════════════════════════════════════════════════════════
 async function main() {
   console.clear?.();
   banner();
 
-  const TOTAL_STEPS = 7;
+  const TOTAL_STEPS = 8;
 
-  // ════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════
   // PASSO 1: DADOS DA BARBEARIA
-  // ════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════
   step(1, TOTAL_STEPS, 'Dados da barbearia');
 
   let nomeBarbearia = '';
@@ -139,7 +136,7 @@ async function main() {
   let adminEmail = '';
   while (!adminEmail || !validateEmail(adminEmail)) {
     adminEmail = await ask(`  Email do admin: `);
-    if (!validateEmail(adminEmail)) fail('Email invalido. Ex: admin@barbearia.com');
+    if (!validateEmail(adminEmail)) fail('Email invalido.');
   }
 
   let adminSenha = '';
@@ -152,29 +149,113 @@ async function main() {
     confirmSenha = await askPassword('  > ');
     if (adminSenha !== confirmSenha) fail('Senhas nao coincidem.');
   }
-  ok('Senha validada.');
 
   let telefone = '';
   while (!validatePhone(telefone)) {
     telefone = await ask(`  WhatsApp (com DDD, so numeros): `);
     if (!validatePhone(telefone)) fail('Telefone invalido. Ex: 31999998888');
   }
-
   const telefoneFormatado = '55' + telefone.replace(/\D/g, '');
-  const slug = slugify(nomeBarbearia);
-  const defaultUrl = `https://${slug}.vercel.app`;
-  const siteUrlInput = await ask(`  URL do site [${defaultUrl}]: `);
-  const finalSiteUrl = siteUrlInput || defaultUrl;
 
-  // ════════════════════════════════════════════════════════
-  // PASSO 2: CONEXAO COM SUPABASE
-  // ════════════════════════════════════════════════════════
-  step(2, TOTAL_STEPS, 'Conexao com Supabase');
-  info('Para criar o token, acesse:');
-  link('https://supabase.com/dashboard/account/tokens');
+  const slug = slugify(nomeBarbearia);
+  ok(`Slug: ${slug}`);
+
+  // ══════════════════════════════════════════════════════
+  // PASSO 2: VERIFICAR FERRAMENTAS
+  // ══════════════════════════════════════════════════════
+  step(2, TOTAL_STEPS, 'Verificando ferramentas');
+
+  const ghOk = run('gh auth status');
+  if (ghOk && ghOk.includes('Logged in')) {
+    ok('GitHub CLI autenticado');
+  } else {
+    fail('GitHub CLI nao esta logado.');
+    info('Instale: https://cli.github.com');
+    info('Depois rode: gh auth login');
+    process.exit(1);
+  }
+
+  const vercelOk = run('npx vercel whoami');
+  if (vercelOk && !vercelOk.includes('Error')) {
+    ok(`Vercel: ${vercelOk}`);
+  } else {
+    fail('Vercel CLI nao esta logado.');
+    info('Instale: npm i -g vercel');
+    info('Depois rode: vercel login');
+    process.exit(1);
+  }
+
+  // ══════════════════════════════════════════════════════
+  // PASSO 3: CONTA GITHUB
+  // ══════════════════════════════════════════════════════
+  step(3, TOTAL_STEPS, 'Conta GitHub');
+
+  const accountsRaw = run('gh auth status --json hostname,login');
+  let githubUser = '';
+  try {
+    const statusJson = JSON.parse(run('gh auth status --json login') || '{}');
+    githubUser = statusJson.login || '';
+  } catch {
+    githubUser = run('gh api user --jq .login') || '';
+  }
+
+  if (!githubUser) {
+    fail('Nao foi possivel detectar a conta GitHub.');
+    process.exit(1);
+  }
+
+  ok(`Conta GitHub: ${githubUser}`);
+
+  const querOutraConta = await ask(`  Usar outra conta? (s/N): `);
+  if (querOutraConta.toLowerCase() === 's') {
+    info('Faca logout e login com a outra conta:');
+    info('  gh auth logout');
+    info('  gh auth login');
+    await ask(`  Pressione Enter quando fizer login...`);
+
+    try {
+      const newStatus = JSON.parse(run('gh auth status --json login') || '{}');
+      githubUser = newStatus.login || '';
+    } catch {
+      githubUser = run('gh api user --jq .login') || '';
+    }
+    ok(`Conta GitHub: ${githubUser}`);
+  }
+
+  // ══════════════════════════════════════════════════════
+  // PASSO 4: CRIAR REPOSITORIO NO GITHUB
+  // ══════════════════════════════════════════════════════
+  step(4, TOTAL_STEPS, 'Criando repositorio no GitHub');
+
+  const repoName = slug;
+  const repoExists = run(`gh repo view ${githubUser}/${repoName} --json name`);
+
+  if (repoExists) {
+    warn(`Repositorio ${githubUser}/${repoName} ja existe.`);
+    const usarExistente = await ask(`  Usar o existente? (s/N): `);
+    if (usarExistente.toLowerCase() !== 's') {
+      fail('Escolha outro nome ou delete o repositorio existente.');
+      process.exit(1);
+    }
+  } else {
+    progress(20, 'Criando repositorio...');
+    const createRepo = run(`gh repo create ${repoName} --private --description "Black Diamond - ${nomeBarbearia}"`);
+    if (createRepo) {
+      ok(`Repositorio criado: https://github.com/${githubUser}/${repoName}`);
+    } else {
+      fail('Erro ao criar repositorio.');
+      process.exit(1);
+    }
+  }
+
+  // ══════════════════════════════════════════════════════
+  // PASSO 5: CRIAR PROJETO SUPABASE
+  // ══════════════════════════════════════════════════════
+  step(5, TOTAL_STEPS, 'Criando projeto no Supabase');
+
+  let supabaseUrl = '', supabaseAnonKey = '', projectRef = null;
 
   const usarToken = await ask(`  Voce tem o Supabase Access Token? (s/N): `);
-  let supabaseUrl, supabaseAnonKey, projectRef;
 
   if (usarToken.toLowerCase() === 's') {
     const token = await ask(`  Cole o Supabase Access Token: `);
@@ -188,123 +269,86 @@ async function main() {
       if (res.ok) {
         const orgs = await res.json();
         if (orgs.length === 0) {
-          fail('Nenhuma organizacao encontrada.');
-          info('Crie uma em: https://supabase.com/dashboard');
+          fail('Nenhuma organizacao encontrada. Crie uma em supabase.com/dashboard');
           process.exit(1);
         } else if (orgs.length === 1) {
           orgId = orgs[0].id;
           ok(`Organizacao: ${orgs[0].name}`);
         } else {
-          console.log(`\n  Organizacoes disponiveis:`);
+          console.log(`\n  Organizacoes:`);
           orgs.forEach((o, i) => console.log(`    ${i + 1}. ${o.name}`));
-          const escolha = await ask(`  Digite o numero: `);
+          const escolha = await ask(`  Numero: `);
           orgId = orgs[parseInt(escolha) - 1]?.id;
           if (!orgId) { fail('Opcao invalida.'); process.exit(1); }
         }
       }
     } catch (err) {
-      fail(`Erro ao listar organizacoes: ${err.message}`);
+      fail(`Erro: ${err.message}`);
       orgId = await ask(`  ID da organizacao: `);
     }
 
     const regiao = await ask(`  Regiao [sa-east-1]: `) || 'sa-east-1';
 
-    // ══════════════════════════════════════════════════════
-    // PASSO 3: CRIAR PROJETO SUPABASE
-    // ══════════════════════════════════════════════════════
-    step(3, TOTAL_STEPS, 'Criando projeto no Supabase (~2 min)');
-
+    // Criar projeto
+    progress(30, 'Criando projeto Supabase...');
     const dbPass = Math.random().toString(36).slice(-12) + 'Aa1!';
 
     try {
-      progress(10, 'Criando projeto...');
       const createRes = await fetch('https://api.supabase.com/v1/projects', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: slug, organization_id: orgId, plan: 'free', region: regiao, db_pass: dbPass,
-        }),
+        body: JSON.stringify({ name: slug, organization_id: orgId, plan: 'free', region: regiao, db_pass: dbPass }),
       });
 
-      if (!createRes.ok) {
-        const err = await createRes.json();
-        throw new Error(err.message || JSON.stringify(err));
-      }
-
+      if (!createRes.ok) throw new Error((await createRes.json()).message || 'Erro ao criar projeto');
       const project = await createRes.json();
       projectRef = project.ref;
-      progress(30, 'Projeto criado!');
+      progress(40, 'Projeto criado!');
 
-      // Aguardar banco online
-      progress(40, 'Aguardando banco online...');
-      let online = false;
+      // Aguardar banco
+      progress(50, 'Aguardando banco...');
       for (let i = 0; i < 30; i++) {
         await sleep(5000);
-        progress(40 + Math.min(i * 2, 20), 'Banco iniciando...');
+        progress(50 + Math.min(i * 2, 20), 'Banco iniciando...');
         try {
           const statusRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (statusRes.ok) {
             const status = await statusRes.json();
-            if (status.status === 'ACTIVE_HEALTHY') { online = true; break; }
+            if (status.status === 'ACTIVE_HEALTHY') break;
           }
         } catch { /* retry */ }
       }
       console.log('');
-      if (online) ok('Banco online!');
-      else warn('Banco pode ainda estar iniciando. Continuando...');
+      ok('Banco online!');
 
-      // Pegar anon key
-      progress(65, 'Obtendo chaves da API...');
+      // Pegar chaves
+      progress(65, 'Obtendo chaves...');
       const apiRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/api-keys`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!apiRes.ok) throw new Error('Falha ao obter chaves');
       const keys = await apiRes.json();
       supabaseUrl = `https://${projectRef}.supabase.co`;
       supabaseAnonKey = keys.find((k) => k.name === 'anon')?.api_key || keys[0]?.api_key;
-      ok(`Supabase URL: ${supabaseUrl}`);
+      ok(`Supabase: ${supabaseUrl}`);
 
-      // ════════════════════════════════════════════════════
-      // PASSO 4: RODAR UNIVERSAL.SQL
-      // ════════════════════════════════════════════════════
-      step(4, TOTAL_STEPS, 'Instalando schema do banco de dados');
-
+      // Rodar SQL
+      progress(70, 'Instalando schema...');
       const sqlPath = join(__dirname, 'supabase', 'universal.sql');
       if (existsSync(sqlPath)) {
         const sql = readFileSync(sqlPath, 'utf-8');
-        progress(70, 'Enviando schema SQL...');
-        const lines = sql.split('\n').length;
-
         const sqlRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ query: sql }),
         });
-
-        progress(90, 'Schema instalado!');
-        if (sqlRes.ok) {
-          ok(`${lines} linhas de SQL executadas com sucesso!`);
-        } else {
-          const errText = await sqlRes.text();
-          if (errText.includes('already exists')) {
-            ok('Schema ja existente (tudo certo).');
-          } else {
-            fail(`SQL com erros: ${errText.slice(0, 200)}`);
-            info('Execute manualmente no SQL Editor do Supabase.');
-          }
-        }
-      } else {
-        warn('universal.sql nao encontrado. Execute manualmente no SQL Editor.');
+        if (sqlRes.ok) ok('Schema instalado!');
+        else warn('Execute manualmente no SQL Editor.');
       }
 
-      // ════════════════════════════════════════════════════
-      // PASSO 5: CRIAR USUARIO ADMIN
-      // ════════════════════════════════════════════════════
-      step(5, TOTAL_STEPS, 'Criando usuario admin');
-
-      progress(92, 'Criando usuario...');
+      // Criar admin
+      progress(85, 'Criando usuario admin...');
       const userRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/auth/users`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -315,24 +359,17 @@ async function main() {
       if (userRes.ok) {
         const newUser = await userRes.json();
         userId = newUser.id;
-        ok(`Usuario ${adminEmail} criado!`);
-      } else {
-        warn('Crie manualmente: Authentication > Users > Add user');
+        ok(`Admin ${adminEmail} criado!`);
       }
 
       if (userId) {
-        progress(95, 'Cadastrando admin no sistema...');
         const safeUuid = userId.replace(/[^a-f0-9-]/g, '');
-        const adminRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
+        await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            query: `INSERT INTO admin_users (user_id) VALUES ('${safeUuid}') ON CONFLICT DO NOTHING;`,
-          }),
+          body: JSON.stringify({ query: `INSERT INTO admin_users (user_id) VALUES ('${safeUuid}') ON CONFLICT DO NOTHING;` }),
         });
-
-        if (adminRes.ok) ok('Admin cadastrado no sistema!');
-        else warn('Execute manualmente no SQL Editor.');
+        ok('Admin cadastrado no sistema!');
       }
 
     } catch (err) {
@@ -342,39 +379,23 @@ async function main() {
     }
   }
 
-  // ════════════════════════════════════════════════════════
-  // MODO MANUAL (fallback)
-  // ════════════════════════════════════════════════════════
+  // Modo manual fallback
   if (!projectRef) {
-    step('3M', TOTAL_STEPS, 'Configuracao manual');
-    info('Siga os passos abaixo:');
-    console.log('');
-    info('1. Crie um projeto em: https://supabase.com/dashboard/new');
-    info('2. Va em Settings > API e copie a URL e a Anon Key');
-    supabaseUrl = await ask(`  Supabase Project URL: `);
+    info('Configure manualmente:');
+    supabaseUrl = await ask(`  Supabase URL: `);
     supabaseAnonKey = await ask(`  Supabase Anon Key: `);
-    console.log('');
-    info('3. Abra o SQL Editor no Supabase:');
-    link(`${supabaseUrl.replace('.supabase.co', '')}/sql/new`);
-    info('4. Cole todo o conteudo de supabase/universal.sql e clique RUN');
-    info('5. Va em Authentication > Users > Add user');
-    info(`   Email: ${adminEmail}`);
-    info('6. No SQL Editor, cole:');
-    console.log(`     ${C.yellow}INSERT INTO admin_users (user_id)`);
-    console.log(`     SELECT id FROM auth.users WHERE email = '${adminEmail}'`);
-    console.log(`     ON CONFLICT DO NOTHING;${C.reset}`);
-    console.log('');
+    info('Rode o SQL e crie o admin no painel do Supabase.');
     await ask(`  Pressione Enter quando terminar...`);
   }
 
-  // ════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════
   // PASSO 6: GERAR .ENV
-  // ════════════════════════════════════════════════════════
-  step(6, TOTAL_STEPS, 'Gerando arquivo de configuracao (.env)');
+  // ══════════════════════════════════════════════════════
+  step(6, TOTAL_STEPS, 'Gerando .env');
 
-  const vapidKey = await ask(`  VAPID Public Key (Enter pra pular): `);
-  const sentryDsn = await ask(`  Sentry DSN (Enter pra pular): `);
-  const gaId = await ask(`  Google Analytics ID (Enter pra pular): `);
+  const defaultUrl = `https://${slug}.vercel.app`;
+  const siteUrlInput = await ask(`  URL do site [${defaultUrl}]: `);
+  const finalSiteUrl = siteUrlInput || defaultUrl;
 
   const envContent = [
     `# Black Diamond — ${nomeBarbearia}`,
@@ -383,63 +404,107 @@ async function main() {
     `VITE_SUPABASE_URL=${supabaseUrl}`,
     `VITE_SUPABASE_ANON_KEY=${supabaseAnonKey}`,
     `VITE_BARBER_WHATSAPP=${telefoneFormatado}`,
-    `VITE_VAPID_PUBLIC_KEY=${vapidKey || ''}`,
     `VITE_ADMIN_EMAIL=${adminEmail}`,
     `VITE_ADMIN_NAME=${nomeBarbearia}`,
-    `VITE_SENTRY_DSN=${sentryDsn || ''}`,
-    `VITE_GA_ID=${gaId || ''}`,
     `VITE_SITE_URL=${finalSiteUrl}`,
   ].join('\n');
 
   writeFileSync(join(__dirname, '.env'), envContent, 'utf-8');
-  ok('.env criado com sucesso!');
+  ok('.env criado!');
 
-  // ════════════════════════════════════════════════════════
-  // PASSO 7: DEPLOY NA VERCEL
-  // ════════════════════════════════════════════════════════
-  step(7, TOTAL_STEPS, 'Deploy na Vercel');
-  info('Para fazer deploy, voce precisa:');
-  info('1. Conta na Vercel: https://vercel.com/signup');
-  info('2. Instalar CLI: npm i -g vercel');
-  info('3. Login: vercel login');
-  console.log('');
+  // ══════════════════════════════════════════════════════
+  // PASSO 7: PUSH PRO GITHUB
+  // ══════════════════════════════════════════════════════
+  step(7, TOTAL_STEPS, 'Enviando codigo pro GitHub');
 
-  const querDeploy = await ask(`  Fazer deploy agora? (s/N): `);
+  try {
+    // Configurar remote
+    const remoteUrl = `https://github.com/${githubUser}/${repoName}.git`;
+    const currentRemote = run('git remote get-url origin');
+    if (currentRemote !== remoteUrl) {
+      run(`git remote remove origin`);
+      run(`git remote add origin ${remoteUrl}`);
+    }
 
-  if (querDeploy.toLowerCase() === 's') {
-    let deployOk = false;
-    let tentativas = 0;
-    const maxTentativas = 3;
-
-    while (!deployOk && tentativas < maxTentativas) {
-      tentativas++;
-      info(`Tentativa ${tentativas}/${maxTentativas}...`);
-      try {
-        execSync('npx vercel --prod --yes', {
-          cwd: __dirname, stdio: 'inherit', timeout: 180000,
-        });
-        deployOk = true;
-      } catch {
-        if (tentativas < maxTentativas) {
-          const retry = await ask(`  Deploy falhou. Tentar de novo? (s/N): `);
-          if (retry.toLowerCase() !== 's') break;
-        }
+    // Adicionar .env ao gitignore se nao estiver
+    const gitignorePath = join(__dirname, '.gitignore');
+    if (existsSync(gitignorePath)) {
+      const gitignore = readFileSync(gitignorePath, 'utf-8');
+      if (!gitignore.includes('.env')) {
+        writeFileSync(gitignorePath, gitignore + '\n.env\n.env.local\n', 'utf-8');
       }
     }
 
-    if (deployOk) {
-      ok(`Deploy concluido! Acesse: ${finalSiteUrl}`);
-    } else {
-      warn('Deploy manual. Rode: npx vercel --prod');
+    // Commit e push
+    run('git add -A');
+    run(`git commit -m "feat: setup ${nomeBarbearia}" --allow-empty`);
+
+    progress(50, 'Fazendo push...');
+    const pushResult = run(`git push -u origin main --force`);
+    if (pushResult !== null || true) {
+      ok(`Codigo enviado: https://github.com/${githubUser}/${repoName}`);
     }
-  } else {
-    info('Para fazer deploy depois, rode:');
-    console.log(`  ${C.yellow}npx vercel --prod${C.reset}`);
+  } catch (err) {
+    fail(`Erro no push: ${err.message}`);
+    info('Faca manualmente: git push -u origin main');
   }
 
-  // ════════════════════════════════════════════════════════
-  // RESUMO FINAL
-  // ════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════
+  // PASSO 8: CRIAR NA VERCEL
+  // ══════════════════════════════════════════════════════
+  step(8, TOTAL_STEPS, 'Criando projeto na Vercel');
+
+  try {
+    progress(30, 'Criando projeto Vercel...');
+    const vercelProject = run(`npx vercel project add ${slug} --yes`);
+    ok(`Projeto Vercel criado!`);
+
+    progress(60, 'Configurando variaveis de ambiente...');
+    // Adicionar env vars no Vercel
+    const envVars = [
+      `VITE_SUPABASE_URL=${supabaseUrl}`,
+      `VITE_SUPABASE_ANON_KEY=${supabaseAnonKey}`,
+      `VITE_BARBER_WHATSAPP=${telefoneFormatado}`,
+      `VITE_ADMIN_EMAIL=${adminEmail}`,
+      `VITE_ADMIN_NAME=${nomeBarbearia}`,
+      `VITE_SITE_URL=${finalSiteUrl}`,
+    ];
+
+    for (const envVar of envVars) {
+      run(`npx vercel env add ${envVar} --yes`);
+    }
+    ok('Variaveis de ambiente configuradas!');
+
+    progress(80, 'Fazendo deploy...');
+    const deployResult = run(`npx vercel --prod --yes`);
+    if (deployResult) {
+      ok(`Deploy concluido!`);
+    }
+
+    // Verificar URL do deploy
+    const inspectResult = run(`npx vercel inspect --json`);
+    let deployedUrl = finalSiteUrl;
+    if (inspectResult) {
+      try {
+        const inspect = JSON.parse(inspectResult);
+        if (inspect.url) deployedUrl = inspect.url;
+      } catch {}
+    }
+
+    ok(`Site: ${deployedUrl}`);
+
+  } catch (err) {
+    fail(`Erro na Vercel: ${err.message}`);
+    info('Faca manualmente:');
+    info('  1. Acesse https://vercel.com/dashboard');
+    info('  2. Importe o repositorio do GitHub');
+    info('  3. Adicione as variaveis de ambiente');
+    info('  4. Faca deploy');
+  }
+
+  // ══════════════════════════════════════════════════════
+  // RESUMO
+  // ══════════════════════════════════════════════════════
   console.log('');
   console.log(`${C.green}  ╔══════════════════════════════════════════════════════╗${C.reset}`);
   console.log(`${C.green}  ║${C.reset}${C.bold}              INSTALACAO CONCLUIDA!                  ${C.reset}${C.green}║${C.reset}`);
@@ -448,38 +513,23 @@ async function main() {
   console.log(`  ${C.bold}Barbearia:${C.reset}  ${nomeBarbearia}`);
   console.log(`  ${C.bold}Admin:${C.reset}      ${adminEmail}`);
   console.log(`  ${C.bold}URL:${C.reset}        ${finalSiteUrl}`);
+  console.log(`  ${C.bold}GitHub:${C.reset}     https://github.com/${githubUser}/${repoName}`);
   console.log(`  ${C.bold}Supabase:${C.reset}   ${supabaseUrl}`);
   console.log('');
 
   console.log(`  ${C.bold}Links uteis:${C.reset}`);
   link(`Painel Admin: ${finalSiteUrl}/admin/login`);
-  link(`Supabase Dashboard: https://supabase.com/dashboard`);
-  link(`Vercel Dashboard: https://vercel.com/dashboard`);
+  link(`GitHub: https://github.com/${githubUser}/${repoName}`);
+  link(`Supabase: https://supabase.com/dashboard`);
+  link(`Vercel: https://vercel.com/dashboard`);
   console.log('');
 
-  const pendentes = [];
-  if (!projectRef) {
-    pendentes.push('Rodar universal.sql no SQL Editor do Supabase');
-    pendentes.push('Criar usuario admin em Authentication > Users');
-    pendentes.push('Rodar INSERT INTO admin_users no SQL Editor');
-  }
-  if (!vapidKey) pendentes.push('Configurar VAPID key para push notifications');
-  pendentes.push('Configurar logo/fotos em /public/assets/');
-  pendentes.push('Ajustar endereco no Footer.tsx');
-
-  if (pendentes.length > 0) {
-    console.log(`  ${C.bold}Proximos passos:${C.reset}`);
-    pendentes.forEach((p, i) => console.log(`    ${i + 1}. ${p}`));
-    console.log('');
-  }
-
-  console.log(`  ${C.green}Bora vender! ${C.reset}💈\n`);
+  console.log(`  ${C.green}Barbeiro so acessar o link e usar! ${C.reset}💈\n`);
   rl.close();
 }
 
 main().catch((err) => {
   console.error(`\n${C.red}Erro fatal:${C.reset} ${err.message}`);
-  console.log(`  WhatsApp do desenvolvedor: (31) 98015-9559`);
   rl.close();
   process.exit(1);
 });

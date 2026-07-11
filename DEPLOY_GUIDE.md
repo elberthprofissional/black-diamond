@@ -4,7 +4,7 @@
 
 ---
 
-## Instalacao Automatica (Recomendado)
+## Instalacao 100% Automatica (Recomendado)
 
 O script `instalar-cliente.mjs` faz TUDO sozinho:
 
@@ -14,12 +14,17 @@ node instalar-cliente.mjs
 
 O que ele faz:
 1. Coleta dados do cliente (nome, email, senha, WhatsApp)
-2. Valida email, senha (2x), telefone
-3. Cria o projeto Supabase via API
-4. Roda o `universal.sql` automaticamente
-5. Cria o usuario admin + cadastra na tabela admin_users
-6. Gera o arquivo `.env`
-7. Faz deploy na Vercel (com retry)
+2. Verifica GitHub CLI e Vercel CLI
+3. Escolhe a conta GitHub e cria o repositorio
+4. Cria o projeto Supabase via API (banco + schema + admin)
+5. Gera o arquivo `.env`
+6. Faz push pro GitHub
+7. Cria projeto na Vercel com deploy automatico
+
+**Pre-requisitos:**
+- `gh auth login` (GitHub CLI)
+- `vercel login` (Vercel CLI)
+- Supabase Access Token
 
 ---
 

@@ -2,32 +2,33 @@
 
 Sistema de agendamento premium para barbearias.
 
-[![Version](https://img.shields.io/badge/version-3.19.0-blue)]()
+[![Version](https://img.shields.io/badge/version-3.20.0-blue)]()
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Build](https://img.shields.io/badge/build-passing-brightgreen)]()
 [![Coverage](https://img.shields.io/badge/coverage-80%25-yellow)]()
 
-## Instalacao para Novo Cliente (Recomendado)
+## Instalacao 100% Automatica (Recomendado)
 
-O instalador automatizado faz tudo sozinho em ~5 minutos:
+O instalador faz TUDO sozinho em ~5 minutos — Supabase, GitHub, Vercel:
 
 ```bash
 node instalar-cliente.mjs
 ```
 
 **O que o script faz:**
-1. Pergunta o nome, email, senha e WhatsApp da barbearia
-2. Cria o projeto no Supabase automaticamente
-3. Roda o schema do banco de dados
-4. Cria o usuario admin
+1. Pergunta nome, email, senha e WhatsApp da barbearia
+2. Verifica se `gh` (GitHub CLI) e `vercel` CLI estao logados
+3. Escolhe a conta GitHub e cria o repositorio
+4. Cria o projeto no Supabase (banco + schema + admin)
 5. Gera o arquivo `.env`
-6. Faz deploy na Vercel
+6. Faz push pro GitHub
+7. Cria projeto na Vercel com deploy automatico
 
 **Pre-requisitos (tudo gratuito):**
 - Node.js 18+ — https://nodejs.org
-- Conta no Supabase (plano free) — https://supabase.com
-- Conta na Vercel (plano free) — https://vercel.com
-- Supabase Access Token — https://supabase.com/dashboard/account/tokens
+- GitHub CLI logado — https://cli.github.com (`gh auth login`)
+- Vercel CLI logado — `npm i -g vercel && vercel login`
+- Conta no Supabase com Access Token — https://supabase.com/dashboard/account/tokens
 
 ## Instalacao Manual
 
