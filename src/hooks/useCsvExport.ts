@@ -88,8 +88,6 @@ export function useCsvExport(showError: (msg: string) => void) {
     try {
       const stats = await getBookingsForStats(12);
 
-      const completed = stats.filter((b) => b.status === 'completed');
-
       // Group by month
       const monthly: Record<string, { count: number; revenue: number; cancelled: number }> = {};
       stats.forEach((b) => {
