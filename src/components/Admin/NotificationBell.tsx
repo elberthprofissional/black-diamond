@@ -16,6 +16,7 @@ import { useNotifications, type Notification } from '../../hooks/useNotification
 import { WhatsAppIcon } from '../WhatsAppIcon';
 import { formatPhone } from '../../lib/utils';
 import { parseNotifBody, relativeTime } from '../../lib/notifications';
+import ConfirmDeleteModal from './shared/ConfirmDeleteModal';
 
 /* ─── Detail View ─── */
 function NotificationDetail({ notif, onBack }: { notif: Notification; onBack: () => void }) {
@@ -176,16 +177,19 @@ function NotifItem({
     e.stopPropagation();
     if (!confirmDelete) {
       setConfirmDelete(true);
-    } else {
-      if (window.confirm('Excluir notificação? Essa ação é irreversível.')) {
-        onDelete(notif.id);
-      }
-      setConfirmDelete(false);
     }
   };
 
   return (
     <div className="group relative flex items-start gap-3 px-5 py-3.5 transition-colors hover:bg-white/[0.02] border-b border-white/[0.03]">
+      <ConfirmDeleteModal
+        open={confirmDelete}
+        onConfirm={() => {
+          onDelete(notif.id);
+          setConfirmDelete(false);
+        }}
+        onCancel={() => setConfirmDelete(false)}
+      />
       <button
         onClick={() => {
           setConfirmDelete(false);

@@ -4,6 +4,7 @@ import { ArrowLeft, Bell, Trash2, Check } from 'lucide-react';
 import { useNotifications, type Notification } from '../hooks/useNotifications';
 import { NotificationDetail } from '../components/Admin/NotificationBell';
 import { relativeTime, parseNotifBody } from '../lib/notifications';
+import ConfirmDeleteModal from '../components/Admin/shared/ConfirmDeleteModal';
 
 const NotificationsPage: FC = () => {
   const navigate = useNavigate();
@@ -105,11 +106,6 @@ const NotificationsPage: FC = () => {
                 e.stopPropagation();
                 if (!isConfirming) {
                   setConfirmingId(notif.id);
-                } else {
-                  if (window.confirm('Excluir notificação? Essa ação é irreversível.')) {
-                    clearNotification?.(notif.id);
-                  }
-                  setConfirmingId(null);
                 }
               };
 
@@ -118,6 +114,14 @@ const NotificationsPage: FC = () => {
                   key={notif.id}
                   className="group relative flex items-start gap-3 px-5 py-4 transition-colors hover:bg-white/[0.02]"
                 >
+                  <ConfirmDeleteModal
+                    open={isConfirming}
+                    onConfirm={() => {
+                      clearNotification?.(notif.id);
+                      setConfirmingId(null);
+                    }}
+                    onCancel={() => setConfirmingId(null)}
+                  />
                   <button
                     onClick={() => {
                       setConfirmingId(null);
