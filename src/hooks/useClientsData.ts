@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useDeferredValue } from 'react';
+import { useState, useEffect, useCallback, useRef, useDeferredValue } from 'react';
 import { getClients, getBookingsForStats } from '../lib/api';
 import { useToast } from './useToast';
 import { BLOCKED_NAME, BLOCKED_PHONE, INACTIVE_DAYS } from '../lib/constants';
@@ -23,6 +23,14 @@ export function useClientsData() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDeferredValue(searchTerm);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const loadData = useCallback(async () => {
     try {
@@ -116,11 +124,13 @@ export function useClientsData() {
 
       const enriched = allEnriched;
       enriched.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      if (!mountedRef.current) return;
       setClients(enriched);
     } catch {
+      if (!mountedRef.current) return;
       showError('Erro ao carregar dados.');
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, [showError]);
 

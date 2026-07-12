@@ -9,7 +9,7 @@ import {
   getAvailableSlots,
   createBooking,
 } from '../lib/api';
-import { getLocalDateString } from '../lib/utils';
+import { getLocalDateString, formatPhone } from '../lib/utils';
 
 interface BookingEntry {
   id: string;
@@ -30,6 +30,7 @@ export default function CancelPage() {
   const initialPhone = state?.phone || '';
   const initialToken = state?.token || '';
   const [phone, setPhone] = useState(initialPhone);
+  const formattedPhone = formatPhone(phone);
   const [bookings, setBookings] = useState<BookingEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -304,8 +305,8 @@ export default function CancelPage() {
               <form onSubmit={handleSearch} className="space-y-3">
                 <input
                   type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  value={formattedPhone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                   placeholder="(00) 00000-0000"
                   className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[15px] text-white outline-none focus:border-[#C5A059] transition-all placeholder:text-zinc-600"
                   required

@@ -51,7 +51,7 @@ const Location: FC = () => {
   }
 
   return (
-    <section id="localização" className="py-16 md:py-24 bg-[#141414]">
+    <section id="localizacao" className="py-16 md:py-24 bg-[#141414]">
       <div className="container mx-auto px-6">
         <div className="flex flex-col gap-12">
           {/* Header */}

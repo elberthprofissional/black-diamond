@@ -70,6 +70,7 @@ export function useBookingSubmit(
 
   // Processa fila offline quando voltar a internet
   useEffect(() => {
+    let mounted = true;
     const processQueue = async () => {
       try {
         const queue: QueuedBooking[] = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
@@ -127,6 +128,7 @@ export function useBookingSubmit(
     };
 
     const handleOnline = () => {
+      if (!mounted) return;
       // Pequeno delay pra garantir que a conexão está estável
       setTimeout(processQueue, 2000);
     };
@@ -138,7 +140,10 @@ export function useBookingSubmit(
       processQueue();
     }
 
-    return () => window.removeEventListener('online', handleOnline);
+    return () => {
+      mounted = false;
+      window.removeEventListener('online', handleOnline);
+    };
   }, [showSuccess, showError]);
 
   const handleConfirm = useCallback(

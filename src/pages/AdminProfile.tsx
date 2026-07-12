@@ -84,7 +84,7 @@ const AdminProfile: FC = () => {
   const [resetting, setResetting] = useState(false);
   const handleLogout = useAdminLogout();
   const { isSubscribed, subscribe, unsubscribe } = usePushNotifications();
-  const { barberName, barberPhoto, refetch } = useBarberSettings();
+  const { barberName, barberPhoto } = useBarberSettings();
   const [settingsSection, setSettingsSection] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const enteredSection = useRef(false);
@@ -120,10 +120,6 @@ const AdminProfile: FC = () => {
       navigate('/admin/profile');
     }
   }, [settingsSection, navigate]);
-
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
 
   const greeting =
     new Date().getHours() < 12 ? 'Bom dia' : new Date().getHours() < 18 ? 'Boa tarde' : 'Boa noite';

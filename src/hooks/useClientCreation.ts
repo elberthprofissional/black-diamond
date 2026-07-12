@@ -100,6 +100,7 @@ export function useClientCreation(loadData: () => Promise<void>) {
     showSuccess,
     loadData,
     resetNewClientForm,
+    log,
   ]);
 
   return {

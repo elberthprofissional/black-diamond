@@ -1,6 +1,7 @@
 import { type FC } from 'react';
 import { Check, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useBarberSettings } from '../../hooks/useBarberSettings';
 
 interface SuccessStepProps {
   clientName: string;
@@ -10,6 +11,7 @@ interface SuccessStepProps {
 
 const SuccessStep: FC<SuccessStepProps> = ({ clientName, layout, isOffline = false }) => {
   const navigate = useNavigate();
+  const { barberPhone } = useBarberSettings();
 
   const title = isOffline
     ? `${clientName ? `${clientName}, seu ` : 'Seu '}agendamento foi salvo!`
@@ -65,7 +67,9 @@ const SuccessStep: FC<SuccessStepProps> = ({ clientName, layout, isOffline = fal
             Voltar ao início
           </button>
           <button
-            onClick={() => window.open('https://wa.me/', '_blank')}
+            onClick={() =>
+              window.open(barberPhone ? `https://wa.me/${barberPhone}` : 'https://wa.me/', '_blank')
+            }
             className="px-8 py-3.5 bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-white hover:bg-white/[0.06] rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2"
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">

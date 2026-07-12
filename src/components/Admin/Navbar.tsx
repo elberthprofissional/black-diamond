@@ -11,11 +11,7 @@ const AdminNavbar: FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const handleLogout = useAdminLogout();
-  const { barberName, barberPhoto, refetch } = useBarberSettings();
-
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  const { barberName, barberPhoto } = useBarberSettings();
 
   const [visible, setVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);

@@ -1,4 +1,4 @@
-import { useState, useEffect, memo, type FC } from 'react';
+import { useState, memo, type FC } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,11 +13,7 @@ const AdminSidebar: FC = memo(() => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const handleLogout = useAdminLogout();
-  const { barberName, barberPhoto, refetch } = useBarberSettings();
-
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  const { barberName, barberPhoto } = useBarberSettings();
 
   const isActive = (path: string) => location.pathname === path;
 
