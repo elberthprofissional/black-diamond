@@ -19,7 +19,7 @@ const BookingPage: FC = () => {
           selectedDate={w.selectedDate}
           selectedTime={w.selectedTime}
           userInfo={w.userInfo}
-          totalPrice={w.totalPrice}
+          totalPrice={w.finalPrice}
           isStepDisabled={w.isStepDisabled}
           isSubmitting={w.isSubmitting}
           availableSlots={w.availableSlots}
