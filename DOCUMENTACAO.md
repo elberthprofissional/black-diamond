@@ -2,7 +2,7 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, notificacoes push e integracao com WhatsApp.
 
-**Versao:** 3.20.0 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.20.2 | **Ultima atualizacao:** Julho 2026
 
 ---
 
@@ -606,7 +606,7 @@ Staging e uma COPIA do site que so o desenvolvedor acessa pra testar antes de li
 
 | Ambiente | Branch | URL | Quem usa |
 |----------|--------|-----|----------|
-| Producao | `main` | `black-diamond.vercel.app` | Clientes |
+| Producao | `main` | `black-diamond-wheat.vercel.app` | Clientes |
 | Staging | `staging` | `black-diamond-teste.vercel.app` | Desenvolvedor |
 
 ### Como funciona no dia a dia
@@ -1579,4 +1579,4 @@ Visualizacao completa do faturamento com 3 modos: diario, semanal e comparativo 
 
 ---
 
-*Documento atualizado em Julho 2026. Versao do sistema: 3.20.0*
+*Documento atualizado em Julho 2026. Versao do sistema: 3.20.2*

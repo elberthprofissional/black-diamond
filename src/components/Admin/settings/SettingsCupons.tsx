@@ -549,6 +549,8 @@ const SettingsCupons: FC = () => {
                     setValidFrom={setValidFrom}
                     validUntil={validUntil}
                     setValidUntil={setValidUntil}
+                    maxUses={maxUses}
+                    setMaxUses={setMaxUses}
                   />
                 </form>
               </motion.div>

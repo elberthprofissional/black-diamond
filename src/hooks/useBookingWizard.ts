@@ -5,10 +5,10 @@ import { useWizardStep } from './useWizardStep';
 import { useClientLookup } from './useClientLookup';
 import { useBookingSlots } from './useBookingSlots';
 import { useBookingSubmit } from './useBookingSubmit';
-import type { Service, MensalistaPlan } from '../types';
+import type { Service, MensalistaPlan, MilestoneProgress } from '../types';
 import { useServices } from './useServices';
 import { getMensalistaPlans, validateCoupon, applyCoupon } from '../lib/api';
-import { type MilestoneProgress, getClientMilestonesPublic } from '../lib/api/loyalty';
+import { getClientMilestonesPublic } from '../lib/api/loyalty';
 import { useMensalistaFilter } from './useMensalistaFilter';
 
 export function useBookingWizard(

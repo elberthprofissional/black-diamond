@@ -1,7 +1,7 @@
 <br/>
 
 <div align="center">
-  <img src="https://black-diamond.vercel.app/assets/logo.webp" alt="Black Diamond" width="140"/>
+  <img src="https://black-diamond-wheat.vercel.app/assets/logo.webp" alt="Black Diamond" width="140"/>
 
   # 💈 BLACK DIAMOND
 
@@ -30,7 +30,7 @@
   </p>
 
   <p>
-    <b>🌐 <a href="https://black-diamond.vercel.app/">black-diamond.vercel.app</a></b>
+    <b>🌐 <a href="https://black-diamond-wheat.vercel.app/">black-diamond-wheat.vercel.app</a></b>
   </p>
 
   <br/>
