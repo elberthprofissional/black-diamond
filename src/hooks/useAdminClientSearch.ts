@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getClients, getClientByPhone, getMensalistaPlans } from '../lib/api';
 import { supabase } from '../lib/supabase';
-import { formatPhone } from '../lib/utils';
+import { formatPhone, maskName, maskPhone } from '../lib/utils';
 import { useToast } from './useToast';
-import { BLOCKED_NAME } from '../lib/constants';
+import { BLOCKED_NAME, MASK_SENSITIVE_DATA } from '../lib/constants';
 import type { Client, MensalistaPlan } from '../types';
 
 /** Busca counts de no_show + limite configurado */
@@ -148,6 +148,10 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
         })
         .map((c: Client) => ({
           ...c,
+          _originalName: c.name,
+          _originalPhone: c.phone,
+          name: MASK_SENSITIVE_DATA ? maskName(c.name) : c.name,
+          phone: MASK_SENSITIVE_DATA ? maskPhone(c.phone) : c.phone,
           _isNoShowBlocked: (noShowCounts.get(c.id) || 0) >= maxNoShows,
         }));
       setFilteredClientsForModal(enrichedClients);
@@ -189,9 +193,13 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
       const isPhone = /^\+?\d[\d\s\-()]*$/.test(term);
       const matches = isPhone
         ? filteredClientsForModal.filter((c) =>
-            c.phone.replace(/\D/g, '').includes(term.replace(/\D/g, ''))
+            ((c as any)._originalPhone || c.phone)
+              .replace(/\D/g, '')
+              .includes(term.replace(/\D/g, ''))
           )
-        : filteredClientsForModal.filter((c) => c.name.toLowerCase().includes(term));
+        : filteredClientsForModal.filter((c) =>
+            ((c as any)._originalName || c.name).toLowerCase().includes(term)
+          );
 
       setIsSearchingClient(false);
 

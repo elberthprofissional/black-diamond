@@ -17,3 +17,6 @@ export const INACTIVE_DAYS = 30;
  * Ideally, each mensalista_plan defines its own included_service_ids in the DB.
  */
 export const MENSALISTA_EXCLUDED_SERVICES = ['Corte de Cabelo'];
+
+/** Set to true to hide client names/phones and admin revenue data for video recording */
+export const MASK_SENSITIVE_DATA = false;

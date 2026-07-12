@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { MASK_SENSITIVE_DATA } from './constants';
 
 interface DaySchedule {
   enabled: boolean;
@@ -147,8 +148,23 @@ export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> =>
   return generateHourlySlots(daySchedule.open, daySchedule.close);
 };
 
+export const maskPhone = (phone: string | null | undefined): string => {
+  if (!phone) return '';
+  const cleaned = phone.replace(/\D/g, '');
+  if (cleaned.length === 0) return '';
+  const sliceStart = cleaned.length >= 11 ? cleaned.length - 11 : 0;
+  const local = cleaned.slice(sliceStart);
+  if (local.length >= 2) {
+    return `(${local.slice(0, 2)}) 9****-****`;
+  }
+  return '(**) *****-****';
+};
+
 export const formatPhone = (value: string | undefined | null) => {
   if (!value) return '';
+  if (MASK_SENSITIVE_DATA) {
+    return maskPhone(value);
+  }
   const digits = value.replace(/\D/g, '');
   let d = digits;
   if (d.length > 11) d = d.slice(0, 11);
@@ -303,12 +319,36 @@ export const formatDateBR = (dateStr: string): string => {
   return dateStr.split('-').reverse().join('/');
 };
 
+export const maskName = (name: string | null | undefined): string => {
+  if (!name) return '';
+  if (name === 'BLOQUEADO') return name;
+  const parts = name.trim().split(/\s+/);
+  return parts
+    .map((part) => {
+      if (part.length <= 1) return part;
+      if (part.length === 2) return part[0] + '*';
+      return part.slice(0, 1) + '*'.repeat(part.length - 1);
+    })
+    .join(' ');
+};
+
+export const maskEmail = (email: string | null | undefined): string => {
+  if (!email) return '';
+  const [user, domain] = email.split('@');
+  if (!domain) return '***@***.com';
+  if (user.length <= 2) return `${user[0]}*@${domain}`;
+  return `${user.slice(0, 2)}***@${domain}`;
+};
+
 /**
  * Returns first name + last name only (e.g. "Felipe Silva Figueiredo" → "Felipe Figueiredo").
  * If name has 1 or 2 words, returns as-is.
  */
 export const formatDisplayName = (name: string | null | undefined): string => {
   if (!name) return '';
+  if (MASK_SENSITIVE_DATA) {
+    return maskName(name);
+  }
   const parts = name.trim().split(/\s+/);
   if (parts.length <= 2) return name.trim();
   return `${parts[0]} ${parts[parts.length - 1]}`;

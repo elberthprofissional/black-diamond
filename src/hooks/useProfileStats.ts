@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getBookings, getServices } from '../lib/api';
+import { MASK_SENSITIVE_DATA } from '../lib/constants';
 import type { Booking, Service } from '../types';
 
 export interface TopService {
@@ -99,9 +100,9 @@ function computeStats(bookings: Booking[], services: Service[]): ProfileStats {
     .slice(0, 3);
 
   return {
-    lucroTotal,
-    lucroMes,
-    lucroSemana,
+    lucroTotal: MASK_SENSITIVE_DATA ? 0 : lucroTotal,
+    lucroMes: MASK_SENSITIVE_DATA ? 0 : lucroMes,
+    lucroSemana: MASK_SENSITIVE_DATA ? 0 : lucroSemana,
     canceladosMes,
     canceladosSemana,
     concluidosMes,

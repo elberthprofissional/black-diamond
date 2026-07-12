@@ -183,7 +183,12 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                         onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                         placeholder="Código do cupom"
                         className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-[12px] text-white font-bold tracking-wider outline-none focus:border-[#C5A059]/50 transition-all placeholder:text-zinc-600 placeholder:font-normal placeholder:tracking-normal uppercase"
-                        onKeyDown={(e) => e.key === 'Enter' && handleApply()}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleApply();
+                          }
+                        }}
                       />
                       <button
                         onClick={handleApply}

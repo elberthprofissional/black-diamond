@@ -120,9 +120,11 @@ const AdminClients: FC = () => {
   };
 
   const filteredClients = c.clients.filter((cl) => {
+    const nameToSearch = (cl as any)._originalName || cl.name || '';
+    const phoneToSearch = (cl as any)._originalPhone || cl.phone || '';
     const matchSearch =
-      (cl.name || '').toLowerCase().includes(c.debouncedSearch.toLowerCase()) ||
-      (cl.phone || '').includes(c.debouncedSearch);
+      nameToSearch.toLowerCase().includes(c.debouncedSearch.toLowerCase()) ||
+      phoneToSearch.includes(c.debouncedSearch);
     let matchFilter = true;
     if (reminderFilter === 'pending') matchFilter = !r.isReminderRecent(cl.id);
     else if (reminderFilter === 'sent') matchFilter = r.isReminderRecent(cl.id);

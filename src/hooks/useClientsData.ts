@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useRef, useDeferredValue } from 'reac
 import { getClients, getBookingsForStats } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { useToast } from './useToast';
-import { BLOCKED_NAME, BLOCKED_PHONE, INACTIVE_DAYS } from '../lib/constants';
+import { BLOCKED_NAME, BLOCKED_PHONE, INACTIVE_DAYS, MASK_SENSITIVE_DATA } from '../lib/constants';
+import { maskName, maskPhone, maskEmail } from '../lib/utils';
 import type { Client, ClientWithStats } from '../types';
 
 interface ClientWithHistory extends Client {
@@ -154,9 +155,15 @@ export function useClientsData() {
 
           return {
             ...c,
+            _originalName: c.name,
+            _originalPhone: c.phone,
+            name: MASK_SENSITIVE_DATA ? maskName(c.name) : c.name,
+            phone: MASK_SENSITIVE_DATA ? maskPhone(c.phone) : c.phone,
+            email: MASK_SENSITIVE_DATA && c.email ? maskEmail(c.email) : c.email,
+            notes: MASK_SENSITIVE_DATA && c.notes ? 'Informações ocultadas para o vídeo' : c.notes,
             lastVisit: lastVisitDate ? lastVisitDate.toLocaleDateString('pt-BR') : 'Nunca',
             lastVisitDate,
-            totalSpent,
+            totalSpent: MASK_SENSITIVE_DATA ? 0 : totalSpent,
             bookingsCount,
             upcomingBooking: upcoming
               ? {

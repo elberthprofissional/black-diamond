@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getBookings, autoCompleteExpiredBookings } from '../lib/api';
+import { MASK_SENSITIVE_DATA } from '../lib/constants';
+import { maskName, maskPhone } from '../lib/utils';
 import type { BookingWithClient } from '../types';
 
 export function useBookings(date?: string) {
@@ -20,7 +22,26 @@ export function useBookings(date?: string) {
     try {
       const result = await getBookings(date);
       if (controller.signal.aborted) return;
-      setBookings((result.data || []) as BookingWithClient[]);
+      let data = (result.data || []) as BookingWithClient[];
+      if (MASK_SENSITIVE_DATA) {
+        data = data.map((b) => {
+          const clients = b.clients
+            ? {
+                name: maskName(b.clients.name),
+                phone: maskPhone(b.clients.phone),
+              }
+            : {
+                name: '',
+                phone: '',
+              };
+          return {
+            ...b,
+            clients,
+            total_price: 0,
+          };
+        });
+      }
+      setBookings(data);
 
       // Schedule autoComplete only if not already scheduled (prevents race condition)
       if (date && !autoCompleteScheduledRef.current) {

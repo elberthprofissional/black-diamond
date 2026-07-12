@@ -52,10 +52,13 @@ export default function CancelPage() {
   const [rescheduleName, setRescheduleName] = useState('');
   const [reschedulePhone, setReschedulePhone] = useState('');
 
-  // Gera dias de segunda a sexta para reagendamento (busca até ter opções suficientes)
+  // Gera apenas os dias restantes da semana atual para reagendamento (seg a sex)
   const nextDays = (() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const currentDow = today.getDay(); // 0=dom, 1=seg, ..., 6=sab
+    const lastOpenDay = 5; // Sexta (último dia útil)
+    const daysUntilEndOfWeek = Math.max(0, lastOpenDay - currentDow);
     const result: {
       fullDate: string;
       dayName: string;
@@ -63,7 +66,7 @@ export default function CancelPage() {
       isToday: boolean;
       isPast: boolean;
     }[] = [];
-    for (let i = 0; i < 21; i++) {
+    for (let i = 0; i <= daysUntilEndOfWeek; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       const dow = date.getDay();
@@ -79,7 +82,6 @@ export default function CancelPage() {
           isPast: false,
         });
       }
-      if (result.length >= 7) break;
     }
     return result;
   })();

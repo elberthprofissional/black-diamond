@@ -133,6 +133,7 @@ export function useBookingWizard(
   } | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
+  const [couponCode, setCouponCode] = useState('');
 
   // Calculate total price
   const calculatedTotalPrice = useMemo(
@@ -161,6 +162,7 @@ export function useBookingWizard(
           selectedServices.map((s) => s.id)
         );
         if (result.valid) {
+          setCouponCode(code.trim().toUpperCase());
           setCoupon({
             coupon_id: result.coupon_id!,
             code: result.code!,
@@ -169,10 +171,12 @@ export function useBookingWizard(
           });
         } else {
           setCoupon(null);
+          setCouponCode('');
           setCouponError(result.error || 'Cupom inválido.');
         }
       } catch {
         setCoupon(null);
+        setCouponCode('');
         setCouponError('Erro ao validar cupom.');
       } finally {
         setCouponLoading(false);
@@ -185,7 +189,49 @@ export function useBookingWizard(
   const handleCouponRemove = useCallback(() => {
     setCoupon(null);
     setCouponError('');
+    setCouponCode('');
   }, []);
+
+  // Re-validate coupon when services change (to recalculate discount)
+  useEffect(() => {
+    if (!couponCode || selectedServices.length === 0) return;
+
+    let cancelled = false;
+    setCouponLoading(true);
+
+    validateCoupon(
+      couponCode,
+      selectedServices.map((s) => s.id)
+    )
+      .then((result) => {
+        if (cancelled) return;
+        if (result.valid) {
+          setCoupon({
+            coupon_id: result.coupon_id!,
+            code: result.code!,
+            discount_type: result.discount_type!,
+            discount_amount: result.discount_amount!,
+          });
+        } else {
+          setCoupon(null);
+          setCouponCode('');
+          setCouponError(result.error || 'Cupom inválido para os serviços selecionados.');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setCoupon(null);
+          setCouponCode('');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setCouponLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [couponCode, selectedServices]);
 
   // Confirm with full params
   const handleConfirm = useCallback(async () => {

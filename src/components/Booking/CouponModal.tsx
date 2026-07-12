@@ -60,10 +60,14 @@ const CouponModal: FC<CouponModalProps> = ({ open, onClose, onApply, loading }) 
                 type="text"
                 placeholder="Digite o código do cupom"
                 aria-label="Código do cupom de desconto"
-                autoFocus
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                onKeyDown={(e) => e.key === 'Enter' && handleApply()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleApply();
+                  }
+                }}
                 className="w-full bg-transparent border border-white/[0.06] focus:border-[#C5A059] rounded-xl px-4 py-3 text-[13px] text-white outline-none transition-all placeholder:text-zinc-600"
               />
             </div>

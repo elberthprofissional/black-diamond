@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { Booking } from '../types';
+import { MASK_SENSITIVE_DATA } from '../lib/constants';
 
 export interface DailyRevenue {
   day: string;
@@ -158,6 +159,19 @@ export function useRevenueChartData(bookings: Booking[]): RevenueChartData {
     // Total revenue and count for the period
     const totalRevenue = completed.reduce((sum, b) => sum + Number(b.total_price || 0), 0);
     const totalCompleted = completed.length;
+
+    if (MASK_SENSITIVE_DATA) {
+      return {
+        dailyRevenue: dailyRevenue.map((d) => ({ ...d, value: 0 })),
+        weeklyRevenue: weeklyRevenue.map((d) => ({ ...d, value: 0 })),
+        monthlyRevenue: monthlyRevenue.map((d) => ({ ...d, value: 0 })),
+        monthlyComparison: monthlyComparison.map((d) => ({ ...d, value: 0 })),
+        dailyAverage: 0,
+        bestDay: null,
+        totalRevenue: 0,
+        totalCompleted,
+      };
+    }
 
     return {
       dailyRevenue,
