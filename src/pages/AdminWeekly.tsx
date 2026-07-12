@@ -18,7 +18,12 @@ import BookingDetailPanel from '../components/Admin/shared/BookingDetailPanel';
 import { SkeletonDashboard } from '../components/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 
-/** Calcula segunda-feira da semana atual, respeitando horário de fechamento de sábado */
+/**
+ * Calcula segunda-feira da semana, resetando智能mente:
+ * - Se a barbearia funciona até sábado: após fechar no sábado, mostra próxima semana
+ * - Se funciona até domingo: após fechar no domingo, mostra próxima semana
+ * - Usa a config de barberHours pra descobrir automaticamente o último dia habilitado
+ */
 function getMondayFromDate(d: Date, barberHoursJson?: string): Date {
   const date = new Date(d);
   const day = date.getDay();
@@ -26,24 +31,42 @@ function getMondayFromDate(d: Date, barberHoursJson?: string): Date {
   const minutes = date.getMinutes();
   let diff = date.getDate() - day + (day === 0 ? -6 : 1);
 
-  // Puxa horário de fechamento do sábado das configurações
-  let satClosingHour = 18;
+  // Ordem da semana: seg(1)→dom(0), pra encontrar o último dia habilitado
+  const weekOrder = [1, 2, 3, 4, 5, 6, 0];
+  let lastEnabledDay = 6; // fallback: sábado
+  let lastClosingHour = 18;
+  let lastClosingMinutes = 0;
+
   try {
     if (barberHoursJson) {
       const parsed = JSON.parse(barberHoursJson);
-      const sat = parsed['6'];
-      if (sat?.close) {
-        const [h] = sat.close.split(':').map(Number);
-        if (!isNaN(h)) satClosingHour = h;
+      for (const d of weekOrder) {
+        const config = parsed[String(d)];
+        if (config?.enabled !== false && config?.close) {
+          lastEnabledDay = d;
+          const [h, m] = config.close.split(':').map(Number);
+          if (!isNaN(h)) lastClosingHour = h;
+          if (!isNaN(m)) lastClosingMinutes = m;
+        }
       }
     }
   } catch {
-    // fallback
+    // fallback: sábado às 18
   }
 
-  if (day === 6 && (hour > satClosingHour || (hour === satClosingHour && minutes > 0))) {
+  const lastDayPos = weekOrder.indexOf(lastEnabledDay);
+  const currentDayPos = weekOrder.indexOf(day);
+
+  const isPastClosing =
+    day === lastEnabledDay &&
+    (hour > lastClosingHour || (hour === lastClosingHour && minutes > lastClosingMinutes));
+
+  const isAfterLastDay = currentDayPos > lastDayPos;
+
+  if (isAfterLastDay || isPastClosing) {
     diff += 7;
   }
+
   return new Date(date.setDate(diff));
 }
 
