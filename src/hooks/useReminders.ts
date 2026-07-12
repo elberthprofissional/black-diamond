@@ -193,7 +193,7 @@ export function useReminders() {
       const siteUrl = window.location.origin + '/agendar';
       const defaults = getSeasonalTemplates(siteUrl);
       const now = new Date().toISOString();
-      const created: LocalTemplate[] = defaults.map((t, i) => ({
+      const created: LocalTemplate[] = defaults.map((t) => ({
         id: generateId(),
         key: 'reminder',
         name: t.name,
