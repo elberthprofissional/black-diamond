@@ -168,15 +168,6 @@ const DataStep: FC<DataStepProps> = memo(
               )}
               {couponError && <p className="text-[10px] text-red-400 mt-1.5">{couponError}</p>}
             </div>
-
-            {/* Helper */}
-            <div className="pt-4">
-              <p className="text-[12px] text-zinc-500">
-                {isMensalista
-                  ? 'Seus dados já estão salvos. Confirme para continuar.'
-                  : 'Seus dados ficam salvos para próximos agendamentos.'}
-              </p>
-            </div>
           </div>
 
           <CouponModal
