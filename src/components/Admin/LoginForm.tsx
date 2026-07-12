@@ -48,10 +48,10 @@ export default function LoginForm({
             className="block text-[10px] lg:text-xs font-medium uppercase tracking-widest text-zinc-500"
           >
             E-mail
-          </label>
-          <input
+          </label>            <input
             id="login-email"
             type="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => onEmailChange(e.target.value)}
             placeholder="seu@email.com"
@@ -73,6 +73,7 @@ export default function LoginForm({
             <input
               id="login-password"
               type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
               value={password}
               onChange={(e) => onPasswordChange(e.target.value)}
               placeholder="Sua senha"

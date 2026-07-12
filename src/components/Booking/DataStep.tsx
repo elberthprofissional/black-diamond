@@ -173,6 +173,7 @@ const DataStep: FC<DataStepProps> = memo(
                     id="coupon-input-desktop"
                     type="text"
                     placeholder="Código do cupom"
+                    aria-label="Código do cupom de desconto"
                     value={couponInput}
                     onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                     onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
@@ -323,6 +324,7 @@ const DataStep: FC<DataStepProps> = memo(
                     id="coupon-input-mobile"
                     type="text"
                     placeholder="Código do cupom"
+                    aria-label="Código do cupom de desconto"
                     value={couponInput}
                     onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                     onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
