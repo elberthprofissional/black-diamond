@@ -122,7 +122,7 @@ export function useClientPanel(
       setIsDeleting(false);
       setIsDeleteOpen(false);
     }
-  }, [selectedClient, closePanel, showSuccess, showError, setClients]);
+  }, [selectedClient, closePanel, showSuccess, showError, setClients, log]);
 
   const [expiresAt, setExpiresAt] = useState<string>('');
 

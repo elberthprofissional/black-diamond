@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, type FC, type MouseEvent } from 'react';
+import { useState, useEffect, useMemo, useCallback, type FC, type MouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getLocalDateString, formatDisplayName } from '../lib/utils';
 import { getAvailableSlots } from '../lib/api';
@@ -22,7 +22,7 @@ const AdminWeekly: FC = () => {
   const { bookings, loading, refetch: loadData } = useBookings();
   const mgmt = useBookingManagement(loadData);
   const navigate = useNavigate();
-  const today = new Date();
+  const today = useMemo(() => new Date(), []);
 
   const getMonday = (d: Date) => {
     const date = new Date(d);
@@ -59,17 +59,22 @@ const AdminWeekly: FC = () => {
   }, [barberHours]);
 
   // Filtra só os dias habilitados
-  const visibleWeekDays = weekDays.filter((d) => {
-    if (!enabledDays) return true;
-    return enabledDays[d.getDay()] !== false;
-  });
+  const visibleWeekDays = useMemo(
+    () =>
+      weekDays.filter((d) => {
+        if (!enabledDays) return true;
+        return enabledDays[d.getDay()] !== false;
+      }),
+    [weekDays, enabledDays]
+  );
 
-  const [selectedVisibleIndex, setSelectedVisibleIndex] = useState(() => {
-    // Tenta selecionar hoje; se estiver desabilitado, pega o primeiro dia habilitado
-    const todayStr = today.toDateString();
+  const getInitialDayIndex = useCallback(() => {
+    const todayStr = new Date().toDateString();
     const idx = visibleWeekDays.findIndex((d) => d.toDateString() === todayStr);
     return idx >= 0 ? idx : 0;
-  });
+  }, [visibleWeekDays]);
+
+  const [selectedVisibleIndex, setSelectedVisibleIndex] = useState(getInitialDayIndex);
 
   const [allSlots, setAllSlots] = useState<string[]>([]);
 
@@ -112,7 +117,7 @@ const AdminWeekly: FC = () => {
       const todayIdx = visibleWeekDays.findIndex((d) => d.toDateString() === todayStr);
       setSelectedVisibleIndex(todayIdx >= 0 ? todayIdx : 0);
     }
-  }, [visibleWeekDays.length, selectedVisibleIndex]);
+  }, [visibleWeekDays, visibleWeekDays.length, selectedVisibleIndex, today]);
 
   useEffect(() => {
     let active = true;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type FC } from 'react';
+import { useState, useEffect, useRef, useCallback, type FC } from 'react';
 import {
   getCoupons,
   createCoupon,
@@ -36,7 +36,7 @@ const SettingsCupons: FC = () => {
   const [discountValue, setDiscountValue] = useState('');
   const [applicableServiceIds, setApplicableServiceIds] = useState<string[]>([]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [couponsData, servicesData] = await Promise.all([getCoupons(), getServices()]);
       setCoupons(couponsData);
@@ -46,11 +46,11 @@ const SettingsCupons: FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   useEffect(() => {
     if ((screen === 'add' || screen === 'edit') && codeInputRef.current) {

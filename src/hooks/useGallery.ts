@@ -86,7 +86,7 @@ export function useGallery() {
       setShowMoveModal(false);
       preview.setPreviewImage(null);
     },
-    [preview, images, showSuccess, setImages]
+    [preview, images, showSuccess, showError, setImages]
   );
 
   return {

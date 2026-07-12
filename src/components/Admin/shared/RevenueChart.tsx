@@ -17,12 +17,24 @@ interface RevenueChartProps {
   data: RevenueChartData;
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface TooltipPayloadEntry {
+  value: number;
+  name: string;
+  color: string;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-[#1A1A1A] border border-white/[0.06] rounded-xl px-4 py-3 shadow-2xl shadow-black/50">
       <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">{label}</p>
-      {payload.map((entry: any, idx: number) => (
+      {payload.map((entry: TooltipPayloadEntry, idx: number) => (
         <div key={idx} className="flex items-center gap-2 text-[12px]">
           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
           <span className="text-zinc-300">{entry.name}:</span>
