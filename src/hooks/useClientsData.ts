@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useDeferredValue } from 'react';
 import { getClients, getBookingsForStats } from '../lib/api';
+import { supabase } from '../lib/supabase';
 import { useToast } from './useToast';
 import { BLOCKED_NAME, BLOCKED_PHONE, INACTIVE_DAYS } from '../lib/constants';
 import type { Client, ClientWithStats } from '../types';
@@ -15,6 +16,46 @@ function daysSince(dateStr: string): number {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
   return Math.floor((now.getTime() - d.getTime()) / 86400000);
+}
+
+/** Busca counts de no_show por client_id nos últimos 90 dias */
+async function getNoShowCounts(): Promise<Map<string, number>> {
+  try {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 90);
+    const cutoffStr = cutoff.toISOString().split('T')[0];
+
+    const { data } = await supabase
+      .from('bookings')
+      .select('client_id')
+      .eq('no_show', true)
+      .gte('booking_date', cutoffStr);
+
+    const map = new Map<string, number>();
+    if (!data) return map;
+    for (const row of data) {
+      if (row.client_id) {
+        map.set(row.client_id, (map.get(row.client_id) || 0) + 1);
+      }
+    }
+    return map;
+  } catch {
+    return new Map();
+  }
+}
+
+/** Busca o limite máximo de faltas configurado */
+async function getMaxNoShowsSetting(): Promise<number> {
+  try {
+    const { data } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'max_no_shows')
+      .maybeSingle();
+    return data?.value ? parseInt(data.value, 10) : 3;
+  } catch {
+    return 3;
+  }
 }
 
 export function useClientsData() {
@@ -34,7 +75,12 @@ export function useClientsData() {
 
   const loadData = useCallback(async () => {
     try {
-      const [clientsData, bookingsData] = await Promise.all([getClients(), getBookingsForStats()]);
+      const [clientsData, bookingsData, noShowCounts, maxNoShows] = await Promise.all([
+        getClients(),
+        getBookingsForStats(),
+        getNoShowCounts(),
+        getMaxNoShowsSetting(),
+      ]);
       const todayISO = new Date();
       todayISO.setHours(0, 0, 0, 0);
 
@@ -103,6 +149,9 @@ export function useClientsData() {
             ? daysSince(lastVisitDate.toISOString().slice(0, 10)) > INACTIVE_DAYS
             : bookingsCount === 0;
 
+          const noShowCount = noShowCounts.get(c.id) || 0;
+          const isNoShowBlocked = noShowCount >= maxNoShows;
+
           return {
             ...c,
             lastVisit: lastVisitDate ? lastVisitDate.toLocaleDateString('pt-BR') : 'Nunca',
@@ -119,6 +168,7 @@ export function useClientsData() {
                 }
               : null,
             isInactive,
+            isNoShowBlocked,
           };
         });
 

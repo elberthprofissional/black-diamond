@@ -41,7 +41,8 @@ describe('ServiceStep', () => {
   it('mostra servico selecionado com estilo diferente', () => {
     render(<ServiceStep {...defaultProps} selectedServices={[mockServices[0]]} />);
     const serviceButton = screen.getByText('Corte de Cabelo').closest('button');
-    expect(serviceButton).toHaveClass('bg-[#C5A059]/[0.06]');
+    expect(serviceButton).toHaveAttribute('data-selected', 'true');
+    expect(serviceButton).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('renderiza no mobile', () => {

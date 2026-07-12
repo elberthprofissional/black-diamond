@@ -52,6 +52,7 @@ export interface Client {
   historical_spent?: number;
   last_visit_date?: string;
   created_at: string;
+  _isNoShowBlocked?: boolean;
 }
 
 export interface ClientWithStats extends Client {
@@ -61,6 +62,7 @@ export interface ClientWithStats extends Client {
   bookingsCount: number;
   upcomingBooking?: { date: string; time: string } | null;
   isInactive: boolean;
+  isNoShowBlocked?: boolean;
 }
 
 export interface MensalistaPlan {
@@ -121,4 +123,14 @@ export interface CouponValidation {
   discount_amount?: number;
   original_price?: number;
   error?: string;
+}
+
+export interface Testimonial {
+  id: string;
+  name: string;
+  rating: number;
+  text: string;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
 }

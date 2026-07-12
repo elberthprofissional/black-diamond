@@ -13,6 +13,7 @@ import {
   UserX,
   Gift,
   Tag,
+  MessageSquare,
 } from 'lucide-react';
 
 interface SettingsListProps {
@@ -37,6 +38,7 @@ const groups = [
       { id: 'faltas', label: 'Controle de Faltas', icon: UserX, danger: false },
       { id: 'fidelidade', label: 'Fidelidade', icon: Gift, danger: false },
       { id: 'cupons', label: 'Cupons', icon: Tag, danger: false },
+      { id: 'depoimentos', label: 'Depoimentos', icon: MessageSquare, danger: false },
       { id: 'galeria', label: 'Galeria', icon: ImageIcon, danger: false },
     ],
   },

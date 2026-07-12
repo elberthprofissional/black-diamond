@@ -207,7 +207,7 @@ async function syncOfflineBookings() {
 
 // Push notifications
 self.addEventListener('push', async (e) => {
-  let data = { title: 'Black Diamond', body: 'Nova notificao', icon: '/assets/logo.webp' };
+  let data = { title: 'Black Diamond', body: 'Nova notificação', icon: '/assets/logo.webp' };
   if (e.data) {
     try {
       const text = await e.data.text();

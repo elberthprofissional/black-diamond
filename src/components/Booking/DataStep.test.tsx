@@ -48,7 +48,7 @@ describe('DataStep', () => {
 
   it('mostra erro quando telefone invalido', () => {
     render(<DataStep {...defaultProps} phone="123" />);
-    expect(screen.getByText('Informe um WhatsApp válido com DDD')).toBeInTheDocument();
+    expect(screen.getByText('Informe DDD + número (mín. 10 dígitos)')).toBeInTheDocument();
   });
 
   it('mostra badge de mensalista', () => {

@@ -8,6 +8,7 @@ import { useBookingSubmit } from './useBookingSubmit';
 import type { Service, MensalistaPlan } from '../types';
 import { useServices } from './useServices';
 import { getMensalistaPlans, validateCoupon, applyCoupon } from '../lib/api';
+import { type MilestoneProgress, getClientMilestonesPublic } from '../lib/api/loyalty';
 import { useMensalistaFilter } from './useMensalistaFilter';
 
 export function useBookingWizard(
@@ -44,10 +45,28 @@ export function useBookingWizard(
   const handleNameFound = useCallback((name: string) => {
     setUserInfo((prev) => ({ ...prev, name }));
   }, []);
-  const { isMensalista, mensalistaPlanId, clientLookupLoading, lastBooking } = useClientLookup(
-    userInfo.phone,
-    handleNameFound
-  );
+  const { isMensalista, mensalistaPlanId, clientLookupLoading, clientId, lastBooking } =
+    useClientLookup(userInfo.phone, handleNameFound);
+
+  // Milestone progress for loyalty banner
+  const [milestoneProgress, setMilestoneProgress] = useState<MilestoneProgress[]>([]);
+  useEffect(() => {
+    if (clientId) {
+      getClientMilestonesPublic(clientId)
+        .then(setMilestoneProgress)
+        .catch(() => setMilestoneProgress([]));
+    } else {
+      setMilestoneProgress([]);
+    }
+  }, [clientId]);
+
+  // Find next milestone for customer-facing message
+  const nextMilestone = useMemo(() => {
+    if (!milestoneProgress || milestoneProgress.length === 0) return null;
+    const unclaimed = milestoneProgress.filter((m) => !m.already_claimed);
+    if (unclaimed.length === 0) return null;
+    return unclaimed[0];
+  }, [milestoneProgress]);
 
   // Apply last booking services
   const applyLastBooking = useCallback(() => {
@@ -269,5 +288,6 @@ export function useBookingWizard(
     onCouponValidate: handleCouponValidate,
     onCouponRemove: handleCouponRemove,
     originalPrice: calculatedTotalPrice,
+    nextMilestone,
   };
 }

@@ -51,6 +51,7 @@ export {
   claimMilestone,
   incrementVisit,
   getClaimedCount,
+  getClientMilestonesPublic,
 } from './loyalty';
 export {
   getCoupons,
@@ -60,3 +61,12 @@ export {
   validateCoupon,
   applyCoupon,
 } from './coupons';
+export {
+  getTestimonials,
+  getAllTestimonials,
+  createTestimonial,
+  updateTestimonial,
+  deleteTestimonial,
+  countTestimonials,
+  MAX_TESTIMONIALS,
+} from './testimonials';

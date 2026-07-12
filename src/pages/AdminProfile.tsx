@@ -46,6 +46,7 @@ import SettingsMensalista from '../components/Admin/settings/SettingsMensalista'
 import SettingsFaltas from '../components/Admin/settings/SettingsFaltas';
 import SettingsFidelidade from '../components/Admin/settings/SettingsFidelidade';
 import SettingsCupons from '../components/Admin/settings/SettingsCupons';
+import SettingsDepoimentos from '../components/Admin/settings/SettingsDepoimentos';
 import HelpModal from '../components/Admin/settings/HelpModal';
 import { SkeletonDashboard } from '../components/Skeleton';
 import { usePwaInstall } from '../hooks/usePwaInstall';
@@ -283,6 +284,7 @@ const AdminProfile: FC = () => {
             {settingsSection === 'faltas' && <SettingsFaltas />}
             {settingsSection === 'fidelidade' && <SettingsFidelidade />}
             {settingsSection === 'cupons' && <SettingsCupons />}
+            {settingsSection === 'depoimentos' && <SettingsDepoimentos />}
             {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
             {settingsSection === 'dados' && <SettingsDados />}
           </div>
@@ -344,6 +346,7 @@ const AdminProfile: FC = () => {
                   {settingsSection === 'faltas' && <SettingsFaltas />}
                   {settingsSection === 'fidelidade' && <SettingsFidelidade />}
                   {settingsSection === 'cupons' && <SettingsCupons />}
+                  {settingsSection === 'depoimentos' && <SettingsDepoimentos />}
                   {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
                   {settingsSection === 'dados' && <SettingsDados />}
                 </motion.div>

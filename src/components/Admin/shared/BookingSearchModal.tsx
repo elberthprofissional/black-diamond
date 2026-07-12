@@ -98,7 +98,7 @@ const BookingSearchModal: FC<BookingSearchModalProps> = ({
               <input
                 type="text"
                 id="booking-search"
-                placeholder="Digite o nome ou numero..."
+                placeholder="Digite o nome ou número..."
                 aria-label="Buscar cliente por nome ou WhatsApp"
                 autoFocus
                 className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[14px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#C5A059]/50 focus:bg-white/[0.05]"
@@ -132,7 +132,25 @@ const BookingSearchModal: FC<BookingSearchModalProps> = ({
                         <span className="text-[13px] font-bold">{initial}</span>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[13px] font-semibold text-white truncate">{c.name}</p>
+                        <p className="text-[13px] font-semibold text-white truncate flex items-center gap-1.5">
+                          {c.name}
+                          {(c as Client & { _isNoShowBlocked?: boolean })._isNoShowBlocked && (
+                            <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 font-bold uppercase tracking-wider shrink-0 flex items-center gap-1">
+                              <svg
+                                width="8"
+                                height="8"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="3"
+                              >
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                              </svg>
+                              Bloqueado
+                            </span>
+                          )}
+                        </p>
                         <p className="text-[11px] text-zinc-500">{formatPhone(c.phone)}</p>
                       </div>
                       <ChevronRight

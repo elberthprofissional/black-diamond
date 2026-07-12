@@ -7,11 +7,40 @@ interface SuccessStepProps {
   clientName: string;
   layout: 'desktop' | 'mobile';
   isOffline?: boolean;
+  nextMilestone?: {
+    milestone: { visits_required: number; reward_service_id: string };
+    progress: number;
+    already_claimed: boolean;
+  } | null;
 }
 
-const SuccessStep: FC<SuccessStepProps> = ({ clientName, layout, isOffline = false }) => {
+const SuccessStep: FC<SuccessStepProps> = ({
+  clientName,
+  layout,
+  isOffline = false,
+  nextMilestone,
+}) => {
   const navigate = useNavigate();
   const { barberPhone } = useBarberSettings();
+
+  // Calcular progresso pra fidelidade
+  const MAX_VISUAL_BARS = 10;
+  const loyaltyBanner =
+    nextMilestone && !nextMilestone.already_claimed
+      ? (() => {
+          const remaining = nextMilestone.milestone.visits_required - nextMilestone.progress;
+          if (remaining <= 0) return null;
+          const total = nextMilestone.milestone.visits_required;
+          const progress = Math.min(nextMilestone.progress, total);
+          return {
+            text: `Faltam ${remaining} ${remaining === 1 ? 'visita' : 'visitas'} para você ganhar um prêmio! 🎁`,
+            progress,
+            total,
+            bars: Math.min(total, MAX_VISUAL_BARS),
+            hasMore: total > MAX_VISUAL_BARS,
+          };
+        })()
+      : null;
 
   const title = isOffline
     ? `${clientName ? `${clientName}, seu ` : 'Seu '}agendamento foi salvo!`
@@ -55,6 +84,44 @@ const SuccessStep: FC<SuccessStepProps> = ({ clientName, layout, isOffline = fal
 
         <h2 className="text-3xl font-bold text-white mb-3 tracking-tight">{title}</h2>
         <p className="text-base text-zinc-500 mb-10 leading-relaxed">{subtitle}</p>
+
+        {/* Loyalty banner */}
+        {loyaltyBanner && (
+          <div className="mb-8 w-full bg-gradient-to-r from-[#C5A059]/[0.08] to-transparent border border-[#C5A059]/15 rounded-xl p-4">
+            <div className="flex items-center gap-3 mb-2">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#C5A059"
+                strokeWidth="2"
+              >
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+              <p className="text-[11px] text-zinc-300 font-medium">{loyaltyBanner.text}</p>
+            </div>
+            {/* Progress bar */}
+            <div className="flex gap-1 items-center">
+              {Array.from({ length: loyaltyBanner.bars }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`flex-1 h-1.5 rounded-full transition-all ${
+                    i <
+                    Math.round((loyaltyBanner.progress / loyaltyBanner.total) * loyaltyBanner.bars)
+                      ? 'bg-[#C5A059] shadow-[0_0_6px_rgba(197,160,89,0.4)]'
+                      : 'bg-white/[0.06]'
+                  }`}
+                />
+              ))}
+              {loyaltyBanner.hasMore && (
+                <span className="text-[8px] text-zinc-600 ml-1">
+                  +{loyaltyBanner.total - MAX_VISUAL_BARS}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Gold divider */}
         <div className="w-12 h-[2px] bg-[#C5A059]/30 rounded-full mb-10" />
@@ -117,13 +184,47 @@ const SuccessStep: FC<SuccessStepProps> = ({ clientName, layout, isOffline = fal
           ) : (
             <Check size={32} className="text-[#C5A059]" />
           )}
-        </div>
-
+        </div>{' '}
+        {/* Loyalty banner - Mobile */}
+        {loyaltyBanner && (
+          <div className="w-full bg-gradient-to-r from-[#C5A059]/[0.08] to-transparent border border-[#C5A059]/15 rounded-xl p-3">
+            <div className="flex items-center gap-2 mb-1.5">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#C5A059"
+                strokeWidth="2"
+              >
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+              <p className="text-[10px] text-zinc-300 font-medium">{loyaltyBanner.text}</p>
+            </div>
+            <div className="flex gap-1 items-center">
+              {Array.from({ length: loyaltyBanner.bars }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`flex-1 h-1.5 rounded-full transition-all ${
+                    i <
+                    Math.round((loyaltyBanner.progress / loyaltyBanner.total) * loyaltyBanner.bars)
+                      ? 'bg-[#C5A059] shadow-[0_0_6px_rgba(197,160,89,0.4)]'
+                      : 'bg-white/[0.06]'
+                  }`}
+                />
+              ))}
+              {loyaltyBanner.hasMore && (
+                <span className="text-[8px] text-zinc-600 ml-1">
+                  +{loyaltyBanner.total - MAX_VISUAL_BARS}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
         <div className="space-y-3">
           <h2 className="text-2xl font-bold text-white">{title}</h2>
           <p className="text-sm text-zinc-500">{subtitle}</p>
         </div>
-
         <button
           onClick={() => navigate('/')}
           className="px-6 py-3 bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-white rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer mt-4"

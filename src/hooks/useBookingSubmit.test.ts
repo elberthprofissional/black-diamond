@@ -61,7 +61,7 @@ describe('useBookingSubmit', () => {
     expect(showError).not.toHaveBeenCalled();
   });
 
-  it('retorna null quando offline', async () => {
+  it('salva na fila offline e retorna sucesso', async () => {
     Object.defineProperty(navigator, 'onLine', { value: false });
 
     const showError = vi.fn();
@@ -77,8 +77,8 @@ describe('useBookingSubmit', () => {
       isMensalista: false,
     });
 
-    expect(response).toBeNull();
-    expect(showError).toHaveBeenCalledWith(expect.stringContaining('sem conexão'));
+    expect(response).toEqual({ token: '', manageUrl: '', queued: true });
+    expect(onComplete).toHaveBeenCalled();
   });
 
   it('bloqueia quando rate limit ativo', async () => {

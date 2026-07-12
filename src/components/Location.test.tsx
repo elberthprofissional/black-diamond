@@ -53,13 +53,13 @@ describe('Location', () => {
     expect(links[0]).toHaveAttribute('href', 'https://maps.app.goo.gl/Gz453umZQtWGYcvV8');
   });
 
-  it('tem secao com id=localização para navegacao', () => {
+  it('tem secao com id=localizacao para navegacao', () => {
     render(
       <BarberSettingsProvider>
         <Location />
       </BarberSettingsProvider>
     );
-    const section = document.getElementById('localização');
+    const section = document.getElementById('localizacao');
     expect(section).toBeInTheDocument();
   });
 });

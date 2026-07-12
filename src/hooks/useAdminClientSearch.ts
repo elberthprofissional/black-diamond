@@ -1,9 +1,44 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getClients, getClientByPhone, getMensalistaPlans } from '../lib/api';
+import { supabase } from '../lib/supabase';
 import { formatPhone } from '../lib/utils';
 import { useToast } from './useToast';
 import { BLOCKED_NAME } from '../lib/constants';
 import type { Client, MensalistaPlan } from '../types';
+
+/** Busca counts de no_show + limite configurado */
+async function getNoShowBlockedInfo(): Promise<{
+  noShowCounts: Map<string, number>;
+  maxNoShows: number;
+}> {
+  try {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 90);
+    const cutoffStr = cutoff.toISOString().split('T')[0];
+
+    const [bookingsRes, settingsRes] = await Promise.all([
+      supabase
+        .from('bookings')
+        .select('client_id')
+        .eq('no_show', true)
+        .gte('booking_date', cutoffStr),
+      supabase.from('settings').select('value').eq('key', 'max_no_shows').maybeSingle(),
+    ]);
+
+    const maxNoShows = settingsRes.data?.value ? parseInt(settingsRes.data.value, 10) : 3;
+    const noShowCounts = new Map<string, number>();
+    if (bookingsRes.data) {
+      for (const row of bookingsRes.data) {
+        if (row.client_id) {
+          noShowCounts.set(row.client_id, (noShowCounts.get(row.client_id) || 0) + 1);
+        }
+      }
+    }
+    return { noShowCounts, maxNoShows };
+  } catch {
+    return { noShowCounts: new Map(), maxNoShows: 3 };
+  }
+}
 
 interface UseAdminClientSearchReturn {
   searchQuery: string;
@@ -75,9 +110,12 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
                 ? allPlans.find((p) => p.id === client.mensalista_plan_id) || null
                 : null
             );
-            if (client.name && !newClient.name) {
-              setNewClient((prev) => ({ ...prev, name: client.name }));
-            }
+            setNewClient((prev) => {
+              if (client.name && !prev.name) {
+                return { ...prev, name: client.name };
+              }
+              return prev;
+            });
           } else {
             setIsMensalista(false);
             setCurrentPlan(null);
@@ -97,13 +135,21 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
     };
   }, [newClient.phone, isManualEntry, allPlans, isMensalista]);
 
-  // Load clients for modal
+  // Load clients for modal (com status de bloqueio por falta)
   const loadClients = useCallback(async () => {
     try {
-      const clientsData = await getClients();
-      const enrichedClients = clientsData.filter((c: Client) => {
-        return c && c.name && !c.deleted_at && c.name !== BLOCKED_NAME && !c.is_blocked;
-      });
+      const [clientsData, { noShowCounts, maxNoShows }] = await Promise.all([
+        getClients(),
+        getNoShowBlockedInfo(),
+      ]);
+      const enrichedClients = clientsData
+        .filter((c: Client) => {
+          return c && c.name && !c.deleted_at && c.name !== BLOCKED_NAME && !c.is_blocked;
+        })
+        .map((c: Client) => ({
+          ...c,
+          _isNoShowBlocked: (noShowCounts.get(c.id) || 0) >= maxNoShows,
+        }));
       setFilteredClientsForModal(enrichedClients);
       return enrichedClients;
     } catch {

@@ -1,6 +1,7 @@
 import { type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatPhone } from '../../../lib/utils';
+import { useModalA11y } from '../../../hooks/useModalA11y';
 
 interface EditClientModalProps {
   isOpen: boolean;
@@ -23,6 +24,8 @@ const EditClientModal: FC<EditClientModalProps> = ({
   onSave,
   onCancel,
 }) => {
+  const { dialogRef } = useModalA11y(isOpen, onCancel);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -35,6 +38,7 @@ const EditClientModal: FC<EditClientModalProps> = ({
             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
           />
           <motion.div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-label="Editar cliente"

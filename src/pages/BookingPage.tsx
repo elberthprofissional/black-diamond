@@ -50,6 +50,7 @@ const BookingPage: FC = () => {
           originalPrice={w.originalPrice}
           onCouponValidate={w.onCouponValidate}
           onCouponRemove={w.onCouponRemove}
+          nextMilestone={w.nextMilestone}
         />
       </main>
 

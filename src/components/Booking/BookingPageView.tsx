@@ -49,6 +49,11 @@ interface BookingPageViewProps {
   lastBooking?: { serviceIds: string[]; totalPrice: number } | null;
   onApplyLastBooking?: () => void;
   isOfflineBooking?: boolean;
+  nextMilestone?: {
+    milestone: { visits_required: number; reward_service_id: string };
+    progress: number;
+    already_claimed: boolean;
+  } | null;
   coupon?: {
     coupon_id: string;
     code: string;
@@ -97,6 +102,7 @@ const BookingPageView: FC<BookingPageViewProps> = ({
   lastBooking,
   onApplyLastBooking,
   isOfflineBooking = false,
+  nextMilestone,
   coupon,
   couponLoading,
   couponError,
@@ -409,6 +415,7 @@ const BookingPageView: FC<BookingPageViewProps> = ({
                   clientName={userInfo.name}
                   layout="desktop"
                   isOffline={isOfflineBooking}
+                  nextMilestone={nextMilestone}
                 />
               </motion.div>
             )}
@@ -530,7 +537,12 @@ const BookingPageView: FC<BookingPageViewProps> = ({
         )}
 
         {step === 5 && (
-          <SuccessStep clientName={userInfo.name} layout="mobile" isOffline={isOfflineBooking} />
+          <SuccessStep
+            clientName={userInfo.name}
+            layout="mobile"
+            isOffline={isOfflineBooking}
+            nextMilestone={nextMilestone}
+          />
         )}
       </div>
     </>

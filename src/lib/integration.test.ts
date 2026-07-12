@@ -72,6 +72,8 @@ describe('Fluxo completo de agendamento', () => {
       p_hora: '09:00',
       p_preco_total: 62,
       p_duracao_total: 60,
+      p_coupon_id: null,
+      p_discount_amount: 0,
     });
     expect(result).toBeDefined();
     expect(Array.isArray(result)).toBe(true);

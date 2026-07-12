@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { getClientByPhone, getLastBookingByPhone } from '../lib/api';
 
 /**
@@ -10,6 +10,7 @@ export function useClientLookup(phone: string, onNameFound?: (name: string) => v
   const [isMensalista, setIsMensalista] = useState(false);
   const [mensalistaPlanId, setMensalistaPlanId] = useState<string | null>(null);
   const [clientLookupLoading, setClientLookupLoading] = useState(false);
+  const [clientId, setClientId] = useState<string | null>(null);
   const [lastBooking, setLastBooking] = useState<{
     serviceIds: string[];
     totalPrice: number;
@@ -40,6 +41,7 @@ export function useClientLookup(phone: string, onNameFound?: (name: string) => v
           if (cancelled) return;
           setIsMensalista(!!client?.is_mensalista);
           setMensalistaPlanId(client?.mensalista_plan_id || null);
+          setClientId(client?.id || null);
           if (lastBooking) {
             setLastBooking({
               serviceIds: lastBooking.service_ids,
@@ -72,5 +74,17 @@ export function useClientLookup(phone: string, onNameFound?: (name: string) => v
     };
   }, [phone, onNameFound]);
 
-  return { isMensalista, mensalistaPlanId, clientLookupLoading, lastBooking };
+  const resetMensalista = useCallback(() => {
+    setIsMensalista(false);
+    setMensalistaPlanId(null);
+  }, []);
+
+  return {
+    isMensalista,
+    mensalistaPlanId,
+    clientLookupLoading,
+    clientId,
+    lastBooking,
+    resetMensalista,
+  };
 }

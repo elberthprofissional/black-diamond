@@ -184,11 +184,11 @@ const Footer: FC = () => {
           </p>
 
           <a
-            href="https://wa.me/5531980159559"
+            href="https://elberth-dev.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-[8px] md:text-[9px] font-roboto font-light text-zinc-500 hover:text-zinc-400 uppercase tracking-[0.3em] transition-colors"
-            aria-label="Criado por Elberth Mayan"
+            aria-label="Portfólio de Elberth Mayan"
           >
             Criado por Elberth Mayan
           </a>

@@ -17,6 +17,8 @@ const Hero: FC<HeroProps> = ({ onBookingClick }) => {
           <img
             src="/assets/hero-bg.webp"
             alt="Black Diamond"
+            width={1920}
+            height={1080}
             loading="eager"
             fetchPriority="high"
             decoding="async"

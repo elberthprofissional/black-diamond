@@ -48,7 +48,7 @@ export const setLoyaltyEnabled = async (enabled: boolean): Promise<void> => {
 
 /* ─── Progresso do cliente ─── */
 
-/** Retorna o progresso do cliente em todas as milestones. */
+/** Retorna o progresso do cliente em todas as milestones (uso admin — consulta direta). */
 export const getClientMilestones = async (clientId: string): Promise<MilestoneProgress[]> => {
   // Busca milestones ativas
   const { data: milestones, error: mErr } = await supabase
@@ -90,6 +90,22 @@ export const claimMilestone = async (clientId: string, milestoneId: string): Pro
   if (error) {
     if (error.code === '23505') return; // unique violation — já resgatou
     throw error;
+  }
+};
+
+/* ─── Versão pública (usa RPC com SECURITY DEFINER) ─── */
+
+/** Retorna o progresso do cliente via RPC pública (para fluxo de agendamento). */
+export const getClientMilestonesPublic = async (clientId: string): Promise<MilestoneProgress[]> => {
+  try {
+    const { data, error } = await supabase.rpc('get_client_milestones_public', {
+      p_client_id: clientId,
+    });
+    if (error) throw error;
+    if (!data) return [];
+    return data as MilestoneProgress[];
+  } catch {
+    return [];
   }
 };
 

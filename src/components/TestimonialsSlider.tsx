@@ -1,50 +1,23 @@
 import { useRef, useCallback, useState, type FC, type MouseEvent } from 'react';
 import { User, Star } from 'lucide-react';
-
-interface Review {
-  name: string;
-  rating: number;
-  text: string;
-}
-
-const REVIEWS: Review[] = [
-  {
-    name: 'YP TATTOO',
-    rating: 5,
-    text: 'Barbearia super confortável, ambiente agradável, profissional qualificado e atencioso.',
-  },
-  { name: 'HELBERT HENRIQUE', rating: 5, text: 'Venezuelano mais fera de BH!! Tem o macete.' },
-  {
-    name: 'MAIA STUDIO',
-    rating: 5,
-    text: 'Único profissional que conseguiu cortar o cabelo do meu filho com paciência e excelência.',
-  },
-  {
-    name: 'GIOVANNA CARDOSO',
-    rating: 5,
-    text: 'Profissional agradável, super atencioso, trabalho impecável e corte perfeito. Super recomendo!',
-  },
-  {
-    name: 'GUILHERME HENRIQUE',
-    rating: 5,
-    text: 'Ótimo profissional, lugar aconchegante e trabalho impecável!',
-  },
-  { name: 'MATHEUS', rating: 5, text: 'Tato é bom demais, cara sabe como cuidar de um cabelo.' },
-];
+import { useTestimonials } from '../hooks/useTestimonials';
 
 const Testimonials: FC = () => {
+  const { testimonials, loading } = useTestimonials();
   const sliderRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeftVal = useRef(0);
 
+  const count = testimonials.length;
+
   const handleScroll = useCallback(() => {
-    if (!sliderRef.current) return;
+    if (!sliderRef.current || count === 0) return;
     const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
-    const cardWidth = (scrollWidth - clientWidth) / Math.max(REVIEWS.length - 1, 1);
-    setActiveIndex(Math.min(Math.round(scrollLeft / cardWidth), REVIEWS.length - 1));
-  }, []);
+    const cardWidth = (scrollWidth - clientWidth) / Math.max(count - 1, 1);
+    setActiveIndex(Math.min(Math.round(scrollLeft / cardWidth), count - 1));
+  }, [count]);
 
   const handleMouseDown = useCallback((e: MouseEvent) => {
     if (!sliderRef.current) return;
@@ -75,6 +48,8 @@ const Testimonials: FC = () => {
     const card = sliderRef.current.children[index] as HTMLElement | undefined;
     card?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }, []);
+
+  if (loading || count === 0) return null;
 
   return (
     <section id="depoimentos" className="py-20 md:py-40 bg-[#141414] text-white overflow-hidden">
@@ -121,12 +96,12 @@ const Testimonials: FC = () => {
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
         >
-          {REVIEWS.map((review, index) => (
+          {testimonials.map((review, index) => (
             <div
-              key={index}
+              key={review.id}
               role="group"
               aria-roledescription="slide"
-              aria-label={`Depoimento ${index + 1} de ${REVIEWS.length}`}
+              aria-label={`Depoimento ${index + 1} de ${count}`}
               className="bg-[#1a1a1a] border border-white/[0.02] p-7 md:p-10 rounded-2xl flex flex-col gap-6 h-auto hover:border-[#D4AF37]/20 transition-all duration-500 w-[80vw] sm:w-[75vw] md:w-[340px] snap-center shrink-0"
             >
               <div className="flex items-center gap-4">
@@ -155,24 +130,26 @@ const Testimonials: FC = () => {
           ))}
         </div>
 
-        <div
-          className="flex justify-center gap-2 mb-6"
-          role="tablist"
-          aria-label="Navegação dos depoimentos"
-        >
-          {REVIEWS.map((_, index) => (
-            <button
-              key={index}
-              role="tab"
-              aria-selected={activeIndex === index}
-              aria-label={`Ir para depoimento ${index + 1}`}
-              onClick={() => scrollToIndex(index)}
-              className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                activeIndex === index ? 'bg-[#D4AF37] w-6' : 'bg-zinc-700 hover:bg-zinc-500'
-              }`}
-            />
-          ))}
-        </div>
+        {count > 1 && (
+          <div
+            className="flex justify-center gap-2 mb-6"
+            role="tablist"
+            aria-label="Navegação dos depoimentos"
+          >
+            {testimonials.map((_, index) => (
+              <button
+                key={index}
+                role="tab"
+                aria-selected={activeIndex === index}
+                aria-label={`Ir para depoimento ${index + 1}`}
+                onClick={() => scrollToIndex(index)}
+                className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                  activeIndex === index ? 'bg-[#D4AF37] w-6' : 'bg-zinc-700 hover:bg-zinc-500'
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

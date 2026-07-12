@@ -25,6 +25,14 @@ interface DataStepProps {
   onCouponRemove?: () => void;
 }
 
+function getPhoneError(phone: string): string | null {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 0) return null;
+  if (digits.length < 10) return 'Informe DDD + número (mín. 10 dígitos)';
+  if (digits.length > 11) return 'Número muito longo (máx. 11 dígitos)';
+  return null;
+}
+
 const DataStep: FC<DataStepProps> = memo(
   ({
     name,
@@ -116,19 +124,15 @@ const DataStep: FC<DataStepProps> = memo(
                   placeholder="(00) 00000-0000"
                   data-testid="input-phone"
                   aria-label="Seu número de WhatsApp com DDD"
-                  aria-describedby={
-                    phone && phone.replace(/\D/g, '').length < 11
-                      ? 'phone-error-desktop'
-                      : undefined
-                  }
-                  aria-invalid={!!(phone && phone.replace(/\D/g, '').length < 11)}
+                  aria-describedby={getPhoneError(phone) ? 'phone-error-desktop' : undefined}
+                  aria-invalid={!!getPhoneError(phone)}
                   className="w-full bg-transparent border-b-2 border-white/10 focus:border-[#C5A059] py-4 px-0 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 font-medium"
                   value={phone}
                   onChange={(e) => onPhoneChange(e.target.value)}
                 />
-                {phone && phone.replace(/\D/g, '').length < 11 && (
+                {getPhoneError(phone) && (
                   <p id="phone-error-desktop" className="text-[11px] text-red-400/80" role="alert">
-                    Informe um WhatsApp válido com DDD
+                    {getPhoneError(phone)}
                   </p>
                 )}
               </div>
@@ -272,17 +276,15 @@ const DataStep: FC<DataStepProps> = memo(
               placeholder="(00) 90000-0000"
               data-testid="input-phone"
               aria-label="Seu número de WhatsApp com DDD"
-              aria-describedby={
-                phone && phone.replace(/\D/g, '').length < 11 ? 'phone-error-mobile' : undefined
-              }
-              aria-invalid={!!(phone && phone.replace(/\D/g, '').length < 11)}
+              aria-describedby={getPhoneError(phone) ? 'phone-error-mobile' : undefined}
+              aria-invalid={!!getPhoneError(phone)}
               className="w-full bg-transparent border border-white/[0.06] focus:border-[#C5A059] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600"
               value={phone}
               onChange={(e) => onPhoneChange(e.target.value)}
             />
-            {phone && phone.replace(/\D/g, '').length < 11 && (
+            {getPhoneError(phone) && (
               <p id="phone-error-mobile" className="text-[10px] text-red-400/80" role="alert">
-                Informe um WhatsApp válido
+                {getPhoneError(phone)}
               </p>
             )}
           </div>

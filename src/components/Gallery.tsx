@@ -22,6 +22,27 @@ const Gallery: FC = memo(() => {
   const closePreview = useCallback(() => setPreviewIndex(null), []);
   const { dialogRef } = useModalA11y(previewIndex !== null, closePreview);
 
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (previewIndex === null) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setPreviewIndex((prev) => (prev !== null ? (prev + 1) % images.length : null));
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setPreviewIndex((prev) =>
+          prev !== null ? (prev - 1 + images.length) % images.length : null
+        );
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setPreviewIndex(null);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [previewIndex, images.length]);
+
   const openPreview = useCallback((index: number) => {
     setPreviewIndex(index);
   }, []);
@@ -126,7 +147,7 @@ const Gallery: FC = memo(() => {
                     <>
                       <img
                         src={img.image_url}
-                        alt={img.alt}
+                        alt={img.alt || `Foto do trabalho ${i + 1}`}
                         loading="lazy"
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         onError={() => handleImageError(img.id)}
@@ -160,7 +181,7 @@ const Gallery: FC = memo(() => {
                     <>
                       <img
                         src={img.image_url}
-                        alt={img.alt}
+                        alt={img.alt || `Foto do trabalho ${(i % images.length) + 1}`}
                         loading="eager"
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         onError={() => handleImageError(img.id)}
@@ -230,7 +251,7 @@ const Gallery: FC = memo(() => {
             {/* Image */}
             <img
               src={images[previewIndex].image_url}
-              alt={images[previewIndex].alt}
+              alt={images[previewIndex].alt || `Foto ${previewIndex + 1}`}
               className="max-w-[90vw] max-h-[85vh] object-contain select-none"
               draggable={false}
             />

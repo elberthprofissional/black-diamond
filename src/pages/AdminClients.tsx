@@ -366,7 +366,23 @@ const AdminClients: FC = () => {
                               <div className="flex-1 min-w-0 text-left">
                                 <p className="text-[14px] font-semibold text-[#FFFFFF] truncate flex items-center gap-1.5">
                                   {client.name}
-                                  {client.isInactive && (
+                                  {client.isNoShowBlocked && (
+                                    <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 font-bold uppercase tracking-wider shrink-0 flex items-center gap-1">
+                                      <svg
+                                        width="8"
+                                        height="8"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="3"
+                                      >
+                                        <line x1="18" y1="6" x2="6" y2="18" />
+                                        <line x1="6" y1="6" x2="18" y2="18" />
+                                      </svg>
+                                      Bloqueado
+                                    </span>
+                                  )}
+                                  {!client.isNoShowBlocked && client.isInactive && (
                                     <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400 font-bold uppercase tracking-wider shrink-0">
                                       Inativo
                                     </span>
@@ -420,7 +436,24 @@ const AdminClients: FC = () => {
                 const hasTodayBooking =
                   client.upcomingBooking?.date === new Date().toISOString().slice(0, 10);
 
-                if (hasTodayBooking) {
+                if (client.isNoShowBlocked) {
+                  statusBadge = (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-[9px] font-bold uppercase tracking-wider">
+                      <svg
+                        width="10"
+                        height="10"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                      >
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                      Bloqueado
+                    </span>
+                  );
+                } else if (hasTodayBooking) {
                   statusBadge = (
                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#C5A059]/10 text-[#C5A059] text-[9px] font-bold uppercase tracking-wider">
                       Hoje
