@@ -37,7 +37,9 @@ import { useRevenueChartData } from '../hooks/useRevenueChartData';
 import ExportButton from '../components/Admin/shared/ExportButton';
 const SettingsConta = lazy(() => import('../components/Admin/settings/SettingsConta'));
 const SettingsGaleria = lazy(() => import('../components/Admin/settings/SettingsGaleria'));
-const SettingsNotificacoes = lazy(() => import('../components/Admin/settings/SettingsNotificacoes'));
+const SettingsNotificacoes = lazy(
+  () => import('../components/Admin/settings/SettingsNotificacoes')
+);
 const SettingsDados = lazy(() => import('../components/Admin/settings/SettingsDados'));
 const SettingsServicos = lazy(() => import('../components/Admin/settings/SettingsServicos'));
 const SettingsHorarios = lazy(() => import('../components/Admin/settings/SettingsHorarios'));
@@ -67,6 +69,8 @@ const AdminProfile: FC = () => {
 
   const {
     isIOS,
+    isAndroid,
+    isSamsung,
     isStandalone,
     showPrompt: showInstallPrompt,
     deferredPrompt,
@@ -340,7 +344,9 @@ const AdminProfile: FC = () => {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.12 }}
                 >
-                  <Suspense fallback={<div className="h-32 bg-white/[0.02] rounded-xl animate-pulse" />}>
+                  <Suspense
+                    fallback={<div className="h-32 bg-white/[0.02] rounded-xl animate-pulse" />}
+                  >
                     {(!settingsSection || settingsSection === 'conta') && <SettingsConta />}
                     {settingsSection === 'galeria' && <SettingsGaleria />}
                     {settingsSection === 'servicos' && <SettingsServicos />}
@@ -473,6 +479,8 @@ const AdminProfile: FC = () => {
       <PwaInstallModal
         open={showInstallPrompt}
         isIOS={isIOS}
+        isAndroid={isAndroid}
+        isSamsung={isSamsung}
         hasDeferredPrompt={!!deferredPrompt}
         onClose={() => setShowInstallPrompt(false)}
         onConfirm={handleConfirmInstall}

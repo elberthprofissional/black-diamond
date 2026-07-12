@@ -1,11 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
 
 interface UsePwaInstallReturn {
+  /** Dispositivo é iPhone/iPad/iPod */
   isIOS: boolean;
+  /** Dispositivo é Android (não iOS) */
+  isAndroid: boolean;
+  /** Navegador é Samsung Internet */
+  isSamsung: boolean;
+  /** Já está rodando como app instalado (standalone) */
   isStandalone: boolean;
+  /** iOS + Chrome (CriOS) — não suporta instalação direta */
   isIOSChrome: boolean;
+  /** Pode ser instalado (não está standalone e não é CriOS) */
   canInstall: boolean;
+  /** Se o modal de instalação deve aparecer */
   showPrompt: boolean;
+  /** Evento beforeinstallprompt (Chrome/Edge/Firefox Android) */
   deferredPrompt: BeforeInstallPromptEvent | null;
   setShowPrompt: (v: boolean) => void;
   handleInstall: () => Promise<void>;
@@ -47,6 +57,8 @@ export function usePwaInstall(
 
   const ua = window.navigator.userAgent.toLowerCase();
   const isIOS = /iphone|ipad|ipod/.test(ua);
+  const isAndroid = /android/.test(ua);
+  const isSamsung = /samsung|samsungbrowser/.test(ua);
   const isStandalone =
     window.matchMedia('(display-mode: standalone)').matches ||
     (navigator as unknown as { standalone?: boolean }).standalone === true;
@@ -63,7 +75,7 @@ export function usePwaInstall(
       onError?.('No iPhone, abra este link pelo Safari primeiro');
       return;
     }
-    if (!isIOS && deferredPrompt) {
+    if (isAndroid && deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') onSuccess?.();
@@ -71,7 +83,7 @@ export function usePwaInstall(
       return;
     }
     setShowPrompt(true);
-  }, [isStandalone, isIOSChrome, isIOS, deferredPrompt, onSuccess, onError]);
+  }, [isStandalone, isIOSChrome, isAndroid, deferredPrompt, onSuccess, onError]);
 
   const handleConfirmInstall = useCallback(async () => {
     if (isIOS) {
@@ -89,6 +101,8 @@ export function usePwaInstall(
 
   return {
     isIOS,
+    isAndroid,
+    isSamsung,
     isStandalone,
     isIOSChrome,
     canInstall,

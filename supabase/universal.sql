@@ -1310,9 +1310,42 @@ BEGIN
 
     RETURN TRUE;
 END;
+1851 LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =========================================================================
+-- NO-SHOW: Funções de bloqueio por excesso de faltas
+-- =========================================================================
+CREATE OR REPLACE FUNCTION is_client_blocked_by_no_show(p_client_id uuid)
+RETURNS boolean AS $$
+DECLARE
+    v_max_no_shows integer;
+    v_no_show_count integer;
+BEGIN
+    SELECT COALESCE(
+        (SELECT value::integer FROM settings WHERE key = 'max_no_shows'),
+        3
+    ) INTO v_max_no_shows;
+
+    SELECT COUNT(*) INTO v_no_show_count
+    FROM bookings
+    WHERE client_id = p_client_id
+    AND no_show = TRUE
+    AND booking_date >= (CURRENT_DATE - 90);
+
+    RETURN v_no_show_count >= v_max_no_shows;
+END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Rate limit para criar agendamento (3 por minuto por IP)
+CREATE OR REPLACE FUNCTION check_client_no_show_block(p_client_id uuid)
+RETURNS void AS $$
+BEGIN
+    IF is_client_blocked_by_no_show(p_client_id) THEN
+        RAISE EXCEPTION 'Cliente bloqueado por excesso de faltas. Entre em contato para mais informações.';
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Rate limit para criar agendamento (3 por minuto por IP) (3 por minuto por IP)
 -- Inclui verificação de bloqueio por excesso de faltas (no-show)
 CREATE OR REPLACE FUNCTION criar_agendamento_rate_limited(
     p_cliente_nome text,
@@ -1418,7 +1451,7 @@ BEGIN
     RETURN jsonb_build_object(
         'status', v_db_status,
         'timestamp', NOW(),
-        'version', '3.12.0',
+        'version', '3.20.0',
         'database', jsonb_build_object(
             'services', v_services_count,
             'bookings', v_bookings_count,

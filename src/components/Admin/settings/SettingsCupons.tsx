@@ -30,11 +30,14 @@ const SettingsCupons: FC = () => {
   const [deleting, setDeleting] = useState<string | null>(null);
   const codeInputRef = useRef<HTMLInputElement>(null);
 
-  // Form state — simplificado
+  // Form state
   const [code, setCode] = useState('');
   const [discountType, setDiscountType] = useState<'fixed' | 'free'>('fixed');
   const [discountValue, setDiscountValue] = useState('');
   const [applicableServiceIds, setApplicableServiceIds] = useState<string[]>([]);
+  const [validFrom, setValidFrom] = useState(() => new Date().toISOString().split('T')[0]);
+  const [validUntil, setValidUntil] = useState('');
+  const [maxUses, setMaxUses] = useState('');
 
   const loadData = useCallback(async () => {
     try {
@@ -64,6 +67,9 @@ const SettingsCupons: FC = () => {
     setDiscountValue('');
     setApplicableServiceIds([]);
     setEditingId(null);
+    setValidFrom(new Date().toISOString().split('T')[0]);
+    setValidUntil('');
+    setMaxUses('');
   };
 
   const openAdd = () => {
@@ -78,6 +84,9 @@ const SettingsCupons: FC = () => {
     setApplicableServiceIds(coupon.applicable_service_ids || []);
     setEditingId(coupon.id);
     setScreen('edit');
+    setValidFrom(coupon.valid_from || new Date().toISOString().split('T')[0]);
+    setValidUntil(coupon.valid_until || '');
+    setMaxUses(coupon.max_uses ? String(coupon.max_uses) : '');
   };
 
   const closeForm = () => {
@@ -114,9 +123,9 @@ const SettingsCupons: FC = () => {
       description: '',
       discount_type: discountType,
       discount_value: discountType === 'free' ? 0 : parseFloat(discountValue.replace(',', '.')),
-      valid_from: new Date().toISOString().split('T')[0],
-      valid_until: null,
-      max_uses: null,
+      valid_from: validFrom || new Date().toISOString().split('T')[0],
+      valid_until: validUntil || null,
+      max_uses: maxUses ? parseInt(maxUses, 10) : null,
       is_active: true,
       applicable_service_ids: applicableServiceIds,
     };
@@ -303,6 +312,21 @@ const SettingsCupons: FC = () => {
                         {coupon.current_uses}/{coupon.max_uses ?? '∞'} usos
                       </span>
                     </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {coupon.valid_from && (
+                        <span className="text-[9px] text-zinc-600">
+                          De {new Date(coupon.valid_from).toLocaleDateString('pt-BR')}
+                        </span>
+                      )}
+                      {coupon.valid_until && (
+                        <span className="text-[9px] text-zinc-600">
+                          até {new Date(coupon.valid_until).toLocaleDateString('pt-BR')}
+                        </span>
+                      )}
+                      {!coupon.valid_until && (
+                        <span className="text-[9px] text-zinc-700">Sem expiração</span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
@@ -392,6 +416,21 @@ const SettingsCupons: FC = () => {
                 {coupon.description && (
                   <p className="text-[11px] text-zinc-500 mt-2 ml-12">{coupon.description}</p>
                 )}
+                <div className="flex items-center gap-2 mt-2 ml-12">
+                  {coupon.valid_from && (
+                    <span className="text-[9px] text-zinc-600">
+                      De {new Date(coupon.valid_from).toLocaleDateString('pt-BR')}
+                    </span>
+                  )}
+                  {coupon.valid_until && (
+                    <span className="text-[9px] text-zinc-600">
+                      até {new Date(coupon.valid_until).toLocaleDateString('pt-BR')}
+                    </span>
+                  )}
+                  {!coupon.valid_until && (
+                    <span className="text-[9px] text-zinc-700">Sem expiração</span>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -445,6 +484,12 @@ const SettingsCupons: FC = () => {
                   toggleService={toggleService}
                   services={services}
                   codeInputRef={codeInputRef}
+                  validFrom={validFrom}
+                  setValidFrom={setValidFrom}
+                  validUntil={validUntil}
+                  setValidUntil={setValidUntil}
+                  maxUses={maxUses}
+                  setMaxUses={setMaxUses}
                 />
               </form>
             </motion.div>
@@ -500,6 +545,10 @@ const SettingsCupons: FC = () => {
                     toggleService={toggleService}
                     services={services}
                     codeInputRef={codeInputRef}
+                    validFrom={validFrom}
+                    setValidFrom={setValidFrom}
+                    validUntil={validUntil}
+                    setValidUntil={setValidUntil}
                   />
                 </form>
               </motion.div>
@@ -571,6 +620,12 @@ interface CouponFormFieldsProps {
   toggleService: (id: string) => void;
   services: Service[];
   codeInputRef: React.RefObject<HTMLInputElement | null>;
+  validFrom: string;
+  setValidFrom: (v: string) => void;
+  validUntil: string;
+  setValidUntil: (v: string) => void;
+  maxUses: string;
+  setMaxUses: (v: string) => void;
 }
 
 const CouponFormFields: FC<CouponFormFieldsProps> = ({
@@ -584,6 +639,12 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
   toggleService,
   services,
   codeInputRef,
+  validFrom,
+  setValidFrom,
+  validUntil,
+  setValidUntil,
+  maxUses,
+  setMaxUses,
 }) => (
   <>
     {/* Code */}
@@ -710,6 +771,84 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
         </div>
       </div>
     )}
+
+    {/* Validity Period */}
+    <div className="border-t border-white/[0.06] pt-5 space-y-4">
+      <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">
+        Limites do cupom
+      </span>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-2">
+          <label className="text-[10px] text-zinc-500 font-medium">Início</label>
+          <input
+            type="date"
+            value={validFrom}
+            onChange={(e) => setValidFrom(e.target.value)}
+            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-all [color-scheme:dark]"
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-[10px] text-zinc-500 font-medium">Término</label>
+          <input
+            type="date"
+            value={validUntil}
+            onChange={(e) => setValidUntil(e.target.value)}
+            min={validFrom}
+            className={`w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-all [color-scheme:dark] ${
+              validUntil ? 'text-white' : 'text-zinc-600'
+            }`}
+            placeholder="Sem prazo"
+          />
+        </div>
+      </div>
+      {!validUntil && (
+        <p className="text-[10px] text-zinc-600 mt-1 flex items-center gap-1">
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+          Sem data de expiração = válido por tempo indeterminado
+        </p>
+      )}
+
+      {/* Max uses */}
+      <div className="space-y-2">
+        <label className="text-[10px] text-zinc-500 font-medium">Limite de usos (opcional)</label>
+        <input
+          type="number"
+          min="1"
+          value={maxUses}
+          onChange={(e) => setMaxUses(e.target.value.replace(/\D/g, '').slice(0, 5))}
+          placeholder="Ilimitado"
+          className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-all [color-scheme:dark] text-white placeholder:text-zinc-600"
+        />
+        {!maxUses && (
+          <p className="text-[10px] text-zinc-600 flex items-center gap-1">
+            <svg
+              width="10"
+              height="10"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            Sem limite = pode ser usado quantas vezes quiser
+          </p>
+        )}
+      </div>
+    </div>
   </>
 );
 

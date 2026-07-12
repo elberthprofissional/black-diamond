@@ -18,32 +18,57 @@ import BookingDetailPanel from '../components/Admin/shared/BookingDetailPanel';
 import { SkeletonDashboard } from '../components/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 
+/** Calcula segunda-feira da semana atual, respeitando horário de fechamento de sábado */
+function getMondayFromDate(d: Date, barberHoursJson?: string): Date {
+  const date = new Date(d);
+  const day = date.getDay();
+  const hour = date.getHours();
+  const minutes = date.getMinutes();
+  let diff = date.getDate() - day + (day === 0 ? -6 : 1);
+
+  // Puxa horário de fechamento do sábado das configurações
+  let satClosingHour = 18;
+  try {
+    if (barberHoursJson) {
+      const parsed = JSON.parse(barberHoursJson);
+      const sat = parsed['6'];
+      if (sat?.close) {
+        const [h] = sat.close.split(':').map(Number);
+        if (!isNaN(h)) satClosingHour = h;
+      }
+    }
+  } catch {
+    // fallback
+  }
+
+  if (day === 6 && (hour > satClosingHour || (hour === satClosingHour && minutes > 0))) {
+    diff += 7;
+  }
+  return new Date(date.setDate(diff));
+}
+
 const AdminWeekly: FC = () => {
   const { bookings, loading, refetch: loadData } = useBookings();
   const mgmt = useBookingManagement(loadData);
   const navigate = useNavigate();
   const today = useMemo(() => new Date(), []);
 
-  const getMonday = (d: Date) => {
-    const date = new Date(d);
-    const day = date.getDay();
-    const hour = date.getHours();
-    let diff = date.getDate() - day + (day === 0 ? -6 : 1);
-    // Só pula para a próxima semana se hoje for sábado após o fechamento
-    // Domingo agora é controlado pelo enabledDays (settings → barber_hours)
-    if (day === 6 && hour >= 18) diff += 7;
-    return new Date(date.setDate(diff));
-  };
-
   const { barberHours } = useBarberSettings();
 
-  const [currentWeekStart] = useState(() => getMonday(today));
+  const currentWeekStart = useMemo(
+    () => getMondayFromDate(today, barberHours),
+    [today, barberHours]
+  );
 
-  const weekDays = Array.from({ length: 7 }).map((_, i) => {
-    const d = new Date(currentWeekStart);
-    d.setDate(d.getDate() + i);
-    return d;
-  });
+  const weekDays = useMemo(
+    () =>
+      Array.from({ length: 7 }).map((_, i) => {
+        const d = new Date(currentWeekStart);
+        d.setDate(d.getDate() + i);
+        return d;
+      }),
+    [currentWeekStart]
+  );
 
   // Dias habilitados nas configurações
   const enabledDays = useMemo(() => {

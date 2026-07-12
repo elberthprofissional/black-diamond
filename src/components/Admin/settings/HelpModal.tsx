@@ -53,6 +53,36 @@ const faqItems: FAQItem[] = [
       'Vá na aba "Clientes" e clique em "Novo Cliente". Preencha o nome, telefone e e-mail (opcional). O cliente será salvo e poderá ser selecionado ao criar agendamentos.',
   },
   {
+    question: 'Como enviar lembretes pelo WhatsApp?',
+    answer:
+      'Na aba "Clientes", clique no cliente e selecione "Enviar Lembrete" no painel. Escolha um modelo pronto de mensagem ou crie uma personalizada. O lembrete abre automático no WhatsApp do cliente. Os modelos mudam conforme a época do ano (Natal, Carnaval, etc)!',
+  },
+  {
+    question: 'Como funciona a fidelidade?',
+    answer:
+      'Vá em Configurações > Fidelidade e configure quantas visitas o cliente precisa fazer para ganhar um prêmio (ex: 5 visitas = Sobrancelha grátis). O progresso aparece no painel do cliente e na tela de sucesso do agendamento.',
+  },
+  {
+    question: 'Como criar cupons de desconto?',
+    answer:
+      'Vá em Configurações > Cupons e clique em "Criar Cupom". Defina um código, valor de desconto e se é porcentagem ou valor fixo. O cliente pode aplicar o cupom na hora de agendar online.',
+  },
+  {
+    question: 'Como gerenciar mensalistas?',
+    answer:
+      'Vá em Configurações > Mensalista para criar planos (ex: Corte Mensal por R$ 80/mês). Nos detalhes do cliente, ative "Tornar Mensalista" e selecione o plano. O cliente mensalista tem prioridade e benefícios exclusivos.',
+  },
+  {
+    question: 'Como adicionar depoimentos dos clientes?',
+    answer:
+      'Vá em Configurações > Depoimentos e clique em "Adicionar". Coloque o nome do cliente, avaliação (estrelas) e o texto do depoimento. Os depoimentos aparecem na página inicial do site.',
+  },
+  {
+    question: 'Como controlar faltas (no-show)?',
+    answer:
+      'Vá em Configurações > Controle de Faltas. Defina o limite máximo de faltas antes do bloqueio. Quando um cliente não comparece, marque como "No-Show" no agendamento. Após o limite, o cliente é bloqueado automaticamente.',
+  },
+  {
     question: 'Como adicionar fotos na galeria?',
     answer:
       'Vá em Configurações > Galeria e clique em "Adicionar". Selecione as fotos do seu celular ou computador. As fotos aparecerão automaticamente na página inicial para os clientes.',
@@ -71,6 +101,11 @@ const faqItems: FAQItem[] = [
     question: 'Como funcionam as notificações?',
     answer:
       'As notificações te avisam quando um cliente agenda um horário. Ative em Configurações > Notificações. No iPhone, é necessário instalar o aplicativo primeiro. No Android, funciona direto pelo Chrome.',
+  },
+  {
+    question: 'O que significa "No-Show"?',
+    answer:
+      'No-Show é quando o cliente não comparece ao agendamento sem avisar. O sistema controla isso automaticamente. Se o cliente exceder o limite de faltas configurado, ele é bloqueado e aparece com um selo "Bloqueado" na busca.',
   },
 ];
 

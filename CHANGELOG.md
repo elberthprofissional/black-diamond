@@ -5,6 +5,45 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.20.2] - 2026-07-12
+
+### Added
+- **Limite de usos em cupons** — Agora o barbeiro pode definir quantas vezes um cupom pode ser usado antes de expirar.
+- **Data de validade em cupons** — Campos de início e término para cupons com expiração automática.
+- **Detecção inteligente Android/Samsung/iPhone** — Instruções específicas de instalação PWA para cada plataforma.
+- **FAQ turbinado na Ajuda** — 12 FAQs (era 6) cobrindo todas as funcionalidades.
+
+### Fixed
+- **BUG CRÍTICO: No-Show no universal.sql** — As funções `is_client_blocked_by_no_show` e `check_client_no_show_block` eram chamadas mas NÃO estavam definidas no schema universal. Agora estão.
+- **Versão do health_check sincronizada** — Atualizada de `3.12.0` para `3.20.0`.
+- **Semana dinâmica no AdminWeekly** — Agora respeita o horário REAL de fechamento do sábado (não mais hardcoded 18h).
+- **Botão 'Instalar' no desktop** — Usuários de desktop Chrome agora veem o botão Instalar no modal PWA.
+- **Validação de telefone melhorada** — Mensagem de erro mais clara: "Informe DDD + número (mín. 10 dígitos)".
+- **Navegação por teclado na galeria** — Setas ← → para navegar no lightbox.
+- **Acessibilidade** — `useModalA11y` adicionado em PwaInstallModal e EditClientModal.
+- **Alt text nas imagens da galeria** — Fallback descritivo quando não definido.
+- **Removido Verão 🌊 e Primavera 🌸** dos templates sazonais.
+- **Deletados arquivos** — `FUNCIONALIDADES_NOVAS.md` e `docs/templates-lembretes.md`.
+- **TestSprite plans removidos do repositório** — `testsprite-plans.jsonl` e `testsprite-plans-complete.jsonl` deletados.
+
+## [3.20.1] - 2026-07-12
+
+### Added
+- **Templates de lembrete sazonais inteligentes** — Agora os modelos padrão de lembrete mudam automaticamente conforme a época do ano: Carnaval 🎭, Páscoa 🐰, Dia das Mães 🌷, Dia dos Namorados ❤️, Festa Junina 🌽, Dia dos Pais 👔, Black Friday 🏷️ e Natal 🎄. Cada data especial tem 3 templates exclusivos.
+- **Script de otimização de imagens** — `scripts/optimize-images.mjs` para comprimir WebP/PNG via sharp.
+- **Preview deploys configurados** — Deploy automático em preview para cada branch no Vercel.
+
+### Fixed
+- **ESLint zerado** — 2 warnings removidos (unused vars) — agora 0 erros, 0 warnings.
+- **Acessibilidade** — `autoComplete` adicionado nos campos de login (email/senha), `aria-label` nos inputs de cupom.
+- **Build Vite 8** — Removido `minify: 'esbuild'` obsoleto (Vite 8 não inclui mais esbuild).
+- **vite-plugin-compression removido** — Desnecessário no Vercel (faz compressão própria).
+- **Chunk splitting melhorado** — 6 chunks separados (react, motion, supabase, icons, sentry, other).
+- **Preconnect adicionado** — Supabase CDN e Vercel para carregamento mais rápido.
+- **CSS Code Split ativado** — CSS dividido por chunk.
+- **Sourcemaps de build desligados** — Build mais leve.
+- **Clientes de teste removidos do banco** — 8 clientes de teste deletados + agendamentos.
+
 ## [3.20.0] - 2026-07-11
 
 ### Fixed
