@@ -16,6 +16,9 @@ export interface Booking {
   total_price: number;
   total_duration: number;
   is_blocked?: boolean;
+  no_show?: boolean;
+  coupon_id?: string | null;
+  discount_amount?: number;
   reminder_sent?: boolean;
   notes?: string;
   created_at: string;

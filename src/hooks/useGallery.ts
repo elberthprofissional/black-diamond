@@ -78,7 +78,7 @@ export function useGallery() {
         )
       );
       if (results.some((r) => r.error)) {
-        showSuccess('Posição atualizada localmente');
+        showError('Erro ao salvar posição no servidor. Ordem atualizada apenas localmente.');
       } else {
         showSuccess(`Foto movida para posição ${targetPosition}`);
       }

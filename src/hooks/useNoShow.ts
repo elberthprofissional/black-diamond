@@ -66,7 +66,7 @@ export function useNoShow(options?: UseNoShowOptions) {
         setMarkingNoShow(null);
       }
     },
-    [log, showSuccess, showError, options]
+    [log, showSuccess, showError, onBookingUpdated]
   );
 
   const getClientNoShowCount = useCallback(

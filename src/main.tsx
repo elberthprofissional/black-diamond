@@ -7,7 +7,8 @@ import App from './App.tsx';
 import { BarberSettingsProvider } from './contexts/BarberSettingsContext';
 
 // Defer non-critical initialization to after first paint
-requestIdleCallback(() => {
+const ric = window.requestIdleCallback || ((cb: () => void) => setTimeout(cb, 1));
+ric(() => {
   // Google Analytics
   const gaId = import.meta.env.VITE_GA_ID;
   if (gaId) {
@@ -96,5 +97,14 @@ if ('serviceWorker' in navigator) {
         toast.remove();
       }, 10000);
     }
+  });
+}
+
+// Registra o Service Worker para PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // SW registration failed — non-critical
+    });
   });
 }

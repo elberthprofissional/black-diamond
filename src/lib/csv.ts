@@ -5,12 +5,17 @@ export interface CsvColumn<T> {
 
 /** Gera uma string CSV a partir de dados e colunas. */
 export function generateCsv<T>(data: T[], columns: CsvColumn<T>[], separator = ';'): string {
+  const sanitize = (str: string) => {
+    // Previne CSV injection em Excel/Google Sheets
+    if (/^[=+\-@\t\r]/.test(str)) return `'${str}`;
+    return str;
+  };
   const header = columns.map((c) => c.header).join(separator);
   const rows = data.map((row) =>
     columns
       .map((c) => {
         const val = c.accessor(row);
-        const str = String(val ?? '');
+        const str = sanitize(String(val ?? ''));
         // Escapa aspas duplas e envolve em aspas se contiver o separador
         if (str.includes(separator) || str.includes('"') || str.includes('\n')) {
           return `"${str.replace(/"/g, '""')}"`;
