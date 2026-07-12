@@ -48,7 +48,6 @@ test.describe('Fluxo de Agendamento', () => {
 
   test('WhatsApp abre após agendamento', async ({ page }) => {
     test.skip(isLocal, 'Booking requires live Supabase connection');
-    const openedUrls: string[] = [];
     await page.addInitScript(() => {
       (window as Record<string, unknown>).__openedUrls = [];
       window.open = (url?: string) => {
@@ -110,7 +109,6 @@ test.describe('Skeleton Loading', () => {
     await page.goto('/admin');
 
     // Verificar que skeleton aparece (may be visible briefly)
-    const skeleton = page.locator('[data-testid="skeleton"]');
     // Skeleton might appear and disappear quickly, just check the page loads
     await expect(page.locator('body')).toBeVisible();
   });
