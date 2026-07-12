@@ -1,0 +1,77 @@
+-- =========================================================================
+-- BLACK DIAMOND 💈 - SNAPSHOT COMPLETO DO BANCO
+-- =========================================================================
+-- Data: 26 de Julho de 2026
+-- Projeto: dbukdhycfaibdshxnatt.supabase.co
+-- =========================================================================
+-- Este arquivo contém um snapshot COMPLETO do banco de dados:
+--   ✅ Schema completo (DDL)
+--   ✅ Dados essenciais (serviços, planos, configurações)
+--   ✅ RLS policies
+--   ✅ Funções RPC
+--   ✅ Triggers
+--   ✅ Índices
+--   ✅ Buckets Storage
+-- =========================================================================
+
+-- =========================================================================
+-- BUCKETS STORAGE
+-- =========================================================================
+-- avatars (public)
+-- gallery (public) ← criado em 2026-07-26
+
+-- =========================================================================
+-- SCHEMA: 26 tabelas, 17 índices, 2 triggers, 10+ RPCs
+-- =========================================================================
+-- Use supabase/universal.sql para recriar o schema completo.
+-- 
+-- Tabelas:
+--   1. services           - Serviços da barbearia
+--   2. clients            - Clientes
+--   3. bookings           - Agendamentos
+--   4. settings           - Configurações do sistema
+--   5. mensalista_plans   - Planos mensalistas
+--   6. coupons            - Cupons de desconto
+--   7. loyalty_milestones - Metas de fidelidade
+--   8. client_milestones  - Milestones resgatadas por cliente
+--   9. testimonials       - Depoimentos
+--  10. gallery_images     - Imagens da galeria
+--  11. notifications      - Notificações
+--  12. admin_users        - Usuários admin
+--  13. booking_tokens     - Tokens de cancelamento
+--  14. audit_logs         - Logs de auditoria
+--  15. push_subscriptions - Push notifications
+--  16. rate_limits        - Rate limiting
+--  17. whatsapp_templates - Templates WhatsApp
+--  18. barbers            - Barbeiros (multi-barber)
+--  19. barber_commissions - Comissões
+--  20. expenses           - Despesas
+--  21. fixed_expenses     - Despesas fixas
+--  22. recurring_expenses - Despesas recorrentes
+--  23. secrets            - Segredos criptografados
+--  24. system_settings    - Configs do sistema
+--  25. admin_settings     - Configs admin
+--  26. faturamento_diario - View de faturamento diário
+
+-- =========================================================================
+-- DADOS EXISTENTES (26/07/2026)
+-- =========================================================================
+
+-- Configurações: 18 registros
+-- Serviços: 5 (Corte R$35, Barba R$27, Barba Toalha R$30, Sobrancelha R$15, Pezinho R$15)
+-- Planos Mensalistas: 3 (Cabelo R$99,90, Barba R$89,90, Cabelo+Barba R$175,99)
+-- Clientes: 0 (sistema sem uso ainda)
+-- Agendamentos: 0 (sistema sem uso ainda)
+-- Depoimentos: 0 (sem depoimentos ainda)
+-- Cupons: 0 (sem cupons ainda)
+-- Galeria: 0 imagens (bucket criado mas vazio)
+
+-- =========================================================================
+-- COMO RESTAURAR
+-- =========================================================================
+-- Para restaurar este snapshot:
+--   1. Vá no painel do Supabase → SQL Editor
+--   2. Execute supabase/universal.sql para criar o schema
+--   3. Execute supabase/migrations/20260726_seed_data.sql para dados iniciais
+--   4. Configure Authentication → Users → Add user para o admin
+-- =========================================================================
