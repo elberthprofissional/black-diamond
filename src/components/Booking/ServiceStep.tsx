@@ -1,6 +1,13 @@
 import { memo, type FC } from 'react';
-import { Check } from 'lucide-react';
+import { Check, Tag } from 'lucide-react';
 import type { Service } from '../../types';
+
+interface CouponInfo {
+  coupon_id: string;
+  code: string;
+  discount_type: string;
+  discount_amount: number;
+}
 
 interface ServiceStepProps {
   services: Service[];
@@ -10,11 +17,57 @@ interface ServiceStepProps {
   onToggle: (service: Service) => void;
   onSkip?: () => void;
   layout: 'desktop' | 'mobile';
+  coupon?: CouponInfo | null;
+  originalPrice?: number;
+}
+
+function getServiceDiscount(
+  service: Service,
+  coupon: CouponInfo,
+  allServices: Service[],
+  originalPrice: number
+): number {
+  const servicePrice = Number(service.price);
+  if (coupon.discount_type === 'percentage') {
+    return Math.round(((servicePrice * coupon.discount_amount) / originalPrice) * 100) / 100;
+  }
+  // Fixed: distribute proportionally
+  if (originalPrice > 0) {
+    return Math.round(coupon.discount_amount * (servicePrice / originalPrice) * 100) / 100;
+  }
+  return 0;
+}
+
+function getDiscountLabel(
+  service: Service,
+  coupon: CouponInfo,
+  allServices: Service[],
+  originalPrice: number
+): string {
+  if (coupon.discount_type === 'percentage') {
+    return `${coupon.discount_amount}% OFF`;
+  }
+  const discount = getServiceDiscount(service, coupon, allServices, originalPrice);
+  if (discount >= 1) {
+    return `-R$ ${discount.toFixed(0)} OFF`;
+  }
+  return `${coupon.discount_amount > 0 ? 'COM DESCONTO' : ''}`;
 }
 
 const ServiceStep: FC<ServiceStepProps> = memo(
-  ({ services, selectedServices, isMensalista = false, planName, onToggle, onSkip, layout }) => {
+  ({
+    services,
+    selectedServices,
+    isMensalista = false,
+    planName,
+    onToggle,
+    onSkip,
+    layout,
+    coupon,
+    originalPrice = 0,
+  }) => {
     const isSelected = (id: string) => selectedServices.some((s) => s.id === id);
+    const hasCoupon = !!coupon && coupon.discount_amount > 0;
 
     if (layout === 'desktop') {
       return (
@@ -27,9 +80,25 @@ const ServiceStep: FC<ServiceStepProps> = memo(
             </div>
           )}
 
+          {hasCoupon && (
+            <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+              <Tag size={13} className="text-emerald-400" />
+              <p className="text-[11px] text-emerald-400 font-bold">
+                Cupom {coupon.code} aplicado —{' '}
+                {coupon.discount_type === 'percentage'
+                  ? `${coupon.discount_amount}% de desconto`
+                  : `R$ ${coupon.discount_amount.toFixed(0)} de desconto`}
+              </p>
+            </div>
+          )}
+
           <div className="space-y-2" role="group" aria-label="Serviços disponíveis">
             {services.map((service) => {
               const selected = isSelected(service.id);
+              const discount = hasCoupon
+                ? getServiceDiscount(service, coupon!, services, originalPrice)
+                : 0;
+              const discountedPrice = Math.max(0, Number(service.price) - discount);
               return (
                 <button
                   key={service.id}
@@ -38,10 +107,19 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                   data-selected={selected}
                   aria-pressed={selected}
                   aria-label={`Serviço ${service.name}. Preço: R$ ${Number(service.price).toFixed(0)}. Duração: ${service.duration} minutos. ${selected ? 'Selecionado' : 'Não selecionado'}`}
-                  className={`w-full flex items-center gap-5 px-6 py-5 rounded-xl transition-all duration-200 text-left group ${
+                  className={`w-full flex items-center gap-5 px-6 py-5 rounded-xl transition-all duration-200 text-left group relative overflow-hidden ${
                     selected ? '' : 'hover:bg-white/[0.03]'
                   }`}
                 >
+                  {/* Discount badge */}
+                  {hasCoupon && discount > 0 && (
+                    <div className="absolute top-0 right-0">
+                      <div className="bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg tracking-wider">
+                        {getDiscountLabel(service, coupon!, services, originalPrice)}
+                      </div>
+                    </div>
+                  )}
+
                   <div
                     className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all shrink-0 ${
                       selected ? 'border-[#C5A059] bg-[#C5A059]' : 'border-white/20'
@@ -52,11 +130,20 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                   <div className="flex-1 min-w-0">
                     <p className={`text-[14px] font-medium text-white`}>{service.name}</p>
                   </div>
-                  <span
-                    className={`text-[14px] font-semibold tabular-nums w-16 text-right text-zinc-400`}
-                  >
-                    R$ {Number(service.price).toFixed(0)}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {hasCoupon && discount > 0 && (
+                      <span className="text-[12px] text-zinc-600 line-through tabular-nums">
+                        R$ {Number(service.price).toFixed(0)}
+                      </span>
+                    )}
+                    <span
+                      className={`text-[14px] font-semibold tabular-nums w-16 text-right ${
+                        hasCoupon && discount > 0 ? 'text-emerald-400' : 'text-zinc-400'
+                      }`}
+                    >
+                      R$ {discountedPrice.toFixed(0)}
+                    </span>
+                  </div>
                 </button>
               );
             })}
@@ -87,9 +174,25 @@ const ServiceStep: FC<ServiceStepProps> = memo(
           </div>
         )}
 
+        {hasCoupon && (
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+            <Tag size={13} className="text-emerald-400" />
+            <p className="text-[11px] text-emerald-400 font-bold">
+              Cupom {coupon.code} —{' '}
+              {coupon.discount_type === 'percentage'
+                ? `${coupon.discount_amount}% OFF`
+                : `R$ ${coupon.discount_amount.toFixed(0)} OFF`}
+            </p>
+          </div>
+        )}
+
         <div className="space-y-3" role="group" aria-label="Serviços disponíveis">
           {services.map((service) => {
             const selected = isSelected(service.id);
+            const discount = hasCoupon
+              ? getServiceDiscount(service, coupon!, services, originalPrice)
+              : 0;
+            const discountedPrice = Math.max(0, Number(service.price) - discount);
             return (
               <button
                 key={service.id}
@@ -97,8 +200,17 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                 data-testid="service-card"
                 data-selected={selected}
                 aria-pressed={selected}
-                className="w-full text-left transition-all cursor-pointer rounded-xl p-4 bg-white/[0.02] border border-white/[0.04]"
+                className="w-full text-left transition-all cursor-pointer rounded-xl p-4 bg-white/[0.02] border border-white/[0.04] relative overflow-hidden"
               >
+                {/* Discount badge */}
+                {hasCoupon && discount > 0 && (
+                  <div className="absolute top-0 right-0">
+                    <div className="bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg tracking-wider">
+                      {getDiscountLabel(service, coupon!, services, originalPrice)}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <p
@@ -107,9 +219,18 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                     >
                       {service.name}
                     </p>
-                    <span className="text-[12px] font-medium tabular-nums text-zinc-500">
-                      R$ {Number(service.price).toFixed(2).replace('.', ',')}
-                    </span>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {hasCoupon && discount > 0 && (
+                        <span className="text-[11px] text-zinc-600 line-through tabular-nums">
+                          R$ {Number(service.price).toFixed(2).replace('.', ',')}
+                        </span>
+                      )}
+                      <span
+                        className={`text-[12px] font-medium tabular-nums ${hasCoupon && discount > 0 ? 'text-emerald-400' : 'text-zinc-500'}`}
+                      >
+                        R$ {discountedPrice.toFixed(2).replace('.', ',')}
+                      </span>
+                    </div>
                   </div>
                   <div
                     className={`w-11 h-6 rounded-full transition-all relative ${

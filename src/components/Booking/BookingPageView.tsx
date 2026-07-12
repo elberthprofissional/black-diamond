@@ -161,6 +161,8 @@ const BookingPageView: FC<BookingPageViewProps> = ({
             onToggle={toggleService}
             onSkip={goNext}
             layout={layout}
+            coupon={coupon}
+            originalPrice={originalPrice}
           />
         </motion.div>
       )}
