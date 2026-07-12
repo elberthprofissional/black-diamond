@@ -1,6 +1,7 @@
 import { memo, useState, type FC } from 'react';
-import { User, Repeat, Tag, Loader2 } from 'lucide-react';
+import { User, Repeat, Tag } from 'lucide-react';
 import { WhatsAppIcon } from '../WhatsAppIcon';
+import CouponModal from './CouponModal';
 
 interface DataStepProps {
   name: string;
@@ -52,6 +53,7 @@ const DataStep: FC<DataStepProps> = memo(
     onCouponRemove,
   }) => {
     const [couponInput, setCouponInput] = useState('');
+    const [couponModalOpen, setCouponModalOpen] = useState(false);
 
     const handleApplyCoupon = () => {
       if (couponInput.trim() && onCouponValidate) {
@@ -157,36 +159,18 @@ const DataStep: FC<DataStepProps> = memo(
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
-                  <Tag size={13} className="text-zinc-600" />
-                  <button
-                    onClick={() => document.getElementById('coupon-input-desktop')?.focus()}
-                    className="text-[12px] text-zinc-500 hover:text-[#C5A059] transition-colors cursor-pointer"
-                  >
-                    Adicionar cupom de desconto
-                  </button>
-                </div>
-              )}
-              {!coupon && (
-                <div className="flex items-center gap-2 mt-3">
-                  <input
-                    id="coupon-input-desktop"
-                    type="text"
-                    placeholder="Código do cupom"
-                    aria-label="Código do cupom de desconto"
-                    value={couponInput}
-                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                    onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
-                    className="flex-1 bg-transparent border-b border-white/10 focus:border-[#C5A059] py-2 px-0 text-[13px] text-white outline-none transition-all placeholder:text-zinc-600"
+                <button
+                  onClick={() => setCouponModalOpen(true)}
+                  className="flex items-center gap-2 group cursor-pointer justify-end w-full"
+                >
+                  <Tag
+                    size={13}
+                    className="text-zinc-600 group-hover:text-[#C5A059] transition-colors"
                   />
-                  <button
-                    onClick={handleApplyCoupon}
-                    disabled={couponLoading || !couponInput.trim()}
-                    className="px-3 py-1.5 bg-[#C5A059]/10 hover:bg-[#C5A059]/20 text-[#C5A059] text-[11px] font-semibold rounded-lg transition-all cursor-pointer disabled:opacity-30"
-                  >
-                    {couponLoading ? <Loader2 size={12} className="animate-spin" /> : 'Aplicar'}
-                  </button>
-                </div>
+                  <span className="text-[12px] text-zinc-500 group-hover:text-[#C5A059] transition-colors">
+                    Adicionar cupom de desconto
+                  </span>
+                </button>
               )}
               {couponError && <p className="text-[10px] text-red-400 mt-1.5">{couponError}</p>}
             </div>
@@ -200,6 +184,16 @@ const DataStep: FC<DataStepProps> = memo(
               </p>
             </div>
           </div>
+
+          <CouponModal
+            open={couponModalOpen}
+            onClose={() => setCouponModalOpen(false)}
+            onApply={(code) => {
+              onCouponValidate?.(code);
+              setCouponModalOpen(false);
+            }}
+            loading={couponLoading}
+          />
         </div>
       );
     }
@@ -309,36 +303,18 @@ const DataStep: FC<DataStepProps> = memo(
                 </button>
               </div>
             ) : (
-              <>
-                <div className="flex items-center gap-2">
-                  <Tag size={12} className="text-zinc-600" />
-                  <button
-                    onClick={() => document.getElementById('coupon-input-mobile')?.focus()}
-                    className="text-[11px] text-zinc-500 hover:text-[#C5A059] transition-colors cursor-pointer"
-                  >
-                    Adicionar cupom de desconto
-                  </button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    id="coupon-input-mobile"
-                    type="text"
-                    placeholder="Código do cupom"
-                    aria-label="Código do cupom de desconto"
-                    value={couponInput}
-                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                    onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
-                    className="flex-1 bg-transparent border border-white/[0.06] focus:border-[#C5A059] rounded-xl px-4 py-3 text-[13px] text-white outline-none transition-all placeholder:text-zinc-600"
-                  />
-                  <button
-                    onClick={handleApplyCoupon}
-                    disabled={couponLoading || !couponInput.trim()}
-                    className="px-4 py-3 bg-[#C5A059]/10 hover:bg-[#C5A059]/20 text-[#C5A059] text-[11px] font-semibold rounded-xl transition-all cursor-pointer disabled:opacity-30"
-                  >
-                    {couponLoading ? <Loader2 size={12} className="animate-spin" /> : 'Aplicar'}
-                  </button>
-                </div>
-              </>
+              <button
+                onClick={() => setCouponModalOpen(true)}
+                className="flex items-center gap-2 group cursor-pointer w-full justify-end"
+              >
+                <Tag
+                  size={12}
+                  className="text-zinc-600 group-hover:text-[#C5A059] transition-colors"
+                />
+                <span className="text-[11px] text-zinc-500 group-hover:text-[#C5A059] transition-colors">
+                  Adicionar cupom de desconto
+                </span>
+              </button>
             )}
             {couponError && <p className="text-[10px] text-red-400">{couponError}</p>}
           </div>
@@ -364,6 +340,16 @@ const DataStep: FC<DataStepProps> = memo(
             </div>
           )}
         </div>
+
+        <CouponModal
+          open={couponModalOpen}
+          onClose={() => setCouponModalOpen(false)}
+          onApply={(code) => {
+            onCouponValidate?.(code);
+            setCouponModalOpen(false);
+          }}
+          loading={couponLoading}
+        />
       </div>
     );
   }
