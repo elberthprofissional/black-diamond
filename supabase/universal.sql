@@ -1834,6 +1834,67 @@ END
 $$;
 
 -- =========================================================================
+-- TABELAS ADICIONAIS (MIGRAÇÕES POSTERIORES)
+-- =========================================================================
+
+-- Testimonials (20260712)
+CREATE TABLE IF NOT EXISTS testimonials (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  text TEXT NOT NULL,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+ALTER TABLE testimonials ENABLE ROW LEVEL SECURITY;
+
+-- Coupons (20260721)
+CREATE TABLE IF NOT EXISTS coupons (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  code text NOT NULL UNIQUE,
+  description text DEFAULT '',
+  discount_type text NOT NULL CHECK (discount_type IN ('percentage', 'fixed', 'free')),
+  discount_value numeric NOT NULL DEFAULT 0,
+  valid_from date NOT NULL DEFAULT CURRENT_DATE,
+  valid_until date,
+  max_uses integer,
+  current_uses integer NOT NULL DEFAULT 0,
+  is_active boolean NOT NULL DEFAULT true,
+  applicable_service_ids uuid[] DEFAULT '{}',
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE coupons ENABLE ROW LEVEL SECURITY;
+
+-- Loyalty Config (20260720)
+CREATE TABLE IF NOT EXISTS loyalty_config (
+  id uuid primary key default uuid_generate_v4(),
+  visit_threshold integer not null,
+  reward_service_id uuid not null,
+  enabled boolean default false,
+  created_at timestamp with time zone default now()
+);
+
+-- Loyalty Milestones (20260722)
+CREATE TABLE IF NOT EXISTS loyalty_milestones (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  visits_required integer NOT NULL CHECK (visits_required > 0),
+  reward_service_id uuid NOT NULL,
+  is_active boolean DEFAULT true,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE loyalty_milestones ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE IF NOT EXISTS client_milestones (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  client_id uuid NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+  milestone_id uuid NOT NULL REFERENCES loyalty_milestones(id) ON DELETE CASCADE,
+  claimed_at timestamptz DEFAULT now(),
+  UNIQUE (client_id, milestone_id)
+);
+ALTER TABLE client_milestones ENABLE ROW LEVEL SECURITY;
+
+-- =========================================================================
 -- ✅ SISTEMA INSTALADO COM SUCESSO!
 -- =========================================================================
 -- Próximo passo: criar o usuário admin no Supabase:
