@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type FC } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense, type FC } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { deleteAllClients } from '../lib/api';
 import { supabase } from '../lib/supabase';
@@ -35,18 +35,18 @@ import ProfileServicesChart from '../components/Admin/shared/ProfileServicesChar
 import RevenueChart from '../components/Admin/shared/RevenueChart';
 import { useRevenueChartData } from '../hooks/useRevenueChartData';
 import ExportButton from '../components/Admin/shared/ExportButton';
+const SettingsConta = lazy(() => import('../components/Admin/settings/SettingsConta'));
+const SettingsGaleria = lazy(() => import('../components/Admin/settings/SettingsGaleria'));
+const SettingsNotificacoes = lazy(() => import('../components/Admin/settings/SettingsNotificacoes'));
+const SettingsDados = lazy(() => import('../components/Admin/settings/SettingsDados'));
+const SettingsServicos = lazy(() => import('../components/Admin/settings/SettingsServicos'));
+const SettingsHorarios = lazy(() => import('../components/Admin/settings/SettingsHorarios'));
+const SettingsMensalista = lazy(() => import('../components/Admin/settings/SettingsMensalista'));
+const SettingsFaltas = lazy(() => import('../components/Admin/settings/SettingsFaltas'));
+const SettingsFidelidade = lazy(() => import('../components/Admin/settings/SettingsFidelidade'));
+const SettingsCupons = lazy(() => import('../components/Admin/settings/SettingsCupons'));
+const SettingsDepoimentos = lazy(() => import('../components/Admin/settings/SettingsDepoimentos'));
 import SettingsList from '../components/Admin/settings/SettingsList';
-import SettingsConta from '../components/Admin/settings/SettingsConta';
-import SettingsGaleria from '../components/Admin/settings/SettingsGaleria';
-import SettingsNotificacoes from '../components/Admin/settings/SettingsNotificacoes';
-import SettingsDados from '../components/Admin/settings/SettingsDados';
-import SettingsServicos from '../components/Admin/settings/SettingsServicos';
-import SettingsHorarios from '../components/Admin/settings/SettingsHorarios';
-import SettingsMensalista from '../components/Admin/settings/SettingsMensalista';
-import SettingsFaltas from '../components/Admin/settings/SettingsFaltas';
-import SettingsFidelidade from '../components/Admin/settings/SettingsFidelidade';
-import SettingsCupons from '../components/Admin/settings/SettingsCupons';
-import SettingsDepoimentos from '../components/Admin/settings/SettingsDepoimentos';
 import HelpModal from '../components/Admin/settings/HelpModal';
 import { SkeletonDashboard } from '../components/Skeleton';
 import { usePwaInstall } from '../hooks/usePwaInstall';
@@ -276,17 +276,19 @@ const AdminProfile: FC = () => {
                 onLogoutClick={() => setShowLogoutConfirm(true)}
               />
             )}
-            {settingsSection === 'conta' && <SettingsConta />}
-            {settingsSection === 'galeria' && <SettingsGaleria />}
-            {settingsSection === 'servicos' && <SettingsServicos />}
-            {settingsSection === 'horarios' && <SettingsHorarios />}
-            {settingsSection === 'mensalista' && <SettingsMensalista />}
-            {settingsSection === 'faltas' && <SettingsFaltas />}
-            {settingsSection === 'fidelidade' && <SettingsFidelidade />}
-            {settingsSection === 'cupons' && <SettingsCupons />}
-            {settingsSection === 'depoimentos' && <SettingsDepoimentos />}
-            {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
-            {settingsSection === 'dados' && <SettingsDados />}
+            <Suspense fallback={<div className="h-32 bg-white/[0.02] rounded-xl animate-pulse" />}>
+              {settingsSection === 'conta' && <SettingsConta />}
+              {settingsSection === 'galeria' && <SettingsGaleria />}
+              {settingsSection === 'servicos' && <SettingsServicos />}
+              {settingsSection === 'horarios' && <SettingsHorarios />}
+              {settingsSection === 'mensalista' && <SettingsMensalista />}
+              {settingsSection === 'faltas' && <SettingsFaltas />}
+              {settingsSection === 'fidelidade' && <SettingsFidelidade />}
+              {settingsSection === 'cupons' && <SettingsCupons />}
+              {settingsSection === 'depoimentos' && <SettingsDepoimentos />}
+              {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
+              {settingsSection === 'dados' && <SettingsDados />}
+            </Suspense>
           </div>
 
           <div className="hidden lg:flex gap-8 max-w-4xl mx-auto items-start">
@@ -338,17 +340,19 @@ const AdminProfile: FC = () => {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.12 }}
                 >
-                  {(!settingsSection || settingsSection === 'conta') && <SettingsConta />}
-                  {settingsSection === 'galeria' && <SettingsGaleria />}
-                  {settingsSection === 'servicos' && <SettingsServicos />}
-                  {settingsSection === 'horarios' && <SettingsHorarios />}
-                  {settingsSection === 'mensalista' && <SettingsMensalista />}
-                  {settingsSection === 'faltas' && <SettingsFaltas />}
-                  {settingsSection === 'fidelidade' && <SettingsFidelidade />}
-                  {settingsSection === 'cupons' && <SettingsCupons />}
-                  {settingsSection === 'depoimentos' && <SettingsDepoimentos />}
-                  {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
-                  {settingsSection === 'dados' && <SettingsDados />}
+                  <Suspense fallback={<div className="h-32 bg-white/[0.02] rounded-xl animate-pulse" />}>
+                    {(!settingsSection || settingsSection === 'conta') && <SettingsConta />}
+                    {settingsSection === 'galeria' && <SettingsGaleria />}
+                    {settingsSection === 'servicos' && <SettingsServicos />}
+                    {settingsSection === 'horarios' && <SettingsHorarios />}
+                    {settingsSection === 'mensalista' && <SettingsMensalista />}
+                    {settingsSection === 'faltas' && <SettingsFaltas />}
+                    {settingsSection === 'fidelidade' && <SettingsFidelidade />}
+                    {settingsSection === 'cupons' && <SettingsCupons />}
+                    {settingsSection === 'depoimentos' && <SettingsDepoimentos />}
+                    {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
+                    {settingsSection === 'dados' && <SettingsDados />}
+                  </Suspense>
                 </motion.div>
               </AnimatePresence>
             </div>
