@@ -162,8 +162,9 @@ export const unblockDay = async (date: string) => {
 export const autoCompleteExpiredBookings = async (_date?: string): Promise<number> => {
   const { error } = await supabase.rpc('completar_agendamentos_expirados');
   if (error) return 0;
-  // RPC não retorna count, mas sempre force refetch para garantir dados atualizados
-  return 1;
+  // RPC não retorna count — retorna 0 para não causar loop infinito de refetch
+  // O auto-complete acontece server-side; o dashboard atualiza no próximo refresh natural
+  return 0;
 };
 
 /** Busca bookings para cálculo de estatísticas. Limita aos últimos 12 meses por padrão. */
