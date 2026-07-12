@@ -1451,7 +1451,7 @@ BEGIN
     RETURN jsonb_build_object(
         'status', v_db_status,
         'timestamp', NOW(),
-        'version', '3.20.0',
+        'version', '3.20.2',
         'database', jsonb_build_object(
             'services', v_services_count,
             'bookings', v_bookings_count,
@@ -1686,7 +1686,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- =========================================================================
 
 -- Garante a configuração padrão da URL do site
-INSERT INTO settings (key, value) VALUES ('site_url', 'https://black-diamond.vercel.app')
+INSERT INTO settings (key, value) VALUES ('site_url', 'https://black-diamond-wheat.vercel.app')
 ON CONFLICT (key) DO NOTHING;
 
 -- Redefine a função do gatilho completa
@@ -1728,7 +1728,7 @@ BEGIN
 
     v_clean_phone := regexp_replace(v_client.phone, '\D', '', 'g');
 
-    SELECT COALESCE(value, 'https://black-diamond.vercel.app') INTO v_site_url
+    SELECT COALESCE(value, 'https://black-diamond-wheat.vercel.app') INTO v_site_url
     FROM settings
     WHERE key = 'site_url';
 
