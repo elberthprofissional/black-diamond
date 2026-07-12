@@ -14,6 +14,14 @@ export interface Notification {
 // AudioContext reutilizável para evitar esgotar o limite do browser
 let sharedAudioContext: AudioContext | null = null;
 
+// Singleton para subscription realtime — evita duplicação entre desktop/mobile
+let activeChannel: ReturnType<typeof supabase.channel> | null = null;
+let activeUserId: string | null = null;
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
+let retryCount = 0;
+let channelId = 0;
+const MAX_RETRIES = 15;
+
 // Generate notification sound using Web Audio API (no external files needed)
 function playNotificationSound() {
   try {
@@ -105,22 +113,11 @@ export function useNotifications() {
     updateTitleBadge(count);
   }, [notifications]);
 
-  // Realtime subscription with auto-reconnect
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const retryCountRef = useRef(0);
-  const channelIdRef = useRef(0);
-  const isSettingUpRef = useRef(false);
-  const MAX_RETRIES = 15;
-
+  // Realtime subscription with auto-reconnect (singleton)
   useEffect(() => {
     let mounted = true;
 
     const setupRealtime = async () => {
-      // Guard contra execução concorrente (ex: retry + outro erro)
-      if (isSettingUpRef.current) return;
-      isSettingUpRef.current = true;
-
       try {
         if (!mounted) return;
         if (!supabase?.auth?.getUser) return;
@@ -130,17 +127,19 @@ export function useNotifications() {
         } = await supabase.auth.getUser();
         if (!user || !mounted) return;
 
+        // Se já existe uma subscription para este usuário, não cria outra
+        if (activeChannel && activeUserId === user.id) return;
+
         // Remove canal anterior se existir
-        if (channelRef.current) {
-          await supabase.removeChannel(channelRef.current);
-          channelRef.current = null;
-          // Espera um tick para garantir que o canal foi removido completamente
+        if (activeChannel) {
+          await supabase.removeChannel(activeChannel);
+          activeChannel = null;
           await new Promise((r) => setTimeout(r, 100));
         }
 
-        // Nome único para evitar que o Supabase reutilize o canal antigo (já subscrito)
-        channelIdRef.current++;
-        const channelName = `notifications-${user.id}-${channelIdRef.current}`;
+        activeUserId = user.id;
+        channelId++;
+        const channelName = `notifications-${user.id}-${channelId}`;
 
         const channel = supabase
           .channel(channelName)
@@ -183,29 +182,27 @@ export function useNotifications() {
             if (!mounted) return;
 
             if (status === 'SUBSCRIBED') {
-              // Conexão OK — reseta contagem de retry
-              retryCountRef.current = 0;
+              retryCount = 0;
             } else if (
               status === 'CHANNEL_ERROR' ||
               status === 'TIMED_OUT' ||
               status === 'CLOSED'
             ) {
-              // Reconexão automática com backoff exponencial
-              if (retryCountRef.current < MAX_RETRIES) {
-                const delay = Math.min(1000 * Math.pow(1.5, retryCountRef.current), 15000);
-                retryCountRef.current++;
+              if (retryCount < MAX_RETRIES) {
+                const delay = Math.min(1000 * Math.pow(1.5, retryCount), 15000);
+                retryCount++;
 
-                if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-                retryTimerRef.current = setTimeout(() => {
+                if (retryTimer) clearTimeout(retryTimer);
+                retryTimer = setTimeout(() => {
                   if (mounted) setupRealtime();
                 }, delay);
               }
             }
           });
 
-        channelRef.current = channel;
-      } finally {
-        isSettingUpRef.current = false;
+        activeChannel = channel;
+      } catch {
+        // Erro na subscription — silencioso
       }
     };
 
@@ -213,11 +210,9 @@ export function useNotifications() {
 
     return () => {
       mounted = false;
-      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
+      if (retryTimer) clearTimeout(retryTimer);
+      // Não remove o canal no cleanup — outro componente pode estar usando
+      // O canal só é removido quando uma nova subscription é criada
       if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
     };
   }, []);
