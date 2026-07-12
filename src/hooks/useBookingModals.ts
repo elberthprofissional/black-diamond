@@ -115,7 +115,10 @@ export function useBookingModals(loadData: () => Promise<void>, services: Servic
             tag: `booking-cancelled-${id}`,
             url: '/admin',
           })
-          .catch(() => {});
+          .then(
+            () => {},
+            () => {}
+          );
       });
 
       showSuccess('Agendamento cancelado!');
