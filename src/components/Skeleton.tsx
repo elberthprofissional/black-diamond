@@ -46,7 +46,7 @@ export const SkeletonList: FC<{ count?: number; className?: string }> = ({
   count = 5,
   className = '',
 }) => (
-  <div className={`space-y-3 ${className}`}>
+  <div className={`space-y-3 ${className}`} aria-busy="true" aria-label="Carregando lista">
     {Array.from({ length: count }).map((_, i) => (
       <div key={i} className="flex items-center gap-4 py-3">
         <Skeleton variant="circle" width={40} height={40} />
@@ -75,7 +75,7 @@ export const SkeletonDashboard: FC = () => (
 );
 
 export const SkeletonBooking: FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-6" aria-busy="true" aria-label="Carregando agendamento">
     <div className="flex items-center gap-4">
       <Skeleton variant="circle" width={44} height={44} />
       <div className="space-y-2">
@@ -93,7 +93,7 @@ export const SkeletonBooking: FC = () => (
 );
 
 export const SkeletonClients: FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-6" aria-busy="true" aria-label="Carregando clientes">
     <div className="flex items-center justify-between">
       <Skeleton variant="text" width={160} height={28} />
       <Skeleton variant="rect" width={120} height={40} />
