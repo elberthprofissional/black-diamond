@@ -64,7 +64,7 @@
         },
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://black-diamond.vercel.app"
+          "value": "*"
         }
       ]
     },

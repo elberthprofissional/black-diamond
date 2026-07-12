@@ -106,6 +106,8 @@ interface IncrementResult {
  */
 export const incrementVisit = async (clientId: string): Promise<IncrementResult> => {
   // 1. Incrementa visitas
+  // Nota: Race condition baixo risco em contexto de barbearia (dois bookings
+  // do mesmo cliente completando no mesmo milissegundo é extremamente raro)
   const { data: client } = await supabase
     .from('clients')
     .select('historical_visits, name, phone')

@@ -51,10 +51,11 @@ const ManageBooking: FC = () => {
     }
   };
 
-  const handleReschedule = () => {
+  const handleReschedule = (bookingId?: string) => {
     navigate('/cancelar', {
       state: {
         token: token,
+        bookingId: bookingId,
       },
     });
   };
@@ -168,7 +169,7 @@ const ManageBooking: FC = () => {
                 {/* Actions */}
                 <div className="flex items-center gap-2 pt-2">
                   <button
-                    onClick={() => handleReschedule()}
+                    onClick={() => handleReschedule(booking.booking_id)}
                     className="flex-1 h-10 rounded-xl bg-[#C5A059] text-black font-black text-[10px] uppercase tracking-[0.15em] hover:bg-[#d4b06a] active:scale-[0.98] transition-all cursor-pointer"
                   >
                     Reagendar

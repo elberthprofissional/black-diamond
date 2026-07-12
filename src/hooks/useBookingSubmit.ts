@@ -139,7 +139,7 @@ export function useBookingSubmit(
     }
 
     return () => window.removeEventListener('online', handleOnline);
-  }, [showSuccess]);
+  }, [showSuccess, showError]);
 
   const handleConfirm = useCallback(
     async (params: SubmitParams): Promise<BookingResult | null> => {

@@ -72,15 +72,19 @@ export function useGallery() {
       const updated = [...images];
       const [moved] = updated.splice(currentIdx, 1);
       updated.splice(newIdx, 0, moved);
-      await Promise.all(
+      const results = await Promise.all(
         updated.map((img, i) =>
           supabase.from('gallery_images').update({ position: i }).eq('id', img.id)
         )
       );
+      if (results.some((r) => r.error)) {
+        showSuccess('Posição atualizada localmente');
+      } else {
+        showSuccess(`Foto movida para posição ${targetPosition}`);
+      }
       setImages(updated);
       setShowMoveModal(false);
       preview.setPreviewImage(null);
-      showSuccess(`Foto movida para posição ${targetPosition}`);
     },
     [preview, images, showSuccess, setImages]
   );

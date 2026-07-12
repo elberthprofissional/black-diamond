@@ -27,6 +27,7 @@ export function useBookingSlots(showError: (msg: string) => void) {
   }, [allNextDays, workingDays]);
 
   useEffect(() => {
+    let mounted = true;
     const fetchSettings = async () => {
       try {
         const { data } = await supabase
@@ -34,7 +35,7 @@ export function useBookingSlots(showError: (msg: string) => void) {
           .select('key, value')
           .in('key', ['working_days', 'barber_hours']);
 
-        if (data) {
+        if (data && mounted) {
           for (const row of data) {
             if (row.key === 'working_days' && row.value) setWorkingDays(row.value);
             else if (row.key === 'barber_hours' && row.value) setBarberHoursJson(row.value);
@@ -45,6 +46,9 @@ export function useBookingSlots(showError: (msg: string) => void) {
       }
     };
     fetchSettings();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {

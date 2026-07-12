@@ -11,13 +11,26 @@ export interface Notification {
   created_at: string;
 }
 
+// AudioContext reutilizável para evitar esgotar o limite do browser
+let sharedAudioContext: AudioContext | null = null;
+
 // Generate notification sound using Web Audio API (no external files needed)
 function playNotificationSound() {
   try {
-    const ctx = new (
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-    )();
+    // Reutiliza contexto existente ou cria um novo
+    if (!sharedAudioContext || sharedAudioContext.state === 'closed') {
+      sharedAudioContext = new (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      )();
+    }
+    const ctx = sharedAudioContext;
+
+    // Resume se estiver suspenso (política de autoplay)
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+
     const oscillator = ctx.createOscillator();
     const gainNode = ctx.createGain();
 
@@ -34,9 +47,6 @@ function playNotificationSound() {
 
     oscillator.start(ctx.currentTime);
     oscillator.stop(ctx.currentTime + 0.3);
-
-    // Cleanup
-    setTimeout(() => ctx.close(), 500);
   } catch {
     // Audio not available — silently fail
   }

@@ -88,7 +88,7 @@ export function useClientPanel(
     } finally {
       setSaving(false);
     }
-  }, [selectedClient, editName, editPhone, showError, setClients]);
+  }, [selectedClient, editName, editPhone, showError, setClients, log]);
 
   const handleSaveNotes = useCallback(async () => {
     if (!selectedClient) return;

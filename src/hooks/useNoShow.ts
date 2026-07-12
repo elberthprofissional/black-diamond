@@ -11,6 +11,7 @@ export function useNoShow(options?: UseNoShowOptions) {
   const { showSuccess, showError } = useToast();
   const { log } = useAuditLog();
   const [markingNoShow, setMarkingNoShow] = useState<string | null>(null);
+  const onBookingUpdated = options?.onBookingUpdated;
 
   const markAsNoShow = useCallback(
     async (bookingId: string) => {
@@ -30,14 +31,14 @@ export function useNoShow(options?: UseNoShowOptions) {
         });
 
         showSuccess('Cliente marcado como não compareceu');
-        options?.onBookingUpdated?.();
+        onBookingUpdated?.();
       } catch {
         showError('Erro ao marcar falta');
       } finally {
         setMarkingNoShow(null);
       }
     },
-    [log, showSuccess, showError, options]
+    [log, showSuccess, showError, onBookingUpdated]
   );
 
   const undoNoShow = useCallback(
@@ -58,7 +59,7 @@ export function useNoShow(options?: UseNoShowOptions) {
         });
 
         showSuccess('Falta removida');
-        options?.onBookingUpdated?.();
+        onBookingUpdated?.();
       } catch {
         showError('Erro ao remover falta');
       } finally {

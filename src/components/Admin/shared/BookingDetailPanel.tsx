@@ -273,8 +273,8 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
             </button>
             {booking.status !== 'completed' && (
               <button
-                onClick={() => {
-                  markAsNoShow(booking.id);
+                onClick={async () => {
+                  await markAsNoShow(booking.id);
                   onClose();
                 }}
                 disabled={markingNoShow === booking.id}
@@ -442,8 +442,8 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
             </button>
             {booking.status !== 'completed' && (
               <button
-                onClick={() => {
-                  markAsNoShow(booking.id);
+                onClick={async () => {
+                  await markAsNoShow(booking.id);
                   onClose();
                 }}
                 disabled={markingNoShow === booking.id}

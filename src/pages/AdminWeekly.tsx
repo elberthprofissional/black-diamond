@@ -107,7 +107,10 @@ const AdminWeekly: FC = () => {
   // Se todos os dias mudarem (ex: carregou barberHours), ajusta o índice selecionado
   useEffect(() => {
     if (selectedVisibleIndex >= visibleWeekDays.length) {
-      setSelectedVisibleIndex(0);
+      // Tenta encontrar hoje no novo array; senão, pega o primeiro
+      const todayStr = today.toDateString();
+      const todayIdx = visibleWeekDays.findIndex((d) => d.toDateString() === todayStr);
+      setSelectedVisibleIndex(todayIdx >= 0 ? todayIdx : 0);
     }
   }, [visibleWeekDays.length, selectedVisibleIndex]);
 

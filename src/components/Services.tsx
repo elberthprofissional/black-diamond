@@ -217,7 +217,7 @@ const Services: FC<ServicesProps> = memo(({ onBookingClick }) => {
 
                     <button
                       onClick={() => handlePlanClick(plan)}
-                      className="w-full py-3.5 bg-[#C5A059] text-black font-bold text-[11px] uppercase tracking-[0.1em] rounded-xl hover:bg-[#C5A059] transition-all cursor-pointer active:scale-[0.98]"
+                      className="w-full py-3.5 bg-[#C5A059] text-black font-bold text-[11px] uppercase tracking-[0.1em] rounded-xl hover:bg-[#A68233] transition-all cursor-pointer active:scale-[0.98]"
                     >
                       Tenho interesse
                     </button>
