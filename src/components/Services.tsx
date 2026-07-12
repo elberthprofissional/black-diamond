@@ -113,6 +113,11 @@ const Services: FC<ServicesProps> = memo(({ onBookingClick }) => {
                   </h4>
 
                   <div className="flex items-baseline gap-4 shrink-0">
+                    {service.duration && (
+                      <span className="text-[10px] sm:text-[11px] text-zinc-500 whitespace-nowrap">
+                        {service.duration} min
+                      </span>
+                    )}
                     <span className="text-lg sm:text-xl md:text-3xl font-bebas text-[#C5A059] whitespace-nowrap opacity-80 group-hover:opacity-100 transition-all duration-700">
                       R$ {Number(service.price).toFixed(0)}
                     </span>
