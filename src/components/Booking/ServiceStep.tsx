@@ -21,12 +21,7 @@ interface ServiceStepProps {
   originalPrice?: number;
 }
 
-function getServiceDiscount(
-  service: Service,
-  coupon: CouponInfo,
-  allServices: Service[],
-  originalPrice: number
-): number {
+function getServiceDiscount(service: Service, coupon: CouponInfo, originalPrice: number): number {
   const servicePrice = Number(service.price);
   if (coupon.discount_type === 'percentage') {
     return Math.round(((servicePrice * coupon.discount_amount) / originalPrice) * 100) / 100;
@@ -38,16 +33,11 @@ function getServiceDiscount(
   return 0;
 }
 
-function getDiscountLabel(
-  service: Service,
-  coupon: CouponInfo,
-  allServices: Service[],
-  originalPrice: number
-): string {
+function getDiscountLabel(service: Service, coupon: CouponInfo, originalPrice: number): string {
   if (coupon.discount_type === 'percentage') {
     return `${coupon.discount_amount}% OFF`;
   }
-  const discount = getServiceDiscount(service, coupon, allServices, originalPrice);
+  const discount = getServiceDiscount(service, coupon, originalPrice);
   if (discount >= 1) {
     return `-R$ ${discount.toFixed(0)} OFF`;
   }
@@ -95,9 +85,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
           <div className="space-y-2" role="group" aria-label="Serviços disponíveis">
             {services.map((service) => {
               const selected = isSelected(service.id);
-              const discount = hasCoupon
-                ? getServiceDiscount(service, coupon!, services, originalPrice)
-                : 0;
+              const discount = hasCoupon ? getServiceDiscount(service, coupon!, originalPrice) : 0;
               const discountedPrice = Math.max(0, Number(service.price) - discount);
               return (
                 <button
@@ -115,7 +103,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                   {hasCoupon && discount > 0 && (
                     <div className="absolute top-0 right-0">
                       <div className="bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg tracking-wider">
-                        {getDiscountLabel(service, coupon!, services, originalPrice)}
+                        {getDiscountLabel(service, coupon!, originalPrice)}
                       </div>
                     </div>
                   )}
@@ -189,9 +177,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
         <div className="space-y-3" role="group" aria-label="Serviços disponíveis">
           {services.map((service) => {
             const selected = isSelected(service.id);
-            const discount = hasCoupon
-              ? getServiceDiscount(service, coupon!, services, originalPrice)
-              : 0;
+            const discount = hasCoupon ? getServiceDiscount(service, coupon!, originalPrice) : 0;
             const discountedPrice = Math.max(0, Number(service.price) - discount);
             return (
               <button
@@ -206,7 +192,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                 {hasCoupon && discount > 0 && (
                   <div className="absolute top-0 right-0">
                     <div className="bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg tracking-wider">
-                      {getDiscountLabel(service, coupon!, services, originalPrice)}
+                      {getDiscountLabel(service, coupon!, originalPrice)}
                     </div>
                   </div>
                 )}
