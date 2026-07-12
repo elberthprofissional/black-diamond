@@ -25,6 +25,7 @@ const Skeleton: FC<SkeletonProps> = ({ className = '', variant = 'text', width, 
       data-testid="skeleton"
       className={`${baseClass} ${variantClass} ${className}`}
       style={style}
+      aria-hidden="true"
     />
   );
 };
@@ -32,6 +33,8 @@ const Skeleton: FC<SkeletonProps> = ({ className = '', variant = 'text', width, 
 export const SkeletonCard: FC<{ className?: string }> = ({ className = '' }) => (
   <div
     className={`bg-white/[0.02] border border-white/[0.04] rounded-2xl p-5 space-y-4 ${className}`}
+    aria-busy="true"
+    aria-label="Carregando conteúdo"
   >
     <Skeleton variant="text" width="40%" height={20} />
     <Skeleton variant="text" width="100%" height={16} />
@@ -57,7 +60,7 @@ export const SkeletonList: FC<{ count?: number; className?: string }> = ({
 );
 
 export const SkeletonDashboard: FC = () => (
-  <div className="space-y-6">
+  <div className="space-y-6" aria-busy="true" aria-label="Carregando painel">
     <div className="flex items-center justify-between">
       <Skeleton variant="text" width={200} height={28} />
       <Skeleton variant="rect" width={100} height={36} />

@@ -104,10 +104,15 @@ function preloadRoute(path: string) {
 
 function LoadingFallback() {
   return (
-    <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
+    <div
+      className="min-h-screen bg-[#0f0f0f] flex items-center justify-center"
+      role="status"
+      aria-label="Carregando página"
+      aria-busy="true"
+    >
       <div className="flex flex-col items-center gap-4">
-        <div className="w-8 h-8 border-2 border-zinc-800 border-t-[#C5A059] rounded-full animate-spin" />
-        <div className="flex gap-1">
+        <div className="w-8 h-8 border-2 border-zinc-800 border-t-[#C5A059] rounded-full animate-spin" aria-hidden="true" />
+        <div className="flex gap-1" aria-hidden="true">
           <div
             className="w-1 h-1 rounded-full bg-[#C5A059] animate-bounce"
             style={{ animationDelay: '0ms' }}
@@ -121,6 +126,7 @@ function LoadingFallback() {
             style={{ animationDelay: '300ms' }}
           />
         </div>
+        <span className="sr-only">Carregando... Aguarde um momento.</span>
       </div>
     </div>
   );
