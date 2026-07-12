@@ -52,14 +52,8 @@ const DataStep: FC<DataStepProps> = memo(
     onCouponValidate,
     onCouponRemove,
   }) => {
-    const [couponInput, setCouponInput] = useState('');
     const [couponModalOpen, setCouponModalOpen] = useState(false);
 
-    const handleApplyCoupon = () => {
-      if (couponInput.trim() && onCouponValidate) {
-        onCouponValidate(couponInput.trim());
-      }
-    };
     if (layout === 'desktop') {
       return (
         <div className="flex-1 flex items-center justify-center">
