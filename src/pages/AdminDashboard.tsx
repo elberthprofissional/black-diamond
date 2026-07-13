@@ -4,7 +4,7 @@ import { useDashboardData } from '../hooks/useDashboardData';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 import AdminLayout from '../components/Admin/AdminLayout';
 import DashboardHeader from '../components/Admin/shared/DashboardHeader';
-import OccupancyRateCard from '../components/Admin/shared/OccupancyRateCard';
+
 import FilterTabs from '../components/Admin/shared/FilterTabs';
 import OccupiedPanel from '../components/Admin/shared/OccupiedPanel';
 import FreePanel from '../components/Admin/shared/FreePanel';
@@ -121,12 +121,6 @@ const AdminDashboard: FC = () => {
             <EndOfDayView completedCount={completedCount} dailyRevenue={data.dailyRevenue} />
           ) : (
             <>
-              {/* Taxa de Ocupação */}
-              <OccupancyRateCard
-                occupiedCount={data.occupiedBookings.length}
-                totalSlots={data.occupiedBookings.length + data.freeSlots.length}
-              />
-
               <div className="flex border-b border-white/[0.04] pb-1 pt-1 justify-start">
                 <FilterTabs
                   filter={mgmt.filter}

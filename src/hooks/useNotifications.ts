@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
+import { useNotificationPrefs, type NotificationPrefs } from './useNotificationPrefs';
 
 export interface Notification {
   id: string;
@@ -76,6 +77,18 @@ export function useNotifications() {
   const [showPreview, setShowPreview] = useState<Notification | null>(null);
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const notificationsRef = useRef<Notification[]>([]);
+  const prefsRef = useRef<NotificationPrefs>({
+    inApp: true,
+    sound: true,
+    preview: true,
+    badge: true,
+  });
+
+  // Load notification preferences
+  const { prefs: notificationPrefs } = useNotificationPrefs();
+
+  // Keep prefs ref in sync
+  prefsRef.current = notificationPrefs;
 
   // Keep ref in sync with state
   notificationsRef.current = notifications;
@@ -107,10 +120,14 @@ export function useNotifications() {
     fetchNotifications();
   }, [fetchNotifications]);
 
-  // Update document title badge when unread count changes
+  // Update document title badge when unread count changes (respecting badge pref)
   useEffect(() => {
     const count = notifications.filter((n) => !n.read).length;
-    updateTitleBadge(count);
+    if (prefsRef.current.badge) {
+      updateTitleBadge(count);
+    } else {
+      document.title = 'Black Diamond';
+    }
   }, [notifications]);
 
   // Realtime subscription with auto-reconnect (singleton)
@@ -160,13 +177,19 @@ export function useNotifications() {
                   return [newNotif, ...prev].slice(0, 50);
                 });
 
-                // Toca som
-                playNotificationSound();
+                const prefs = prefsRef.current;
 
-                // Preview toast
-                setShowPreview(newNotif);
-                if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
-                previewTimerRef.current = setTimeout(() => setShowPreview(null), 5000);
+                // Toca som (only if in-app + sound enabled)
+                if (prefs.inApp && prefs.sound) {
+                  playNotificationSound();
+                }
+
+                // Preview toast (only if in-app + preview enabled)
+                if (prefs.inApp && prefs.preview) {
+                  setShowPreview(newNotif);
+                  if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+                  previewTimerRef.current = setTimeout(() => setShowPreview(null), 5000);
+                }
               } else if (payload.eventType === 'DELETE') {
                 // Remove notificação deletada (ex: trigger de cancelamento)
                 const deletedId = (payload.old as Notification).id;
