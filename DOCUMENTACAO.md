@@ -2,7 +2,7 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, notificacoes push e integracao com WhatsApp.
 
-**Versao:** 3.20.2 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.22.0 | **Ultima atualizacao:** Julho 2026
 
 ---
 
@@ -1058,9 +1058,11 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [x] CSV export corrigido — Separador ponto e virgula para Excel brasileiro
 - [x] UI limpa notificacoes — Removido "Marcar todas" e "Todas" (selecao)
 - [x] Avatares quadrados — Consistencia visual nos modais de clientes
+- [x] Export XLSX (Excel) — XML SpreadsheetML, zero dependencias externas
+- [x] Analise por dia da semana — Nova aba no RevenueChart
+- [x] Sentry release tag + source maps no CI
 
 ### Possiveis melhorias futuras
-- [x] Badge "🔥 Mais Pedido" nos serviços (Corte de Cabelo e Barba)
 - [x] Skeleton no agendamento público (SkeletonBooking)
 - [x] Realtime na Agenda Semanal (AdminWeekly)
 - [x] Indicador "Ao vivo" no Dashboard e Agenda Semanal
@@ -1074,7 +1076,7 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [ ] Multi-tenancy (varias barbearias no mesmo sistema)
 - [ ] Pagamento online (Stripe/Mercado Pago)
 - [ ] API de WhatsApp (Evolution API) para lembretes automaticos
-- [ ] Export PDF e Excel (XLSX) para relatorios
+- [ ] Export PDF para relatorios
 - [ ] App nativo Android (APK) via Capacitor
 - [ ] Drag and drop para reordenar fotos na galeria
 - [ ] Filtros e edicao de imagens no admin
@@ -1086,7 +1088,7 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [ ] Indicador de "cliente bloqueado" na lista de clientes
 - [ ] Grafico de ocupacao ao longo do tempo
 - [ ] Faturamento por servico (receita, nao apenas contagem)
-- [ ] Analise por dia da semana (qual dia rende mais)
+
 - [ ] Refatoracao do NotificationBell (~700 linhas → God Component simplificado)
 
 ---
@@ -1590,4 +1592,4 @@ Visualizacao completa do faturamento com 3 modos: diario, semanal e comparativo 
 
 ---
 
-*Documento atualizado em Julho 2026. Versao do sistema: 3.20.2*
+*Documento atualizado em Julho 2026. Versao do sistema: 3.21.0*

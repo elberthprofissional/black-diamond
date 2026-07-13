@@ -178,6 +178,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                   <div>
                     <div className="flex gap-2">
                       <input
+                        id="coupon-desktop"
                         type="text"
                         value={couponInput}
                         onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
@@ -386,6 +387,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                 <div>
                   <div className="flex gap-2">
                     <input
+                      id="coupon-mobile"
                       type="text"
                       value={couponInput}
                       onChange={(e) => setCouponInput(e.target.value.toUpperCase())}

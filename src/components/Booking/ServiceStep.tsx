@@ -21,9 +21,6 @@ interface ServiceStepProps {
   originalPrice?: number;
 }
 
-// Serviços mais populares — aparecem com badge especial no card
-const MOST_POPULAR_SERVICES = new Set(['Corte de Cabelo', 'Barba']);
-
 function getServiceDiscount(service: Service, coupon: CouponInfo, originalPrice: number): number {
   const servicePrice = Number(service.price);
   if (coupon.discount_type === 'percentage') {
@@ -121,11 +118,6 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className={`text-[14px] font-medium text-white`}>{service.name}</p>
-                      {MOST_POPULAR_SERVICES.has(service.name) && (
-                        <span className="text-[8px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full tracking-normal whitespace-nowrap">
-                          🔥 Mais Pedido
-                        </span>
-                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -216,11 +208,6 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                       >
                         {service.name}
                       </p>
-                      {MOST_POPULAR_SERVICES.has(service.name) && (
-                        <span className="text-[7px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full tracking-normal whitespace-nowrap shrink-0">
-                          🔥 Popular
-                        </span>
-                      )}
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
                       {hasCoupon && discount > 0 && (

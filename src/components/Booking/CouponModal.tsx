@@ -57,6 +57,7 @@ const CouponModal: FC<CouponModalProps> = ({ open, onClose, onApply, loading }) 
                 </button>
               </div>
               <input
+                id="coupon-modal"
                 type="text"
                 placeholder="Digite o código do cupom"
                 aria-label="Código do cupom de desconto"

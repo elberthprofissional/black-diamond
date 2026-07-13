@@ -5,25 +5,20 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
-## [3.21.0] - 2026-07-13
+## [3.22.0] - 2026-07-13
 
 ### Added
-- **Badge "🔥 Mais Pedido" nos serviços** — Corte de Cabelo e Barba agora exibem badge verde com "🔥 Mais Pedido" na página pública (Services.tsx) e no fluxo de agendamento (ServiceStep.tsx). Mobile mostra "🔥 Popular" (texto mais curto).
-- **Skeleton no agendamento público** — Novo componente `SkeletonBooking` com placeholders animados para nome, WhatsApp, cupom e lista de serviços. Aparece enquanto os serviços carregam no `/agendar`.
-- **Indicador "Ao vivo" no Dashboard** — Badge verde com ponto pulsante e texto "Ao vivo" ao lado do título "Agenda do Dia", usando `useConnectionStatus`. Versão compacta "AO VIVO" no mobile.
-- **Botão de refresh manual** — Ícone de refresh (RefreshCw) no Dashboard e Agenda Semanal para recarregar dados manualmente.
-- **Realtime na Agenda Semanal (AdminWeekly)** — Subscription Supabase Realtime para a data selecionada, atualiza bookings e slots automaticamente.
-- **Toast mais alto no mobile** — Posição do `ToastNotification` alterada de `bottom-28` para `bottom-24 sm:bottom-28` para evitar ficar atrás do teclado no celular.
+- **Export XLSX (Excel) integrado** — Novo hook `useXlsxExport` para gerar arquivos .xls compatíveis com Excel via XML SpreadsheetML, zero dependências. Botão Exportar agora tem menu em 2 níveis: tipo de dado (Agendamentos, Clientes, Financeiro) → formato (Excel ou CSV).
+- **Análise por dia da semana** — Nova aba "Dia da Semana" no gráfico de faturamento (RevenueChart). Mostra faturamento por dia da semana, melhor dia destacado em dourado, contagem de atendimentos e tooltip completo.
+- **Sentry release tag no CI** — Pipeline de CI agora cria release no Sentry com tag `black-diamond@sha`, faz upload de source maps com validação e associa commits automaticamente via `set-commits --auto`.
 
-### Changed
-- **Transição entre steps do booking** — Animação mudada de fade vertical (y-axis) para slide horizontal (x-axis). Steps entram pela direita (x: 40) e saem pela esquerda (x: -40), com easing `easeInOut` para sensação mais fluida.
-- **Botão "Marcar lidas" nas notificações** — Agora é um botão dourado com fundo `#C5A059/10`, borda sutil, ícone de check e texto dinâmico mostrando a quantidade (ex: "Marcar 3 lidas").
-- **Modal de excluir cliente** — Agora exige digitar "EXCLUIR" no campo de texto para habilitar o botão de confirmação. Adicionado ícone de alerta, spinner durante exclusão e descrição mais clara.
-- **Dashboard "Lucro do Dia"** — Quando o valor é R$ 0, exibe "Sem movimento" com ponto pulsante ao invés de "R$ 0".
-- **Dias passados na Agenda Semanal** — Dias anteriores ao atual aparecem com opacidade reduzida, texto riscado (line-through), badge "FIM" no canto, cursor not-allowed e tooltip "Dia já encerrado".
+### Refactored
+- **SettingsHorarios** reduzido de 1.048 para ~250 linhas — Componentes extraídos: `horarios/types.ts`, `NumInput.tsx`, `TimePickerSheet.tsx`, `ApplyAllSheet.tsx`, `LunchBreakContent.tsx`.
+- **SettingsCupons** reduzido de 857 para ~400 linhas — `CouponFormFields` extraído para `cupons/CouponFormFields.tsx`, sub-componentes inline extraídos (HeaderSection, CouponFormModal, DeleteModal, etc).
+- **SettingsConta** reduzido de 826 para ~180 linhas — Componente reutilizável `conta/EditableField.tsx` elimina repetição dos 5 campos. `conta/PhotoSection.tsx` extraído.
 
 ### Removed
-- **API de depoimentos removida** — Arquivo `src/lib/api/testimonials.ts` deletado, exports removidos do barrel, interface `Testimonial` removida dos tipos. Depoimentos agora são exclusivamente hardcoded no `TestimonialsSlider.tsx`.
+- **8 arquivos mortos deletados** — `useCallbackRef.ts`, `useLatest.ts`, `useDebounce.ts`, `useWeeklyCongrats.ts`, `WhatsAppReminderButton.tsx`, `BookingSummaryPanel.tsx`, `GalleryLightbox.tsx`, `RatingPage.tsx`.
 
 ## [3.20.2] - 2026-07-12
 

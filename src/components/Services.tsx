@@ -10,9 +10,6 @@ interface ServicesProps {
   onBookingClick: () => void;
 }
 
-// Serviços mais populares — aparecem com badge especial
-const MOST_POPULAR_SERVICES = new Set(['Corte de Cabelo', 'Barba']);
-
 const Services: FC<ServicesProps> = memo(({ onBookingClick }) => {
   const { services, loading, isOffline } = useServices();
   const { barberPhone } = useBarberSettings();
@@ -113,11 +110,6 @@ const Services: FC<ServicesProps> = memo(({ onBookingClick }) => {
                 >
                   <h4 className="text-2xl sm:text-3xl md:text-5xl font-bebas text-white uppercase tracking-wider group-hover:text-[#C5A059] transition-all duration-700 flex items-center gap-3">
                     {service.name}
-                    {MOST_POPULAR_SERVICES.has(service.name) && (
-                      <span className="text-[10px] md:text-xs font-sans font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full tracking-normal uppercase whitespace-nowrap">
-                        🔥 Mais Pedido
-                      </span>
-                    )}
                   </h4>
 
                   <div className="flex items-baseline gap-4 shrink-0">
