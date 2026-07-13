@@ -166,17 +166,10 @@ export default function NotificationsPanel({
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="px-5 py-2 bg-[#C5A059]/[0.04] border-b border-[#C5A059]/10 flex items-center justify-between">
+            <div className="px-5 py-2 bg-[#C5A059]/[0.04] border-b border-[#C5A059]/10">
               <span className="text-[10px] text-zinc-500">
                 {selectedIds.size} de {displayed.length}
               </span>
-              <button
-                onClick={handleBulkDelete}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[9px] font-bold text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-all cursor-pointer active:scale-95"
-              >
-                <Trash2 size={11} />
-                Excluir
-              </button>
             </div>
           </motion.div>
         )}
