@@ -22,7 +22,7 @@ BEGIN
 
     -- Cleanup rate limits
     IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'cleanup-rate-limits') THEN
-        PERFORM cron.unschedule('cleanup-rate-lunch');
+        PERFORM cron.unschedule('cleanup-rate-limits');
     END IF;
 
     -- Completar agendamentos expirados

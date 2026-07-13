@@ -1,6 +1,6 @@
 import { useState, type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DAY_NAMES, DAYS_ORDER, type DayKey } from './types';
+import { DAY_NAMES, DAYS_ORDER } from './types';
 
 /**
  * Modal "Aplicar para todos" — permite copiar um mesmo horario
@@ -75,7 +75,9 @@ const ApplyAllSheet: FC<{
             value={startH}
             onChange={(e) => {
               const r = e.target.value.replace(/\D/g, '').slice(0, 2);
-              setStart(`${String(Math.min(parseInt(r || '0', 10), 23)).padStart(2, '0')}:${startM}`);
+              setStart(
+                `${String(Math.min(parseInt(r || '0', 10), 23)).padStart(2, '0')}:${startM}`
+              );
             }}
             className={applyInputClass}
           />
@@ -87,7 +89,9 @@ const ApplyAllSheet: FC<{
             value={startM}
             onChange={(e) => {
               const r = e.target.value.replace(/\D/g, '').slice(0, 2);
-              setStart(`${startH}:${String(Math.min(parseInt(r || '0', 10), 59)).padStart(2, '0')}`);
+              setStart(
+                `${startH}:${String(Math.min(parseInt(r || '0', 10), 59)).padStart(2, '0')}`
+              );
             }}
             className={applyInputClass}
           />

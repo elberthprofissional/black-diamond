@@ -9,7 +9,7 @@
 -- 1. AGENDAMENTOS
 -- =========================================================================
 
--- Criar agendamento (8 parâmetros, com validação de mensalista)
+-- Criar agendamento (com validação de mensalista e cupom)
 CREATE OR REPLACE FUNCTION criar_agendamento(
     p_cliente_nome text,
     p_cliente_telefone text,
@@ -18,7 +18,8 @@ CREATE OR REPLACE FUNCTION criar_agendamento(
     p_hora time,
     p_preco_total decimal,
     p_duracao_total integer,
-    p_cliente_email text DEFAULT NULL
+    p_cliente_email text DEFAULT NULL,
+    p_coupon_id uuid DEFAULT NULL
 )
 RETURNS jsonb AS $$
 DECLARE
@@ -48,6 +49,7 @@ DECLARE
     v_service_id uuid;
     v_service_price decimal;
     v_total_calculated_price decimal := 0;
+    v_coupon_discount decimal := 0;
 BEGIN
     -- VALIDAÇÃO DE INPUT
     p_cliente_nome := TRIM(p_cliente_nome);
@@ -198,12 +200,77 @@ BEGIN
     SELECT COALESCE(SUM(duration), 0) INTO v_server_duration
     FROM services WHERE id = ANY(p_servicos);
 
+    -- APLICA CUPOM SE FORNECIDO (validação 100% server-side)
+    IF p_coupon_id IS NOT NULL THEN
+        DECLARE
+            v_coupon coupons%ROWTYPE;
+            v_applicable_price numeric := 0;
+        BEGIN
+            SELECT * INTO v_coupon
+            FROM coupons
+            WHERE id = p_coupon_id
+            AND is_active = true
+            FOR UPDATE;
+
+            IF NOT FOUND THEN
+                RAISE EXCEPTION 'Cupom inválido ou inativo.';
+            END IF;
+
+            IF CURRENT_DATE < v_coupon.valid_from THEN
+                RAISE EXCEPTION 'Este cupom ainda não está ativo.';
+            END IF;
+
+            IF v_coupon.valid_until IS NOT NULL AND CURRENT_DATE > v_coupon.valid_until THEN
+                RAISE EXCEPTION 'Este cupom expirou.';
+            END IF;
+
+            IF v_coupon.max_uses IS NOT NULL AND v_coupon.current_uses >= v_coupon.max_uses THEN
+                RAISE EXCEPTION 'Este cupom atingiu o limite de uso.';
+            END IF;
+
+            -- Verifica se o cupom se aplica aos serviços selecionados
+            IF array_length(v_coupon.applicable_service_ids, 1) > 0 THEN
+                IF NOT (p_servicos <@ v_coupon.applicable_service_ids) THEN
+                    RAISE EXCEPTION 'Este cupom não é válido para os serviços selecionados.';
+                END IF;
+            END IF;
+
+            -- Calcula o valor base para aplicar o desconto
+            IF array_length(v_coupon.applicable_service_ids, 1) > 0 THEN
+                SELECT COALESCE(SUM(s.price), 0) INTO v_applicable_price
+                FROM services s
+                WHERE s.id = ANY(v_coupon.applicable_service_ids)
+                    AND s.id = ANY(p_servicos);
+            ELSE
+                v_applicable_price := v_total_calculated_price;
+            END IF;
+
+            -- Calcula o desconto conforme o tipo do cupom
+            CASE v_coupon.discount_type
+                WHEN 'percentage' THEN
+                    v_coupon_discount := round(v_applicable_price * v_coupon.discount_value / 100, 2);
+                WHEN 'fixed' THEN
+                    v_coupon_discount := LEAST(v_coupon.discount_value, v_applicable_price);
+                WHEN 'free' THEN
+                    v_coupon_discount := v_applicable_price;
+            END CASE;
+
+            v_coupon_discount := GREATEST(v_coupon_discount, 0);
+
+            -- Aplica o desconto no preço final
+            v_total_calculated_price := GREATEST(v_total_calculated_price - v_coupon_discount, 0);
+
+            -- Incrementa uso do cupom (atômico)
+            UPDATE coupons SET current_uses = current_uses + 1 WHERE id = p_coupon_id;
+        END;
+    END IF;
+
     p_preco_total := v_total_calculated_price;
     p_duracao_total := v_server_duration;
 
     -- CRIA O AGENDAMENTO
-    INSERT INTO bookings (client_id, service_ids, booking_date, booking_time, total_price, total_duration, status)
-    VALUES (v_client_id, p_servicos, p_data, p_hora, p_preco_total, p_duracao_total, 'confirmed')
+    INSERT INTO bookings (client_id, service_ids, booking_date, booking_time, total_price, total_duration, status, coupon_id, discount_amount)
+    VALUES (v_client_id, p_servicos, p_data, p_hora, p_preco_total, p_duracao_total, 'confirmed', p_coupon_id, v_coupon_discount)
     RETURNING id INTO v_booking_id;
 
     -- GERA TOKEN ÚNICO PARA GERENCIAMENTO
@@ -226,7 +293,7 @@ EXCEPTION
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Criar agendamento com rate limiting + verificação de no-show
+-- Criar agendamento com rate limiting + verificação de no-show + cupom
 CREATE OR REPLACE FUNCTION criar_agendamento_rate_limited(
     p_cliente_nome text,
     p_cliente_telefone text,
@@ -235,7 +302,9 @@ CREATE OR REPLACE FUNCTION criar_agendamento_rate_limited(
     p_hora time,
     p_preco_total decimal,
     p_duracao_total integer,
-    p_cliente_email text DEFAULT NULL
+    p_cliente_email text DEFAULT NULL,
+    p_coupon_id uuid DEFAULT NULL,
+    p_discount_amount decimal DEFAULT 0
 )
 RETURNS jsonb AS $$
 DECLARE
@@ -253,7 +322,8 @@ BEGIN
 
     RETURN criar_agendamento(
         p_cliente_nome, p_cliente_telefone, p_servicos,
-        p_data, p_hora, p_preco_total, p_duracao_total, p_cliente_email
+        p_data, p_hora, p_preco_total, p_duracao_total, p_cliente_email,
+        p_coupon_id
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -835,7 +905,7 @@ BEGIN
         RETURN jsonb_build_object('valid', false, 'error', 'Cupom não encontrado.');
     END IF;
 
-    IF v_coupon.expires_at IS NOT NULL AND v_coupon.expires_at < NOW() THEN
+    IF v_coupon.valid_until IS NOT NULL AND CURRENT_DATE > v_coupon.valid_until THEN
         RETURN jsonb_build_object('valid', false, 'error', 'Cupom expirado.');
     END IF;
 
