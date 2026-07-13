@@ -150,7 +150,7 @@ describe('AdminResetPassword', () => {
 
     await waitFor(
       () => {
-        expect(mockNavigate).toHaveBeenCalledWith('/admin');
+        expect(mockNavigate).toHaveBeenCalledWith('/admin', { replace: true });
       },
       { timeout: 2000 }
     );

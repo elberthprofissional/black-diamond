@@ -921,6 +921,7 @@ RETURNS TABLE(
     status TEXT,
     total_price DECIMAL,
     total_duration INTEGER,
+    service_ids UUID[],
     service_names TEXT[],
     client_name TEXT,
     client_phone TEXT,
@@ -935,6 +936,7 @@ BEGIN
         b.status,
         b.total_price,
         b.total_duration,
+        b.service_ids,
         ARRAY(
             SELECT s.name
             FROM services s

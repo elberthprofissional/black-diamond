@@ -1,25 +1,27 @@
 import { useState, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bell, Trash2, Check } from 'lucide-react';
+import { ArrowLeft, Bell } from 'lucide-react';
 import { useNotifications, type Notification } from '../hooks/useNotifications';
-import { NotificationDetail } from '../components/Admin/NotificationBell';
-import { relativeTime, parseNotifBody } from '../lib/notifications';
-import ConfirmDeleteModal from '../components/Admin/shared/ConfirmDeleteModal';
+import NotificationDetail from '../components/Admin/notifications/NotificationDetail';
+import NotificationItem from '../components/Admin/notifications/NotificationItem';
+import NotificationFilters from '../components/Admin/notifications/NotificationFilters';
 
 const NotificationsPage: FC = () => {
   const navigate = useNavigate();
   const { notifications, unreadCount, markAllAsRead, clearNotification } = useNotifications();
   const [selected, setSelected] = useState<Notification | null>(null);
   const [onlyUnread, setOnlyUnread] = useState(false);
-  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const displayed = onlyUnread ? notifications.filter((n) => !n.read) : notifications;
 
-  // Detail view
   if (selected) {
     return (
       <div className="min-h-screen bg-[#0A0A0A]">
-        <NotificationDetail notif={selected} onBack={() => setSelected(null)} />
+        <NotificationDetail
+          notif={selected}
+          onBack={() => setSelected(null)}
+          onClose={() => navigate('/admin')}
+        />
       </div>
     );
   }
@@ -30,7 +32,7 @@ const NotificationsPage: FC = () => {
       <div className="px-4 py-4 flex items-center justify-between border-b border-white/[0.04]">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/admin')}
             className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
           >
             <ArrowLeft size={22} />
@@ -52,31 +54,13 @@ const NotificationsPage: FC = () => {
         )}
       </div>
 
-      {/* Filter: Todas / Não lidas */}
+      {/* Filter */}
       {notifications.length > 0 && (
-        <div className="flex gap-2 px-4 py-3 border-b border-white/[0.04]">
-          <button
-            onClick={() => setOnlyUnread(false)}
-            className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${
-              !onlyUnread ? 'bg-[#C5A059]/15 text-[#C5A059]' : 'text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            Todas
-          </button>
-          <button
-            onClick={() => setOnlyUnread(true)}
-            className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${
-              onlyUnread ? 'bg-[#C5A059]/15 text-[#C5A059]' : 'text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            Não lidas
-            {unreadCount > 0 && (
-              <span className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full bg-white/[0.06]">
-                {unreadCount}
-              </span>
-            )}
-          </button>
-        </div>
+        <NotificationFilters
+          onlyUnread={onlyUnread}
+          unreadCount={unreadCount}
+          onChange={setOnlyUnread}
+        />
       )}
 
       {/* List */}
@@ -95,90 +79,15 @@ const NotificationsPage: FC = () => {
           </div>
         ) : (
           <div className="divide-y divide-white/[0.03]">
-            {displayed.map((notif) => {
-              const data = parseNotifBody(notif.body);
-              const name = data ? data.clientName : notif.title;
-              const desc = data ? data.services.split(', ').slice(0, 2).join(', ') : '';
-              const extra = data ? Math.max(0, data.services.split(', ').length - 2) : 0;
-              const isConfirming = confirmingId === notif.id;
-
-              const handleDeleteClick = (e: React.MouseEvent) => {
-                e.stopPropagation();
-                if (!isConfirming) {
-                  setConfirmingId(notif.id);
-                }
-              };
-
-              return (
-                <div
-                  key={notif.id}
-                  className="group relative flex items-start gap-3 px-5 py-4 transition-colors hover:bg-white/[0.02]"
-                >
-                  <ConfirmDeleteModal
-                    open={isConfirming}
-                    onConfirm={() => {
-                      clearNotification?.(notif.id);
-                      setConfirmingId(null);
-                    }}
-                    onCancel={() => setConfirmingId(null)}
-                  />
-                  <button
-                    onClick={() => {
-                      setConfirmingId(null);
-                      setSelected(notif);
-                    }}
-                    className="flex items-start gap-3 flex-1 min-w-0 text-left cursor-pointer"
-                  >
-                    <div className="relative shrink-0">
-                      <div
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center ${notif.read ? 'bg-white/[0.04]' : 'bg-[#C5A059]/10'}`}
-                      >
-                        {notif.read ? (
-                          <Bell size={18} className="text-zinc-500" />
-                        ) : (
-                          <span className="text-[14px] font-bold text-[#C5A059]">
-                            {name.charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      {!notif.read && (
-                        <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#C5A059] border-2 border-[#0A0A0A]" />
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className={`text-[14px] ${notif.read ? 'text-zinc-400' : 'text-white font-medium'}`}
-                      >
-                        {name}
-                      </p>
-                      {desc && (
-                        <p className="text-[12px] text-zinc-500 mt-0.5 truncate">
-                          {desc}
-                          {extra > 0 ? ` +${extra}` : ''}
-                        </p>
-                      )}
-                      <span className="text-[11px] text-zinc-600 mt-1 block">
-                        {relativeTime(notif.created_at)}
-                      </span>
-                    </div>
-                  </button>
-
-                  {/* Delete button */}
-                  <button
-                    onClick={handleDeleteClick}
-                    className={`shrink-0 mt-2 p-1.5 rounded-lg transition-all cursor-pointer ${
-                      isConfirming
-                        ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                        : 'text-zinc-600 hover:text-red-400 opacity-100 lg:opacity-0 lg:group-hover:opacity-100'
-                    }`}
-                    title={isConfirming ? 'Confirmar exclusão' : 'Excluir notificação'}
-                  >
-                    {isConfirming ? <Check size={16} /> : <Trash2 size={16} />}
-                  </button>
-                </div>
-              );
-            })}
+            {displayed.map((notif) => (
+              <NotificationItem
+                key={notif.id}
+                notif={notif}
+                onSelect={setSelected}
+                onDelete={(id) => clearNotification?.(id)}
+                size="normal"
+              />
+            ))}
           </div>
         )}
       </div>

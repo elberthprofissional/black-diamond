@@ -436,7 +436,11 @@ const AdminClients: FC = () => {
                 // Badge de status
                 let statusBadge = null;
                 const hasTodayBooking =
-                  client.upcomingBooking?.date === new Date().toISOString().slice(0, 10);
+                  client.upcomingBooking?.date ===
+                  (() => {
+                    const d = new Date();
+                    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                  })();
 
                 if (client.isNoShowBlocked) {
                   statusBadge = (
@@ -505,11 +509,13 @@ const AdminClients: FC = () => {
                         {/* Status dot */}
                         <div
                           className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-[#0E0E0E] ${
-                            client.isInactive
+                            client.isNoShowBlocked
                               ? 'bg-red-500'
-                              : r.isReminderRecent(client.id)
-                                ? 'bg-emerald-500'
-                                : 'bg-amber-500'
+                              : client.isInactive
+                                ? 'bg-red-500'
+                                : r.isReminderRecent(client.id)
+                                  ? 'bg-emerald-500'
+                                  : 'bg-amber-500'
                           }`}
                         />
                       </div>

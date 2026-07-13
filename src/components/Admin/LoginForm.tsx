@@ -48,7 +48,8 @@ export default function LoginForm({
             className="block text-[10px] lg:text-xs font-medium uppercase tracking-widest text-zinc-500"
           >
             E-mail
-          </label>            <input
+          </label>{' '}
+          <input
             id="login-email"
             type="email"
             autoComplete="email"
@@ -56,6 +57,7 @@ export default function LoginForm({
             onChange={(e) => onEmailChange(e.target.value)}
             placeholder="seu@email.com"
             data-testid="input-email"
+            maxLength={120}
             className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl px-5 text-sm font-medium text-zinc-100 outline-none focus:border-[#C5A059] transition-all lg:h-14 lg:text-base"
             required
           />
@@ -78,6 +80,7 @@ export default function LoginForm({
               onChange={(e) => onPasswordChange(e.target.value)}
               placeholder="Sua senha"
               data-testid="input-password"
+              maxLength={128}
               className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl px-5 pr-12 text-sm font-medium text-zinc-100 outline-none focus:border-[#C5A059] transition-all lg:h-14 lg:text-base"
               required
             />

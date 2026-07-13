@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { getLocalDateString } from '../lib/utils';
 import { useToast } from './useToast';
 import { useAuditLog } from './useAuditLog';
 
@@ -79,7 +80,7 @@ export function useNoShow(options?: UseNoShowOptions) {
           .eq('no_show', true)
           .gte(
             'booking_date',
-            new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+            getLocalDateString(new Date(Date.now() - days * 24 * 60 * 60 * 1000))
           );
 
         if (error) throw error;

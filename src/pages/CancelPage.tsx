@@ -99,7 +99,7 @@ export default function CancelPage() {
           booking_date: b.booking_date,
           booking_time: b.booking_time,
           total_price: b.total_price,
-          service_ids: [],
+          service_ids: b.service_ids || [],
           total_duration: b.total_duration,
           clients: { name: b.client_name, phone: b.client_phone },
           has_token: true,
@@ -310,6 +310,7 @@ export default function CancelPage() {
                   value={formattedPhone}
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                   placeholder="(00) 00000-0000"
+                  maxLength={11}
                   className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[15px] text-white outline-none focus:border-[#C5A059] transition-all placeholder:text-zinc-600"
                   required
                 />
@@ -426,6 +427,7 @@ export default function CancelPage() {
                     value={rescheduleName}
                     onChange={(e) => setRescheduleName(e.target.value)}
                     placeholder="Seu nome"
+                    maxLength={100}
                     className="w-full h-10 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 text-[13px] text-white outline-none focus:border-[#C5A059] transition-all placeholder:text-zinc-600"
                   />
                   <input
@@ -433,6 +435,7 @@ export default function CancelPage() {
                     value={reschedulePhone}
                     onChange={(e) => setReschedulePhone(e.target.value)}
                     placeholder="(00) 00000-0000"
+                    maxLength={11}
                     className="w-full h-10 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 text-[13px] text-white outline-none focus:border-[#C5A059] transition-all placeholder:text-zinc-600"
                   />
                 </div>
@@ -577,6 +580,7 @@ export default function CancelPage() {
                 value={tokenInput}
                 onChange={(e) => setTokenInput(e.target.value)}
                 placeholder="Cole o token aqui"
+                maxLength={255}
                 className="w-full h-10 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 text-[13px] text-white outline-none focus:border-[#C5A059] transition-all placeholder:text-zinc-600"
                 autoFocus
               />

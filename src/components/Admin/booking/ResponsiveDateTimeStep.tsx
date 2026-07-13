@@ -231,10 +231,10 @@ export default function ResponsiveDateTimeStep({
             </h3>
             <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5">
               Original:{' '}
-              {new Date(rescheduleBooking.booking_date.replace(/-/g, '/')).toLocaleDateString(
-                'pt-BR',
-                { day: '2-digit', month: 'short' }
-              )}{' '}
+              {new Date(rescheduleBooking.booking_date + 'T12:00:00').toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: 'short',
+              })}{' '}
               às {rescheduleBooking.booking_time.slice(0, 5)}
             </p>
           </div>

@@ -126,6 +126,27 @@ describe('getNextDays', () => {
       expect(dateMs).toBeGreaterThanOrEqual(todayMs);
     }
   });
+
+  it('aceita config object com sundayEnabled', () => {
+    const daysWithSunday = getNextDays({ sundayEnabled: true });
+    const dayOfWeek = daysWithSunday.map((d) => {
+      const [y, m, dd] = d.fullDate.split('-').map(Number);
+      return new Date(y, m - 1, dd).getDay();
+    });
+    // Com domingo habilitado, pode ter domingo nos dias
+    expect(daysWithSunday.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('aceita config object com saturdayCloseHour', () => {
+    const days = getNextDays({ saturdayCloseHour: 16 });
+    expect(days.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('aceita JSON string (legado)', () => {
+    const json = JSON.stringify({ '6': { close: '14:00' }, '0': { enabled: true } });
+    const days = getNextDays(json);
+    expect(days.length).toBeGreaterThanOrEqual(1);
+  });
 });
 
 describe('isTimeOccupied', () => {

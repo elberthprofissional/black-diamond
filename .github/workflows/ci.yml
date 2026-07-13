@@ -85,6 +85,16 @@ jobs:
           name: dist
           path: dist/
           retention-days: 3
+      - name: Create Sentry release
+        if: env.SENTRY_AUTH_TOKEN != ''
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          npx @sentry/cli releases new "$GITHUB_SHA" --project "$SENTRY_PROJECT" --org "$SENTRY_ORG" || true
+          npx @sentry/cli releases files "$GITHUB_SHA" upload-sourcemaps dist/assets --project "$SENTRY_PROJECT" --org "$SENTRY_ORG" --url-prefix "~/assets" || true
+          npx @sentry/cli releases finalize "$GITHUB_SHA" --project "$SENTRY_PROJECT" --org "$SENTRY_ORG" || true
 
   e2e:
     name: E2E Tests

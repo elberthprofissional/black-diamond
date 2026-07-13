@@ -1,9 +1,47 @@
 import { useRef, useCallback, useState, type FC, type MouseEvent } from 'react';
 import { User, Star } from 'lucide-react';
-import { useTestimonials } from '../hooks/useTestimonials';
+
+const hardcodedTestimonials = [
+  {
+    id: '1',
+    name: 'YP TATTOO',
+    rating: 5,
+    text: 'Barbearia super confortável, ambiente agradável, profissional qualificado e atencioso.',
+  },
+  {
+    id: '2',
+    name: 'HELBERT HENRIQUE',
+    rating: 5,
+    text: 'Venezuelano mais fera de BH!! Tem o macete.',
+  },
+  {
+    id: '3',
+    name: 'MAIA STUDIO',
+    rating: 5,
+    text: 'Único profissional que conseguiu cortar o cabelo do meu filho com paciência e excelência.',
+  },
+  {
+    id: '4',
+    name: 'GIOVANNA CARDOSO',
+    rating: 5,
+    text: 'Profissional agradável, super atencioso, trabalho impecável e corte perfeito. Super recomendo!',
+  },
+  {
+    id: '5',
+    name: 'GUILHERME HENRIQUE',
+    rating: 5,
+    text: 'Ótimo profissional, lugar aconchegante e trabalho impecável!',
+  },
+  {
+    id: '6',
+    name: 'MATHEUS',
+    rating: 5,
+    text: 'Tato é bom demais, cara sabe como cuidar de um cabelo.',
+  },
+];
 
 const Testimonials: FC = () => {
-  const { testimonials, loading } = useTestimonials();
+  const testimonials = hardcodedTestimonials;
   const sliderRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const isDragging = useRef(false);
@@ -48,8 +86,6 @@ const Testimonials: FC = () => {
     const card = sliderRef.current.children[index] as HTMLElement | undefined;
     card?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }, []);
-
-  if (loading || count === 0) return null;
 
   return (
     <section id="depoimentos" className="py-20 md:py-40 bg-[#141414] text-white overflow-hidden">

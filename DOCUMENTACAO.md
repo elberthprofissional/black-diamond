@@ -1060,6 +1060,17 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [x] Avatares quadrados — Consistencia visual nos modais de clientes
 
 ### Possiveis melhorias futuras
+- [x] Badge "🔥 Mais Pedido" nos serviços (Corte de Cabelo e Barba)
+- [x] Skeleton no agendamento público (SkeletonBooking)
+- [x] Realtime na Agenda Semanal (AdminWeekly)
+- [x] Indicador "Ao vivo" no Dashboard e Agenda Semanal
+- [x] Botão de refresh manual no Dashboard e AdminWeekly
+- [x] Toast mais alto no mobile (bottom-24)
+- [x] Transição slide entre steps do booking
+- [x] Modal de excluir cliente com digitar EXCLUIR
+- [x] Botão "Marcar lidas" dourado nas notificações
+- [x] Dashboard "Sem movimento" ao invés de R$ 0
+- [x] Depoimentos hardcoded (API removida)
 - [ ] Multi-tenancy (varias barbearias no mesmo sistema)
 - [ ] Pagamento online (Stripe/Mercado Pago)
 - [ ] API de WhatsApp (Evolution API) para lembretes automaticos

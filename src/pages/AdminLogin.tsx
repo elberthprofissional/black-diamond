@@ -41,7 +41,7 @@ const AdminLogin: FC = () => {
         data: { session },
       } = await supabase.auth.getSession();
       if (session) {
-        navigate('/admin');
+        navigate('/admin', { replace: true });
       }
     };
     checkSession();
@@ -140,7 +140,7 @@ const AdminLogin: FC = () => {
         }
       } else {
         logLogin(true, email.trim());
-        navigate('/admin');
+        navigate('/admin', { replace: true });
       }
     } catch {
       setLoginError('Erro ao tentar fazer login.');

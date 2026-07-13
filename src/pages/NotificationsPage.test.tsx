@@ -24,8 +24,16 @@ vi.mock('../hooks/useNotifications', () => ({
   }),
 }));
 
-vi.mock('../components/Admin/NotificationBell', () => ({
-  NotificationDetail: () => <div>NotificationDetail</div>,
+vi.mock('../components/Admin/notifications/NotificationDetail', () => ({
+  default: () => <div>NotificationDetail</div>,
+}));
+
+vi.mock('../components/Admin/notifications/NotificationItem', () => ({
+  default: () => <div>NotificationItem</div>,
+}));
+
+vi.mock('../components/Admin/notifications/NotificationFilters', () => ({
+  default: () => <div>NotificationFilters</div>,
 }));
 
 import NotificationsPage from './NotificationsPage';

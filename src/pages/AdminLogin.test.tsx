@@ -108,7 +108,7 @@ describe('AdminLogin — Comportamental', () => {
     });
     renderLogin();
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/admin');
+      expect(mockNavigate).toHaveBeenCalledWith('/admin', { replace: true });
     });
   });
 
@@ -141,7 +141,7 @@ describe('AdminLogin — Comportamental', () => {
     fireEvent.click(screen.getByRole('button', { name: /entrar/i }));
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/admin');
+      expect(mockNavigate).toHaveBeenCalledWith('/admin', { replace: true });
     });
   });
 

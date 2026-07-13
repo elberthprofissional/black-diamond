@@ -10,7 +10,7 @@ const ToastNotification: FC<ToastNotificationProps> = ({ toast }) => {
     <div
       aria-live="polite"
       aria-atomic="true"
-      className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[600]"
+      className="fixed bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-[600]"
     >
       <AnimatePresence>
         {toast && (

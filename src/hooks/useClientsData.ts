@@ -3,7 +3,7 @@ import { getClients, getBookingsForStats } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { useToast } from './useToast';
 import { BLOCKED_NAME, BLOCKED_PHONE, INACTIVE_DAYS, MASK_SENSITIVE_DATA } from '../lib/constants';
-import { maskName, maskPhone, maskEmail } from '../lib/utils';
+import { maskName, maskPhone, maskEmail, getLocalDateString } from '../lib/utils';
 import type { Client, ClientWithStats } from '../types';
 
 interface ClientWithHistory extends Client {
@@ -24,7 +24,7 @@ async function getNoShowCounts(): Promise<Map<string, number>> {
   try {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 90);
-    const cutoffStr = cutoff.toISOString().split('T')[0];
+    const cutoffStr = getLocalDateString(cutoff);
 
     const { data } = await supabase
       .from('bookings')
@@ -147,7 +147,7 @@ export function useClientsData() {
               : currentLastVisit || histLastVisit;
 
           const isInactive = lastVisitDate
-            ? daysSince(lastVisitDate.toISOString().slice(0, 10)) > INACTIVE_DAYS
+            ? daysSince(getLocalDateString(lastVisitDate)) > INACTIVE_DAYS
             : bookingsCount === 0;
 
           const noShowCount = noShowCounts.get(c.id) || 0;
@@ -158,7 +158,7 @@ export function useClientsData() {
             _originalName: c.name,
             _originalPhone: c.phone,
             name: MASK_SENSITIVE_DATA ? maskName(c.name) : c.name,
-            phone: MASK_SENSITIVE_DATA ? maskPhone(c.phone) : c.phone,
+            phone: MASK_SENSITIVE_DATA && c.phone ? maskPhone(c.phone) : c.phone,
             email: MASK_SENSITIVE_DATA && c.email ? maskEmail(c.email) : c.email,
             notes: MASK_SENSITIVE_DATA && c.notes ? 'Informações ocultadas para o vídeo' : c.notes,
             lastVisit: lastVisitDate ? lastVisitDate.toLocaleDateString('pt-BR') : 'Nunca',

@@ -8,7 +8,7 @@ import {
 } from '../lib/api';
 import { getClientMilestones } from '../lib/api/loyalty';
 import { supabase } from '../lib/supabase';
-import { getErrorMessage, maskName, maskPhone } from '../lib/utils';
+import { getErrorMessage, maskName, maskPhone, getLocalDateString } from '../lib/utils';
 import { MASK_SENSITIVE_DATA } from '../lib/constants';
 import { useToast } from './useToast';
 import { useAuditLog } from './useAuditLog';
@@ -194,7 +194,7 @@ export function useClientPanel(
       } else {
         const d = new Date();
         d.setDate(d.getDate() + 30);
-        setExpiresAt(d.toISOString().split('T')[0]);
+        setExpiresAt(getLocalDateString(d));
       }
     },
     [openPanel]
@@ -206,7 +206,7 @@ export function useClientPanel(
       try {
         const d = new Date();
         d.setDate(d.getDate() + days);
-        const newExpiry = d.toISOString().split('T')[0];
+        const newExpiry = getLocalDateString(d);
         await toggleClientMensalista(
           selectedClient.id,
           true,

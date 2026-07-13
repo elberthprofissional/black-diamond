@@ -30,28 +30,33 @@ ric(() => {
   // Sentry (heavy SDK — only load after first paint)
   const dsn = import.meta.env.VITE_SENTRY_DSN;
   if (dsn) {
-    import('@sentry/react').then((Sentry) => {
-      Sentry.init({
-        dsn,
-        environment: import.meta.env.DEV ? 'development' : 'production',
-        integrations: [
-          Sentry.browserTracingIntegration(),
-          Sentry.replayIntegration({
-            maskAllText: true,
-            blockAllMedia: true,
-          }),
-        ],
-        tracesSampleRate: import.meta.env.DEV ? 1.0 : 0.2,
-        replaysSessionSampleRate: 0,
-        replaysOnErrorSampleRate: 1.0,
-        beforeSend(event) {
-          if (import.meta.env.DEV) {
-            return null;
-          }
-          return event;
-        },
+    import('@sentry/react')
+      .then((Sentry) => {
+        Sentry.init({
+          dsn,
+          environment: import.meta.env.DEV ? 'development' : 'production',
+          release: `${__APP_VERSION__}@${__COMMIT_SHA__}`,
+          integrations: [
+            Sentry.browserTracingIntegration(),
+            Sentry.replayIntegration({
+              maskAllText: true,
+              blockAllMedia: true,
+            }),
+          ],
+          tracesSampleRate: import.meta.env.DEV ? 1.0 : 0.2,
+          replaysSessionSampleRate: 0,
+          replaysOnErrorSampleRate: 1.0,
+          beforeSend(event) {
+            if (import.meta.env.DEV) {
+              return null;
+            }
+            return event;
+          },
+        });
+      })
+      .catch(() => {
+        // Sentry failed to load — non-critical
       });
-    });
   }
 });
 

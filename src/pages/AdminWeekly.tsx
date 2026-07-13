@@ -1,11 +1,14 @@
-import { useState, useEffect, useMemo, useCallback, type FC, type MouseEvent } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, type FC, type MouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { RefreshCw } from 'lucide-react';
 import { getLocalDateString, formatDisplayName } from '../lib/utils';
 import { getAvailableSlots } from '../lib/api';
+import { supabase } from '../lib/supabase';
 import { useBookings } from '../hooks/useBookings';
 import { useSlotBlocking } from '../hooks/useSlotBlocking';
 import { useBookingManagement } from '../hooks/useBookingManagement';
 import { useBarberSettings } from '../hooks/useBarberSettings';
+import { useConnectionStatus } from '../hooks/useConnectionStatus';
 import AdminLayout from '../components/Admin/AdminLayout';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
 import UnblockModal from '../components/Admin/shared/UnblockModal';
@@ -125,6 +128,8 @@ const AdminWeekly: FC = () => {
   const [selectedVisibleIndex, setSelectedVisibleIndex] = useState(getInitialDayIndex);
 
   const [allSlots, setAllSlots] = useState<string[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { status: realtimeStatus } = useConnectionStatus();
 
   const {
     blockingSlot,
@@ -142,6 +147,62 @@ const AdminWeekly: FC = () => {
   const selectedDate = hasVisibleDays ? visibleWeekDays[selectedVisibleIndex] : new Date();
   const selectedDateStr = getLocalDateString(selectedDate);
   const isToday = hasVisibleDays && selectedDate.toDateString() === today.toDateString();
+
+  // Realtime subscription for the selected date
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  useEffect(() => {
+    let mounted = true;
+
+    const loadAll = () => {
+      loadData();
+      getAvailableSlots(selectedDateStr).then((slots) => {
+        if (mounted) setAllSlots(slots);
+      });
+    };
+
+    const setupRealtime = async () => {
+      if (channelRef.current) {
+        await supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+
+      const channel = supabase
+        .channel(`weekly-${selectedDateStr}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'bookings',
+            filter: `booking_date=eq.${selectedDateStr}`,
+          },
+          () => {
+            if (mounted) loadAll();
+          }
+        )
+        .subscribe();
+
+      channelRef.current = channel;
+    };
+
+    setupRealtime();
+
+    return () => {
+      mounted = false;
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [selectedDateStr, loadData]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await loadData();
+    const slots = await getAvailableSlots(selectedDateStr);
+    setAllSlots(slots);
+    setIsRefreshing(false);
+  }, [loadData, selectedDateStr]);
   const [currentHour, setCurrentHour] = useState(() => new Date().getHours());
   const [currentMinutes, setCurrentMinutes] = useState(
     () => new Date().getHours() * 60 + new Date().getMinutes()
@@ -266,9 +327,47 @@ const AdminWeekly: FC = () => {
     <AdminLayout mainClassName="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-8 pb-40">
       <div className="max-w-4xl mx-auto space-y-5 w-full">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
-          <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-white uppercase italic">
-            Agenda da Semana
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-white uppercase italic">
+              Agenda da Semana
+            </h1>
+            {/* Realtime status */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/[0.04]">
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  realtimeStatus === 'connected'
+                    ? 'bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.5)]'
+                    : realtimeStatus === 'disconnected'
+                      ? 'bg-red-500'
+                      : 'bg-amber-500'
+                }`}
+              />
+              <span
+                className={`text-[8px] font-bold uppercase tracking-wider ${
+                  realtimeStatus === 'connected'
+                    ? 'text-emerald-400'
+                    : realtimeStatus === 'disconnected'
+                      ? 'text-red-400'
+                      : 'text-amber-400'
+                }`}
+              >
+                {realtimeStatus === 'connected'
+                  ? 'Ao vivo'
+                  : realtimeStatus === 'disconnected'
+                    ? 'Offline'
+                    : '...'}
+              </span>
+            </div>
+            {/* Refresh button */}
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              title="Atualizar"
+              className="p-2 rounded-lg text-zinc-600 hover:text-[#C5A059] hover:bg-white/[0.04] transition-all cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+            </button>
+          </div>
           <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest capitalize">
             {dayLabel}
           </p>
@@ -284,9 +383,10 @@ const AdminWeekly: FC = () => {
                 key={idx}
                 onClick={() => !isPast && setSelectedVisibleIndex(idx)}
                 disabled={isPast}
+                title={isPast ? 'Dia já encerrado' : ''}
                 className={`flex-1 py-4 rounded-lg transition-all duration-200 flex flex-col items-center gap-0.5 relative ${
                   isPast
-                    ? 'bg-white/[0.01] text-zinc-700 cursor-not-allowed opacity-40'
+                    ? 'bg-white/[0.01] text-zinc-700 cursor-not-allowed opacity-30 line-through decoration-1 decoration-zinc-800'
                     : isSelected
                       ? 'bg-[#C5A059] text-black'
                       : isToday
@@ -294,6 +394,11 @@ const AdminWeekly: FC = () => {
                         : 'bg-white/[0.02] text-zinc-400 hover:bg-white/[0.05] hover:text-zinc-200'
                 }`}
               >
+                {isPast && (
+                  <span className="absolute top-1 right-1.5 text-[6px] text-zinc-700 font-bold uppercase tracking-widest">
+                    FIM
+                  </span>
+                )}
                 <span
                   className={`text-[8px] font-bold uppercase tracking-widest ${isSelected ? 'text-black/60' : isPast ? 'text-zinc-700' : 'opacity-50'}`}
                 >
@@ -340,8 +445,9 @@ const AdminWeekly: FC = () => {
                       const date = booking.booking_date;
                       const time = booking.booking_time.slice(0, 5);
                       const msg = `✅ *Agendamento confirmado, ${name}!*\n\nNa *Black Diamond*\n\n✂️ ${serviceNames}\n📅 ${date} às ${time}\n\nAguardamos você! 💈`;
+                      const waPhone = phone.startsWith('55') ? phone : `55${phone}`;
                       window.open(
-                        `https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`,
+                        `https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`,
                         '_blank'
                       );
                     };

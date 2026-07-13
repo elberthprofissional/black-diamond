@@ -1,22 +1,29 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { execSync } from 'child_process';
+
+// Git commit SHA for Sentry releases
+let commitHash = 'unknown';
+try {
+  commitHash = execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
+} catch {
+  // not in a git repo or git not available
+}
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-  ],
+  plugins: [react()],
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '0.0.0'),
+    __COMMIT_SHA__: JSON.stringify(commitHash),
+  },
   build: {
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (
-              id.includes('react-dom') ||
-              id.includes('react/') ||
-              id.includes('react-router')
-            ) {
+            if (id.includes('react-dom') || id.includes('react/') || id.includes('react-router')) {
               return 'vendor-react';
             }
             if (id.includes('framer-motion')) {
@@ -38,7 +45,7 @@ export default defineConfig({
     },
     chunkSizeWarningLimit: 600,
     cssCodeSplit: true,
-    sourcemap: false,
+    sourcemap: !!process.env.SENTRY_AUTH_TOKEN,
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom', 'framer-motion', '@supabase/supabase-js'],

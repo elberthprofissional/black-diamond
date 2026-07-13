@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
-import Skeleton, { SkeletonCard, SkeletonList, SkeletonDashboard, SkeletonBooking, SkeletonClients } from './Skeleton';
+import Skeleton, {
+  SkeletonCard,
+  SkeletonList,
+  SkeletonDashboard,
+  SkeletonClients,
+} from './Skeleton';
 
 describe('Skeleton', () => {
   it('renderiza skeleton basico', () => {
@@ -53,14 +58,6 @@ describe('SkeletonList', () => {
 describe('SkeletonDashboard', () => {
   it('renderiza dashboard skeleton', () => {
     render(<SkeletonDashboard />);
-    const skeletons = document.querySelectorAll('.animate-pulse');
-    expect(skeletons.length).toBeGreaterThan(0);
-  });
-});
-
-describe('SkeletonBooking', () => {
-  it('renderiza booking skeleton', () => {
-    render(<SkeletonBooking />);
     const skeletons = document.querySelectorAll('.animate-pulse');
     expect(skeletons.length).toBeGreaterThan(0);
   });

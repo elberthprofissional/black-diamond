@@ -73,11 +73,6 @@ const faqItems: FAQItem[] = [
       'Vá em Configurações > Mensalista para criar planos (ex: Corte Mensal por R$ 80/mês). Nos detalhes do cliente, ative "Tornar Mensalista" e selecione o plano. O cliente mensalista tem prioridade e benefícios exclusivos.',
   },
   {
-    question: 'Como adicionar depoimentos dos clientes?',
-    answer:
-      'Vá em Configurações > Depoimentos e clique em "Adicionar". Coloque o nome do cliente, avaliação (estrelas) e o texto do depoimento. Os depoimentos aparecem na página inicial do site.',
-  },
-  {
     question: 'Como controlar faltas (no-show)?',
     answer:
       'Vá em Configurações > Controle de Faltas. Defina o limite máximo de faltas antes do bloqueio. Quando um cliente não comparece, marque como "No-Show" no agendamento. Após o limite, o cliente é bloqueado automaticamente.',

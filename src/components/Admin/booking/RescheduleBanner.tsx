@@ -28,7 +28,7 @@ export default function RescheduleBanner({ booking }: RescheduleBannerProps) {
           Original
         </span>
         <span className="text-xs font-bold text-zinc-300">
-          {new Date(booking.booking_date.replace(/-/g, '/')).toLocaleDateString('pt-BR', {
+          {new Date(booking.booking_date + 'T12:00:00').toLocaleDateString('pt-BR', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',

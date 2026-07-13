@@ -6,6 +6,7 @@ import DateTimeStep from './DateTimeStep';
 import DataStep from './DataStep';
 import ReviewStep from './ReviewStep';
 import SuccessStep from './SuccessStep';
+import SkeletonBooking from './SkeletonBooking';
 import { formatDateBR } from '../../lib/utils';
 import type { Service } from '../../types';
 
@@ -46,6 +47,7 @@ interface BookingPageViewProps {
   clientLookupLoading: boolean;
   token?: string;
   manageUrl?: string;
+  servicesLoading?: boolean;
   lastBooking?: { serviceIds: string[]; totalPrice: number } | null;
   onApplyLastBooking?: () => void;
   isOfflineBooking?: boolean;
@@ -99,6 +101,7 @@ const BookingPageView: FC<BookingPageViewProps> = ({
   isMensalista,
   planName,
   clientLookupLoading,
+  servicesLoading = false,
   lastBooking,
   onApplyLastBooking,
   isOfflineBooking = false,
@@ -112,13 +115,35 @@ const BookingPageView: FC<BookingPageViewProps> = ({
 }) => {
   const renderSteps = (layout: 'desktop' | 'mobile') => (
     <AnimatePresence mode="wait">
-      {step === 1 && (
+      {servicesLoading && layout === 'desktop' && (
+        <motion.div
+          key="skeleton-desktop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="flex-1"
+        >
+          <SkeletonBooking layout="desktop" />
+        </motion.div>
+      )}
+      {servicesLoading && layout === 'mobile' && (
+        <motion.div
+          key="skeleton-mobile"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="w-full"
+        >
+          <SkeletonBooking layout="mobile" />
+        </motion.div>
+      )}
+      {!servicesLoading && step === 1 && (
         <motion.div
           key={`${layout[0]}1`}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: layout === 'desktop' ? 0.25 : 0.3 }}
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 40 }}
+          transition={{ duration: layout === 'desktop' ? 0.28 : 0.3, ease: 'easeInOut' }}
           className={layout === 'mobile' ? 'space-y-5 w-full' : 'flex-1'}
         >
           <DataStep
@@ -147,10 +172,10 @@ const BookingPageView: FC<BookingPageViewProps> = ({
       {step === 2 && (
         <motion.div
           key={`${layout[0]}2`}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: layout === 'desktop' ? 0.25 : 0.3 }}
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -40 }}
+          transition={{ duration: layout === 'desktop' ? 0.28 : 0.3, ease: 'easeInOut' }}
           className={layout === 'mobile' ? 'space-y-5 w-full' : 'flex-1'}
         >
           <ServiceStep
@@ -169,10 +194,10 @@ const BookingPageView: FC<BookingPageViewProps> = ({
       {step === 3 && (
         <motion.div
           key={`${layout[0]}3`}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: layout === 'desktop' ? 0.25 : 0.3 }}
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -40 }}
+          transition={{ duration: layout === 'desktop' ? 0.28 : 0.3, ease: 'easeInOut' }}
           className={layout === 'mobile' ? 'space-y-6 w-full' : 'flex-1'}
         >
           <DateTimeStep
@@ -195,10 +220,10 @@ const BookingPageView: FC<BookingPageViewProps> = ({
       {step === 4 && (
         <motion.div
           key={`${layout[0]}4`}
-          initial={layout === 'desktop' ? { opacity: 0, y: 12 } : { opacity: 0, x: 20 }}
-          animate={{ opacity: 1, y: 0, x: 0 }}
-          exit={layout === 'desktop' ? { opacity: 0, y: -12 } : { opacity: 0, x: -20 }}
-          transition={{ duration: layout === 'desktop' ? 0.25 : 0.2 }}
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -40 }}
+          transition={{ duration: layout === 'desktop' ? 0.28 : 0.25, ease: 'easeInOut' }}
           className={layout === 'mobile' ? '' : 'flex-1'}
         >
           <ReviewStep

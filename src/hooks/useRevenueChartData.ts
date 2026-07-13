@@ -9,6 +9,14 @@ export interface DailyRevenue {
   count: number;
 }
 
+export interface DayOfWeekRevenue {
+  day: number;
+  label: string;
+  shortLabel: string;
+  value: number;
+  count: number;
+}
+
 export interface MonthlyRevenue {
   month: string;
   label: string;
@@ -21,6 +29,7 @@ export interface RevenueChartData {
   weeklyRevenue: DailyRevenue[];
   monthlyRevenue: MonthlyRevenue[];
   monthlyComparison: MonthlyRevenue[];
+  dayOfWeekRevenue: DayOfWeekRevenue[];
   dailyAverage: number;
   bestDay: { label: string; value: number } | null;
   totalRevenue: number;
@@ -47,6 +56,7 @@ export function useRevenueChartData(bookings: Booking[]): RevenueChartData {
     const dailyMap = new Map<string, { value: number; count: number }>();
     const monthlyMap = new Map<string, { value: number; count: number }>();
     const weeklyMap = new Map<string, { value: number; count: number }>();
+    const dayOfWeekMap = new Map<number, { value: number; count: number }>();
 
     completed.forEach((b) => {
       const parts = b.booking_date.split('-');
@@ -69,6 +79,13 @@ export function useRevenueChartData(bookings: Booking[]): RevenueChartData {
       weekExisting.value += price;
       weekExisting.count += 1;
       weeklyMap.set(weekKey, weekExisting);
+
+      // Day of week (all time)
+      const dow = date.getDay();
+      const dowExisting = dayOfWeekMap.get(dow) || { value: 0, count: 0 };
+      dowExisting.value += price;
+      dowExisting.count += 1;
+      dayOfWeekMap.set(dow, dowExisting);
 
       // Monthly (last 12 months)
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -108,6 +125,30 @@ export function useRevenueChartData(bookings: Booking[]): RevenueChartData {
         value: data.value,
         count: data.count,
       });
+    });
+
+    // Build day of week revenue (all completed bookings)
+    const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const dayNamesFull = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+    const dayOfWeekRevenue: DayOfWeekRevenue[] = [];
+    for (let d = 1; d <= 6; d++) {
+      const data = dayOfWeekMap.get(d) || { value: 0, count: 0 };
+      dayOfWeekRevenue.push({
+        day: d,
+        label: dayNamesFull[d],
+        shortLabel: dayNames[d],
+        value: data.value,
+        count: data.count,
+      });
+    }
+    // Sunday last
+    const sundayData = dayOfWeekMap.get(0) || { value: 0, count: 0 };
+    dayOfWeekRevenue.push({
+      day: 0,
+      label: dayNamesFull[0],
+      shortLabel: dayNames[0],
+      value: sundayData.value,
+      count: sundayData.count,
     });
 
     // Build monthly comparison (last 12 months)
@@ -166,6 +207,7 @@ export function useRevenueChartData(bookings: Booking[]): RevenueChartData {
         weeklyRevenue: weeklyRevenue.map((d) => ({ ...d, value: 0 })),
         monthlyRevenue: monthlyRevenue.map((d) => ({ ...d, value: 0 })),
         monthlyComparison: monthlyComparison.map((d) => ({ ...d, value: 0 })),
+        dayOfWeekRevenue: dayOfWeekRevenue.map((d) => ({ ...d, value: 0 })),
         dailyAverage: 0,
         bestDay: null,
         totalRevenue: 0,
@@ -178,6 +220,7 @@ export function useRevenueChartData(bookings: Booking[]): RevenueChartData {
       weeklyRevenue,
       monthlyRevenue,
       monthlyComparison,
+      dayOfWeekRevenue,
       dailyAverage,
       bestDay,
       totalRevenue,

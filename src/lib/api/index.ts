@@ -38,7 +38,6 @@ export {
   getMensalistaEnabled,
   setMensalistaEnabled,
 } from './mensalista';
-
 export { getTemplates, createTemplate, deleteTemplate } from './templates';
 export type { WhatsAppTemplate } from './templates';
 export { getMaxNoShows, isClientNoShowBlocked, checkPhoneNoShowBlock } from './noShow';
@@ -50,7 +49,6 @@ export {
   getClientMilestones,
   claimMilestone,
   incrementVisit,
-  getClaimedCount,
   getClientMilestonesPublic,
 } from './loyalty';
 export {
@@ -61,12 +59,3 @@ export {
   validateCoupon,
   applyCoupon,
 } from './coupons';
-export {
-  getTestimonials,
-  getAllTestimonials,
-  createTestimonial,
-  updateTestimonial,
-  deleteTestimonial,
-  countTestimonials,
-  MAX_TESTIMONIALS,
-} from './testimonials';

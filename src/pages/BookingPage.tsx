@@ -22,6 +22,7 @@ const BookingPage: FC = () => {
           totalPrice={w.finalPrice}
           isStepDisabled={w.isStepDisabled}
           isSubmitting={w.isSubmitting}
+          servicesLoading={w.servicesLoading}
           availableSlots={w.availableSlots}
           existingBookings={w.existingBookings}
           dateContainerRef={w.dateContainerRef}

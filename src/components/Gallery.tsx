@@ -182,7 +182,7 @@ const Gallery: FC = memo(() => {
                       <img
                         src={img.image_url}
                         alt={img.alt || `Foto do trabalho ${(i % images.length) + 1}`}
-                        loading="eager"
+                        loading="lazy"
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         onError={() => handleImageError(img.id)}
                       />

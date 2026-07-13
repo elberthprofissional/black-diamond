@@ -1,5 +1,6 @@
 import { supabase } from '../supabase';
 import { NULL_UUID } from '../constants';
+import { getLocalDateString } from '../utils';
 import type { Booking } from '../../types';
 
 /** Cria um agendamento via RPC, criando o cliente automaticamente se necessário. */
@@ -171,7 +172,7 @@ export const autoCompleteExpiredBookings = async (_date?: string): Promise<numbe
 export const getBookingsForStats = async (monthsBack: number = 12) => {
   const cutoff = new Date();
   cutoff.setMonth(cutoff.getMonth() - monthsBack);
-  const cutoffStr = cutoff.toISOString().split('T')[0];
+  const cutoffStr = getLocalDateString(cutoff);
 
   const { data, error } = await supabase
     .from('bookings')
@@ -203,6 +204,7 @@ export interface ManagedBooking {
   status: string;
   total_price: number;
   total_duration: number;
+  service_ids: string[];
   service_names: string[];
   client_name: string;
   client_phone: string;

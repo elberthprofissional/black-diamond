@@ -45,9 +45,18 @@ const Footer: FC = () => {
     }
   }, [barberHours]);
 
-  const segSex = hours?.['1']?.enabled ? `${hours['1'].open} - ${hours['1'].close}` : null;
-  const sabado = hours?.['6']?.enabled ? `${hours['6'].open} - ${hours['6'].close}` : null;
-  const domingo = hours?.['0']?.enabled ? `${hours['0'].open} - ${hours['0'].close}` : null;
+  const segSex =
+    hours?.['1']?.enabled && hours['1']?.open && hours['1']?.close
+      ? `${hours['1'].open} - ${hours['1'].close}`
+      : null;
+  const sabado =
+    hours?.['6']?.enabled && hours['6']?.open && hours['6']?.close
+      ? `${hours['6'].open} - ${hours['6'].close}`
+      : null;
+  const domingo =
+    hours?.['0']?.enabled && hours['0']?.open && hours['0']?.close
+      ? `${hours['0'].open} - ${hours['0'].close}`
+      : null;
 
   return (
     <footer className="bg-[#0A0A0A] pt-16 pb-8 overflow-hidden relative">
@@ -194,7 +203,7 @@ const Footer: FC = () => {
           </a>
 
           <Link
-            to="/admin"
+            to="/admin/login"
             aria-label="Acesso restrito para administradores"
             className="group flex items-center gap-3 px-4 py-2 bg-[#141414] border border-white/5 rounded-full hover:border-[#D4AF37]/50 hover:bg-[#D4AF37]/5 transition-all duration-500 mt-3"
           >

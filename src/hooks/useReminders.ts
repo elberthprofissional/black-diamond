@@ -267,7 +267,7 @@ export function useReminders() {
   useEffect(() => {
     const existing = loadTemplatesFromStorage();
     if (existing.length === 0) {
-      const baseUrl = import.meta.env.VITE_SITE_URL || 'https://black-diamond-wheat.vercel.app';
+      const baseUrl = import.meta.env.VITE_SITE_URL || 'https://black-diamond.vercel.app';
       const siteUrl = baseUrl + '/agendar';
       const defaults = getSeasonalTemplates(siteUrl);
       const now = new Date().toISOString();

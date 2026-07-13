@@ -34,17 +34,19 @@ const Location: FC = () => {
     hours &&
     weekEnabled &&
     satEnabled &&
+    hours['1']?.open &&
+    hours['6']?.open &&
     hours['1'].open === hours['6'].open &&
     hours['1'].close === hours['6'].close
   ) {
     hoursLines.push(`Segunda a Sábado`);
     hoursLines.push(`${hours['1'].open} às ${hours['1'].close}`);
   } else {
-    if (hours && weekEnabled) {
+    if (hours && weekEnabled && hours['1']?.open && hours['1']?.close) {
       hoursLines.push(`Segunda a Sexta`);
       hoursLines.push(`${hours['1'].open} às ${hours['1'].close}`);
     }
-    if (hours && satEnabled) {
+    if (hours && satEnabled && hours['6']?.open && hours['6']?.close) {
       hoursLines.push(`Sábado`);
       hoursLines.push(`${hours['6'].open} às ${hours['6'].close}`);
     }

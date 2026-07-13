@@ -28,7 +28,7 @@ export function useBookingWizard(
   } = useWizardStep();
 
   // Services
-  const { services: allServices } = useServices();
+  const { services: allServices, loading: servicesLoading } = useServices();
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
 
@@ -38,7 +38,9 @@ export function useBookingWizard(
   useEffect(() => {
     getMensalistaPlans(true)
       .then(setAllPlans)
-      .catch(() => {});
+      .catch(() => {
+        // Planos mensalistas indisponíveis — silencioso
+      });
   }, []);
 
   // Client lookup
@@ -164,10 +166,10 @@ export function useBookingWizard(
         if (result.valid) {
           setCouponCode(code.trim().toUpperCase());
           setCoupon({
-            coupon_id: result.coupon_id!,
-            code: result.code!,
-            discount_type: result.discount_type!,
-            discount_amount: result.discount_amount!,
+            coupon_id: result.coupon_id || '',
+            code: result.code || '',
+            discount_type: result.discount_type || '',
+            discount_amount: result.discount_amount || 0,
           });
         } else {
           setCoupon(null);
@@ -207,10 +209,10 @@ export function useBookingWizard(
         if (cancelled) return;
         if (result.valid) {
           setCoupon({
-            coupon_id: result.coupon_id!,
-            code: result.code!,
-            discount_type: result.discount_type!,
-            discount_amount: result.discount_amount!,
+            coupon_id: result.coupon_id || '',
+            code: result.code || '',
+            discount_type: result.discount_type || '',
+            discount_amount: result.discount_amount || 0,
           });
         } else {
           setCoupon(null);
@@ -253,7 +255,9 @@ export function useBookingWizard(
       }
       // Apply coupon usage after successful booking
       if (coupon?.coupon_id && !result.queued) {
-        applyCoupon(coupon.coupon_id).catch(() => {});
+        applyCoupon(coupon.coupon_id).catch(() => {
+          console.error('Falha ao aplicar uso do cupom');
+        });
       }
     }
   }, [
@@ -333,6 +337,7 @@ export function useBookingWizard(
     finalPrice,
     onCouponValidate: handleCouponValidate,
     onCouponRemove: handleCouponRemove,
+    servicesLoading,
     originalPrice: calculatedTotalPrice,
     nextMilestone,
   };

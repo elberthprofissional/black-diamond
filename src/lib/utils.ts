@@ -182,19 +182,24 @@ export const getLocalDateString = (d: Date = new Date()) => {
   return `${year}-${month}-${day}`;
 };
 
-export const getNextDays = (barberHoursJson?: string) => {
+export interface NextDaysConfig {
+  saturdayCloseHour?: number;
+  sundayEnabled?: boolean;
+}
+
+export const getNextDays = (config?: NextDaysConfig | string) => {
   const days = [];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const currentDay = today.getDay();
   const currentHour = new Date().getHours();
 
-  // Lê configurações do JSON de horários
+  // Aceita string JSON (legado) ou objeto config
   let saturdayCloseHour = 18;
   let sundayEnabled = false;
-  if (barberHoursJson) {
+  if (typeof config === 'string') {
     try {
-      const parsed = JSON.parse(barberHoursJson);
+      const parsed = JSON.parse(config);
       if (parsed['6']?.close) {
         saturdayCloseHour = parseInt(parsed['6'].close.split(':')[0], 10);
       }
@@ -204,6 +209,9 @@ export const getNextDays = (barberHoursJson?: string) => {
     } catch {
       /* use defaults */
     }
+  } else if (config) {
+    saturdayCloseHour = config.saturdayCloseHour ?? 18;
+    sundayEnabled = config.sundayEnabled ?? false;
   }
 
   // Sábado após fechar: mostra a próxima semana

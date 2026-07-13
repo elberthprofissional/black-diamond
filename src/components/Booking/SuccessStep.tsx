@@ -147,15 +147,24 @@ const SuccessStep: FC<SuccessStepProps> = ({
         </div>
 
         {/* Subtle confetti dots */}
-        {[...Array(8)].map((_, i) => (
+        {[
+          { left: 25, top: 15, dur: 3.2 },
+          { left: 40, top: 72, dur: 2.8 },
+          { left: 55, top: 30, dur: 3.5 },
+          { left: 70, top: 85, dur: 2.5 },
+          { left: 35, top: 50, dur: 3.0 },
+          { left: 60, top: 20, dur: 2.7 },
+          { left: 45, top: 65, dur: 3.3 },
+          { left: 75, top: 40, dur: 2.9 },
+        ].map((dot, i) => (
           <div
             key={i}
             className="absolute w-1 h-1 rounded-full bg-[#C5A059]/20 animate-[float_3s_ease-in-out_infinite]"
             style={{
-              left: `${20 + Math.random() * 60}%`,
-              top: `${10 + Math.random() * 80}%`,
+              left: `${dot.left}%`,
+              top: `${dot.top}%`,
               animationDelay: `${i * 0.4}s`,
-              animationDuration: `${2 + Math.random() * 2}s`,
+              animationDuration: `${dot.dur}s`,
             }}
           />
         ))}

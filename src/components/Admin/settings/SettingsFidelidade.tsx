@@ -3,7 +3,7 @@ import { getServices } from '../../../lib/api';
 import { getMilestones, saveMilestones, setLoyaltyEnabled } from '../../../lib/api/loyalty';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
-import { Gift, Plus, Trash2, Check, X, Sparkles, Star, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, Check, X, Sparkles, Star, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { LoyaltyMilestone, Service } from '../../../types';
 
@@ -139,20 +139,15 @@ const SettingsFidelidade: FC = () => {
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto lg:mx-0">
-      {/* Header */}
-      <div className="flex items-center justify-between py-2">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center shrink-0">
-            <Gift size={18} className="text-[#C5A059]" />
-          </div>
-          <div>
-            <h3 className="text-[15px] font-bold text-white">Programa de Fidelidade</h3>
-            <p className="text-[12px] text-zinc-500 mt-0.5">
-              {enabled
-                ? `${milestones.length} meta(s) configurada(s)`
-                : 'Inativo — ative para começar'}
-            </p>
-          </div>
+      {/* Header — Desktop */}
+      <div className="hidden lg:flex items-center justify-between py-2">
+        <div>
+          <h3 className="text-[15px] font-bold text-white">Programa de Fidelidade</h3>
+          <p className="text-[12px] text-zinc-500 mt-0.5">
+            {enabled
+              ? `${milestones.length} meta(s) configurada(s)`
+              : 'Inativo — ative para começar'}
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <span
@@ -176,6 +171,28 @@ const SettingsFidelidade: FC = () => {
             />
           </button>
         </div>
+      </div>
+
+      {/* Header — Mobile (só toggle) */}
+      <div className="lg:hidden flex items-center justify-between py-2">
+        <p className="text-[12px] text-zinc-500">
+          {enabled ? `${milestones.length} meta(s) configurada(s)` : 'Inativo — ative para começar'}
+        </p>
+        <button
+          onClick={handleToggleEnabled}
+          disabled={saving}
+          role="switch"
+          aria-checked={enabled}
+          className={`relative w-12 h-7 rounded-full transition-colors cursor-pointer ${
+            enabled ? 'bg-[#C5A059]' : 'bg-zinc-700'
+          } disabled:opacity-50`}
+        >
+          <motion.div
+            className="absolute top-1 w-5 h-5 bg-white rounded-full shadow-md"
+            animate={{ left: enabled ? 26 : 4 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          />
+        </button>
       </div>
 
       {enabled && (

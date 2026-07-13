@@ -1,4 +1,4 @@
-import { memo, type FC } from 'react';
+import { memo, useState, type FC } from 'react';
 import type { BookingWithClient, Service } from '../../../types';
 import { formatPhone, formatDisplayName } from '../../../lib/utils';
 import { BLOCKED_NAME } from '../../../lib/constants';
@@ -27,11 +27,13 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
     onBookingUpdated,
   }) => {
     const { markAsNoShow, markingNoShow } = useNoShow({ onBookingUpdated });
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
     const isBlocked =
       booking.is_blocked || !booking.client_id || booking.clients?.name === BLOCKED_NAME;
 
     const handleReminder = () => {
       const phone = booking.clients?.phone?.replace(/\D/g, '') || '';
+      if (!phone) return;
       const name = booking.clients?.name || '';
       const serviceNames =
         booking.service_ids
@@ -41,7 +43,8 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
       const date = booking.booking_date;
       const time = booking.booking_time?.slice(0, 5) || '';
       const msg = `✅ *Agendamento confirmado, ${name}!*\n\nNa *Black Diamond*\n\n✂️ ${serviceNames}\n📅 ${date} às ${time}\n\nAguardamos você! 💈`;
-      window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+      const waPhone = phone.startsWith('55') ? phone : `55${phone}`;
+      window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`, '_blank');
     };
 
     if (isBlocked) {
@@ -179,7 +182,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                   <div key={id} className="flex justify-between items-center">
                     <span className="text-[13px] text-zinc-400">{srv?.name || 'Serviço'}</span>
                     <span className="text-[13px] font-semibold text-zinc-300 tabular-nums">
-                      $ {Number(srv?.price || 0).toFixed(0)}
+                      R$ {Number(srv?.price || 0).toFixed(0)}
                     </span>
                   </div>
                 );
@@ -189,7 +192,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                   Total
                 </span>
                 <span className="text-[15px] font-black text-[#C5A059]">
-                  $ {(booking.total_price || 0).toFixed(0)}
+                  R$ {(booking.total_price || 0).toFixed(0)}
                 </span>
               </div>
             </div>
@@ -255,7 +258,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
               Reagendar
             </button>
             <button
-              onClick={onDelete}
+              onClick={() => setShowCancelConfirm(true)}
               className="w-full h-9 bg-transparent text-red-400/40 hover:text-red-400/70 transition-all text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
             >
               <svg
@@ -343,7 +346,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                     <div key={id} className="flex justify-between items-center text-sm px-1">
                       <span className="text-zinc-400 font-medium">{srv?.name || 'Serviço'}</span>
                       <span className="font-bold text-white tabular-nums">
-                        $ {Number(srv?.price || 0).toFixed(0)}
+                        R$ {Number(srv?.price || 0).toFixed(0)}
                       </span>
                     </div>
                   );
@@ -355,7 +358,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                   Total
                 </span>
                 <span className="text-base font-black text-[#C5A059]">
-                  $ {(booking.total_price || 0).toFixed(0)}
+                  R$ {(booking.total_price || 0).toFixed(0)}
                 </span>
               </div>
             </div>
@@ -421,7 +424,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
               Reagendar
             </button>
             <button
-              onClick={onDelete}
+              onClick={() => setShowCancelConfirm(true)}
               className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-zinc-400 hover:bg-red-500/[0.02] hover:border-red-500/20 hover:text-red-400 rounded-xl transition-all active:scale-[0.99] text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
             >
               <svg
@@ -468,6 +471,58 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
             )}
           </div>
         </div>
+
+        {/* Cancel Confirmation Modal */}
+        {showCancelConfirm && (
+          <div className="fixed inset-0 z-[250] flex items-center justify-center p-5 bg-black/60 backdrop-blur-sm">
+            <div
+              className="bg-[#111] border border-white/[0.08] rounded-2xl p-6 w-full max-w-sm space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center space-y-2">
+                <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#ef4444"
+                    strokeWidth="2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="15" y1="9" x2="9" y2="15" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                  </svg>
+                </div>
+                <h3 className="text-[14px] font-bold text-white">Cancelar agendamento?</h3>
+                <p className="text-[12px] text-zinc-500">
+                  O agendamento de{' '}
+                  <strong className="text-zinc-300">
+                    {formatDisplayName(booking.clients?.name)}
+                  </strong>{' '}
+                  será cancelado.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowCancelConfirm(false)}
+                  className="flex-1 h-11 border border-white/[0.08] text-zinc-400 hover:text-white rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  Voltar
+                </button>
+                <button
+                  onClick={() => {
+                    onDelete();
+                    setShowCancelConfirm(false);
+                  }}
+                  className="flex-1 h-11 bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  Sim, cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </>
     );
   }

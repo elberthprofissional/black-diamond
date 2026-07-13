@@ -48,7 +48,7 @@ describe('Footer', () => {
     renderWithRouter(<Footer />);
     const adminLink = screen.getByLabelText(/acesso restrito/i);
     expect(adminLink).toBeInTheDocument();
-    expect(adminLink).toHaveAttribute('href', '/admin');
+    expect(adminLink).toHaveAttribute('href', '/admin/login');
   });
 
   it('links externos tem target=_blank e rel=noopener', () => {

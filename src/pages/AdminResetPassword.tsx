@@ -23,7 +23,7 @@ const AdminResetPassword: FC = () => {
       }
       if (!session) {
         showError('Link de recuperação inválido ou expirado.');
-        setTimeout(() => navigate('/admin/login'), 2500);
+        setTimeout(() => navigate('/admin/login', { replace: true }), 2500);
       }
     });
 
@@ -31,7 +31,7 @@ const AdminResetPassword: FC = () => {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (!session) {
           showError('Link de recuperação inválido ou expirado.');
-          setTimeout(() => navigate('/admin/login'), 2500);
+          setTimeout(() => navigate('/admin/login', { replace: true }), 2500);
         }
       });
     }, 8000);
@@ -96,7 +96,7 @@ const AdminResetPassword: FC = () => {
         showError('Erro ao atualizar a senha. Tente novamente.');
       } else {
         showSuccess('Senha alterada com sucesso!');
-        setTimeout(() => navigate('/admin'), 1500);
+        setTimeout(() => navigate('/admin', { replace: true }), 1500);
       }
     } catch {
       showError('Erro ao tentar atualizar a senha.');
@@ -209,6 +209,7 @@ const AdminResetPassword: FC = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    maxLength={128}
                     className="w-full h-14 bg-[#1a1a1a] border border-white/[0.08] rounded-2xl px-6 pr-14 text-sm font-medium text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-all placeholder:text-zinc-600 lg:h-14 lg:font-light lg:text-base"
                     placeholder="Mínimo 8 caracteres"
                     required
@@ -239,6 +240,7 @@ const AdminResetPassword: FC = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    maxLength={128}
                     className="w-full h-14 bg-[#1a1a1a] border border-white/[0.08] rounded-2xl px-6 pr-14 text-sm font-medium text-white outline-none focus:border-[#C5A059]/50 focus:ring-1 focus:ring-[#C5A059]/20 transition-all placeholder:text-zinc-600 lg:h-14 lg:font-light lg:text-base"
                     placeholder="Repita a nova senha"
                     required

@@ -1,7 +1,8 @@
-import { type FC, useMemo } from 'react';
+import { type FC, useMemo, useState, useCallback } from 'react';
 import { useBookingManagement } from '../hooks/useBookingManagement';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useBarberSettings } from '../hooks/useBarberSettings';
+import { useConnectionStatus } from '../hooks/useConnectionStatus';
 import AdminLayout from '../components/Admin/AdminLayout';
 import DashboardHeader from '../components/Admin/shared/DashboardHeader';
 import OccupancyRateCard from '../components/Admin/shared/OccupancyRateCard';
@@ -28,6 +29,14 @@ const AdminDashboard: FC = () => {
   const data = useDashboardData();
   const mgmt = useBookingManagement(data.loadData);
   const { barberHours } = useBarberSettings();
+  const { status: realtimeStatus } = useConnectionStatus();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await data.loadData();
+    setIsRefreshing(false);
+  }, [data]);
 
   const dayStatus = useMemo(() => {
     const now = new Date();
@@ -165,6 +174,9 @@ const AdminDashboard: FC = () => {
             nextBooking={data.nextBooking}
             dailyRevenue={data.dailyRevenue}
             onSelectNext={() => data.nextBooking && mgmt.setSelectedBooking(data.nextBooking)}
+            realtimeStatus={realtimeStatus}
+            onRefresh={handleRefresh}
+            isRefreshing={isRefreshing}
           />
 
           {data.loading ? (

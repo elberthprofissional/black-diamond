@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getClients, getClientByPhone, getMensalistaPlans } from '../lib/api';
 import { supabase } from '../lib/supabase';
-import { formatPhone, maskName, maskPhone } from '../lib/utils';
+import { formatPhone, maskName, maskPhone, getLocalDateString } from '../lib/utils';
 import { useToast } from './useToast';
 import { BLOCKED_NAME, MASK_SENSITIVE_DATA } from '../lib/constants';
 import type { Client, MensalistaPlan } from '../types';
@@ -14,7 +14,7 @@ async function getNoShowBlockedInfo(): Promise<{
   try {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 90);
-    const cutoffStr = cutoff.toISOString().split('T')[0];
+    const cutoffStr = getLocalDateString(cutoff);
 
     const [bookingsRes, settingsRes] = await Promise.all([
       supabase

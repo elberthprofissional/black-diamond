@@ -74,24 +74,6 @@ export const SkeletonDashboard: FC = () => (
   </div>
 );
 
-export const SkeletonBooking: FC = () => (
-  <div className="space-y-6" aria-busy="true" aria-label="Carregando agendamento">
-    <div className="flex items-center gap-4">
-      <Skeleton variant="circle" width={44} height={44} />
-      <div className="space-y-2">
-        <Skeleton variant="text" width={180} height={24} />
-        <Skeleton variant="text" width={120} height={14} />
-      </div>
-    </div>
-    <div className="flex gap-2">
-      <Skeleton variant="rect" width={100} height={40} />
-      <Skeleton variant="rect" width={100} height={40} />
-      <Skeleton variant="rect" width={100} height={40} />
-    </div>
-    <SkeletonCard className="min-h-[400px]" />
-  </div>
-);
-
 export const SkeletonClients: FC = () => (
   <div className="space-y-6" aria-busy="true" aria-label="Carregando clientes">
     <div className="flex items-center justify-between">

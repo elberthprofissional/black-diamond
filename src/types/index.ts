@@ -124,13 +124,3 @@ export interface CouponValidation {
   original_price?: number;
   error?: string;
 }
-
-export interface Testimonial {
-  id: string;
-  name: string;
-  rating: number;
-  text: string;
-  is_active: boolean;
-  sort_order: number;
-  created_at: string;
-}

@@ -64,36 +64,8 @@ const DataStep: FC<DataStepProps> = memo(
               <p className="text-[14px] text-zinc-400">Preencha suas informações para continuar.</p>
             </div>
 
-            {/* Form */}
+            {/* Form — WhatsApp primeiro, Nome depois (auto-preenchimento) */}
             <div className="space-y-6">
-              <div className="space-y-2">
-                <label
-                  htmlFor="name-desktop"
-                  className="text-[12px] font-medium text-zinc-400 uppercase tracking-wider"
-                >
-                  Nome
-                </label>
-                <input
-                  id="name-desktop"
-                  type="text"
-                  placeholder="Digite seu nome completo"
-                  data-testid="input-name"
-                  aria-label="Seu nome"
-                  aria-describedby={
-                    name && name.trim().length < 3 ? 'name-error-desktop' : undefined
-                  }
-                  aria-invalid={!!(name && name.trim().length < 3)}
-                  className="w-full bg-transparent border-b-2 border-white/10 focus:border-[#C5A059] py-4 px-0 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 font-medium"
-                  value={name}
-                  onChange={(e) => onNameChange(e.target.value)}
-                />
-                {name && name.trim().length < 3 && (
-                  <p id="name-error-desktop" className="text-[11px] text-red-400/80" role="alert">
-                    Mínimo 3 caracteres
-                  </p>
-                )}
-              </div>
-
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label
@@ -125,10 +97,39 @@ const DataStep: FC<DataStepProps> = memo(
                   className="w-full bg-transparent border-b-2 border-white/10 focus:border-[#C5A059] py-4 px-0 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 font-medium"
                   value={phone}
                   onChange={(e) => onPhoneChange(e.target.value)}
+                  autoFocus
                 />
                 {getPhoneError(phone) && (
                   <p id="phone-error-desktop" className="text-[11px] text-red-400/80" role="alert">
                     {getPhoneError(phone)}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="name-desktop"
+                  className="text-[12px] font-medium text-zinc-400 uppercase tracking-wider"
+                >
+                  Nome
+                </label>
+                <input
+                  id="name-desktop"
+                  type="text"
+                  placeholder="Digite seu nome completo"
+                  data-testid="input-name"
+                  aria-label="Seu nome"
+                  aria-describedby={
+                    name && name.trim().length < 3 ? 'name-error-desktop' : undefined
+                  }
+                  aria-invalid={!!(name && name.trim().length < 3)}
+                  className="w-full bg-transparent border-b-2 border-white/10 focus:border-[#C5A059] py-4 px-0 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 font-medium"
+                  value={name}
+                  onChange={(e) => onNameChange(e.target.value)}
+                />
+                {name && name.trim().length < 3 && (
+                  <p id="name-error-desktop" className="text-[11px] text-red-400/80" role="alert">
+                    Mínimo 3 caracteres
                   </p>
                 )}
               </div>
@@ -203,34 +204,8 @@ const DataStep: FC<DataStepProps> = memo(
           </div>
         </div>
 
-        {/* Fields */}
+        {/* Fields — WhatsApp primeiro, Nome depois (auto-preenchimento) */}
         <div className="space-y-4">
-          <div className="space-y-2">
-            <label
-              htmlFor="name-mobile"
-              className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5"
-            >
-              <User size={12} className="text-[#C5A059]/60" />
-              Nome
-            </label>
-            <input
-              id="name-mobile"
-              type="text"
-              placeholder="Digite seu nome..."
-              data-testid="input-name"
-              aria-label="Seu nome"
-              aria-describedby={name && name.trim().length < 3 ? 'name-error-mobile' : undefined}
-              aria-invalid={!!(name && name.trim().length < 3)}
-              className="w-full bg-transparent border border-white/[0.06] focus:border-[#C5A059] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600"
-              value={name}
-              onChange={(e) => onNameChange(e.target.value)}
-            />
-            {name && name.trim().length < 3 && (
-              <p id="name-error-mobile" className="text-[10px] text-red-400/80" role="alert">
-                Mínimo 3 caracteres
-              </p>
-            )}
-          </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label
@@ -256,6 +231,7 @@ const DataStep: FC<DataStepProps> = memo(
               placeholder="(00) 90000-0000"
               data-testid="input-phone"
               aria-label="Seu número de WhatsApp com DDD"
+              autoFocus
               aria-describedby={getPhoneError(phone) ? 'phone-error-mobile' : undefined}
               aria-invalid={!!getPhoneError(phone)}
               className="w-full bg-transparent border border-white/[0.06] focus:border-[#C5A059] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600"
@@ -265,6 +241,32 @@ const DataStep: FC<DataStepProps> = memo(
             {getPhoneError(phone) && (
               <p id="phone-error-mobile" className="text-[10px] text-red-400/80" role="alert">
                 {getPhoneError(phone)}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <label
+              htmlFor="name-mobile"
+              className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5"
+            >
+              <User size={12} className="text-[#C5A059]/60" />
+              Nome
+            </label>
+            <input
+              id="name-mobile"
+              type="text"
+              placeholder="Digite seu nome..."
+              data-testid="input-name"
+              aria-label="Seu nome"
+              aria-describedby={name && name.trim().length < 3 ? 'name-error-mobile' : undefined}
+              aria-invalid={!!(name && name.trim().length < 3)}
+              className="w-full bg-transparent border border-white/[0.06] focus:border-[#C5A059] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600"
+              value={name}
+              onChange={(e) => onNameChange(e.target.value)}
+            />
+            {name && name.trim().length < 3 && (
+              <p id="name-error-mobile" className="text-[10px] text-red-400/80" role="alert">
+                Mínimo 3 caracteres
               </p>
             )}
           </div>

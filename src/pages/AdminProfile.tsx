@@ -47,7 +47,6 @@ const SettingsMensalista = lazy(() => import('../components/Admin/settings/Setti
 const SettingsFaltas = lazy(() => import('../components/Admin/settings/SettingsFaltas'));
 const SettingsFidelidade = lazy(() => import('../components/Admin/settings/SettingsFidelidade'));
 const SettingsCupons = lazy(() => import('../components/Admin/settings/SettingsCupons'));
-const SettingsDepoimentos = lazy(() => import('../components/Admin/settings/SettingsDepoimentos'));
 import SettingsList from '../components/Admin/settings/SettingsList';
 import HelpModal from '../components/Admin/settings/HelpModal';
 import { SkeletonDashboard } from '../components/Skeleton';
@@ -289,7 +288,6 @@ const AdminProfile: FC = () => {
               {settingsSection === 'faltas' && <SettingsFaltas />}
               {settingsSection === 'fidelidade' && <SettingsFidelidade />}
               {settingsSection === 'cupons' && <SettingsCupons />}
-              {settingsSection === 'depoimentos' && <SettingsDepoimentos />}
               {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
               {settingsSection === 'dados' && <SettingsDados />}
             </Suspense>
@@ -355,7 +353,6 @@ const AdminProfile: FC = () => {
                     {settingsSection === 'faltas' && <SettingsFaltas />}
                     {settingsSection === 'fidelidade' && <SettingsFidelidade />}
                     {settingsSection === 'cupons' && <SettingsCupons />}
-                    {settingsSection === 'depoimentos' && <SettingsDepoimentos />}
                     {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
                     {settingsSection === 'dados' && <SettingsDados />}
                   </Suspense>

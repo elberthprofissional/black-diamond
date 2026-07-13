@@ -105,6 +105,7 @@ const ClientProfile: FC = () => {
                 value={phone}
                 onChange={(e) => setPhone(formatPhone(e.target.value))}
                 placeholder="(00) 00000-0000"
+                maxLength={15}
                 className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-4 text-[15px] text-white outline-none focus:border-[#C5A059] transition-all placeholder:text-zinc-600"
               />
             </div>

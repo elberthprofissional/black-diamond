@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import { getLocalDateString } from '../utils';
 
 /** Busca o limite de faltas configurado (padrão: 3) */
 export const getMaxNoShows = async (): Promise<number> => {
@@ -23,10 +24,7 @@ export const isClientNoShowBlocked = async (clientId: string): Promise<boolean> 
       .select('*', { count: 'exact', head: true })
       .eq('client_id', clientId)
       .eq('no_show', true)
-      .gte(
-        'booking_date',
-        new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-      );
+      .gte('booking_date', getLocalDateString(new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)));
     if (error) throw error;
     return (count || 0) >= maxNoShows;
   } catch {

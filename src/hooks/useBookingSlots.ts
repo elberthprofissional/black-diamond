@@ -6,7 +6,17 @@ import { supabase } from '../lib/supabase';
 
 export function useBookingSlots(showError: (msg: string) => void) {
   const [barberHoursJson, setBarberHoursJson] = useState('');
-  const allNextDays = useMemo(() => getNextDays(barberHoursJson || undefined), [barberHoursJson]);
+  const [nextDaysConfig, setNextDaysConfig] = useState<{
+    saturdayCloseHour?: number;
+    sundayEnabled?: boolean;
+  }>({});
+  const allNextDays = useMemo(
+    () =>
+      getNextDays(
+        Object.keys(nextDaysConfig).length ? nextDaysConfig : barberHoursJson || undefined
+      ),
+    [barberHoursJson, nextDaysConfig]
+  );
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [workingDays, setWorkingDays] = useState('1,2,3,4,5,6');
@@ -38,7 +48,21 @@ export function useBookingSlots(showError: (msg: string) => void) {
         if (data && mounted) {
           for (const row of data) {
             if (row.key === 'working_days' && row.value) setWorkingDays(row.value);
-            else if (row.key === 'barber_hours' && row.value) setBarberHoursJson(row.value);
+            else if (row.key === 'barber_hours' && row.value) {
+              setBarberHoursJson(row.value);
+              // Parse do JSON pra passar config limpa pro getNextDays
+              try {
+                const parsed = JSON.parse(row.value);
+                setNextDaysConfig({
+                  saturdayCloseHour: parsed['6']?.close
+                    ? parseInt(parsed['6'].close.split(':')[0], 10)
+                    : undefined,
+                  sundayEnabled: parsed['0'] ? parsed['0'].enabled !== false : undefined,
+                });
+              } catch {
+                /* keep defaults */
+              }
+            }
           }
         }
       } catch {
@@ -62,7 +86,7 @@ export function useBookingSlots(showError: (msg: string) => void) {
             getAvailableSlots(selectedDate).catch(() => getTimeSlotsForDate(selectedDate)),
           ]);
           if (!active) return;
-          setExistingBookings(bookingsResult.data);
+          setExistingBookings(bookingsResult.data || []);
           setAvailableSlots(slotsData);
         } catch {
           if (active) showError('Erro ao carregar dados.');

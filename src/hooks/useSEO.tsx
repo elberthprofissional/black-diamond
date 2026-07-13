@@ -12,7 +12,7 @@ interface SEOProps {
 const SITE_NAME = 'Black Diamond Barbearia';
 const DEFAULT_DESCRIPTION =
   'Agende seu horário na Black Diamond Barbearia. Cortes, barba e serviços premium.';
-const DEFAULT_OG_IMAGE = 'https://black-diamond.vercel.app/assets/logo.webp';
+const DEFAULT_OG_IMAGE = `${import.meta.env.VITE_SITE_URL || 'https://black-diamond.vercel.app'}/assets/logo.webp`;
 
 export function useSEO({
   title,

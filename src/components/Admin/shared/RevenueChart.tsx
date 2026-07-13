@@ -9,6 +9,7 @@ import {
   CartesianGrid,
   Line,
   LineChart,
+  Cell,
 } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import type { RevenueChartData } from '../../../hooks/useRevenueChartData';
@@ -46,7 +47,9 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 };
 
 const RevenueChart: FC<RevenueChartProps> = ({ data }) => {
-  const [chartMode, setChartMode] = useState<'daily' | 'monthly' | 'comparison'>('daily');
+  const [chartMode, setChartMode] = useState<'daily' | 'monthly' | 'comparison' | 'dayOfWeek'>(
+    'daily'
+  );
 
   const formatYAxis = (value: number) => {
     if (value >= 1000) return `R$${(value / 1000).toFixed(0)}k`;
@@ -90,6 +93,7 @@ const RevenueChart: FC<RevenueChartProps> = ({ data }) => {
         {[
           { key: 'daily' as const, label: 'Diário (mês)' },
           { key: 'monthly' as const, label: 'Semanal' },
+          { key: 'dayOfWeek' as const, label: 'Dia da Semana' },
           { key: 'comparison' as const, label: 'Comparação Mensal' },
         ].map((tab) => (
           <button
@@ -187,6 +191,88 @@ const RevenueChart: FC<RevenueChartProps> = ({ data }) => {
                   opacity={0.85}
                   activeBar={{ opacity: 1, fill: '#D4B06A' }}
                 />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Bar Chart - Day of Week */}
+      {chartMode === 'dayOfWeek' && (
+        <div className="bg-[#111111] border border-white/5 rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+              Faturamento por Dia da Semana
+            </h3>
+            {data.dayOfWeekRevenue.length > 0 && (
+              <span className="text-[10px] text-zinc-500">
+                Melhor:{' '}
+                <span className="text-[#C5A059] font-bold">
+                  {
+                    data.dayOfWeekRevenue.reduce((best, curr) =>
+                      curr.value > best.value ? curr : best
+                    ).label
+                  }
+                </span>
+              </span>
+            )}
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={data.dayOfWeekRevenue}
+                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+                <XAxis
+                  dataKey="shortLabel"
+                  tick={{ fontSize: 10, fill: '#71717a' }}
+                  tickLine={false}
+                  axisLine={{ stroke: 'rgba(255,255,255,0.04)' }}
+                />
+                <YAxis
+                  tickFormatter={formatYAxis}
+                  tick={{ fontSize: 9, fill: '#71717a' }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={50}
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null;
+                    const entry = payload[0].payload;
+                    return (
+                      <div className="bg-[#1A1A1A] border border-white/[0.06] rounded-xl px-4 py-3 shadow-2xl shadow-black/50">
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">
+                          {entry.label}
+                        </p>
+                        <div className="flex items-center gap-2 text-[12px]">
+                          <span className="text-zinc-300">Receita:</span>
+                          <span className="font-bold text-white">
+                            R$ {Number(entry.value).toFixed(0)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[11px] mt-0.5">
+                          <span className="text-zinc-500">Atendimentos:</span>
+                          <span className="font-medium text-zinc-300">{entry.count}</span>
+                        </div>
+                      </div>
+                    );
+                  }}
+                  cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                />
+                <Bar dataKey="value" name="Receita" radius={[4, 4, 0, 0]} maxBarSize={40}>
+                  {data.dayOfWeekRevenue.map((entry) => (
+                    <Cell
+                      key={entry.day}
+                      fill={
+                        entry.value === Math.max(...data.dayOfWeekRevenue.map((d) => d.value))
+                          ? '#C5A059'
+                          : 'rgba(197,160,89,0.3)'
+                      }
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>

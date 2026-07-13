@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import BookingDetailPanel from './BookingDetailPanel';
 import type { BookingWithClient, Service } from '../../../types';
 
@@ -94,7 +94,7 @@ describe('BookingDetailPanel', () => {
       />
     );
     // O componente renderiza o preço como "$ 75" (sem R$)
-    const priceElements = screen.getAllByText('$ 75');
+    const priceElements = screen.getAllByText('R$ 75');
     expect(priceElements.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -149,7 +149,7 @@ describe('BookingDetailPanel', () => {
     expect(onReschedule).toHaveBeenCalledTimes(1);
   });
 
-  it('chama onDelete ao clicar em Cancelar', () => {
+  it('chama onDelete ao confirmar cancelamento', async () => {
     const onDelete = vi.fn();
     render(
       <BookingDetailPanel
@@ -163,6 +163,8 @@ describe('BookingDetailPanel', () => {
     );
     const deleteButtons = screen.getAllByText('Cancelar Agendamento');
     deleteButtons[0].click();
+    const confirmButton = await screen.findByText('Sim, cancelar');
+    confirmButton.click();
     expect(onDelete).toHaveBeenCalledTimes(1);
   });
 
