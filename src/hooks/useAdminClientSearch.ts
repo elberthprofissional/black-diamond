@@ -6,6 +6,13 @@ import { useToast } from './useToast';
 import { BLOCKED_NAME, MASK_SENSITIVE_DATA } from '../lib/constants';
 import type { Client, MensalistaPlan } from '../types';
 
+/** Client with enriched fields (original values before masking, no-show status) */
+type ClientWithEnriched = Client & {
+  _originalName: string;
+  _originalPhone: string;
+  _isNoShowBlocked: boolean;
+};
+
 /** Busca counts de no_show + limite configurado */
 async function getNoShowBlockedInfo(): Promise<{
   noShowCounts: Map<string, number>;
@@ -57,8 +64,8 @@ interface UseAdminClientSearchReturn {
   currentPlan: MensalistaPlan | null;
   setCurrentPlan: React.Dispatch<React.SetStateAction<MensalistaPlan | null>>;
   allPlans: MensalistaPlan[];
-  filteredClientsForModal: Client[];
-  setFilteredClientsForModal: React.Dispatch<React.SetStateAction<Client[]>>;
+  filteredClientsForModal: ClientWithEnriched[];
+  setFilteredClientsForModal: React.Dispatch<React.SetStateAction<ClientWithEnriched[]>>;
   handleSearch: () => void;
   selectClient: (client: Client) => void;
   loadClients: () => Promise<Client[]>;
@@ -77,7 +84,7 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
   const [isMensalista, setIsMensalista] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<MensalistaPlan | null>(null);
   const [allPlans, setAllPlans] = useState<MensalistaPlan[]>([]);
-  const [filteredClientsForModal, setFilteredClientsForModal] = useState<Client[]>([]);
+  const [filteredClientsForModal, setFilteredClientsForModal] = useState<ClientWithEnriched[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -193,12 +200,10 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
       const isPhone = /^\+?\d[\d\s\-()]*$/.test(term);
       const matches = isPhone
         ? filteredClientsForModal.filter((c) =>
-            ((c as any)._originalPhone || c.phone)
-              .replace(/\D/g, '')
-              .includes(term.replace(/\D/g, ''))
+            (c._originalPhone || c.phone).replace(/\D/g, '').includes(term.replace(/\D/g, ''))
           )
         : filteredClientsForModal.filter((c) =>
-            ((c as any)._originalName || c.name).toLowerCase().includes(term)
+            (c._originalName || c.name).toLowerCase().includes(term)
           );
 
       setIsSearchingClient(false);
@@ -246,7 +251,7 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
     currentPlan,
     setCurrentPlan,
     allPlans,
-    filteredClientsForModal,
+    filteredClientsForModal: filteredClientsForModal as ClientWithEnriched[],
     setFilteredClientsForModal,
 
     // Actions

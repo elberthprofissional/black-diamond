@@ -141,7 +141,7 @@ export default function NotificationDetail({ notif, onBack, onClose }: Notificat
               <button
                 onClick={() => {
                   onClose?.();
-                  navigate('/admin/agendar');
+                  navigate('/cancelar', { state: { phone: data.clientPhone } });
                 }}
                 className="h-10 bg-white/[0.03] border border-white/[0.06] text-zinc-400 hover:bg-white/[0.06] hover:text-white rounded-xl transition-all text-[10px] font-bold uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5"
               >
@@ -150,7 +150,7 @@ export default function NotificationDetail({ notif, onBack, onClose }: Notificat
               <button
                 onClick={() => {
                   onClose?.();
-                  navigate('/admin');
+                  navigate('/cancelar', { state: { phone: data.clientPhone } });
                 }}
                 className="h-10 bg-white/[0.03] border border-white/[0.06] text-zinc-400 hover:bg-red-500/[0.03] hover:border-red-500/20 hover:text-red-400 rounded-xl transition-all text-[10px] font-bold uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5"
               >

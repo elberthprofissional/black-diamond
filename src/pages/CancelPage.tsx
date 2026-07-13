@@ -119,8 +119,7 @@ export default function CancelPage() {
     return () => {
       active = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initialToken]);
 
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();

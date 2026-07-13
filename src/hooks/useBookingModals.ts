@@ -27,7 +27,7 @@ export function useBookingModals(loadData: () => Promise<void>, services: Servic
       // Incrementa fidelidade (visitas acumulativas, checa milestones)
       if (completingBooking.client_id) {
         incrementVisit(completingBooking.client_id).catch(() => {
-          console.error('Falha ao incrementar visita na fidelidade');
+          // Falha ao incrementar fidelidade — não crítica, o booking já foi concluído
         });
       }
 

@@ -9,15 +9,15 @@ import {
   type FC,
 } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { createBooking, getBookings, deleteBooking } from '../lib/api';
+import { getBookings } from '../lib/api';
+import { useToast } from '../hooks/useToast';
 import { getNextDays } from '../lib/utils';
 import { supabase } from '../lib/supabase';
-import { useToast } from '../hooks/useToast';
 import { useServices } from '../hooks/useServices';
 import { useBarberSettings } from '../hooks/useBarberSettings';
-import { useAuditLog } from '../hooks/useAuditLog';
 import { useAdminClientSearch } from '../hooks/useAdminClientSearch';
 import { useMensalistaFilter } from '../hooks/useMensalistaFilter';
+import { useAdminBookingSubmit } from '../hooks/useAdminBookingSubmit';
 import type { Service, Booking } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomTabs from '../components/Admin/BottomTabs';
@@ -44,12 +44,10 @@ const AdminBooking: FC = () => {
   const prefilledClientPhone = searchParams.get('phone');
   const rescheduleBooking = location.state?.rescheduleBooking;
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { services } = useServices();
   const { barberPhone } = useBarberSettings();
-  const { logBooking } = useAuditLog();
+  const { showError } = useToast();
   const [existingBookings, setExistingBookings] = useState<Booking[]>([]);
-  const { showSuccess, showError } = useToast();
 
   const clientSearch = useAdminClientSearch();
   const {
@@ -174,8 +172,15 @@ const AdminBooking: FC = () => {
         }
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rescheduleBooking, prefilledClientName, prefilledClientPhone]);
+  }, [
+    rescheduleBooking,
+    prefilledClientName,
+    prefilledClientPhone,
+    loadClients,
+    selectClient,
+    setNewClient,
+    setIsManualEntry,
+  ]);
 
   useEffect(() => {
     if (selectedDate) {
@@ -193,8 +198,7 @@ const AdminBooking: FC = () => {
         active = false;
       };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  }, [selectedDate, showError]);
 
   useEffect(() => {
     if (rescheduleBooking && services.length > 0 && rescheduleBooking.service_ids) {
@@ -216,96 +220,17 @@ const AdminBooking: FC = () => {
   const totalPrice = selectedServices.reduce((sum, s) => sum + Number(s.price), 0);
   const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
 
-  const handleFinish = async () => {
-    const name = selectedClient ? selectedClient.name : newClient.name;
-    const phone = selectedClient ? selectedClient.phone : newClient.phone;
-
-    if (!name || !phone || selectedServices.length === 0 || !selectedDate || !selectedTime) {
-      showError('Preencha todos os campos.');
-      return;
-    }
-
-    if (selectedDate) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const selected = new Date(selectedDate + 'T12:00:00');
-      if (selected < today) {
-        showError('Não é possível agendar em uma data passada.');
-        return;
-      }
-    }
-
-    if (!navigator.onLine) {
-      showError(
-        'Você está sem conexão com a internet. Por favor, verifique sua rede e tente novamente.'
-      );
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const bookingResult = await createBooking(
-        {
-          service_ids: selectedServices.map((s) => s.id),
-          booking_date: selectedDate,
-          booking_time: selectedTime,
-          total_price: totalPrice,
-          total_duration: totalDuration,
-        },
-        { name, phone }
-      );
-
-      const result = Array.isArray(bookingResult) ? bookingResult[0] : bookingResult;
-      const token = result?.token || '';
-      const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
-      const manageUrl = token ? `${siteUrl}/gerenciar?token=${token}` : '';
-
-      logBooking('booking_created', result?.id || '', {
-        client_name: name,
-        client_phone: phone,
-        services: selectedServices.map((s) => ({ id: s.id, name: s.name })),
-        date: selectedDate,
-        time: selectedTime,
-        total_price: totalPrice,
-        reschedule: !!rescheduleBooking?.id,
-      });
-
-      if (rescheduleBooking?.id) {
-        try {
-          await deleteBooking(rescheduleBooking.id);
-        } catch {
-          showError('Agendamento criado, mas não foi possível remover o anterior.');
-        }
-      }
-
-      // Abrir WhatsApp pro cliente com o link de gerenciamento
-      if (manageUrl && phone) {
-        const serviceNames = selectedServices.map((s) => s.name).join(', ');
-        const formattedDate = selectedDate.split('-').reverse().join('/');
-        const clientMsg = `Fala ${name}! Seu horário na Black Diamond tá confirmado!\n\n📅 ${formattedDate} às ${selectedTime}\n✂️ ${serviceNames}\n💰 R$ ${totalPrice.toFixed(2).replace('.', ',')}\n\nPrecisa trocar ou cancelar? Clica aqui:\n👉 ${manageUrl}`;
-        const clientWaUrl = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(clientMsg)}`;
-        window.open(clientWaUrl, '_blank');
-      }
-
-      // Abrir WhatsApp pro barbeiro com o resumo do agendamento
-      if (barberPhone) {
-        const serviceNames = selectedServices.map((s) => s.name).join(', ');
-        const formattedDate = selectedDate.split('-').reverse().join('/');
-        const barberMsg = `📋 *Novo Agendamento!*\n\n👤 ${name}\n📱 ${phone}\n✂️ ${serviceNames}\n📅 ${formattedDate} às ${selectedTime}\n💰 R$ ${totalPrice.toFixed(2).replace('.', ',')}${manageUrl ? `\n\nPara cancelar ou reagendar, acesse:\n👉 ${manageUrl}` : ''}`;
-        const barberWaUrl = `https://wa.me/${barberPhone.replace(/\D/g, '')}?text=${encodeURIComponent(barberMsg)}`;
-        window.open(barberWaUrl, '_blank');
-      }
-
-      showSuccess(
-        rescheduleBooking?.id ? 'Agendamento reagendado com sucesso!' : 'Agendamento realizado!'
-      );
-      navigate('/admin');
-    } catch (error) {
-      showError(error instanceof Error ? error.message : 'Erro ao agendar.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const { isSubmitting, handleFinish } = useAdminBookingSubmit({
+    selectedClient,
+    newClient,
+    selectedServices,
+    selectedDate,
+    selectedTime,
+    totalPrice,
+    totalDuration,
+    rescheduleBooking,
+    barberPhone,
+  });
 
   const handleNextStep = () => {
     if (currentStep === 1) {

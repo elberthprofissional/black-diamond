@@ -256,7 +256,7 @@ export function useBookingWizard(
       // Apply coupon usage after successful booking
       if (coupon?.coupon_id && !result.queued) {
         applyCoupon(coupon.coupon_id).catch(() => {
-          console.error('Falha ao aplicar uso do cupom');
+          // Falha ao registrar uso do cupom — não crítica, o booking já foi criado
         });
       }
     }

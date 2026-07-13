@@ -1,8 +1,7 @@
-import { type FC, useMemo, useState, useCallback } from 'react';
+import { type FC, useMemo } from 'react';
 import { useBookingManagement } from '../hooks/useBookingManagement';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useBarberSettings } from '../hooks/useBarberSettings';
-import { useConnectionStatus } from '../hooks/useConnectionStatus';
 import AdminLayout from '../components/Admin/AdminLayout';
 import DashboardHeader from '../components/Admin/shared/DashboardHeader';
 import OccupancyRateCard from '../components/Admin/shared/OccupancyRateCard';
@@ -17,10 +16,10 @@ import DeleteModal from '../components/Admin/shared/DeleteModal';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
 import RescheduleWizard from '../components/Admin/shared/RescheduleWizard';
 import BookingDetailPanel from '../components/Admin/shared/BookingDetailPanel';
+import BookingSlidePanel from '../components/Admin/shared/BookingSlidePanel';
 import ClosedDayView from '../components/Admin/shared/ClosedDayView';
 import EndOfDayView from '../components/Admin/shared/EndOfDayView';
 import { SkeletonDashboard } from '../components/Skeleton';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const LAYOUT_CLASS =
   'flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-8 pb-40 transition-all duration-300 max-w-5xl';
@@ -29,14 +28,6 @@ const AdminDashboard: FC = () => {
   const data = useDashboardData();
   const mgmt = useBookingManagement(data.loadData);
   const { barberHours } = useBarberSettings();
-  const { status: realtimeStatus } = useConnectionStatus();
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await data.loadData();
-    setIsRefreshing(false);
-  }, [data]);
 
   const dayStatus = useMemo(() => {
     const now = new Date();
@@ -112,60 +103,6 @@ const AdminDashboard: FC = () => {
     );
   };
 
-  const renderDesktopPanel = () => {
-    if (!mgmt.isDesktop || !mgmt.selectedBooking) return null;
-
-    return (
-      <AnimatePresence>
-        <div className="fixed inset-0 z-[200] flex justify-end">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={closePanel}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          />
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="relative w-[400px] h-full bg-[#0E0E0E] border-l border-white/[0.06] shadow-2xl overflow-hidden flex flex-col"
-          >
-            {renderDetailPanel()}
-          </motion.div>
-        </div>
-      </AnimatePresence>
-    );
-  };
-
-  const renderMobilePanel = () => {
-    if (mgmt.isDesktop || !mgmt.selectedBooking) return null;
-
-    return (
-      <AnimatePresence>
-        <div className="fixed inset-0 z-[200] flex flex-col justify-end">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={closePanel}
-            className="absolute inset-0 bg-black/90 backdrop-blur-md"
-          />
-          <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="relative w-full h-[100dvh] bg-[#0f0f0f] z-10 flex flex-col text-left overflow-hidden"
-          >
-            {renderDetailPanel()}
-          </motion.div>
-        </div>
-      </AnimatePresence>
-    );
-  };
-
   return (
     <AdminLayout mainClassName={LAYOUT_CLASS}>
       <div className="space-y-5">
@@ -174,9 +111,6 @@ const AdminDashboard: FC = () => {
             nextBooking={data.nextBooking}
             dailyRevenue={data.dailyRevenue}
             onSelectNext={() => data.nextBooking && mgmt.setSelectedBooking(data.nextBooking)}
-            realtimeStatus={realtimeStatus}
-            onRefresh={handleRefresh}
-            isRefreshing={isRefreshing}
           />
 
           {data.loading ? (
@@ -239,7 +173,13 @@ const AdminDashboard: FC = () => {
         </div>
       </div>
 
-      {renderDesktopPanel()}
+      <BookingSlidePanel
+        isOpen={!!mgmt.selectedBooking}
+        isDesktop={mgmt.isDesktop}
+        onClose={closePanel}
+      >
+        {renderDetailPanel()}
+      </BookingSlidePanel>
 
       <CompleteModal
         booking={mgmt.completingBooking}
@@ -262,8 +202,6 @@ const AdminDashboard: FC = () => {
         onConfirm={mgmt.confirmDelete}
         onCancel={() => mgmt.setBookingToDelete(null)}
       />
-
-      {renderMobilePanel()}
 
       <ToastNotification toast={mgmt.toast} />
     </AdminLayout>

@@ -97,8 +97,7 @@ export function useBookingSlots(showError: (msg: string) => void) {
         active = false;
       };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  }, [selectedDate, showError]);
 
   return {
     selectedDate,

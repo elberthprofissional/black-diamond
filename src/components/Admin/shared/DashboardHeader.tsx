@@ -1,5 +1,5 @@
 import { type FC } from 'react';
-import { ChevronRight, RefreshCw } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { formatDisplayName } from '../../../lib/utils';
 import type { BookingWithClient } from '../../../types';
 
@@ -7,98 +7,17 @@ interface DashboardHeaderProps {
   nextBooking: BookingWithClient | null;
   dailyRevenue: number;
   onSelectNext: () => void;
-  realtimeStatus?: 'connected' | 'disconnected' | 'checking';
-  onRefresh?: () => void;
-  isRefreshing?: boolean;
 }
 
-const DashboardHeader: FC<DashboardHeaderProps> = ({
-  nextBooking,
-  dailyRevenue,
-  onSelectNext,
-  realtimeStatus,
-  onRefresh,
-  isRefreshing,
-}) => {
+const DashboardHeader: FC<DashboardHeaderProps> = ({ nextBooking, dailyRevenue, onSelectNext }) => {
   return (
     <>
       <div className="hidden lg:flex items-center justify-between gap-4 pb-3 border-b border-white/5">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight text-white uppercase italic">
-            Agenda do Dia
-          </h1>
-          {/* Realtime status */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/[0.04]">
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                realtimeStatus === 'connected'
-                  ? 'bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.5)]'
-                  : realtimeStatus === 'disconnected'
-                    ? 'bg-red-500'
-                    : 'bg-amber-500'
-              }`}
-            />
-            <span
-              className={`text-[8px] font-bold uppercase tracking-wider ${
-                realtimeStatus === 'connected'
-                  ? 'text-emerald-400'
-                  : realtimeStatus === 'disconnected'
-                    ? 'text-red-400'
-                    : 'text-amber-400'
-              }`}
-            >
-              {realtimeStatus === 'connected'
-                ? 'Ao vivo'
-                : realtimeStatus === 'disconnected'
-                  ? 'Offline'
-                  : '...'}
-            </span>
-          </div>
-          {/* Desktop: Refresh button */}
-          <button
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            title="Atualizar"
-            className="p-2 rounded-lg text-zinc-600 hover:text-[#C5A059] hover:bg-white/[0.04] transition-all cursor-pointer disabled:opacity-50"
-          >
-            <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
-          </button>
-        </div>
+        <h1 className="text-2xl font-bold tracking-tight text-white uppercase italic">
+          Agenda do Dia
+        </h1>
       </div>
-      <div className="flex items-center gap-3">
-        {/* Mobile: Realtime status + Refresh */}
-        <div className="lg:hidden flex items-center gap-2">
-          <div
-            className={`flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/[0.03] border border-white/[0.04] ${
-              realtimeStatus === 'connected' ? '' : ''
-            }`}
-          >
-            <span
-              className={`w-1 h-1 rounded-full ${
-                realtimeStatus === 'connected'
-                  ? 'bg-emerald-500 animate-pulse'
-                  : realtimeStatus === 'disconnected'
-                    ? 'bg-red-500'
-                    : 'bg-amber-500'
-              }`}
-            />
-            <span className="text-[6px] font-bold uppercase tracking-wider text-zinc-500">
-              {realtimeStatus === 'connected'
-                ? 'AO VIVO'
-                : realtimeStatus === 'disconnected'
-                  ? 'OFF'
-                  : '...'}
-            </span>
-          </div>
-          <button
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            title="Atualizar"
-            className="p-1.5 rounded-lg text-zinc-600 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer disabled:opacity-50"
-          >
-            <RefreshCw size={12} className={isRefreshing ? 'animate-spin' : ''} />
-          </button>
-        </div>
+      <div className="flex items-center gap-4">
         <button
           onClick={onSelectNext}
           className="bg-[#111111] border border-white/5 py-3 px-4 rounded-2xl flex items-center gap-3 min-w-0 group hover:border-[#C5A059]/20 hover:bg-white/[0.01] transition-all cursor-pointer"

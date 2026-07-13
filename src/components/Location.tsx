@@ -1,4 +1,4 @@
-import { useMemo, Fragment, type FC } from 'react';
+import { useMemo, type FC } from 'react';
 import { MapPin, Clock, Navigation } from 'lucide-react';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 import { formatPhone } from '../lib/utils';
@@ -104,19 +104,43 @@ const Location: FC = () => {
               <div className="flex items-start gap-4">
                 <Clock className="w-4 h-4 text-[#D4AF37] shrink-0 mt-1" />
                 <div>
-                  <h4 className="text-[#D4AF37] font-black text-[9px] tracking-[0.3em] uppercase mb-2">
+                  <h4 className="text-[#D4AF37] font-black text-[9px] tracking-[0.3em] uppercase mb-3">
                     Horário
                   </h4>
-                  <p className="text-zinc-400 font-light text-sm md:text-base leading-relaxed">
-                    {hoursLines.length > 0
-                      ? hoursLines.map((l, i) => (
-                          <Fragment key={i}>
-                            {i > 0 && <br />}
-                            {l}
-                          </Fragment>
-                        ))
-                      : 'Consulte nossos horários'}
-                  </p>
+                  {hoursLines.length > 0 ? (
+                    <div className="space-y-3">
+                      {/* Segunda a Sexta */}
+                      {hoursLines[0] && (
+                        <div className="flex items-center gap-3">
+                          <span className="text-white font-semibold text-sm md:text-base">
+                            {hoursLines[0]}
+                          </span>
+                          {hoursLines[1] && (
+                            <span className="text-[#D4AF37] font-bold text-sm md:text-base">
+                              {hoursLines[1]}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {/* Sábado */}
+                      {hoursLines[2] && (
+                        <div className="flex items-center gap-3">
+                          <span className="text-white font-semibold text-sm md:text-base">
+                            {hoursLines[2]}
+                          </span>
+                          {hoursLines[3] && (
+                            <span className="text-[#D4AF37] font-bold text-sm md:text-base">
+                              {hoursLines[3]}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-zinc-400 font-light text-sm md:text-base">
+                      Consulte nossos horários
+                    </p>
+                  )}
                 </div>
               </div>
 

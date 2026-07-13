@@ -116,7 +116,7 @@ const SettingsConta: FC = () => {
   };
 
   const canSave = (field: string) => {
-    const val = inputs[field]?.trim();
+    const val = (inputs[field] || '').trim();
     const current = vals[field as keyof typeof vals] || '';
     switch (field) {
       case 'name':

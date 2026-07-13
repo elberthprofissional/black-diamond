@@ -63,6 +63,10 @@ export interface ClientWithStats extends Client {
   upcomingBooking?: { date: string; time: string } | null;
   isInactive: boolean;
   isNoShowBlocked?: boolean;
+  /** Original name before masking (MASK_SENSITIVE_DATA) */
+  _originalName?: string;
+  /** Original phone before masking (MASK_SENSITIVE_DATA) */
+  _originalPhone?: string;
 }
 
 export interface MensalistaPlan {

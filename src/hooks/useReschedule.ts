@@ -38,8 +38,7 @@ export function useReschedule(
     return () => {
       active = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rescheduleDate, isRescheduling]);
+  }, [rescheduleDate, isRescheduling, showError]);
 
   const startReschedule = () => {
     if (!selectedBooking) return;

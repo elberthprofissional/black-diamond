@@ -1,14 +1,13 @@
-import { useState, useEffect, useMemo, useCallback, useRef, type FC, type MouseEvent } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw } from 'lucide-react';
-import { getLocalDateString, formatDisplayName } from '../lib/utils';
+
+import { getLocalDateString } from '../lib/utils';
 import { getAvailableSlots } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { useBookings } from '../hooks/useBookings';
 import { useSlotBlocking } from '../hooks/useSlotBlocking';
 import { useBookingManagement } from '../hooks/useBookingManagement';
 import { useBarberSettings } from '../hooks/useBarberSettings';
-import { useConnectionStatus } from '../hooks/useConnectionStatus';
 import AdminLayout from '../components/Admin/AdminLayout';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
 import UnblockModal from '../components/Admin/shared/UnblockModal';
@@ -18,8 +17,10 @@ import DeleteModal from '../components/Admin/shared/DeleteModal';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
 import RescheduleWizard from '../components/Admin/shared/RescheduleWizard';
 import BookingDetailPanel from '../components/Admin/shared/BookingDetailPanel';
+import BookingSlidePanel from '../components/Admin/shared/BookingSlidePanel';
 import { SkeletonDashboard } from '../components/Skeleton';
-import { motion, AnimatePresence } from 'framer-motion';
+import WeekDayBar from '../components/Admin/weekly/WeekDayBar';
+import OccupiedBookingRow from '../components/Admin/weekly/OccupiedBookingRow';
 
 /**
  * Calcula segunda-feira da semana, resetando智能mente:
@@ -128,8 +129,6 @@ const AdminWeekly: FC = () => {
   const [selectedVisibleIndex, setSelectedVisibleIndex] = useState(getInitialDayIndex);
 
   const [allSlots, setAllSlots] = useState<string[]>([]);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const { status: realtimeStatus } = useConnectionStatus();
 
   const {
     blockingSlot,
@@ -196,13 +195,6 @@ const AdminWeekly: FC = () => {
     };
   }, [selectedDateStr, loadData]);
 
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await loadData();
-    const slots = await getAvailableSlots(selectedDateStr);
-    setAllSlots(slots);
-    setIsRefreshing(false);
-  }, [loadData, selectedDateStr]);
   const [currentHour, setCurrentHour] = useState(() => new Date().getHours());
   const [currentMinutes, setCurrentMinutes] = useState(
     () => new Date().getHours() * 60 + new Date().getMinutes()
@@ -331,84 +323,21 @@ const AdminWeekly: FC = () => {
             <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-white uppercase italic">
               Agenda da Semana
             </h1>
-            {/* Realtime status */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/[0.04]">
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  realtimeStatus === 'connected'
-                    ? 'bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.5)]'
-                    : realtimeStatus === 'disconnected'
-                      ? 'bg-red-500'
-                      : 'bg-amber-500'
-                }`}
-              />
-              <span
-                className={`text-[8px] font-bold uppercase tracking-wider ${
-                  realtimeStatus === 'connected'
-                    ? 'text-emerald-400'
-                    : realtimeStatus === 'disconnected'
-                      ? 'text-red-400'
-                      : 'text-amber-400'
-                }`}
-              >
-                {realtimeStatus === 'connected'
-                  ? 'Ao vivo'
-                  : realtimeStatus === 'disconnected'
-                    ? 'Offline'
-                    : '...'}
-              </span>
-            </div>
-            {/* Refresh button */}
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              title="Atualizar"
-              className="p-2 rounded-lg text-zinc-600 hover:text-[#C5A059] hover:bg-white/[0.04] transition-all cursor-pointer disabled:opacity-50"
-            >
-              <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
-            </button>
           </div>
           <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest capitalize">
             {dayLabel}
           </p>
         </div>
 
-        <div className="flex gap-1.5">
-          {visibleWeekDays.map((day, idx) => {
-            const isSelected = idx === selectedVisibleIndex;
-            const isToday = day.toDateString() === today.toDateString();
-            const isPast = day < today && !isToday;
-            return (
-              <button
-                key={idx}
-                onClick={() => !isPast && setSelectedVisibleIndex(idx)}
-                disabled={isPast}
-                title={isPast ? 'Dia já encerrado' : ''}
-                className={`flex-1 py-4 rounded-lg transition-all duration-200 flex flex-col items-center gap-0.5 relative ${
-                  isPast
-                    ? 'bg-white/[0.01] text-zinc-700 cursor-not-allowed opacity-30 line-through decoration-1 decoration-zinc-800'
-                    : isSelected
-                      ? 'bg-[#C5A059] text-black'
-                      : isToday
-                        ? 'bg-white/[0.04] text-[#C5A059]'
-                        : 'bg-white/[0.02] text-zinc-400 hover:bg-white/[0.05] hover:text-zinc-200'
-                }`}
-              >
-                {isPast && (
-                  <span className="absolute top-1 right-1.5 text-[6px] text-zinc-700 font-bold uppercase tracking-widest">
-                    FIM
-                  </span>
-                )}
-                <span
-                  className={`text-[8px] font-bold uppercase tracking-widest ${isSelected ? 'text-black/60' : isPast ? 'text-zinc-700' : 'opacity-50'}`}
-                >
-                  {day.toLocaleDateString('pt-BR', { weekday: 'short' }).replace(/\./g, '')}
-                </span>
-                <span className="text-lg font-black">{day.getDate()}</span>
-              </button>
-            );
-          })}
-        </div>
+        <WeekDayBar
+          days={visibleWeekDays.map((day, idx) => ({
+            date: day,
+            isToday: day.toDateString() === today.toDateString(),
+            isPast: day < today && day.toDateString() !== today.toDateString(),
+            isSelected: idx === selectedVisibleIndex,
+          }))}
+          onSelect={setSelectedVisibleIndex}
+        />
 
         <div className="flex border-b border-white/[0.04] pb-1 pt-1 justify-start">
           <FilterTabs
@@ -432,107 +361,14 @@ const AdminWeekly: FC = () => {
                     Nenhum agendamento
                   </p>
                 ) : (
-                  occupiedBookings.map((booking) => {
-                    const handleReminder = (e: MouseEvent) => {
-                      e.stopPropagation();
-                      const phone = booking.clients?.phone?.replace(/\D/g, '') || '';
-                      const name = booking.clients?.name || '';
-                      const serviceNames =
-                        booking.service_ids
-                          ?.map((id) => mgmt.services.find((s) => s.id === id)?.name)
-                          .filter(Boolean)
-                          .join(', ') || '';
-                      const date = booking.booking_date;
-                      const time = booking.booking_time.slice(0, 5);
-                      const msg = `✅ *Agendamento confirmado, ${name}!*\n\nNa *Black Diamond*\n\n✂️ ${serviceNames}\n📅 ${date} às ${time}\n\nAguardamos você! 💈`;
-                      const waPhone = phone.startsWith('55') ? phone : `55${phone}`;
-                      window.open(
-                        `https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`,
-                        '_blank'
-                      );
-                    };
-
-                    return (
-                      <div
-                        key={booking.id}
-                        className="flex items-center bg-[#111111] border border-white/5 rounded-lg px-3 py-2 transition-all hover:border-[#C5A059]/20 group"
-                      >
-                        {/* Hora + Nome */}
-                        <button
-                          onClick={() => mgmt.setSelectedBooking(booking)}
-                          aria-label={`Agendamento às ${booking.booking_time.slice(0, 5)} com ${booking.clients?.name}`}
-                          className="flex items-center flex-1 min-w-0 text-left cursor-pointer"
-                        >
-                          <span className="text-sm font-bold text-white tabular-nums w-12 shrink-0">
-                            {booking.booking_time.slice(0, 5)}
-                          </span>
-                          <div className="w-px h-3.5 bg-white/[0.06] mx-3 shrink-0" />
-                          <span className="text-[11px] font-bold text-zinc-300 truncate flex-1">
-                            {formatDisplayName(booking.clients?.name)}
-                          </span>
-                        </button>
-
-                        {/* Ações */}
-                        <div className="flex items-center gap-1 shrink-0">
-                          {/* Lembrete - Desktop */}
-                          <button
-                            onClick={handleReminder}
-                            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 bg-[#C5A059]/10 hover:bg-[#C5A059]/20 text-[#C5A059] text-[9px] font-bold uppercase tracking-wider rounded-md transition-all cursor-pointer"
-                          >
-                            <svg
-                              width="10"
-                              height="10"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2.5"
-                            >
-                              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                            </svg>
-                            Lembrete
-                          </button>
-
-                          {/* Lembrete - Mobile (só ícone) */}
-                          <button
-                            onClick={handleReminder}
-                            className="lg:hidden p-1.5 text-zinc-600 hover:text-[#C5A059] transition-colors cursor-pointer"
-                            aria-label="Enviar lembrete"
-                          >
-                            <svg
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                            </svg>
-                          </button>
-
-                          {/* Seta */}
-                          <button
-                            onClick={() => mgmt.setSelectedBooking(booking)}
-                            className="p-1 text-zinc-600 hover:text-[#C5A059] transition-colors cursor-pointer"
-                            aria-label="Ver detalhes"
-                          >
-                            <svg
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <polyline points="9 18 15 12 9 6" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })
+                  occupiedBookings.map((booking) => (
+                    <OccupiedBookingRow
+                      key={booking.id}
+                      booking={booking}
+                      services={mgmt.services}
+                      onSelect={mgmt.setSelectedBooking}
+                    />
+                  ))
                 )}
               </div>
             )}
@@ -657,30 +493,13 @@ const AdminWeekly: FC = () => {
         )}
       </div>
 
-      {mgmt.isDesktop && (
-        <AnimatePresence>
-          {mgmt.selectedBooking && (
-            <div className="fixed inset-0 z-[200] flex justify-end">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={closePanel}
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              />
-              <motion.div
-                initial={{ x: '100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '100%' }}
-                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                className="relative w-[400px] h-full bg-[#0E0E0E] border-l border-white/[0.06] shadow-2xl overflow-hidden flex flex-col"
-              >
-                {renderDetailPanel()}
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
-      )}
+      <BookingSlidePanel
+        isOpen={!!mgmt.selectedBooking}
+        isDesktop={mgmt.isDesktop}
+        onClose={closePanel}
+      >
+        {renderDetailPanel()}
+      </BookingSlidePanel>
 
       <UnblockModal
         booking={unblockingBooking}
@@ -703,31 +522,6 @@ const AdminWeekly: FC = () => {
         onConfirm={mgmt.confirmDelete}
         onCancel={() => mgmt.setBookingToDelete(null)}
       />
-
-      {!mgmt.isDesktop && (
-        <AnimatePresence>
-          {mgmt.selectedBooking && (
-            <div className="fixed inset-0 z-[200] flex flex-col justify-end">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={closePanel}
-                className="absolute inset-0 bg-black/90 backdrop-blur-md"
-              />
-              <motion.div
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                className="relative w-full h-[100dvh] bg-[#0f0f0f] z-10 flex flex-col text-left overflow-hidden"
-              >
-                {renderDetailPanel()}
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
-      )}
 
       <ToastNotification toast={mgmt.toast} />
     </AdminLayout>

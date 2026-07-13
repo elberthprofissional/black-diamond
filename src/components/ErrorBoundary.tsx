@@ -21,11 +21,9 @@ class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, info: ErrorInfo) {
-    if (import.meta.env.DEV) {
-      console.error('[ErrorBoundary] Error:', error.message);
-      console.error('[ErrorBoundary] Component stack:', info.componentStack);
-    }
+  componentDidCatch(_error: Error, _info: ErrorInfo) {
+    // Sentry já captura automaticamente via ErrorBoundary integration
+    // O erro é logado pelo React em DEV automaticamente
   }
 
   handleRetry = () => {

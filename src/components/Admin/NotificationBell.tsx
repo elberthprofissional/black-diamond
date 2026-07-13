@@ -6,7 +6,8 @@ import NotificationsPanel from './notifications/NotificationsPanel';
 
 const NotificationBell: FC<{ variant: 'mobile' | 'desktop' }> = ({ variant }) => {
   const navigate = useNavigate();
-  const { notifications, unreadCount, markAllAsRead, clearNotification } = useNotifications();
+  const { notifications, unreadCount, markAllAsRead, clearNotification, bulkDelete } =
+    useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -60,6 +61,7 @@ const NotificationBell: FC<{ variant: 'mobile' | 'desktop' }> = ({ variant }) =>
                 notifications={notifications}
                 unreadCount={unreadCount}
                 markAllAsRead={markAllAsRead}
+                bulkDelete={bulkDelete}
                 onClose={() => setIsOpen(false)}
                 onDelete={(id) => clearNotification?.(id)}
               />

@@ -242,6 +242,9 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Export necessário — hook público deve ser exportado junto com o provider.
+// O eslint-plugin-react-refresh alerta sobre export misto de componentes e funções,
+// mas neste caso é proposital: o hook consome o contexto definido no mesmo arquivo.
 // eslint-disable-next-line react-refresh/only-export-components
 export function useBarberSettings() {
   const context = useContext(BarberSettingsContext);

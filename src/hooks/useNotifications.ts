@@ -263,6 +263,20 @@ export function useNotifications() {
     }
   }, []);
 
+  const bulkDelete = useCallback(async (ids: string[]) => {
+    if (ids.length === 0) return;
+    const removed = notificationsRef.current.filter((n) => ids.includes(n.id));
+    setNotifications((prev) => prev.filter((n) => !ids.includes(n.id)));
+    const { error } = await supabase.from('notifications').delete().in('id', ids);
+    if (error && removed.length > 0) {
+      setNotifications((prev) =>
+        [...prev, ...removed].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )
+      );
+    }
+  }, []);
+
   return {
     notifications,
     loading,
@@ -270,6 +284,7 @@ export function useNotifications() {
     markAsRead,
     markAllAsRead,
     clearNotification,
+    bulkDelete,
     refetch: fetchNotifications,
     showPreview,
     dismissPreview,

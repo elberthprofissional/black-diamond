@@ -1,14 +1,20 @@
-import { useState } from 'react';
-import { Bell, Trash2, Check } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Bell, Trash2, Check, Loader2, Circle, CircleCheck } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { type Notification } from '../../../hooks/useNotifications';
 import { parseNotifBody, relativeTime } from '../../../lib/notifications';
-import ConfirmDeleteModal from '../shared/ConfirmDeleteModal';
 
 interface NotificationItemProps {
   notif: Notification;
   onSelect: (n: Notification) => void;
   onDelete: (id: string) => void;
   size?: 'compact' | 'normal';
+  /** When true, shows a checkbox for bulk selection */
+  selectable?: boolean;
+  /** Whether this item is currently selected (only used when selectable=true) */
+  selected?: boolean;
+  /** Called when the checkbox is toggled */
+  onToggleSelect?: (id: string) => void;
 }
 
 export default function NotificationItem({
@@ -16,8 +22,21 @@ export default function NotificationItem({
   onSelect,
   onDelete,
   size = 'compact',
+  selectable = false,
+  selected = false,
+  onToggleSelect,
 }: NotificationItemProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+    };
+  }, []);
+
   const data = parseNotifBody(notif.body);
   const name = data ? data.clientName : notif.title;
   const desc = data ? data.services.split(', ').slice(0, 2).join(', ') : '';
@@ -32,22 +51,55 @@ export default function NotificationItem({
     e.stopPropagation();
     if (!confirmDelete) {
       setConfirmDelete(true);
+      // Auto-cancel after 3 seconds if not confirmed
+      if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+      deleteTimerRef.current = setTimeout(() => setConfirmDelete(false), 3000);
+    } else {
+      // Second click — confirm deletion
+      if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+      setDeleting(true);
+      onDelete(notif.id);
     }
   };
 
   return (
-    <div className="group relative flex items-start gap-3 px-5 py-3.5 transition-colors hover:bg-white/[0.02] border-b border-white/[0.03]">
-      <ConfirmDeleteModal
-        open={confirmDelete}
-        onConfirm={() => {
-          onDelete(notif.id);
-          setConfirmDelete(false);
-        }}
-        onCancel={() => setConfirmDelete(false)}
-      />
+    <div
+      className={`group relative flex items-start gap-3 px-5 py-3.5 transition-colors border-b border-white/[0.03] ${
+        selected ? 'bg-[#C5A059]/[0.04] hover:bg-[#C5A059]/[0.06]' : 'hover:bg-white/[0.02]'
+      }`}
+    >
+      {/* Selection checkbox */}
+      {selectable && onToggleSelect && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (confirmDelete) {
+              if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+              setConfirmDelete(false);
+            }
+            onToggleSelect(notif.id);
+          }}
+          className="shrink-0 mt-2.5 cursor-pointer text-zinc-600 hover:text-[#C5A059] transition-colors"
+          whileTap={{ scale: 0.85 }}
+        >
+          {selected ? <CircleCheck size={20} className="text-[#C5A059]" /> : <Circle size={20} />}
+        </motion.button>
+      )}
+
       <button
         onClick={() => {
-          setConfirmDelete(false);
+          if (confirmDelete) {
+            // Cancel pending delete
+            if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+            setConfirmDelete(false);
+            return;
+          }
+          if (selectable && onToggleSelect) {
+            onToggleSelect(notif.id);
+            return;
+          }
           onSelect(notif);
         }}
         className="flex items-start gap-3 flex-1 min-w-0 text-left cursor-pointer"
@@ -99,18 +151,34 @@ export default function NotificationItem({
         )}
       </button>
 
-      {/* Delete button */}
-      <button
-        onClick={handleDeleteClick}
-        className={`shrink-0 mt-1 p-1 rounded transition-all cursor-pointer ${
-          confirmDelete
-            ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-            : 'text-zinc-700 hover:text-red-400 opacity-0 group-hover:opacity-100'
-        }`}
-        title={confirmDelete ? 'Confirmar exclusão' : 'Excluir notificação'}
-      >
-        {confirmDelete ? <Check size={14} /> : <Trash2 size={14} />}
-      </button>
+      {/* Delete button (only in non-selectable mode) */}
+      {!selectable && (
+        <button
+          onClick={handleDeleteClick}
+          disabled={deleting}
+          className={`shrink-0 mt-1 p-1.5 rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+            confirmDelete
+              ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 shadow-lg shadow-red-500/10'
+              : 'text-zinc-700 hover:text-red-400 opacity-0 group-hover:opacity-100'
+          }`}
+          title={confirmDelete ? 'Clique novamente para confirmar' : 'Excluir notificação'}
+        >
+          {deleting ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : confirmDelete ? (
+            <Check size={14} strokeWidth={3} />
+          ) : (
+            <Trash2 size={14} />
+          )}
+        </button>
+      )}
+
+      {/* Confirm deletion hint */}
+      {confirmDelete && !deleting && (
+        <div className="absolute left-1/2 -translate-x-1/2 -bottom-4 whitespace-nowrap">
+          <span className="text-[9px] text-red-400/40 font-medium">Clique no ✓ p/ confirmar</span>
+        </div>
+      )}
     </div>
   );
 }
