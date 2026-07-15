@@ -6,6 +6,19 @@
 -- =========================================================================
 
 -- =========================================================================
+-- LIMPAR ASSINATURAS DUPLICADAS (de migrations anteriores)
+-- CREATE OR REPLACE nao substitui assinaturas diferentes — precisa DROP
+-- =========================================================================
+
+-- Dropar TODAS as versoes de criar_agendamento_rate_limited
+DROP FUNCTION IF EXISTS criar_agendamento_rate_limited(text, text, uuid[], date, time without time zone, numeric, integer, text);
+DROP FUNCTION IF EXISTS criar_agendamento_rate_limited(text, text, uuid[], date, time without time zone, numeric, integer, text, uuid, numeric);
+
+-- Dropar TODAS as versoes de criar_agendamento
+DROP FUNCTION IF EXISTS criar_agendamento(text, text, uuid[], date, time without time zone, numeric, integer, text);
+DROP FUNCTION IF EXISTS criar_agendamento(text, text, uuid[], date, time without time zone, numeric, integer, text, uuid);
+
+-- =========================================================================
 -- 1. AGENDAMENTOS
 -- =========================================================================
 
