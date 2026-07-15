@@ -122,7 +122,7 @@ export const getBookingsByPhone = async (phone: string) => {
 /** Busca o último agendamento do cliente (para sugestão de repetição). */
 export const getLastBookingByPhone = async (phone: string) => {
   const cleanPhone = phone.replace(/\D/g, '');
-  const { data, error } = await supabase.rpc('get_last_booking_by_phone', {
+  const { data, error } = await supabase.rpc('get_last_booking_by_phone_rate_limited', {
     p_phone: cleanPhone,
   });
 

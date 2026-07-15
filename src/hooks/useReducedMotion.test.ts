@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { renderHook } from '@testing-library/react'
-import { useReducedMotion } from '../hooks/useReducedMotion'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { renderHook } from '@testing-library/react';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 
 describe('useReducedMotion', () => {
-  const originalMatchMedia = window.matchMedia
+  const originalMatchMedia = window.matchMedia;
 
   beforeEach(() => {
     Object.defineProperty(window, 'matchMedia', {
@@ -18,15 +18,15 @@ describe('useReducedMotion', () => {
         removeEventListener: vi.fn(),
         dispatchEvent: vi.fn(),
       })),
-    })
-  })
+    });
+  });
 
   afterEach(() => {
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
       value: originalMatchMedia,
-    })
-  })
+    });
+  });
 
   it('retorna false quando prefers-reduced-motion nao esta configurado', () => {
     vi.mocked(window.matchMedia).mockReturnValue({
@@ -38,11 +38,11 @@ describe('useReducedMotion', () => {
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
       dispatchEvent: vi.fn(),
-    } as MediaQueryList)
+    } as MediaQueryList);
 
-    const { result } = renderHook(() => useReducedMotion())
-    expect(result.current).toBe(false)
-  })
+    const { result } = renderHook(() => useReducedMotion());
+    expect(result.current).toBe(false);
+  });
 
   it('retorna true quando prefers-reduced-motion esta configurado', () => {
     vi.mocked(window.matchMedia).mockReturnValue({
@@ -54,9 +54,9 @@ describe('useReducedMotion', () => {
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
       dispatchEvent: vi.fn(),
-    } as MediaQueryList)
+    } as MediaQueryList);
 
-    const { result } = renderHook(() => useReducedMotion())
-    expect(result.current).toBe(true)
-  })
-})
+    const { result } = renderHook(() => useReducedMotion());
+    expect(result.current).toBe(true);
+  });
+});

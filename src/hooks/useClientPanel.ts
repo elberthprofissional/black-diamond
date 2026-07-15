@@ -233,7 +233,8 @@ export function useClientPanel(
     [panelBookings]
   );
   const panelLast = useMemo(
-    () => (panelBookings.length > 0 ? new Date(panelBookings[0].booking_date) : null),
+    () =>
+      panelBookings.length > 0 && panelBookings[0] ? new Date(panelBookings[0].booking_date) : null,
     [panelBookings]
   );
 

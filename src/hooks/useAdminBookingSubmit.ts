@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createBooking, deleteBooking } from '../lib/api';
+import { openWhatsApp, formatWaDate, formatWaCurrency } from '../lib/whatsapp';
 import { useAuditLog } from './useAuditLog';
 import { useToast } from './useToast';
 import type { Service, Booking } from '../types';
@@ -96,22 +97,14 @@ export function useAdminBookingSubmit(params: AdminBookingSubmitParams) {
 
       if (manageUrl && phone) {
         const serviceNames = selectedServices.map((s) => s.name).join(', ');
-        const formattedDate = selectedDate.split('-').reverse().join('/');
-        const clientMsg = `Fala ${name}! Seu horário na Black Diamond tá confirmado!\n\n📅 ${formattedDate} às ${selectedTime}\n✂️ ${serviceNames}\n💰 R$ ${totalPrice.toFixed(2).replace('.', ',')}\n\nPrecisa trocar ou cancelar? Clica aqui:\n👉 ${manageUrl}`;
-        window.open(
-          `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(clientMsg)}`,
-          '_blank'
-        );
+        const clientMsg = `Fala ${name}! Seu horário na Black Diamond tá confirmado!\n\n📅 ${formatWaDate(selectedDate)} às ${selectedTime}\n✂️ ${serviceNames}\n💰 ${formatWaCurrency(totalPrice)}\n\nPrecisa trocar ou cancelar? Clica aqui:\n👉 ${manageUrl}`;
+        openWhatsApp(phone, clientMsg);
       }
 
       if (barberPhone) {
         const serviceNames = selectedServices.map((s) => s.name).join(', ');
-        const formattedDate = selectedDate.split('-').reverse().join('/');
-        const barberMsg = `📋 *Novo Agendamento!*\n\n👤 ${name}\n📱 ${phone}\n✂️ ${serviceNames}\n📅 ${formattedDate} às ${selectedTime}\n💰 R$ ${totalPrice.toFixed(2).replace('.', ',')}${manageUrl ? `\n\nPara cancelar ou reagendar, acesse:\n👉 ${manageUrl}` : ''}`;
-        window.open(
-          `https://wa.me/${barberPhone.replace(/\D/g, '')}?text=${encodeURIComponent(barberMsg)}`,
-          '_blank'
-        );
+        const barberMsg = `📋 *Novo Agendamento!*\n\n👤 ${name}\n📱 ${phone}\n✂️ ${serviceNames}\n📅 ${formatWaDate(selectedDate)} às ${selectedTime}\n💰 ${formatWaCurrency(totalPrice)}${manageUrl ? `\n\nPara cancelar ou reagendar, acesse:\n👉 ${manageUrl}` : ''}`;
+        openWhatsApp(barberPhone, barberMsg);
       }
 
       showSuccess(

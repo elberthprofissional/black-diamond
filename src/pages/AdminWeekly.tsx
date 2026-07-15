@@ -143,7 +143,9 @@ const AdminWeekly: FC = () => {
 
   // Se todos os dias estão desabilitados, não quebra
   const hasVisibleDays = visibleWeekDays.length > 0;
-  const selectedDate = hasVisibleDays ? visibleWeekDays[selectedVisibleIndex] : new Date();
+  const selectedDate = hasVisibleDays
+    ? (visibleWeekDays[selectedVisibleIndex] ?? new Date())
+    : new Date();
   const selectedDateStr = getLocalDateString(selectedDate);
   const isToday = hasVisibleDays && selectedDate.toDateString() === today.toDateString();
 
@@ -246,7 +248,9 @@ const AdminWeekly: FC = () => {
     if (b.status === 'cancelled') return false;
     if (b.is_blocked) return false;
     if (!isToday) return true;
-    const [h, m] = b.booking_time.slice(0, 5).split(':').map(Number);
+    const parts = b.booking_time.slice(0, 5).split(':').map(Number);
+    const h = parts[0] ?? 0;
+    const m = parts[1] ?? 0;
     const bookingEndMinutes = h * 60 + m + (b.total_duration || 60);
     return bookingEndMinutes > currentMinutes;
   });
@@ -255,14 +259,14 @@ const AdminWeekly: FC = () => {
       return false;
     }
     if (!isToday) return true;
-    const slotHour = parseInt(slot.split(':')[0], 10);
+    const slotHour = parseInt(slot.split(':')[0] ?? '0', 10);
     return slotHour >= currentHour;
   });
   const blockedBookings = dayBookings.filter((b) => {
     if (b.status === 'cancelled') return false;
     if (!b.is_blocked) return false;
     if (!isToday) return true;
-    const slotHour = parseInt(b.booking_time.slice(0, 5).split(':')[0], 10);
+    const slotHour = parseInt(b.booking_time.slice(0, 5).split(':')[0] ?? '0', 10);
     return slotHour >= currentHour;
   });
   const dayLabel = selectedDate.toLocaleDateString('pt-BR', {

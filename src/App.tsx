@@ -27,10 +27,10 @@ const TITLES: Record<string, string> = {
 function TitleManager() {
   const { pathname } = useLocation();
   const pageTitle = useMemo(() => {
-    if (TITLES[pathname]) return TITLES[pathname];
+    if (TITLES[pathname]) return TITLES[pathname] ?? 'Black Diamond';
     for (const pattern of Object.keys(TITLES)) {
       if (pattern.includes(':') && matchPath(pattern, pathname)) {
-        return TITLES[pattern];
+        return TITLES[pattern] ?? 'Black Diamond';
       }
     }
     return 'Black Diamond';
@@ -111,7 +111,10 @@ function LoadingFallback() {
       aria-busy="true"
     >
       <div className="flex flex-col items-center gap-4">
-        <div className="w-8 h-8 border-2 border-zinc-800 border-t-[#C5A059] rounded-full animate-spin" aria-hidden="true" />
+        <div
+          className="w-8 h-8 border-2 border-zinc-800 border-t-[#C5A059] rounded-full animate-spin"
+          aria-hidden="true"
+        />
         <div className="flex gap-1" aria-hidden="true">
           <div
             className="w-1 h-1 rounded-full bg-[#C5A059] animate-bounce"

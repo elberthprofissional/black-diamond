@@ -20,11 +20,13 @@ const PhotoSection: FC = () => {
   const handleRemovePhoto = async () => {
     setShowPhotoMenu(false);
     if (!barberPhoto) return;
-    await supabase.storage.from('avatars').remove([
-      'profiles/barber-photo.webp',
-      'profiles/barber-photo.jpg',
-      'profiles/barber-photo.png',
-    ]);
+    await supabase.storage
+      .from('avatars')
+      .remove([
+        'profiles/barber-photo.webp',
+        'profiles/barber-photo.jpg',
+        'profiles/barber-photo.png',
+      ]);
     const ok = await updateBarberPhoto('');
     if (ok) showSuccess('Foto removida!');
     else showError('Erro ao remover foto');
@@ -33,8 +35,14 @@ const PhotoSection: FC = () => {
   const handlePhotoUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) { showError('Envie apenas imagens'); return; }
-    if (file.size > 2 * 1024 * 1024) { showError('Imagem muito grande (max 2MB)'); return; }
+    if (!file.type.startsWith('image/')) {
+      showError('Envie apenas imagens');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      showError('Imagem muito grande (max 2MB)');
+      return;
+    }
 
     setShowPhotoMenu(false);
     setUploading(true);
@@ -47,23 +55,42 @@ const PhotoSection: FC = () => {
         let { width, height } = img;
         const maxSize = 1024;
         if (width > maxSize || height > maxSize) {
-          if (width > height) { height = Math.round((height / width) * maxSize); width = maxSize; }
-          else { width = Math.round((width / height) * maxSize); height = maxSize; }
+          if (width > height) {
+            height = Math.round((height / width) * maxSize);
+            width = maxSize;
+          } else {
+            width = Math.round((width / height) * maxSize);
+            height = maxSize;
+          }
         }
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
-        if (!ctx) { showError('Erro ao processar imagem'); setUploading(false); return; }
+        if (!ctx) {
+          showError('Erro ao processar imagem');
+          setUploading(false);
+          return;
+        }
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, width, height);
 
-        canvas.toBlob((blob) => {
-          if (blob) uploadPhoto(blob);
-          else { showError('Erro ao processar imagem'); setUploading(false); }
-        }, 'image/webp', 0.95);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) uploadPhoto(blob);
+            else {
+              showError('Erro ao processar imagem');
+              setUploading(false);
+            }
+          },
+          'image/webp',
+          0.95
+        );
       };
-      img.onerror = () => { showError('Erro ao carregar imagem'); setUploading(false); };
+      img.onerror = () => {
+        showError('Erro ao carregar imagem');
+        setUploading(false);
+      };
       img.src = reader.result as string;
     };
     reader.readAsDataURL(file);
@@ -72,25 +99,39 @@ const PhotoSection: FC = () => {
 
   const uploadPhoto = async (blob: Blob) => {
     try {
-      for (const old of ['profiles/barber-photo.webp', 'profiles/barber-photo.jpg', 'profiles/barber-photo.png']) {
+      for (const old of [
+        'profiles/barber-photo.webp',
+        'profiles/barber-photo.jpg',
+        'profiles/barber-photo.png',
+      ]) {
         await supabase.storage.from('avatars').remove([old]);
       }
       const filePath = `profiles/barber-photo-${Date.now()}.webp`;
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, blob, { contentType: 'image/webp' });
-      if (uploadError) { showError(`Erro: ${uploadError.message}`); return; }
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, blob, { contentType: 'image/webp' });
+      if (uploadError) {
+        showError(`Erro: ${uploadError.message}`);
+        return;
+      }
       const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
       if (urlData?.publicUrl) {
         const ok = await updateBarberPhoto(`${urlData.publicUrl}?t=${Date.now()}`);
         if (ok) showSuccess('Foto alterada!');
         else showError('Erro ao salvar foto');
       }
-    } catch { showError('Erro ao enviar imagem'); }
-    finally { setUploading(false); }
+    } catch {
+      showError('Erro ao enviar imagem');
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
     <div className="relative flex flex-col items-center pt-2 pb-4">
-      <button onClick={() => setShowPhotoMenu(!showPhotoMenu)} disabled={uploading}
+      <button
+        onClick={() => setShowPhotoMenu(!showPhotoMenu)}
+        disabled={uploading}
         className="relative w-24 h-24 rounded-full group cursor-pointer overflow-hidden border-2 border-white/10 hover:border-[#C5A059]/40 transition-all bg-white/[0.03] flex items-center justify-center"
         aria-label="Alterar foto de perfil"
       >
@@ -107,9 +148,19 @@ const PhotoSection: FC = () => {
           )}
         </div>
       </button>
-      <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-      <PhotoMenu show={showPhotoMenu} onClose={() => setShowPhotoMenu(false)}
-        onRemove={handleRemovePhoto} hasPhoto={!!barberPhoto} fileInputRef={fileInputRef}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handlePhotoUpload}
+        className="hidden"
+      />
+      <PhotoMenu
+        show={showPhotoMenu}
+        onClose={() => setShowPhotoMenu(false)}
+        onRemove={handleRemovePhoto}
+        hasPhoto={!!barberPhoto}
+        fileInputRef={fileInputRef}
       />
     </div>
   );

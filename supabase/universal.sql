@@ -1312,7 +1312,7 @@ BEGIN
 
     RETURN TRUE;
 END;
-1851 LANGUAGE plpgsql SECURITY DEFINER;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 -- =========================================================================
 -- NO-SHOW: Funções de bloqueio por excesso de faltas

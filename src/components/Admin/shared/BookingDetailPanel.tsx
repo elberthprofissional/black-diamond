@@ -1,6 +1,7 @@
 import { memo, useState, type FC } from 'react';
 import type { BookingWithClient, Service } from '../../../types';
 import { formatPhone, formatDisplayName } from '../../../lib/utils';
+import { openWhatsApp, formatWaDate } from '../../../lib/whatsapp';
 import { BLOCKED_NAME } from '../../../lib/constants';
 import { useNoShow } from '../../../hooks/useNoShow';
 
@@ -42,9 +43,8 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
           .join(', ') || '';
       const date = booking.booking_date;
       const time = booking.booking_time?.slice(0, 5) || '';
-      const msg = `✅ *Agendamento confirmado, ${name}!*\n\nNa *Black Diamond*\n\n✂️ ${serviceNames}\n📅 ${date} às ${time}\n\nAguardamos você! 💈`;
-      const waPhone = phone.startsWith('55') ? phone : `55${phone}`;
-      window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+      const msg = `✅ *Agendamento confirmado, ${name}!*\n\nNa *Black Diamond*\n\n✂️ ${serviceNames}\n📅 ${formatWaDate(date)} às ${time}\n\nAguardamos você! 💈`;
+      openWhatsApp(phone, msg);
     };
 
     if (isBlocked) {
@@ -277,7 +277,11 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
             {booking.status !== 'completed' && (
               <button
                 onClick={async () => {
-                  await markAsNoShow(booking.id);
+                  await markAsNoShow(
+                    booking.id,
+                    booking.clients?.name || 'Cliente',
+                    booking.client_id
+                  );
                   onClose();
                 }}
                 disabled={markingNoShow === booking.id}
@@ -446,7 +450,11 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
             {booking.status !== 'completed' && (
               <button
                 onClick={async () => {
-                  await markAsNoShow(booking.id);
+                  await markAsNoShow(
+                    booking.id,
+                    booking.clients?.name || 'Cliente',
+                    booking.client_id
+                  );
                   onClose();
                 }}
                 disabled={markingNoShow === booking.id}

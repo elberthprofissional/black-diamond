@@ -85,12 +85,21 @@ export function useGallerySelection(
   // Bulk delete
   const handleBulkDelete = useCallback(async () => {
     if (selectedImages.length === 0) return;
+    const deletedIds: string[] = [];
     try {
       for (const id of selectedImages) {
-        await supabase.from('gallery_images').delete().eq('id', id);
+        const { error } = await supabase.from('gallery_images').delete().eq('id', id);
+        if (!error) {
+          deletedIds.push(id);
+        }
       }
-      showSuccess(`${selectedImages.length} foto(s) removida(s)!`);
-      setImages((prev) => prev.filter((img) => !selectedImages.includes(img.id)));
+      if (deletedIds.length > 0) {
+        showSuccess(`${deletedIds.length} foto(s) removida(s)!`);
+        setImages((prev) => prev.filter((img) => !deletedIds.includes(img.id)));
+      }
+      if (deletedIds.length < selectedImages.length) {
+        showError(`${selectedImages.length - deletedIds.length} foto(s) falharam ao remover`);
+      }
       setSelectedImages([]);
     } catch {
       showError('Erro ao deletar fotos');

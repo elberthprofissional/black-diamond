@@ -1,7 +1,8 @@
-import { memo, useState, type FC } from 'react';
+import { memo, type FC } from 'react';
 import { formatPhone } from '../../lib/utils';
-import { Tag, X, Loader2 } from 'lucide-react';
+import { Tag } from 'lucide-react';
 import type { Service } from '../../types';
+import CouponBadge from './CouponBadge';
 
 const MESES = [
   'janeiro',
@@ -55,180 +56,110 @@ const ReviewStep: FC<ReviewStepProps> = memo(
     totalPrice,
     layout,
     coupon,
-    couponLoading,
-    couponError,
     originalPrice,
-    onCouponValidate,
     onCouponRemove,
   }) => {
     const formattedDate = formatarDataBR(selectedDate);
-    const [couponInput, setCouponInput] = useState('');
     const hasCoupon = !!coupon;
     const hasDiscount = hasCoupon && originalPrice && originalPrice > totalPrice;
-
-    const handleApply = () => {
-      if (couponInput.trim() && onCouponValidate) {
-        onCouponValidate(couponInput.trim());
-      }
-    };
 
     if (layout === 'desktop') {
       return (
         <div className="flex-1 flex flex-col justify-center items-center">
-          <div className="w-full max-w-[480px] space-y-6">
+          <div className="w-full max-w-[420px]">
             {/* Header */}
-            <div className="text-center mb-2">
+            <div className="text-center mb-6">
               <span className="text-[10px] font-bold tracking-[0.3em] text-[#C5A059] uppercase">
                 Resumo do Agendamento
               </span>
             </div>
 
-            {/* Client Card */}
-            <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6">
-              <div className="flex items-center gap-4 mb-5">
-                <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center shrink-0">
-                  <span className="text-lg font-bold text-[#C5A059]">
-                    {userName.charAt(0).toUpperCase()}
-                  </span>
+            {/* Single Unified Card */}
+            <div className="bg-[#111111] border border-white/[0.06] rounded-2xl overflow-hidden">
+              {/* Client Info */}
+              <div className="p-6 pb-5">
+                <div className="flex items-center gap-4">
+                  <div className="w-11 h-11 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center shrink-0">
+                    <span className="text-base font-bold text-[#C5A059]">
+                      {userName.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[15px] font-bold text-white truncate">{userName}</p>
+                    <p className="text-[13px] text-zinc-500">{formatPhone(userPhone)}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="flex items-center gap-1.5 text-zinc-400">
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                        />
+                      </svg>
+                      <span className="text-[12px] font-semibold">{formattedDate}</span>
+                    </div>
+                    <p className="text-[13px] font-bold text-[#C5A059] mt-0.5">{selectedTime}</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-lg font-bold text-white truncate">{userName}</p>
-                  <p className="text-sm text-zinc-500">{formatPhone(userPhone)}</p>
-                </div>
               </div>
 
-              <div className="flex items-center gap-3 px-4 py-3 bg-white/[0.02] rounded-xl">
-                <svg
-                  className="w-4 h-4 text-[#C5A059] shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-                  />
-                </svg>
-                <span className="text-sm font-bold text-white">
-                  {formattedDate} às {selectedTime}
-                </span>
-              </div>
-            </div>
+              {/* Divider */}
+              <div className="h-px bg-white/[0.06]" />
 
-            {/* Services Card */}
-            <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <svg
-                  className="w-4 h-4 text-[#C5A059]"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                  {selectedServices.length} {selectedServices.length === 1 ? 'Serviço' : 'Serviços'}
-                </span>
-              </div>
-
-              <div className="space-y-3">
+              {/* Services */}
+              <div className="p-6 pt-5 space-y-3">
                 {selectedServices.map((s) => (
                   <div key={`ticket-${s.id}`} className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <div className="w-1.5 h-1.5 rounded-full bg-[#C5A059]/40 shrink-0" />
-                      <span className="text-sm text-zinc-300">{s.name}</span>
-                    </div>
-                    <span className="text-sm font-bold text-white tabular-nums">
+                    <span className="text-[13px] text-zinc-300">{s.name}</span>
+                    <span className="text-[13px] font-bold text-white tabular-nums">
                       R$ {Number(s.price).toFixed(0)}
                     </span>
                   </div>
                 ))}
               </div>
 
-              {/* Coupon Input */}
-              <div className="mt-4 pt-4 border-t border-white/[0.06]">
-                {hasCoupon ? (
-                  <div className="flex items-center justify-between bg-[#C5A059]/[0.06] border border-[#C5A059]/20 rounded-xl px-3 py-2">
-                    <div className="flex items-center gap-2">
-                      <Tag size={13} className="text-[#C5A059]" />
-                      <span className="text-[12px] font-bold text-[#C5A059] tracking-wider">
-                        {coupon.code}
-                      </span>
-                      {hasDiscount && (
-                        <span className="text-[10px] text-[#C5A059]/70">
-                          -R$ {coupon.discount_amount.toFixed(2).replace('.', ',')}
-                        </span>
-                      )}
-                    </div>
-                    <button
-                      onClick={onCouponRemove}
-                      className="p-1 hover:bg-white/[0.06] rounded cursor-pointer"
-                    >
-                      <X size={12} className="text-zinc-500" />
-                    </button>
+              {/* Coupon Badge (only if applied) */}
+              {hasCoupon && (
+                <>
+                  <div className="h-px bg-white/[0.06]" />
+                  <div className="px-6 py-4">
+                    <CouponBadge
+                      code={coupon!.code}
+                      discountAmount={coupon!.discount_amount}
+                      onRemove={onCouponRemove!}
+                      variant="compact"
+                    />
                   </div>
-                ) : (
-                  <div>
-                    <div className="flex gap-2">
-                      <input
-                        id="coupon-desktop"
-                        type="text"
-                        value={couponInput}
-                        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                        placeholder="Código do cupom"
-                        className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-[12px] text-white font-bold tracking-wider outline-none focus:border-[#C5A059]/50 transition-all placeholder:text-zinc-600 placeholder:font-normal placeholder:tracking-normal uppercase"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            handleApply();
-                          }
-                        }}
-                      />
-                      <button
-                        onClick={handleApply}
-                        disabled={couponLoading || !couponInput.trim()}
-                        className="px-4 py-2.5 bg-[#C5A059]/10 border border-[#C5A059]/20 text-[#C5A059] text-[11px] font-bold rounded-xl hover:bg-[#C5A059]/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        {couponLoading ? <Loader2 size={13} className="animate-spin" /> : 'Aplicar'}
-                      </button>
-                    </div>
-                    {couponError && (
-                      <p className="text-[10px] text-red-400 mt-1.5">{couponError}</p>
-                    )}
-                  </div>
-                )}
-              </div>
+                </>
+              )}
 
               {/* Totals */}
-              <div className="mt-4 pt-4 border-t border-white/[0.06] space-y-2">
+              <div className="h-px bg-white/[0.06]" />
+              <div className="p-6 pt-5 space-y-2">
                 {hasDiscount && originalPrice && (
                   <div className="flex justify-between items-center">
-                    <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
-                      Subtotal
-                    </span>
-                    <span className="text-sm font-bold text-zinc-500 tabular-nums line-through">
+                    <span className="text-[11px] text-zinc-500">Subtotal</span>
+                    <span className="text-[13px] font-bold text-zinc-500 tabular-nums line-through">
                       R$ {originalPrice.toFixed(0)}
                     </span>
                   </div>
                 )}
                 {hasDiscount && (
                   <div className="flex justify-between items-center">
-                    <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-widest">
-                      Desconto
-                    </span>
-                    <span className="text-sm font-bold text-emerald-400 tabular-nums">
-                      -R$ {coupon.discount_amount.toFixed(2).replace('.', ',')}
+                    <span className="text-[11px] text-emerald-400 font-medium">Desconto</span>
+                    <span className="text-[13px] font-bold text-emerald-400 tabular-nums">
+                      -R$ {coupon!.discount_amount.toFixed(2).replace('.', ',')}
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between items-center pt-2 border-t border-white/[0.06]">
+                <div className="flex justify-between items-center pt-2">
                   <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
                     Total
                   </span>
@@ -356,21 +287,23 @@ const ReviewStep: FC<ReviewStepProps> = memo(
               </div>
             </div>
 
-            {/* Cupom */}
-            <div className="py-3.5 border-b border-white/[0.03]">
-              {hasCoupon ? (
+            {/* Cupom (only if applied) */}
+            {hasCoupon && (
+              <div className="py-3.5 border-b border-white/[0.03]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Tag size={18} className="text-[#C5A059] shrink-0" />
+                    <div className="w-5 shrink-0 flex items-center justify-center">
+                      <Tag size={18} className="text-[#C5A059]" />
+                    </div>
                     <div>
                       <p className="text-[11px] text-zinc-500 font-medium">Cupom</p>
                       <div className="flex items-center gap-2">
                         <p className="text-[14px] font-bold text-[#C5A059] tracking-wider">
-                          {coupon.code}
+                          {coupon!.code}
                         </p>
                         {hasDiscount && (
                           <span className="text-[10px] text-[#C5A059]/70">
-                            -R$ {coupon.discount_amount.toFixed(2).replace('.', ',')}
+                            -R$ {coupon!.discount_amount.toFixed(2).replace('.', ',')}
                           </span>
                         )}
                       </div>
@@ -379,34 +312,23 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                   <button
                     onClick={onCouponRemove}
                     className="p-1.5 hover:bg-white/[0.06] rounded-lg cursor-pointer"
+                    aria-label="Remover cupom"
                   >
-                    <X size={14} className="text-zinc-500" />
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
                   </button>
                 </div>
-              ) : (
-                <div>
-                  <div className="flex gap-2">
-                    <input
-                      id="coupon-mobile"
-                      type="text"
-                      value={couponInput}
-                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                      placeholder="Código do cupom"
-                      className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-[12px] text-white font-bold tracking-wider outline-none focus:border-[#C5A059]/50 transition-all placeholder:text-zinc-600 placeholder:font-normal placeholder:tracking-normal uppercase"
-                      onKeyDown={(e) => e.key === 'Enter' && handleApply()}
-                    />
-                    <button
-                      onClick={handleApply}
-                      disabled={couponLoading || !couponInput.trim()}
-                      className="px-4 py-2.5 bg-[#C5A059]/10 border border-[#C5A059]/20 text-[#C5A059] text-[11px] font-bold rounded-xl hover:bg-[#C5A059]/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center min-w-[60px]"
-                    >
-                      {couponLoading ? <Loader2 size={13} className="animate-spin" /> : 'Aplicar'}
-                    </button>
-                  </div>
-                  {couponError && <p className="text-[10px] text-red-400 mt-1.5">{couponError}</p>}
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Valor */}
             <div className="space-y-2 pt-3">

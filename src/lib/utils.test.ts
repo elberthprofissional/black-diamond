@@ -129,10 +129,6 @@ describe('getNextDays', () => {
 
   it('aceita config object com sundayEnabled', () => {
     const daysWithSunday = getNextDays({ sundayEnabled: true });
-    const dayOfWeek = daysWithSunday.map((d) => {
-      const [y, m, dd] = d.fullDate.split('-').map(Number);
-      return new Date(y, m - 1, dd).getDay();
-    });
     // Com domingo habilitado, pode ter domingo nos dias
     expect(daysWithSunday.length).toBeGreaterThanOrEqual(1);
   });

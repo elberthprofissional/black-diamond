@@ -34,11 +34,6 @@ const AuthGuard: FC<AuthGuardProps> = ({ children }) => {
           return;
         }
 
-        // Registrar Service Worker apenas para o Admin
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('/sw.js').catch(() => {});
-        }
-
         setChecking(false);
 
         const {

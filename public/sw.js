@@ -1,8 +1,12 @@
-const CACHE_VERSION = 'v12';
-const STATIC_CACHE = 'static-v12';
-const API_CACHE = 'api-v12';
-const NAV_CACHE = 'nav-v12';
-const QUEUE_CACHE = 'queue-v12';
+const CACHE_VERSION = 'v13';
+const STATIC_CACHE = 'static-v13';
+const API_CACHE = 'api-v13';
+const NAV_CACHE = 'nav-v13';
+const QUEUE_CACHE = 'queue-v13';
+
+// Cache size limits (entries)
+const MAX_API_CACHE_ENTRIES = 50;
+const MAX_NAV_CACHE_ENTRIES = 10;
 
 const PRECACHE_URLS = [
   '/',
@@ -16,6 +20,16 @@ self.addEventListener('install', (e) => {
     caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE_URLS)).then(() => self.skipWaiting())
   );
 });
+
+// Evict oldest entries when cache exceeds limit
+async function evictCache(cacheName, maxEntries) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  if (keys.length > maxEntries) {
+    const toDelete = keys.slice(0, keys.length - maxEntries);
+    await Promise.all(toDelete.map((key) => cache.delete(key)));
+  }
+}
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
@@ -78,7 +92,10 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       fetch(e.request).then((response) => {
         const clone = response.clone();
-        caches.open(NAV_CACHE).then((cache) => cache.put(e.request, clone));
+        caches.open(NAV_CACHE).then(async (cache) => {
+          await cache.put(e.request, clone);
+          await evictCache(NAV_CACHE, MAX_NAV_CACHE_ENTRIES);
+        });
         return response;
       }).catch(async () => {
         const cached = await caches.match(e.request);
@@ -104,9 +121,10 @@ self.addEventListener('fetch', (e) => {
       caches.open(STATIC_CACHE).then((cache) =>
         cache.match(e.request).then((cached) => {
           // Return cached version immediately, update in background
-          const fetched = fetch(e.request).then((response) => {
+          const fetched = fetch(e.request).then(async (response) => {
             if (response.ok) {
-              cache.put(e.request, response.clone());
+              await cache.put(e.request, response.clone());
+              await evictCache(STATIC_CACHE, 100);
             }
             return response;
           }).catch(() => cached);
@@ -148,8 +166,11 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       caches.open(API_CACHE).then((cache) =>
         cache.match(e.request).then((cached) => {
-          const fetched = fetch(e.request).then((response) => {
-            if (response.ok) cache.put(e.request, response.clone());
+          const fetched = fetch(e.request).then(async (response) => {
+            if (response.ok) {
+              await cache.put(e.request, response.clone());
+              await evictCache(API_CACHE, MAX_API_CACHE_ENTRIES);
+            }
             return response;
           }).catch(() => cached || new Response('{"error":"offline"}', { status: 503, headers: { 'Content-Type': 'application/json' } }));
 

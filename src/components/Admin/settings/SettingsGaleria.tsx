@@ -229,10 +229,10 @@ const SettingsGaleria: FC = () => {
         onPrev={g.goToPrevPreview}
         onNext={g.goToNextPreview}
         touchStart={g.touchStart}
-        onTouchStart={(e: TouchEvent) => g.setTouchStart(e.touches[0].clientX)}
+        onTouchStart={(e: TouchEvent) => g.setTouchStart(e.touches[0]?.clientX ?? null)}
         onTouchEnd={(e: TouchEvent) => {
           if (g.touchStart === null) return;
-          const diff = g.touchStart - e.changedTouches[0].clientX;
+          const diff = g.touchStart - (e.changedTouches[0]?.clientX ?? 0);
           if (Math.abs(diff) > 50) {
             if (diff > 0) g.goToNextPreview();
             else g.goToPrevPreview();

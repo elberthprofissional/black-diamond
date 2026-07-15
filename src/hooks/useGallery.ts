@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useToast } from './useToast';
-import { useGalleryData } from './useGalleryData';
+import { useGalleryData, type GalleryImage } from './useGalleryData';
 import { useGalleryUpload } from './useGalleryUpload';
 import { useGallerySelection } from './useGallerySelection';
 import { useGalleryPreview } from './useGalleryPreview';
@@ -29,12 +29,15 @@ export function useGallery() {
       const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
       if (swapIdx < 0 || swapIdx >= images.length) return;
 
-      const snapshot = [...images];
+      const snapshot = images.map((img) => ({ ...img }));
       const newImages = [...images];
-      const tempPos = newImages[idx].position;
-      newImages[idx].position = newImages[swapIdx].position;
-      newImages[swapIdx].position = tempPos;
-      [newImages[idx], newImages[swapIdx]] = [newImages[swapIdx], newImages[idx]];
+      const current = newImages[idx];
+      const swap = newImages[swapIdx];
+      if (!current || !swap) return;
+      const tempPos = current.position;
+      current.position = swap.position;
+      swap.position = tempPos;
+      [newImages[idx], newImages[swapIdx]] = [swap, current];
       setImages(newImages);
 
       const results = await Promise.all([
@@ -69,8 +72,11 @@ export function useGallery() {
         return;
       }
       const newIdx = Math.min(targetPosition - 1, images.length - 1);
+      const snapshot = images.map((img) => ({ ...img }));
       const updated = [...images];
-      const [moved] = updated.splice(currentIdx, 1);
+      const movedItems = updated.splice(currentIdx, 1);
+      const moved = movedItems[0] as GalleryImage | undefined;
+      if (!moved) return;
       updated.splice(newIdx, 0, moved);
       const results = await Promise.all(
         updated.map((img, i) =>
@@ -78,7 +84,8 @@ export function useGallery() {
         )
       );
       if (results.some((r) => r.error)) {
-        showError('Erro ao salvar posição no servidor. Ordem atualizada apenas localmente.');
+        setImages(snapshot);
+        showError('Erro ao salvar posicao no servidor.');
       } else {
         showSuccess(`Foto movida para posição ${targetPosition}`);
       }

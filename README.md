@@ -213,6 +213,20 @@ Cliente → Home → BookingPage → Dados → Serviços → Data/Hora → Revis
 
 ---
 
+## 📋 Architecture Decision Records (ADRs)
+
+Decisões de arquitetura documentadas em [`docs/adr/`](docs/adr/):
+
+| ADR | Decisão | Status |
+|-----|---------|--------|
+| [ADR-001](docs/adr/001-supabase-as-backend.md) | Supabase como Backend-as-a-Service | Aceito |
+| [ADR-002](docs/adr/002-server-side-pricing.md) | Preço calculado server-side via RPC | Aceito |
+| [ADR-003](docs/adr/003-lazy-loading-with-preloading.md) | Lazy loading com route preloading | Aceito |
+| [ADR-004](docs/adr/004-pwa-with-strategic-caching.md) | PWA com Service Worker e cache estratégico | Aceito |
+| [ADR-005](docs/adr/005-testing-strategy.md) | Estratégia de testes em 4 camadas | Aceito |
+
+---
+
 ## 🛡️ Segurança
 
 | Mecanismo | Descrição |

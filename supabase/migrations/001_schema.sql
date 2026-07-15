@@ -1,8 +1,8 @@
 -- =========================================================================
--- BLACK DIAMOND - SCHEMA BASE (Consolidado)
+-- BLACK DIAMOND - SCHEMA CONSOLIDADO
 -- =========================================================================
--- Tabelas, colunas adicionadas, índices e constraints.
--- Estado final após todas as migrations (08/07/2026 a 28/07/2026).
+-- Tabelas, extensions, indexes, constraints e RLS.
+-- Estado final consolidado de todas as migrations anteriores.
 -- =========================================================================
 
 -- Extensions
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS mensalista_plans (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Serviços
+-- Servicos
 CREATE TABLE IF NOT EXISTS services (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Configurações (chave-valor)
+-- Configuracoes (chave-valor)
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL,
@@ -133,7 +133,7 @@ CREATE TABLE IF NOT EXISTS booking_tokens (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Notificações in-app
+-- Notificacoes in-app
 CREATE TABLE IF NOT EXISTS notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -188,7 +188,7 @@ CREATE TABLE IF NOT EXISTS coupons (
     created_at timestamp with time zone DEFAULT now()
 );
 
--- Configuração de fidelidade (legado)
+-- Configuracao de fidelidade (legado)
 CREATE TABLE IF NOT EXISTS loyalty_config (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     visit_threshold integer NOT NULL,
@@ -216,7 +216,54 @@ CREATE TABLE IF NOT EXISTS client_milestones (
 );
 
 -- =========================================================================
--- FOREIGN KEYS (após todas as tabelas criadas)
+-- TABELAS DE BILLING (SaaS)
+-- =========================================================================
+
+-- Planos oferecidos aos barbeiros
+CREATE TABLE IF NOT EXISTS subscription_plans (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    description TEXT,
+    price_monthly DECIMAL(10,2) NOT NULL,
+    price_setup DECIMAL(10,2) DEFAULT 0,
+    interval_months INTEGER NOT NULL DEFAULT 1,
+    asaas_plan_id TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Assinaturas dos barbeiros
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    plan_id UUID REFERENCES subscription_plans(id),
+    asaas_customer_id TEXT,
+    asaas_subscription_id TEXT,
+    status TEXT DEFAULT 'pending',
+    has_domain BOOLEAN DEFAULT FALSE,
+    trial_ends_at TIMESTAMPTZ,
+    current_period_start TIMESTAMPTZ,
+    current_period_end TIMESTAMPTZ,
+    cancel_at_period_end BOOLEAN DEFAULT FALSE,
+    canceled_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Pagamentos (historico)
+CREATE TABLE IF NOT EXISTS payments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    subscription_id UUID REFERENCES subscriptions(id) ON DELETE CASCADE,
+    asaas_payment_id TEXT,
+    amount DECIMAL(10,2) NOT NULL,
+    currency TEXT DEFAULT 'brl',
+    status TEXT DEFAULT 'pending',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- =========================================================================
+-- FOREIGN KEYS
 -- =========================================================================
 ALTER TABLE bookings
     ADD CONSTRAINT fk_bookings_coupon
@@ -226,13 +273,13 @@ ALTER TABLE bookings
 -- INDEXES
 -- =========================================================================
 
--- Impedir duplo agendamento no mesmo horário
+-- Impedir duplo agendamento no mesmo horario
 DROP INDEX IF EXISTS idx_no_double_booking;
 CREATE UNIQUE INDEX idx_no_double_booking
 ON bookings (booking_date, booking_time)
 WHERE (status != 'cancelled' AND is_blocked = FALSE);
 
--- Índices de performance
+-- Performance
 CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(booking_date);
 CREATE INDEX IF NOT EXISTS idx_bookings_date_status ON bookings(booking_date, status);
 CREATE INDEX IF NOT EXISTS idx_bookings_client_id ON bookings(client_id);
@@ -254,11 +301,20 @@ CREATE INDEX IF NOT EXISTS idx_rate_limits_ip_lookup ON rate_limits(key, ip_addr
 CREATE INDEX IF NOT EXISTS idx_client_milestones_client ON client_milestones(client_id);
 CREATE INDEX IF NOT EXISTS idx_loyalty_milestones_active ON loyalty_milestones(is_active) WHERE is_active;
 
+-- Billing indexes
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_asaas_customer ON subscriptions(asaas_customer_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_asaas_subscription ON subscriptions(asaas_subscription_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_trial_ends ON subscriptions(trial_ends_at) WHERE trial_ends_at IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_payments_subscription ON payments(subscription_id);
+CREATE INDEX IF NOT EXISTS idx_payments_asaas_payment ON payments(asaas_payment_id);
+CREATE INDEX IF NOT EXISTS idx_subscription_plans_asaas_plan ON subscription_plans(asaas_plan_id);
+
 -- =========================================================================
 -- CONSTRAINTS
 -- =========================================================================
 
--- Regras de bloqueio vs agendamento real
 ALTER TABLE bookings DROP CONSTRAINT IF EXISTS chk_booking_block_rules;
 ALTER TABLE bookings ADD CONSTRAINT chk_booking_block_rules
 CHECK (
@@ -286,3 +342,6 @@ ALTER TABLE rate_limits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE coupons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE loyalty_milestones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE client_milestones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subscription_plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import { getLocalDateString } from '../lib/utils';
+import { checkAndNotifyNoShowLimit } from '../lib/api/noShow';
 import { useToast } from './useToast';
 import { useAuditLog } from './useAuditLog';
 
@@ -15,7 +15,7 @@ export function useNoShow(options?: UseNoShowOptions) {
   const onBookingUpdated = options?.onBookingUpdated;
 
   const markAsNoShow = useCallback(
-    async (bookingId: string) => {
+    async (bookingId: string, clientName?: string, clientId?: string) => {
       setMarkingNoShow(bookingId);
       try {
         const { error } = await supabase
@@ -31,7 +31,20 @@ export function useNoShow(options?: UseNoShowOptions) {
           details: { marked_as_no_show: true },
         });
 
-        showSuccess('Cliente marcado como não compareceu');
+        // Se temos dados do cliente, checa se atingiu o limite e cria notificação
+        if (clientId && clientName) {
+          const hitLimit = await checkAndNotifyNoShowLimit(clientId, clientName);
+          if (hitLimit) {
+            showSuccess(
+              'Cliente marcado como falta. Alerta enviado para o painel de notificações.'
+            );
+          } else {
+            showSuccess('Cliente marcado como não compareceu');
+          }
+        } else {
+          showSuccess('Cliente marcado como não compareceu');
+        }
+
         onBookingUpdated?.();
       } catch {
         showError('Erro ao marcar falta');
@@ -70,41 +83,9 @@ export function useNoShow(options?: UseNoShowOptions) {
     [log, showSuccess, showError, onBookingUpdated]
   );
 
-  const getClientNoShowCount = useCallback(
-    async (clientId: string, days: number = 90): Promise<number> => {
-      try {
-        const { count, error } = await supabase
-          .from('bookings')
-          .select('*', { count: 'exact', head: true })
-          .eq('client_id', clientId)
-          .eq('no_show', true)
-          .gte(
-            'booking_date',
-            getLocalDateString(new Date(Date.now() - days * 24 * 60 * 60 * 1000))
-          );
-
-        if (error) throw error;
-        return count || 0;
-      } catch {
-        return 0;
-      }
-    },
-    []
-  );
-
-  const isClientBlocked = useCallback(
-    async (clientId: string, maxNoShows: number = 3): Promise<boolean> => {
-      const count = await getClientNoShowCount(clientId);
-      return count >= maxNoShows;
-    },
-    [getClientNoShowCount]
-  );
-
   return {
     markAsNoShow,
     undoNoShow,
-    getClientNoShowCount,
-    isClientBlocked,
     markingNoShow,
   };
 }

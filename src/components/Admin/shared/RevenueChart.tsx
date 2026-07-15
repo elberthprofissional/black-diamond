@@ -240,7 +240,8 @@ const RevenueChart: FC<RevenueChartProps> = ({ data }) => {
                 <Tooltip
                   content={({ active, payload }) => {
                     if (!active || !payload?.length) return null;
-                    const entry = payload[0].payload;
+                    const entry = payload[0]?.payload;
+                    if (!entry) return null;
                     return (
                       <div className="bg-[#1A1A1A] border border-white/[0.06] rounded-xl px-4 py-3 shadow-2xl shadow-black/50">
                         <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">
@@ -288,25 +289,27 @@ const RevenueChart: FC<RevenueChartProps> = ({ data }) => {
             </h3>
             {data.monthlyComparison.length >= 2 && (
               <div className="flex items-center gap-1.5">
-                {data.monthlyComparison[data.monthlyComparison.length - 1].value >=
-                data.monthlyComparison[data.monthlyComparison.length - 2].value ? (
+                {(data.monthlyComparison[data.monthlyComparison.length - 1]?.value ?? 0) >=
+                (data.monthlyComparison[data.monthlyComparison.length - 2]?.value ?? 0) ? (
                   <TrendingUp size={14} className="text-emerald-500" />
                 ) : (
                   <TrendingDown size={14} className="text-red-500" />
                 )}
                 <span
                   className={`text-[10px] font-bold tabular-nums ${
-                    data.monthlyComparison[data.monthlyComparison.length - 1].value >=
-                    data.monthlyComparison[data.monthlyComparison.length - 2].value
+                    (data.monthlyComparison[data.monthlyComparison.length - 1]?.value ?? 0) >=
+                    (data.monthlyComparison[data.monthlyComparison.length - 2]?.value ?? 0)
                       ? 'text-emerald-500'
                       : 'text-red-500'
                   }`}
                 >
                   {data.monthlyComparison.length >= 2
                     ? `${(
-                        ((data.monthlyComparison[data.monthlyComparison.length - 1].value -
-                          data.monthlyComparison[data.monthlyComparison.length - 2].value) /
-                          (data.monthlyComparison[data.monthlyComparison.length - 2].value || 1)) *
+                        (((data.monthlyComparison[data.monthlyComparison.length - 1]?.value ?? 0) -
+                          (data.monthlyComparison[data.monthlyComparison.length - 2]?.value ?? 0)) /
+                          ((data.monthlyComparison[data.monthlyComparison.length - 2]?.value ??
+                            0) ||
+                            1)) *
                         100
                       ).toFixed(0)}%`
                     : ''}

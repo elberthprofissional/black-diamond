@@ -14,17 +14,29 @@ vi.mock('../lib/api', () => ({
   getMensalistaPlans: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock('../lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(() => ({
+vi.mock('../lib/supabase', () => {
+  const makeBuilder = () => {
+    const builder = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: null, error: null }),
-    })),
-    rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
-  },
-}));
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      then: (onFulfilled: (v: unknown) => void, onRejected: (v: unknown) => void) =>
+        Promise.resolve({ data: [], error: null }).then(onFulfilled, onRejected),
+    };
+    return builder;
+  };
+
+  return {
+    supabase: {
+      from: vi.fn(() => makeBuilder()),
+      rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
+    },
+  };
+});
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),

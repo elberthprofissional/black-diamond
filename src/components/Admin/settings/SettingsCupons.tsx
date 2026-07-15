@@ -18,6 +18,11 @@ import CouponFormFields, { type CouponFormFieldsProps } from './cupons/CouponFor
  * Mobile: formulario em tela cheia. Desktop: modal centralizado.
  * Valida: codigo unico, valor positivo, data de validade, limite de usos. */
 
+/** Retorna a data de hoje no formato YYYY-MM-DD */
+function getTodayStr(): string {
+  return new Date().toISOString().split('T')[0] ?? '';
+}
+
 const SettingsCupons: FC = () => {
   const { toast, showSuccess, showError } = useToast();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -34,7 +39,7 @@ const SettingsCupons: FC = () => {
   const [discountType, setDiscountType] = useState<'fixed' | 'free'>('fixed');
   const [discountValue, setDiscountValue] = useState('');
   const [applicableServiceIds, setApplicableServiceIds] = useState<string[]>([]);
-  const [validFrom, setValidFrom] = useState(() => new Date().toISOString().split('T')[0]);
+  const [validFrom, setValidFrom] = useState(getTodayStr);
   const [validUntil, setValidUntil] = useState('');
   const [maxUses, setMaxUses] = useState('');
 
@@ -54,8 +59,9 @@ const SettingsCupons: FC = () => {
     loadData();
   }, [loadData]);
   useEffect(() => {
-    if ((screen === 'add' || screen === 'edit') && codeInputRef.current)
+    if ((screen === 'add' || screen === 'edit') && codeInputRef.current) {
       codeInputRef.current.focus();
+    }
   }, [screen]);
 
   const resetForm = () => {
@@ -64,7 +70,7 @@ const SettingsCupons: FC = () => {
     setDiscountValue('');
     setApplicableServiceIds([]);
     setEditingId(null);
-    setValidFrom(new Date().toISOString().split('T')[0]);
+    setValidFrom(getTodayStr());
     setValidUntil('');
     setMaxUses('');
   };
@@ -88,7 +94,7 @@ const SettingsCupons: FC = () => {
     setApplicableServiceIds(coupon.applicable_service_ids || []);
     setEditingId(coupon.id);
     setScreen('edit');
-    setValidFrom(coupon.valid_from || new Date().toISOString().split('T')[0]);
+    setValidFrom(coupon.valid_from || getTodayStr());
     setValidUntil(coupon.valid_until || '');
     setMaxUses(coupon.max_uses ? String(coupon.max_uses) : '');
   };
@@ -113,7 +119,7 @@ const SettingsCupons: FC = () => {
       description: '',
       discount_type: discountType,
       discount_value: discountType === 'free' ? 0 : parseFloat(discountValue.replace(',', '.')),
-      valid_from: validFrom || new Date().toISOString().split('T')[0],
+      valid_from: validFrom || getTodayStr(),
       valid_until: validUntil || null,
       max_uses: maxUses ? parseInt(maxUses, 10) : null,
       is_active: true,
@@ -163,32 +169,38 @@ const SettingsCupons: FC = () => {
   const isExpired = (c: Coupon) => c.valid_until && new Date(c.valid_until) < new Date();
   const isMaxed = (c: Coupon) => c.max_uses !== null && c.current_uses >= c.max_uses;
   const formatDiscount = (c: Coupon) => {
-    if (c.discount_type === 'fixed')
+    if (c.discount_type === 'fixed') {
       return `R$ ${Number(c.discount_value).toFixed(2).replace('.', ',')}`;
-    if (c.discount_type === 'percentage') return `${c.discount_value}%`;
+    }
+    if (c.discount_type === 'percentage') {
+      return `${c.discount_value}%`;
+    }
     return 'Grátis';
   };
 
   /* Renders a badge for coupon status (expired, maxed, inactive) */
   const statusBadge = (coupon: Coupon) => {
-    if (isExpired(coupon))
+    if (isExpired(coupon)) {
       return (
         <span className="text-[8px] font-bold text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded uppercase">
           Expirado
         </span>
       );
-    if (isMaxed(coupon))
+    }
+    if (isMaxed(coupon)) {
       return (
         <span className="text-[8px] font-bold text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded uppercase">
           Esgotado
         </span>
       );
-    if (!coupon.is_active)
+    }
+    if (!coupon.is_active) {
       return (
         <span className="text-[8px] font-bold text-zinc-500 bg-white/[0.04] px-1.5 py-0.5 rounded uppercase">
           Inativo
         </span>
       );
+    }
     return null;
   };
 

@@ -2,7 +2,7 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, notificacoes push e integracao com WhatsApp.
 
-**Versao:** 3.22.0 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.20.0 | **Ultima atualizacao:** Julho 2026
 
 ---
 
@@ -84,7 +84,8 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 O Black Diamond foi projetado para ser **universal** — pronto para qualquer barbearia. O projeto inclui:
 - `DEPLOY_GUIDE.md` — Guia passo a passo para deploy em novas barbearias
 - `instalar-cliente.mjs` — Script automático de instalação para novos clientes
-- `supabase/universal.sql` — Schema universal do banco (tabelas, RLS, funções, crons)
+- `supabase/universal.sql` — Schema universal do banco (tabelas, RLS, funcoes, crons)
+- `supabase/migrations/` — Migrations consolidadas (6 arquivos: schema, rls, functions, triggers, seed, cron)
 - Placeholder generico na secao About (sem foto fixa do Tato)
 - Script de instalação automática (`instalar-cliente.mjs`)
 - Sentry para error reporting em producao
@@ -196,6 +197,56 @@ No Settings > Conta, ao clicar na foto de perfil abre um popover com opcoes:
 - `useDashboardData` — Dados do dashboard (proximo booking, receita, slots)
 - `useNotifications` — Notificacoes in-app com realtime, som, badge, preview toast
 - `usePwaInstall` — Deteccao de plataforma e instalacao PWA
+- `useSubscription` — Gerenciamento de assinatura SaaS (billing)
+- `useXlsxExport` — Exportacao de dados para Excel (XLSX)
+- `useCsvExport` — Exportacao de dados para CSV
+- `useRevenueChartData` — Calculo de dados para graficos de faturamento
+- `useProfileStats` — Estatisticas do perfil do admin
+- `useMensalistaFilter` — Filtro de clientes mensalistas
+- `useSubscription` — Gerenciamento de assinatura SaaS (billing)
+- `useXlsxExport` — Exportacao de dados para Excel (XLSX)
+- `useCsvExport` — Exportacao de dados para CSV
+- `useRevenueChartData` — Calculo de dados para graficos de faturamento
+- `useProfileStats` — Estatisticas do perfil do admin
+- `useMensalistaFilter` — Filtro de clientes mensalistas
+- `useBookingFilters` — Filtros do dashboard (ocupados/livres/bloqueados)
+- `useClientPanel` — Painel de detalhe do cliente
+- `useBookingManagement` — Composicao de modais, filtros, reagendamento
+- `useBookingModals` — Gerenciamento de modais do booking
+- `useBookingWizard` — Orquestra todo o fluxo de agendamento
+- `useBookingSubmit` — Submissao de agendamentos
+- `useAdminBookingSubmit` — Submissao de agendamentos pelo admin
+- `useClientLookup` — Auto-fill por telefone
+- `useClientCreation` — Criacao de clientes
+- `useAdminClientSearch` — Busca de clientes no admin
+- `useDateDragScroll` — Drag scroll no date picker
+- `useWizardStep` — Controle de steps do wizard
+- `useBarberSettings` — Hook standalone do context
+- `useClients` — Composicao de hooks para gestao de clientes
+- `useClientsData` — Dados dos clientes
+- `useDashboardData` — Dados do dashboard (proximo booking, receita, slots)
+- `useNotifications` — Notificacoes in-app com realtime, som, badge, preview toast
+- `useNotificationPrefs` — Preferencias de notificacao (in-app, sound, preview, badge)
+- `usePushNotifications` — Inscricao/cancelamento de Web Push (admin)
+- `useReducedMotion` — Respeita preferencia de movimento do usuario
+- `useModalA11y` — Acessibilidade de modais (Escape, focus trap)
+- `useConnectionStatus` — Monitora conectividade com o Supabase
+- `useAdminLogout` — Logout seguro do admin
+- `useRateLimit` — Rate limiting client-side com persistencia
+- `useAuditLog` — Logging de acoes administrativas
+- `useSlotBlocking` — Bloqueio/desbloqueio de horarios
+- `useReschedule` — Logica de reagendamento (delete + recriar)
+- `useToast` — Sistema de notificacoes toast
+- `useNoShow` — Controle de faltas (markAsNoShow, undoNoShow)
+- `useReminders` — Lembretes WhatsApp com templates
+- `useGallery` — Composicao de hooks para galeria
+- `useGalleryData` — Dados da galeria
+- `useGalleryUpload` — Upload de fotos com conversao WebP
+- `useGallerySelection` — Selecao multipla de fotos
+- `useGalleryPreview` — Preview em tela cheia
+- `useIsDesktop` — Deteccao de dispositivo
+- `useBookingSlots` — Calculo de slots disponiveis
+- `useDateDragScroll` — Drag scroll no date picker
 
 ### Gerenciamento de Estado
 O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto via `AuthGuard`, e o estado compartilhado usa Context API + hooks customizados.
@@ -288,13 +339,27 @@ O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto v
 - **Fidelidade:** Configuracao de meta de visitas e servico premio
 - **Cupons:** Gerenciamento de cupons de desconto (CRUD)
 - **Notificacoes:** Toggle de notificacoes push
+- **Plano:** Gerenciamento de assinatura SaaS (billing com Asaas)
 - **Zona de Seguranca:** Resetar financeiro e deletar clientes
 
 ---
 
 ## 5. Schema do Banco de Dados
 
-Schema completo: `supabase/universal.sql`
+Schema completo: `supabase/universal.sql` (setup instantaneo) ou `supabase/migrations/` (migrations consolidadas)
+
+### Migrations Consolidadas
+
+O projeto usa 6 migrations consolidadas (substituem as 14+ migrations anteriores):
+
+| Arquivo | Conteudo |
+|---------|----------|
+| `001_schema.sql` | 20 tabelas + indexes + constraints + RLS enable |
+| `002_rls.sql` | Todas as politicas RLS + is_admin() + storage |
+| `003_functions.sql` | 30+ funcoes RPC (versoes finais) |
+| `004_triggers.sql` | Triggers de notificacao + realtime |
+| `005_seed_data.sql` | Dados iniciais + billing plans |
+| `006_cron.sql` | 8 cron jobs |
 
 ### Tabelas
 
@@ -390,6 +455,30 @@ discount_value NUMERIC, valid_from DATE, valid_until DATE, max_uses INTEGER,
 current_uses INTEGER, is_active BOOLEAN, applicable_service_ids UUID[], created_at TIMESTAMPTZ
 ```
 
+**subscription_plans** — Planos SaaS oferecidos aos barbeiros
+```sql
+id UUID PK, name TEXT, slug TEXT UNIQUE, description TEXT,
+price_monthly DECIMAL, price_setup DECIMAL, interval_months INTEGER,
+asaas_plan_id TEXT, is_active BOOLEAN, created_at TIMESTAMPTZ
+```
+
+**subscriptions** — Assinaturas dos barbeiros
+```sql
+id UUID PK, user_id UUID FK, plan_id UUID FK,
+asaas_customer_id TEXT, asaas_subscription_id TEXT,
+status TEXT ('pending'|'active'|'past_due'|'canceled'|'trialing'),
+has_domain BOOLEAN, trial_ends_at TIMESTAMPTZ,
+current_period_start TIMESTAMPTZ, current_period_end TIMESTAMPTZ,
+cancel_at_period_end BOOLEAN, canceled_at TIMESTAMPTZ,
+created_at TIMESTAMPTZ, updated_at TIMESTAMPTZ
+```
+
+**payments** — Historico de pagamentos
+```sql
+id UUID PK, subscription_id UUID FK, asaas_payment_id TEXT,
+amount DECIMAL, currency TEXT, status TEXT, created_at TIMESTAMPTZ
+```
+
 ### Indexes
 - `idx_no_double_booking` — Unique em (booking_date, booking_time) WHERE status != 'cancelled'
 - `idx_bookings_client_id` — Index em (client_id) para queries por cliente
@@ -418,6 +507,16 @@ current_uses INTEGER, is_active BOOLEAN, applicable_service_ids UUID[], created_
 | `apply_coupon` | Incrementa contador de usos do cupom |
 | `is_client_blocked_by_no_show` | Verifica se cliente esta bloqueado por excesso de faltas |
 | `check_client_no_show_block` | Bloqueia agendamento se cliente exceder limite de faltas |
+| `get_last_booking_by_phone` | Busca ultimo agendamento por telefone (com rate limit) |
+| `lookup_client_by_phone_rate_limited` | Busca cliente com rate limit (wrapper) |
+| `get_bookings_by_phone_rate_limited` | Busca agendamentos com rate limit (wrapper) |
+| `get_last_booking_by_phone_rate_limited` | Busca ultimo agendamento com rate limit (wrapper) |
+| `check_client_milestones` | Verifica milestones de fidelidade disponiveis |
+| `get_client_milestones_public` | Busca progresso de fidelidade (publico) |
+| `increment_client_visit` | Incrementa contador de visitas do cliente |
+| `validate_and_use_coupon` | Valida e usa cupom atomicamente (previne race condition) |
+| `preserve_client_stats` | Preserva estatisticas do cliente antes de limpar dados |
+| `cleanup_old_data` | Limpeza mensal de bookings e audit logs antigos |
 
 ### Views
 - `faturamento_diario` — Calcula faturamento por data (security_invoker)
@@ -433,10 +532,13 @@ current_uses INTEGER, is_active BOOLEAN, applicable_service_ids UUID[], created_
 ### RLS (Row Level Security)
 - **services/settings:** Leitura publica, escrita apenas admin autenticado
 - **clients/bookings:** Leitura e escrita apenas admin autenticado
-- **reviews:** Leitura publica, insercao publica, gerenciamento admin
 - **push_subscriptions:** Apenas admin autenticado
 - **admin_users:** Apenas admin pode ver/modificar a lista de admins
-- **gallery_images:** Leitura publica, gerenciamento apenas admin autenticado
+- **gallery_images:** Leitura publica, gerenciamento apenas admin autenticado (storage: admin-only via is_admin())
+- **subscription_plans:** Leitura publica (planos ativos)
+- **subscriptions:** Usuario ve as proprias assinaturas (SELECT), usuarios podem criar trial (INSERT)
+- **payments:** Usuario ve pagamentos das proprias assinaturas (SELECT)
+- **coupons/loyalty_milestones/client_milestones:** Apenas admin autenticado
 
 ### Gerenciamento de Admins
 O sistema usa a tabela `admin_users` para controlar quem e admin. Para adicionar/remover admins, use os comandos SQL:
@@ -818,8 +920,18 @@ Black Diamond/
 │   └── vite-env.d.ts           # Tipos globais (Window, Navigator)
 ├── supabase/
 │   ├── universal.sql           # Schema completo do banco (universal)
+│   ├── migrations/             # Migrations consolidadas (6 arquivos)
+│   │   ├── 001_schema.sql     # Tabelas + indexes + constraints
+│   │   ├── 002_rls.sql        # Politicas RLS + storage
+│   │   ├── 003_functions.sql  # Funcoes RPC (30+)
+│   │   ├── 004_triggers.sql   # Triggers + realtime
+│   │   ├── 005_seed_data.sql  # Dados iniciais + billing
+│   │   └── 006_cron.sql       # Cron jobs
 │   └── functions/
 │       └── send-push/          # Edge function de notificacao push
+│       └── asaas-checkout/     # Edge function de checkout Asaas
+│       └── asaas-portal/       # Edge function de portal Asaas
+│       └── asaas-webhook/      # Edge function de webhook Asaas
 ├── e2e/                        # Testes E2E (Playwright)
 │   ├── admin.spec.ts           # Testes do admin (login, navegacao, rate limiting)
 │   ├── booking.spec.ts         # Testes do agendamento
@@ -901,8 +1013,8 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 
 ### Cobertura atual
 
-- 40+ arquivos de teste
-- 335+ testes (unit + E2E)
+- 55 arquivos de teste
+- 409 testes (unit + E2E)
 - Hooks, Utils, API, Componentes e Paginas cobertos
 - CI/CD com GitHub Actions: lint → test:coverage → typecheck → build
 - **Coverage minimo:** 70% (statements, branches, functions, lines)
@@ -1061,20 +1173,29 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [x] Export XLSX (Excel) — XML SpreadsheetML, zero dependencias externas
 - [x] Analise por dia da semana — Nova aba no RevenueChart
 - [x] Sentry release tag + source maps no CI
+- [x] Export XLSX (Excel) com XML SpreadsheetML, zero dependencias externas
+- [x] Analise por dia da semana no RevenueChart
+- [x] Billing/Assinatura SaaS com Asaas (checkout, webhook, portal)
+- [x] Pricing page com planos mensal/anual
+- [x] SubscriptionGuard para proteger areas do admin
+- [x] Cupons de desconto (percentage, fixed, free) com validacao server-side
+- [x] Programa de fidelidade com milestones e progresso
+- [x] Controle de faltas (no-show) com bloqueio automatico
+- [x] Migrations consolidadas (14+ → 6 arquivos limpos)
+- [x] Documentacao atualizada com novas features
+- [x] Bugfix: useGallery snapshot deep copy (rollback corrompido)
+- [x] Bugfix: useGallerySelection delete parcial (rastreia deletados com sucesso)
+- [x] Bugfix: deleteAllClients deletava TODOS os bookings (agora deleta apenas dos clientes)
+- [x] Bugfix: BookingDetailPanel optional chaining (crash se clients null)
+- [x] Bugfix: AdminBooking loadClients .catch() + mounted guard
+- [x] Bugfix: useBookingModals state clearing pos loadData()
+- [x] Bugfix: useBookingWizard double-submit guard
+- [x] Bugfix: getNextDays sabado-apos-fechar inicia em segunda
+- [x] Bugfix: utils.ts JSON.parse validacao estrutural do barber_hours
+- [x] Bugfix: useNotifications limpa canal no unmount (WebSocket leak)
 
 ### Possiveis melhorias futuras
-- [x] Skeleton no agendamento público (SkeletonBooking)
-- [x] Realtime na Agenda Semanal (AdminWeekly)
-- [x] Indicador "Ao vivo" no Dashboard e Agenda Semanal
-- [x] Botão de refresh manual no Dashboard e AdminWeekly
-- [x] Toast mais alto no mobile (bottom-24)
-- [x] Transição slide entre steps do booking
-- [x] Modal de excluir cliente com digitar EXCLUIR
-- [x] Botão "Marcar lidas" dourado nas notificações
-- [x] Dashboard "Sem movimento" ao invés de R$ 0
-- [x] Depoimentos hardcoded (API removida)
 - [ ] Multi-tenancy (varias barbearias no mesmo sistema)
-- [ ] Pagamento online (Stripe/Mercado Pago)
 - [ ] API de WhatsApp (Evolution API) para lembretes automaticos
 - [ ] Export PDF para relatorios
 - [ ] App nativo Android (APK) via Capacitor
@@ -1083,13 +1204,10 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [ ] Tema claro/escuro alternavel pelo admin
 - [ ] Adicionar mais testes E2E para fluxos complexos
 - [ ] Integrar Sentry com GitHub para vincular erros a commits
-- [ ] Refatorar getNextDays() para buscar working_days do Supabase em vez de localStorage
 - [ ] Historico de faltas no perfil do cliente
 - [ ] Indicador de "cliente bloqueado" na lista de clientes
 - [ ] Grafico de ocupacao ao longo do tempo
 - [ ] Faturamento por servico (receita, nao apenas contagem)
-
-- [ ] Refatoracao do NotificationBell (~700 linhas → God Component simplificado)
 
 ---
 
@@ -1592,4 +1710,4 @@ Visualizacao completa do faturamento com 3 modos: diario, semanal e comparativo 
 
 ---
 
-*Documento atualizado em Julho 2026. Versao do sistema: 3.21.0*
+*Documento atualizado em Julho 2026. Versao do sistema: 3.20.0*

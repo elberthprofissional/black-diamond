@@ -22,20 +22,32 @@ vi.mock('../lib/api', () => ({
   deleteAllClients: vi.fn().mockResolvedValue(0),
 }));
 
-vi.mock('../lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(() => ({
+vi.mock('../lib/supabase', () => {
+  const makeBuilder = () => {
+    const builder = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: null, error: null }),
-    })),
-    rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
-    auth: {
-      signOut: vi.fn().mockResolvedValue({ error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      then: (onFulfilled: (v: unknown) => void, onRejected: (v: unknown) => void) =>
+        Promise.resolve({ data: [], error: null }).then(onFulfilled, onRejected),
+    };
+    return builder;
+  };
+
+  return {
+    supabase: {
+      from: vi.fn(() => makeBuilder()),
+      rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
+      auth: {
+        signOut: vi.fn().mockResolvedValue({ error: null }),
+      },
     },
-  },
-}));
+  };
+});
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),
@@ -77,33 +89,53 @@ describe('AdminProfile', () => {
   });
 
   it('renderiza sem erros', async () => {
-    const { container } = render(<BarberSettingsProvider><AdminProfile /></BarberSettingsProvider>);
+    const { container } = render(
+      <BarberSettingsProvider>
+        <AdminProfile />
+      </BarberSettingsProvider>
+    );
     expect(container).toBeTruthy();
   });
 
   it('renderiza titulo do perfil', async () => {
-    render(<BarberSettingsProvider><AdminProfile /></BarberSettingsProvider>);
+    render(
+      <BarberSettingsProvider>
+        <AdminProfile />
+      </BarberSettingsProvider>
+    );
     await waitFor(() => {
       expect(screen.getAllByText(/BLACK DIAMOND/i).length).toBeGreaterThan(0);
     });
   });
 
   it('renderiza metricas de faturamento', async () => {
-    render(<BarberSettingsProvider><AdminProfile /></BarberSettingsProvider>);
+    render(
+      <BarberSettingsProvider>
+        <AdminProfile />
+      </BarberSettingsProvider>
+    );
     await waitFor(() => {
       expect(screen.getAllByText(/Faturamento Total/i).length).toBeGreaterThan(0);
     });
   });
 
   it('renderiza botao de notificacoes', async () => {
-    render(<BarberSettingsProvider><AdminProfile /></BarberSettingsProvider>);
+    render(
+      <BarberSettingsProvider>
+        <AdminProfile />
+      </BarberSettingsProvider>
+    );
     await waitFor(() => {
       expect(screen.getAllByText(/Notificar/i).length).toBeGreaterThan(0);
     });
   });
 
   it('renderiza botao de limpar dados', async () => {
-    render(<BarberSettingsProvider><AdminProfile /></BarberSettingsProvider>);
+    render(
+      <BarberSettingsProvider>
+        <AdminProfile />
+      </BarberSettingsProvider>
+    );
     await waitFor(() => {
       expect(screen.getAllByText(/Limpar/i).length).toBeGreaterThan(0);
     });

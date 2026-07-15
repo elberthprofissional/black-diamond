@@ -237,6 +237,7 @@ export function useBookingWizard(
 
   // Confirm with full params
   const handleConfirm = useCallback(async () => {
+    if (isSubmitting) return null;
     const result = await rawConfirm({
       selectedServices,
       selectedDate: slots.selectedDate,
@@ -262,6 +263,7 @@ export function useBookingWizard(
     }
   }, [
     rawConfirm,
+    isSubmitting,
     selectedServices,
     slots.selectedDate,
     slots.selectedTime,

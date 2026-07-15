@@ -117,7 +117,7 @@ export function useRevenueChartData(bookings: Booking[]): RevenueChartData {
     const recentWeeks = sortedWeeks.slice(-8);
     recentWeeks.forEach(([weekKey, data]) => {
       const [y, m, d] = weekKey.split('-');
-      const weekDate = new Date(Number(y), Number(m) - 1, Number(d));
+      const weekDate = new Date(Number(y ?? 0), Number(m ?? 1) - 1, Number(d ?? 1));
       const label = weekDate.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' });
       weeklyRevenue.push({
         day: weekKey,
@@ -135,8 +135,8 @@ export function useRevenueChartData(bookings: Booking[]): RevenueChartData {
       const data = dayOfWeekMap.get(d) || { value: 0, count: 0 };
       dayOfWeekRevenue.push({
         day: d,
-        label: dayNamesFull[d],
-        shortLabel: dayNames[d],
+        label: dayNamesFull[d] ?? '',
+        shortLabel: dayNames[d] ?? '',
         value: data.value,
         count: data.count,
       });
@@ -145,8 +145,8 @@ export function useRevenueChartData(bookings: Booking[]): RevenueChartData {
     const sundayData = dayOfWeekMap.get(0) || { value: 0, count: 0 };
     dayOfWeekRevenue.push({
       day: 0,
-      label: dayNamesFull[0],
-      shortLabel: dayNames[0],
+      label: dayNamesFull[0] ?? '',
+      shortLabel: dayNames[0] ?? '',
       value: sundayData.value,
       count: sundayData.count,
     });
@@ -172,7 +172,7 @@ export function useRevenueChartData(bookings: Booking[]): RevenueChartData {
     const recentMonths = sortedMonths.slice(-8);
     recentMonths.forEach(([monthKey, data]) => {
       const [y, m] = monthKey.split('-');
-      const monthDate = new Date(Number(y), Number(m) - 1, 1);
+      const monthDate = new Date(Number(y ?? 0), Number(m ?? 1) - 1, 1);
       const label = monthDate.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
       monthlyComparison.push({
         month: monthKey,
@@ -194,7 +194,10 @@ export function useRevenueChartData(bookings: Booking[]): RevenueChartData {
     );
     const bestDay =
       bestDayEntry && bestDayEntry.value > 0
-        ? { label: bestDayEntry.label.split('\n')[0], value: bestDayEntry.value }
+        ? {
+            label: bestDayEntry.label.split('\n')[0] ?? bestDayEntry.label,
+            value: bestDayEntry.value,
+          }
         : null;
 
     // Total revenue and count for the period

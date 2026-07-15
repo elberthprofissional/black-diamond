@@ -47,27 +47,43 @@ vi.mock('../lib/api', () => ({
   getBookingsForStats: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock('../lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(() => ({
+vi.mock('../lib/supabase', () => {
+  const makeBuilder = () => {
+    const builder = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       in: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: null, error: null }),
       maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-    })),
-    rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
-    auth: {
-      getSession: vi
-        .fn()
-        .mockResolvedValue({ data: { session: { user: { id: '1' } } }, error: null }),
-      onAuthStateChange: vi
-        .fn()
-        .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+      // Make the builder thenable so `await supabase.from(...).select(...).in(...)` resolves
+      then: (onFulfilled: (v: unknown) => void, onRejected: (v: unknown) => void) =>
+        Promise.resolve({ data: [], error: null }).then(onFulfilled, onRejected),
+    };
+    return builder;
+  };
+
+  return {
+    supabase: {
+      from: vi.fn(() => makeBuilder()),
+      rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
+      auth: {
+        getSession: vi
+          .fn()
+          .mockResolvedValue({ data: { session: { user: { id: '1' } } }, error: null }),
+        onAuthStateChange: vi
+          .fn()
+          .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+      },
+      channel: vi.fn().mockReturnValue({
+        on: vi.fn().mockReturnThis(),
+        subscribe: vi.fn().mockReturnThis(),
+      }),
+      removeChannel: vi.fn().mockResolvedValue({ error: null }),
     },
-  },
-}));
+  };
+});
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),

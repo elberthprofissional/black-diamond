@@ -15,7 +15,12 @@ interface LunchBreakContentProps {
   layout: 'desktop' | 'mobile';
 }
 
-const LunchBreakContent: FC<LunchBreakContentProps> = ({ hours, onChange, onHasChange, layout }) => {
+const LunchBreakContent: FC<LunchBreakContentProps> = ({
+  hours,
+  onChange,
+  onHasChange,
+  layout,
+}) => {
   const lunch = hours.lunch_break;
 
   const toggleLunch = () => {
@@ -63,7 +68,7 @@ const LunchBreakContent: FC<LunchBreakContentProps> = ({ hours, onChange, onHasC
           >
             <motion.div
               className={`absolute ${isSm ? 'top-0.5 w-5 h-5' : 'top-[3px] w-4 h-4'} bg-white rounded-full shadow-sm`}
-              animate={{ left: lunch ? (isSm ? 22 : 20) : (isSm ? 2 : 3) }}
+              animate={{ left: lunch ? (isSm ? 22 : 20) : isSm ? 2 : 3 }}
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
             />
           </button>
@@ -77,7 +82,9 @@ const LunchBreakContent: FC<LunchBreakContentProps> = ({ hours, onChange, onHasC
       {lunch && (
         <div className="border-t border-white/[0.04] pt-4 space-y-4">
           <div>
-            {isSm && <span className="text-[12px] text-zinc-400 font-medium block mb-3">Horário</span>}
+            {isSm && (
+              <span className="text-[12px] text-zinc-400 font-medium block mb-3">Horário</span>
+            )}
             <div className="flex items-center justify-center gap-3">
               <TimePickerSheet
                 value={lunch.start}
@@ -94,7 +101,11 @@ const LunchBreakContent: FC<LunchBreakContentProps> = ({ hours, onChange, onHasC
           </div>
 
           <div>
-            {isSm && <span className="text-[12px] text-zinc-400 font-medium block mb-3">Dias da semana</span>}
+            {isSm && (
+              <span className="text-[12px] text-zinc-400 font-medium block mb-3">
+                Dias da semana
+              </span>
+            )}
             <div className="flex gap-1.5 sm:gap-2">
               {DAYS_ORDER.map((d) => {
                 const isActive = lunch.days.includes(Number(d));
@@ -114,7 +125,7 @@ const LunchBreakContent: FC<LunchBreakContentProps> = ({ hours, onChange, onHasC
                         : 'bg-white/[0.02] border-white/[0.06] text-zinc-500'
                     }`}
                   >
-                    {DAY_NAMES[d].slice(0, 3).toUpperCase()}
+                    {DAY_NAMES[d]?.slice(0, 3).toUpperCase()}
                   </button>
                 );
               })}

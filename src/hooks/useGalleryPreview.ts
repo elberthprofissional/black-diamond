@@ -13,13 +13,19 @@ export function useGalleryPreview(images: GalleryImage[]) {
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
         e.preventDefault();
         const prev = (previewIndex - 1 + images.length) % images.length;
-        setPreviewIndex(prev);
-        setPreviewImage(images[prev]);
+        const img = images[prev];
+        if (img) {
+          setPreviewIndex(prev);
+          setPreviewImage(img);
+        }
       } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
         e.preventDefault();
         const next = (previewIndex + 1) % images.length;
-        setPreviewIndex(next);
-        setPreviewImage(images[next]);
+        const img = images[next];
+        if (img) {
+          setPreviewIndex(next);
+          setPreviewImage(img);
+        }
       } else if (e.key === 'Escape') {
         setPreviewImage(null);
       }
@@ -31,15 +37,21 @@ export function useGalleryPreview(images: GalleryImage[]) {
   const goToPrevPreview = useCallback(() => {
     if (images.length === 0) return;
     const prev = (previewIndex - 1 + images.length) % images.length;
-    setPreviewIndex(prev);
-    setPreviewImage(images[prev]);
+    const img = images[prev];
+    if (img) {
+      setPreviewIndex(prev);
+      setPreviewImage(img);
+    }
   }, [previewIndex, images]);
 
   const goToNextPreview = useCallback(() => {
     if (images.length === 0) return;
     const next = (previewIndex + 1) % images.length;
-    setPreviewIndex(next);
-    setPreviewImage(images[next]);
+    const img = images[next];
+    if (img) {
+      setPreviewIndex(next);
+      setPreviewImage(img);
+    }
   }, [previewIndex, images]);
 
   return {

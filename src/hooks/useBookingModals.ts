@@ -98,10 +98,10 @@ export function useBookingModals(loadData: () => Promise<void>, services: Servic
         time: bookingTime,
       });
 
-      // Close panel + refresh dashboard immediately
+      // Close panel + refresh dashboard
+      await loadData();
       setBookingToDelete(null);
       setSelectedBooking(null);
-      await loadData();
 
       // Fire-and-forget: create notification (don't block UI)
       supabase.auth.getUser().then(({ data: { user } }) => {

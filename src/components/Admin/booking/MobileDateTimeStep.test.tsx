@@ -1,11 +1,32 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import MobileDateTimeStep from './MobileDateTimeStep';
+import ResponsiveDateTimeStep from './ResponsiveDateTimeStep';
 import type { Booking, Service } from '../../../types';
 
 vi.mock('../../../lib/utils', () => ({
-  getTimeSlotsForDate: vi.fn(() => Promise.resolve(['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'])),
-  isTimeOccupied: vi.fn((time: string, bookings: Booking[]) => bookings.some(b => b.status !== 'cancelled' && b.booking_time.slice(0, 5) === time)),
+  getTimeSlotsForDate: vi.fn(() =>
+    Promise.resolve([
+      '08:00',
+      '09:00',
+      '10:00',
+      '11:00',
+      '12:00',
+      '13:00',
+      '14:00',
+      '15:00',
+      '16:00',
+      '17:00',
+      '18:00',
+    ])
+  ),
+  isTimeOccupied: vi.fn((time: string, bookings: Booking[]) =>
+    bookings.some((b) => b.status !== 'cancelled' && b.booking_time.slice(0, 5) === time)
+  ),
+  formatDisplayName: vi.fn((name: string) => name),
+}));
+
+vi.mock('../../../hooks/useIsDesktop', () => ({
+  useIsDesktop: () => false,
 }));
 
 const mockDays = [
@@ -20,7 +41,17 @@ const mockServices: Service[] = [
 ];
 
 const mockBookings: Booking[] = [
-  { id: 'b1', client_id: '1', service_ids: ['1'], booking_date: '2026-07-03', booking_time: '10:00:00', status: 'confirmed', total_price: 40, total_duration: 30, created_at: '2026-07-01' },
+  {
+    id: 'b1',
+    client_id: '1',
+    service_ids: ['1'],
+    booking_date: '2026-07-03',
+    booking_time: '10:00:00',
+    status: 'confirmed',
+    total_price: 40,
+    total_duration: 30,
+    created_at: '2026-07-01',
+  },
 ];
 
 describe('MobileDateTimeStep', () => {
@@ -39,36 +70,36 @@ describe('MobileDateTimeStep', () => {
 
   describe('quando nao esta pre-preenchido', () => {
     it('renderiza titulo de data e horario', () => {
-      render(<MobileDateTimeStep {...defaultProps} />);
+      render(<ResponsiveDateTimeStep {...defaultProps} />);
       expect(screen.getByText('Data e horário')).toBeInTheDocument();
     });
 
     it('renderiza instrucao de selecao', () => {
-      render(<MobileDateTimeStep {...defaultProps} />);
+      render(<ResponsiveDateTimeStep {...defaultProps} />);
       expect(screen.getByText('Selecione o melhor dia e horário')).toBeInTheDocument();
     });
 
     it('renderiza botoes de dias', () => {
-      render(<MobileDateTimeStep {...defaultProps} />);
+      render(<ResponsiveDateTimeStep {...defaultProps} />);
       expect(screen.getByText('QUI')).toBeInTheDocument();
       expect(screen.getByText('SEX')).toBeInTheDocument();
       expect(screen.getByText('SAB')).toBeInTheDocument();
     });
 
     it('mostra mensagem para selecionar dia quando nenhum selecionado', () => {
-      render(<MobileDateTimeStep {...defaultProps} />);
+      render(<ResponsiveDateTimeStep {...defaultProps} />);
       expect(screen.getByText('Selecione um dia acima para ver os horários.')).toBeInTheDocument();
     });
 
     it('chama onSelectDate ao clicar em um dia', () => {
       const onSelectDate = vi.fn();
-      render(<MobileDateTimeStep {...defaultProps} onSelectDate={onSelectDate} />);
+      render(<ResponsiveDateTimeStep {...defaultProps} onSelectDate={onSelectDate} />);
       fireEvent.click(screen.getByText('3'));
       expect(onSelectDate).toHaveBeenCalledWith('2026-07-03');
     });
 
     it('mostra slots de horario quando um dia e selecionado', async () => {
-      render(<MobileDateTimeStep {...defaultProps} selectedDate="2026-07-03" />);
+      render(<ResponsiveDateTimeStep {...defaultProps} selectedDate="2026-07-03" />);
       await waitFor(() => {
         expect(screen.getByText('08:00')).toBeInTheDocument();
       });
@@ -77,7 +108,13 @@ describe('MobileDateTimeStep', () => {
 
     it('chama onSelectTime ao clicar em um horario', async () => {
       const onSelectTime = vi.fn();
-      render(<MobileDateTimeStep {...defaultProps} selectedDate="2026-07-03" onSelectTime={onSelectTime} />);
+      render(
+        <ResponsiveDateTimeStep
+          {...defaultProps}
+          selectedDate="2026-07-03"
+          onSelectTime={onSelectTime}
+        />
+      );
       await waitFor(() => {
         expect(screen.getByText('09:00')).toBeInTheDocument();
       });
@@ -86,7 +123,7 @@ describe('MobileDateTimeStep', () => {
     });
 
     it('desabilita horario ocupado', async () => {
-      render(<MobileDateTimeStep {...defaultProps} selectedDate="2026-07-03" />);
+      render(<ResponsiveDateTimeStep {...defaultProps} selectedDate="2026-07-03" />);
       await waitFor(() => {
         expect(screen.getByText('10:00')).toBeInTheDocument();
       });
@@ -98,7 +135,7 @@ describe('MobileDateTimeStep', () => {
   describe('quando esta pre-preenchido com data e horario', () => {
     it('renderiza titulo de confirmacao', () => {
       render(
-        <MobileDateTimeStep
+        <ResponsiveDateTimeStep
           {...defaultProps}
           isPreFilled
           selectedDate="2026-07-03"
@@ -109,12 +146,12 @@ describe('MobileDateTimeStep', () => {
         />
       );
       expect(screen.getByText('Confirmar')).toBeInTheDocument();
-      expect(screen.getByText('Revise os dados antes de confirmar')).toBeInTheDocument();
+      expect(screen.getByText('Revise os dados antes de confirmar.')).toBeInTheDocument();
     });
 
     it('mostra nome do cliente', () => {
       render(
-        <MobileDateTimeStep
+        <ResponsiveDateTimeStep
           {...defaultProps}
           isPreFilled
           selectedDate="2026-07-03"
@@ -127,7 +164,7 @@ describe('MobileDateTimeStep', () => {
 
     it('mostra data formatada', () => {
       render(
-        <MobileDateTimeStep
+        <ResponsiveDateTimeStep
           {...defaultProps}
           isPreFilled
           selectedDate="2026-07-03"
@@ -139,7 +176,7 @@ describe('MobileDateTimeStep', () => {
 
     it('mostra horario selecionado', () => {
       render(
-        <MobileDateTimeStep
+        <ResponsiveDateTimeStep
           {...defaultProps}
           isPreFilled
           selectedDate="2026-07-03"
@@ -151,7 +188,7 @@ describe('MobileDateTimeStep', () => {
 
     it('mostra servicos e precos', () => {
       render(
-        <MobileDateTimeStep
+        <ResponsiveDateTimeStep
           {...defaultProps}
           isPreFilled
           selectedDate="2026-07-03"
@@ -168,7 +205,7 @@ describe('MobileDateTimeStep', () => {
 
     it('mostra total', () => {
       render(
-        <MobileDateTimeStep
+        <ResponsiveDateTimeStep
           {...defaultProps}
           isPreFilled
           selectedDate="2026-07-03"
@@ -184,12 +221,7 @@ describe('MobileDateTimeStep', () => {
   describe('quando esta pre-preenchido sem data/horario', () => {
     it('renderiza visao normal do picker', () => {
       render(
-        <MobileDateTimeStep
-          {...defaultProps}
-          isPreFilled
-          selectedDate=""
-          selectedTime=""
-        />
+        <ResponsiveDateTimeStep {...defaultProps} isPreFilled selectedDate="" selectedTime="" />
       );
       expect(screen.getByText('Data e horário')).toBeInTheDocument();
       expect(screen.getByText('Selecione um dia acima para ver os horários.')).toBeInTheDocument();

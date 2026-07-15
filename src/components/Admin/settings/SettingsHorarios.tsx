@@ -119,7 +119,9 @@ const SettingsHorarios: FC = () => {
             return;
           }
           if (hours.lunch_break.end > h.close) {
-            showError(`${DAY_NAMES[day]}: almoço não pode terminar após o fechamento (${h.close}).`);
+            showError(
+              `${DAY_NAMES[day]}: almoço não pode terminar após o fechamento (${h.close}).`
+            );
             return;
           }
         }
@@ -145,8 +147,8 @@ const SettingsHorarios: FC = () => {
   // Renderiza inputs HH:MM para um dia
   const renderInputs = (day: DayKey) => {
     const h = hours[day] as DayHours;
-    const [oH, oM] = h.open.split(':');
-    const [cH, cM] = h.close.split(':');
+    const [oH = '08', oM = '00'] = h.open.split(':');
+    const [cH = '18', cM = '00'] = h.close.split(':');
     return (
       <div className="flex items-center gap-3 flex-1">
         <div className="flex items-center gap-0.5">
@@ -190,7 +192,9 @@ const SettingsHorarios: FC = () => {
             }`}
           />
         </button>
-        <span className={`text-[13px] w-36 shrink-0 ${h?.enabled ? 'text-white' : 'text-zinc-500'}`}>
+        <span
+          className={`text-[13px] w-36 shrink-0 ${h?.enabled ? 'text-white' : 'text-zinc-500'}`}
+        >
           {DAY_NAMES[day]}
           {isModified && !justSaved && (
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#C5A059] ml-2 align-middle" />
@@ -199,7 +203,11 @@ const SettingsHorarios: FC = () => {
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 ml-2 align-middle" />
           )}
         </span>
-        {h?.enabled ? renderInputs(day) : <span className="text-[12px] text-zinc-600 flex-1">Fechado</span>}
+        {h?.enabled ? (
+          renderInputs(day)
+        ) : (
+          <span className="text-[12px] text-zinc-600 flex-1">Fechado</span>
+        )}
       </div>
     );
   };
@@ -243,9 +251,21 @@ const SettingsHorarios: FC = () => {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-zinc-600 text-[11px]">{hours.lunch_break ? 'Ativo' : 'Inativo'}</span>
-              <svg className="w-4 h-4 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <span className="text-zinc-600 text-[11px]">
+                {hours.lunch_break ? 'Ativo' : 'Inativo'}
+              </span>
+              <svg
+                className="w-4 h-4 text-zinc-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </div>
           </div>
@@ -273,14 +293,22 @@ const SettingsHorarios: FC = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between px-5 h-12 border-b border-white/[0.04]">
-                  <button onClick={() => setLunchOpen(false)} className="text-zinc-400 hover:text-white transition-colors cursor-pointer">
+                  <button
+                    onClick={() => setLunchOpen(false)}
+                    className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                  >
                     <X size={18} />
                   </button>
                   <span className="text-[13px] font-semibold text-white">Intervalo de almoço</span>
                   <div className="w-[18px]" />
                 </div>
                 <div className="p-5 space-y-4">
-                  <LunchBreakContent hours={hours} onChange={setHours} onHasChange={() => setHasChanges(true)} layout="desktop" />
+                  <LunchBreakContent
+                    hours={hours}
+                    onChange={setHours}
+                    onHasChange={() => setHasChanges(true)}
+                    layout="desktop"
+                  />
                   <button
                     onClick={() => setLunchOpen(false)}
                     className="w-full py-3 rounded-xl bg-[#C5A059]/10 text-[#C5A059] font-semibold text-[12px] cursor-pointer hover:bg-[#C5A059]/20 transition-all"
@@ -300,7 +328,9 @@ const SettingsHorarios: FC = () => {
             disabled={saving || !hasChanges}
             className="px-6 py-2.5 bg-[#C5A059] text-black font-semibold text-[12px] rounded-lg hover:bg-[#A68233] transition-all cursor-pointer disabled:opacity-30 flex items-center gap-2 shadow-lg shadow-[#C5A059]/10"
           >
-            {saving && <div className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />}
+            {saving && (
+              <div className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+            )}
             {saving ? 'Salvando...' : 'Salvar alterações'}
           </button>
         </div>
@@ -340,7 +370,12 @@ const SettingsHorarios: FC = () => {
                 <p className="text-zinc-500 text-[11px] mt-0.5">Toque para configurar</p>
               )}
             </div>
-            <svg className="w-4 h-4 text-zinc-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg
+              className="w-4 h-4 text-zinc-600 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </div>
@@ -357,14 +392,22 @@ const SettingsHorarios: FC = () => {
               className="fixed inset-0 z-[300] bg-[#0A0A0A]"
             >
               <div className="flex items-center justify-between px-4 h-14 border-b border-white/[0.04]">
-                <button onClick={() => setLunchOpen(false)} className="text-zinc-400 hover:text-white transition-colors cursor-pointer">
+                <button
+                  onClick={() => setLunchOpen(false)}
+                  className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                >
                   <X size={22} />
                 </button>
                 <span className="text-[16px] font-bold text-white">Intervalo de almoço</span>
                 <div className="w-[22px]" />
               </div>
               <div className="p-5 space-y-5">
-                <LunchBreakContent hours={hours} onChange={setHours} onHasChange={() => setHasChanges(true)} layout="mobile" />
+                <LunchBreakContent
+                  hours={hours}
+                  onChange={setHours}
+                  onHasChange={() => setHasChanges(true)}
+                  layout="mobile"
+                />
                 <button
                   onClick={() => setLunchOpen(false)}
                   className="w-full py-3.5 rounded-xl bg-[#C5A059] text-black font-bold text-[12px] uppercase tracking-wider cursor-pointer active:scale-[0.98] transition-all"
@@ -381,7 +424,10 @@ const SettingsHorarios: FC = () => {
           {DAYS_ORDER.map((day) => {
             const h = hours[day] as DayHours;
             return (
-              <div key={day} className={`border-b border-white/[0.04] ${!h?.enabled ? 'opacity-35' : ''}`}>
+              <div
+                key={day}
+                className={`border-b border-white/[0.04] ${!h?.enabled ? 'opacity-35' : ''}`}
+              >
                 <div className="flex items-center gap-3 py-4 px-1">
                   <button
                     onClick={() => toggle(day)}
@@ -398,14 +444,24 @@ const SettingsHorarios: FC = () => {
                       }`}
                     />
                   </button>
-                  <span className={`text-[14px] flex-1 ${h?.enabled ? 'text-white font-medium' : 'text-zinc-500'}`}>
+                  <span
+                    className={`text-[14px] flex-1 ${h?.enabled ? 'text-white font-medium' : 'text-zinc-500'}`}
+                  >
                     {DAY_NAMES[day]}
                   </span>
                   {h?.enabled ? (
                     <div className="flex items-center gap-2">
-                      <TimePickerSheet value={h.open} onChange={(v) => patch(day, { open: v })} label="Abertura" />
+                      <TimePickerSheet
+                        value={h.open}
+                        onChange={(v) => patch(day, { open: v })}
+                        label="Abertura"
+                      />
                       <span className="text-zinc-600 text-[11px]">às</span>
-                      <TimePickerSheet value={h.close} onChange={(v) => patch(day, { close: v })} label="Fechamento" />
+                      <TimePickerSheet
+                        value={h.close}
+                        onChange={(v) => patch(day, { close: v })}
+                        label="Fechamento"
+                      />
                     </div>
                   ) : (
                     <span className="text-[11px] text-zinc-600">Fechado</span>
@@ -425,7 +481,9 @@ const SettingsHorarios: FC = () => {
               disabled={saving || !hasChanges}
               className={`w-full py-3.5 rounded-xl font-bold text-[11px] uppercase tracking-[0.15em] transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-2 ${hasChanges ? 'bg-[#C5A059] text-black' : 'bg-white/[0.04] text-zinc-600'}`}
             >
-              {saving && <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />}
+              {saving && (
+                <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+              )}
               {saving ? 'Salvando...' : hasChanges ? 'Salvar Horários' : 'Sem alterações'}
             </button>
           </div>

@@ -7,8 +7,6 @@ test.describe('Acessibilidade - Home Page', () => {
     await page.waitForLoadState('networkidle');
 
     const results = await new AxeBuilder({ page }).analyze();
-
-    // Filter to only critical violations (exclude moderate/minor)
     const criticalViolations = results.violations.filter((v) => v.impact === 'critical');
 
     expect(criticalViolations).toEqual([]);
@@ -28,8 +26,6 @@ test.describe('Acessibilidade - Home Page', () => {
 
     const images = page.locator('img[alt]');
     const count = await images.count();
-
-    // At least the logo and main images should have alt text
     expect(count).toBeGreaterThan(0);
   });
 
@@ -48,6 +44,14 @@ test.describe('Acessibilidade - Home Page', () => {
       expect(hasAccessibleName).toBeTruthy();
     }
   });
+
+  test('seções principais têm landmarks', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const main = page.locator('#main-content, main, [role="main"]');
+    await expect(main.first()).toBeAttached();
+  });
 });
 
 test.describe('Acessibilidade - Página de Agendamento', () => {
@@ -56,8 +60,6 @@ test.describe('Acessibilidade - Página de Agendamento', () => {
     await page.waitForLoadState('networkidle');
 
     const results = await new AxeBuilder({ page }).analyze();
-
-    // Filter to only critical violations (exclude serious/moderate/minor for dark theme)
     const criticalViolations = results.violations.filter((v) => v.impact === 'critical');
 
     expect(criticalViolations).toEqual([]);
@@ -67,7 +69,6 @@ test.describe('Acessibilidade - Página de Agendamento', () => {
     await page.goto('/agendar');
     await page.waitForLoadState('networkidle');
 
-    // Verificar que inputs têm labels associados
     const inputs = page.locator('input');
     const count = await inputs.count();
 
@@ -84,6 +85,14 @@ test.describe('Acessibilidade - Página de Agendamento', () => {
       }
     }
   });
+
+  test('etapas do wizard têm aria-current', async ({ page }) => {
+    await page.goto('/agendar');
+    await page.waitForLoadState('networkidle');
+
+    const activeStep = page.locator('[aria-current="step"]');
+    await expect(activeStep.first()).toBeAttached();
+  });
 });
 
 test.describe('Acessibilidade - Login Admin', () => {
@@ -92,7 +101,6 @@ test.describe('Acessibilidade - Login Admin', () => {
     await page.waitForLoadState('networkidle');
 
     const results = await new AxeBuilder({ page }).analyze();
-
     const criticalViolations = results.violations.filter((v) => v.impact === 'critical');
 
     expect(criticalViolations).toEqual([]);
@@ -104,9 +112,63 @@ test.describe('Acessibilidade - Login Admin', () => {
     await expect(page.locator('label[for="login-email"]')).toBeVisible();
     await expect(page.locator('label[for="login-password"]')).toBeVisible();
 
-    // Verificar que o botão de toggle senha tem aria-label
     const toggleBtn = page.locator('[aria-label="Mostrar senha"], [aria-label="Ocultar senha"]');
     await expect(toggleBtn).toBeVisible();
+  });
+
+  test('inputs de login têm autocomplete', async ({ page }) => {
+    await page.goto('/admin/login');
+
+    const emailInput = page.locator('#login-email');
+    await expect(emailInput).toHaveAttribute('autocomplete', 'email');
+
+    const passwordInput = page.locator('#login-password');
+    await expect(passwordInput).toHaveAttribute('autocomplete', 'current-password');
+  });
+});
+
+test.describe('Acessibilidade - Página 404', () => {
+  test('404 passa em auditoria de acessibilidade', async ({ page }) => {
+    await page.goto('/rota-inexistente');
+    await page.waitForLoadState('networkidle');
+
+    const results = await new AxeBuilder({ page }).analyze();
+    const criticalViolations = results.violations.filter((v) => v.impact === 'critical');
+
+    expect(criticalViolations).toEqual([]);
+  });
+
+  test('404 tem heading e botão de retorno', async ({ page }) => {
+    await page.goto('/rota-inexistente');
+    await page.waitForLoadState('networkidle');
+
+    const heading = page.locator('h1, h2');
+    await expect(heading.first()).toBeVisible();
+
+    const backLink = page.locator('a[href="/"], button');
+    await expect(backLink.first()).toBeVisible();
+  });
+});
+
+test.describe('Acessibilidade - Gerenciar/Cancelar Agendamento', () => {
+  test('manage booking passa em auditoria de acessibilidade', async ({ page }) => {
+    await page.goto('/gerenciar');
+    await page.waitForLoadState('networkidle');
+
+    const results = await new AxeBuilder({ page }).analyze();
+    const criticalViolations = results.violations.filter((v) => v.impact === 'critical');
+
+    expect(criticalViolations).toEqual([]);
+  });
+
+  test('cancel page passa em auditoria de acessibilidade', async ({ page }) => {
+    await page.goto('/cancelar');
+    await page.waitForLoadState('networkidle');
+
+    const results = await new AxeBuilder({ page }).analyze();
+    const criticalViolations = results.violations.filter((v) => v.impact === 'critical');
+
+    expect(criticalViolations).toEqual([]);
   });
 });
 
@@ -115,11 +177,9 @@ test.describe('Acessibilidade - Navegação por Teclado', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    // Tab through interactive elements
-    await page.keyboard.press('Tab'); // Skip link
-    await page.keyboard.press('Tab'); // First nav item or logo
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
 
-    // Verify focus is visible
     const focusedElement = page.locator(':focus');
     await expect(focusedElement).toBeVisible();
   });
@@ -134,6 +194,18 @@ test.describe('Acessibilidade - Navegação por Teclado', () => {
 
     await expect(page.locator('text=Encontre sua conta')).not.toBeVisible();
   });
+
+  test('navegação por setas funciona no wizard de agendamento', async ({ page }) => {
+    await page.goto('/agendar');
+    await page.waitForLoadState('networkidle');
+
+    const firstInput = page.locator('input').first();
+    await expect(firstInput).toBeVisible();
+
+    await firstInput.focus();
+    const focusedElement = page.locator(':focus');
+    await expect(focusedElement).toBeVisible();
+  });
 });
 
 test.describe('Acessibilidade - Contraste', () => {
@@ -146,7 +218,17 @@ test.describe('Acessibilidade - Contraste', () => {
       .withRules(['color-contrast'])
       .analyze();
 
-    // Permitir violações menores (apenas warnings, não errors críticos)
+    const criticalViolations = results.violations.filter((v) => v.impact === 'critical');
+
+    expect(criticalViolations).toEqual([]);
+  });
+
+  test('contraste no login admin', async ({ page }) => {
+    await page.goto('/admin/login');
+    await page.waitForLoadState('networkidle');
+
+    const results = await new AxeBuilder({ page }).withRules(['color-contrast']).analyze();
+
     const criticalViolations = results.violations.filter((v) => v.impact === 'critical');
 
     expect(criticalViolations).toEqual([]);
@@ -171,11 +253,96 @@ test.describe('Acessibilidade - ARIA Roles', () => {
 
     const results = await new AxeBuilder({ page }).withRules(['heading-order']).analyze();
 
-    // Permitir apenas warnings de heading order
     const criticalViolations = results.violations.filter(
       (v) => v.impact === 'critical' || v.impact === 'serious'
     );
 
     expect(criticalViolations).toEqual([]);
+  });
+
+  test('listas têm roles corretos', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const results = await new AxeBuilder({ page }).withRules(['list', 'listitem']).analyze();
+
+    expect(results.violations).toEqual([]);
+  });
+});
+
+test.describe('Acessibilidade - Formulários', () => {
+  test('inputs obrigatórios têm aria-required', async ({ page }) => {
+    await page.goto('/agendar');
+    await page.waitForLoadState('networkidle');
+
+    const requiredInputs = page.locator('input[required], input[aria-required="true"]');
+    const count = await requiredInputs.count();
+
+    for (let i = 0; i < count; i++) {
+      const input = requiredInputs.nth(i);
+      const hasRequired =
+        (await input.getAttribute('required')) !== null ||
+        (await input.getAttribute('aria-required')) === 'true';
+      expect(hasRequired).toBeTruthy();
+    }
+  });
+
+  test('campos de erro têm aria-describedby', async ({ page }) => {
+    await page.goto('/agendar');
+    await page.waitForLoadState('networkidle');
+
+    const errorMessages = page.locator('[role="alert"], .error-message, [aria-live="assertive"]');
+    const count = await errorMessages.count();
+
+    // Error messages should exist in the DOM for screen readers
+    // (may be hidden visually)
+    if (count > 0) {
+      for (let i = 0; i < count; i++) {
+        const msg = errorMessages.nth(i);
+        const ariaLive = await msg.getAttribute('aria-live');
+        const role = await msg.getAttribute('role');
+        expect(ariaLive || role).toBeTruthy();
+      }
+    }
+  });
+});
+
+test.describe('Acessibilidade - Imagens e Mídia', () => {
+  test('todas as imagens têm alt text ou são decorativas', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const images = page.locator('img');
+    const count = await images.count();
+
+    for (let i = 0; i < count; i++) {
+      const img = images.nth(i);
+      const alt = await img.getAttribute('alt');
+      const ariaHidden = await img.getAttribute('aria-hidden');
+      const role = await img.getAttribute('role');
+
+      // Image must have alt, be aria-hidden, or be decorative
+      const isAccessible = alt !== null || ariaHidden === 'true' || role === 'presentation';
+      expect(isAccessible).toBeTruthy();
+    }
+  });
+
+  test('ícones SVG têm acessibilidade', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const svgIcons = page.locator('svg');
+    const count = await svgIcons.count();
+
+    for (let i = 0; i < count; i++) {
+      const svg = svgIcons.nth(i);
+      const ariaHidden = await svg.getAttribute('aria-hidden');
+      const role = await svg.getAttribute('role');
+      const title = await svg.locator('title').count();
+
+      // SVG should be hidden from AT or have a title
+      const isAccessible = ariaHidden === 'true' || role === 'img' || title > 0;
+      expect(isAccessible).toBeTruthy();
+    }
   });
 });

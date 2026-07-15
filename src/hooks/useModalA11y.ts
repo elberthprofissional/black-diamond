@@ -31,6 +31,7 @@ export function useModalA11y(isOpen: boolean, onClose: () => void) {
 
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
+        if (!first || !last) return;
 
         if (e.shiftKey) {
           if (document.activeElement === first) {

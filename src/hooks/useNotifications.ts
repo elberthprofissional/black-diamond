@@ -234,8 +234,12 @@ export function useNotifications() {
     return () => {
       mounted = false;
       if (retryTimer) clearTimeout(retryTimer);
-      // Não remove o canal no cleanup — outro componente pode estar usando
-      // O canal só é removido quando uma nova subscription é criada
+      // Remove o canal se este componente e o unico consumidor
+      if (activeChannel) {
+        supabase.removeChannel(activeChannel);
+        activeChannel = null;
+        activeUserId = null;
+      }
       if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
     };
   }, []);

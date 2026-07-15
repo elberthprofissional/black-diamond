@@ -57,9 +57,14 @@ const getBarberHours = async (): Promise<HoursData> => {
 
     if (data?.value) {
       const parsed = JSON.parse(data.value);
-      // Validate parsed data has expected structure
+      // Validate parsed data has expected structure (at least one day key with open/close)
       if (typeof parsed === 'object' && parsed !== null) {
-        return { ...DEFAULT_HOURS, ...parsed };
+        const hasValidDay = Object.keys(parsed).some(
+          (k) => /^\d$/.test(k) && parsed[k]?.open && parsed[k]?.close
+        );
+        if (hasValidDay || parsed.lunch_break) {
+          return { ...DEFAULT_HOURS, ...parsed };
+        }
       }
     }
 
@@ -107,7 +112,16 @@ const getBarberHours = async (): Promise<HoursData> => {
   return DEFAULT_HOURS;
 };
 
+// Cache for getTimeSlotsForDate (TTL: 5 minutes)
+const slotsCache = new Map<string, { data: string[]; ts: number }>();
+const SLOTS_CACHE_TTL = 5 * 60 * 1000;
+
 export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> => {
+  const cached = slotsCache.get(dateStr);
+  if (cached && Date.now() - cached.ts < SLOTS_CACHE_TTL) {
+    return cached.data;
+  }
+
   const date = new Date(dateStr + 'T12:00:00');
   const dow = String(date.getDay());
 
@@ -123,7 +137,10 @@ export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> =>
       const parsed = JSON.parse(data.value);
       const daySchedule = parsed[dow] as DaySchedule | undefined;
 
-      if (!daySchedule?.enabled) return [];
+      if (!daySchedule?.enabled) {
+        slotsCache.set(dateStr, { data: [], ts: Date.now() });
+        return [];
+      }
 
       let slots = generateHourlySlots(daySchedule.open, daySchedule.close);
 
@@ -135,6 +152,7 @@ export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> =>
         slots = slots.filter((slot) => slot < lunchBreak.start || slot >= lunchBreak.end);
       }
 
+      slotsCache.set(dateStr, { data: slots, ts: Date.now() });
       return slots;
     }
   } catch {
@@ -144,8 +162,13 @@ export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> =>
   // Fallback: configurações individuais (legado) — sem lunch_break
   const hours = await getBarberHours();
   const daySchedule = hours[dow];
-  if (!daySchedule?.enabled) return [];
-  return generateHourlySlots(daySchedule.open, daySchedule.close);
+  if (!daySchedule?.enabled) {
+    slotsCache.set(dateStr, { data: [], ts: Date.now() });
+    return [];
+  }
+  const slots = generateHourlySlots(daySchedule.open, daySchedule.close);
+  slotsCache.set(dateStr, { data: slots, ts: Date.now() });
+  return slots;
 };
 
 export const maskPhone = (phone: string | null | undefined): string => {
@@ -214,10 +237,10 @@ export const getNextDays = (config?: NextDaysConfig | string) => {
     sundayEnabled = config.sundayEnabled ?? false;
   }
 
-  // Sábado após fechar: mostra a próxima semana
+  // Sábado após fechar: mostra a próxima semana (começa segunda)
   if (currentDay === 6 && currentHour >= saturdayCloseHour) {
     const nextMonday = new Date(today);
-    nextMonday.setDate(today.getDate() + ((1 - currentDay + 7) % 7 || 7));
+    nextMonday.setDate(today.getDate() + ((8 - currentDay) % 7 || 7)); // sempre +2 dias (dom -> seg)
     const totalDays = sundayEnabled ? 7 : 6;
     for (let i = 0; i < totalDays; i++) {
       const date = new Date(nextMonday);
@@ -343,7 +366,7 @@ export const maskName = (name: string | null | undefined): string => {
 export const maskEmail = (email: string | null | undefined): string => {
   if (!email) return '';
   const [user, domain] = email.split('@');
-  if (!domain) return '***@***.com';
+  if (!user || !domain) return '***@***.com';
   if (user.length <= 2) return `${user[0]}*@${domain}`;
   return `${user.slice(0, 2)}***@${domain}`;
 };

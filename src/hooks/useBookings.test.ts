@@ -13,6 +13,7 @@ vi.mock('../lib/api', () => ({
 describe('useBookings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetBookings.mockResolvedValue({ data: [], total: 0, page: 1, pageSize: 200 });
     mockAutoComplete.mockResolvedValue(0);
   });
 
@@ -37,8 +38,6 @@ describe('useBookings', () => {
   });
 
   it('chama getBookings com a data correta', async () => {
-    mockGetBookings.mockResolvedValue({ data: [], total: 0, page: 1, pageSize: 200 });
-
     renderHook(() => useBookings('2026-07-05'));
 
     await waitFor(() => {
@@ -91,8 +90,6 @@ describe('useBookings', () => {
   });
 
   it('chama autoCompleteExpiredBookings para data fornecida', async () => {
-    mockGetBookings.mockResolvedValue({ data: [], total: 0, page: 1, pageSize: 200 });
-
     renderHook(() => useBookings('2026-07-05'));
 
     await waitFor(() => {
@@ -101,8 +98,6 @@ describe('useBookings', () => {
   });
 
   it('não chama autoComplete sem data', async () => {
-    mockGetBookings.mockResolvedValue({ data: [], total: 0, page: 1, pageSize: 200 });
-
     renderHook(() => useBookings());
 
     await waitFor(() => {
@@ -126,7 +121,9 @@ describe('useBookings', () => {
         page: 1,
         pageSize: 200,
       });
-    mockAutoComplete.mockResolvedValue(1);
+    // Usar mockResolvedValueOnce para evitar loop infinito:
+    // o autoComplete só retorna 1 na primeira chamada, nas seguintes retorna 0
+    mockAutoComplete.mockResolvedValueOnce(1);
 
     renderHook(() => useBookings('2026-07-05'));
 

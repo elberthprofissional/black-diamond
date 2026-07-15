@@ -208,7 +208,7 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
 
       setIsSearchingClient(false);
 
-      if (matches.length === 1) {
+      if (matches.length === 1 && matches[0]) {
         selectClient(matches[0]);
       } else if (matches.length > 1) {
         setSelectedClient(null);

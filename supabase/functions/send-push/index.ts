@@ -26,10 +26,23 @@ interface PushPayload {
   manageUrl?: string;
 }
 
-const ALLOWED_ORIGINS = ['https://black-diamond.vercel.app'];
+const ALLOWED_ORIGINS = [
+  'https://black-diamond.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  /^https:\/\/black-diamond-.*vercel\.app$/,
+  /^https:\/\/[a-z0-9-]+\.vercel\.app$/,
+];
+
+function isOriginAllowed(origin: string | null): boolean {
+  if (!origin) return false;
+  return ALLOWED_ORIGINS.some((allowed) =>
+    typeof allowed === 'string' ? allowed === origin : allowed.test(origin)
+  );
+}
 
 function getCorsHeaders(origin: string | null) {
-  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const allowed = isOriginAllowed(origin) ? origin : 'https://black-diamond.vercel.app';
   return {
     'Access-Control-Allow-Origin': allowed,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -48,6 +61,32 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
+  }
+
+  // ── JWT Verification ──
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: 'Não autenticado' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
+  }
+
+  const token = authHeader.replace('Bearer ', '');
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+  const authClient = createClient(supabaseUrl, supabaseServiceKey);
+  const {
+    data: { user },
+    error: authError,
+  } = await authClient.auth.getUser(token);
+
+  if (authError || !user) {
+    return new Response(JSON.stringify({ error: 'Token inválido' }), {
+      status: 401,
       headers: { 'Content-Type': 'application/json', ...corsHeaders },
     });
   }

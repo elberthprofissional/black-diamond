@@ -145,33 +145,42 @@ const AdminBooking: FC = () => {
 
   // Load clients and handle prefilled/reschedule on mount
   useEffect(() => {
-    loadClients().then((clients) => {
-      if (rescheduleBooking && clients.length > 0) {
-        const match = clients.find(
-          (c) =>
-            c.id === rescheduleBooking.client_id || c.phone === rescheduleBooking.clients?.phone
-        );
-        if (match) {
-          selectClient(match);
-        } else {
-          setNewClient({
-            name: rescheduleBooking.clients?.name || '',
-            phone: rescheduleBooking.clients?.phone || '',
-          });
-          setIsManualEntry(true);
+    let mounted = true;
+    loadClients()
+      .then((clients) => {
+        if (!mounted) return;
+        if (rescheduleBooking && clients.length > 0) {
+          const match = clients.find(
+            (c) =>
+              c.id === rescheduleBooking.client_id || c.phone === rescheduleBooking.clients?.phone
+          );
+          if (match) {
+            selectClient(match);
+          } else {
+            setNewClient({
+              name: rescheduleBooking.clients?.name || '',
+              phone: rescheduleBooking.clients?.phone || '',
+            });
+            setIsManualEntry(true);
+          }
+        } else if (prefilledClientName && prefilledClientPhone && clients.length > 0) {
+          const match = clients.find(
+            (c) => c.phone === prefilledClientPhone || c.name === prefilledClientName
+          );
+          if (match) {
+            selectClient(match);
+          } else {
+            setNewClient({ name: prefilledClientName, phone: prefilledClientPhone });
+            setIsManualEntry(true);
+          }
         }
-      } else if (prefilledClientName && prefilledClientPhone && clients.length > 0) {
-        const match = clients.find(
-          (c) => c.phone === prefilledClientPhone || c.name === prefilledClientName
-        );
-        if (match) {
-          selectClient(match);
-        } else {
-          setNewClient({ name: prefilledClientName, phone: prefilledClientPhone });
-          setIsManualEntry(true);
-        }
-      }
-    });
+      })
+      .catch(() => {
+        // Falha ao carregar clientes — nao bloqueia a UI
+      });
+    return () => {
+      mounted = false;
+    };
   }, [
     rescheduleBooking,
     prefilledClientName,

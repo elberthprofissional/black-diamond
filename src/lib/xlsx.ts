@@ -83,9 +83,13 @@ function downloadBlob(content: string, filename: string, mimeType: string): void
 }
 
 export function downloadXlsx(sheets: XlsxSheet[], filename: string): void {
+  if (sheets.length === 0) return;
+
   // For single sheet, generate directly
   if (sheets.length === 1) {
-    const xml = generateSheetXml(sheets[0]);
+    const firstSheet = sheets[0];
+    if (!firstSheet) return;
+    const xml = generateSheetXml(firstSheet);
     downloadBlob(xml, filename.replace(/\.xlsx$/, '.xls'), 'application/vnd.ms-excel');
     return;
   }
@@ -93,7 +97,9 @@ export function downloadXlsx(sheets: XlsxSheet[], filename: string): void {
   // For multiple sheets, use a simple ZIP (Office Open XML)
   // Since we can't create a real ZIP without dependencies,
   // we'll just download the first sheet as .xls
-  const xml = generateSheetXml(sheets[0]);
+  const firstSheet = sheets[0];
+  if (!firstSheet) return;
+  const xml = generateSheetXml(firstSheet);
   downloadBlob(xml, filename.replace(/\.xlsx$/, '.xls'), 'application/vnd.ms-excel');
 }
 

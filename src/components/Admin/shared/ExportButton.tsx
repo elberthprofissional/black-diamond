@@ -1,5 +1,13 @@
 import { useState, useRef, useEffect, type FC } from 'react';
-import { Download, FileText, Users, TrendingUp, ChevronDown, Loader2, FileSpreadsheet } from 'lucide-react';
+import {
+  Download,
+  FileText,
+  Users,
+  TrendingUp,
+  ChevronDown,
+  Loader2,
+  FileSpreadsheet,
+} from 'lucide-react';
 import { useCsvExport } from '../../../hooks/useCsvExport';
 import { useXlsxExport } from '../../../hooks/useXlsxExport';
 import { useToast } from '../../../hooks/useToast';
@@ -30,27 +38,49 @@ const ExportButton: FC = () => {
 
   const isExporting = csv.isExporting || xlsx.isExporting;
 
-  const handleFormatSelect = async (type: 'bookings' | 'clients' | 'financial', format: 'csv' | 'xlsx') => {
+  const handleFormatSelect = async (
+    type: 'bookings' | 'clients' | 'financial',
+    format: 'csv' | 'xlsx'
+  ) => {
     setIsOpen(false);
     setFormatMenu(null);
     const exporter = format === 'xlsx' ? xlsx : csv;
     switch (type) {
-      case 'bookings': await exporter.exportBookings(); break;
-      case 'clients': await exporter.exportClients(); break;
-      case 'financial': await exporter.exportFinancial(); break;
+      case 'bookings':
+        await exporter.exportBookings();
+        break;
+      case 'clients':
+        await exporter.exportClients();
+        break;
+      case 'financial':
+        await exporter.exportFinancial();
+        break;
     }
   };
 
   const types = [
-    { id: 'bookings', label: 'Agendamentos', desc: 'Lista completa de agendamentos', icon: FileText },
+    {
+      id: 'bookings',
+      label: 'Agendamentos',
+      desc: 'Lista completa de agendamentos',
+      icon: FileText,
+    },
     { id: 'clients', label: 'Clientes', desc: 'Dados e histórico de clientes', icon: Users },
-    { id: 'financial', label: 'Financeiro', desc: 'Receita e cancelamentos por mês', icon: TrendingUp },
+    {
+      id: 'financial',
+      label: 'Financeiro',
+      desc: 'Receita e cancelamentos por mês',
+      icon: TrendingUp,
+    },
   ] as const;
 
   return (
     <div className="relative" ref={menuRef}>
       <button
-        onClick={() => { setIsOpen(!isOpen); setFormatMenu(null); }}
+        onClick={() => {
+          setIsOpen(!isOpen);
+          setFormatMenu(null);
+        }}
         disabled={isExporting}
         className="flex items-center gap-2 px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-xl text-[12px] font-medium text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer disabled:opacity-50"
       >
@@ -96,7 +126,9 @@ const ExportButton: FC = () => {
             </button>
             <div className="h-px bg-white/[0.04] my-1" />
             <button
-              onClick={() => handleFormatSelect(formatMenu as 'bookings' | 'clients' | 'financial', 'xlsx')}
+              onClick={() =>
+                handleFormatSelect(formatMenu as 'bookings' | 'clients' | 'financial', 'xlsx')
+              }
               disabled={isExporting}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-white/[0.04] transition-all cursor-pointer"
             >
@@ -107,7 +139,9 @@ const ExportButton: FC = () => {
               </div>
             </button>
             <button
-              onClick={() => handleFormatSelect(formatMenu as 'bookings' | 'clients' | 'financial', 'csv')}
+              onClick={() =>
+                handleFormatSelect(formatMenu as 'bookings' | 'clients' | 'financial', 'csv')
+              }
               disabled={isExporting}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-white/[0.04] transition-all cursor-pointer"
             >

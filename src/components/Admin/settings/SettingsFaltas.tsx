@@ -56,21 +56,21 @@ const SettingsFaltas: FC = () => {
       color: 'text-red-400',
       bg: 'bg-red-500/10',
       border: 'border-red-500/20',
-      desc: 'Bloqueia rápido. Ideal para evitar prejuízos.',
+      desc: 'Alerta rápido. Notificação ao atingir poucas faltas.',
     },
     medio: {
       label: 'Equilibrado',
       color: 'text-[#C5A059]',
       bg: 'bg-[#C5A059]/10',
       border: 'border-[#C5A059]/20',
-      desc: 'Equilíbrio entre confiança e proteção.',
+      desc: 'Equilíbrio entre confiança e atenção.',
     },
     baixo: {
       label: 'Permissivo',
       color: 'text-emerald-400',
       bg: 'bg-emerald-500/10',
       border: 'border-emerald-500/20',
-      desc: 'Mais tolerante com imprevistos.',
+      desc: 'Mais tolerante. Só alerta com muitas faltas.',
     },
   };
   const sev = severityConfig[severity];
@@ -90,17 +90,17 @@ const SettingsFaltas: FC = () => {
       {/* Header — Desktop */}
       <div className="hidden lg:block py-2">
         <h3 className="text-[15px] font-bold text-white">Controle de Faltas</h3>
-        <p className="text-[12px] text-zinc-500 mt-0.5">
-          Bloqueio automático por não comparecimento
-        </p>
+        <p className="text-[12px] text-zinc-500 mt-0.5">Alertas por não comparecimento</p>
       </div>
 
       {/* Info */}
       <div className="flex items-start gap-3 bg-[#C5A059]/[0.03] border border-[#C5A059]/10 rounded-xl px-4 py-3">
         <Shield size={15} className="text-[#C5A059]/60 shrink-0 mt-0.5" />
         <p className="text-[11px] text-zinc-400 leading-relaxed">
-          Ao atingir o limite, o cliente é bloqueado por{' '}
-          <strong className="text-zinc-300">90 dias</strong> e não pode agendar.
+          Ao atingir o limite, você recebe uma{' '}
+          <strong className="text-zinc-300">notificação</strong> e uma{' '}
+          <strong className="text-zinc-300">badge de atenção</strong> no perfil do cliente. Entre em
+          contato para resolver no particular.
         </p>
       </div>
 

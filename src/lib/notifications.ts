@@ -27,12 +27,12 @@ export function parseNotifBody(body: string): ParsedNotif | null {
   const parts = body.split(' | ');
   if (parts.length < 6) return null;
   return {
-    clientName: parts[0].replace(/\s*\[MENSALISTA\]/, '').trim(),
-    services: parts[1].trim(),
-    dateTime: parts[2].trim(),
-    totalPrice: parts[3].trim(),
-    clientPhone: parts[4].trim(),
-    manageUrl: parts[5].trim(),
+    clientName: (parts[0] ?? '').replace(/\s*\[MENSALISTA\]/, '').trim(),
+    services: (parts[1] ?? '').trim(),
+    dateTime: (parts[2] ?? '').trim(),
+    totalPrice: (parts[3] ?? '').trim(),
+    clientPhone: (parts[4] ?? '').trim(),
+    manageUrl: (parts[5] ?? '').trim(),
   };
 }
 

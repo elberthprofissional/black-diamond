@@ -190,7 +190,8 @@ const SettingsConta: FC = () => {
       display: vals.instagram ? `@${vals.instagram}` : '',
       type: 'text',
       inputProps: { maxLength: MAX.instagram + 1 },
-      onChange: (v: string) => (v.replace(/^@/, '').length <= MAX.instagram ? v : inputs.instagram),
+      onChange: (v: string) =>
+        v.replace(/^@/, '').length <= MAX.instagram ? v : inputs.instagram || '',
       helper: `${(inputs.instagram || '').replace(/^@/, '').length}/${MAX.instagram}`,
     },
   ];

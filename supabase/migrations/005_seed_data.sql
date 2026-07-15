@@ -1,37 +1,28 @@
 -- =========================================================================
--- BLACK DIAMOND - DADOS INICIAIS (Consolidado)
+-- BLACK DIAMOND - DADOS INICIAIS CONSOLIDADO
 -- =========================================================================
--- Serviços, planos, configurações padrão, depoimentos, cupons e milestones.
+-- Servicos, planos, configuracoes, depoimentos, cupons, milestones e billing.
 -- =========================================================================
 
--- Serviços
+-- Servicos
 INSERT INTO services (name, price, duration, description)
 SELECT name, price, duration, description FROM (VALUES
     ('Corte de Cabelo', 35.00, 40, 'Corte moderno e personalizado.'),
-    ('Barba', 27.00, 20, 'Aparação e modelagem de barba.'),
-    ('Barba com Toalha Quente', 30.00, 30, 'Experiência relaxante com toalha quente.'),
+    ('Barba', 27.00, 20, 'Aparacao e modelagem de barba.'),
+    ('Barba com Toalha Quente', 30.00, 30, 'Experiencia relaxante com toalha quente.'),
     ('Sobrancelha', 15.00, 10, 'Limpeza e design de sobrancelha.'),
     ('Pezinho', 15.00, 10, 'Acabamento perfeito.')
 ) AS temp_data(name, price, duration, description)
-WHERE NOT EXISTS (
-    SELECT 1 FROM services WHERE services.name = temp_data.name
-);
+WHERE NOT EXISTS (SELECT 1 FROM services WHERE services.name = temp_data.name);
 
 -- Planos mensalistas
 DO $$
 BEGIN
     IF (SELECT COUNT(*) FROM mensalista_plans) = 0 THEN
         INSERT INTO mensalista_plans (name, price, included_service_ids, is_active, is_default, sort_order)
-        SELECT
-            v.name,
-            v.price::DECIMAL(10,2),
-            COALESCE(
-                ARRAY(SELECT id FROM services WHERE services.name = v.service_name),
-                '{}'
-            ),
-            true,
-            true,
-            v.sort_order
+        SELECT v.name, v.price::DECIMAL(10,2),
+            COALESCE(ARRAY(SELECT id FROM services WHERE services.name = v.service_name), '{}'),
+            true, true, v.sort_order
         FROM (VALUES
             ('Plano Black', 150.00, 'Corte de Cabelo', 1),
             ('Plano Gold', 120.00, 'Corte de Cabelo', 2)
@@ -39,7 +30,7 @@ BEGIN
     END IF;
 END $$;
 
--- Configurações padrão
+-- Configuracoes padrao
 INSERT INTO settings (key, value) VALUES
     ('opening_time', '08:00'),
     ('closing_time', '19:00'),
@@ -57,12 +48,12 @@ ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 -- Depoimentos
 INSERT INTO testimonials (name, rating, text, sort_order) VALUES
-    ('YP TATTOO', 5, 'Barbearia super confortável, ambiente agradável, profissional qualificado e atencioso.', 1),
+    ('YP TATTOO', 5, 'Barbearia super confortavel, ambiente agradavel, profissional qualificado e atencioso.', 1),
     ('HELBERT HENRIQUE', 5, 'Venezuelano mais fera de BH!! Tem o macete.', 2),
-    ('MAIA STUDIO', 5, 'Único profissional que conseguiu cortar o cabelo do meu filho com paciência e excelência.', 3),
-    ('GIOVANNA CARDOSO', 5, 'Profissional agradável, super atencioso, trabalho impecável e corte perfeito. Super recomendo!', 4),
-    ('GUILHERME HENRIQUE', 5, 'Ótimo profissional, lugar aconchegante e trabalho impecável!', 5),
-    ('MATHEUS', 5, 'Tato é bom demais, cara sabe como cuidar de um cabelo.', 6)
+    ('MAIA STUDIO', 5, 'Unico profissional que conseguiu cortar o cabelo do meu filho com paciencia e excelencia.', 3),
+    ('GIOVANNA CARDOSO', 5, 'Profissional agradavel, super atencioso, trabalho impecavel e corte perfeito. Super recomendo!', 4),
+    ('GUILHERME HENRIQUE', 5, 'Otim profissional, lugar aconchegante e trabalho impecavel!', 5),
+    ('MATHEUS', 5, 'Tato e bom demais, cara sabe como cuidar de um cabelo.', 6)
 ON CONFLICT DO NOTHING;
 
 -- Cupom de exemplo
@@ -80,3 +71,12 @@ VALUES
     ('c0000001-0000-0000-0000-000000000001', 5, (SELECT id FROM services WHERE name = 'Sobrancelha'), true),
     ('c0000002-0000-0000-0000-000000000002', 10, (SELECT id FROM services WHERE name = 'Pezinho'), true)
 ON CONFLICT (id) DO NOTHING;
+
+-- Planos de billing (SaaS)
+INSERT INTO subscription_plans (name, slug, description, price_monthly, price_setup, interval_months, is_active)
+VALUES
+    ('Mensal', 'mensal-sdominio', 'Acesso mensal sem dominio personalizado', 49.90, 0, 1, true),
+    ('Anual', 'anual-sdominio', 'Acesso anual sem dominio - economize 20%', 55.00, 0, 12, true),
+    ('Mensal + Dominio', 'mensal-cdominio', '1o mes: R$149,90 (setup). Depois: R$49,90/mes', 49.90, 149.90, 1, true),
+    ('Anual + Dominio', 'anual-cdominio', 'Acesso anual com dominio incluso', 70.00, 0, 12, true)
+ON CONFLICT (slug) DO NOTHING;

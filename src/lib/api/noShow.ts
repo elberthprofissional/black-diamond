@@ -15,39 +15,69 @@ export const getMaxNoShows = async (): Promise<number> => {
   }
 };
 
-/** Verifica se um cliente está bloqueado por excesso de faltas */
-export const isClientNoShowBlocked = async (clientId: string): Promise<boolean> => {
+/** Conta quantas faltas um cliente teve nos últimos N dias */
+export const getClientNoShowCount = async (
+  clientId: string,
+  days: number = 90
+): Promise<number> => {
   try {
-    const maxNoShows = await getMaxNoShows();
     const { count, error } = await supabase
       .from('bookings')
       .select('*', { count: 'exact', head: true })
       .eq('client_id', clientId)
       .eq('no_show', true)
-      .gte('booking_date', getLocalDateString(new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)));
+      .gte('booking_date', getLocalDateString(new Date(Date.now() - days * 24 * 60 * 60 * 1000)));
     if (error) throw error;
-    return (count || 0) >= maxNoShows;
+    return count || 0;
   } catch {
-    return false;
+    return 0;
   }
 };
 
-/** Busca o cliente por telefone e verifica se está bloqueado por faltas */
-export const checkPhoneNoShowBlock = async (
-  phone: string
-): Promise<{ blocked: boolean; name?: string }> => {
+/**
+ * Verifica se o cliente atingiu o limite de faltas e cria uma notificação pro barbeiro.
+ * Retorna true se atingiu o limite.
+ */
+export const checkAndNotifyNoShowLimit = async (
+  clientId: string,
+  clientName: string
+): Promise<boolean> => {
   try {
-    const { data: client } = await supabase
-      .from('clients')
-      .select('id, name')
-      .eq('phone', phone)
+    const [maxNoShows, noShowCount] = await Promise.all([
+      getMaxNoShows(),
+      getClientNoShowCount(clientId),
+    ]);
+
+    if (noShowCount < maxNoShows) return false;
+
+    // Busca o usuário autenticado (barbeiro/admin)
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return true;
+
+    // Verifica se já existe uma notificação pendente pra este cliente (evita spam)
+    const { data: existing } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('tag', `no_show_alert_${clientId}`)
       .maybeSingle();
 
-    if (!client) return { blocked: false };
+    if (existing) return true;
 
-    const blocked = await isClientNoShowBlocked(client.id);
-    return { blocked, name: client.name };
+    // Cria a notificação
+    const { error } = await supabase.from('notifications').insert({
+      user_id: user.id,
+      title: 'Cliente com múltiplas faltas',
+      body: `${clientName} acumulou ${noShowCount} falta(s) nos últimos 90 dias. Considere entrar em contato.`,
+      tag: `no_show_alert_${clientId}`,
+      url: '/admin/clients',
+    });
+
+    if (error) throw error;
+    return true;
   } catch {
-    return { blocked: false };
+    return false;
   }
 };

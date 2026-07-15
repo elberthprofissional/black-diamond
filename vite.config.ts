@@ -57,6 +57,7 @@ export default defineConfig({
     css: true,
     include: ['src/**/*.test.{ts,tsx}'],
     exclude: ['e2e/**', 'node_modules/**', '.mimocode/**'],
+
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'json-summary'],

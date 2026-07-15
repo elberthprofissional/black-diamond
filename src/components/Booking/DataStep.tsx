@@ -2,6 +2,7 @@ import { memo, useState, type FC } from 'react';
 import { User, Repeat, Tag } from 'lucide-react';
 import { WhatsAppIcon } from '../WhatsAppIcon';
 import CouponModal from './CouponModal';
+import CouponBadge from './CouponBadge';
 
 interface DataStepProps {
   name: string;
@@ -138,21 +139,11 @@ const DataStep: FC<DataStepProps> = memo(
             {/* Coupon Section */}
             <div className="pt-2">
               {coupon ? (
-                <div className="flex items-center justify-between bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-xl px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Tag size={14} className="text-[#C5A059]" />
-                    <span className="text-[12px] font-semibold text-[#C5A059]">{coupon.code}</span>
-                    <span className="text-[11px] text-zinc-400">
-                      -R$ {coupon.discount_amount.toFixed(2).replace('.', ',')}
-                    </span>
-                  </div>
-                  <button
-                    onClick={onCouponRemove}
-                    className="text-[10px] text-zinc-500 hover:text-red-400 transition-colors cursor-pointer"
-                  >
-                    Remover
-                  </button>
-                </div>
+                <CouponBadge
+                  code={coupon.code}
+                  discountAmount={coupon.discount_amount}
+                  onRemove={onCouponRemove!}
+                />
               ) : (
                 <button
                   onClick={() => setCouponModalOpen(true)}
@@ -274,21 +265,11 @@ const DataStep: FC<DataStepProps> = memo(
           {/* Coupon Section */}
           <div className="space-y-2">
             {coupon ? (
-              <div className="flex items-center justify-between bg-[#C5A059]/10 border border-[#C5A059]/20 rounded-xl px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <Tag size={14} className="text-[#C5A059]" />
-                  <span className="text-[12px] font-semibold text-[#C5A059]">{coupon.code}</span>
-                  <span className="text-[11px] text-zinc-400">
-                    -R$ {coupon.discount_amount.toFixed(2).replace('.', ',')}
-                  </span>
-                </div>
-                <button
-                  onClick={onCouponRemove}
-                  className="text-[10px] text-zinc-500 hover:text-red-400 transition-colors cursor-pointer"
-                >
-                  Remover
-                </button>
-              </div>
+              <CouponBadge
+                code={coupon.code}
+                discountAmount={coupon.discount_amount}
+                onRemove={onCouponRemove!}
+              />
             ) : (
               <button
                 onClick={() => setCouponModalOpen(true)}

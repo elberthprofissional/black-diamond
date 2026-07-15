@@ -135,7 +135,7 @@ const ApplyAllSheet: FC<{
               onClick={() => setPicked((p) => ({ ...p, [d]: !p[d] }))}
               className={`flex-1 py-2.5 lg:py-3 rounded-lg text-[10px] lg:text-[11px] font-medium transition-all cursor-pointer ${picked[d] ? 'text-[#C5A059]' : 'text-zinc-600'}`}
             >
-              {DAY_NAMES[d].slice(0, 3).toUpperCase()}
+              {DAY_NAMES[d]?.slice(0, 3).toUpperCase()}
             </button>
           ))}
         </div>

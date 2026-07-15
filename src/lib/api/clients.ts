@@ -1,5 +1,5 @@
 import { supabase } from '../supabase';
-import { BLOCKED_NAME, BLOCKED_PHONE, NULL_UUID } from '../constants';
+import { BLOCKED_NAME, BLOCKED_PHONE } from '../constants';
 
 /** Busca todos os clientes cadastrados, ordenados por nome. Exclui soft-deletados. */
 export const getClients = async () => {
@@ -18,9 +18,7 @@ export const getClients = async () => {
 
 /** Soft-deleta todos os clientes e exclui seus agendamentos. */
 export const deleteAllClients = async (): Promise<number> => {
-  const { error: bookingError } = await supabase.from('bookings').delete().neq('id', NULL_UUID);
-  if (bookingError) throw bookingError;
-
+  // 1. Busca IDs dos clientes ativos
   const { data: clients, error: fetchError } = await supabase
     .from('clients')
     .select('id')
@@ -30,10 +28,17 @@ export const deleteAllClients = async (): Promise<number> => {
   if (fetchError) throw fetchError;
   if (!clients || clients.length === 0) return 0;
 
-  const now = new Date().toISOString();
   const clientIds = clients.map((c) => c.id);
 
-  // Batch update em vez de N+1
+  // 2. Deleta APENAS os bookings desses clientes
+  const { error: bookingError } = await supabase
+    .from('bookings')
+    .delete()
+    .in('client_id', clientIds);
+  if (bookingError) throw bookingError;
+
+  // 3. Soft-deleta os clientes
+  const now = new Date().toISOString();
   const { error: updateError } = await supabase
     .from('clients')
     .update({ deleted_at: now })

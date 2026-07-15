@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { createBooking } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
+import { openWhatsApp, formatWaDate, formatWaTime, formatWaCurrency } from '../lib/whatsapp';
 import { useBarberSettings } from './useBarberSettings';
 import { useRateLimit } from './useRateLimit';
 import type { Service } from '../types';
@@ -210,10 +211,7 @@ export function useBookingSubmit(
         // Open WhatsApp for the barber with new booking notification
         try {
           if (barberPhone) {
-            const waDate = selectedDate.split('-').reverse().join('/');
-            const waTime = selectedTime.slice(0, 5);
             const serviceLines = selectedServices.map((s) => `* ${s.name}`).join('\n');
-            const totalFormatted = `R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
 
             const message = [
               'BLACK DIAMOND BARBEARIA',
@@ -226,20 +224,17 @@ export function useBookingSubmit(
               'Serviços:',
               serviceLines,
               '',
-              `Data: ${waDate}`,
-              `Horário: ${waTime}`,
+              `Data: ${formatWaDate(selectedDate)}`,
+              `Horário: ${formatWaTime(selectedTime)}`,
               '',
-              `Valor Total: ${totalFormatted}`,
+              `Valor Total: ${formatWaCurrency(totalPrice)}`,
               '',
               manageUrl
                 ? `Caso precise cancelar ou reagendar seu horário, acesse: ${manageUrl}`
                 : '',
             ].join('\n');
 
-            window.open(
-              `https://wa.me/${barberPhone}?text=${encodeURIComponent(message)}`,
-              '_blank'
-            );
+            openWhatsApp(barberPhone, message);
           }
         } catch {
           // WhatsApp opening is best-effort
