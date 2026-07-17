@@ -1,0 +1,57 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/Sao_Paulo'
+    open-pull-requests-limit: 10
+    assignees:
+      - 'elberthprofissional'
+    labels:
+      - 'dependencies'
+      - 'automerge'
+    commit-message:
+      prefix: 'chore'
+      prefix-development: 'chore'
+      include: 'scope'
+    groups:
+      react:
+        patterns:
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - '@types/react-dom'
+      supabase:
+        patterns:
+          - '@supabase/*'
+      typescript:
+        patterns:
+          - 'typescript'
+          - '@typescript-eslint/*'
+      testing:
+        patterns:
+          - '@testing-library/*'
+          - 'vitest'
+          - '@vitest/*'
+          - 'playwright'
+          - '@playwright/*'
+    ignore:
+      - dependency-name: '@lhci/cli'
+        versions: ['>=0.16.0']
+      - dependency-name: 'eslint'
+        versions: ['>=10.0.0']
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/Sao_Paulo'
+    open-pull-requests-limit: 5
+    labels:
+      - 'dependencies'
+      - 'github-actions'

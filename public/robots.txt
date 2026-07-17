@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /agendar
+Allow: /cancelar
+Allow: /gerenciar
+Allow: /cliente
+Disallow: /admin/
+
+Sitemap: https://black-diamond.vercel.app/sitemap.xml
+
+# Crawl-delay: 10

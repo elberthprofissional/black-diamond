@@ -1,0 +1,84 @@
+{
+  "name": "Black Diamond Barbearia",
+  "short_name": "Black Diamond",
+  "id": "black-diamond-admin",
+  "description": "Painel administrativo da Black Diamond Barbearia.",
+  "lang": "pt-BR",
+  "start_url": "/admin/login",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#C5A059",
+  "orientation": "portrait",
+  "categories": ["business"],
+  "icons": [
+    {
+      "src": "/assets/logo.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/logo.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/logo.webp",
+      "sizes": "120x120",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/logo.webp",
+      "sizes": "180x180",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/logo.webp",
+      "sizes": "144x144",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/logo.webp",
+      "sizes": "384x384",
+      "type": "image/webp",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/hero-bg.webp",
+      "sizes": "1920x1080",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Painel administrativo"
+    },
+    {
+      "src": "/assets/hero-bg-mobile.webp",
+      "sizes": "750x1334",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Painel administrativo mobile"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Painel Admin",
+      "short_name": "Admin",
+      "url": "/admin",
+      "description": "Painel administrativo da barbearia",
+      "icons": [{ "src": "/assets/logo.webp", "sizes": "192x192", "type": "image/webp" }]
+    },
+    {
+      "name": "Agenda Semanal",
+      "short_name": "Agenda",
+      "url": "/admin/weekly",
+      "description": "Visualizar agenda da semana",
+      "icons": [{ "src": "/assets/logo.webp", "sizes": "192x192", "type": "image/webp" }]
+    }
+  ]
+}

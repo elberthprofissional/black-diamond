@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1200px;
+    height: 630px;
+    background: #0a0a0a;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+  }
+  .bg::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(197,160,89,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .bg::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(197,160,89,0.05) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    padding: 80px 100px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(197,160,89,0.1);
+    border: 1px solid rgba(197,160,89,0.2);
+    border-radius: 100px;
+    padding: 8px 20px;
+    margin-bottom: 40px;
+    width: fit-content;
+  }
+  .badge-dot {
+    width: 8px;
+    height: 8px;
+    background: #C5A059;
+    border-radius: 50%;
+  }
+  .badge-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: #C5A059;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+  }
+  h1 {
+    font-size: 96px;
+    font-weight: 900;
+    line-height: 0.9;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+  h1 span {
+    color: #C5A059;
+  }
+  .tagline {
+    font-size: 24px;
+    font-weight: 300;
+    color: #737373;
+    margin-top: 32px;
+    letter-spacing: 0.02em;
+  }
+  .divider {
+    width: 80px;
+    height: 3px;
+    background: #C5A059;
+    margin: 32px 0;
+    border-radius: 2px;
+  }
+  .services {
+    display: flex;
+    gap: 32px;
+    margin-top: 8px;
+  }
+  .service {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #a1a1aa;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .service-icon {
+    width: 32px;
+    height: 32px;
+    background: rgba(197,160,89,0.1);
+    border: 1px solid rgba(197,160,89,0.15);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .corner-decoration {
+    position: absolute;
+    bottom: 40px;
+    right: 60px;
+    text-align: right;
+  }
+  .url {
+    font-size: 14px;
+    color: #52525b;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+  .scissors {
+    position: absolute;
+    top: 60px;
+    right: 80px;
+    font-size: 120px;
+    opacity: 0.03;
+    transform: rotate(-15deg);
+  }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="scissors">✂</div>
+  <div class="content">
+    <div class="badge">
+      <div class="badge-dot"></div>
+      <span class="badge-text">Barbearia Premium</span>
+    </div>
+    <h1>BLACK<br><span>DIAMOND</span></h1>
+    <div class="divider"></div>
+    <p class="tagline">Excelência em cada detalhe</p>
+    <div class="services">
+      <div class="service">
+        <div class="service-icon">✂</div>
+        <span>Corte</span>
+      </div>
+      <div class="service">
+        <div class="service-icon" style="font-size:14px">&#9986;</div>
+        <span>Barba</span>
+      </div>
+      <div class="service">
+        <div class="service-icon">✦</div>
+        <span>Sobrancelha</span>
+      </div>
+    </div>
+  </div>
+  <div class="corner-decoration">
+    <div class="url">black-diamond.vercel.app</div>
+  </div>
+</body>
+</html>

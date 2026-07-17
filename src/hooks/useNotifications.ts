@@ -1,0 +1,323 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '../lib/supabase';
+import { useNotificationPrefs, type NotificationPrefs } from './useNotificationPrefs';
+import { logError } from '../lib/logger';
+
+export interface Notification {
+  id: string;
+  title: string;
+  body: string;
+  tag: string | null;
+  url: string | null;
+  read: boolean;
+  created_at: string;
+}
+
+// AudioContext reutilizável para evitar esgotar o limite do browser
+let sharedAudioContext: AudioContext | null = null;
+
+// Singleton para subscription realtime — evita duplicação entre desktop/mobile
+let activeChannel: ReturnType<typeof supabase.channel> | null = null;
+let activeUserId: string | null = null;
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
+let retryCount = 0;
+let channelId = 0;
+const MAX_RETRIES = 15;
+
+// Generate notification sound using Web Audio API (no external files needed)
+function playNotificationSound() {
+  try {
+    // Reutiliza contexto existente ou cria um novo
+    if (!sharedAudioContext || sharedAudioContext.state === 'closed') {
+      sharedAudioContext = new (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      )();
+    }
+    const ctx = sharedAudioContext;
+
+    // Resume se estiver suspenso (política de autoplay)
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    // Pleasant two-tone chime
+    oscillator.frequency.setValueAtTime(800, ctx.currentTime);
+    oscillator.frequency.setValueAtTime(1000, ctx.currentTime + 0.1);
+    oscillator.type = 'sine';
+
+    gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.3);
+  } catch (e) {
+    logError(e);
+    // Audio not available — silently fail
+  }
+}
+
+// Update document title with unread count badge
+function updateTitleBadge(count: number) {
+  const baseTitle = 'Black Diamond';
+  if (count > 0) {
+    document.title = `(${count}) ${baseTitle}`;
+  } else {
+    document.title = baseTitle;
+  }
+}
+
+export function useNotifications() {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showPreview, setShowPreview] = useState<Notification | null>(null);
+  const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const notificationsRef = useRef<Notification[]>([]);
+  const prefsRef = useRef<NotificationPrefs>({
+    inApp: true,
+    sound: true,
+    preview: true,
+    badge: true,
+  });
+
+  // Load notification preferences
+  const { prefs: notificationPrefs } = useNotificationPrefs();
+
+  // Keep prefs ref in sync
+  prefsRef.current = notificationPrefs;
+
+  // Keep ref in sync with state
+  notificationsRef.current = notifications;
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      if (!supabase?.auth?.getUser) return;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      setNotifications(data || []);
+    } catch (e) {
+      logError(e);
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  // Update document title badge when unread count changes (respecting badge pref)
+  useEffect(() => {
+    const count = notifications.filter((n) => !n.read).length;
+    if (prefsRef.current.badge) {
+      updateTitleBadge(count);
+    } else {
+      document.title = 'Black Diamond';
+    }
+  }, [notifications]);
+
+  // Realtime subscription with auto-reconnect (singleton)
+  useEffect(() => {
+    let mounted = true;
+
+    const setupRealtime = async () => {
+      try {
+        if (!mounted) return;
+        if (!supabase?.auth?.getUser) return;
+
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user || !mounted) return;
+
+        // Se já existe uma subscription para este usuário, não cria outra
+        if (activeChannel && activeUserId === user.id) return;
+
+        // Remove canal anterior se existir
+        if (activeChannel) {
+          await supabase.removeChannel(activeChannel);
+          activeChannel = null;
+          await new Promise((r) => setTimeout(r, 100));
+        }
+
+        activeUserId = user.id;
+        channelId++;
+        const channelName = `notifications-${user.id}-${channelId}`;
+
+        const channel = supabase
+          .channel(channelName)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'notifications',
+              filter: `user_id=eq.${user.id}`,
+            },
+            (payload) => {
+              if (payload.eventType === 'INSERT') {
+                const newNotif = payload.new as Notification;
+                setNotifications((prev) => {
+                  // Evita duplicatas
+                  if (prev.some((n) => n.id === newNotif.id)) return prev;
+                  return [newNotif, ...prev].slice(0, 50);
+                });
+
+                const prefs = prefsRef.current;
+
+                // Toca som (only if in-app + sound enabled)
+                if (prefs.inApp && prefs.sound) {
+                  playNotificationSound();
+                }
+
+                // Preview toast (only if in-app + preview enabled)
+                if (prefs.inApp && prefs.preview) {
+                  setShowPreview(newNotif);
+                  if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+                  previewTimerRef.current = setTimeout(() => setShowPreview(null), 5000);
+                }
+              } else if (payload.eventType === 'DELETE') {
+                // Remove notificação deletada (ex: trigger de cancelamento)
+                const deletedId = (payload.old as Notification).id;
+                setNotifications((prev) => prev.filter((n) => n.id !== deletedId));
+              } else if (payload.eventType === 'UPDATE') {
+                // Atualiza notificação em tempo real (ex: marcou como lida em outra aba)
+                const updated = payload.new as Notification;
+                setNotifications((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
+              }
+            }
+          )
+          .subscribe((status) => {
+            if (!mounted) return;
+
+            if (status === 'SUBSCRIBED') {
+              retryCount = 0;
+            } else if (
+              status === 'CHANNEL_ERROR' ||
+              status === 'TIMED_OUT' ||
+              status === 'CLOSED'
+            ) {
+              if (retryCount < MAX_RETRIES) {
+                const delay = Math.min(1000 * Math.pow(1.5, retryCount), 15000);
+                retryCount++;
+
+                if (retryTimer) clearTimeout(retryTimer);
+                retryTimer = setTimeout(() => {
+                  if (mounted) setupRealtime();
+                }, delay);
+              }
+            }
+          });
+
+        activeChannel = channel;
+      } catch (e) {
+        logError(e);
+        // Erro na subscription — silencioso
+      }
+    };
+
+    setupRealtime();
+
+    return () => {
+      mounted = false;
+      if (retryTimer) clearTimeout(retryTimer);
+      // Remove o canal se este componente e o unico consumidor
+      if (activeChannel) {
+        supabase.removeChannel(activeChannel);
+        activeChannel = null;
+        activeUserId = null;
+      }
+      if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+    };
+  }, []);
+
+  const dismissPreview = useCallback(() => {
+    setShowPreview(null);
+    if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+  }, []);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const markAsRead = useCallback(async (id: string) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    const { error } = await supabase.from('notifications').update({ read: true }).eq('id', id);
+    if (error) {
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: false } : n)));
+    }
+  }, []);
+
+  const markAllAsRead = useCallback(async () => {
+    const snapshot = notificationsRef.current;
+    setNotifications((current) => current.map((n) => ({ ...n, read: true })));
+    if (!supabase?.auth?.getUser) return;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+    const { error } = await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('user_id', user.id)
+      .eq('read', false);
+    if (error) {
+      setNotifications(snapshot);
+    }
+  }, []);
+
+  const clearNotification = useCallback(async (id: string) => {
+    const removed = notificationsRef.current.find((n) => n.id === id);
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    const { error } = await supabase.from('notifications').delete().eq('id', id);
+    if (error && removed) {
+      setNotifications((prev) =>
+        [...prev, removed].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )
+      );
+    }
+  }, []);
+
+  const bulkDelete = useCallback(async (ids: string[]) => {
+    if (ids.length === 0) return;
+    const removed = notificationsRef.current.filter((n) => ids.includes(n.id));
+    setNotifications((prev) => prev.filter((n) => !ids.includes(n.id)));
+    const { error } = await supabase.from('notifications').delete().in('id', ids);
+    if (error && removed.length > 0) {
+      setNotifications((prev) =>
+        [...prev, ...removed].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )
+      );
+    }
+  }, []);
+
+  return {
+    notifications,
+    loading,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    clearNotification,
+    bulkDelete,
+    refetch: fetchNotifications,
+    showPreview,
+    dismissPreview,
+  };
+}

@@ -1,0 +1,543 @@
+import { memo, useState, type FC } from 'react';
+import type { BookingWithClient, Service } from '../../../types';
+import { formatPhone, formatDisplayName } from '../../../lib/utils';
+import { openWhatsApp, formatWaDate } from '../../../lib/whatsapp';
+import { BLOCKED_NAME } from '../../../lib/constants';
+import { useNoShow } from '../../../hooks/useNoShow';
+
+interface BookingDetailPanelProps {
+  booking: BookingWithClient;
+  services: Service[];
+  onClose: () => void;
+  onComplete: () => void;
+  onReschedule: () => void;
+  onDelete: () => void;
+  onUnblock?: () => void;
+  onBookingUpdated?: () => void;
+}
+
+const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
+  ({
+    booking,
+    services,
+    onClose,
+    onComplete,
+    onReschedule,
+    onDelete,
+    onUnblock,
+    onBookingUpdated,
+  }) => {
+    const { markAsNoShow, markingNoShow } = useNoShow({ onBookingUpdated });
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+    const isBlocked =
+      booking.is_blocked || !booking.client_id || booking.clients?.name === BLOCKED_NAME;
+
+    const handleReminder = () => {
+      const phone = booking.clients?.phone?.replace(/\D/g, '') || '';
+      if (!phone) return;
+      const name = booking.clients?.name || '';
+      const serviceNames =
+        booking.service_ids
+          ?.map((id) => services.find((s) => s.id === id)?.name)
+          .filter(Boolean)
+          .join(', ') || '';
+      const date = booking.booking_date;
+      const time = booking.booking_time?.slice(0, 5) || '';
+      const msg = `✅ *Agendamento confirmado, ${name}!*\n\nNa *Black Diamond*\n\n✂️ ${serviceNames}\n📅 ${formatWaDate(date)} às ${time}\n\nAguardamos você! 💈`;
+      openWhatsApp(phone, msg);
+    };
+
+    if (isBlocked) {
+      return (
+        <>
+          <div className="sticky top-0 bg-[#0E0E0E]/95 backdrop-blur-md z-10 px-5 lg:px-6 py-3.5 lg:py-4 border-b border-white/[0.04] flex items-center justify-between">
+            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.25em]">
+              Horário Bloqueado
+            </span>
+          </div>
+          <div className="px-5 lg:px-6 py-5 lg:py-6 flex-1 text-left overflow-y-auto scrollbar-hide">
+            {/* Mobile: minimal */}
+            <div className="lg:hidden space-y-5">
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02]">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-[#D4AF37]/10">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#D4AF37"
+                    strokeWidth="2"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-[13px] font-bold text-white">Horário Bloqueado</h3>
+                  <p className="text-[11px] text-zinc-500">Não aceita agendamentos</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  onUnblock?.();
+                  onClose();
+                }}
+                className="w-full h-10 bg-[#D4AF37]/10 text-[#D4AF37] font-bold text-[10px] uppercase tracking-[0.2em] transition-all cursor-pointer rounded-xl"
+              >
+                Desbloquear
+              </button>
+            </div>
+            {/* Desktop: with cards */}
+            <div className="hidden lg:block space-y-6">
+              <div className="flex items-center gap-4 bg-white/[0.02] border border-white/[0.06] p-4 rounded-xl">
+                <div className="w-12 h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl flex items-center justify-center shrink-0">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#D4AF37"
+                    strokeWidth="2"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Horário Indisponível</h3>
+                  <p className="text-[11px] text-zinc-500 mt-0.5">
+                    Este horário foi bloqueado e não aceita agendamentos.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  onUnblock?.();
+                  onClose();
+                }}
+                className="w-full h-11 bg-[#D4AF37]/10 border border-[#D4AF37]/20 hover:bg-[#D4AF37]/20 text-[#D4AF37] font-black text-[10px] uppercase tracking-[0.25em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+                </svg>
+                Desbloquear Horário
+              </button>
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    const dateStr = new Date(booking.booking_date + 'T12:00:00').toLocaleDateString('pt-BR', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+    });
+    const timeStr = booking.booking_time?.slice(0, 5) || '--:--';
+
+    return (
+      <>
+        <div className="sticky top-0 bg-[#0E0E0E]/95 backdrop-blur-md z-10 px-5 lg:px-6 py-3.5 lg:py-4 border-b border-white/[0.04] flex items-center justify-between">
+          <span className="text-[9px] font-black text-[#D4AF37] uppercase tracking-[0.25em]">
+            Dados do Agendamento
+          </span>
+        </div>
+
+        {/* ==================== MOBILE: minimal ==================== */}
+        <div className="lg:hidden px-5 py-5 flex-1 text-left overflow-y-auto scrollbar-hide space-y-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white bg-white/[0.06] shrink-0">
+              {booking.clients?.name?.charAt(0) || 'U'}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[15px] font-bold text-white truncate">
+                {formatDisplayName(booking.clients?.name)}
+              </p>
+              <p className="text-[12px] text-zinc-500">
+                {formatPhone(booking.clients?.phone) || ''}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 text-[13px]">
+            <span className="text-zinc-400">{dateStr}</span>
+            <span className="text-[#D4AF37] font-bold">{timeStr}</span>
+          </div>
+
+          <div className="h-px bg-white/[0.04]" />
+
+          {booking.service_ids && booking.service_ids.length > 0 && (
+            <div className="space-y-2.5">
+              {booking.service_ids.map((id: string) => {
+                const srv = services.find((s) => s.id === id);
+                return (
+                  <div key={id} className="flex justify-between items-center">
+                    <span className="text-[13px] text-zinc-400">{srv?.name || 'Serviço'}</span>
+                    <span className="text-[13px] font-semibold text-zinc-300 tabular-nums">
+                      R$ {Number(srv?.price || 0).toFixed(0)}
+                    </span>
+                  </div>
+                );
+              })}
+              <div className="flex justify-between items-center pt-2">
+                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                  Total
+                </span>
+                <span className="text-[15px] font-black text-[#D4AF37]">
+                  R$ {(booking.total_price || 0).toFixed(0)}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2 pt-2">
+            {booking.status !== 'completed' && (
+              <button
+                onClick={() => {
+                  onComplete();
+                  onClose();
+                }}
+                className="w-full h-11 bg-[#D4AF37] text-[#0A0A0A] font-black text-[10px] uppercase tracking-[0.2em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  className="mb-0.5"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Finalizar Atendimento
+              </button>
+            )}
+            <button
+              onClick={handleReminder}
+              className="w-full h-9 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 text-[#D4AF37] text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5 rounded-lg transition-all"
+            >
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              Enviar Lembrete
+            </button>
+            <button
+              onClick={onReschedule}
+              className="w-full h-9 bg-transparent text-zinc-400 hover:text-white transition-all text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                <path d="M16 16h5v5" />
+              </svg>
+              Reagendar
+            </button>
+            <button
+              onClick={() => setShowCancelConfirm(true)}
+              className="w-full h-9 bg-transparent text-red-400/40 hover:text-red-400/70 transition-all text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+              Cancelar Agendamento
+            </button>
+            {booking.status !== 'completed' && (
+              <button
+                onClick={async () => {
+                  await markAsNoShow(
+                    booking.id,
+                    booking.clients?.name || 'Cliente',
+                    booking.client_id,
+                    booking.clients?.phone
+                  );
+                  onClose();
+                }}
+                disabled={markingNoShow === booking.id}
+                className="w-full h-9 bg-transparent text-orange-400/40 hover:text-orange-400/70 transition-all text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
+                  <line x1="9" y1="9" x2="9.01" y2="9" />
+                  <line x1="15" y1="9" x2="15.01" y2="9" />
+                </svg>
+                {markingNoShow === booking.id ? 'Marcando...' : 'Não Compareceu'}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ==================== DESKTOP: with cards ==================== */}
+        <div className="hidden lg:block px-6 py-6 flex-1 text-left overflow-y-auto scrollbar-hide space-y-6">
+          <div className="flex items-center gap-4 bg-white/[0.01] border border-white/[0.03] p-4 rounded-xl">
+            <div className="w-12 h-12 bg-[#111111] border border-white/[0.08] rounded-xl flex items-center justify-center text-lg font-bold text-white uppercase shrink-0">
+              {booking.clients?.name?.charAt(0) || 'U'}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base font-black text-white uppercase tracking-tight truncate">
+                {formatDisplayName(booking.clients?.name)}
+              </h3>
+              <p className="text-xs text-zinc-500 mt-0.5">
+                {formatPhone(booking.clients?.phone) || 'Sem telefone'}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-[#121212] border border-white/[0.03] rounded-xl p-4 space-y-3">
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+                Data
+              </span>
+              <span className="text-xs font-bold text-white uppercase">{dateStr}</span>
+            </div>
+            <div className="h-px bg-white/[0.04]" />
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+                Horário
+              </span>
+              <span className="text-xs font-bold text-[#D4AF37]">{timeStr}</span>
+            </div>
+          </div>
+
+          {booking.service_ids && booking.service_ids.length > 0 && (
+            <div className="bg-[#121212] border border-white/[0.03] rounded-xl p-4 space-y-3">
+              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block px-1">
+                Serviços
+              </span>
+              <div className="space-y-2.5">
+                {booking.service_ids.map((id: string) => {
+                  const srv = services.find((s) => s.id === id);
+                  return (
+                    <div key={id} className="flex justify-between items-center text-sm px-1">
+                      <span className="text-zinc-400 font-medium">{srv?.name || 'Serviço'}</span>
+                      <span className="font-bold text-white tabular-nums">
+                        R$ {Number(srv?.price || 0).toFixed(0)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="h-px bg-white/[0.04]" />
+              <div className="flex justify-between items-center px-1">
+                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">
+                  Total
+                </span>
+                <span className="text-base font-black text-[#D4AF37]">
+                  R$ {(booking.total_price || 0).toFixed(0)}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            {booking.status !== 'completed' && (
+              <button
+                onClick={() => {
+                  onComplete();
+                  onClose();
+                }}
+                className="w-full h-11 bg-[#D4AF37] hover:bg-white text-[#0A0A0A] font-black text-[10px] uppercase tracking-[0.25em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  className="mb-0.5"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Finalizar Atendimento
+              </button>
+            )}
+            <button
+              onClick={handleReminder}
+              className="w-full h-11 bg-[#D4AF37]/10 border border-[#D4AF37]/20 hover:bg-[#D4AF37]/20 text-[#D4AF37] rounded-xl transition-all active:scale-[0.99] text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              Enviar Lembrete
+            </button>
+            <button
+              onClick={onReschedule}
+              className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-zinc-300 hover:bg-white/[0.05] hover:text-white rounded-xl transition-all active:scale-[0.99] text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                <path d="M16 16h5v5" />
+              </svg>
+              Reagendar
+            </button>
+            <button
+              onClick={() => setShowCancelConfirm(true)}
+              className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-zinc-400 hover:bg-red-500/[0.02] hover:border-red-500/20 hover:text-red-400 rounded-xl transition-all active:scale-[0.99] text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                className="mb-0.5"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                <line x1="10" y1="11" x2="10" y2="17" />
+                <line x1="14" y1="11" x2="14" y2="17" />
+              </svg>
+              Cancelar Agendamento
+            </button>
+            {booking.status !== 'completed' && (
+              <button
+                onClick={async () => {
+                  await markAsNoShow(
+                    booking.id,
+                    booking.clients?.name || 'Cliente',
+                    booking.client_id,
+                    booking.clients?.phone
+                  );
+                  onClose();
+                }}
+                disabled={markingNoShow === booking.id}
+                className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-orange-400/40 hover:bg-orange-500/[0.02] hover:border-orange-500/20 hover:text-orange-400 rounded-xl transition-all active:scale-[0.99] text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  className="mb-0.5"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
+                  <line x1="9" y1="9" x2="9.01" y2="9" />
+                  <line x1="15" y1="9" x2="15.01" y2="9" />
+                </svg>
+                {markingNoShow === booking.id ? 'Marcando...' : 'Não Compareceu'}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Cancel Confirmation Modal */}
+        {showCancelConfirm && (
+          <div className="fixed inset-0 z-[250] flex items-center justify-center p-5 bg-black/60 backdrop-blur-sm">
+            <div
+              className="bg-[#111] border border-white/[0.08] rounded-2xl p-6 w-full max-w-sm space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center space-y-2">
+                <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#ef4444"
+                    strokeWidth="2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="15" y1="9" x2="9" y2="15" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                  </svg>
+                </div>
+                <h3 className="text-[14px] font-bold text-white">Cancelar agendamento?</h3>
+                <p className="text-[12px] text-zinc-500">
+                  O agendamento de{' '}
+                  <strong className="text-zinc-300">
+                    {formatDisplayName(booking.clients?.name)}
+                  </strong>{' '}
+                  será cancelado.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowCancelConfirm(false)}
+                  className="flex-1 h-11 border border-white/[0.08] text-zinc-400 hover:text-white rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  Voltar
+                </button>
+                <button
+                  onClick={() => {
+                    onDelete();
+                    setShowCancelConfirm(false);
+                  }}
+                  className="flex-1 h-11 bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  Sim, cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+);
+
+BookingDetailPanel.displayName = 'BookingDetailPanel';
+
+export default BookingDetailPanel;

@@ -1,0 +1,8 @@
+# Default owner for everything
+* @elberthprofissional
+
+# Supabase schema and migrations
+supabase/ @elberthprofissional
+
+# CI/CD workflows
+.github/ @elberthprofissional
