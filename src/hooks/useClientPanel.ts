@@ -8,8 +8,7 @@ import {
 } from '../lib/api';
 import { getClientMilestones } from '../lib/api/loyalty';
 import { supabase } from '../lib/supabase';
-import { getErrorMessage, maskName, maskPhone, getLocalDateString } from '../lib/utils';
-import { MASK_SENSITIVE_DATA } from '../lib/constants';
+import { getErrorMessage, getLocalDateString } from '../lib/utils';
 import { useToast } from './useToast';
 import { useAuditLog } from './useAuditLog';
 import type { ClientWithStats, BookingWithClient, MensalistaPlan } from '../types';
@@ -41,7 +40,7 @@ export function useClientPanel(
 
   const openPanel = useCallback(async (client: ClientWithStats) => {
     setSelectedClient(client);
-    setNotesText(MASK_SENSITIVE_DATA ? 'Informações ocultadas para o vídeo' : client.notes || '');
+    setNotesText(client.notes || '');
     setIsEditing(false);
     setIsEditingNotes(false);
     try {
@@ -53,25 +52,7 @@ export function useClientPanel(
           .order('booking_date', { ascending: false }),
         getClientMilestones(client.id).catch(() => [] as MilestoneProgress[]),
       ]);
-      let bData = (bookingsRes.data || []) as BookingWithClient[];
-      if (MASK_SENSITIVE_DATA) {
-        bData = bData.map((b) => {
-          const clients = b.clients
-            ? {
-                name: maskName(b.clients.name),
-                phone: maskPhone(b.clients.phone),
-              }
-            : {
-                name: '',
-                phone: '',
-              };
-          return {
-            ...b,
-            clients,
-            total_price: 0,
-          };
-        });
-      }
+      const bData = (bookingsRes.data || []) as BookingWithClient[];
       setPanelBookings(bData);
       setMilestoneProgress(milestones);
     } catch (e) {

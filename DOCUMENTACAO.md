@@ -2,7 +2,7 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, notificacoes push e integracao com WhatsApp.
 
-**Versao:** 3.20.0 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.22.0 | **Ultima atualizacao:** Julho 2026
 
 ---
 
@@ -309,7 +309,8 @@ O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto v
 - **Mensalista:** Planos, servicos exclusos, gestao de clientes mensalistas
 - **Controle de Faltas:** Configuracao de limite de faltas e bloqueio automatico
 - **Fidelidade:** Configuracao de meta de visitas e servico premio
-- **Cupons:** Gerenciamento de cupons de desconto (CRUD)
+- **Cupons:** Gerenciamento de cupons de desconto (CRUD) — tipos: valor fixo, porcentagem e servico gratis
+- **Depoimentos:** Gerenciamento de depoimentos de clientes (CRUD)
 - **Notificacoes:** Toggle de notificacoes push
 - **Plano:** Gerenciamento de assinatura SaaS (billing com Asaas)
 - **Zona de Seguranca:** Resetar financeiro e deletar clientes
@@ -331,7 +332,7 @@ O projeto usa 6 migrations consolidadas (substituem as 14+ migrations anteriores
 | `003_functions.sql` | 30+ funcoes RPC (versoes finais) |
 | `004_triggers.sql` | Triggers de notificacao + realtime |
 | `005_seed_data.sql` | Dados iniciais + billing plans |
-| `006_cron.sql` | 8 cron jobs |
+| `006_cron.sql` | 6 cron jobs consolidados |
 
 ### Tabelas
 
@@ -362,11 +363,7 @@ id UUID PK, user_id UUID FK (auth.users), title TEXT, body TEXT,
 tag TEXT, url TEXT, read BOOLEAN, created_at TIMESTAMPTZ
 ```
 
-**reviews** — Avaliacoes de clientes
-```sql
-id UUID PK, booking_id UUID FK, client_id UUID FK,
-rating INTEGER (1-5), comment TEXT, created_at TIMESTAMPTZ
-```
+**reviews** — Avaliacoes de clientes (REMOVIDO na v3.13.0)
 
 **settings** — Configuracoes do sistema
 ```sql
@@ -378,11 +375,6 @@ key TEXT PK, value TEXT, updated_at TIMESTAMPTZ
 **push_subscriptions** — Inscricoes de notificacao push
 ```sql
 id UUID PK, endpoint TEXT, p256dh TEXT, auth TEXT, user_agent TEXT, created_at TIMESTAMPTZ
-```
-
-**secrets** — Chaves de API (VAPID, Google, etc.)
-```sql
-key TEXT PK, value TEXT, created_at TIMESTAMPTZ
 ```
 
 **admin_users** — Lista de administradores
@@ -408,11 +400,6 @@ id UUID PK, key TEXT, name TEXT, body TEXT, created_at TIMESTAMPTZ, updated_at T
 **rate_limits** — Rate limiting server-side
 ```sql
 id UUID PK, key TEXT, ip_address TEXT, attempts INTEGER, window_start TIMESTAMPTZ, created_at TIMESTAMPTZ
-```
-
-**loyalty_config** — Configuracao do programa de fidelidade
-```sql
-id UUID PK, visit_threshold INTEGER, reward_service_id UUID, enabled BOOLEAN, created_at TIMESTAMPTZ
 ```
 
 **coupons** — Cupons de desconto
@@ -481,7 +468,6 @@ amount DECIMAL, currency TEXT, status TEXT, created_at TIMESTAMPTZ
 | `check_client_milestones` | Verifica milestones de fidelidade disponiveis |
 | `get_client_milestones_public` | Busca progresso de fidelidade (publico) |
 | `increment_client_visit` | Incrementa contador de visitas do cliente |
-| `validate_and_use_coupon` | Valida e usa cupom atomicamente (previne race condition) |
 | `preserve_client_stats` | Preserva estatisticas do cliente antes de limpar dados |
 | `cleanup_old_data` | Limpeza mensal de bookings e audit logs antigos |
 
@@ -798,27 +784,42 @@ Black Diamond/
 │   │   │   └── settings/       # Configuracoes do admin
 │   │   │       ├── SettingsList.tsx
 │   │   │       ├── SettingsConta.tsx
+│   │   │       ├── SettingsCupons.tsx
+│   │   │       ├── SettingsDados.tsx
+│   │   │       ├── SettingsDepoimentos.tsx
+│   │   │       ├── SettingsFaltas.tsx
+│   │   │       ├── SettingsFidelidade.tsx
 │   │   │       ├── SettingsGaleria.tsx
+│   │   │       ├── SettingsHorarios.tsx
+│   │   │       ├── SettingsMensalista.tsx
 │   │   │       ├── SettingsNotificacoes.tsx
-│   │   │       └── SettingsDados.tsx
+│   │   │       └── SettingsServicos.tsx
 │   │   ├── Booking/            # Componentes de agendamento
+│   │   │   ├── BookingPageView.tsx
 │   │   │   ├── DataStep.tsx
 │   │   │   ├── DateTimeStep.tsx
 │   │   │   ├── ReviewStep.tsx
 │   │   │   ├── ServiceStep.tsx
 │   │   │   └── SuccessStep.tsx
 │   │   ├── About.tsx
+│   │   ├── ClientProfile.tsx
+│   │   ├── ConnectionStatusBanner.tsx
 │   │   ├── ErrorBoundary.tsx
 │   │   ├── Footer.tsx
 │   │   ├── Gallery.tsx
-│   │   ├── GalleryLightbox.tsx
 │   │   ├── Hero.tsx
 │   │   ├── Location.tsx
 │   │   ├── Navbar.tsx
-│   │   ├── PwaGuard.tsx
+│   │   ├── PwaInstallModal.tsx
 │   │   ├── Services.tsx
-│   │   └── TestimonialsSlider.tsx
+│   │   ├── Skeleton.tsx
+│   │   ├── StandaloneGuard.tsx
+│   │   ├── TestimonialsSlider.tsx
+│   │   └── WhatsAppIcon.tsx
 │   ├── hooks/
+│   │   ├── README.md
+│   │   ├── useAdminBookingSubmit.ts
+│   │   ├── useAdminClientSearch.ts
 │   │   ├── useAdminLogout.ts
 │   │   ├── useAuditLog.ts
 │   │   ├── useBarberSettings.ts
@@ -826,57 +827,78 @@ Black Diamond/
 │   │   ├── useBookingManagement.ts
 │   │   ├── useBookingModals.ts
 │   │   ├── useBookings.ts
+│   │   ├── useBookingSlots.ts
+│   │   ├── useBookingSubmit.ts
 │   │   ├── useBookingWizard.ts
-│   │   ├── useCallbackRef.ts
 │   │   ├── useClientCreation.ts
 │   │   ├── useClientLookup.ts
 │   │   ├── useClientPanel.ts
 │   │   ├── useClients.ts
 │   │   ├── useClientsData.ts
 │   │   ├── useConnectionStatus.ts
+│   │   ├── useCsvExport.ts
+│   │   ├── useDashboardData.ts
 │   │   ├── useDateDragScroll.ts
-│   │   ├── useDebounce.ts
 │   │   ├── useGallery.ts
 │   │   ├── useGalleryData.ts
 │   │   ├── useGalleryPreview.ts
 │   │   ├── useGallerySelection.ts
 │   │   ├── useGalleryUpload.ts
 │   │   ├── useIsDesktop.ts
-│   │   ├── useLatest.ts
+│   │   ├── useMensalistaFilter.ts
 │   │   ├── useModalA11y.ts
+│   │   ├── useNoShow.ts
+│   │   ├── useNotificationPrefs.ts
+│   │   ├── useNotifications.ts
 │   │   ├── useProfileStats.ts
 │   │   ├── usePushNotifications.ts
+│   │   ├── usePwaInstall.ts
 │   │   ├── useRateLimit.ts
 │   │   ├── useReducedMotion.ts
 │   │   ├── useReminders.ts
 │   │   ├── useReschedule.ts
+│   │   ├── useRevenueChartData.ts
+│   │   ├── useSEO.tsx
 │   │   ├── useServices.ts
 │   │   ├── useSlotBlocking.ts
+│   │   ├── useTestimonials.ts
 │   │   ├── useToast.ts
-│   │   ├── useWeeklyCongrats.ts
-│   │   └── useWizardStep.ts
+│   │   ├── useWizardStep.ts
+│   │   └── useXlsxExport.ts
 │   ├── lib/
-│   │   ├── api/                # Funcoes de API separadas por domínio
+│   │   ├── api/                # Funcoes de API separadas por dominio
 │   │   │   ├── index.ts        #   Barrel export
 │   │   │   ├── bookings.ts     #   Agendamentos
 │   │   │   ├── clients.ts      #   Clientes
-│   │   │   ├── services.ts     #   Serviços
-│   │   │   └── mensalista.ts   #   Planos mensalistas
-│   │   ├── api.ts              # Funcoes de API (legado, mantido para compatibilidade)
+│   │   │   ├── coupons.ts      #   Cupons
+│   │   │   ├── loyalty.ts      #   Fidelidade
+│   │   │   ├── mensalista.ts   #   Planos mensalistas
+│   │   │   ├── noShow.ts       #   Controle de faltas
+│   │   │   ├── services.ts     #   Servicos
+│   │   │   ├── templates.ts    #   Templates WhatsApp
+│   │   │   └── testimonials.ts #   Depoimentos
+│   │   ├── constants.ts        # Constantes
+│   │   ├── csv.ts              # Exportacao CSV
+│   │   ├── logger.ts           # Logger (Sentry)
+│   │   ├── notifications.ts    # Parse de notificacoes
 │   │   ├── supabase.ts         # Cliente Supabase
-│   │   └── utils.ts            # Utilitarios (formatPhone, dates, slots)
+│   │   ├── utils.ts            # Utilitarios (formatPhone, dates, slots)
+│   │   ├── whatsapp.ts         # URLs e formatacao WhatsApp
+│   │   └── xlsx.ts             # Exportacao XLSX
 │   ├── pages/
 │   │   ├── AdminBooking.tsx
 │   │   ├── AdminClients.tsx
 │   │   ├── AdminDashboard.tsx
-│   │   ├── AdminLogin.tsx           # Splitado em 5 componentes
+│   │   ├── AdminLogin.tsx
 │   │   ├── AdminProfile.tsx
 │   │   ├── AdminResetPassword.tsx
 │   │   ├── AdminWeekly.tsx
 │   │   ├── BookingPage.tsx
+│   │   ├── CancelPage.tsx
 │   │   ├── Home.tsx
+│   │   ├── ManageBooking.tsx
 │   │   ├── NotFound.tsx
-│   │   └── RatingPage.tsx
+│   │   └── NotificationsPage.tsx
 │   ├── test/
 │   │   └── setup.ts
 │   ├── types/
@@ -900,9 +922,11 @@ Black Diamond/
 │       └── asaas-portal/       # Edge function de portal Asaas
 │       └── asaas-webhook/      # Edge function de webhook Asaas
 ├── e2e/                        # Testes E2E (Playwright)
+│   ├── accessibility.spec.ts   # Testes de acessibilidade
 │   ├── admin.spec.ts           # Testes do admin (login, navegacao, rate limiting)
 │   ├── booking.spec.ts         # Testes do agendamento
-│   └── booking-errors.spec.ts  # Testes de erros, concorrencia, limites
+│   ├── booking-errors.spec.ts  # Testes de erros, concorrencia, limites
+│   └── visual.spec.ts          # Testes visuais (screenshots)
 ├── instalar-cliente.mjs       # Script automatico de instalacao para novos clientes
 ├── supabase-helper.mjs         # Helper para debug do Supabase
 ├── vercel.json                 # Configuracao de deploy + headers de seguranca
@@ -980,8 +1004,8 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 
 ### Cobertura atual
 
-- 55 arquivos de teste
-- 409 testes (unit + E2E)
+- 80 arquivos de teste
+- 607 testes (unit + E2E)
 - Hooks, Utils, API, Componentes e Paginas cobertos
 - CI/CD com GitHub Actions: lint → test:coverage → typecheck → build
 - **Coverage minimo:** 70% (statements, branches, functions, lines)

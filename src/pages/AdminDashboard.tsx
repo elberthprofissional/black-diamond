@@ -36,6 +36,10 @@ const AdminDashboard: FC = () => {
     const currentHour = now.getHours();
     const currentMinutes = now.getMinutes();
 
+    if (!barberHours) {
+      return { isClosed: false, isPastClosing: false };
+    }
+
     try {
       const parsed = JSON.parse(barberHours);
       const config = parsed[String(dayOfWeek)];

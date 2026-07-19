@@ -1,16 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getClients, getClientByPhone, getMensalistaPlans } from '../lib/api';
-import { formatPhone, maskName, maskPhone } from '../lib/utils';
+import { formatPhone } from '../lib/utils';
 import { useToast } from './useToast';
-import { BLOCKED_NAME, MASK_SENSITIVE_DATA } from '../lib/constants';
+import { BLOCKED_NAME } from '../lib/constants';
 import type { Client, MensalistaPlan } from '../types';
 import { logError } from '../lib/logger';
 
-/** Client with enriched fields (original values before masking) */
-type ClientWithEnriched = Client & {
-  _originalName: string;
-  _originalPhone: string;
-};
+/** Client enriched for modal display */
+type ClientWithEnriched = Client;
 
 interface UseAdminClientSearchReturn {
   searchQuery: string;
@@ -115,13 +112,7 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
         .filter((c: Client) => {
           return c && c.name && !c.deleted_at && c.name !== BLOCKED_NAME && !c.is_blocked;
         })
-        .map((c: Client) => ({
-          ...c,
-          _originalName: c.name,
-          _originalPhone: c.phone,
-          name: MASK_SENSITIVE_DATA ? maskName(c.name) : c.name,
-          phone: MASK_SENSITIVE_DATA ? maskPhone(c.phone) : c.phone,
-        }));
+        .map((c: Client) => c);
       setFilteredClientsForModal(enrichedClients);
       return enrichedClients;
     } catch (e) {
@@ -162,11 +153,9 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
       const isPhone = /^\+?\d[\d\s\-()]*$/.test(term);
       const matches = isPhone
         ? filteredClientsForModal.filter((c) =>
-            (c._originalPhone || c.phone).replace(/\D/g, '').includes(term.replace(/\D/g, ''))
+            c.phone.replace(/\D/g, '').includes(term.replace(/\D/g, ''))
           )
-        : filteredClientsForModal.filter((c) =>
-            (c._originalName || c.name).toLowerCase().includes(term)
-          );
+        : filteredClientsForModal.filter((c) => c.name.toLowerCase().includes(term));
 
       setIsSearchingClient(false);
 
@@ -213,7 +202,7 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
     currentPlan,
     setCurrentPlan,
     allPlans,
-    filteredClientsForModal: filteredClientsForModal as ClientWithEnriched[],
+    filteredClientsForModal,
     setFilteredClientsForModal,
 
     // Actions

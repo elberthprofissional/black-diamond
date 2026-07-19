@@ -2,15 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { getServices } from '../lib/api';
 import type { Service } from '../types';
 import { logError } from '../lib/logger';
-
-const CACHE_KEY = 'barber_services_cache';
+import { STORAGE_SERVICES_CACHE } from '../lib/constants';
 
 let cachedServices: Service[] | null = null;
 
 // Carrega cache do localStorage na inicialização
 function loadCache(): Service[] | null {
   try {
-    const stored = localStorage.getItem(CACHE_KEY);
+    const stored = localStorage.getItem(STORAGE_SERVICES_CACHE);
     if (stored) {
       const parsed = JSON.parse(stored) as { data: Service[]; timestamp: number };
       // Cache válido por 24 horas
@@ -28,7 +27,7 @@ function loadCache(): Service[] | null {
 // Salva cache no localStorage
 function saveCache(data: Service[]) {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+    localStorage.setItem(STORAGE_SERVICES_CACHE, JSON.stringify({ data, timestamp: Date.now() }));
   } catch (e) {
     logError(e);
     // localStorage cheio ou indisponível
@@ -63,7 +62,7 @@ export function useServices() {
         setServices(localCache);
         setIsOffline(true);
       } else if (!cachedServices) {
-        setError(err instanceof Error ? err : new Error('Failed to fetch services'));
+        setError(err instanceof Error ? err : new Error('Erro ao carregar serviços.'));
       } else {
         setIsOffline(true);
       }
@@ -105,7 +104,7 @@ export function useServices() {
 export function clearServicesCache() {
   cachedServices = null;
   try {
-    localStorage.removeItem(CACHE_KEY);
+    localStorage.removeItem(STORAGE_SERVICES_CACHE);
   } catch (e) {
     logError(e);
     // ignore storage failures

@@ -26,14 +26,5 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
-  "exclude": [
-    "src/**/*.test.ts",
-    "src/**/*.test.tsx",
-    "src/test/**",
-    "src/pages/Pricing.tsx",
-    "src/hooks/useSubscription.ts",
-    "src/components/Admin/SubscriptionGuard.tsx",
-    "src/components/Admin/settings/SettingsPlano.tsx",
-    "src/lib/api/billing.ts"
-  ]
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/test/**"]
 }

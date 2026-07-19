@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { useBookingModals } from './useBookingModals';
-import { useBookingFilters } from './useBookingFilters';
+import { useIsDesktop } from './useIsDesktop';
 import { useServices } from './useServices';
 import { useReschedule } from './useReschedule';
 
 export function useBookingManagement(loadData: () => Promise<void>) {
   const { services } = useServices();
-  const { filter, setFilter, isDesktop } = useBookingFilters();
+  const [filter, setFilter] = useState<'occupied' | 'free' | 'blocked'>('occupied');
+  const isDesktop = useIsDesktop();
   const {
     toast,
     showSuccess,

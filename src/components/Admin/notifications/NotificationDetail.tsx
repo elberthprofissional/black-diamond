@@ -29,8 +29,8 @@ export default function NotificationDetail({ notif, onBack, onClose }: Notificat
   const [date, timeRaw] = data.dateTime.split(' às ');
   const services = data.services.split(', ');
 
-  const phoneClean = data.clientPhone?.replace(/\D/g, '');
-  const cleanPhone = phoneClean?.startsWith('55') ? phoneClean : `55${phoneClean}`;
+  const phoneClean = data.clientPhone?.replace(/\D/g, '') || '';
+  const cleanPhone = phoneClean.startsWith('55') ? phoneClean : `55${phoneClean}`;
 
   const openWhatsApp = (msg: string) => {
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');

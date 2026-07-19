@@ -9,6 +9,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 interface Window {
+  gtag: (...args: unknown[]) => void;
   deferredPrompt?: BeforeInstallPromptEvent;
   dataLayer?: unknown[][];
 }

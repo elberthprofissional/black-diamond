@@ -21,8 +21,7 @@ if (document.readyState === 'complete') {
 }
 
 // Defer non-critical initialization to after first paint
-const ric = window.requestIdleCallback || ((cb: () => void) => setTimeout(cb, 1));
-ric(() => {
+window.requestIdleCallback(() => {
   // Google Analytics
   const gaId = import.meta.env.VITE_GA_ID;
   if (gaId) {

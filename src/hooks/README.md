@@ -27,9 +27,6 @@ Lógica de reagendamento com validação de conflitos.
 const { startReschedule, confirmReschedule, cancelReschedule } = useReschedule(...);
 ```
 
-### `useBookingFilters`
-Filtros de agendamento (ocupados, livres, bloqueados).
-
 ### `useSlotBlocking`
 Bloqueio/desbloqueio de horários específicos.
 

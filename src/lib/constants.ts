@@ -18,5 +18,16 @@ export const INACTIVE_DAYS = 30;
  */
 export const MENSALISTA_EXCLUDED_SERVICES = ['Corte de Cabelo'];
 
-/** Set to true to hide client names/phones and admin revenue data for video recording */
-export const MASK_SENSITIVE_DATA = false;
+// ─── localStorage Keys ───
+/** Chave para armazenar histórico de lembretes enviados */
+export const STORAGE_REMINDERS_SENT = 'barber_reminders_sent';
+/** Chave para armazenar templates de lembretes */
+export const STORAGE_REMINDER_TEMPLATES = 'barber_templates';
+/** Chave para cache de serviços */
+export const STORAGE_SERVICES_CACHE = 'barber_services_cache';
+/** Chave para fila offline de agendamentos */
+export const STORAGE_BOOKING_QUEUE = 'booking_offline_queue';
+/** Chave para marcar que o PWA foi instalado */
+export const STORAGE_PWA_INSTALLED = 'barber_pwa_installed';
+/** Prefixo para chaves de rate limit */
+export const STORAGE_RATELIMIT_PREFIX = 'ratelimit_';

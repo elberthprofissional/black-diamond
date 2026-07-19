@@ -1497,7 +1497,7 @@ BEGIN
     RETURN jsonb_build_object(
         'status', v_db_status,
         'timestamp', NOW(),
-        'version', '3.20.0',
+        'version', '3.22.0',
         'database', jsonb_build_object(
             'services', v_services_count,
             'bookings', v_bookings_count,
@@ -1544,70 +1544,50 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- =========================================================================
--- 10. CRON JOBS
+-- 10. CRON JOBS (6 consolidados, eram 8+)
 -- =========================================================================
 
 -- Remove crons antigos para recriar limpos
 DO $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'limpar-semana') THEN
-        PERFORM cron.unschedule('limpar-semana');
-    END IF;
-    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'completar-diario') THEN
-        PERFORM cron.unschedule('completar-diario');
-    END IF;
-    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'completar-tarde') THEN
-        PERFORM cron.unschedule('completar-tarde');
-    END IF;
-    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'verificar-mensalistas') THEN
-        PERFORM cron.unschedule('verificar-mensalistas');
-    END IF;
-    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'clean-notifications') THEN
-        PERFORM cron.unschedule('clean-notifications');
-    END IF;
-    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'auto-block-lunch') THEN
-        PERFORM cron.unschedule('auto-block-lunch');
-    END IF;
-    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'monthly-data-cleanup') THEN
-        PERFORM cron.unschedule('monthly-data-cleanup');
-    END IF;
-    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'weekly-report') THEN
-        PERFORM cron.unschedule('weekly-report');
-    END IF;
-    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'cleanup-rate-limits') THEN
-        PERFORM cron.unschedule('cleanup-rate-limits');
-    END IF;
-    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'cleanup-tokens') THEN
-        PERFORM cron.unschedule('cleanup-tokens');
-    END IF;
+    -- Jobs antigos removidos
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'limpar-semana') THEN PERFORM cron.unschedule('limpar-semana'); END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'completar-diario') THEN PERFORM cron.unschedule('completar-diario'); END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'completar-tarde') THEN PERFORM cron.unschedule('completar-tarde'); END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'monthly-data-cleanup') THEN PERFORM cron.unschedule('monthly-data-cleanup'); END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'cleanup-tokens') THEN PERFORM cron.unschedule('cleanup-tokens'); END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'cleanup-rate-limits') THEN PERFORM cron.unschedule('cleanup-rate-limits'); END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'clean-notifications') THEN PERFORM cron.unschedule('clean-notifications'); END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'cleanup-all') THEN PERFORM cron.unschedule('cleanup-all'); END IF;
+    -- Jobs atuais
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'completar-agendamentos') THEN PERFORM cron.unschedule('completar-agendamentos'); END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'auto-block-lunch') THEN PERFORM cron.unschedule('auto-block-lunch'); END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'verificar-mensalistas') THEN PERFORM cron.unschedule('verificar-mensalistas'); END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'monthly-cleanup') THEN PERFORM cron.unschedule('monthly-cleanup'); END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'weekly-report') THEN PERFORM cron.unschedule('weekly-report'); END IF;
 END $$;
 
--- CRON #1: Completar agendamentos automaticamente (00h BRT)
-SELECT cron.schedule('completar-diario', '0 3 * * *', $$ SELECT completar_agendamentos_expirados() $$);
+-- 1. Completar agendamentos expirados (a cada 15 min)
+SELECT cron.schedule('completar-agendamentos', '*/15 * * * *', $$ SELECT completar_agendamentos_expirados() $$);
 
--- CRON #2: Completar agendamentos (18h BRT)
-SELECT cron.schedule('completar-tarde', '0 21 * * *', $$ SELECT completar_agendamentos_expirados() $$);
+-- 2. Cleanup diario: tokens + notificacoes + rate limits (6h da manha)
+SELECT cron.schedule('cleanup-all', '0 6 * * *', $$
+    DELETE FROM booking_tokens WHERE expires_at < NOW();
+    DELETE FROM notifications WHERE created_at < NOW() - INTERVAL '30 days';
+    DELETE FROM rate_limits WHERE window_start < NOW() - INTERVAL '1 hour';
+$$);
 
--- CRON #3: Verificar mensalistas (11h BRT)
-SELECT cron.schedule('verificar-mensalistas', '0 14 * * *', $$ SELECT verificar_mensalistas() $$);
-
--- CRON #4: Limpar notificações antigas (1h BRT)
-SELECT cron.schedule('clean-notifications', '0 4 * * *', $$ SELECT clean_old_notifications() $$);
-
--- CRON #5: Auto-bloquear horário de almoço (1x ao dia à 0h BRT = 3h UTC)
+-- 3. Bloquear horarios de almoco (3h da manha)
 SELECT cron.schedule('auto-block-lunch', '0 3 * * *', $$ SELECT auto_block_lunch_break() $$);
 
--- CRON #6: Limpeza mensal de dados (1o dia do mês, 1h BRT)
-SELECT cron.schedule('monthly-data-cleanup', '0 4 1 * *', $$ SELECT cleanup_old_data() $$);
+-- 4. Verificar mensalistas proximos do vencimento (11h da manha)
+SELECT cron.schedule('verificar-mensalistas', '0 11 * * *', $$ SELECT verificar_mensalistas() $$);
 
--- CRON #7: Relatório semanal (segunda-feira, 8h BRT)
-SELECT cron.schedule('weekly-report', '0 11 * * 1', $$ SELECT send_weekly_report() $$);
+-- 5. Limpeza mensal de dados antigos (dia 1, 5h da manha)
+SELECT cron.schedule('monthly-cleanup', '0 5 1 * *', $$ SELECT cleanup_old_data() $$);
 
--- CRON #8: Limpeza de tokens expirados (diário às 4h BRT = 7h UTC)
-SELECT cron.schedule('cleanup-tokens', '0 7 * * *', $$ SELECT cleanup_expired_tokens() $$);
-
--- CRON #9: Limpeza de rate limits antigos (a cada hora)
-SELECT cron.schedule('cleanup-rate-limits', '7 * * * *', $$ SELECT cleanup_rate_limits() $$);
+-- 6. Relatorio semanal (domingo, 23h)
+SELECT cron.schedule('weekly-report', '0 23 * * 0', $$ SELECT send_weekly_report() $$);
 
 -- =========================================================================
 -- SECURE PUBLIC RPC FUNCTIONS
@@ -1944,22 +1924,6 @@ CREATE TABLE IF NOT EXISTS coupons (
   created_at timestamp with time zone DEFAULT now()
 );
 ALTER TABLE coupons ENABLE ROW LEVEL SECURITY;
-
--- Loyalty Config (20260720)
-CREATE TABLE IF NOT EXISTS loyalty_config (
-  id uuid primary key default uuid_generate_v4(),
-  visit_threshold integer not null,
-  reward_service_id uuid not null,
-  enabled boolean default false,
-  created_at timestamp with time zone default now()
-);
-ALTER TABLE loyalty_config ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Loyalty config admin" ON loyalty_config;
-CREATE POLICY "Loyalty config admin" ON loyalty_config
-  FOR ALL TO authenticated
-  USING (is_admin())
-  WITH CHECK (is_admin());
 
 -- Loyalty Milestones (20260722)
 CREATE TABLE IF NOT EXISTS loyalty_milestones (

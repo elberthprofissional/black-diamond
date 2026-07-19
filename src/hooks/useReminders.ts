@@ -1,9 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useToast } from './useToast';
+import { supabase } from '../lib/supabase';
 import { logError } from '../lib/logger';
-
-const SENT_KEY = 'barber_reminders_sent';
-const TEMPLATES_KEY = 'barber_templates';
+import { STORAGE_REMINDERS_SENT, STORAGE_REMINDER_TEMPLATES } from '../lib/constants';
 
 interface LocalTemplate {
   id: string;
@@ -226,7 +225,7 @@ function generateId(): string {
 
 function loadTemplatesFromStorage(): LocalTemplate[] {
   try {
-    const saved = localStorage.getItem(TEMPLATES_KEY);
+    const saved = localStorage.getItem(STORAGE_REMINDER_TEMPLATES);
     return saved ? JSON.parse(saved) : [];
   } catch (e) {
     logError(e);
@@ -236,10 +235,35 @@ function loadTemplatesFromStorage(): LocalTemplate[] {
 
 function saveTemplatesToStorage(templates: LocalTemplate[]) {
   try {
-    localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
+    localStorage.setItem(STORAGE_REMINDER_TEMPLATES, JSON.stringify(templates));
   } catch (e) {
     logError(e);
     // localStorage cheio ou indisponível — ignora
+  }
+}
+
+/** Carrega o histórico de lembretes do Supabase (últimos 7 dias) */
+async function loadRemindersFromDB(): Promise<Record<string, string>> {
+  try {
+    const { data, error } = await supabase
+      .from('reminder_logs')
+      .select('client_id, sent_at')
+      .gte('sent_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+      .order('sent_at', { ascending: false });
+
+    if (error || !data) return {};
+
+    // Pega o envio mais recente por cliente
+    const result: Record<string, string> = {};
+    for (const row of data) {
+      if (!result[row.client_id]) {
+        result[row.client_id] = row.sent_at;
+      }
+    }
+    return result;
+  } catch (e) {
+    logError(e);
+    return {};
   }
 }
 
@@ -247,9 +271,10 @@ export function useReminders() {
   const { showSuccess, showError } = useToast();
   const templatesRef = useRef<LocalTemplate[]>([]);
 
+  // State inicial: localStorage (fallback offline)
   const [remindersSent, setRemindersSent] = useState<Record<string, string>>(() => {
     try {
-      const saved = localStorage.getItem(SENT_KEY);
+      const saved = localStorage.getItem(STORAGE_REMINDERS_SENT);
       return saved ? JSON.parse(saved) : {};
     } catch (e) {
       logError(e);
@@ -266,6 +291,36 @@ export function useReminders() {
   useEffect(() => {
     templatesRef.current = templates;
   }, [templates]);
+
+  // Carrega dados do Supabase ao montar e mescla com localStorage
+  useEffect(() => {
+    let mounted = true;
+
+    const loadFromDB = async () => {
+      try {
+        const dbReminders = await loadRemindersFromDB();
+        if (!mounted) return;
+
+        // Mescla: DB tem prioridade, localStorage preenche lacunas
+        setRemindersSent((prev) => {
+          const merged = { ...prev, ...dbReminders };
+          localStorage.setItem(STORAGE_REMINDERS_SENT, JSON.stringify(merged));
+          return merged;
+        });
+      } catch (e) {
+        logError(e);
+        // Falha ao carregar do banco — usa só localStorage
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    loadFromDB();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Inicializa templates padrão sazonais se estiver vazio
   useEffect(() => {
@@ -286,16 +341,40 @@ export function useReminders() {
       saveTemplatesToStorage(created);
       setTemplates(created);
     }
-    setLoading(false);
   }, []);
 
-  const markReminderSent = useCallback((clientId: string) => {
-    setRemindersSent((prev) => {
-      const updated = { ...prev, [clientId]: new Date().toISOString() };
-      localStorage.setItem(SENT_KEY, JSON.stringify(updated));
-      return updated;
-    });
-  }, []);
+  const markReminderSent = useCallback(
+    (clientId: string, templateName?: string, templateBody?: string) => {
+      const now = new Date().toISOString();
+
+      // Salva no Supabase (assíncrono, não bloqueia UI)
+      const logPromise = supabase.rpc('log_reminder_sent', {
+        p_client_id: clientId,
+        p_template_name: templateName || null,
+        p_message_preview: templateBody
+          ? templateBody.slice(0, 100) + (templateBody.length > 100 ? '...' : '')
+          : null,
+      });
+      // Garante type-safe usando Promise.resolve() que suporta .catch()
+      Promise.resolve(logPromise)
+        .then(() => {})
+        .catch(() => {
+          // Falha ao salvar no banco — localStorage mantém o registro
+        });
+
+      // Salva no localStorage como fallback
+      setRemindersSent((prev) => {
+        const updated = { ...prev, [clientId]: now };
+        try {
+          localStorage.setItem(STORAGE_REMINDERS_SENT, JSON.stringify(updated));
+        } catch (e) {
+          logError(e);
+        }
+        return updated;
+      });
+    },
+    []
+  );
 
   const isReminderRecent = useCallback(
     (clientId: string): boolean => {
@@ -307,7 +386,7 @@ export function useReminders() {
   );
 
   const sendWithTemplate = useCallback(
-    (phone: string, template: string, clientId: string) => {
+    (phone: string, template: string, clientId: string, templateName?: string) => {
       if (!phone) {
         showError('Cliente sem telefone cadastrado.');
         return;
@@ -326,7 +405,7 @@ export function useReminders() {
         );
         return;
       }
-      markReminderSent(clientId);
+      markReminderSent(clientId, templateName, template);
     },
     [markReminderSent, showError]
   );

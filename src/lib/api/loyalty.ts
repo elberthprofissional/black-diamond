@@ -36,13 +36,21 @@ export const saveMilestones = async (
   if (insErr) throw insErr;
 };
 
-/** Ativa/desativa o sistema (se não houver milestones, limpa). */
+/** Ativa/desativa o sistema (desativar: marca milestones como inativas). */
 export const setLoyaltyEnabled = async (enabled: boolean): Promise<void> => {
   if (!enabled) {
+    // Desativa milestones em vez de deletar (preserva dados)
     const { error } = await supabase
       .from('loyalty_milestones')
-      .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000');
+      .update({ is_active: false })
+      .eq('is_active', true);
+    if (error) throw error;
+  } else {
+    // Reativa milestones que existiam
+    const { error } = await supabase
+      .from('loyalty_milestones')
+      .update({ is_active: true })
+      .eq('is_active', false);
     if (error) throw error;
   }
 };
@@ -133,7 +141,11 @@ export const incrementVisit = async (clientId: string): Promise<IncrementResult>
     .single();
   const newCount = (client?.historical_visits ?? 0) + 1;
 
-  await supabase.from('clients').update({ historical_visits: newCount }).eq('id', clientId);
+  const { error: updateErr } = await supabase
+    .from('clients')
+    .update({ historical_visits: newCount })
+    .eq('id', clientId);
+  if (updateErr) logError(updateErr);
 
   // 2. Busca milestones + claimed
   const { data: milestones } = await supabase

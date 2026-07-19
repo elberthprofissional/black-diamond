@@ -56,8 +56,14 @@ const AdminClients: FC = () => {
   };
 
   const filteredClients = c.clients.filter((cl) => {
-    const nameToSearch = cl._originalName || cl.name || '';
-    const phoneToSearch = cl._originalPhone || cl.phone || '';
+    const nameToSearch =
+      ('_originalName' in cl ? ((cl as Record<string, unknown>)._originalName as string) : '') ||
+      cl.name ||
+      '';
+    const phoneToSearch =
+      ('_originalPhone' in cl ? ((cl as Record<string, unknown>)._originalPhone as string) : '') ||
+      cl.phone ||
+      '';
     const matchSearch =
       nameToSearch.toLowerCase().includes(c.debouncedSearch.toLowerCase()) ||
       phoneToSearch.includes(c.debouncedSearch);

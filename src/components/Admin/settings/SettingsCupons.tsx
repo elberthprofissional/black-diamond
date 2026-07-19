@@ -37,7 +37,7 @@ const SettingsCupons: FC = () => {
 
   // Form state
   const [code, setCode] = useState('');
-  const [discountType, setDiscountType] = useState<'fixed' | 'free'>('fixed');
+  const [discountType, setDiscountType] = useState<'fixed' | 'percentage' | 'free'>('fixed');
   const [discountValue, setDiscountValue] = useState('');
   const [applicableServiceIds, setApplicableServiceIds] = useState<string[]>([]);
   const [validFrom, setValidFrom] = useState(getTodayStr);
@@ -91,7 +91,7 @@ const SettingsCupons: FC = () => {
 
   const openEdit = (coupon: Coupon) => {
     setCode(coupon.code);
-    setDiscountType(coupon.discount_type === 'percentage' ? 'fixed' : coupon.discount_type);
+    setDiscountType(coupon.discount_type === 'percentage' ? 'percentage' : coupon.discount_type);
     setDiscountValue(coupon.discount_type === 'free' ? '' : String(coupon.discount_value));
     setApplicableServiceIds(coupon.applicable_service_ids || []);
     setEditingId(coupon.id);
@@ -112,6 +112,13 @@ const SettingsCupons: FC = () => {
       const val = parseFloat(discountValue.replace(',', '.'));
       if (isNaN(val) || val <= 0) {
         showError('Informe um valor de desconto válido.');
+        return;
+      }
+    }
+    if (discountType === 'percentage') {
+      const val = parseInt(discountValue, 10);
+      if (isNaN(val) || val <= 0 || val > 100) {
+        showError('Informe um percentual entre 1 e 100.');
         return;
       }
     }

@@ -29,7 +29,7 @@
 ### Validacao
 - [x] `tsc -b --noEmit` — compila sem erros
 - [x] `npm run build` — build de producao OK
-- [x] `vitest run` — 55 arquivos, 409 testes, todos passando
+- [x] `vitest run` — 80 arquivos, 607 testes, todos passando
 - [x] WebKit instalado no Playwright
 
 ---

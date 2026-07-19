@@ -1,5 +1,5 @@
 import { type FC, type RefObject } from 'react';
-import { Check, DollarSign, Gift } from 'lucide-react';
+import { Check, DollarSign, Gift, Percent } from 'lucide-react';
 import type { Service } from '../../../../types';
 
 /** Limite maximo de caracteres para o codigo do cupom */
@@ -8,14 +8,15 @@ const MAX_CODE_LENGTH = 20;
 /** Opcoes de tipo de desconto disponiveis */
 const DISCOUNT_TYPES = [
   { value: 'fixed', label: 'Valor (R$)', icon: DollarSign },
+  { value: 'percentage', label: 'Porcentagem (%)', icon: Percent },
   { value: 'free', label: 'Serviço Grátis', icon: Gift },
 ] as const;
 
 export interface CouponFormFieldsProps {
   code: string;
   setCode: (v: string) => void;
-  discountType: 'fixed' | 'free';
-  setDiscountType: (v: 'fixed' | 'free') => void;
+  discountType: 'fixed' | 'percentage' | 'free';
+  setDiscountType: (v: 'fixed' | 'percentage' | 'free') => void;
   discountValue: string;
   setDiscountValue: (v: string) => void;
   applicableServiceIds: string[];
@@ -103,7 +104,7 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
       </div>
     </div>
 
-    {/* ─── Valor do Desconto (so para 'fixed') ─── */}
+    {/* ─── Valor do Desconto (para 'fixed') ─── */}
     {discountType === 'fixed' && (
       <div className="space-y-2">
         <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">
@@ -120,6 +121,30 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
             placeholder="15,00"
             className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-10 pr-4 py-3.5 text-[15px] text-white outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 transition-all placeholder:text-zinc-600"
           />
+        </div>
+      </div>
+    )}
+
+    {/* ─── Valor do Desconto (para 'percentage') ─── */}
+    {discountType === 'percentage' && (
+      <div className="space-y-2">
+        <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">
+          Percentual de desconto
+        </span>
+        <div className="relative">
+          <input
+            type="text"
+            value={discountValue}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^\d]/g, '');
+              if (val === '' || parseInt(val) <= 100) setDiscountValue(val);
+            }}
+            placeholder="10"
+            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-4 pr-10 py-3.5 text-[15px] text-white outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 transition-all placeholder:text-zinc-600"
+          />
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 text-[15px] font-medium">
+            %
+          </span>
         </div>
       </div>
     )}

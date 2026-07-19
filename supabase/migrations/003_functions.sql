@@ -561,23 +561,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION validate_and_use_coupon(p_code TEXT, p_service_ids UUID[])
-RETURNS jsonb AS $$
-DECLARE v_coupon RECORD; v_result jsonb;
-BEGIN
-    SELECT c.* INTO v_coupon FROM coupons c WHERE upper(c.code) = upper(trim(p_code)) AND c.is_active = TRUE FOR UPDATE;
-    IF NOT FOUND THEN RETURN jsonb_build_object('valid', false, 'error', 'Cupom nao encontrado.'); END IF;
-    IF v_coupon.valid_until IS NOT NULL AND CURRENT_DATE > v_coupon.valid_until THEN RETURN jsonb_build_object('valid', false, 'error', 'Cupom expirado.'); END IF;
-    IF v_coupon.max_uses IS NOT NULL AND v_coupon.current_uses >= v_coupon.max_uses THEN RETURN jsonb_build_object('valid', false, 'error', 'Limite atingido.'); END IF;
-    IF v_coupon.applicable_service_ids IS NOT NULL AND array_length(v_coupon.applicable_service_ids, 1) > 0 THEN
-        IF NOT (p_service_ids && v_coupon.applicable_service_ids) THEN RETURN jsonb_build_object('valid', false, 'error', 'Cupom nao se aplica.'); END IF;
-    END IF;
-    v_result := jsonb_build_object('valid', true, 'coupon_id', v_coupon.id, 'code', upper(trim(p_code)), 'discount_type', v_coupon.discount_type, 'discount_amount', CASE WHEN v_coupon.discount_type = 'percentage' THEN LEAST(v_coupon.discount_value, 100) ELSE v_coupon.discount_value END);
-    UPDATE coupons SET current_uses = current_uses + 1 WHERE id = v_coupon.id;
-    RETURN v_result;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- =========================================================================
 -- 8. RATE LIMITING
 -- =========================================================================
@@ -797,7 +780,7 @@ DECLARE v_status TEXT := 'ok'; v_s INTEGER; v_b INTEGER; v_c INTEGER;
 BEGIN
     BEGIN SELECT COUNT(*) INTO v_s FROM services; SELECT COUNT(*) INTO v_b FROM bookings; SELECT COUNT(*) INTO v_c FROM clients;
     EXCEPTION WHEN OTHERS THEN v_status := 'error'; END;
-    RETURN jsonb_build_object('status', v_status, 'timestamp', NOW(), 'version', '3.20.0',
+    RETURN jsonb_build_object('status', v_status, 'timestamp', NOW(), 'version', '3.22.0',
         'database', jsonb_build_object('services', v_s, 'bookings', v_b, 'clients', v_c),
         'uptime', EXTRACT(EPOCH FROM (NOW() - pg_postmaster_start_time()))::integer);
 END;

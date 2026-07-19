@@ -25,7 +25,6 @@ describe('useReminders', () => {
   it('initializes with empty reminders sent', () => {
     const { result } = renderHook(() => useReminders());
     expect(result.current.remindersSent).toEqual({});
-    expect(result.current.loading).toBe(false);
   });
 
   it('loads seasonal templates on initialization', () => {

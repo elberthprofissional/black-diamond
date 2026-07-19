@@ -1,5 +1,4 @@
 import { supabase } from './supabase';
-import { MASK_SENSITIVE_DATA } from './constants';
 import { logError } from '../lib/logger';
 
 interface DaySchedule {
@@ -114,9 +113,10 @@ const getBarberHours = async (): Promise<HoursData> => {
   return DEFAULT_HOURS;
 };
 
-// Cache for getTimeSlotsForDate (TTL: 5 minutes)
+// Cache for getTimeSlotsForDate (TTL: 5 minutes, max 100 entries)
 const slotsCache = new Map<string, { data: string[]; ts: number }>();
 const SLOTS_CACHE_TTL = 5 * 60 * 1000;
+const SLOTS_CACHE_MAX = 100;
 
 export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> => {
   const cached = slotsCache.get(dateStr);
@@ -140,6 +140,10 @@ export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> =>
       const daySchedule = parsed[dow] as DaySchedule | undefined;
 
       if (!daySchedule?.enabled) {
+        if (slotsCache.size >= SLOTS_CACHE_MAX) {
+          const oldest = slotsCache.keys().next().value;
+          if (oldest) slotsCache.delete(oldest);
+        }
         slotsCache.set(dateStr, { data: [], ts: Date.now() });
         return [];
       }
@@ -154,6 +158,10 @@ export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> =>
         slots = slots.filter((slot) => slot < lunchBreak.start || slot >= lunchBreak.end);
       }
 
+      if (slotsCache.size >= SLOTS_CACHE_MAX) {
+        const oldest = slotsCache.keys().next().value;
+        if (oldest) slotsCache.delete(oldest);
+      }
       slotsCache.set(dateStr, { data: slots, ts: Date.now() });
       return slots;
     }
@@ -166,10 +174,18 @@ export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> =>
   const hours = await getBarberHours();
   const daySchedule = hours[dow];
   if (!daySchedule?.enabled) {
+    if (slotsCache.size >= SLOTS_CACHE_MAX) {
+      const oldest = slotsCache.keys().next().value;
+      if (oldest) slotsCache.delete(oldest);
+    }
     slotsCache.set(dateStr, { data: [], ts: Date.now() });
     return [];
   }
   const slots = generateHourlySlots(daySchedule.open, daySchedule.close);
+  if (slotsCache.size >= SLOTS_CACHE_MAX) {
+    const oldest = slotsCache.keys().next().value;
+    if (oldest) slotsCache.delete(oldest);
+  }
   slotsCache.set(dateStr, { data: slots, ts: Date.now() });
   return slots;
 };
@@ -188,9 +204,6 @@ export const maskPhone = (phone: string | null | undefined): string => {
 
 export const formatPhone = (value: string | undefined | null) => {
   if (!value) return '';
-  if (MASK_SENSITIVE_DATA) {
-    return maskPhone(value);
-  }
   const digits = value.replace(/\D/g, '');
   let d = digits;
   if (d.length > 11) d = d.slice(0, 11);
@@ -381,9 +394,6 @@ export const maskEmail = (email: string | null | undefined): string => {
  */
 export const formatDisplayName = (name: string | null | undefined): string => {
   if (!name) return '';
-  if (MASK_SENSITIVE_DATA) {
-    return maskName(name);
-  }
   const parts = name.trim().split(/\s+/);
   if (parts.length <= 2) return name.trim();
   return `${parts[0]} ${parts[parts.length - 1]}`;

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Pencil, Trash2, Plus, Crown, Gift, ArrowLeft, Check } from 'lucide-react';
 import { formatPhone } from '../../../lib/utils';
+import { cleanPhoneForWhatsApp } from '../../../lib/whatsapp';
 import type { ClientWithStats, BookingWithClient, MensalistaPlan } from '../../../types';
 
 import type { MilestoneProgress } from '../../../lib/api';
@@ -182,7 +183,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
 
           <div className="flex gap-2">
             <a
-              href={`https://wa.me/${(client.phone ?? '').replace(/\D/g, '').startsWith('55') ? '' : '55'}${(client.phone ?? '').replace(/\D/g, '')}`}
+              href={`https://wa.me/${cleanPhoneForWhatsApp(client.phone ?? '')}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 h-10 border border-white/[0.06] bg-white/[0.02] text-zinc-300 font-bold text-[9px] uppercase tracking-wider rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer flex items-center justify-center"

@@ -188,15 +188,6 @@ CREATE TABLE IF NOT EXISTS coupons (
     created_at timestamp with time zone DEFAULT now()
 );
 
--- Configuracao de fidelidade (legado)
-CREATE TABLE IF NOT EXISTS loyalty_config (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    visit_threshold integer NOT NULL,
-    reward_service_id uuid NOT NULL,
-    enabled boolean DEFAULT false,
-    created_at timestamp with time zone DEFAULT now()
-);
-
 -- Milestones de fidelidade
 CREATE TABLE IF NOT EXISTS loyalty_milestones (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),

@@ -157,8 +157,11 @@ Value: https://seu-projeto.supabase.co     ← A URL que você anotou no Passo 1
 Name:  VITE_SUPABASE_ANON_KEY
 Value: eyJ...                              ← A chave que você anotou no Passo 1.2
 
-Name:  VITE_ADMIN_EMAIL
-Value: email-do-barbeiro@email.com         ← Email do admin
+Name:  VITE_BARBER_WHATSAPP
+Value: 5531999999999                       ← Numero WhatsApp do barbeiro (codigo do pais + DDD + numero)
+
+Name:  VITE_VAPID_PUBLIC_KEY
+Value: BLxxx...                           ← Chave publica VAPID (para notificacoes push)
 
 Name:  VITE_SENTRY_DSN
 Value: https://xxx@sentry.io/xxx           ← DSN do Sentry (opcional, para error reporting)
@@ -242,7 +245,7 @@ E vai gerar um arquivo `.env` pronto e um resumo do que precisa ser alterado no 
 
 ```
 Supabase:
-  New Project → Anotar URL + Key → SQL Editor → Rodar estrutura_barbearia.sql → Auth > Add User
+  New Project → Anotar URL + Key → SQL Editor → Rodar universal.sql → Auth > Add User
 
 Código:
   Location.tsx (iframe + endereço) → Footer.tsx (Instagram + endereço)

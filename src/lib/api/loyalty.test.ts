@@ -107,19 +107,24 @@ describe('saveMilestones', () => {
 });
 
 describe('setLoyaltyEnabled', () => {
-  it('deleta todas as milestones quando desabilita', async () => {
+  it('desativa milestones quando desabilita (soft-delete)', async () => {
     const builder = createQueryBuilder();
     mockFrom.mockReturnValue(builder);
 
     await setLoyaltyEnabled(false);
 
-    expect(builder.delete).toHaveBeenCalled();
+    expect(builder.update).toHaveBeenCalled();
+    expect(builder.eq).toHaveBeenCalledWith('is_active', true);
   });
 
-  it('não faz nada quando habilita', async () => {
+  it('reativa milestones quando habilita', async () => {
+    const builder = createQueryBuilder();
+    mockFrom.mockReturnValue(builder);
+
     await setLoyaltyEnabled(true);
-    // Não deve chamar delete
-    expect(mockFrom).not.toHaveBeenCalled();
+
+    expect(builder.update).toHaveBeenCalled();
+    expect(builder.eq).toHaveBeenCalledWith('is_active', false);
   });
 });
 

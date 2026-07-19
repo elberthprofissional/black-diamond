@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { EyeOff, Eye, ChevronRight, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../hooks/useToast';
+import { useScrollLock } from '../hooks/useScrollLock';
 import { logError } from '../lib/logger';
 
 const AdminResetPassword: FC = () => {
@@ -49,31 +50,7 @@ const AdminResetPassword: FC = () => {
     setIsPWA(!!isStandalone);
   }, []);
 
-  // Trava rolagem, arrastar e efeito de bounce (puxar para baixo) na tela de redefinir senha
-  useEffect(() => {
-    const prevOverscroll = document.documentElement.style.overscrollBehavior;
-    const prevBodyOverscroll = document.body.style.overscrollBehavior;
-    const prevOverflow = document.body.style.overflow;
-    const prevPosition = document.body.style.position;
-    const prevWidth = document.body.style.width;
-    const prevHeight = document.body.style.height;
-
-    document.documentElement.style.overscrollBehavior = 'none';
-    document.body.style.overscrollBehavior = 'none';
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    document.body.style.height = '100%';
-
-    return () => {
-      document.documentElement.style.overscrollBehavior = prevOverscroll;
-      document.body.style.overscrollBehavior = prevBodyOverscroll;
-      document.body.style.overflow = prevOverflow;
-      document.body.style.position = prevPosition;
-      document.body.style.width = prevWidth;
-      document.body.style.height = prevHeight;
-    };
-  }, []);
+  useScrollLock();
 
   const handleUpdate = async (e: FormEvent) => {
     e.preventDefault();
@@ -127,7 +104,7 @@ const AdminResetPassword: FC = () => {
         >
           <img
             src="/assets/resetar_senha.webp"
-            alt="Barbershop"
+            alt="Black Diamond Barbearia"
             loading="lazy"
             decoding="async"
             className="w-full h-full object-cover grayscale opacity-10"
@@ -166,7 +143,7 @@ const AdminResetPassword: FC = () => {
         <div className="absolute inset-0 hidden md:block lg:hidden overflow-hidden">
           <img
             src="/assets/resetar_senha.webp"
-            alt="Background"
+            alt="Black Diamond Barbearia"
             loading="lazy"
             decoding="async"
             className="w-full h-full object-cover grayscale opacity-5"

@@ -5,7 +5,6 @@ import {
   INACTIVE_DAYS,
   NULL_UUID,
   MENSALISTA_EXCLUDED_SERVICES,
-  MASK_SENSITIVE_DATA,
 } from './constants';
 
 describe('constants', () => {
@@ -25,12 +24,8 @@ describe('constants', () => {
     expect(INACTIVE_DAYS).toBeGreaterThan(0);
   });
 
-  it('exports MENSALISTA_EXCLUDED_SERVICES as an array', () => {
+  it('exports MENSALISTA_EXCLUDED_SERVICES as array', () => {
     expect(Array.isArray(MENSALISTA_EXCLUDED_SERVICES)).toBe(true);
     expect(MENSALISTA_EXCLUDED_SERVICES.length).toBeGreaterThan(0);
-  });
-
-  it('exports MASK_SENSITIVE_DATA as boolean', () => {
-    expect(typeof MASK_SENSITIVE_DATA).toBe('boolean');
   });
 });

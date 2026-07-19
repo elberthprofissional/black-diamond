@@ -42,7 +42,7 @@ const About: FC = () => {
                   <div className="relative aspect-[3/4] max-h-[350px] rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl mx-auto bg-[#1a1a1a]">
                     <img
                       src={barberPhoto}
-                      alt="Barbeiro"
+                      alt={`Foto de ${barberName || 'Barbeiro'}`}
                       className="w-full h-full object-cover object-top"
                       loading="lazy"
                       onError={() => setPhotoError(true)}

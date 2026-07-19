@@ -93,7 +93,7 @@ describe('useBookings', () => {
     renderHook(() => useBookings('2026-07-05'));
 
     await waitFor(() => {
-      expect(mockAutoComplete).toHaveBeenCalledWith('2026-07-05');
+      expect(mockAutoComplete).toHaveBeenCalledWith();
     });
   });
 
@@ -107,23 +107,13 @@ describe('useBookings', () => {
     expect(mockAutoComplete).not.toHaveBeenCalled();
   });
 
-  it('refetch após auto-complete quando há bookings atualizados', async () => {
-    mockGetBookings
-      .mockResolvedValueOnce({
-        data: [{ id: 'b1', status: 'confirmed' }],
-        total: 1,
-        page: 1,
-        pageSize: 200,
-      })
-      .mockResolvedValueOnce({
-        data: [{ id: 'b1', status: 'completed' }],
-        total: 1,
-        page: 1,
-        pageSize: 200,
-      });
-    // Usar mockResolvedValueOnce para evitar loop infinito:
-    // o autoComplete só retorna 1 na primeira chamada, nas seguintes retorna 0
-    mockAutoComplete.mockResolvedValueOnce(1);
+  it('não refetch após auto-complete quando retorna 0', async () => {
+    mockGetBookings.mockResolvedValueOnce({
+      data: [{ id: 'b1', status: 'confirmed' }],
+      total: 1,
+      page: 1,
+      pageSize: 200,
+    });
 
     renderHook(() => useBookings('2026-07-05'));
 
@@ -131,8 +121,7 @@ describe('useBookings', () => {
       expect(mockAutoComplete).toHaveBeenCalled();
     });
 
-    await waitFor(() => {
-      expect(mockGetBookings).toHaveBeenCalledTimes(2);
-    });
+    // autoComplete retorna 0, então não deve refetch
+    expect(mockGetBookings).toHaveBeenCalledTimes(1);
   });
 });

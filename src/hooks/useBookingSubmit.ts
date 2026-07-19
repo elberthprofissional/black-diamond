@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { createBooking } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
 import { openWhatsApp, formatWaDate, formatWaTime, formatWaCurrency } from '../lib/whatsapp';
@@ -6,8 +6,6 @@ import { useBarberSettings } from './useBarberSettings';
 import { useRateLimit } from './useRateLimit';
 import type { Service } from '../types';
 import { logError } from '../lib/logger';
-
-const QUEUE_KEY = 'booking_offline_queue';
 
 interface SubmitParams {
   selectedServices: Service[];
@@ -20,43 +18,9 @@ interface SubmitParams {
   discountAmount?: number;
 }
 
-interface QueuedBooking {
-  id: string;
-  params: SubmitParams;
-  createdAt: string;
-}
-
 interface BookingResult {
   token: string;
   manageUrl: string;
-  queued?: boolean;
-}
-
-// Salva booking na fila offline
-function saveToQueue(params: SubmitParams): void {
-  try {
-    const queue: QueuedBooking[] = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
-    queue.push({
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      params,
-      createdAt: new Date().toISOString(),
-    });
-    localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
-  } catch (e) {
-    logError(e);
-    // localStorage cheio ou indisponível
-  }
-}
-
-// Remove da fila após enviar com sucesso
-function removeFromQueue(id: string): void {
-  try {
-    const queue: QueuedBooking[] = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
-    localStorage.setItem(QUEUE_KEY, JSON.stringify(queue.filter((b) => b.id !== id)));
-  } catch (e) {
-    logError(e);
-    // Ignora
-  }
 }
 
 export function useBookingSubmit(
@@ -77,7 +41,9 @@ export function useBookingSubmit(
     let mounted = true;
     const processQueue = async () => {
       try {
-        const queue: QueuedBooking[] = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
+        const queue: QueuedBooking[] = JSON.parse(
+          localStorage.getItem(STORAGE_BOOKING_QUEUE) || '[]'
+        );
         if (queue.length === 0) return;
 
         for (const item of queue) {

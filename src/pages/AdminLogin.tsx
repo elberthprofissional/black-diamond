@@ -6,6 +6,7 @@ import { useToast } from '../hooks/useToast';
 import { useModalA11y } from '../hooks/useModalA11y';
 import { useRateLimit } from '../hooks/useRateLimit';
 import { useAuditLog } from '../hooks/useAuditLog';
+import { useScrollLock } from '../hooks/useScrollLock';
 import LoginBackground from '../components/Admin/LoginBackground';
 import LoginHeader from '../components/Admin/LoginHeader';
 import LoginForm from '../components/Admin/LoginForm';
@@ -66,31 +67,7 @@ const AdminLogin: FC = () => {
     }
   }, []);
 
-  // Trava rolagem, arrastar e efeito de bounce (puxar para baixo) na tela de login
-  useEffect(() => {
-    const prevOverscroll = document.documentElement.style.overscrollBehavior;
-    const prevBodyOverscroll = document.body.style.overscrollBehavior;
-    const prevOverflow = document.body.style.overflow;
-    const prevPosition = document.body.style.position;
-    const prevWidth = document.body.style.width;
-    const prevHeight = document.body.style.height;
-
-    document.documentElement.style.overscrollBehavior = 'none';
-    document.body.style.overscrollBehavior = 'none';
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    document.body.style.height = '100%';
-
-    return () => {
-      document.documentElement.style.overscrollBehavior = prevOverscroll;
-      document.body.style.overscrollBehavior = prevBodyOverscroll;
-      document.body.style.overflow = prevOverflow;
-      document.body.style.position = prevPosition;
-      document.body.style.width = prevWidth;
-      document.body.style.height = prevHeight;
-    };
-  }, []);
+  useScrollLock();
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();

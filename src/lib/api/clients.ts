@@ -9,8 +9,8 @@ export const getClients = async () => {
       'id, name, phone, email, notes, is_favorite, is_mensalista, mensalista_plan_id, mensalista_expires_at, is_blocked, deleted_at, manually_added, historical_visits, historical_spent, last_visit_date, created_at'
     )
     .is('deleted_at', null)
-    .not('name', 'in', `("${BLOCKED_NAME}")`)
-    .not('phone', 'eq', `${BLOCKED_PHONE}`)
+    .not('name', 'eq', BLOCKED_NAME)
+    .not('phone', 'eq', BLOCKED_PHONE)
     .order('name', { ascending: true });
   if (error) throw error;
   return data || [];

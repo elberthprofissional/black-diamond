@@ -90,10 +90,7 @@
   }
 }
 
-/* Fix mobile scroll freeze */
-* {
-  -webkit-overflow-scrolling: touch;
-}
+/* Touch target sizing — handled per-component where needed */
 
 /* Touch target sizing — handled per-component where needed */
 
@@ -257,10 +254,9 @@
   display: none !important;
 }
 
-/* Hide scrollbar for IE, Edge and Firefox */
+/* Hide scrollbar for Firefox */
 .scrollbar-hide,
 *:where(.scrollbar-hide) {
-  -ms-overflow-style: none !important;
   scrollbar-width: none !important;
   scrollbar-color: transparent transparent !important;
 }
@@ -272,7 +268,6 @@
 }
 .notifications-tabs {
   scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
 }
 
 /* Custom tuning for installed PWA standalone mode (keeps layout compact on tall screens) */
@@ -394,26 +389,12 @@ button.text-\[\#D4AF37\] {
     0 0 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Skip link melhorado */
+/* Skip link - enhanced version (overrides base @layer) */
 .skip-link {
-  position: absolute;
-  top: -100%;
-  left: 0;
-  z-index: 9999;
-  padding: 1rem 1.5rem;
-  background: var(--color-gold);
-  color: #000;
-  font-weight: 700;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  text-decoration: none;
-  transition: top 0.2s;
   min-width: 200px;
   text-align: center;
 }
 .skip-link:focus {
-  top: 0;
   outline: 3px solid #fff;
   outline-offset: 2px;
 }

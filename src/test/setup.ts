@@ -41,7 +41,12 @@ const createMockQueryBuilder = () => {
 vi.mock('../lib/supabase', () => ({
   supabase: {
     from: vi.fn(() => createMockQueryBuilder()),
-    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+    rpc: vi.fn(() => ({
+      then: vi.fn((resolve: (v: unknown) => void) => {
+        resolve({ data: null, error: null });
+        return { catch: vi.fn() };
+      }),
+    })),
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
       getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),

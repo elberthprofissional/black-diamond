@@ -40,13 +40,13 @@ const SettingsFidelidade: FC = () => {
 
   const handleToggleEnabled = async () => {
     if (enabled) {
-      // Desativar: limpa tudo
+      // Desativar: marca milestones como inativas (preserva dados)
       setSaving(true);
       try {
         await setLoyaltyEnabled(false);
         setMilestones([]);
         setEnabled(false);
-        showSuccess('Fidelidade desativada.');
+        showSuccess('Fidelidade desativada. Metas preservadas para reativação futura.');
       } catch (e) {
         logError(e);
         showError('Erro ao desativar.');
@@ -54,12 +54,23 @@ const SettingsFidelidade: FC = () => {
         setSaving(false);
       }
     } else {
-      // Ativar: só marca como ativo (precisa de pelo menos 1 milestone)
-      setEnabled(true);
-      if (milestones.length === 0) {
-        setShowNewForm(true);
+      // Ativar: reativa milestones existentes ou cria novas
+      setSaving(true);
+      try {
+        await setLoyaltyEnabled(true);
+        const fresh = await getMilestones();
+        setMilestones(fresh);
+        setEnabled(true);
+        if (fresh.length === 0) {
+          setShowNewForm(true);
+        }
+        showSuccess('Fidelidade ativada!');
+      } catch (e) {
+        logError(e);
+        showError('Erro ao ativar.');
+      } finally {
+        setSaving(false);
       }
-      showSuccess('Fidelidade ativada! Adicione metas para começar.');
     }
   };
 

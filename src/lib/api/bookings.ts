@@ -160,7 +160,7 @@ export const unblockDay = async (date: string) => {
 };
 
 /** Marca como concluídos os agendamentos cujo horário já passou (delega ao RPC server-side). */
-export const autoCompleteExpiredBookings = async (_date?: string): Promise<number> => {
+export const autoCompleteExpiredBookings = async (): Promise<number> => {
   const { error } = await supabase.rpc('completar_agendamentos_expirados');
   if (error) return 0;
   // RPC não retorna count — retorna 0 para não causar loop infinito de refetch

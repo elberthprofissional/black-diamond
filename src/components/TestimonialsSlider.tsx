@@ -150,20 +150,23 @@ const Testimonials: FC = () => {
     card?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }, []);
 
-  // Auto-play
+  // Auto-play (uses ref to avoid recreating interval on activeIndex change)
+  const activeIndexRef = useRef(activeIndex);
+  activeIndexRef.current = activeIndex;
+
   useEffect(() => {
     if (!isAutoPlaying || isHovered || count <= 1) {
       if (autoPlayRef.current) clearInterval(autoPlayRef.current);
       return;
     }
     autoPlayRef.current = setInterval(() => {
-      const next = (activeIndex + 1) % count;
+      const next = (activeIndexRef.current + 1) % count;
       scrollToIndex(next);
     }, 4000);
     return () => {
       if (autoPlayRef.current) clearInterval(autoPlayRef.current);
     };
-  }, [isAutoPlaying, isHovered, activeIndex, count, scrollToIndex]);
+  }, [isAutoPlaying, isHovered, count, scrollToIndex]);
 
   const handleMouseDown = useCallback((e: MouseEvent) => {
     if (!sliderRef.current) return;

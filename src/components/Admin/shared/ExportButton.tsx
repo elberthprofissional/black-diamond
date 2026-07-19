@@ -8,23 +8,16 @@ import {
   Loader2,
   FileSpreadsheet,
 } from 'lucide-react';
-import { useCsvExport } from '../../../hooks/useCsvExport';
-import { useXlsxExport } from '../../../hooks/useXlsxExport';
+import { useExport, type ExportType } from '../../../hooks/useExport';
 import { useToast } from '../../../hooks/useToast';
-
-/* ─── Botao Exportar com formato XLSX (padrao) e CSV ───
- * Cada tipo de dado (agendamentos, clientes, financeiro)
- * tem duas opcoes: XLSX (Excel) ou CSV. */
 
 const ExportButton: FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [formatMenu, setFormatMenu] = useState<string | null>(null);
+  const [formatMenu, setFormatMenu] = useState<ExportType | null>(null);
   const { showError } = useToast();
-  const csv = useCsvExport(showError);
-  const xlsx = useXlsxExport(showError);
+  const { isExporting, export: exportData } = useExport(showError);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close on outside click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -36,43 +29,32 @@ const ExportButton: FC = () => {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [isOpen]);
 
-  const isExporting = csv.isExporting || xlsx.isExporting;
-
-  const handleFormatSelect = async (
-    type: 'bookings' | 'clients' | 'financial',
-    format: 'csv' | 'xlsx'
-  ) => {
+  const handleFormatSelect = async (type: ExportType, format: 'csv' | 'xlsx') => {
     setIsOpen(false);
     setFormatMenu(null);
-    const exporter = format === 'xlsx' ? xlsx : csv;
-    switch (type) {
-      case 'bookings':
-        await exporter.exportBookings();
-        break;
-      case 'clients':
-        await exporter.exportClients();
-        break;
-      case 'financial':
-        await exporter.exportFinancial();
-        break;
-    }
+    await exportData(type, format);
   };
 
   const types = [
     {
-      id: 'bookings',
+      id: 'bookings' as const,
       label: 'Agendamentos',
       desc: 'Lista completa de agendamentos',
       icon: FileText,
     },
-    { id: 'clients', label: 'Clientes', desc: 'Dados e histórico de clientes', icon: Users },
     {
-      id: 'financial',
+      id: 'clients' as const,
+      label: 'Clientes',
+      desc: 'Dados e histórico de clientes',
+      icon: Users,
+    },
+    {
+      id: 'financial' as const,
       label: 'Financeiro',
       desc: 'Receita e cancelamentos por mês',
       icon: TrendingUp,
     },
-  ] as const;
+  ];
 
   return (
     <div className="relative" ref={menuRef}>
@@ -121,14 +103,11 @@ const ExportButton: FC = () => {
               onClick={() => setFormatMenu(null)}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left hover:bg-white/[0.04] transition-all cursor-pointer text-[11px] text-zinc-400"
             >
-              <ChevronDown size={12} className="rotate-90" />
-              Voltar
+              <ChevronDown size={12} className="rotate-90" /> Voltar
             </button>
             <div className="h-px bg-white/[0.04] my-1" />
             <button
-              onClick={() =>
-                handleFormatSelect(formatMenu as 'bookings' | 'clients' | 'financial', 'xlsx')
-              }
+              onClick={() => handleFormatSelect(formatMenu, 'xlsx')}
               disabled={isExporting}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-white/[0.04] transition-all cursor-pointer"
             >
@@ -139,9 +118,7 @@ const ExportButton: FC = () => {
               </div>
             </button>
             <button
-              onClick={() =>
-                handleFormatSelect(formatMenu as 'bookings' | 'clients' | 'financial', 'csv')
-              }
+              onClick={() => handleFormatSelect(formatMenu, 'csv')}
               disabled={isExporting}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-white/[0.04] transition-all cursor-pointer"
             >

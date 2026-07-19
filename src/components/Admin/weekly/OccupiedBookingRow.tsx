@@ -1,5 +1,6 @@
 import { type FC, type MouseEvent } from 'react';
 import { formatDisplayName } from '../../../lib/utils';
+import { cleanPhoneForWhatsApp } from '../../../lib/whatsapp';
 import type { BookingWithClient, Service } from '../../../types';
 
 interface OccupiedBookingRowProps {
@@ -21,7 +22,7 @@ const OccupiedBookingRow: FC<OccupiedBookingRowProps> = ({ booking, services, on
     const date = booking.booking_date;
     const time = booking.booking_time.slice(0, 5);
     const msg = `✅ *Agendamento confirmado, ${name}!*\n\nNa *Black Diamond*\n\n✂️ ${serviceNames}\n📅 ${date} às ${time}\n\nAguardamos você! 💈`;
-    const waPhone = phone.startsWith('55') ? phone : `55${phone}`;
+    const waPhone = cleanPhoneForWhatsApp(phone);
     window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 

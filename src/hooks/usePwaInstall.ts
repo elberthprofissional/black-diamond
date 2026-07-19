@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { STORAGE_PWA_INSTALLED } from '../lib/constants';
 
 interface UsePwaInstallReturn {
   /** Dispositivo é iPhone/iPad/iPod */
@@ -36,7 +37,7 @@ export function usePwaInstall(
       setDeferredPrompt(null);
       (window as unknown as { deferredPrompt?: BeforeInstallPromptEvent }).deferredPrompt =
         undefined;
-      localStorage.setItem('barber_pwa_installed', 'true');
+      localStorage.setItem(STORAGE_PWA_INSTALLED, 'true');
       setShowPrompt(false);
       onSuccess?.();
     };

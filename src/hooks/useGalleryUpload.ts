@@ -39,7 +39,7 @@ export function useGalleryUpload(images: GalleryImage[], onUploadComplete: () =>
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         if (!ctx) {
-          reject(new Error('Could not get canvas context'));
+          reject(new Error('Erro ao processar imagem.'));
           return;
         }
         ctx.drawImage(img, 0, 0, width, height);
@@ -47,7 +47,7 @@ export function useGalleryUpload(images: GalleryImage[], onUploadComplete: () =>
           (blob) => {
             URL.revokeObjectURL(url);
             if (blob) resolve(blob);
-            else reject(new Error('Failed to convert to WebP'));
+            else reject(new Error('Erro ao converter imagem.'));
           },
           'image/webp',
           0.92
@@ -55,7 +55,7 @@ export function useGalleryUpload(images: GalleryImage[], onUploadComplete: () =>
       };
       img.onerror = () => {
         URL.revokeObjectURL(url);
-        reject(new Error('Failed to load image'));
+        reject(new Error('Erro ao carregar imagem.'));
       };
       img.src = url;
     });
