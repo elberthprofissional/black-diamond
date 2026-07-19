@@ -36,88 +36,6 @@ export function useBookingSubmit(
     windowMs: 60000,
   });
 
-  // Processa fila offline quando voltar a internet
-  useEffect(() => {
-    let mounted = true;
-    const processQueue = async () => {
-      try {
-        const queue: QueuedBooking[] = JSON.parse(
-          localStorage.getItem(STORAGE_BOOKING_QUEUE) || '[]'
-        );
-        if (queue.length === 0) return;
-
-        for (const item of queue) {
-          try {
-            const {
-              selectedServices,
-              selectedDate,
-              selectedTime,
-              userInfo,
-              totalPrice,
-              couponId,
-              discountAmount,
-            } = item.params;
-            const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
-
-            await createBooking(
-              {
-                service_ids: selectedServices.map((s) => s.id),
-                booking_date: selectedDate,
-                booking_time: selectedTime,
-                total_price: totalPrice,
-                total_duration: totalDuration,
-                coupon_id: couponId,
-                discount_amount: discountAmount,
-              },
-              { name: userInfo.name, phone: userInfo.phone }
-            );
-
-            removeFromQueue(item.id);
-
-            if (showSuccess) {
-              const serviceNames = selectedServices.map((s) => s.name).join(', ');
-              const formattedDate = selectedDate.split('-').reverse().join('/');
-              showSuccess(
-                `✅ Agendamento enviado! ${userInfo.name} - ${serviceNames} em ${formattedDate} às ${selectedTime}`
-              );
-            }
-          } catch (e) {
-            logError(e);
-            // Slot já foi pego por outra pessoa — remove da fila e avisa
-            removeFromQueue(item.id);
-            const { selectedServices, selectedDate, selectedTime, userInfo } = item.params;
-            const serviceNames = selectedServices.map((s) => s.name).join(', ');
-            const formattedDate = selectedDate.split('-').reverse().join('/');
-            showError(
-              `😕 ${userInfo.name}, o horário das ${selectedTime} do dia ${formattedDate} (${serviceNames}) infelizmente já foi preenchido por outra pessoa. Por favor, faça um novo agendamento.`
-            );
-          }
-        }
-      } catch (e) {
-        logError(e);
-        // Erro ao processar fila
-      }
-    };
-
-    const handleOnline = () => {
-      if (!mounted) return;
-      // Pequeno delay pra garantir que a conexão está estável
-      setTimeout(processQueue, 2000);
-    };
-
-    window.addEventListener('online', handleOnline);
-
-    // Tenta processar fila no mount (caso já esteja online)
-    if (navigator.onLine) {
-      processQueue();
-    }
-
-    return () => {
-      mounted = false;
-      window.removeEventListener('online', handleOnline);
-    };
-  }, [showSuccess, showError]);
-
   const handleConfirm = useCallback(
     async (params: SubmitParams): Promise<BookingResult | null> => {
       const {
@@ -147,13 +65,6 @@ export function useBookingSubmit(
           `Muitas tentativas. Aguarde ${seconds > 60 ? '1 minuto' : `${seconds} segundos`} e tente novamente.`
         );
         return null;
-      }
-
-      // Se estiver offline, salva na fila e retorna sucesso
-      if (!navigator.onLine) {
-        saveToQueue(params);
-        onComplete();
-        return { token: '', manageUrl: '', queued: true };
       }
 
       submittingRef.current = true;
