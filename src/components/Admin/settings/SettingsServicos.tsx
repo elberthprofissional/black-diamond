@@ -5,6 +5,7 @@ import { supabase } from '../../../lib/supabase';
 import { Plus, Trash2, X, Check, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { logError } from '../../../lib/logger';
+import { formatPrice } from '../../../lib/utils';
 
 interface Service {
   id: string;
@@ -219,7 +220,9 @@ const SettingsServicos: FC = () => {
               >
                 <div className="flex items-baseline gap-4">
                   <span className="text-[15px] font-semibold text-white">{service.name}</span>
-                  <span className="text-[13px] text-[#D4AF37] font-medium">R$ {service.price}</span>
+                  <span className="text-[13px] text-[#D4AF37] font-medium">
+                    {formatPrice(service.price)}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <button
@@ -279,7 +282,9 @@ const SettingsServicos: FC = () => {
             >
               <div>
                 <p className="text-[13px] text-white">{service.name}</p>
-                <p className="text-[11px] text-[#D4AF37] font-medium">R$ {service.price}</p>
+                <p className="text-[11px] text-[#D4AF37] font-medium">
+                  {formatPrice(service.price)}
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <button

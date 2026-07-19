@@ -14,26 +14,14 @@ export const getMilestones = async (): Promise<LoyaltyMilestone[]> => {
   return (data || []) as LoyaltyMilestone[];
 };
 
-/** Salva a lista completa de milestones (substitui todas). */
+/** Salva a lista completa de milestones de forma atômica via RPC. */
 export const saveMilestones = async (
   milestones: { visits_required: number; reward_service_id: string }[]
 ): Promise<void> => {
-  // Deleta todas as existentes e insere as novas
-  const { error: delErr } = await supabase
-    .from('loyalty_milestones')
-    .delete()
-    .neq('id', '00000000-0000-0000-0000-000000000000');
-  if (delErr) throw delErr;
-
-  if (milestones.length === 0) return;
-
-  const { error: insErr } = await supabase.from('loyalty_milestones').insert(
-    milestones.map((m) => ({
-      visits_required: m.visits_required,
-      reward_service_id: m.reward_service_id,
-    }))
-  );
-  if (insErr) throw insErr;
+  const { error } = await supabase.rpc('save_loyalty_milestones', {
+    p_milestones: milestones,
+  });
+  if (error) throw error;
 };
 
 /** Ativa/desativa o sistema (desativar: marca milestones como inativas). */
@@ -126,28 +114,25 @@ interface IncrementResult {
 }
 
 /**
- * Incrementa historical_visits do cliente.
+ * Incrementa historical_visits do cliente de forma atômica via RPC.
  * NUNCA reseta — só acumula.
  * Retorna quais milestones foram atingidas AGORA (pra notificar).
  */
 export const incrementVisit = async (clientId: string): Promise<IncrementResult> => {
-  // 1. Incrementa visitas
-  // Nota: Race condition baixo risco em contexto de barbearia (dois bookings
-  // do mesmo cliente completando no mesmo milissegundo é extremamente raro)
+  // 1. Incrementa visitas atomicamente via RPC (evita race condition)
+  const { data: newCount, error: updateErr } = await supabase.rpc('increment_client_visits', {
+    p_client_id: clientId,
+  });
+  if (updateErr) throw updateErr;
+
+  // 2. Busca dados do cliente para notificações
   const { data: client } = await supabase
     .from('clients')
-    .select('historical_visits, name, phone')
+    .select('name, phone')
     .eq('id', clientId)
     .single();
-  const newCount = (client?.historical_visits ?? 0) + 1;
 
-  const { error: updateErr } = await supabase
-    .from('clients')
-    .update({ historical_visits: newCount })
-    .eq('id', clientId);
-  if (updateErr) logError(updateErr);
-
-  // 2. Busca milestones + claimed
+  // 3. Busca milestones + claimed
   const { data: milestones } = await supabase
     .from('loyalty_milestones')
     .select('*')
@@ -164,7 +149,7 @@ export const incrementVisit = async (clientId: string): Promise<IncrementResult>
     .eq('client_id', clientId);
   const claimedIds = new Set((claimed || []).map((c) => c.milestone_id));
 
-  // 3. Descobre quais milestones foram atingidas AGORA (antes não tinha visitas suficientes)
+  // 4. Descobre quais milestones foram atingidas AGORA (antes não tinha visitas suficientes)
   const newMilestones: MilestoneProgress[] = [];
 
   for (const m of milestones as LoyaltyMilestone[]) {

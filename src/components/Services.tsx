@@ -1,6 +1,7 @@
 import { useState, useEffect, memo, type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import { formatPrice, formatPricePublic } from '../lib/utils';
 import { useServices } from '../hooks/useServices';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 import { getMensalistaPlans, getMensalistaEnabled } from '../lib/api';
@@ -52,7 +53,7 @@ const Services: FC<ServicesProps> = memo(({ onBookingClick }) => {
 
   const handlePlanClick = (plan: MensalistaPlan) => {
     if (barberPhone) {
-      const msg = `${getGreeting()}! Me interessei pelo ${plan.name} (R$ ${Number(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês). Poderia me explicar melhor o que está incluso?`;
+      const msg = `${getGreeting()}! Me interessei pelo ${plan.name} (${formatPrice(plan.price, { locale: true })}/mês). Poderia me explicar melhor o que está incluso?`;
       const url = `https://wa.me/${barberPhone}?text=${encodeURIComponent(msg)}`;
       window.open(url, '_blank');
     }
@@ -116,7 +117,7 @@ const Services: FC<ServicesProps> = memo(({ onBookingClick }) => {
 
                   <div className="flex items-baseline gap-4">
                     <span className="text-base sm:text-xl md:text-3xl font-bebas text-[#D4AF37] whitespace-nowrap opacity-80 group-hover:opacity-100 transition-all duration-700">
-                      R$ {Number(service.price).toFixed(0)}
+                      {formatPricePublic(service.price)}
                     </span>
                   </div>
                 </div>
@@ -195,10 +196,7 @@ const Services: FC<ServicesProps> = memo(({ onBookingClick }) => {
                         </h4>
                         <div className="flex items-baseline gap-1 mt-1">
                           <span className="text-[18px] font-bold text-[#D4AF37]">
-                            R${' '}
-                            {Number(plan.price).toLocaleString('pt-BR', {
-                              minimumFractionDigits: 2,
-                            })}
+                            {formatPrice(plan.price, { locale: true })}
                           </span>
                           <span className="text-[11px] text-zinc-500">/mês</span>
                         </div>
@@ -282,10 +280,7 @@ const Services: FC<ServicesProps> = memo(({ onBookingClick }) => {
                           </div>
                           <div className="flex items-baseline gap-1 mt-1 ml-3.5">
                             <span className="text-xl font-bebas text-[#D4AF37]">
-                              R${' '}
-                              {Number(plan.price).toLocaleString('pt-BR', {
-                                minimumFractionDigits: 2,
-                              })}
+                              {formatPrice(plan.price, { locale: true })}
                             </span>
                             <span className="text-[10px] text-zinc-500">/mês</span>
                           </div>

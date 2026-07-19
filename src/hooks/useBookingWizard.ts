@@ -5,12 +5,12 @@ import { useWizardStep } from './useWizardStep';
 import { useClientLookup } from './useClientLookup';
 import { useBookingSlots } from './useBookingSlots';
 import { useBookingSubmit } from './useBookingSubmit';
-import type { Service, MensalistaPlan, MilestoneProgress } from '../types';
+import { useBookingCoupon } from './useBookingCoupon';
+import { useBookingLoyalty } from './useBookingLoyalty';
+import type { Service, MensalistaPlan } from '../types';
 import { useServices } from './useServices';
-import { getMensalistaPlans, validateCoupon, applyCoupon } from '../lib/api';
-import { getClientMilestonesPublic } from '../lib/api/loyalty';
+import { getMensalistaPlans, applyCoupon } from '../lib/api';
 import { useMensalistaFilter } from './useMensalistaFilter';
-import { logError } from '../lib/logger';
 
 export function useBookingWizard(
   showError: (msg: string) => void,
@@ -51,25 +51,8 @@ export function useBookingWizard(
   const { isMensalista, mensalistaPlanId, clientLookupLoading, clientId, lastBooking } =
     useClientLookup(userInfo.phone, handleNameFound);
 
-  // Milestone progress for loyalty banner
-  const [milestoneProgress, setMilestoneProgress] = useState<MilestoneProgress[]>([]);
-  useEffect(() => {
-    if (clientId) {
-      getClientMilestonesPublic(clientId)
-        .then(setMilestoneProgress)
-        .catch(() => setMilestoneProgress([]));
-    } else {
-      setMilestoneProgress([]);
-    }
-  }, [clientId]);
-
-  // Find next milestone for customer-facing message
-  const nextMilestone = useMemo(() => {
-    if (!milestoneProgress || milestoneProgress.length === 0) return null;
-    const unclaimed = milestoneProgress.filter((m) => !m.already_claimed);
-    if (unclaimed.length === 0) return null;
-    return unclaimed[0];
-  }, [milestoneProgress]);
+  // Loyalty (extracted hook)
+  const { nextMilestone } = useBookingLoyalty(clientId);
 
   // Apply last booking services
   const applyLastBooking = useCallback(() => {
@@ -89,11 +72,7 @@ export function useBookingWizard(
   const slots = useBookingSlots(showError);
 
   // Submit
-  const { isSubmitting, handleConfirm: rawConfirm } = useBookingSubmit(
-    showError,
-    () => setStep(5),
-    showSuccess
-  );
+  const { isSubmitting, handleConfirm: rawConfirm } = useBookingSubmit(showError, () => setStep(5));
 
   // Mensalista filter (shared hook)
   const handleServicesChange = useCallback((services: Service[]) => {
@@ -127,16 +106,9 @@ export function useBookingWizard(
   const [token, setToken] = useState('');
   const [isOfflineBooking, setIsOfflineBooking] = useState(false);
 
-  // Coupon state
-  const [coupon, setCoupon] = useState<{
-    coupon_id: string;
-    code: string;
-    discount_type: string;
-    discount_amount: number;
-  } | null>(null);
-  const [couponLoading, setCouponLoading] = useState(false);
-  const [couponError, setCouponError] = useState('');
-  const [couponCode, setCouponCode] = useState('');
+  // Coupon (extracted hook)
+  const { coupon, couponLoading, couponError, handleCouponValidate, handleCouponRemove } =
+    useBookingCoupon(selectedServices);
 
   // Calculate total price
   const calculatedTotalPrice = useMemo(
@@ -149,93 +121,6 @@ export function useBookingWizard(
     () => Math.max(0, calculatedTotalPrice - (coupon?.discount_amount || 0)),
     [calculatedTotalPrice, coupon]
   );
-
-  // Validate coupon code
-  const handleCouponValidate = useCallback(
-    async (code: string) => {
-      if (!code.trim()) {
-        setCouponError('Informe um código.');
-        return;
-      }
-      setCouponLoading(true);
-      setCouponError('');
-      try {
-        const result = await validateCoupon(
-          code,
-          selectedServices.map((s) => s.id)
-        );
-        if (result.valid) {
-          setCouponCode(code.trim().toUpperCase());
-          setCoupon({
-            coupon_id: result.coupon_id || '',
-            code: result.code || '',
-            discount_type: result.discount_type || '',
-            discount_amount: result.discount_amount || 0,
-          });
-        } else {
-          setCoupon(null);
-          setCouponCode('');
-          setCouponError(result.error || 'Cupom inválido.');
-        }
-      } catch (e) {
-        logError(e);
-        setCoupon(null);
-        setCouponCode('');
-        setCouponError('Erro ao validar cupom.');
-      } finally {
-        setCouponLoading(false);
-      }
-    },
-    [selectedServices]
-  );
-
-  // Remove applied coupon
-  const handleCouponRemove = useCallback(() => {
-    setCoupon(null);
-    setCouponError('');
-    setCouponCode('');
-  }, []);
-
-  // Re-validate coupon when services change (to recalculate discount)
-  useEffect(() => {
-    if (!couponCode || selectedServices.length === 0) return;
-
-    let cancelled = false;
-    setCouponLoading(true);
-
-    validateCoupon(
-      couponCode,
-      selectedServices.map((s) => s.id)
-    )
-      .then((result) => {
-        if (cancelled) return;
-        if (result.valid) {
-          setCoupon({
-            coupon_id: result.coupon_id || '',
-            code: result.code || '',
-            discount_type: result.discount_type || '',
-            discount_amount: result.discount_amount || 0,
-          });
-        } else {
-          setCoupon(null);
-          setCouponCode('');
-          setCouponError(result.error || 'Cupom inválido para os serviços selecionados.');
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setCoupon(null);
-          setCouponCode('');
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setCouponLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [couponCode, selectedServices]);
 
   // Confirm with full params
   const handleConfirm = useCallback(async () => {

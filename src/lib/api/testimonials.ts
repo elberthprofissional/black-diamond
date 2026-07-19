@@ -1,12 +1,13 @@
 import { supabase } from '../supabase';
 import type { Testimonial } from '../../types';
 
-/** Busca depoimentos ativos (ordenados por sort_order) - para o site público */
+/** Busca depoimentos ativos (ordenados por publish_time, mais recente primeiro) - para o site público */
 export const getActiveTestimonials = async (): Promise<Testimonial[]> => {
   const { data, error } = await supabase
     .from('testimonials')
     .select('*')
     .eq('is_active', true)
+    .order('publish_time', { ascending: false, nullsFirst: false })
     .order('sort_order', { ascending: true });
 
   if (error) throw error;

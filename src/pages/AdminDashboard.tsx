@@ -9,14 +9,7 @@ import FilterTabs from '../components/Admin/shared/FilterTabs';
 import OccupiedPanel from '../components/Admin/shared/OccupiedPanel';
 import FreePanel from '../components/Admin/shared/FreePanel';
 import BlockedPanel from '../components/Admin/shared/BlockedPanel';
-import UnblockModal from '../components/Admin/shared/UnblockModal';
-import CompleteModal from '../components/Admin/shared/CompleteModal';
-import ThankYouModal from '../components/Admin/shared/ThankYouModal';
-import DeleteModal from '../components/Admin/shared/DeleteModal';
-import ToastNotification from '../components/Admin/shared/ToastNotification';
-import RescheduleWizard from '../components/Admin/shared/RescheduleWizard';
-import BookingDetailPanel from '../components/Admin/shared/BookingDetailPanel';
-import BookingSlidePanel from '../components/Admin/shared/BookingSlidePanel';
+import AdminBookingShell from '../components/Admin/shared/AdminBookingShell';
 import ClosedDayView from '../components/Admin/shared/ClosedDayView';
 import EndOfDayView from '../components/Admin/shared/EndOfDayView';
 import { SkeletonDashboard } from '../components/Skeleton';
@@ -63,51 +56,6 @@ const AdminDashboard: FC = () => {
     () => data.bookings.filter((b) => b.status === 'completed').length,
     [data.bookings]
   );
-
-  const closePanel = () => {
-    mgmt.setSelectedBooking(null);
-    mgmt.cancelReschedule();
-  };
-
-  const renderDetailPanel = () => {
-    if (!mgmt.selectedBooking) return null;
-
-    if (mgmt.isRescheduling) {
-      return (
-        <RescheduleWizard
-          selectedBooking={mgmt.selectedBooking}
-          services={mgmt.services}
-          step={mgmt.rescheduleStep}
-          setStep={mgmt.setRescheduleStep}
-          rescheduleServices={mgmt.rescheduleServices}
-          setRescheduleServices={mgmt.setRescheduleServices}
-          rescheduleDate={mgmt.rescheduleDate}
-          setRescheduleDate={mgmt.setRescheduleDate}
-          rescheduleTime={mgmt.rescheduleTime}
-          setRescheduleTime={mgmt.setRescheduleTime}
-          existingBookings={mgmt.existingBookingsForReschedule}
-          loadingSlots={mgmt.loadingSlots}
-          isSaving={mgmt.isSavingReschedule}
-          onConfirm={mgmt.handleConfirmReschedule}
-          onClose={() => {
-            mgmt.setSelectedBooking(null);
-            mgmt.cancelReschedule();
-          }}
-        />
-      );
-    }
-
-    return (
-      <BookingDetailPanel
-        booking={mgmt.selectedBooking}
-        services={mgmt.services}
-        onClose={() => mgmt.setSelectedBooking(null)}
-        onComplete={() => mgmt.setCompletingBooking(mgmt.selectedBooking)}
-        onReschedule={mgmt.handleStartReschedule}
-        onDelete={() => mgmt.setBookingToDelete(mgmt.selectedBooking)}
-      />
-    );
-  };
 
   return (
     <AdminLayout mainClassName={LAYOUT_CLASS}>
@@ -173,37 +121,42 @@ const AdminDashboard: FC = () => {
         </div>
       </div>
 
-      <BookingSlidePanel
-        isOpen={!!mgmt.selectedBooking}
-        isDesktop={mgmt.isDesktop}
-        onClose={closePanel}
-      >
-        {renderDetailPanel()}
-      </BookingSlidePanel>
-
-      <CompleteModal
-        booking={mgmt.completingBooking}
-        onConfirm={mgmt.handleComplete}
-        onCancel={() => mgmt.setCompletingBooking(null)}
-      />
-      <ThankYouModal
-        booking={mgmt.thankYouBooking}
+      <AdminBookingShell
+        selectedBooking={mgmt.selectedBooking}
+        setSelectedBooking={mgmt.setSelectedBooking}
         services={mgmt.services}
-        onConfirm={mgmt.handleSendThankYou}
-        onCancel={mgmt.handleCancelThankYou}
+        isDesktop={mgmt.isDesktop}
+        reschedule={{
+          isRescheduling: mgmt.isRescheduling,
+          rescheduleStep: mgmt.rescheduleStep,
+          setRescheduleStep: mgmt.setRescheduleStep,
+          rescheduleServices: mgmt.rescheduleServices,
+          setRescheduleServices: mgmt.setRescheduleServices,
+          rescheduleDate: mgmt.rescheduleDate,
+          setRescheduleDate: mgmt.setRescheduleDate,
+          rescheduleTime: mgmt.rescheduleTime,
+          setRescheduleTime: mgmt.setRescheduleTime,
+          existingBookingsForReschedule: mgmt.existingBookingsForReschedule,
+          loadingSlots: mgmt.loadingSlots,
+          isSavingReschedule: mgmt.isSavingReschedule,
+          handleConfirmReschedule: mgmt.handleConfirmReschedule,
+          handleStartReschedule: mgmt.handleStartReschedule,
+          cancelReschedule: mgmt.cancelReschedule,
+        }}
+        completingBooking={mgmt.completingBooking}
+        setCompletingBooking={mgmt.setCompletingBooking}
+        handleComplete={mgmt.handleComplete}
+        thankYouBooking={mgmt.thankYouBooking}
+        handleSendThankYou={mgmt.handleSendThankYou}
+        handleCancelThankYou={mgmt.handleCancelThankYou}
+        bookingToDelete={mgmt.bookingToDelete}
+        setBookingToDelete={mgmt.setBookingToDelete}
+        confirmDelete={mgmt.confirmDelete}
+        unblockingBooking={data.unblockingBooking}
+        setUnblockingBooking={data.setUnblockingBooking}
+        confirmUnblock={data.confirmUnblock}
+        toast={mgmt.toast}
       />
-      <UnblockModal
-        booking={data.unblockingBooking}
-        onConfirm={data.confirmUnblock}
-        onCancel={() => data.setUnblockingBooking(null)}
-      />
-      <DeleteModal
-        booking={mgmt.bookingToDelete}
-        onConfirm={mgmt.confirmDelete}
-        onCancel={() => mgmt.setBookingToDelete(null)}
-      />
-
-      <ToastNotification toast={mgmt.toast} />
     </AdminLayout>
   );
 };

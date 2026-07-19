@@ -73,36 +73,24 @@ describe('getMilestones', () => {
 });
 
 describe('saveMilestones', () => {
-  it('deleta todas as existentes e insere novas', async () => {
-    const deleteBuilder = createQueryBuilder();
-    const insertBuilder = createQueryBuilder();
-    let callCount = 0;
-    mockFrom.mockImplementation(() => {
-      callCount++;
-      return callCount === 1 ? deleteBuilder : insertBuilder;
-    });
+  it('chama RPC save_loyalty_milestones com milestones', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: null });
 
     await saveMilestones([{ visits_required: 5, reward_service_id: 's1' }]);
 
-    expect(deleteBuilder.delete).toHaveBeenCalled();
-    expect(insertBuilder.insert).toHaveBeenCalledWith([
-      { visits_required: 5, reward_service_id: 's1' },
-    ]);
+    expect(mockRpc).toHaveBeenCalledWith('save_loyalty_milestones', {
+      p_milestones: [{ visits_required: 5, reward_service_id: 's1' }],
+    });
   });
 
-  it('não insere quando lista está vazia', async () => {
-    const deleteBuilder = createQueryBuilder();
-    const insertBuilder = createQueryBuilder();
-    let callCount = 0;
-    mockFrom.mockImplementation(() => {
-      callCount++;
-      return callCount === 1 ? deleteBuilder : insertBuilder;
-    });
+  it('chama RPC com array vazio', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: null });
 
     await saveMilestones([]);
 
-    expect(deleteBuilder.delete).toHaveBeenCalled();
-    expect(insertBuilder.insert).not.toHaveBeenCalled();
+    expect(mockRpc).toHaveBeenCalledWith('save_loyalty_milestones', {
+      p_milestones: [],
+    });
   });
 });
 

@@ -3,63 +3,6 @@ import { User, Star, Quote, Pause, Play } from 'lucide-react';
 import { getActiveTestimonials } from '../lib/api/testimonials';
 import type { Testimonial } from '../types';
 
-const hardcodedTestimonials: Testimonial[] = [
-  {
-    id: '1',
-    name: 'YP TATTOO',
-    rating: 5,
-    text: 'Barbearia super confortável, ambiente agradável, profissional qualificado e atencioso.',
-    is_active: true,
-    sort_order: 0,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    name: 'HELBERT HENRIQUE',
-    rating: 5,
-    text: 'Venezuelano mais fera de BH!! Tem o macete.',
-    is_active: true,
-    sort_order: 1,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    name: 'MAIA STUDIO',
-    rating: 5,
-    text: 'Único profissional que conseguiu cortar o cabelo do meu filho com paciência e excelência.',
-    is_active: true,
-    sort_order: 2,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '4',
-    name: 'GIOVANNA CARDOSO',
-    rating: 5,
-    text: 'Profissional agradável, super atencioso, trabalho impecável e corte perfeito. Super recomendo!',
-    is_active: true,
-    sort_order: 3,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '5',
-    name: 'GUILHERME HENRIQUE',
-    rating: 5,
-    text: 'Ótimo profissional, lugar aconchegante e trabalho impecável!',
-    is_active: true,
-    sort_order: 4,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '6',
-    name: 'MATHEUS',
-    rating: 5,
-    text: 'Tato é bom demais, cara sabe como cuidar de um cabelo.',
-    is_active: true,
-    sort_order: 5,
-    created_at: new Date().toISOString(),
-  },
-];
-
 const GoogleIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
   <svg
     viewBox="0 0 24 24"
@@ -88,20 +31,17 @@ const GoogleIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
 );
 
 const Testimonials: FC = () => {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>(hardcodedTestimonials);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
 
-  // Tenta carregar do Supabase; se falhar, mantém hardcoded
   useEffect(() => {
     let cancelled = false;
     getActiveTestimonials()
       .then((data) => {
         if (cancelled) return;
-        if (data.length > 0) {
-          setTestimonials(data);
-        }
+        setTestimonials(data);
       })
       .catch(() => {
-        // Se erro de rede/bd, mantém hardcoded
+        // Se erro de rede/bd, mantém vazio
       });
     return () => {
       cancelled = true;
@@ -299,6 +239,14 @@ const Testimonials: FC = () => {
                   <span className="text-[12px] md:text-[13px] font-bold text-white tracking-wide">
                     {review.name}
                   </span>
+                  {review.publish_time && (
+                    <span className="text-[10px] text-zinc-600 font-roboto">
+                      {new Date(review.publish_time).toLocaleDateString('pt-BR', {
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

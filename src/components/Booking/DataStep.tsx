@@ -1,5 +1,6 @@
 import { memo, useState, type FC } from 'react';
 import { User, Repeat, Tag } from 'lucide-react';
+import { formatPricePublic } from '../../lib/utils';
 import { WhatsAppIcon } from '../WhatsAppIcon';
 import CouponModal from './CouponModal';
 import CouponBadge from './CouponBadge';
@@ -148,7 +149,7 @@ const DataStep: FC<DataStepProps> = memo(
                 <p className="text-[14px] text-zinc-300 mb-4">
                   {lastBooking.serviceIds.map((id) => serviceNames[id] || 'Serviço').join(' + ')} —{' '}
                   <span className="text-[#D4AF37]">
-                    R$ {Number(lastBooking.totalPrice).toFixed(0)}
+                    {formatPricePublic(lastBooking.totalPrice)}
                   </span>
                 </p>
                 <div className="flex gap-3">

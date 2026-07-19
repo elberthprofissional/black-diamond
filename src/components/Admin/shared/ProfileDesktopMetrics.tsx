@@ -1,5 +1,6 @@
 import { type FC } from 'react';
 import { Scissors, DollarSign, User, LogOut } from 'lucide-react';
+import { formatPrice } from '../../../lib/utils';
 
 interface ProfileDesktopMetricsProps {
   greeting: string;
@@ -101,11 +102,7 @@ const ProfileDesktopMetrics: FC<ProfileDesktopMetricsProps> = ({
               Faturamento Semanal
             </span>
             <p className="text-xl font-black text-[#D4AF37] tracking-tight tabular-nums">
-              R${' '}
-              {lucroSemana.toLocaleString('pt-BR', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-              })}
+              {formatPrice(lucroSemana)}
             </p>
           </div>
         </div>
@@ -116,11 +113,7 @@ const ProfileDesktopMetrics: FC<ProfileDesktopMetricsProps> = ({
               Faturamento Mensal
             </span>
             <p className="text-xl font-black text-[#D4AF37] tracking-tight tabular-nums">
-              R${' '}
-              {lucroMes.toLocaleString('pt-BR', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-              })}
+              {formatPrice(lucroMes)}
             </p>
           </div>
         </div>

@@ -143,13 +143,6 @@ const SettingsGaleria: FC = () => {
                 className={`relative group aspect-square bg-[#1a1a1a] rounded-lg overflow-hidden transition-all duration-150 ${
                   isSelected ? 'ring-2 ring-[#D4AF37]' : ''
                 }`}
-                onMouseDown={() => g.handleLongPressStart(image.id)}
-                onMouseUp={g.handleLongPressEnd}
-                onMouseLeave={g.handleLongPressEnd}
-                onMouseMove={g.handleLongPressMove}
-                onTouchStart={() => g.handleLongPressStart(image.id)}
-                onTouchEnd={g.handleLongPressEnd}
-                onTouchMove={g.handleLongPressMove}
               >
                 <img
                   src={image.image_url}
@@ -189,7 +182,6 @@ const SettingsGaleria: FC = () => {
                 {/* Click to preview / toggle select */}
                 <button
                   onClick={(e) => {
-                    if (g.checkAndClearLongPress()) return;
                     if (isSelecting) {
                       g.toggleSelect(image.id, e);
                     } else {

@@ -68,7 +68,7 @@ describe('About', () => {
       loading: false,
     });
     render(<About />);
-    const images = screen.getAllByAltText('Barbeiro');
+    const images = screen.getAllByRole('img');
     expect(images.length).toBe(2); // mobile + desktop
   });
 

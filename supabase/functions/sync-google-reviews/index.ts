@@ -6,6 +6,7 @@ interface GoogleReview {
   text?: { text?: string; languageCode?: string };
   authorAttribution?: { displayName?: string; uri?: string };
   publishTime?: string;
+  relativePublishTimeDescription?: string;
 }
 
 interface ReviewInput {
@@ -14,6 +15,8 @@ interface ReviewInput {
   text: string;
   is_active: boolean;
   sort_order: number;
+  publish_time: string | null;
+  source: string;
 }
 
 const ALLOWED_ORIGINS = [
@@ -21,14 +24,11 @@ const ALLOWED_ORIGINS = [
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175',
-  /^https:\/\/black-diamond-.*vercel\.app$/,
 ];
 
 function isOriginAllowed(origin: string | null): boolean {
   if (!origin) return false;
-  return ALLOWED_ORIGINS.some((allowed) =>
-    typeof allowed === 'string' ? allowed === origin : allowed.test(origin)
-  );
+  return ALLOWED_ORIGINS.includes(origin);
 }
 
 function getCorsHeaders(origin: string | null) {
@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── Filter: only reviews WITH text ──
+    // ── Filter: only reviews WITH text (skip star-only reviews) ──
     const withText = reviews.filter((r) => r.text?.text && r.text.text.trim().length > 0);
 
     // ── Connect to Supabase ──
@@ -167,6 +167,8 @@ Deno.serve(async (req) => {
         text: text,
         is_active: true,
         sort_order: nextOrder++,
+        publish_time: review.publishTime ?? null,
+        source: 'google',
       });
     }
 

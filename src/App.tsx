@@ -20,7 +20,7 @@ const TITLES: Record<string, string> = {
   '/admin/profile': 'Perfil | Black Diamond',
   '/admin/reset-password': 'Redefinir Senha | Black Diamond',
   '/cancelar': 'Cancelar ou Reagendar | Black Diamond',
-  '/gerenciar': 'Gerenciar Agendamento | Black Diamond',
+  '/gerenciar/:token?': 'Gerenciar Agendamento | Black Diamond',
   '/cliente': 'Meus Agendamentos | Black Diamond',
   '/admin/notificacoes': 'Notificações | Black Diamond',
 };
@@ -93,6 +93,7 @@ function preloadRoute(path: string) {
     '/admin/agendar': () => import('./pages/AdminBooking'),
     '/cancelar': () => import('./pages/CancelPage'),
     '/gerenciar': () => import('./pages/ManageBooking'),
+    '/gerenciar/:token?': () => import('./pages/ManageBooking'),
     '/cliente': () => import('./components/ClientProfile'),
     '/admin/notificacoes': () => import('./pages/NotificationsPage'),
   };
@@ -305,7 +306,7 @@ function App() {
                 }
               />
               <Route
-                path="/gerenciar"
+                path="/gerenciar/:token?"
                 element={
                   <StandaloneGuard>
                     <SectionErrorBoundary name="Gerenciar Agendamento">

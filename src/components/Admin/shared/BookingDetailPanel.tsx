@@ -1,9 +1,11 @@
 import { memo, useState, type FC } from 'react';
 import type { BookingWithClient, Service } from '../../../types';
-import { formatPhone, formatDisplayName } from '../../../lib/utils';
+import { formatPhone, formatDisplayName, formatPricePublic } from '../../../lib/utils';
 import { openWhatsApp, formatWaDate } from '../../../lib/whatsapp';
 import { BLOCKED_NAME } from '../../../lib/constants';
 import { useNoShow } from '../../../hooks/useNoShow';
+import { BellIcon, CheckIcon, CalendarIcon, TrashIcon, NoShowIcon } from './PanelIcons';
+import BlockedSlotView from './BlockedSlotView';
 
 interface BookingDetailPanelProps {
   booking: BookingWithClient;
@@ -48,92 +50,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
     };
 
     if (isBlocked) {
-      return (
-        <>
-          <div className="sticky top-0 bg-[#0E0E0E]/95 backdrop-blur-md z-10 px-5 lg:px-6 py-3.5 lg:py-4 border-b border-white/[0.04] flex items-center justify-between">
-            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.25em]">
-              Horário Bloqueado
-            </span>
-          </div>
-          <div className="px-5 lg:px-6 py-5 lg:py-6 flex-1 text-left overflow-y-auto scrollbar-hide">
-            {/* Mobile: minimal */}
-            <div className="lg:hidden space-y-5">
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02]">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-[#D4AF37]/10">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#D4AF37"
-                    strokeWidth="2"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-[13px] font-bold text-white">Horário Bloqueado</h3>
-                  <p className="text-[11px] text-zinc-500">Não aceita agendamentos</p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  onUnblock?.();
-                  onClose();
-                }}
-                className="w-full h-10 bg-[#D4AF37]/10 text-[#D4AF37] font-bold text-[10px] uppercase tracking-[0.2em] transition-all cursor-pointer rounded-xl"
-              >
-                Desbloquear
-              </button>
-            </div>
-            {/* Desktop: with cards */}
-            <div className="hidden lg:block space-y-6">
-              <div className="flex items-center gap-4 bg-white/[0.02] border border-white/[0.06] p-4 rounded-xl">
-                <div className="w-12 h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl flex items-center justify-center shrink-0">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#D4AF37"
-                    strokeWidth="2"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white">Horário Indisponível</h3>
-                  <p className="text-[11px] text-zinc-500 mt-0.5">
-                    Este horário foi bloqueado e não aceita agendamentos.
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  onUnblock?.();
-                  onClose();
-                }}
-                className="w-full h-11 bg-[#D4AF37]/10 border border-[#D4AF37]/20 hover:bg-[#D4AF37]/20 text-[#D4AF37] font-black text-[10px] uppercase tracking-[0.25em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
-              >
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 9.9-1" />
-                </svg>
-                Desbloquear Horário
-              </button>
-            </div>
-          </div>
-        </>
-      );
+      return <BlockedSlotView onUnblock={() => onUnblock?.()} onClose={onClose} />;
     }
 
     const dateStr = new Date(booking.booking_date + 'T12:00:00').toLocaleDateString('pt-BR', {
@@ -182,7 +99,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                   <div key={id} className="flex justify-between items-center">
                     <span className="text-[13px] text-zinc-400">{srv?.name || 'Serviço'}</span>
                     <span className="text-[13px] font-semibold text-zinc-300 tabular-nums">
-                      R$ {Number(srv?.price || 0).toFixed(0)}
+                      {formatPricePublic(srv?.price || 0)}
                     </span>
                   </div>
                 );
@@ -192,7 +109,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                   Total
                 </span>
                 <span className="text-[15px] font-black text-[#D4AF37]">
-                  R$ {(booking.total_price || 0).toFixed(0)}
+                  {formatPricePublic(booking.total_price || 0)}
                 </span>
               </div>
             </div>
@@ -207,17 +124,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                 }}
                 className="w-full h-11 bg-[#D4AF37] text-[#0A0A0A] font-black text-[10px] uppercase tracking-[0.2em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
               >
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  className="mb-0.5"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
+                <CheckIcon />
                 Finalizar Atendimento
               </button>
             )}
@@ -225,53 +132,21 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
               onClick={handleReminder}
               className="w-full h-9 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 text-[#D4AF37] text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5 rounded-lg transition-all"
             >
-              <svg
-                width="11"
-                height="11"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
+              <BellIcon />
               Enviar Lembrete
             </button>
             <button
               onClick={onReschedule}
               className="w-full h-9 bg-transparent text-zinc-400 hover:text-white transition-all text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <svg
-                width="11"
-                height="11"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                <path d="M3 3v5h5" />
-                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-                <path d="M16 16h5v5" />
-              </svg>
+              <CalendarIcon />
               Reagendar
             </button>
             <button
               onClick={() => setShowCancelConfirm(true)}
               className="w-full h-9 bg-transparent text-red-400/40 hover:text-red-400/70 transition-all text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <svg
-                width="11"
-                height="11"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <polyline points="3 6 5 6 21 6" />
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              </svg>
+              <TrashIcon />
               Cancelar Agendamento
             </button>
             {booking.status !== 'completed' && (
@@ -351,7 +226,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                     <div key={id} className="flex justify-between items-center text-sm px-1">
                       <span className="text-zinc-400 font-medium">{srv?.name || 'Serviço'}</span>
                       <span className="font-bold text-white tabular-nums">
-                        R$ {Number(srv?.price || 0).toFixed(0)}
+                        {formatPricePublic(srv?.price || 0)}
                       </span>
                     </div>
                   );
@@ -363,7 +238,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                   Total
                 </span>
                 <span className="text-base font-black text-[#D4AF37]">
-                  R$ {(booking.total_price || 0).toFixed(0)}
+                  {formatPricePublic(booking.total_price || 0)}
                 </span>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { type FC } from 'react';
 import { Eye, EyeOff, TrendingUp, User, type LucideIcon } from 'lucide-react';
+import { formatPrice } from '../../../lib/utils';
 
 interface QuickAction {
   label: string;
@@ -169,9 +170,7 @@ const ProfileMobile: FC<ProfileMobileProps> = ({
                 Faturamento
               </span>
               <div className="text-base font-bold text-[#D4AF37] tabular-nums">
-                {showBalance
-                  ? `R$ ${(timeRange === 'week' ? lucroSemana : lucroMes).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
-                  : '••••'}
+                {showBalance ? formatPrice(timeRange === 'week' ? lucroSemana : lucroMes) : '••••'}
               </div>
             </div>
             <div className="space-y-1 pl-4">

@@ -143,14 +143,14 @@ describe('useRevenueChartData', () => {
     expect(day15!.label).toContain('15');
   });
 
-  it('generates monthly revenue for last 7 months', () => {
+  it('generates monthly comparison from available data', () => {
     const bookings = [
       makeBooking({ booking_date: '2026-06-15', total_price: 200 }),
       makeBooking({ booking_date: '2026-07-15', total_price: 100 }),
     ];
     const { result } = renderHook(() => useRevenueChartData(bookings));
-    expect(result.current.monthlyRevenue.length).toBe(7); // Current + 6 previous months
-    const jul = result.current.monthlyRevenue.find((m) => m.month === '2026-07');
+    expect(result.current.monthlyComparison.length).toBeGreaterThanOrEqual(2);
+    const jul = result.current.monthlyComparison.find((m) => m.month === '2026-07');
     expect(jul).toBeDefined();
     expect(jul!.value).toBe(100);
   });

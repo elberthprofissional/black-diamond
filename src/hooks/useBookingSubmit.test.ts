@@ -77,7 +77,7 @@ describe('useBookingSubmit', () => {
       isMensalista: false,
     });
 
-    expect(response).toEqual({ token: '', manageUrl: '', queued: true });
+    expect(response).toEqual({ token: '', manageUrl: '' });
     expect(onComplete).toHaveBeenCalled();
   });
 

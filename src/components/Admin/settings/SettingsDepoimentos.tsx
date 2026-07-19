@@ -293,8 +293,15 @@ const SettingsDepoimentos: FC<SettingsDepoimentosProps> = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[13px] font-bold text-white truncate">{t.name}</span>
+                    {t.source === 'google' && (
+                      <span className="text-[9px] px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded font-bold uppercase">
+                        Google
+                      </span>
+                    )}
                     <span className="text-[10px] text-zinc-600 shrink-0">
-                      {new Date(t.created_at).toLocaleDateString('pt-BR')}
+                      {t.publish_time
+                        ? new Date(t.publish_time).toLocaleDateString('pt-BR')
+                        : new Date(t.created_at).toLocaleDateString('pt-BR')}
                     </span>
                   </div>
                   <div className="mb-1.5">{renderStars(t.rating)}</div>

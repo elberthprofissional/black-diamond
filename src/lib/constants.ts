@@ -25,8 +25,6 @@ export const STORAGE_REMINDERS_SENT = 'barber_reminders_sent';
 export const STORAGE_REMINDER_TEMPLATES = 'barber_templates';
 /** Chave para cache de serviços */
 export const STORAGE_SERVICES_CACHE = 'barber_services_cache';
-/** Chave para fila offline de agendamentos */
-export const STORAGE_BOOKING_QUEUE = 'booking_offline_queue';
 /** Chave para marcar que o PWA foi instalado */
 export const STORAGE_PWA_INSTALLED = 'barber_pwa_installed';
 /** Prefixo para chaves de rate limit */

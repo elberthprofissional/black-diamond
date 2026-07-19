@@ -119,6 +119,8 @@ export interface Testimonial {
   text: string;
   is_active: boolean;
   sort_order: number;
+  publish_time?: string | null;
+  source?: string;
   created_at: string;
 }
 

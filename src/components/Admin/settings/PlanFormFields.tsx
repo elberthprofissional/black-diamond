@@ -1,5 +1,6 @@
 import { type FC, type RefObject } from 'react';
 import { Check } from 'lucide-react';
+import { formatPricePublic } from '../../../lib/utils';
 import type { Service } from '../../../types';
 
 interface DayOption {
@@ -139,7 +140,7 @@ const PlanFormFields: FC<PlanFormFieldsProps> = ({
               <span
                 className={`text-[12px] font-semibold tabular-nums ${selected ? 'text-[#D4AF37]' : 'text-zinc-500'}`}
               >
-                R$ {Number(service.price).toFixed(0)}
+                {formatPricePublic(service.price)}
               </span>
             </button>
           );

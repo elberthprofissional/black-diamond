@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
-import { getTimeSlotsForDate, isTimeOccupied, formatDisplayName } from '../../../lib/utils';
+import {
+  getTimeSlotsForDate,
+  isTimeOccupied,
+  formatDisplayName,
+  formatPricePublic,
+} from '../../../lib/utils';
 import { useIsDesktop } from '../../../hooks/useIsDesktop';
 import type { Booking, BookingWithClient, Service } from '../../../types';
 
@@ -106,7 +111,7 @@ export default function ResponsiveDateTimeStep({
               <div key={s.id} className="flex justify-between items-center">
                 <span className="text-[13px] text-zinc-400">{s.name}</span>
                 <span className="text-[13px] font-medium text-white">
-                  R$ {Number(s.price).toFixed(0)}
+                  {formatPricePublic(s.price)}
                 </span>
               </div>
             ))}
@@ -116,7 +121,7 @@ export default function ResponsiveDateTimeStep({
               Total
             </span>
             <span className={`font-bold text-[#D4AF37] ${isDesktop ? 'text-xl' : 'text-lg'}`}>
-              R$ {totalPrice.toFixed(0)}
+              {formatPricePublic(totalPrice)}
             </span>
           </div>
         </div>

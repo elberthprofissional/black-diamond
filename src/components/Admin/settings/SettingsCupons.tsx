@@ -178,7 +178,7 @@ const SettingsCupons: FC = () => {
   // Utilitarios de status do cupom
   const isExpired = (c: Coupon) => c.valid_until && new Date(c.valid_until) < new Date();
   const isMaxed = (c: Coupon) => c.max_uses !== null && c.current_uses >= c.max_uses;
-  const formatDiscount = (c: Coupon) => {
+  const formatDiscountLabel = (c: Coupon) => {
     if (c.discount_type === 'fixed') {
       return `R$ ${Number(c.discount_value).toFixed(2).replace('.', ',')}`;
     }
@@ -270,7 +270,7 @@ const SettingsCupons: FC = () => {
                     </div>
                     <div className="flex items-center gap-3 mt-1">
                       <span className="text-[13px] text-[#D4AF37] font-bold">
-                        {formatDiscount(coupon)}
+                        {formatDiscountLabel(coupon)}
                       </span>
                       {coupon.description && (
                         <span className="text-[10px] text-zinc-500 truncate max-w-[200px]">
@@ -326,7 +326,7 @@ const SettingsCupons: FC = () => {
                         {statusBadge(coupon)}
                       </div>
                       <span className="text-[12px] text-[#D4AF37] font-bold">
-                        {formatDiscount(coupon)}
+                        {formatDiscountLabel(coupon)}
                       </span>
                     </div>
                   </div>

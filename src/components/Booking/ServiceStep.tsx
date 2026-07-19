@@ -1,5 +1,6 @@
 import { memo, type FC } from 'react';
 import { Check, Tag } from 'lucide-react';
+import { formatPrice, formatPricePublic, formatPriceAdmin, formatDiscount } from '../../lib/utils';
 import type { Service } from '../../types';
 
 interface CouponInfo {
@@ -39,7 +40,7 @@ function getDiscountLabel(service: Service, coupon: CouponInfo, originalPrice: n
   }
   const discount = getServiceDiscount(service, coupon, originalPrice);
   if (discount >= 1) {
-    return `-R$ ${discount.toFixed(0)} OFF`;
+    return formatDiscount(discount);
   }
   return `${coupon.discount_amount > 0 ? 'COM DESCONTO' : ''}`;
 }
@@ -77,7 +78,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                 Cupom {coupon.code} aplicado —{' '}
                 {coupon.discount_type === 'percentage'
                   ? `${coupon.discount_amount}% de desconto`
-                  : `R$ ${coupon.discount_amount.toFixed(0)} de desconto`}
+                  : `${formatPricePublic(coupon.discount_amount)} de desconto`}
               </p>
             </div>
           )}
@@ -94,7 +95,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                   data-testid="service-card"
                   data-selected={selected}
                   aria-pressed={selected}
-                  aria-label={`Serviço ${service.name}. Preço: R$ ${Number(service.price).toFixed(0)}. Duração: ${service.duration} minutos. ${selected ? 'Selecionado' : 'Não selecionado'}`}
+                  aria-label={`Serviço ${service.name}. Preço: ${formatPricePublic(service.price)}. Duração: ${service.duration} minutos. ${selected ? 'Selecionado' : 'Não selecionado'}`}
                   className={`w-full flex items-center gap-5 px-6 py-5 rounded-xl transition-all duration-200 text-left group relative overflow-hidden ${
                     selected ? '' : 'hover:bg-white/[0.03]'
                   }`}
@@ -123,7 +124,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                   <div className="flex items-center gap-2">
                     {hasCoupon && discount > 0 && (
                       <span className="text-[12px] text-zinc-600 line-through tabular-nums">
-                        R$ {Number(service.price).toFixed(0)}
+                        {formatPricePublic(service.price)}
                       </span>
                     )}
                     <span
@@ -131,7 +132,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                         hasCoupon && discount > 0 ? 'text-emerald-400' : 'text-zinc-400'
                       }`}
                     >
-                      R$ {discountedPrice.toFixed(0)}
+                      {formatPricePublic(discountedPrice)}
                     </span>
                   </div>
                 </button>
@@ -171,7 +172,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
               Cupom {coupon.code} —{' '}
               {coupon.discount_type === 'percentage'
                 ? `${coupon.discount_amount}% OFF`
-                : `R$ ${coupon.discount_amount.toFixed(0)} OFF`}
+                : formatDiscount(coupon.discount_amount)}
             </p>
           </div>
         )}
@@ -212,13 +213,13 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                     <div className="flex items-center gap-2 mt-0.5">
                       {hasCoupon && discount > 0 && (
                         <span className="text-[11px] text-zinc-600 line-through tabular-nums">
-                          R$ {Number(service.price).toFixed(2).replace('.', ',')}
+                          {formatPriceAdmin(service.price)}
                         </span>
                       )}
                       <span
                         className={`text-[12px] font-medium tabular-nums ${hasCoupon && discount > 0 ? 'text-emerald-400' : 'text-zinc-500'}`}
                       >
-                        R$ {discountedPrice.toFixed(2).replace('.', ',')}
+                        {formatPriceAdmin(discountedPrice)}
                       </span>
                     </div>
                   </div>

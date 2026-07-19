@@ -10,14 +10,7 @@ import { useBookingManagement } from '../hooks/useBookingManagement';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 import AdminLayout from '../components/Admin/AdminLayout';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
-import UnblockModal from '../components/Admin/shared/UnblockModal';
-import CompleteModal from '../components/Admin/shared/CompleteModal';
-import ThankYouModal from '../components/Admin/shared/ThankYouModal';
-import DeleteModal from '../components/Admin/shared/DeleteModal';
-import ToastNotification from '../components/Admin/shared/ToastNotification';
-import RescheduleWizard from '../components/Admin/shared/RescheduleWizard';
-import BookingDetailPanel from '../components/Admin/shared/BookingDetailPanel';
-import BookingSlidePanel from '../components/Admin/shared/BookingSlidePanel';
+import AdminBookingShell from '../components/Admin/shared/AdminBookingShell';
 import { SkeletonDashboard } from '../components/Skeleton';
 import WeekDayBar from '../components/Admin/weekly/WeekDayBar';
 import OccupiedBookingRow from '../components/Admin/weekly/OccupiedBookingRow';
@@ -225,16 +218,6 @@ const AdminWeekly: FC = () => {
     }
   }, [visibleWeekDays, visibleWeekDays.length, selectedVisibleIndex, today]);
 
-  useEffect(() => {
-    let active = true;
-    getAvailableSlots(selectedDateStr).then((slots) => {
-      if (active) setAllSlots(slots);
-    });
-    return () => {
-      active = false;
-    };
-  }, [selectedDateStr, barberHours]);
-
   const handleBlockSlot = async (date: string, slot: string) => {
     await blockSlot(date, slot, loadData, `${date}-${slot}`);
   };
@@ -244,83 +227,58 @@ const AdminWeekly: FC = () => {
     await unblockSlot(unblockingBooking.id, loadData);
   };
 
-  const dayBookings = bookings.filter(
-    (b) => b.booking_date === selectedDateStr && b.status !== 'cancelled'
+  const dayBookings = useMemo(
+    () => bookings.filter((b) => b.booking_date === selectedDateStr && b.status !== 'cancelled'),
+    [bookings, selectedDateStr]
   );
-  const occupiedBookings = dayBookings.filter((b) => {
-    if (b.status === 'cancelled') return false;
-    if (b.is_blocked) return false;
-    if (!isToday) return true;
-    const parts = b.booking_time.slice(0, 5).split(':').map(Number);
-    const h = parts[0] ?? 0;
-    const m = parts[1] ?? 0;
-    const bookingEndMinutes = h * 60 + m + (b.total_duration || 60);
-    return bookingEndMinutes > currentMinutes;
-  });
-  const freeSlots = allSlots.filter((slot) => {
-    if (dayBookings.some((b) => b.booking_time.slice(0, 5) === slot && b.status !== 'cancelled')) {
-      return false;
-    }
-    if (!isToday) return true;
-    const slotHour = parseInt(slot.split(':')[0] ?? '0', 10);
-    return slotHour >= currentHour;
-  });
-  const blockedBookings = dayBookings.filter((b) => {
-    if (b.status === 'cancelled') return false;
-    if (!b.is_blocked) return false;
-    if (!isToday) return true;
-    const slotHour = parseInt(b.booking_time.slice(0, 5).split(':')[0] ?? '0', 10);
-    return slotHour >= currentHour;
-  });
+
+  const occupiedBookings = useMemo(
+    () =>
+      dayBookings.filter((b) => {
+        if (b.status === 'cancelled') return false;
+        if (b.is_blocked) return false;
+        if (!isToday) return true;
+        const parts = b.booking_time.slice(0, 5).split(':').map(Number);
+        const h = parts[0] ?? 0;
+        const m = parts[1] ?? 0;
+        const bookingEndMinutes = h * 60 + m + (b.total_duration || 60);
+        return bookingEndMinutes > currentMinutes;
+      }),
+    [dayBookings, isToday, currentMinutes]
+  );
+
+  const freeSlots = useMemo(
+    () =>
+      allSlots.filter((slot) => {
+        if (
+          dayBookings.some((b) => b.booking_time.slice(0, 5) === slot && b.status !== 'cancelled')
+        ) {
+          return false;
+        }
+        if (!isToday) return true;
+        const slotHour = parseInt(slot.split(':')[0] ?? '0', 10);
+        return slotHour >= currentHour;
+      }),
+    [allSlots, dayBookings, isToday, currentHour]
+  );
+
+  const blockedBookings = useMemo(
+    () =>
+      dayBookings.filter((b) => {
+        if (b.status === 'cancelled') return false;
+        if (!b.is_blocked) return false;
+        if (!isToday) return true;
+        const slotHour = parseInt(b.booking_time.slice(0, 5).split(':')[0] ?? '0', 10);
+        return slotHour >= currentHour;
+      }),
+    [dayBookings, isToday, currentHour]
+  );
+
   const dayLabel = selectedDate.toLocaleDateString('pt-BR', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
   });
-
-  const renderDetailPanel = () => {
-    if (!mgmt.selectedBooking) return null;
-    return mgmt.isRescheduling ? (
-      <RescheduleWizard
-        selectedBooking={mgmt.selectedBooking}
-        services={mgmt.services}
-        step={mgmt.rescheduleStep}
-        setStep={mgmt.setRescheduleStep}
-        rescheduleServices={mgmt.rescheduleServices}
-        setRescheduleServices={mgmt.setRescheduleServices}
-        rescheduleDate={mgmt.rescheduleDate}
-        setRescheduleDate={mgmt.setRescheduleDate}
-        rescheduleTime={mgmt.rescheduleTime}
-        setRescheduleTime={mgmt.setRescheduleTime}
-        existingBookings={mgmt.existingBookingsForReschedule}
-        loadingSlots={mgmt.loadingSlots}
-        isSaving={mgmt.isSavingReschedule}
-        onConfirm={mgmt.handleConfirmReschedule}
-        onClose={() => {
-          mgmt.setSelectedBooking(null);
-          mgmt.cancelReschedule();
-        }}
-      />
-    ) : (
-      <BookingDetailPanel
-        booking={mgmt.selectedBooking}
-        services={mgmt.services}
-        onClose={() => mgmt.setSelectedBooking(null)}
-        onComplete={() => mgmt.setCompletingBooking(mgmt.selectedBooking)}
-        onReschedule={mgmt.handleStartReschedule}
-        onDelete={() => mgmt.setBookingToDelete(mgmt.selectedBooking)}
-        onUnblock={() => {
-          setUnblockingBooking(mgmt.selectedBooking);
-          mgmt.setSelectedBooking(null);
-        }}
-      />
-    );
-  };
-
-  const closePanel = () => {
-    mgmt.setSelectedBooking(null);
-    mgmt.cancelReschedule();
-  };
 
   return (
     <AdminLayout mainClassName="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-8 pb-40">
@@ -500,37 +458,42 @@ const AdminWeekly: FC = () => {
         )}
       </div>
 
-      <BookingSlidePanel
-        isOpen={!!mgmt.selectedBooking}
-        isDesktop={mgmt.isDesktop}
-        onClose={closePanel}
-      >
-        {renderDetailPanel()}
-      </BookingSlidePanel>
-
-      <UnblockModal
-        booking={unblockingBooking}
-        onConfirm={confirmUnblock}
-        onCancel={() => setUnblockingBooking(null)}
-      />
-      <CompleteModal
-        booking={mgmt.completingBooking}
-        onConfirm={mgmt.handleComplete}
-        onCancel={() => mgmt.setCompletingBooking(null)}
-      />
-      <ThankYouModal
-        booking={mgmt.thankYouBooking}
+      <AdminBookingShell
+        selectedBooking={mgmt.selectedBooking}
+        setSelectedBooking={mgmt.setSelectedBooking}
         services={mgmt.services}
-        onConfirm={mgmt.handleSendThankYou}
-        onCancel={mgmt.handleCancelThankYou}
+        isDesktop={mgmt.isDesktop}
+        reschedule={{
+          isRescheduling: mgmt.isRescheduling,
+          rescheduleStep: mgmt.rescheduleStep,
+          setRescheduleStep: mgmt.setRescheduleStep,
+          rescheduleServices: mgmt.rescheduleServices,
+          setRescheduleServices: mgmt.setRescheduleServices,
+          rescheduleDate: mgmt.rescheduleDate,
+          setRescheduleDate: mgmt.setRescheduleDate,
+          rescheduleTime: mgmt.rescheduleTime,
+          setRescheduleTime: mgmt.setRescheduleTime,
+          existingBookingsForReschedule: mgmt.existingBookingsForReschedule,
+          loadingSlots: mgmt.loadingSlots,
+          isSavingReschedule: mgmt.isSavingReschedule,
+          handleConfirmReschedule: mgmt.handleConfirmReschedule,
+          handleStartReschedule: mgmt.handleStartReschedule,
+          cancelReschedule: mgmt.cancelReschedule,
+        }}
+        completingBooking={mgmt.completingBooking}
+        setCompletingBooking={mgmt.setCompletingBooking}
+        handleComplete={mgmt.handleComplete}
+        thankYouBooking={mgmt.thankYouBooking}
+        handleSendThankYou={mgmt.handleSendThankYou}
+        handleCancelThankYou={mgmt.handleCancelThankYou}
+        bookingToDelete={mgmt.bookingToDelete}
+        setBookingToDelete={mgmt.setBookingToDelete}
+        confirmDelete={mgmt.confirmDelete}
+        unblockingBooking={unblockingBooking}
+        setUnblockingBooking={setUnblockingBooking}
+        confirmUnblock={confirmUnblock}
+        toast={mgmt.toast}
       />
-      <DeleteModal
-        booking={mgmt.bookingToDelete}
-        onConfirm={mgmt.confirmDelete}
-        onCancel={() => mgmt.setBookingToDelete(null)}
-      />
-
-      <ToastNotification toast={mgmt.toast} />
     </AdminLayout>
   );
 };

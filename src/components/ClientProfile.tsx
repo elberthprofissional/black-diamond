@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getBookingsByPhone, cancelBooking } from '../lib/api';
-import { formatPhone, formatDateBR } from '../lib/utils';
+import { formatPhone, formatDateBR, formatPrice } from '../lib/utils';
 import { logError } from '../lib/logger';
 
 interface BookingEntry {
@@ -175,10 +175,7 @@ const ClientProfile: FC = () => {
                   <div className="flex items-center gap-1">
                     <DollarSign size={12} className="text-[#D4AF37]/50" />
                     <span className="text-[13px] font-bold text-white tabular-nums">
-                      R${' '}
-                      {Number(booking.total_price).toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2,
-                      })}
+                      {formatPrice(booking.total_price, { locale: true })}
                     </span>
                   </div>
                   <span className="text-[10px] text-zinc-600 uppercase tracking-wider">

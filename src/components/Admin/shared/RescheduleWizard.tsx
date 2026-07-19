@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getLocalDateString, formatDisplayName } from '../../../lib/utils';
+import { getLocalDateString, formatDisplayName, formatPricePublic } from '../../../lib/utils';
 import { getAvailableSlots } from '../../../lib/api';
 import type { Service, Booking, BookingWithClient } from '../../../types';
 
@@ -201,7 +201,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                       <span
                         className={`text-xs font-black tabular-nums shrink-0 ${isSelected ? 'text-[#D4AF37]' : 'text-zinc-500'}`}
                       >
-                        R$ {Number(srv.price || 0).toFixed(0)}
+                        {formatPricePublic(srv.price || 0)}
                       </span>
                     </div>
                   );
@@ -495,8 +495,9 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                   Investimento Total
                 </span>
                 <span className="text-lg font-black text-[#D4AF37]">
-                  R${' '}
-                  {rescheduleServices.reduce((sum, s) => sum + Number(s.price || 0), 0).toFixed(0)}
+                  {formatPricePublic(
+                    rescheduleServices.reduce((sum, s) => sum + Number(s.price || 0), 0)
+                  )}
                 </span>
               </div>
 

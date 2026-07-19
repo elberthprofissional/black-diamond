@@ -1,5 +1,6 @@
 import { type FC, type RefObject } from 'react';
 import { Check, DollarSign, Gift, Percent } from 'lucide-react';
+import { formatPricePublic } from '../../../../lib/utils';
 import type { Service } from '../../../../types';
 
 /** Limite maximo de caracteres para o codigo do cupom */
@@ -184,7 +185,7 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
                 <span
                   className={`text-[12px] font-semibold tabular-nums ${selected ? 'text-[#D4AF37]' : 'text-zinc-500'}`}
                 >
-                  R$ {Number(service.price).toFixed(0)}
+                  {formatPricePublic(service.price)}
                 </span>
               </button>
             );

@@ -1589,6 +1589,146 @@ SELECT cron.schedule('monthly-cleanup', '0 5 1 * *', $$ SELECT cleanup_old_data(
 -- 6. Relatorio semanal (domingo, 23h)
 SELECT cron.schedule('weekly-report', '0 23 * * 0', $$ SELECT send_weekly_report() $$);
 
+-- 7. Sync Google Reviews (diario, 4h da manha)
+SELECT cron.schedule('sync-google-reviews', '0 4 * * *', $$ SELECT sync_google_reviews_cron() $$);
+
+-- Função SQL para sync automático de Google Reviews (chamada pelo cron diário)
+CREATE OR REPLACE FUNCTION sync_google_reviews_cron()
+RETURNS void AS $$
+DECLARE
+    v_api_key text;
+    v_place_id text;
+    v_response jsonb;
+    v_review jsonb;
+    v_text text;
+    v_name text;
+    v_rating integer;
+    v_publish_time timestamptz;
+    v_existing text[];
+    v_added integer := 0;
+    v_skipped integer := 0;
+BEGIN
+    -- Busca secrets do Supabase
+    BEGIN
+        SELECT value INTO v_api_key FROM secrets WHERE name = 'GOOGLE_PLACES_API_KEY';
+    EXCEPTION WHEN OTHERS THEN NULL;
+    END;
+
+    BEGIN
+        SELECT value INTO v_place_id FROM secrets WHERE name = 'GOOGLE_PLACE_ID';
+    EXCEPTION WHEN OTHERS THEN NULL;
+    END;
+
+    -- Se não tem API key, sai silenciosamente
+    IF v_api_key IS NULL OR v_api_key = '' OR v_place_id IS NULL OR v_place_id = '' THEN
+        RAISE NOTICE 'Google Reviews sync: API key ou Place ID não configurados';
+        RETURN;
+    END IF;
+
+    -- Busca reviews existentes para dedup
+    SELECT array_agg(lower(text)) INTO v_existing
+    FROM testimonials WHERE text IS NOT NULL;
+
+    IF v_existing IS NULL THEN
+        v_existing := ARRAY[]::text[];
+    END IF;
+
+    -- Faz request para Google Places API
+    SELECT content::jsonb INTO v_response
+    FROM http((
+        'GET',
+        'https://places.googleapis.com/v1/places/' || v_place_id || '?language=pt-BR',
+        ARRAY[
+            http_header('X-Goog-Api-Key', v_api_key),
+            http_header('X-Goog-FieldMask', 'reviews')
+        ],
+        NULL,
+        NULL
+    )::http_request);
+
+    -- Processa cada review
+    FOR v_review IN SELECT * FROM jsonb_array_elements(COALESCE(v_response->'reviews', '[]'::jsonb))
+    LOOP
+        -- Só pega reviews com texto (ignora star-only)
+        v_text := trim(COALESCE(v_review->'text'->>'text', ''));
+        IF v_text = '' OR v_text IS NULL THEN
+            v_skipped := v_skipped + 1;
+            CONTINUE;
+        END IF;
+
+        -- Dedup: já existe?
+        IF v_existing @> ARRAY[lower(v_text)] THEN
+            v_skipped := v_skipped + 1;
+            CONTINUE;
+        END IF;
+
+        -- Extrai dados
+        v_name := COALESCE(v_review->'authorAttribution'->>'displayName', 'Cliente Google');
+        v_rating := COALESCE((v_review->>'rating')::integer, 5);
+
+        BEGIN
+            v_publish_time := (v_review->>'publishTime')::timestamptz;
+        EXCEPTION WHEN OTHERS THEN
+            v_publish_time := NULL;
+        END;
+
+        -- Insere
+        INSERT INTO testimonials (name, rating, text, is_active, sort_order, publish_time, source)
+        VALUES (
+            v_name, v_rating, v_text, true,
+            (SELECT COALESCE(MAX(sort_order), -1) + 1 FROM testimonials),
+            v_publish_time, 'google'
+        );
+
+        v_existing := array_append(v_existing, lower(v_text));
+        v_added := v_added + 1;
+    END LOOP;
+
+    RAISE NOTICE 'Google Reviews sync: % novos, % ignorados', v_added, v_skipped;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =========================================================================
+-- ATOMIC RPC FUNCTIONS (evitam race conditions)
+-- =========================================================================
+
+-- RPC para incrementar visitas de forma atômica (evita race condition)
+CREATE OR REPLACE FUNCTION increment_client_visits(p_client_id UUID)
+RETURNS INTEGER AS $$
+DECLARE
+    v_new_count INTEGER;
+BEGIN
+    UPDATE clients
+    SET historical_visits = COALESCE(historical_visits, 0) + 1
+    WHERE id = p_client_id
+    RETURNING historical_visits INTO v_new_count;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Cliente não encontrado: %', p_client_id;
+    END IF;
+
+    RETURN v_new_count;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- RPC para salvar milestones de forma atômica (delete + insert em transação)
+CREATE OR REPLACE FUNCTION save_loyalty_milestones(
+    p_milestones JSONB
+)
+RETURNS VOID AS $$
+BEGIN
+    -- Delete todas as milestones existentes
+    DELETE FROM loyalty_milestones WHERE id IS NOT NULL;
+
+    -- Insere as novas
+    INSERT INTO loyalty_milestones (visits_required, reward_service_id)
+    SELECT
+        (m->>'visits_required')::INTEGER,
+        (m->>'reward_service_id')::UUID
+    FROM jsonb_array_elements(p_milestones) AS m;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- =========================================================================
 -- SECURE PUBLIC RPC FUNCTIONS
 -- =========================================================================
@@ -1758,7 +1898,7 @@ BEGIN
     FROM settings
     WHERE key = 'site_url';
 
-    v_manage_url := v_site_url || '/gerenciar?token=' || NEW.token;
+    v_manage_url := v_site_url || '/gerenciar/' || NEW.token;
 
     v_notif_body := jsonb_build_object(
         'clientName', TRIM(v_client.name),
@@ -1904,6 +2044,8 @@ CREATE TABLE IF NOT EXISTS testimonials (
   text TEXT NOT NULL,
   is_active BOOLEAN NOT NULL DEFAULT true,
   sort_order INTEGER NOT NULL DEFAULT 0,
+  publish_time TIMESTAMPTZ,
+  source TEXT DEFAULT 'manual',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ALTER TABLE testimonials ENABLE ROW LEVEL SECURITY;
@@ -1943,6 +2085,33 @@ CREATE TABLE IF NOT EXISTS client_milestones (
   UNIQUE (client_id, milestone_id)
 );
 ALTER TABLE client_milestones ENABLE ROW LEVEL SECURITY;
+
+-- =========================================================================
+-- GRANT RESTRICTIONS (segurança: limitar acesso a funções sensíveis)
+-- =========================================================================
+
+-- Funções públicas que retornam PII: restritas a anon + authenticated
+-- (necessário para fluxo de agendamento público)
+GRANT EXECUTE ON FUNCTION lookup_client_by_phone TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION get_last_booking_by_phone TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION get_bookings_by_phone TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION get_bookings_by_token TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION cancel_booking_public TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION get_client_milestones_public TO anon, authenticated;
+
+-- Funções que incrementam dados: restritas a authenticated (admin)
+GRANT EXECUTE ON FUNCTION increment_client_visits TO authenticated;
+GRANT EXECUTE ON FUNCTION save_loyalty_milestones TO authenticated;
+
+-- Funções admin: restritas a authenticated
+GRANT EXECUTE ON FUNCTION health_check TO authenticated;
+GRANT EXECUTE ON FUNCTION toggle_slot_block TO authenticated;
+GRANT EXECUTE ON FUNCTION unblock_day TO authenticated;
+GRANT EXECUTE ON FUNCTION completar_agendamentos_expirados TO authenticated;
+GRANT EXECUTE ON FUNCTION verificar_mensalistas TO authenticated;
+GRANT EXECUTE ON FUNCTION auto_block_lunch_break TO authenticated;
+GRANT EXECUTE ON FUNCTION cleanup_old_data TO authenticated;
+GRANT EXECUTE ON FUNCTION send_weekly_report TO authenticated;
 
 -- =========================================================================
 -- ✅ SISTEMA INSTALADO COM SUCESSO!

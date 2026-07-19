@@ -211,12 +211,6 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
     }
 
     setBarberHours(newHours);
-    try {
-      localStorage.setItem('barber_hours', newHours);
-    } catch (e) {
-      logError(e);
-      /* ignore */
-    }
     return true;
   }, []);
 

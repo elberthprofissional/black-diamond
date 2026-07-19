@@ -1,5 +1,5 @@
 import { type FC } from 'react';
-import { formatDateBR } from '../../lib/utils';
+import { formatDateBR, formatPrice } from '../../lib/utils';
 import type { Service } from '../../types';
 
 interface BookingDesktopSidebarProps {
@@ -58,7 +58,7 @@ const BookingDesktopSidebar: FC<BookingDesktopSidebarProps> = ({
               <div key={`side-${s.id}`} className="flex justify-between items-center">
                 <span className="text-[13px] text-zinc-300">{s.name}</span>
                 <span className="text-[13px] font-bold text-[#D4AF37]">
-                  R$ {Number(s.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {formatPrice(s.price, { locale: true })}
                 </span>
               </div>
             ))}
@@ -78,9 +78,7 @@ const BookingDesktopSidebar: FC<BookingDesktopSidebarProps> = ({
             )}
             <div className="border-t border-white/[0.06] pt-3 flex justify-between">
               <span className="text-[10px] font-bold text-zinc-500 uppercase">Total</span>
-              <span className="text-lg font-bold">
-                R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </span>
+              <span className="text-lg font-bold">{formatPrice(totalPrice, { locale: true })}</span>
             </div>
           </div>
         )}

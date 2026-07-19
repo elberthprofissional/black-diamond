@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatPhone } from '../lib/utils';
 import { useClients } from '../hooks/useClients';
+import ReminderFilterTabs from '../components/Admin/shared/ReminderFilterTabs';
 import { useReminders } from '../hooks/useReminders';
 import { useToast } from '../hooks/useToast';
 import AdminLayout from '../components/Admin/AdminLayout';
@@ -56,14 +57,8 @@ const AdminClients: FC = () => {
   };
 
   const filteredClients = c.clients.filter((cl) => {
-    const nameToSearch =
-      ('_originalName' in cl ? ((cl as Record<string, unknown>)._originalName as string) : '') ||
-      cl.name ||
-      '';
-    const phoneToSearch =
-      ('_originalPhone' in cl ? ((cl as Record<string, unknown>)._originalPhone as string) : '') ||
-      cl.phone ||
-      '';
+    const nameToSearch = cl.name || '';
+    const phoneToSearch = cl.phone || '';
     const matchSearch =
       nameToSearch.toLowerCase().includes(c.debouncedSearch.toLowerCase()) ||
       phoneToSearch.includes(c.debouncedSearch);
@@ -153,91 +148,11 @@ const AdminClients: FC = () => {
         </button>
       </div>
 
-      {/* Filter tabs - Mobile */}
-      <div className="lg:hidden flex gap-2 mt-3 overflow-x-auto pb-2 scrollbar-hide">
-        {(['all', 'pending', 'sent', 'inactive'] as const).map((filter) => {
-          const active = reminderFilter === filter;
-          const label =
-            filter === 'all'
-              ? 'Todos'
-              : filter === 'pending'
-                ? 'A Lembrar'
-                : filter === 'sent'
-                  ? 'Lembrados'
-                  : 'Inativos';
-          const count =
-            filter === 'all'
-              ? counts.all
-              : filter === 'pending'
-                ? counts.pending
-                : filter === 'sent'
-                  ? counts.sent
-                  : counts.inactive;
-          return (
-            <button
-              key={filter}
-              onClick={() => handleFilterChange(filter)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer shrink-0 border ${
-                active
-                  ? 'bg-[#D4AF37]/10 border-[#D4AF37]/30 text-[#D4AF37] shadow-[0_0_12px_rgba(197,160,89,0.1)]'
-                  : 'bg-white/[0.02] border-white/[0.04] text-zinc-500'
-              }`}
-            >
-              <span>{label}</span>
-              <span
-                className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold transition-colors ${
-                  active ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'bg-white/5 text-zinc-600'
-                }`}
-              >
-                {count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Filter tabs - Desktop */}
-      <div className="hidden lg:flex gap-2 mt-2">
-        {(['all', 'pending', 'sent', 'inactive'] as const).map((filter) => {
-          const active = reminderFilter === filter;
-          const label =
-            filter === 'all'
-              ? 'Todos'
-              : filter === 'pending'
-                ? 'A Lembrar'
-                : filter === 'sent'
-                  ? 'Lembrados'
-                  : 'Inativos';
-          const count =
-            filter === 'all'
-              ? counts.all
-              : filter === 'pending'
-                ? counts.pending
-                : filter === 'sent'
-                  ? counts.sent
-                  : counts.inactive;
-          return (
-            <button
-              key={filter}
-              onClick={() => handleFilterChange(filter)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer border ${
-                active
-                  ? 'bg-[#D4AF37]/10 border-[#D4AF37]/30 text-[#D4AF37] shadow-[0_0_12px_rgba(197,160,89,0.1)]'
-                  : 'bg-white/[0.02] border-white/[0.04] text-zinc-500 hover:text-zinc-300 hover:border-white/[0.08]'
-              }`}
-            >
-              <span>{label}</span>
-              <span
-                className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold transition-colors ${
-                  active ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'bg-white/5 text-zinc-600'
-                }`}
-              >
-                {count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      <ReminderFilterTabs
+        activeFilter={reminderFilter}
+        onFilterChange={handleFilterChange}
+        counts={counts}
+      />
 
       {/* Client list */}
       <div>

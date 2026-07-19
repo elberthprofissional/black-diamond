@@ -12,6 +12,7 @@ import {
   Cell,
 } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { formatPricePublic, formatPrice } from '../../../lib/utils';
 import type { RevenueChartData } from '../../../hooks/useRevenueChartData';
 
 interface RevenueChartProps {
@@ -39,7 +40,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
         <div key={idx} className="flex items-center gap-2 text-[12px]">
           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
           <span className="text-zinc-300">{entry.name}:</span>
-          <span className="font-bold text-white">R$ {Number(entry.value).toFixed(0)}</span>
+          <span className="font-bold text-white">{formatPricePublic(entry.value)}</span>
         </div>
       ))}
     </div>
@@ -52,8 +53,7 @@ const RevenueChart: FC<RevenueChartProps> = ({ data }) => {
   );
 
   const formatYAxis = (value: number) => {
-    if (value >= 1000) return `R$${(value / 1000).toFixed(0)}k`;
-    return `R$${value}`;
+    return formatPrice(value, { compact: true });
   };
 
   return (
@@ -68,7 +68,7 @@ const RevenueChart: FC<RevenueChartProps> = ({ data }) => {
             </span>
           </div>
           <p className="text-lg font-black text-white tabular-nums">
-            R$ {data.dailyAverage.toFixed(0)}
+            {formatPricePublic(data.dailyAverage)}
           </p>
         </div>
 
@@ -81,7 +81,7 @@ const RevenueChart: FC<RevenueChartProps> = ({ data }) => {
               </span>
             </div>
             <p className="text-lg font-black text-emerald-400 tabular-nums">
-              R$ {data.bestDay.value.toFixed(0)}
+              {formatPricePublic(data.bestDay.value)}
             </p>
             <p className="text-[9px] text-zinc-600">{data.bestDay.label}</p>
           </div>
@@ -250,7 +250,7 @@ const RevenueChart: FC<RevenueChartProps> = ({ data }) => {
                         <div className="flex items-center gap-2 text-[12px]">
                           <span className="text-zinc-300">Receita:</span>
                           <span className="font-bold text-white">
-                            R$ {Number(entry.value).toFixed(0)}
+                            {formatPricePublic(entry.value)}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-[11px] mt-0.5">

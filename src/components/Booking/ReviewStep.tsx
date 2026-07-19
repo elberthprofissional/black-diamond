@@ -1,5 +1,5 @@
 import { memo, type FC } from 'react';
-import { formatPhone } from '../../lib/utils';
+import { formatPhone, formatPricePublic, formatPriceAdmin, formatDiscount } from '../../lib/utils';
 import { Tag } from 'lucide-react';
 import type { Service } from '../../types';
 import CouponBadge from './CouponBadge';
@@ -119,7 +119,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                   <div key={`ticket-${s.id}`} className="flex justify-between items-center">
                     <span className="text-[13px] text-zinc-300">{s.name}</span>
                     <span className="text-[13px] font-bold text-white tabular-nums">
-                      R$ {Number(s.price).toFixed(0)}
+                      {formatPricePublic(s.price)}
                     </span>
                   </div>
                 ))}
@@ -147,7 +147,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                   <div className="flex justify-between items-center">
                     <span className="text-[11px] text-zinc-500">Subtotal</span>
                     <span className="text-[13px] font-bold text-zinc-500 tabular-nums line-through">
-                      R$ {originalPrice.toFixed(0)}
+                      {formatPricePublic(originalPrice)}
                     </span>
                   </div>
                 )}
@@ -155,7 +155,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                   <div className="flex justify-between items-center">
                     <span className="text-[11px] text-emerald-400 font-medium">Desconto</span>
                     <span className="text-[13px] font-bold text-emerald-400 tabular-nums">
-                      -R$ {coupon!.discount_amount.toFixed(2).replace('.', ',')}
+                      {formatDiscount(coupon!.discount_amount, { decimals: true })}
                     </span>
                   </div>
                 )}
@@ -164,7 +164,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                     Total
                   </span>
                   <span className="text-2xl font-black text-[#D4AF37] tracking-tight tabular-nums">
-                    R$ {totalPrice.toFixed(0)}
+                    {formatPricePublic(totalPrice)}
                   </span>
                 </div>
               </div>
@@ -303,7 +303,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                         </p>
                         {hasDiscount && (
                           <span className="text-[10px] text-[#D4AF37]/70">
-                            -R$ {coupon!.discount_amount.toFixed(2).replace('.', ',')}
+                            {formatDiscount(coupon!.discount_amount, { decimals: true })}
                           </span>
                         )}
                       </div>
@@ -338,7 +338,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                   <div className="flex-1 flex justify-between items-center">
                     <span className="text-[10px] text-zinc-500 line-through">Subtotal</span>
                     <span className="text-[13px] font-bold text-zinc-500 tabular-nums line-through">
-                      R$ {originalPrice.toFixed(2).replace('.', ',')}
+                      {formatPriceAdmin(originalPrice)}
                     </span>
                   </div>
                 </div>
@@ -349,7 +349,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                   <div className="flex-1 flex justify-between items-center">
                     <span className="text-[10px] text-emerald-400 font-medium">Desconto</span>
                     <span className="text-[13px] font-bold text-emerald-400 tabular-nums">
-                      -R$ {coupon.discount_amount.toFixed(2).replace('.', ',')}
+                      {formatDiscount(coupon.discount_amount, { decimals: true })}
                     </span>
                   </div>
                 </div>
@@ -371,7 +371,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                 <div className="flex-1 min-w-0 flex justify-between items-center">
                   <p className="text-[11px] text-zinc-500 font-medium">Valor</p>
                   <p className="text-[18px] font-black text-white tabular-nums">
-                    R$ {totalPrice.toFixed(2).replace('.', ',')}
+                    {formatPriceAdmin(totalPrice)}
                   </p>
                 </div>
               </div>

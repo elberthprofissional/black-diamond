@@ -26,7 +26,6 @@ export interface MonthlyRevenue {
 export interface RevenueChartData {
   dailyRevenue: DailyRevenue[];
   weeklyRevenue: DailyRevenue[];
-  monthlyRevenue: MonthlyRevenue[];
   monthlyComparison: MonthlyRevenue[];
   dayOfWeekRevenue: DayOfWeekRevenue[];
   dailyAverage: number;
@@ -150,21 +149,6 @@ export function useRevenueChartData(bookings: Booking[]): RevenueChartData {
       count: sundayData.count,
     });
 
-    // Build monthly comparison (last 12 months)
-    const monthlyRevenue: MonthlyRevenue[] = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(currentYear, currentMonth - i, 1);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      const data = monthlyMap.get(key) || { value: 0, count: 0 };
-      const label = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
-      monthlyRevenue.push({
-        month: key,
-        label,
-        value: data.value,
-        count: data.count,
-      });
-    }
-
     // Monthly comparison (last 12 months, as far back as we have data)
     const monthlyComparison: MonthlyRevenue[] = [];
     const sortedMonths = Array.from(monthlyMap.entries()).sort(([a], [b]) => a.localeCompare(b));
@@ -206,7 +190,6 @@ export function useRevenueChartData(bookings: Booking[]): RevenueChartData {
     return {
       dailyRevenue,
       weeklyRevenue,
-      monthlyRevenue,
       monthlyComparison,
       dayOfWeekRevenue,
       dailyAverage,

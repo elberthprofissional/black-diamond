@@ -9,7 +9,7 @@ import {
   getAvailableSlots,
   createBooking,
 } from '../lib/api';
-import { formatPhone, getNextDays } from '../lib/utils';
+import { formatPhone, getNextDays, formatPrice } from '../lib/utils';
 import { logError } from '../lib/logger';
 
 interface BookingEntry {
@@ -157,11 +157,9 @@ export default function CancelPage() {
     setSelectedDate('');
     setSelectedTime('');
     setAvailableSlots([]);
-    // Se os dados estão mascarados, pedir ao usuário que informe
     const clientsData = Array.isArray(booking.clients) ? booking.clients[0] : booking.clients;
-    const isMasked = clientsData?.name?.includes('****') || clientsData?.phone?.includes('****');
-    setRescheduleName(isMasked ? '' : clientsData?.name || '');
-    setReschedulePhone(isMasked ? '' : clientsData?.phone || phone.replace(/\D/g, ''));
+    setRescheduleName(clientsData?.name ?? '');
+    setReschedulePhone(clientsData?.phone || phone.replace(/\D/g, ''));
     setView('reschedule');
   };
 
@@ -208,10 +206,7 @@ export default function CancelPage() {
 
     setRescheduling(true);
     try {
-      // Cancel old booking FIRST to free the slot
-      await cancelBooking(rescheduleBooking.id, initialToken || undefined);
-
-      // Then create new booking
+      // Create new booking FIRST (safe order — no data loss if creation fails)
       await createBooking(
         {
           service_ids: rescheduleBooking.service_ids,
@@ -222,6 +217,9 @@ export default function CancelPage() {
         },
         { name: clientName, phone: clientPhone }
       );
+
+      // Then cancel old booking
+      await cancelBooking(rescheduleBooking.id, initialToken || undefined);
 
       // Update list
       setBookings((prev) => prev.filter((b) => b.id !== rescheduleBooking.id));
@@ -329,8 +327,7 @@ export default function CancelPage() {
                       </p>
                     </div>
                     <span className="text-[12px] font-bold text-zinc-400">
-                      R${' '}
-                      {Number(b.total_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      {formatPrice(b.total_price, { locale: true })}
                     </span>
                   </div>
                   <div className="flex gap-2">
@@ -385,31 +382,6 @@ export default function CancelPage() {
                   </div>
                 </div>
               </div>
-
-              {/* Client info (shown when data is masked) */}
-              {(!rescheduleName || !reschedulePhone) && (
-                <div className="space-y-2">
-                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                    Seus dados
-                  </p>
-                  <input
-                    type="text"
-                    value={rescheduleName}
-                    onChange={(e) => setRescheduleName(e.target.value)}
-                    placeholder="Seu nome"
-                    maxLength={100}
-                    className="w-full h-10 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 text-[13px] text-white outline-none focus:border-[#D4AF37] transition-all placeholder:text-zinc-600"
-                  />
-                  <input
-                    type="tel"
-                    value={reschedulePhone}
-                    onChange={(e) => setReschedulePhone(e.target.value)}
-                    placeholder="(00) 00000-0000"
-                    maxLength={11}
-                    className="w-full h-10 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 text-[13px] text-white outline-none focus:border-[#D4AF37] transition-all placeholder:text-zinc-600"
-                  />
-                </div>
-              )}
 
               {/* Date selection */}
               <div>

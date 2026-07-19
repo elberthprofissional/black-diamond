@@ -1,6 +1,7 @@
 import { type FC } from 'react';
 import { CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { formatPrice } from '../../../lib/utils';
 
 interface EndOfDayViewProps {
   completedCount: number;
@@ -31,9 +32,7 @@ const EndOfDayView: FC<EndOfDayViewProps> = ({ completedCount, dailyRevenue }) =
           </div>
           <div className="w-px h-8 bg-white/[0.06]" />
           <div className="text-center">
-            <p className="text-xl font-black text-[#D4AF37]">
-              R$ {dailyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
-            </p>
+            <p className="text-xl font-black text-[#D4AF37]">{formatPrice(dailyRevenue)}</p>
             <p className="text-[9px] text-zinc-500 uppercase tracking-wider mt-0.5">faturados</p>
           </div>
         </div>

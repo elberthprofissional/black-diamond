@@ -23,6 +23,7 @@ vi.mock('../../../lib/utils', () => ({
     bookings.some((b) => b.status !== 'cancelled' && b.booking_time.slice(0, 5) === time)
   ),
   formatDisplayName: vi.fn((name: string) => name),
+  formatPricePublic: vi.fn((price: number | string) => `R$ ${price}`),
 }));
 
 vi.mock('../../../hooks/useIsDesktop', () => ({

@@ -1,6 +1,6 @@
 import { type FC } from 'react';
 import { ChevronRight } from 'lucide-react';
-import { formatDisplayName } from '../../../lib/utils';
+import { formatDisplayName, formatPrice } from '../../../lib/utils';
 import type { BookingWithClient } from '../../../types';
 
 interface DashboardHeaderProps {
@@ -49,7 +49,7 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({ nextBooking, dailyRevenue, 
           </span>
           {dailyRevenue > 0 ? (
             <span className="text-[14px] lg:text-[18px] font-black text-[#D4AF37] tabular-nums mt-0.5 lg:mt-1">
-              R$ {dailyRevenue.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+              {formatPrice(dailyRevenue)}
             </span>
           ) : (
             <span className="text-[10px] lg:text-[12px] font-semibold text-zinc-600 flex items-center gap-1.5 mt-0.5 lg:mt-1">

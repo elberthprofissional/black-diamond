@@ -1,5 +1,6 @@
 import { type FC } from 'react';
 import { Plus, Pencil, Trash2, Crown } from 'lucide-react';
+import { formatPrice } from '../../../lib/utils';
 import type { MensalistaPlan, Service } from '../../../types';
 
 interface PlanListViewProps {
@@ -84,7 +85,7 @@ const PlanListView: FC<PlanListViewProps> = ({
                 </div>
                 <div className="flex items-center gap-3 mt-1">
                   <span className="text-[12px] text-[#D4AF37] font-medium">
-                    R$ {Number(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    {formatPrice(plan.price, { locale: true })}
                     /mês
                   </span>
                   {plan.included_service_ids && plan.included_service_ids.length > 0 && (
@@ -153,7 +154,7 @@ const PlanListView: FC<PlanListViewProps> = ({
                   </div>
                   <div className="flex items-baseline gap-1 mt-0.5">
                     <span className="text-[14px] text-[#D4AF37] font-bold">
-                      R$ {Number(plan.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      {formatPrice(plan.price, { locale: true })}
                     </span>
                     <span className="text-[10px] text-zinc-500">/mês</span>
                   </div>

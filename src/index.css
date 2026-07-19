@@ -29,10 +29,7 @@
 
 @layer base {
   html {
-    @apply scroll-smooth;
-  }
-  html {
-    @apply overflow-x-hidden;
+    @apply scroll-smooth overflow-x-hidden;
   }
   body {
     @apply bg-[#0f0f0f] text-white font-sans antialiased selection:bg-gold selection:text-white overflow-x-hidden;
@@ -89,8 +86,6 @@
     scroll-behavior: auto !important;
   }
 }
-
-/* Touch target sizing — handled per-component where needed */
 
 /* Touch target sizing — handled per-component where needed */
 
@@ -360,7 +355,6 @@ textarea:focus-visible {
 }
 
 /* Melhora contraste do texto gold em fundo escuro para WCAG AA */
-.text-\[\#D4AF37\],
 .text-\[\#D4AF37\],
 .text-gold,
 .text-gold-bright {

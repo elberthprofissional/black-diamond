@@ -1,5 +1,6 @@
 import { Check, ChevronRight } from 'lucide-react';
 import { useIsDesktop } from '../../../hooks/useIsDesktop';
+import { formatPricePublic } from '../../../lib/utils';
 import type { Service } from '../../../types';
 
 interface ResponsiveServicesStepProps {
@@ -81,7 +82,7 @@ export default function ResponsiveServicesStep({
                     isSelected ? 'text-[#D4AF37]' : 'text-zinc-500'
                   }`}
                 >
-                  R$ {Number(service.price).toFixed(0)}
+                  {formatPricePublic(service.price)}
                 </span>
               </button>
             );
@@ -95,7 +96,9 @@ export default function ResponsiveServicesStep({
                 <span className="text-[12px] font-medium text-zinc-500 uppercase tracking-wider">
                   Total
                 </span>
-                <span className="text-xl font-bold text-[#D4AF37]">R$ {totalPrice.toFixed(0)}</span>
+                <span className="text-xl font-bold text-[#D4AF37]">
+                  {formatPricePublic(totalPrice)}
+                </span>
               </div>
             )}
             <div className="flex gap-3">
@@ -172,7 +175,7 @@ export default function ResponsiveServicesStep({
               <span
                 className={`font-black text-sm shrink-0 ${isSelected ? 'text-[#D4AF37]' : 'text-zinc-400'}`}
               >
-                R$ {Number(service.price).toFixed(0)}
+                {formatPricePublic(service.price)}
               </span>
             </button>
           );

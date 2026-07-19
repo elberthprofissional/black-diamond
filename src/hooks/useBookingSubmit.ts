@@ -23,11 +23,7 @@ interface BookingResult {
   manageUrl: string;
 }
 
-export function useBookingSubmit(
-  showError: (msg: string) => void,
-  onComplete: () => void,
-  showSuccess?: (msg: string) => void
-) {
+export function useBookingSubmit(showError: (msg: string) => void, onComplete: () => void) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submittingRef = useRef(false);
   const { barberPhone } = useBarberSettings();

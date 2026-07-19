@@ -1,5 +1,6 @@
 import { Tag, X } from 'lucide-react';
 import { type FC } from 'react';
+import { formatDiscount } from '../../lib/utils';
 
 interface CouponBadgeProps {
   code: string;
@@ -22,7 +23,7 @@ const CouponBadge: FC<CouponBadgeProps> = ({
           <span className="text-[12px] font-bold text-[#D4AF37] tracking-wider">{code}</span>
           {discountAmount > 0 && (
             <span className="text-[10px] text-[#D4AF37]/70">
-              -R$ {discountAmount.toFixed(2).replace('.', ',')}
+              {formatDiscount(discountAmount, { decimals: true })}
             </span>
           )}
         </div>
@@ -43,7 +44,7 @@ const CouponBadge: FC<CouponBadgeProps> = ({
         <Tag size={14} className="text-[#D4AF37]" />
         <span className="text-[12px] font-semibold text-[#D4AF37]">{code}</span>
         <span className="text-[11px] text-zinc-400">
-          -R$ {discountAmount.toFixed(2).replace('.', ',')}
+          {formatDiscount(discountAmount, { decimals: true })}
         </span>
       </div>
       <button

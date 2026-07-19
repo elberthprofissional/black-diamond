@@ -184,12 +184,12 @@ export const getBookingsForStats = async (monthsBack: number = 12) => {
   return data || [];
 };
 
-/** Exclui todos os agendamentos permanentemente. */
+/** Cancela todos os agendamentos (soft-delete: status → cancelled). Preserva dados históricos. */
 export const deleteAllBookings = async (): Promise<number> => {
   const { data, error } = await supabase
     .from('bookings')
-    .delete()
-    .neq('id', NULL_UUID)
+    .update({ status: 'cancelled' })
+    .neq('status', 'cancelled')
     .select('id');
   if (error) throw error;
   return data?.length || 0;

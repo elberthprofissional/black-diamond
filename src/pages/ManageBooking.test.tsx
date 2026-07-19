@@ -18,7 +18,7 @@ const mockGetBookingsByToken = vi.fn().mockResolvedValue([
 ]);
 
 vi.mock('react-router-dom', () => ({
-  useSearchParams: () => [new URLSearchParams('token=abc123')],
+  useParams: () => ({ token: 'abc123' }),
   useNavigate: () => vi.fn(),
 }));
 

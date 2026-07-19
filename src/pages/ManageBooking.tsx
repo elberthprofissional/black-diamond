@@ -1,5 +1,5 @@
 import { useState, useEffect, type FC } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar,
@@ -13,13 +13,12 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { getBookingsByToken, cancelBooking, type ManagedBooking } from '../lib/api';
-import { formatDateBR } from '../lib/utils';
+import { formatDateBR, formatPrice } from '../lib/utils';
 import { logError } from '../lib/logger';
 
 const ManageBooking: FC = () => {
-  const [searchParams] = useSearchParams();
+  const { token } = useParams<{ token?: string }>();
   const navigate = useNavigate();
-  const token = searchParams.get('token');
 
   const [bookings, setBookings] = useState<ManagedBooking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -221,10 +220,7 @@ const ManageBooking: FC = () => {
                         <div className="flex items-center gap-1.5">
                           <DollarSign size={13} className="text-[#D4AF37]/60" />
                           <span className="text-[15px] font-bold text-white tabular-nums">
-                            R${' '}
-                            {Number(booking.total_price).toLocaleString('pt-BR', {
-                              minimumFractionDigits: 2,
-                            })}
+                            {formatPrice(booking.total_price, { locale: true })}
                           </span>
                         </div>
                       </div>
