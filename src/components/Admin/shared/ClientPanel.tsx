@@ -1,19 +1,7 @@
 import { useState, useEffect, useMemo, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  X,
-  Pencil,
-  Trash2,
-  Plus,
-  Crown,
-  Gift,
-  ArrowLeft,
-  Check,
-  ChevronRight,
-  EyeOff,
-  RotateCcw,
-} from 'lucide-react';
+import { X, Pencil, Trash2, Plus, Crown, Gift, ArrowLeft, Check, ChevronRight } from 'lucide-react';
 import { formatPhone, formatPricePublic } from '../../../lib/utils';
 import { cleanPhoneForWhatsApp } from '../../../lib/whatsapp';
 import { getServices, type MilestoneProgress } from '../../../lib/api';
@@ -140,15 +128,6 @@ const ClientPanel: FC<ClientPanelProps> = ({
 
   const visibleBookings = filteredBookings.slice(0, visibleCount);
   const hasMore = filteredBookings.length > visibleCount;
-
-  const getServiceNames = (serviceIds: string[]) => {
-    return (
-      serviceIds
-        .map((id) => services.find((s) => s.id === id)?.name)
-        .filter(Boolean)
-        .join(', ') || 'Serviço'
-    );
-  };
 
   const formatMonth = (key: string) => {
     const [year, month] = key.split('-');
