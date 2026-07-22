@@ -1,15 +1,26 @@
 import { type FC } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, CheckCircle, XCircle, UserX } from 'lucide-react';
 import { formatDisplayName, formatPrice } from '../../../lib/utils';
 import type { BookingWithClient } from '../../../types';
 
 interface DashboardHeaderProps {
   nextBooking: BookingWithClient | null;
   dailyRevenue: number;
+  bookings: BookingWithClient[];
   onSelectNext: () => void;
 }
 
-const DashboardHeader: FC<DashboardHeaderProps> = ({ nextBooking, dailyRevenue, onSelectNext }) => {
+const DashboardHeader: FC<DashboardHeaderProps> = ({
+  nextBooking,
+  dailyRevenue,
+  bookings,
+  onSelectNext,
+}) => {
+  const completed = bookings.filter((b) => b.status === 'completed').length;
+  const cancelled = bookings.filter((b) => b.status === 'cancelled').length;
+  const noShows = bookings.filter((b) => b.no_show).length;
+  const total = bookings.length;
+
   return (
     <>
       <div className="hidden lg:flex items-center justify-between gap-4 pb-3 border-b border-white/5">
@@ -59,6 +70,35 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({ nextBooking, dailyRevenue, 
           )}
         </div>
       </div>
+
+      {/* Resumo do Dia */}
+      {total > 0 && (
+        <div className="flex items-center gap-4 lg:gap-6 px-1 py-2">
+          <span className="text-[9px] lg:text-[10px] font-bold text-zinc-600 uppercase tracking-wider">
+            {total} {total === 1 ? 'cliente' : 'clientes'} hoje
+          </span>
+          <div className="flex items-center gap-3 lg:gap-4">
+            {completed > 0 && (
+              <span className="flex items-center gap-1 text-[9px] lg:text-[10px] font-bold text-emerald-400">
+                <CheckCircle size={10} />
+                {completed}
+              </span>
+            )}
+            {cancelled > 0 && (
+              <span className="flex items-center gap-1 text-[9px] lg:text-[10px] font-bold text-red-400">
+                <XCircle size={10} />
+                {cancelled}
+              </span>
+            )}
+            {noShows > 0 && (
+              <span className="flex items-center gap-1 text-[9px] lg:text-[10px] font-bold text-amber-400">
+                <UserX size={10} />
+                {noShows}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 };

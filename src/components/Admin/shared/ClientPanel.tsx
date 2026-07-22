@@ -285,15 +285,27 @@ const ClientPanel: FC<ClientPanelProps> = ({
               Enviar Lembrete
             </button>
             <button
-              onClick={() =>
-                navigate(
-                  `/admin/agendar?client=${encodeURIComponent(client.name)}&phone=${encodeURIComponent(client.phone)}`
-                )
-              }
+              onClick={() => {
+                const lastBooking = panelBookings[0];
+                const params = new URLSearchParams({
+                  client: client.name,
+                  phone: client.phone,
+                });
+                if (lastBooking?.service_ids?.length) {
+                  params.set('services', lastBooking.service_ids.join(','));
+                }
+                if (lastBooking?.booking_date) {
+                  params.set('date', lastBooking.booking_date);
+                }
+                if (lastBooking?.booking_time) {
+                  params.set('time', lastBooking.booking_time.slice(0, 5));
+                }
+                navigate(`/admin/agendar?${params.toString()}`);
+              }}
               className="flex-1 h-10 bg-[#D4AF37] hover:bg-[#b8962e] text-black font-bold text-[9px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Plus size={12} strokeWidth={3} />
-              Agendar
+              {panelBookings.length > 0 ? 'Reagendar' : 'Agendar'}
             </button>
           </div>
 

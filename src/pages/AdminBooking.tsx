@@ -43,6 +43,9 @@ const AdminBooking: FC = () => {
   const searchParams = new URLSearchParams(location.search);
   const prefilledClientName = searchParams.get('client');
   const prefilledClientPhone = searchParams.get('phone');
+  const prefilledServiceIds = searchParams.get('services')?.split(',').filter(Boolean) || [];
+  const prefilledDate = searchParams.get('date') || '';
+  const prefilledTime = searchParams.get('time') || '';
   const rescheduleBooking = location.state?.rescheduleBooking;
 
   const { services } = useServices();
@@ -192,6 +195,22 @@ const AdminBooking: FC = () => {
     setNewClient,
     setIsManualEntry,
   ]);
+
+  // Pre-select services from URL params (Reagendar rápido)
+  useEffect(() => {
+    if (prefilledServiceIds.length > 0 && services.length > 0 && selectedServices.length === 0) {
+      const toSelect = services.filter((s) => prefilledServiceIds.includes(s.id));
+      if (toSelect.length > 0) {
+        setSelectedServices(toSelect);
+      }
+    }
+  }, [prefilledServiceIds, services, selectedServices.length]);
+
+  // Pre-select date/time from URL params (Reagendar rápido)
+  useEffect(() => {
+    if (prefilledDate && !selectedDate) setSelectedDate(prefilledDate);
+    if (prefilledTime && !selectedTime) setSelectedTime(prefilledTime);
+  }, [prefilledDate, prefilledTime, selectedDate, selectedTime]);
 
   useEffect(() => {
     if (selectedDate) {

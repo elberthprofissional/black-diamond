@@ -71,6 +71,7 @@ const AdminDashboard: FC = () => {
           <DashboardHeader
             nextBooking={data.nextBooking}
             dailyRevenue={data.dailyRevenue}
+            bookings={data.bookings}
             onSelectNext={() => data.nextBooking && mgmt.setSelectedBooking(data.nextBooking)}
           />
 
