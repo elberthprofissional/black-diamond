@@ -33,7 +33,6 @@ const AdminClients: FC = () => {
   const [reminderFilter, setReminderFilter] = useState<ClientFilter>(
     filterParam === 'pending' || filterParam === 'sent' ? filterParam : 'all'
   );
-  const [nowTimestamp] = useState(() => Date.now());
   const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [reminderClient, setReminderClient] = useState<Client | null>(null);
 
@@ -100,11 +99,6 @@ const AdminClients: FC = () => {
             </h1>
             <p className="text-[9px] font-bold text-[#D4AF37] uppercase tracking-widest mt-0.5">
               {c.clients.length} cadastrados
-              {counts.inactive > 0 && (
-                <span className="text-amber-400 ml-2">
-                  · {counts.inactive} inativo{counts.inactive !== 1 ? 's' : ''}
-                </span>
-              )}
             </p>
           </div>
         </div>
@@ -188,7 +182,7 @@ const AdminClients: FC = () => {
                         </span>
                       </div>
                       <div className="space-y-1">
-                        {clients.map((client, idx) => {
+                        {clients.map((client) => {
                           return (
                             <div
                               key={client.id}
