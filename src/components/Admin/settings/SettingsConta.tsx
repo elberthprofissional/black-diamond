@@ -26,7 +26,9 @@ const SettingsConta: FC = () => {
     quote: settings.barberQuote,
     instagram: settings.barberInstagram,
   });
+  // Sync form state when settings load from context
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVals({
       name: settings.barberName,
       phone: settings.barberPhone,

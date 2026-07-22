@@ -54,7 +54,7 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
   useEffect(() => {
     getMensalistaPlans(true)
       .then(setAllPlans)
-      .catch(() => {});
+      .catch((e) => logError(e, 'useAdminClientSearch'));
   }, []);
 
   // Detect mensalista when typing phone manually
@@ -63,7 +63,10 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
 
     const digits = newClient.phone.replace(/\D/g, '');
     if (digits.length < 11) {
-      if (isMensalista) setIsMensalista(false);
+      if (isMensalista) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setIsMensalista(false);
+      }
       return;
     }
 

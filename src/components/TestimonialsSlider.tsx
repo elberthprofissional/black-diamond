@@ -1,6 +1,12 @@
-import { useRef, useCallback, useState, useEffect, type FC, type MouseEvent } from 'react';
+import { useRef, useCallback, useState, useEffect, useMemo, type FC, type MouseEvent } from 'react';
 import { User, Star, Quote, Pause, Play } from 'lucide-react';
 import { getActiveTestimonials } from '../lib/api/testimonials';
+import GoogleReviewBadge from './GoogleReviewBadge';
+import {
+  calculateAverageRating,
+  getGooglePlaceId,
+  getGoogleReviewsViewUrl,
+} from '../lib/google-reviews';
 import type { Testimonial } from '../types';
 
 const GoogleIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
@@ -59,6 +65,12 @@ const Testimonials: FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
 
   const count = testimonials.length;
+  const avgRating = useMemo(() => calculateAverageRating(testimonials), [testimonials]);
+  const [placeId, setPlaceId] = useState<string | null>(null);
+
+  useEffect(() => {
+    getGooglePlaceId().then(setPlaceId);
+  }, []);
 
   // Intersection Observer para animação de entrada
   useEffect(() => {
@@ -92,7 +104,10 @@ const Testimonials: FC = () => {
 
   // Auto-play (uses ref to avoid recreating interval on activeIndex change)
   const activeIndexRef = useRef(activeIndex);
-  activeIndexRef.current = activeIndex;
+  // Keep ref in sync via useEffect to avoid updating refs during render
+  useEffect(() => {
+    activeIndexRef.current = activeIndex;
+  }, [activeIndex]);
 
   useEffect(() => {
     if (!isAutoPlaying || isHovered || count <= 1) {
@@ -169,8 +184,15 @@ const Testimonials: FC = () => {
                 <Star key={i} size={14} className="fill-[#D4AF37] text-[#D4AF37]" />
               ))}
             </div>
+            {avgRating > 0 && (
+              <span className="text-[12px] text-[#D4AF37] font-bold font-roboto ml-1">
+                {avgRating.toFixed(1)}
+              </span>
+            )}
             <span className="text-[12px] text-zinc-500 font-roboto ml-1">
-              Avaliações reais dos nossos clientes
+              {count > 0
+                ? `de ${count} avaliacao${count !== 1 ? 'es' : ''} no Google`
+                : 'Avaliacoes reais dos nossos clientes'}
             </span>
           </div>
         </div>
@@ -236,9 +258,12 @@ const Testimonials: FC = () => {
                   <User size={15} className="text-[#D4AF37]/70" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[12px] md:text-[13px] font-bold text-white tracking-wide">
-                    {review.name}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[12px] md:text-[13px] font-bold text-white tracking-wide">
+                      {review.name}
+                    </span>
+                    {review.source === 'google' && <GoogleReviewBadge size="sm" />}
+                  </div>
                   {review.publish_time && (
                     <span className="text-[10px] text-zinc-600 font-roboto">
                       {new Date(review.publish_time).toLocaleDateString('pt-BR', {
@@ -299,10 +324,22 @@ const Testimonials: FC = () => {
 
               <span className="text-zinc-700 text-[8px]">|</span>
 
-              <span className="flex items-center gap-1.5 text-[10px] text-zinc-600 font-roboto uppercase tracking-[0.15em]">
-                <GoogleIcon className="w-3 h-3" />
-                Avaliações verificadas
-              </span>
+              {placeId ? (
+                <a
+                  href={getGoogleReviewsViewUrl(placeId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-[10px] text-zinc-600 hover:text-zinc-400 font-roboto uppercase tracking-[0.15em] transition-colors"
+                >
+                  <GoogleIcon className="w-3 h-3" />
+                  Avaliacoes verificadas
+                </a>
+              ) : (
+                <span className="flex items-center gap-1.5 text-[10px] text-zinc-600 font-roboto uppercase tracking-[0.15em]">
+                  <GoogleIcon className="w-3 h-3" />
+                  Avaliacoes verificadas
+                </span>
+              )}
             </div>
           </div>
         )}

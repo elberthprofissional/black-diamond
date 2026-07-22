@@ -47,6 +47,7 @@ const AdminResetPassword: FC = () => {
   useEffect(() => {
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsPWA(!!isStandalone);
   }, []);
 
@@ -58,6 +59,7 @@ const AdminResetPassword: FC = () => {
       showError('Preencha todos os campos.');
       return;
     }
+    // eslint-disable-next-line security/detect-possible-timing-attacks
     if (password !== confirmPassword) {
       showError('As senhas não coincidem.');
       return;

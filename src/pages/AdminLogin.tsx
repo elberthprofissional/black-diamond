@@ -53,6 +53,7 @@ const AdminLogin: FC = () => {
   useEffect(() => {
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsPWA(!!isStandalone);
 
     if (isStandalone) {

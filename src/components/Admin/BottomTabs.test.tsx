@@ -1,7 +1,21 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import BottomTabs from './BottomTabs';
+
+// Mock BarberContext to return owner state (4 tabs view)
+vi.mock('../../contexts/BarberContext', async () => {
+  const actual = await vi.importActual('../../contexts/BarberContext');
+  return {
+    ...actual,
+    useBarberContext: () => ({
+      currentBarber: { id: '1', name: 'Tato' },
+      isOwner: true,
+      loading: false,
+      barbers: [],
+    }),
+  };
+});
 
 const renderWithRouter = (initialRoute = '/admin') => {
   return render(
@@ -12,7 +26,7 @@ const renderWithRouter = (initialRoute = '/admin') => {
 };
 
 describe('BottomTabs', () => {
-  it('renderiza os 4 botoes de navegacao', () => {
+  it('renderiza os 4 botoes de navegacao para owner', () => {
     renderWithRouter();
     expect(screen.getByLabelText('Hoje')).toBeInTheDocument();
     expect(screen.getByLabelText('Semana')).toBeInTheDocument();

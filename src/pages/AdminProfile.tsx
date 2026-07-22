@@ -20,6 +20,7 @@ import {
   Gift,
   Tag,
   MessageSquare,
+  Users,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
@@ -36,6 +37,8 @@ import ProfileServicesChart from '../components/Admin/shared/ProfileServicesChar
 import RevenueChart from '../components/Admin/shared/RevenueChart';
 import { useRevenueChartData } from '../hooks/useRevenueChartData';
 import ExportButton from '../components/Admin/shared/ExportButton';
+import LogoutConfirmModal from '../components/Admin/profile/LogoutConfirmModal';
+import ResetDataModal from '../components/Admin/profile/ResetDataModal';
 const SettingsConta = lazy(() => import('../components/Admin/settings/SettingsConta'));
 const SettingsGaleria = lazy(() => import('../components/Admin/settings/SettingsGaleria'));
 const SettingsNotificacoes = lazy(
@@ -49,6 +52,7 @@ const SettingsFaltas = lazy(() => import('../components/Admin/settings/SettingsF
 const SettingsFidelidade = lazy(() => import('../components/Admin/settings/SettingsFidelidade'));
 const SettingsCupons = lazy(() => import('../components/Admin/settings/SettingsCupons'));
 const SettingsDepoimentos = lazy(() => import('../components/Admin/settings/SettingsDepoimentos'));
+const SettingsBarbeiros = lazy(() => import('../components/Admin/settings/SettingsBarbeiros'));
 import SettingsList from '../components/Admin/settings/SettingsList';
 import HelpModal from '../components/Admin/settings/HelpModal';
 import { SkeletonDashboard } from '../components/Skeleton';
@@ -256,17 +260,19 @@ const AdminProfile: FC = () => {
                           ? 'Mensalista'
                           : settingsSection === 'faltas'
                             ? 'Controle de Faltas'
-                            : settingsSection === 'fidelidade'
-                              ? 'Fidelidade'
-                              : settingsSection === 'cupons'
-                                ? 'Cupons'
-                                : settingsSection === 'depoimentos'
-                                  ? 'Depoimentos'
-                                  : settingsSection === 'notificacoes'
-                                    ? 'Notificações'
-                                    : settingsSection === 'dados'
-                                      ? 'Zona de Segurança'
-                                      : 'Configurações'}
+                            : settingsSection === 'barbeiros'
+                              ? 'Barbeiros'
+                              : settingsSection === 'fidelidade'
+                                ? 'Fidelidade'
+                                : settingsSection === 'cupons'
+                                  ? 'Cupons'
+                                  : settingsSection === 'depoimentos'
+                                    ? 'Depoimentos'
+                                    : settingsSection === 'notificacoes'
+                                      ? 'Notificações'
+                                      : settingsSection === 'dados'
+                                        ? 'Zona de Segurança'
+                                        : 'Configurações'}
               </h1>
             </div>
             <button
@@ -290,6 +296,7 @@ const AdminProfile: FC = () => {
               {settingsSection === 'galeria' && <SettingsGaleria />}
               {settingsSection === 'servicos' && <SettingsServicos />}
               {settingsSection === 'horarios' && <SettingsHorarios />}
+              {settingsSection === 'barbeiros' && <SettingsBarbeiros />}
               {settingsSection === 'mensalista' && <SettingsMensalista />}
               {settingsSection === 'faltas' && <SettingsFaltas />}
               {settingsSection === 'fidelidade' && <SettingsFidelidade />}
@@ -311,6 +318,7 @@ const AdminProfile: FC = () => {
                   { id: 'galeria', label: 'Galeria', icon: ImageIcon },
                   { id: 'servicos', label: 'Serviços', icon: Scissors },
                   { id: 'horarios', label: 'Horários', icon: Clock },
+                  { id: 'barbeiros', label: 'Barbeiros', icon: Users },
                   { id: 'mensalista', label: 'Mensalista', icon: Crown },
                   { id: 'faltas', label: 'Controle de Faltas', icon: UserX },
                   { id: 'fidelidade', label: 'Fidelidade', icon: Gift },
@@ -357,6 +365,7 @@ const AdminProfile: FC = () => {
                     {settingsSection === 'galeria' && <SettingsGaleria />}
                     {settingsSection === 'servicos' && <SettingsServicos />}
                     {settingsSection === 'horarios' && <SettingsHorarios />}
+                    {settingsSection === 'barbeiros' && <SettingsBarbeiros />}
                     {settingsSection === 'mensalista' && <SettingsMensalista />}
                     {settingsSection === 'faltas' && <SettingsFaltas />}
                     {settingsSection === 'fidelidade' && <SettingsFidelidade />}
@@ -441,46 +450,11 @@ const AdminProfile: FC = () => {
       )}
 
       {/* Modals */}
-      <AnimatePresence>
-        {showLogoutConfirm && (
-          <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowLogoutConfirm(false)}
-              className="absolute inset-0 bg-black/60"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="relative z-10 w-full max-w-[260px] bg-[#1A1A1A] border border-white/5 rounded-2xl overflow-hidden"
-            >
-              <div className="p-5 text-center">
-                <p className="text-[11px] text-zinc-300 font-medium">Sair da conta?</p>
-              </div>
-              <div className="border-t border-white/[0.06]">
-                <button
-                  onClick={handleLogout}
-                  className="w-full py-3.5 text-[11px] font-bold text-red-500 active:bg-white/[0.03] transition-colors cursor-pointer"
-                >
-                  Sair
-                </button>
-              </div>
-              <div className="border-t border-white/[0.06]">
-                <button
-                  onClick={() => setShowLogoutConfirm(false)}
-                  className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
-                >
-                  Manter
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <LogoutConfirmModal
+        open={showLogoutConfirm}
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
 
       <PwaInstallModal
         open={showInstallPrompt}
@@ -492,119 +466,37 @@ const AdminProfile: FC = () => {
         onConfirm={handleConfirmInstall}
       />
 
-      <AnimatePresence>
-        {showResetConfirm && (
-          <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => {
-                setShowResetConfirm(false);
-                setResetText('');
-                setResetStep('confirm');
-                setResetPassword('');
-                setResetPasswordError('');
-              }}
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ y: '100%', opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: '100%', opacity: 0 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-              className="relative z-10 w-full sm:max-w-[340px] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden"
-            >
-              <div className="px-6 pt-6 pb-4">
-                {resetStep === 'password' ? (
-                  <>
-                    <p className="text-[15px] font-semibold text-white text-center">
-                      Confirme sua senha
-                    </p>
-                    <p className="text-[12px] text-zinc-500 mt-1.5 text-center leading-relaxed">
-                      Digite sua senha de administrador para limpar os dados.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-[15px] font-semibold text-white">Limpar dados</p>
-                    <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
-                      Todos os dados da barbearia vão ser apagados permanentemente.
-                    </p>
-                  </>
-                )}
-              </div>
-              <div className="px-6 pb-5">
-                {resetStep === 'password' ? (
-                  <input
-                    type="password"
-                    value={resetPassword}
-                    onChange={(e) => {
-                      setResetPassword(e.target.value);
-                      setResetPasswordError('');
-                    }}
-                    placeholder="Sua senha"
-                    aria-label="Senha do administrador"
-                    className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-red-500/40 transition-all placeholder:text-zinc-600"
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && resetPassword.trim()) handleResetData();
-                    }}
-                  />
-                ) : (
-                  <input
-                    type="text"
-                    value={resetText}
-                    onChange={(e) => setResetText(e.target.value.toUpperCase())}
-                    placeholder="Digite LIMPAR para confirmar"
-                    aria-label="Digite LIMPAR para confirmar a limpeza dos dados"
-                    className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-red-500/40 focus:ring-1 focus:ring-red-500/10 transition-all placeholder:text-zinc-600"
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && resetText === 'LIMPAR') handleResetData();
-                    }}
-                  />
-                )}
-                {resetPasswordError && (
-                  <p className="text-[11px] text-red-400 mt-2">{resetPasswordError}</p>
-                )}
-              </div>
-              <div className="flex border-t border-white/[0.06]">
-                <button
-                  onClick={() => {
-                    if (resetStep === 'password') {
-                      setResetStep('confirm');
-                      setResetPassword('');
-                      setResetPasswordError('');
-                    } else {
-                      setShowResetConfirm(false);
-                      setResetText('');
-                    }
-                  }}
-                  className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
-                >
-                  {resetStep === 'password' ? 'Voltar' : 'Cancelar'}
-                </button>
-                <div className="w-px bg-white/[0.06]" />
-                <button
-                  onClick={handleResetData}
-                  disabled={
-                    resetStep === 'confirm'
-                      ? resetText !== 'LIMPAR' || resetting
-                      : !resetPassword.trim() || resetting
-                  }
-                  className="flex-1 py-4 text-[13px] font-semibold text-red-500 hover:text-red-400 active:bg-white/[0.03] transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
-                >
-                  {resetting ? '...' : resetStep === 'password' ? 'Confirmar' : 'Limpar'}
-                </button>
-              </div>
-              <div className="sm:hidden flex justify-center pb-3 pt-1">
-                <div className="w-10 h-1 rounded-full bg-white/10" />
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <ResetDataModal
+        open={showResetConfirm}
+        step={resetStep}
+        resetText={resetText}
+        resetPassword={resetPassword}
+        resetPasswordError={resetPasswordError}
+        resetting={resetting}
+        onResetTextChange={setResetText}
+        onResetPasswordChange={(val) => {
+          setResetPassword(val);
+          setResetPasswordError('');
+        }}
+        onConfirm={handleResetData}
+        onClose={() => {
+          setShowResetConfirm(false);
+          setResetText('');
+          setResetStep('confirm');
+          setResetPassword('');
+          setResetPasswordError('');
+        }}
+        onBack={() => {
+          if (resetStep === 'password') {
+            setResetStep('confirm');
+            setResetPassword('');
+            setResetPasswordError('');
+          } else {
+            setShowResetConfirm(false);
+            setResetText('');
+          }
+        }}
+      />
 
       <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
 

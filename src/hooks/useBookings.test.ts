@@ -3,18 +3,15 @@ import { renderHook, waitFor, act } from '@testing-library/react';
 import { useBookings } from './useBookings';
 
 const mockGetBookings = vi.fn();
-const mockAutoComplete = vi.fn();
 
 vi.mock('../lib/api', () => ({
   getBookings: (...args: unknown[]) => mockGetBookings(...args),
-  autoCompleteExpiredBookings: (...args: unknown[]) => mockAutoComplete(...args),
 }));
 
 describe('useBookings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetBookings.mockResolvedValue({ data: [], total: 0, page: 1, pageSize: 200 });
-    mockAutoComplete.mockResolvedValue(0);
   });
 
   it('carrega agendamentos na montagem', async () => {
@@ -41,7 +38,7 @@ describe('useBookings', () => {
     renderHook(() => useBookings('2026-07-05'));
 
     await waitFor(() => {
-      expect(mockGetBookings).toHaveBeenCalledWith('2026-07-05');
+      expect(mockGetBookings).toHaveBeenCalledWith('2026-07-05', expect.objectContaining({}));
     });
   });
 
@@ -89,39 +86,11 @@ describe('useBookings', () => {
     });
   });
 
-  it('chama autoCompleteExpiredBookings para data fornecida', async () => {
-    renderHook(() => useBookings('2026-07-05'));
-
-    await waitFor(() => {
-      expect(mockAutoComplete).toHaveBeenCalledWith();
-    });
-  });
-
   it('não chama autoComplete sem data', async () => {
     renderHook(() => useBookings());
 
     await waitFor(() => {
       expect(mockGetBookings).toHaveBeenCalled();
     });
-
-    expect(mockAutoComplete).not.toHaveBeenCalled();
-  });
-
-  it('não refetch após auto-complete quando retorna 0', async () => {
-    mockGetBookings.mockResolvedValueOnce({
-      data: [{ id: 'b1', status: 'confirmed' }],
-      total: 1,
-      page: 1,
-      pageSize: 200,
-    });
-
-    renderHook(() => useBookings('2026-07-05'));
-
-    await waitFor(() => {
-      expect(mockAutoComplete).toHaveBeenCalled();
-    });
-
-    // autoComplete retorna 0, então não deve refetch
-    expect(mockGetBookings).toHaveBeenCalledTimes(1);
   });
 });

@@ -7,6 +7,8 @@ import AuthGuard from './components/Admin/AuthGuard';
 import ErrorBoundary from './components/ErrorBoundary';
 import ConnectionStatusBanner from './components/ConnectionStatusBanner';
 import StandaloneGuard from './components/StandaloneGuard';
+import { BarberProvider } from './contexts/BarberContext';
+import BarberGuard from './components/Barber/BarberGuard';
 import { logError } from './lib/logger';
 
 const TITLES: Record<string, string> = {
@@ -23,6 +25,7 @@ const TITLES: Record<string, string> = {
   '/gerenciar/:token?': 'Gerenciar Agendamento | Black Diamond',
   '/cliente': 'Meus Agendamentos | Black Diamond',
   '/admin/notificacoes': 'Notificações | Black Diamond',
+  '/barber': 'Meu Dia | Black Diamond',
 };
 
 function TitleManager() {
@@ -73,6 +76,7 @@ const CancelPage = lazy(() => import('./pages/CancelPage'));
 const ManageBooking = lazy(() => import('./pages/ManageBooking'));
 const ClientProfile = lazy(() => import('./components/ClientProfile'));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
+const BarberDashboard = lazy(() => import('./pages/BarberDashboard'));
 
 // Route preloader - preloads route chunks on hover/focus for instant navigation
 const routePreloaders = new Map<string, () => Promise<unknown>>();
@@ -96,6 +100,7 @@ function preloadRoute(path: string) {
     '/gerenciar/:token?': () => import('./pages/ManageBooking'),
     '/cliente': () => import('./components/ClientProfile'),
     '/admin/notificacoes': () => import('./pages/NotificationsPage'),
+    '/barber': () => import('./pages/BarberDashboard'),
   };
 
   const preloader = preloaders[path];
@@ -214,11 +219,13 @@ function App() {
               <Route
                 path="/admin/notificacoes"
                 element={
-                  <AuthGuard>
-                    <SectionErrorBoundary name="Notificações">
-                      <NotificationsPage />
-                    </SectionErrorBoundary>
-                  </AuthGuard>
+                  <BarberProvider>
+                    <AuthGuard>
+                      <SectionErrorBoundary name="Notificações">
+                        <NotificationsPage />
+                      </SectionErrorBoundary>
+                    </AuthGuard>
+                  </BarberProvider>
                 }
               />
 
@@ -226,51 +233,77 @@ function App() {
               <Route
                 path="/admin"
                 element={
-                  <AuthGuard>
-                    <SectionErrorBoundary name="Painel Admin">
-                      <AdminDashboard />
-                    </SectionErrorBoundary>
-                  </AuthGuard>
+                  <BarberProvider>
+                    <AuthGuard>
+                      <SectionErrorBoundary name="Painel Admin">
+                        <AdminDashboard />
+                      </SectionErrorBoundary>
+                    </AuthGuard>
+                  </BarberProvider>
                 }
               />
               <Route
                 path="/admin/agendar"
                 element={
-                  <AuthGuard>
-                    <SectionErrorBoundary name="Novo Agendamento">
-                      <AdminBooking />
-                    </SectionErrorBoundary>
-                  </AuthGuard>
+                  <BarberProvider>
+                    <AuthGuard>
+                      <SectionErrorBoundary name="Novo Agendamento">
+                        <AdminBooking />
+                      </SectionErrorBoundary>
+                    </AuthGuard>
+                  </BarberProvider>
                 }
               />
               <Route
                 path="/admin/weekly"
                 element={
-                  <AuthGuard>
-                    <SectionErrorBoundary name="Agenda Semanal">
-                      <AdminWeekly />
-                    </SectionErrorBoundary>
-                  </AuthGuard>
+                  <BarberProvider>
+                    <AuthGuard>
+                      <SectionErrorBoundary name="Agenda Semanal">
+                        <AdminWeekly />
+                      </SectionErrorBoundary>
+                    </AuthGuard>
+                  </BarberProvider>
                 }
               />
               <Route
                 path="/admin/clients"
                 element={
-                  <AuthGuard>
-                    <SectionErrorBoundary name="Clientes">
-                      <AdminClients />
-                    </SectionErrorBoundary>
-                  </AuthGuard>
+                  <BarberProvider>
+                    <AuthGuard>
+                      <SectionErrorBoundary name="Clientes">
+                        <AdminClients />
+                      </SectionErrorBoundary>
+                    </AuthGuard>
+                  </BarberProvider>
                 }
               />
               <Route
                 path="/admin/profile"
                 element={
-                  <AuthGuard>
-                    <SectionErrorBoundary name="Perfil">
-                      <AdminProfile />
-                    </SectionErrorBoundary>
-                  </AuthGuard>
+                  <BarberProvider>
+                    <AuthGuard>
+                      <SectionErrorBoundary name="Perfil">
+                        <AdminProfile />
+                      </SectionErrorBoundary>
+                    </AuthGuard>
+                  </BarberProvider>
+                }
+              />
+
+              {/* Barber Route - simplified dashboard for barber employees */}
+              <Route
+                path="/barber"
+                element={
+                  <BarberProvider>
+                    <AuthGuard>
+                      <BarberGuard>
+                        <SectionErrorBoundary name="Painel do Barbeiro">
+                          <BarberDashboard />
+                        </SectionErrorBoundary>
+                      </BarberGuard>
+                    </AuthGuard>
+                  </BarberProvider>
                 }
               />
 
@@ -288,11 +321,13 @@ function App() {
               <Route
                 path="/agendar"
                 element={
-                  <StandaloneGuard>
-                    <SectionErrorBoundary name="Agendamento">
-                      <BookingPage />
-                    </SectionErrorBoundary>
-                  </StandaloneGuard>
+                  <BarberProvider>
+                    <StandaloneGuard>
+                      <SectionErrorBoundary name="Agendamento">
+                        <BookingPage />
+                      </SectionErrorBoundary>
+                    </StandaloneGuard>
+                  </BarberProvider>
                 }
               />
               <Route

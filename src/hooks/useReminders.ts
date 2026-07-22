@@ -3,7 +3,30 @@ import { useToast } from './useToast';
 import { supabase } from '../lib/supabase';
 import { logError } from '../lib/logger';
 import { STORAGE_REMINDERS_SENT, STORAGE_REMINDER_TEMPLATES } from '../lib/constants';
-import seasonalData from '../data/seasonal-templates.json';
+// TypeScript infere tipos muito restritivos de JSON imports (cada season tem dayRange diferente).
+// Cast único para o tipo nomeado definido abaixo.
+import seasonalDataRaw from '../data/seasonal-templates.json';
+
+interface SeasonalTemplate {
+  name: string;
+  body: string;
+}
+
+interface SeasonalSeason {
+  key: string;
+  predicate: {
+    month: number[];
+    dayRange: Record<string, number[]>;
+  };
+  templates: SeasonalTemplate[];
+}
+
+interface SeasonalTemplates {
+  generic: SeasonalTemplate[];
+  seasons: SeasonalSeason[];
+}
+
+const seasonalData = seasonalDataRaw as unknown as SeasonalTemplates;
 
 interface LocalTemplate {
   id: string;
@@ -47,20 +70,12 @@ function getSeasonalTemplates(siteUrl: string): {
   const matchSeason = (pred: { month: number[]; dayRange: Record<string, number[]> }) => {
     if (!pred.month.includes(month)) return false;
     const range = pred.dayRange[String(month)];
-    return !!range && day >= range[0] && day <= range[1];
+    if (!range || range.length < 2) return false;
+    return range[0]! <= day && day <= range[1]!;
   };
 
-  // Lazy-load the JSON data
-  const data = seasonalData as {
-    generic: { name: string; body: string }[];
-    seasons: {
-      predicate: { month: number[]; dayRange: Record<string, number[]> };
-      templates: { name: string; body: string }[];
-    }[];
-  };
-
-  const matched = data.seasons.find((s) => matchSeason(s.predicate));
-  const templates = matched?.templates ?? data.generic;
+  const matched = seasonalData.seasons.find((s) => matchSeason(s.predicate));
+  const templates = matched?.templates ?? seasonalData.generic;
   return templates.map((t) => ({ name: t.name, body: fill(t.body) }));
 }
 
@@ -184,6 +199,7 @@ export function useReminders() {
         updated_at: now,
       }));
       saveTemplatesToStorage(created);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTemplates(created);
     }
   }, []);

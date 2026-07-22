@@ -31,3 +31,27 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+interface SeasonalTemplate {
+  name: string;
+  body: string;
+}
+
+interface SeasonalSeason {
+  key: string;
+  predicate: {
+    month: number[];
+    dayRange: Record<string, number[]>;
+  };
+  templates: SeasonalTemplate[];
+}
+
+interface SeasonalTemplates {
+  generic: SeasonalTemplate[];
+  seasons: SeasonalSeason[];
+}
+
+declare module '*.json' {
+  const value: Record<string, unknown>;
+  export default value;
+}

@@ -1,4 +1,4 @@
-import { useState, useEffect, type FC } from 'react';
+import { useState, type FC } from 'react';
 import { inputClass } from './types';
 
 /**
@@ -13,11 +13,6 @@ const NumInput: FC<{ value: string; onChange: (v: string) => void; max: number }
 }) => {
   const [local, setLocal] = useState(value);
 
-  // Sincroniza se o valor externo mudar (ex: carregou dados novos)
-  useEffect(() => {
-    setLocal(value);
-  }, [value]);
-
   const commit = () => {
     const raw = local.replace(/\D/g, '').slice(0, 2);
     const clamped = String(Math.min(parseInt(raw || '0', 10), max)).padStart(2, '0');
@@ -27,10 +22,11 @@ const NumInput: FC<{ value: string; onChange: (v: string) => void; max: number }
 
   return (
     <input
+      key={value}
       type="text"
       inputMode="numeric"
       maxLength={2}
-      value={local}
+      defaultValue={value}
       onChange={(e) => setLocal(e.target.value.replace(/\D/g, '').slice(0, 2))}
       onBlur={commit}
       onKeyDown={(e) => {

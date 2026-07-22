@@ -20,6 +20,10 @@ if (document.readyState === 'complete') {
   window.addEventListener('load', loadFonts);
 }
 
+// Polyfill requestIdleCallback for Safari < 15.4
+window.requestIdleCallback =
+  window.requestIdleCallback || ((cb: () => void) => setTimeout(cb, 1) as unknown as number);
+
 // Defer non-critical initialization to after first paint
 window.requestIdleCallback(() => {
   // Google Analytics

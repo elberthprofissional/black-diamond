@@ -6,7 +6,9 @@ const About: FC = () => {
   const { barberPhoto, barberBio, barberName, barberQuote } = useBarberSettings();
   const [photoError, setPhotoError] = useState(false);
 
+  // Reset photo error when photo URL changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPhotoError(false);
   }, [barberPhoto]);
 

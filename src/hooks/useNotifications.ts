@@ -89,11 +89,15 @@ export function useNotifications() {
   // Load notification preferences
   const { prefs: notificationPrefs } = useNotificationPrefs();
 
-  // Keep prefs ref in sync
-  prefsRef.current = notificationPrefs;
+  // Keep prefs ref in sync (via useEffect to avoid updating refs during render)
+  useEffect(() => {
+    prefsRef.current = notificationPrefs;
+  }, [notificationPrefs]);
 
-  // Keep ref in sync with state
-  notificationsRef.current = notifications;
+  // Keep ref in sync with state (via useEffect to avoid updating refs during render)
+  useEffect(() => {
+    notificationsRef.current = notifications;
+  }, [notifications]);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -120,6 +124,7 @@ export function useNotifications() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchNotifications();
   }, [fetchNotifications]);
 

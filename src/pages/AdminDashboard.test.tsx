@@ -133,8 +133,22 @@ vi.mock('../hooks/useIsDesktop', () => ({
   useIsDesktop: () => true,
 }));
 
+vi.mock('../lib/api/barbers', () => ({
+  getBarbers: vi.fn().mockResolvedValue([]),
+  getBarberByUserId: vi.fn().mockResolvedValue(null),
+}));
+
 import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
+import { BarberProvider } from '../contexts/BarberContext';
 import AdminDashboard from './AdminDashboard';
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <BarberSettingsProvider>
+      <BarberProvider>{children}</BarberProvider>
+    </BarberSettingsProvider>
+  );
+}
 
 describe('AdminDashboard — Comportamental', () => {
   beforeEach(() => {
@@ -143,27 +157,27 @@ describe('AdminDashboard — Comportamental', () => {
 
   it('renderiza sem erros', () => {
     const { container } = render(
-      <BarberSettingsProvider>
+      <Wrapper>
         <AdminDashboard />
-      </BarberSettingsProvider>
+      </Wrapper>
     );
     expect(container).toBeTruthy();
   });
 
   it('renderiza titulo do dashboard', () => {
     render(
-      <BarberSettingsProvider>
+      <Wrapper>
         <AdminDashboard />
-      </BarberSettingsProvider>
+      </Wrapper>
     );
     expect(screen.getAllByText(/BLACK DIAMOND/i).length).toBeGreaterThan(0);
   });
 
   it('renderiza as três abas de filtro', async () => {
     render(
-      <BarberSettingsProvider>
+      <Wrapper>
         <AdminDashboard />
-      </BarberSettingsProvider>
+      </Wrapper>
     );
     await waitFor(() => {
       expect(screen.getByText(/Ocupados/i)).toBeInTheDocument();
@@ -174,9 +188,9 @@ describe('AdminDashboard — Comportamental', () => {
 
   it('busca agendamentos ao renderizar', async () => {
     render(
-      <BarberSettingsProvider>
+      <Wrapper>
         <AdminDashboard />
-      </BarberSettingsProvider>
+      </Wrapper>
     );
     await waitFor(() => {
       expect(mockGetBookings).toHaveBeenCalled();
@@ -185,9 +199,9 @@ describe('AdminDashboard — Comportamental', () => {
 
   it('exibe nome do cliente no painel de ocupados', async () => {
     render(
-      <BarberSettingsProvider>
+      <Wrapper>
         <AdminDashboard />
-      </BarberSettingsProvider>
+      </Wrapper>
     );
     await waitFor(() => {
       expect(screen.getAllByText('João Silva')[0]).toBeInTheDocument();
@@ -196,9 +210,9 @@ describe('AdminDashboard — Comportamental', () => {
 
   it('exibe horário do agendamento', async () => {
     render(
-      <BarberSettingsProvider>
+      <Wrapper>
         <AdminDashboard />
-      </BarberSettingsProvider>
+      </Wrapper>
     );
     await waitFor(() => {
       expect(screen.getAllByText(/10:00/)[0]).toBeInTheDocument();
@@ -207,9 +221,9 @@ describe('AdminDashboard — Comportamental', () => {
 
   it('exibe preco do servico', async () => {
     render(
-      <BarberSettingsProvider>
+      <Wrapper>
         <AdminDashboard />
-      </BarberSettingsProvider>
+      </Wrapper>
     );
     await waitFor(() => {
       expect(screen.getAllByText('João Silva')[0]).toBeInTheDocument();

@@ -1,5 +1,5 @@
 import { type FC, type ReactNode } from 'react';
-import type { BookingWithClient, Service } from '../../../types';
+import type { Booking, BookingWithClient, Service } from '../../../types';
 import BookingSlidePanel from './BookingSlidePanel';
 import RescheduleWizard from './RescheduleWizard';
 import BookingDetailPanel from './BookingDetailPanel';
@@ -14,13 +14,13 @@ interface RescheduleState {
   isRescheduling: boolean;
   rescheduleStep: number;
   setRescheduleStep: (step: number) => void;
-  rescheduleServices: string[];
-  setRescheduleServices: (services: string[]) => void;
+  rescheduleServices: Service[];
+  setRescheduleServices: (services: Service[]) => void;
   rescheduleDate: string;
   setRescheduleDate: (date: string) => void;
   rescheduleTime: string;
   setRescheduleTime: (time: string) => void;
-  existingBookingsForReschedule: BookingWithClient[];
+  existingBookingsForReschedule: Booking[];
   loadingSlots: boolean;
   isSavingReschedule: boolean;
   handleConfirmReschedule: () => Promise<void>;
@@ -36,9 +36,9 @@ interface AdminBookingShellProps {
   reschedule: RescheduleState;
   completingBooking: BookingWithClient | null;
   setCompletingBooking: (booking: BookingWithClient | null) => void;
-  handleComplete: (notes?: string) => Promise<void>;
+  handleComplete: (notes?: string) => void | Promise<void>;
   thankYouBooking: BookingWithClient | null;
-  handleSendThankYou: () => Promise<void>;
+  handleSendThankYou: () => void;
   handleCancelThankYou: () => void;
   bookingToDelete: BookingWithClient | null;
   setBookingToDelete: (booking: BookingWithClient | null) => void;
@@ -46,7 +46,7 @@ interface AdminBookingShellProps {
   unblockingBooking: BookingWithClient | null;
   setUnblockingBooking: (booking: BookingWithClient | null) => void;
   confirmUnblock: () => Promise<void>;
-  toast: Toast;
+  toast: Toast | null;
   onRenderDetail?: () => ReactNode;
 }
 

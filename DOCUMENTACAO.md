@@ -251,10 +251,6 @@ O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto v
 - Cancelamento com confirmacao
 - Reagendamento com selecao de data/hora
 
-### Avaliacao (`/avaliar/:bookingId`)
-- Apos concluir atendimento, cliente avalia de 1 a 5 estrelas
-- Avaliacoes reais alimentam o TestimonialsSlider na homepage
-
 ### Notificacoes In-App (`/admin/notificacoes`)
 - Centro de notificacoes minimalista e profissional
 - **Lista:** Avatar do cliente + nome + horario + seta
@@ -323,7 +319,7 @@ Schema completo: `supabase/universal.sql` (setup instantaneo) ou `supabase/migra
 
 ### Migrations Consolidadas
 
-O projeto usa 6 migrations consolidadas (substituem as 14+ migrations anteriores):
+O projeto usa 7 migrations consolidadas (substituem as 14+ migrations anteriores):
 
 | Arquivo | Conteudo |
 |---------|----------|
@@ -333,6 +329,7 @@ O projeto usa 6 migrations consolidadas (substituem as 14+ migrations anteriores
 | `004_triggers.sql` | Triggers de notificacao + realtime |
 | `005_seed_data.sql` | Dados iniciais + billing plans |
 | `006_cron.sql` | 6 cron jobs consolidados |
+| `007_reminder_logs.sql` | Logs de lembretes WhatsApp |
 
 ### Tabelas
 
@@ -909,17 +906,19 @@ Black Diamond/
 │   └── vite-env.d.ts           # Tipos globais (Window, Navigator)
 ├── supabase/
 │   ├── universal.sql           # Schema completo do banco (universal)
-│   ├── migrations/             # Migrations consolidadas (6 arquivos)
+│   ├── migrations/             # Migrations consolidadas (7 arquivos)
 │   │   ├── 001_schema.sql     # Tabelas + indexes + constraints
 │   │   ├── 002_rls.sql        # Politicas RLS + storage
 │   │   ├── 003_functions.sql  # Funcoes RPC (30+)
 │   │   ├── 004_triggers.sql   # Triggers + realtime
 │   │   ├── 005_seed_data.sql  # Dados iniciais + billing
-│   │   └── 006_cron.sql       # Cron jobs
+│   │   ├── 006_cron.sql       # Cron jobs
+│   │   └── 007_reminder_logs.sql # Logs de lembretes WhatsApp
 │   └── functions/
-│       └── send-push/          # Edge function de notificacao push
-│       └── asaas-checkout/     # Edge function de checkout Asaas
-│       └── asaas-portal/       # Edge function de portal Asaas
+│       ├── send-push/          # Edge function de notificacao push
+│       ├── sync-google-reviews/ # Edge function de sincronizacao de reviews
+│       ├── asaas-checkout/     # Edge function de checkout Asaas
+│       ├── asaas-portal/       # Edge function de portal Asaas
 │       └── asaas-webhook/      # Edge function de webhook Asaas
 ├── e2e/                        # Testes E2E (Playwright)
 │   ├── accessibility.spec.ts   # Testes de acessibilidade
@@ -928,7 +927,6 @@ Black Diamond/
 │   ├── booking-errors.spec.ts  # Testes de erros, concorrencia, limites
 │   └── visual.spec.ts          # Testes visuais (screenshots)
 ├── instalar-cliente.mjs       # Script automatico de instalacao para novos clientes
-├── supabase-helper.mjs         # Helper para debug do Supabase
 ├── vercel.json                 # Configuracao de deploy + headers de seguranca
 ├── package.json
 ├── vite.config.ts

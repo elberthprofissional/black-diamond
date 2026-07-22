@@ -5,25 +5,29 @@ import type { GalleryImage } from './useGalleryData';
 import { logError } from '../lib/logger';
 
 export function useGallerySelection(
-  images: GalleryImage[],
+  _images: GalleryImage[],
   setImages: React.Dispatch<React.SetStateAction<GalleryImage[]>>
 ) {
   const { showSuccess, showError } = useToast();
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [selectionMode, setSelectionMode] = useState(false);
   const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  const selectionMode = selectedImages.length > 0;
-
   const toggleSelect = useCallback((imageId: string, e?: React.MouseEvent | React.TouchEvent) => {
     if (e) e.stopPropagation();
-    setSelectedImages((prev) =>
-      prev.includes(imageId) ? prev.filter((id) => id !== imageId) : [...prev, imageId]
-    );
+    setSelectedImages((prev) => {
+      const next = prev.includes(imageId)
+        ? prev.filter((id) => id !== imageId)
+        : [...prev, imageId];
+      if (next.length > 0) setSelectionMode(true);
+      return next;
+    });
   }, []);
 
   const clearSelection = useCallback(() => {
     setSelectedImages([]);
+    setSelectionMode(false);
   }, []);
 
   const handleBulkDelete = useCallback(async () => {
@@ -42,6 +46,7 @@ export function useGallerySelection(
         showError(`${selectedImages.length - deletedIds.length} foto(s) falharam ao remover`);
       }
       setSelectedImages([]);
+      setSelectionMode(false);
     } catch (e) {
       logError(e);
       showError('Erro ao deletar fotos');
@@ -74,6 +79,7 @@ export function useGallerySelection(
   return {
     selectedImages,
     selectionMode,
+    setSelectionMode,
     confirmBulkDelete,
     setConfirmBulkDelete,
     deleting,

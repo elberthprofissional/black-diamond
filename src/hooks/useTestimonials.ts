@@ -23,7 +23,7 @@ export function useTestimonials(): UseTestimonialsReturn {
     try {
       const data = await api.getAllTestimonials();
       setTestimonials(data);
-    } catch (e) {
+    } catch {
       setError('Erro ao carregar depoimentos');
     } finally {
       setLoading(false);
@@ -31,6 +31,7 @@ export function useTestimonials(): UseTestimonialsReturn {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadTestimonials();
   }, [loadTestimonials]);
 

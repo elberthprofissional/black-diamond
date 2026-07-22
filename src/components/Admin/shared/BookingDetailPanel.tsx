@@ -4,7 +4,7 @@ import { formatPhone, formatDisplayName, formatPricePublic } from '../../../lib/
 import { openWhatsApp, formatWaDate } from '../../../lib/whatsapp';
 import { BLOCKED_NAME } from '../../../lib/constants';
 import { useNoShow } from '../../../hooks/useNoShow';
-import { BellIcon, CheckIcon, CalendarIcon, TrashIcon, NoShowIcon } from './PanelIcons';
+import { BellIcon, CheckIcon, CalendarIcon, TrashIcon } from './PanelIcons';
 import BlockedSlotView from './BlockedSlotView';
 
 interface BookingDetailPanelProps {

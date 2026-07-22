@@ -25,6 +25,7 @@ export function useReschedule(
   useEffect(() => {
     if (!isRescheduling || !rescheduleDate) return;
     let active = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingSlots(true);
     getBookings(rescheduleDate)
       .then((result) => {
@@ -48,6 +49,7 @@ export function useReschedule(
     setRescheduleDate(selectedBooking.booking_date);
     setRescheduleTime(selectedBooking.booking_time.slice(0, 5));
     setRescheduleStep(1);
+    setLoadingSlots(true);
     setIsRescheduling(true);
   };
 

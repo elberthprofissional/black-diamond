@@ -1,5 +1,4 @@
 import { supabase } from '../supabase';
-import { NULL_UUID } from '../constants';
 import { getLocalDateString } from '../utils';
 import type { Booking } from '../../types';
 
@@ -8,6 +7,7 @@ export const createBooking = async (
   bookingData: Omit<Booking, 'id' | 'created_at' | 'status' | 'client_id'> & {
     coupon_id?: string;
     discount_amount?: number;
+    barber_id?: string;
   },
   clientData: { name: string; phone: string; email?: string }
 ) => {
@@ -31,6 +31,7 @@ export const createBooking = async (
     p_duracao_total: bookingData.total_duration,
     p_coupon_id: bookingData.coupon_id || null,
     p_discount_amount: bookingData.discount_amount || 0,
+    p_barber_id: bookingData.barber_id || null,
   });
 
   if (error) {
@@ -58,12 +59,12 @@ export const getAvailableSlots = async (date: string) => {
     .filter(Boolean);
 };
 
-/** Busca agendamentos, opcionalmente filtrados por data, com paginação. */
+/** Busca agendamentos, opcionalmente filtrados por data e/ou barbeiro, com paginação. */
 export const getBookings = async (
   date?: string,
-  options?: { page?: number; pageSize?: number }
+  options?: { page?: number; pageSize?: number; barberId?: string }
 ) => {
-  const { page = 1, pageSize = 200 } = options || {};
+  const { page = 1, pageSize = 200, barberId } = options || {};
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
@@ -75,6 +76,11 @@ export const getBookings = async (
       clients (
         name,
         phone
+      ),
+      barbers (
+        name,
+        phone,
+        photo_url
       )
     `,
       { count: 'exact' }
@@ -84,6 +90,10 @@ export const getBookings = async (
 
   if (date) {
     query = query.eq('booking_date', date);
+  }
+
+  if (barberId) {
+    query = query.eq('barber_id', barberId);
   }
 
   const { data, error, count } = await query;

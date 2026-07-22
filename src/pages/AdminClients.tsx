@@ -35,11 +35,13 @@ const AdminClients: FC = () => {
       ? filterParam
       : 'all'
   );
+  const [nowTimestamp] = useState(() => Date.now());
   const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [reminderClient, setReminderClient] = useState<Client | null>(null);
 
   useEffect(() => {
     if (filterParam === 'pending' || filterParam === 'sent' || filterParam === 'inactive') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setReminderFilter(filterParam);
     } else {
       setReminderFilter('all');
@@ -268,7 +270,7 @@ const AdminClients: FC = () => {
               {filteredClients.map((client) => {
                 const daysSinceVisit = client.lastVisitDate
                   ? Math.floor(
-                      (Date.now() - client.lastVisitDate.getTime()) / (1000 * 60 * 60 * 24)
+                      (nowTimestamp - client.lastVisitDate.getTime()) / (1000 * 60 * 60 * 24)
                     )
                   : 999;
 

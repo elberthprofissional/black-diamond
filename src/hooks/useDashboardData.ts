@@ -7,9 +7,9 @@ import { useSlotBlocking } from './useSlotBlocking';
 import type { BookingWithClient } from '../types';
 import { logError } from '../lib/logger';
 
-export function useDashboardData() {
+export function useDashboardData(barberId?: string) {
   const selectedDate = getLocalDateString();
-  const { bookings, loading, refetch: loadData } = useBookings(selectedDate);
+  const { bookings, loading, refetch: loadData } = useBookings(selectedDate, barberId);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
 
   const {
@@ -41,6 +41,7 @@ export function useDashboardData() {
   }, [selectedDate]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadSlots();
   }, [loadSlots]);
 

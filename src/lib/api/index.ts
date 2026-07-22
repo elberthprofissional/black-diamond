@@ -68,3 +68,6 @@ export {
   deleteTestimonial,
   syncGoogleReviews,
 } from './testimonials';
+
+export { getBarbers, getBarberByUserId, upsertBarber, deleteBarber } from './barbers';
+export type { Barber } from '../../types';

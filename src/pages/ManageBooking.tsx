@@ -28,6 +28,7 @@ const ManageBooking: FC = () => {
 
   useEffect(() => {
     if (!token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError('Link inválido. Solicite um novo link ao barbeiro.');
       setLoading(false);
       return;

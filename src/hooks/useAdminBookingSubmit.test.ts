@@ -41,8 +41,8 @@ const selectedServices: Service[] = [
   { id: 's1', name: 'Corte de Cabelo', price: 50, duration: 30 },
 ];
 
-// Using a future date (current date is July 17, 2026)
-const FUTURE_DATE = '2026-07-20';
+// Using a future date (must be after today)
+const FUTURE_DATE = '2027-07-20';
 
 const baseParams = {
   selectedClient: { name: 'Joao Silva', phone: '31999998888' },

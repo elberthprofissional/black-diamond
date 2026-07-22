@@ -2,6 +2,7 @@ import { type FC, useMemo } from 'react';
 import { useBookingManagement } from '../hooks/useBookingManagement';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useBarberSettings } from '../hooks/useBarberSettings';
+import { useBarberContext } from '../contexts/BarberContext';
 import AdminLayout from '../components/Admin/AdminLayout';
 import DashboardHeader from '../components/Admin/shared/DashboardHeader';
 
@@ -19,7 +20,10 @@ const LAYOUT_CLASS =
   'flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-8 pb-40 transition-all duration-300 max-w-5xl';
 
 const AdminDashboard: FC = () => {
-  const data = useDashboardData();
+  const { currentBarber, isOwner } = useBarberContext();
+  // Owner sees all bookings; regular barbers see only their own
+  const barberFilter = isOwner ? undefined : currentBarber?.id;
+  const data = useDashboardData(barberFilter);
   const mgmt = useBookingManagement(data.loadData);
   const { barberHours } = useBarberSettings();
 

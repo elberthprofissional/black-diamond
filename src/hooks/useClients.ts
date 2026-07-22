@@ -3,6 +3,7 @@ import { useClientsData } from './useClientsData';
 import { useClientPanel } from './useClientPanel';
 import { useClientCreation } from './useClientCreation';
 import { getMensalistaPlans } from '../lib/api';
+import { logError } from '../lib/logger';
 import type { MensalistaPlan } from '../types';
 
 export function useClients() {
@@ -12,7 +13,7 @@ export function useClients() {
   useEffect(() => {
     getMensalistaPlans()
       .then(setPlans)
-      .catch(() => {});
+      .catch((e) => logError(e, 'useClients'));
   }, []);
 
   const panel = useClientPanel(data.setClients, plans);

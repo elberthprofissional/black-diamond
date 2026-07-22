@@ -1,6 +1,6 @@
 import { memo, type FC } from 'react';
 import { Check, Tag } from 'lucide-react';
-import { formatPrice, formatPricePublic, formatPriceAdmin, formatDiscount } from '../../lib/utils';
+import { formatPricePublic, formatPriceAdmin, formatDiscount } from '../../lib/utils';
 import type { Service } from '../../types';
 
 interface CouponInfo {

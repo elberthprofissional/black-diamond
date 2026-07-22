@@ -18,7 +18,7 @@ describe('useWizardStep', () => {
       const { result } = renderHook(() => useWizardStep());
       act(() => result.current.goNext());
       expect(result.current.step).toBe(2);
-      expect(result.current.stepTitle).toBe('Escolha os serviços');
+      expect(result.current.stepTitle).toBe('Escolha o barbeiro');
     });
 
     it('does not go beyond totalSteps', () => {
@@ -35,6 +35,7 @@ describe('useWizardStep', () => {
       act(() =>
         result.current.goNext(onConfirm, {
           step: 2,
+          selectedBarber: { id: 'b1', name: 'Barber' },
           selectedServices: [{ id: '1' }],
           selectedDate: '2026-07-20',
           selectedTime: '10:00',
@@ -53,6 +54,7 @@ describe('useWizardStep', () => {
           step: 1,
           name: '',
           phone: '',
+          selectedBarber: undefined,
           selectedServices: [],
           selectedDate: '',
           selectedTime: '',
@@ -140,13 +142,14 @@ describe('useWizardStep', () => {
       ).toBe(false);
     });
 
-    it('step 2 disabled without services', () => {
+    it('step 2 disabled without barber', () => {
       const { result } = renderHook(() => useWizardStep());
       expect(
         result.current.isStepDisabled({
           step: 2,
           name: 'Joao',
           phone: '31999998888',
+          selectedBarber: undefined,
           selectedServices: [],
           selectedDate: '',
           selectedTime: '',
@@ -155,13 +158,46 @@ describe('useWizardStep', () => {
       ).toBe(true);
     });
 
-    it('step 2 enabled with services', () => {
+    it('step 2 enabled with barber', () => {
       const { result } = renderHook(() => useWizardStep());
       expect(
         result.current.isStepDisabled({
           step: 2,
           name: 'Joao',
           phone: '31999998888',
+          selectedBarber: { id: 'b1', name: 'Barber' },
+          selectedServices: [],
+          selectedDate: '',
+          selectedTime: '',
+          isSubmitting: false,
+        })
+      ).toBe(false);
+    });
+
+    it('step 3 disabled without services', () => {
+      const { result } = renderHook(() => useWizardStep());
+      expect(
+        result.current.isStepDisabled({
+          step: 3,
+          name: 'Joao',
+          phone: '31999998888',
+          selectedBarber: { id: 'b1' },
+          selectedServices: [],
+          selectedDate: '',
+          selectedTime: '',
+          isSubmitting: false,
+        })
+      ).toBe(true);
+    });
+
+    it('step 3 enabled with services', () => {
+      const { result } = renderHook(() => useWizardStep());
+      expect(
+        result.current.isStepDisabled({
+          step: 3,
+          name: 'Joao',
+          phone: '31999998888',
+          selectedBarber: { id: 'b1' },
           selectedServices: [{ id: '1' }],
           selectedDate: '',
           selectedTime: '',
@@ -170,58 +206,62 @@ describe('useWizardStep', () => {
       ).toBe(false);
     });
 
-    it('step 3 disabled without date', () => {
-      const { result } = renderHook(() => useWizardStep());
-      expect(
-        result.current.isStepDisabled({
-          step: 3,
-          name: 'Joao',
-          phone: '31999998888',
-          selectedServices: [{ id: '1' }],
-          selectedDate: '',
-          selectedTime: '10:00',
-          isSubmitting: false,
-        })
-      ).toBe(true);
-    });
-
-    it('step 3 disabled without time', () => {
-      const { result } = renderHook(() => useWizardStep());
-      expect(
-        result.current.isStepDisabled({
-          step: 3,
-          name: 'Joao',
-          phone: '31999998888',
-          selectedServices: [{ id: '1' }],
-          selectedDate: '2026-07-20',
-          selectedTime: '',
-          isSubmitting: false,
-        })
-      ).toBe(true);
-    });
-
-    it('step 3 enabled with date and time', () => {
-      const { result } = renderHook(() => useWizardStep());
-      expect(
-        result.current.isStepDisabled({
-          step: 3,
-          name: 'Joao',
-          phone: '31999998888',
-          selectedServices: [{ id: '1' }],
-          selectedDate: '2026-07-20',
-          selectedTime: '10:00',
-          isSubmitting: false,
-        })
-      ).toBe(false);
-    });
-
-    it('step 4 disabled while submitting', () => {
+    it('step 4 disabled without date', () => {
       const { result } = renderHook(() => useWizardStep());
       expect(
         result.current.isStepDisabled({
           step: 4,
           name: 'Joao',
           phone: '31999998888',
+          selectedBarber: { id: 'b1' },
+          selectedServices: [{ id: '1' }],
+          selectedDate: '',
+          selectedTime: '10:00',
+          isSubmitting: false,
+        })
+      ).toBe(true);
+    });
+
+    it('step 4 disabled without time', () => {
+      const { result } = renderHook(() => useWizardStep());
+      expect(
+        result.current.isStepDisabled({
+          step: 4,
+          name: 'Joao',
+          phone: '31999998888',
+          selectedBarber: { id: 'b1' },
+          selectedServices: [{ id: '1' }],
+          selectedDate: '2026-07-20',
+          selectedTime: '',
+          isSubmitting: false,
+        })
+      ).toBe(true);
+    });
+
+    it('step 4 enabled with date and time', () => {
+      const { result } = renderHook(() => useWizardStep());
+      expect(
+        result.current.isStepDisabled({
+          step: 4,
+          name: 'Joao',
+          phone: '31999998888',
+          selectedBarber: { id: 'b1' },
+          selectedServices: [{ id: '1' }],
+          selectedDate: '2026-07-20',
+          selectedTime: '10:00',
+          isSubmitting: false,
+        })
+      ).toBe(false);
+    });
+
+    it('step 5 disabled while submitting', () => {
+      const { result } = renderHook(() => useWizardStep());
+      expect(
+        result.current.isStepDisabled({
+          step: 5,
+          name: 'Joao',
+          phone: '31999998888',
+          selectedBarber: { id: 'b1' },
           selectedServices: [{ id: '1' }],
           selectedDate: '2026-07-20',
           selectedTime: '10:00',
@@ -230,13 +270,14 @@ describe('useWizardStep', () => {
       ).toBe(true);
     });
 
-    it('step 4 enabled when not submitting', () => {
+    it('step 5 enabled when not submitting', () => {
       const { result } = renderHook(() => useWizardStep());
       expect(
         result.current.isStepDisabled({
-          step: 4,
+          step: 5,
           name: 'Joao',
           phone: '31999998888',
+          selectedBarber: { id: 'b1' },
           selectedServices: [{ id: '1' }],
           selectedDate: '2026-07-20',
           selectedTime: '10:00',

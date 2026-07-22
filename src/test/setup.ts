@@ -38,15 +38,28 @@ const createMockQueryBuilder = () => {
   return Object.assign(chain, builder);
 };
 
+const createMockRpc = () => {
+  const rpcResult = { data: null, error: null };
+  return {
+    ...rpcResult,
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    gte: vi.fn().mockReturnThis(),
+    lte: vi.fn().mockReturnThis(),
+    in: vi.fn().mockReturnThis(),
+    single: vi.fn().mockResolvedValue(rpcResult),
+    maybeSingle: vi.fn().mockResolvedValue(rpcResult),
+    then: vi.fn((resolve: (v: unknown) => void) => {
+      resolve(rpcResult);
+      return { catch: vi.fn() };
+    }),
+  };
+};
+
 vi.mock('../lib/supabase', () => ({
   supabase: {
     from: vi.fn(() => createMockQueryBuilder()),
-    rpc: vi.fn(() => ({
-      then: vi.fn((resolve: (v: unknown) => void) => {
-        resolve({ data: null, error: null });
-        return { catch: vi.fn() };
-      }),
-    })),
+    rpc: vi.fn(() => createMockRpc()),
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
       getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),

@@ -8,6 +8,7 @@ import { useBookings } from '../hooks/useBookings';
 import { useSlotBlocking } from '../hooks/useSlotBlocking';
 import { useBookingManagement } from '../hooks/useBookingManagement';
 import { useBarberSettings } from '../hooks/useBarberSettings';
+import { useBarberContext } from '../contexts/BarberContext';
 import AdminLayout from '../components/Admin/AdminLayout';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
 import AdminBookingShell from '../components/Admin/shared/AdminBookingShell';
@@ -70,7 +71,9 @@ function getMondayFromDate(d: Date, barberHoursJson?: string): Date {
 }
 
 const AdminWeekly: FC = () => {
-  const { bookings, loading, refetch: loadData } = useBookings();
+  const { currentBarber, isOwner } = useBarberContext();
+  const barberFilter = isOwner ? undefined : currentBarber?.id;
+  const { bookings, loading, refetch: loadData } = useBookings(undefined, barberFilter);
   const mgmt = useBookingManagement(loadData);
   const navigate = useNavigate();
   const today = useMemo(() => new Date(), []);
@@ -214,6 +217,8 @@ const AdminWeekly: FC = () => {
       // Tenta encontrar hoje no novo array; senão, pega o primeiro
       const todayStr = today.toDateString();
       const todayIdx = visibleWeekDays.findIndex((d) => d.toDateString() === todayStr);
+      // Necessary sync update: keeps selected day valid when week config changes
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedVisibleIndex(todayIdx >= 0 ? todayIdx : 0);
     }
   }, [visibleWeekDays, visibleWeekDays.length, selectedVisibleIndex, today]);

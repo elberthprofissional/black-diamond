@@ -93,8 +93,22 @@ vi.mock('framer-motion', () => {
   };
 });
 
+vi.mock('../lib/api/barbers', () => ({
+  getBarbers: vi.fn().mockResolvedValue([]),
+  getBarberByUserId: vi.fn().mockResolvedValue(null),
+}));
+
 import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
+import { BarberProvider } from '../contexts/BarberContext';
 import AdminWeekly from './AdminWeekly';
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <BarberSettingsProvider>
+      <BarberProvider>{children}</BarberProvider>
+    </BarberSettingsProvider>
+  );
+}
 
 describe('AdminWeekly', () => {
   beforeEach(() => {
@@ -103,27 +117,27 @@ describe('AdminWeekly', () => {
 
   it('renderiza sem erros', () => {
     const { container } = render(
-      <BarberSettingsProvider>
+      <Wrapper>
         <AdminWeekly />
-      </BarberSettingsProvider>
+      </Wrapper>
     );
     expect(container).toBeTruthy();
   });
 
   it('renderiza titulo da agenda semanal', () => {
     render(
-      <BarberSettingsProvider>
+      <Wrapper>
         <AdminWeekly />
-      </BarberSettingsProvider>
+      </Wrapper>
     );
     expect(screen.getAllByText(/Agenda da Semana/i).length).toBeGreaterThan(0);
   });
 
   it('renderiza navegacao por dia da semana', async () => {
     render(
-      <BarberSettingsProvider>
+      <Wrapper>
         <AdminWeekly />
-      </BarberSettingsProvider>
+      </Wrapper>
     );
     await waitFor(() => {
       const dayButtons = screen.getAllByRole('button');
@@ -133,9 +147,9 @@ describe('AdminWeekly', () => {
 
   it('renderiza abas de filtro', async () => {
     render(
-      <BarberSettingsProvider>
+      <Wrapper>
         <AdminWeekly />
-      </BarberSettingsProvider>
+      </Wrapper>
     );
     await waitFor(() => {
       expect(screen.getByText(/Ocupados/i)).toBeInTheDocument();
@@ -144,9 +158,9 @@ describe('AdminWeekly', () => {
 
   it('renderiza aba livres', async () => {
     render(
-      <BarberSettingsProvider>
+      <Wrapper>
         <AdminWeekly />
-      </BarberSettingsProvider>
+      </Wrapper>
     );
     await waitFor(() => {
       expect(screen.getByText(/Livres/i)).toBeInTheDocument();

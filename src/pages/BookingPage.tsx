@@ -5,8 +5,8 @@ import ToastNotification from '../components/Admin/shared/ToastNotification';
 import BookingPageView from '../components/Booking/BookingPageView';
 
 const BookingPage: FC = () => {
-  const { toast, showError, showSuccess } = useToast();
-  const w = useBookingWizard(showError, showSuccess);
+  const { toast, showError } = useToast();
+  const w = useBookingWizard(showError);
 
   return (
     <div className="font-sans relative min-h-screen bg-[#050505] flex flex-col selection:bg-[#D4AF37] selection:text-black overflow-x-hidden">
@@ -19,6 +19,8 @@ const BookingPage: FC = () => {
           selectedDate={w.selectedDate}
           selectedTime={w.selectedTime}
           userInfo={w.userInfo}
+          selectedBarber={w.selectedBarber}
+          onSelectBarber={w.setSelectedBarber}
           totalPrice={w.finalPrice}
           isStepDisabled={w.isStepDisabled}
           isSubmitting={w.isSubmitting}

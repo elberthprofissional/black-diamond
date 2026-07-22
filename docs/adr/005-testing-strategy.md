@@ -16,7 +16,7 @@ Estratégia de testes em 4 camadas com ferramentas específicas para cada uma.
 
 ### 1. Unitários (Vitest + Testing Library)
 - **Escopo**: Hooks, funções utilitárias, componentes isolados
-- **Cobertura**: 90+ testes
+- **Cobertura**: 607+ testes
 - **Setup**: Mock global do Supabase em `src/test/setup.ts`
 - **Exemplo**: `useToast`, `useBookingWizard`, `getErrorMessage`
 

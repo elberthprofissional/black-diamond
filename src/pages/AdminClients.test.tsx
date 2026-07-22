@@ -101,13 +101,21 @@ vi.mock('framer-motion', () => {
   };
 });
 
+vi.mock('../lib/api/barbers', () => ({
+  getBarbers: vi.fn().mockResolvedValue([]),
+  getBarberByUserId: vi.fn().mockResolvedValue(null),
+}));
+
 import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
+import { BarberProvider } from '../contexts/BarberContext';
 import AdminClients from './AdminClients';
 
 const renderWithRouter = (ui: React.ReactElement) =>
   render(
     <BrowserRouter>
-      <BarberSettingsProvider>{ui}</BarberSettingsProvider>
+      <BarberSettingsProvider>
+        <BarberProvider>{ui}</BarberProvider>
+      </BarberSettingsProvider>
     </BrowserRouter>
   );
 

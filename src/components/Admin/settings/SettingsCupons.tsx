@@ -58,6 +58,7 @@ const SettingsCupons: FC = () => {
   }, [showError]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
   useEffect(() => {

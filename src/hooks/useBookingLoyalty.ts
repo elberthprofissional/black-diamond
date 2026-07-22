@@ -11,6 +11,7 @@ export function useBookingLoyalty(clientId: string | null) {
         .then(setMilestoneProgress)
         .catch(() => setMilestoneProgress([]));
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMilestoneProgress([]);
     }
   }, [clientId]);

@@ -1,7 +1,8 @@
-import { type FC } from 'react';
+import { useState, useEffect, type FC } from 'react';
 import { Check, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useBarberSettings } from '../../hooks/useBarberSettings';
+import ReviewRequestModal from '../ReviewRequestModal';
 
 interface SuccessStepProps {
   clientName: string;
@@ -22,6 +23,14 @@ const SuccessStep: FC<SuccessStepProps> = ({
 }) => {
   const navigate = useNavigate();
   const { barberPhone } = useBarberSettings();
+  const [showReviewModal, setShowReviewModal] = useState(false);
+
+  // Auto-show review request after 3 seconds (only for successful bookings, not offline)
+  useEffect(() => {
+    if (isOffline) return;
+    const timer = setTimeout(() => setShowReviewModal(true), 3000);
+    return () => clearTimeout(timer);
+  }, [isOffline]);
 
   // Calcular progresso pra fidelidade
   const MAX_VISUAL_BARS = 10;
@@ -241,6 +250,12 @@ const SuccessStep: FC<SuccessStepProps> = ({
           Voltar ao início
         </button>
       </div>
+
+      <ReviewRequestModal
+        open={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        clientName={clientName}
+      />
     </div>
   );
 };

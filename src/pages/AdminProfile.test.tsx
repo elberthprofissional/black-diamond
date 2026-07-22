@@ -107,7 +107,13 @@ vi.mock('framer-motion', () => {
   };
 });
 
+vi.mock('../lib/api/barbers', () => ({
+  getBarbers: vi.fn().mockResolvedValue([]),
+  getBarberByUserId: vi.fn().mockResolvedValue(null),
+}));
+
 import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
+import { BarberProvider } from '../contexts/BarberContext';
 import AdminProfile from './AdminProfile';
 
 describe('AdminProfile', () => {
@@ -118,7 +124,9 @@ describe('AdminProfile', () => {
   it('renderiza sem erros', async () => {
     const { container } = render(
       <BarberSettingsProvider>
-        <AdminProfile />
+        <BarberProvider>
+          <AdminProfile />
+        </BarberProvider>
       </BarberSettingsProvider>
     );
     expect(container).toBeTruthy();
@@ -127,7 +135,9 @@ describe('AdminProfile', () => {
   it('renderiza titulo do perfil', async () => {
     render(
       <BarberSettingsProvider>
-        <AdminProfile />
+        <BarberProvider>
+          <AdminProfile />
+        </BarberProvider>
       </BarberSettingsProvider>
     );
     await waitFor(() => {
@@ -138,7 +148,9 @@ describe('AdminProfile', () => {
   it('renderiza metricas de faturamento', async () => {
     render(
       <BarberSettingsProvider>
-        <AdminProfile />
+        <BarberProvider>
+          <AdminProfile />
+        </BarberProvider>
       </BarberSettingsProvider>
     );
     await waitFor(() => {
@@ -149,7 +161,9 @@ describe('AdminProfile', () => {
   it('renderiza botao de notificacoes', async () => {
     render(
       <BarberSettingsProvider>
-        <AdminProfile />
+        <BarberProvider>
+          <AdminProfile />
+        </BarberProvider>
       </BarberSettingsProvider>
     );
     await waitFor(() => {
@@ -160,7 +174,9 @@ describe('AdminProfile', () => {
   it('renderiza botao de limpar dados', async () => {
     render(
       <BarberSettingsProvider>
-        <AdminProfile />
+        <BarberProvider>
+          <AdminProfile />
+        </BarberProvider>
       </BarberSettingsProvider>
     );
     await waitFor(() => {

@@ -33,6 +33,7 @@ dist-ssr
 .env.development.local
 .env.test.local
 .env.production.local
+.env.test
 !.env.example
 
 # Automações locais contendo chaves sensíveis
@@ -46,6 +47,7 @@ supabase/.temp/
 coverage/
 test-results/
 playwright-report/
+e2e/.auth/
 
 # Python
 __pycache__/

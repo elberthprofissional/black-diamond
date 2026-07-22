@@ -101,7 +101,7 @@ describe('useDashboardData', () => {
 
   it('uses fallback when getAvailableSlots fails', async () => {
     mockGetAvailableSlots.mockRejectedValue(new Error('API error'));
-    const { result } = renderHook(() => useDashboardData());
+    renderHook(() => useDashboardData());
     await waitFor(() => {
       expect(mockGetTimeSlotsForDate).toHaveBeenCalled();
     });
@@ -234,7 +234,6 @@ describe('useDashboardData', () => {
   });
 
   it('cleans up realtime subscription on unmount', () => {
-    const mockRemoveChannel = vi.fn().mockResolvedValue({ error: null });
     vi.mocked(vi.importActual('../lib/supabase')).then(() => {});
 
     // Just verify unmount doesn't throw

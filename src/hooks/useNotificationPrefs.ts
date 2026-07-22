@@ -22,8 +22,10 @@ export function useNotificationPrefs() {
   const [loading, setLoading] = useState(true);
   const prefsRef = useRef<NotificationPrefs>(DEFAULTS);
 
-  // Keep ref in sync
-  prefsRef.current = prefs;
+  // Keep ref in sync via useEffect (not during render)
+  useEffect(() => {
+    prefsRef.current = prefs;
+  }, [prefs]);
 
   const fetchPrefs = useCallback(async () => {
     try {
@@ -57,6 +59,7 @@ export function useNotificationPrefs() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPrefs();
   }, [fetchPrefs]);
 

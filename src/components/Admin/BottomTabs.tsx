@@ -1,19 +1,28 @@
 import { type FC } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Clock, CalendarDays, Users, User } from 'lucide-react';
+import { useBarberContext } from '../../contexts/BarberContext';
 
 const BottomTabs: FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isOwner } = useBarberContext();
 
   const isActive = (path: string) => location.pathname === path;
 
-  const tabs = [
-    { label: 'Hoje', path: '/admin', icon: Clock },
-    { label: 'Semana', path: '/admin/weekly', icon: CalendarDays },
-    { label: 'Clientes', path: '/admin/clients', icon: Users },
-    { label: 'Perfil', path: '/admin/profile', icon: User },
-  ];
+  const tabs = isOwner
+    ? [
+        { label: 'Hoje', path: '/admin', icon: Clock },
+        { label: 'Semana', path: '/admin/weekly', icon: CalendarDays },
+        { label: 'Clientes', path: '/admin/clients', icon: Users },
+        { label: 'Perfil', path: '/admin/profile', icon: User },
+      ]
+    : [
+        { label: 'Hoje', path: '/admin', icon: Clock },
+        { label: 'Semana', path: '/admin/weekly', icon: CalendarDays },
+        { label: 'Clientes', path: '/admin/clients', icon: Users },
+        { label: 'Perfil', path: '/admin/profile', icon: User },
+      ];
 
   return (
     <nav
@@ -38,7 +47,12 @@ const BottomTabs: FC = () => {
                 active ? 'text-[#D4AF37]' : 'text-zinc-500'
               }`}
             >
-              <tab.icon size={22} strokeWidth={active ? 2.2 : 1.6} />
+              <tab.icon size={20} strokeWidth={active ? 2.2 : 1.6} />
+              <span
+                className={`text-[9px] font-bold ${active ? 'text-[#D4AF37]' : 'text-zinc-600'}`}
+              >
+                {tab.label}
+              </span>
             </button>
           );
         })}

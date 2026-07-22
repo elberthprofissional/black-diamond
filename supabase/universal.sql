@@ -426,7 +426,8 @@ CREATE OR REPLACE FUNCTION criar_agendamento(
     p_preco_total decimal,
     p_duracao_total integer,
     p_cliente_email text DEFAULT NULL,
-    p_coupon_id uuid DEFAULT NULL
+    p_coupon_id uuid DEFAULT NULL,
+    p_barber_id uuid DEFAULT NULL
 )
 RETURNS jsonb AS $$
 DECLARE
@@ -652,8 +653,8 @@ BEGIN
     p_duracao_total := v_server_duration;
 
     -- CRIA O AGENDAMENTO
-    INSERT INTO bookings (client_id, service_ids, booking_date, booking_time, total_price, total_duration, status, coupon_id, discount_amount)
-    VALUES (v_client_id, p_servicos, p_data, p_hora, p_preco_total, p_duracao_total, 'confirmed', p_coupon_id, v_coupon_discount)
+    INSERT INTO bookings (client_id, service_ids, booking_date, booking_time, total_price, total_duration, status, coupon_id, discount_amount, barber_id)
+    VALUES (v_client_id, p_servicos, p_data, p_hora, p_preco_total, p_duracao_total, 'confirmed', p_coupon_id, v_coupon_discount, p_barber_id)
     RETURNING id INTO v_booking_id;
 
     -- GERA TOKEN ÚNICO PARA GERENCIAMENTO
@@ -1400,7 +1401,8 @@ CREATE OR REPLACE FUNCTION criar_agendamento_rate_limited(
     p_duracao_total integer,
     p_cliente_email text DEFAULT NULL,
     p_coupon_id uuid DEFAULT NULL,
-    p_discount_amount decimal DEFAULT 0
+    p_discount_amount decimal DEFAULT 0,
+    p_barber_id uuid DEFAULT NULL
 )
 RETURNS jsonb AS $$
 DECLARE
@@ -1420,7 +1422,7 @@ BEGIN
     RETURN criar_agendamento(
         p_cliente_nome, p_cliente_telefone, p_servicos,
         p_data, p_hora, p_preco_total, p_duracao_total, p_cliente_email,
-        p_coupon_id
+        p_coupon_id, p_barber_id
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -1792,7 +1794,7 @@ BEGIN
         b.total_price,
         b.total_duration,
         b.service_ids,
-        jsonb_build_object('name', c.name, 'phone', c.phone) AS clients,
+        jsonb_build_object('name', CONCAT(LEFT(c.name, 1), '****'), 'phone', CONCAT(LEFT(c.phone, 3), '****', RIGHT(c.phone, 2))) AS clients,
         EXISTS(
             SELECT 1 FROM booking_tokens bt
             WHERE bt.booking_id = b.id AND bt.expires_at > NOW()
@@ -1852,7 +1854,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- =========================================================================
 
 -- Garante a configuração padrão da URL do site
-INSERT INTO settings (key, value) VALUES ('site_url', 'https://black-diamond-wheat.vercel.app')
+INSERT INTO settings (key, value) VALUES ('site_url', 'https://black-diamond.vercel.app')
 ON CONFLICT (key) DO NOTHING;
 
 -- Redefine a função do gatilho completa
@@ -1894,7 +1896,7 @@ BEGIN
 
     v_clean_phone := regexp_replace(v_client.phone, '\D', '', 'g');
 
-    SELECT COALESCE(value, 'https://black-diamond-wheat.vercel.app') INTO v_site_url
+    SELECT COALESCE(value, 'https://black-diamond.vercel.app') INTO v_site_url
     FROM settings
     WHERE key = 'site_url';
 

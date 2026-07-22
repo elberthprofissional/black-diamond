@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback, type FC } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../../hooks/useToast';
+import { useMensalistaDashboard } from '../../../hooks/useMensalistaDashboard';
 import ToastNotification from '../shared/ToastNotification';
 import {
   getMensalistaPlans,
@@ -16,6 +18,7 @@ import type { MensalistaPlan, Service } from '../../../types';
 import MensalistaToggle from './MensalistaToggle';
 import PlanListView from './PlanListView';
 import MensalistaPlanForm from './MensalistaPlanForm';
+import MensalistaDashboard from './MensalistaDashboard';
 import { logError } from '../../../lib/logger';
 
 const MAX_PLANS = 10;
@@ -23,6 +26,8 @@ const MAX_NAME_LENGTH = 30;
 
 const SettingsMensalista: FC = () => {
   const { toast, showSuccess, showError } = useToast();
+  const navigate = useNavigate();
+  const dashboard = useMensalistaDashboard();
   const [plans, setPlans] = useState<MensalistaPlan[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,6 +63,7 @@ const SettingsMensalista: FC = () => {
   }, [showError]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
 
@@ -241,6 +247,15 @@ const SettingsMensalista: FC = () => {
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto lg:mx-0">
+      <MensalistaDashboard
+        data={dashboard}
+        onSelectClient={(client) =>
+          navigate(
+            `/admin/clients?phone=${encodeURIComponent(client.phone)}&name=${encodeURIComponent(client.name)}`
+          )
+        }
+      />
+
       <MensalistaToggle
         enabled={enabled}
         toggling={togglingEnabled}

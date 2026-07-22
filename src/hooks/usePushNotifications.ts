@@ -31,6 +31,7 @@ export function usePushNotifications() {
 
     // iOS only supports push when installed as PWA (standalone)
     if (isIOS && !isStandalone) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsSupported(false);
       setLoading(false);
       return;

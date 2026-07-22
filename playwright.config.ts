@@ -1,6 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync } from 'fs';
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
+const AUTH_FILE = 'e2e/.auth/admin.json';
+const hasAuth = existsSync(AUTH_FILE);
 
 export default defineConfig({
   testDir: './e2e',
@@ -23,24 +26,44 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'chromium',
+      name: 'auth-setup',
+      testMatch: /auth\.setup\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        ...(hasAuth ? { storageState: AUTH_FILE } : {}),
+      },
+    },
+    {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: {
+        ...devices['Desktop Firefox'],
+        ...(hasAuth ? { storageState: AUTH_FILE } : {}),
+      },
     },
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      use: {
+        ...devices['Desktop Safari'],
+        ...(hasAuth ? { storageState: AUTH_FILE } : {}),
+      },
     },
     {
       name: 'mobile-chrome',
-      use: { ...devices['Pixel 5'] },
+      use: {
+        ...devices['Pixel 5'],
+        ...(hasAuth ? { storageState: AUTH_FILE } : {}),
+      },
     },
     {
       name: 'mobile-safari',
-      use: { ...devices['iPhone 13'] },
+      use: {
+        ...devices['iPhone 13'],
+        ...(hasAuth ? { storageState: AUTH_FILE } : {}),
+      },
     },
   ],
   webServer: {

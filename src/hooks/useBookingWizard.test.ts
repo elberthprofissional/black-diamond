@@ -73,13 +73,13 @@ describe('useBookingWizard', () => {
     expect(result.current.stepTitle).toBe('Seus dados');
 
     act(() => result.current.setStep(2));
-    expect(result.current.stepTitle).toBe('Escolha os serviços');
+    expect(result.current.stepTitle).toBe('Escolha o barbeiro');
 
     act(() => result.current.setStep(3));
-    expect(result.current.stepTitle).toBe('Data e horário');
+    expect(result.current.stepTitle).toBe('Escolha os serviços');
 
     act(() => result.current.setStep(4));
-    expect(result.current.stepTitle).toBe('Revisar agendamento');
+    expect(result.current.stepTitle).toBe('Data e horário');
   });
 
   it('toggleService adiciona e remove servico', () => {

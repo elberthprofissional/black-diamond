@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users, ChevronDown, User, LogOut, Clock, Settings } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
 import { useBarberSettings } from '../../contexts/BarberSettingsContext';
+import { useBarberContext } from '../../contexts/BarberContext';
 import NotificationBell from './NotificationBell';
 
 const AdminSidebar: FC = memo(() => {
@@ -14,20 +15,30 @@ const AdminSidebar: FC = memo(() => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const handleLogout = useAdminLogout();
   const { barberName, barberPhoto } = useBarberSettings();
+  const { isOwner } = useBarberContext();
 
   const isActive = (path: string) => location.pathname === path;
 
-  const mainMenuItems = [
-    { label: 'Agenda do Dia', path: '/admin', icon: Clock, testId: 'nav-today' },
-    { label: 'Agenda Semanal', path: '/admin/weekly', icon: Calendar, testId: 'nav-weekly' },
-    { label: 'Meus Clientes', path: '/admin/clients', icon: Users, testId: 'nav-clients' },
-  ];
+  const mainMenuItems = isOwner
+    ? [
+        { label: 'Agenda do Dia', path: '/admin', icon: Clock, testId: 'nav-today' },
+        { label: 'Agenda Semanal', path: '/admin/weekly', icon: Calendar, testId: 'nav-weekly' },
+        { label: 'Meus Clientes', path: '/admin/clients', icon: Users, testId: 'nav-clients' },
+      ]
+    : [
+        { label: 'Meu Dia', path: '/admin', icon: Clock, testId: 'nav-today' },
+        { label: 'Agenda Semanal', path: '/admin/weekly', icon: Calendar, testId: 'nav-weekly' },
+        { label: 'Meus Clientes', path: '/admin/clients', icon: Users, testId: 'nav-clients' },
+      ];
 
   return (
     <aside className="hidden lg:flex flex-col w-[260px] h-screen fixed left-0 top-0 bg-[#0A0A0A] border-r border-white/5 z-[100] font-sans">
       {/* 1. BRANDING - HIGH END UTILITY */}
       <div className="h-28 flex items-center px-6">
-        <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate('/admin')}>
+        <div
+          className="flex items-center gap-4 cursor-pointer"
+          onClick={() => navigate(isOwner ? '/admin' : '/barber')}
+        >
           <img src="/assets/logo.webp" alt="Black Diamond" className="w-10 h-10 object-contain" />
           <div className="flex flex-col">
             <h2 className="text-xs font-black tracking-[0.2em] text-white uppercase leading-none">

@@ -59,6 +59,7 @@ export default function CancelPage() {
   useEffect(() => {
     if (!initialToken) return;
     let active = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     getBookingsByToken(initialToken)
       .then((data) => {
@@ -149,7 +150,10 @@ export default function CancelPage() {
   };
 
   useEffect(() => {
-    if (bookings.length === 0 && view === 'list') setView('search');
+    if (bookings.length === 0 && view === 'list') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setView('search');
+    }
   }, [bookings.length, view]);
 
   const startReschedule = async (booking: BookingEntry) => {
@@ -165,6 +169,7 @@ export default function CancelPage() {
 
   useEffect(() => {
     if (!selectedDate || !rescheduleBooking) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAvailableSlots([]);
       return;
     }

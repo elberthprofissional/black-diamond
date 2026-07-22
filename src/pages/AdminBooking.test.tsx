@@ -93,7 +93,13 @@ vi.mock('../hooks/useMensalistaFilter', () => ({
   })),
 }));
 
+vi.mock('../lib/api/barbers', () => ({
+  getBarbers: vi.fn().mockResolvedValue([]),
+  getBarberByUserId: vi.fn().mockResolvedValue(null),
+}));
+
 import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
+import { BarberProvider } from '../contexts/BarberContext';
 import AdminBooking from './AdminBooking';
 
 describe('AdminBooking', () => {
@@ -104,7 +110,9 @@ describe('AdminBooking', () => {
   it('renderiza titulo do agendamento', () => {
     render(
       <BarberSettingsProvider>
-        <AdminBooking />
+        <BarberProvider>
+          <AdminBooking />
+        </BarberProvider>
       </BarberSettingsProvider>
     );
     expect(screen.getAllByText(/Novo Agendamento/i).length).toBeGreaterThan(0);
@@ -113,7 +121,9 @@ describe('AdminBooking', () => {
   it('renderiza secao de cliente', () => {
     render(
       <BarberSettingsProvider>
-        <AdminBooking />
+        <BarberProvider>
+          <AdminBooking />
+        </BarberProvider>
       </BarberSettingsProvider>
     );
     expect(screen.getAllByText(/CLIENTE/i).length).toBeGreaterThan(0);
@@ -122,7 +132,9 @@ describe('AdminBooking', () => {
   it('renderiza campo de nome', () => {
     render(
       <BarberSettingsProvider>
-        <AdminBooking />
+        <BarberProvider>
+          <AdminBooking />
+        </BarberProvider>
       </BarberSettingsProvider>
     );
     expect(screen.getAllByPlaceholderText(/nome/i).length).toBeGreaterThan(0);
@@ -131,7 +143,9 @@ describe('AdminBooking', () => {
   it('renderiza campo de telefone', () => {
     render(
       <BarberSettingsProvider>
-        <AdminBooking />
+        <BarberProvider>
+          <AdminBooking />
+        </BarberProvider>
       </BarberSettingsProvider>
     );
     expect(screen.getAllByPlaceholderText(/00000/i).length).toBeGreaterThan(0);
@@ -140,7 +154,9 @@ describe('AdminBooking', () => {
   it('renderiza secao de servicos', () => {
     render(
       <BarberSettingsProvider>
-        <AdminBooking />
+        <BarberProvider>
+          <AdminBooking />
+        </BarberProvider>
       </BarberSettingsProvider>
     );
     expect(screen.getAllByText(/SERVIÇOS/i).length).toBeGreaterThan(0);
@@ -149,7 +165,9 @@ describe('AdminBooking', () => {
   it('renderiza secao de agenda', () => {
     render(
       <BarberSettingsProvider>
-        <AdminBooking />
+        <BarberProvider>
+          <AdminBooking />
+        </BarberProvider>
       </BarberSettingsProvider>
     );
     expect(screen.getAllByText(/AGENDA/i).length).toBeGreaterThan(0);
@@ -158,7 +176,9 @@ describe('AdminBooking', () => {
   it('renderiza botao de buscar cliente', () => {
     render(
       <BarberSettingsProvider>
-        <AdminBooking />
+        <BarberProvider>
+          <AdminBooking />
+        </BarberProvider>
       </BarberSettingsProvider>
     );
     expect(screen.getAllByText(/Buscar|Dados|Cliente/i).length).toBeGreaterThan(0);
@@ -167,7 +187,9 @@ describe('AdminBooking', () => {
   it('renderiza botao de avancar', () => {
     render(
       <BarberSettingsProvider>
-        <AdminBooking />
+        <BarberProvider>
+          <AdminBooking />
+        </BarberProvider>
       </BarberSettingsProvider>
     );
     expect(screen.getAllByText(/Continuar/i).length).toBeGreaterThan(0);

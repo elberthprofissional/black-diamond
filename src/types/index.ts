@@ -9,6 +9,7 @@ export interface Service {
 export interface Booking {
   id: string;
   client_id: string;
+  barber_id?: string | null;
   service_ids: string[];
   booking_date: string;
   booking_time: string;
@@ -25,6 +26,11 @@ export interface Booking {
   clients?: {
     name: string;
     phone: string;
+  } | null;
+  barbers?: {
+    name: string;
+    phone?: string;
+    photo_url?: string;
   } | null;
 }
 
@@ -133,4 +139,24 @@ export interface CouponValidation {
   discount_amount?: number;
   original_price?: number;
   error?: string;
+}
+
+export interface Barber {
+  id: string;
+  user_id?: string;
+  name: string;
+  phone?: string;
+  photo_url?: string;
+  bio?: string;
+  quote?: string;
+  is_active: boolean;
+  is_owner: boolean;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface BarberSettings {
+  barber_id: string;
+  key: string;
+  value: string;
 }

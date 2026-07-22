@@ -127,6 +127,7 @@ describe('createBooking', () => {
       p_duracao_total: 60,
       p_coupon_id: null,
       p_discount_amount: 0,
+      p_barber_id: null,
     });
     expect(result).toBeDefined();
   });

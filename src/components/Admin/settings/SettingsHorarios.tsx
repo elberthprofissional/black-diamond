@@ -41,6 +41,8 @@ const SettingsHorarios: FC = () => {
   useEffect(() => {
     if (barberHours) {
       try {
+        // Sync local hours state when barberHours changes
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setHours({ ...DEFAULT_HOURS, ...JSON.parse(barberHours) });
       } catch (e) {
         logError(e);

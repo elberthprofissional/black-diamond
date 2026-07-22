@@ -4,18 +4,14 @@ import { formatPhone } from '../lib/utils';
 import { useWizardStep } from './useWizardStep';
 import { useClientLookup } from './useClientLookup';
 import { useBookingSlots } from './useBookingSlots';
-import { useBookingSubmit } from './useBookingSubmit';
-import { useBookingCoupon } from './useBookingCoupon';
+import { useBookingPayment } from './useBookingPayment';
 import { useBookingLoyalty } from './useBookingLoyalty';
-import type { Service, MensalistaPlan } from '../types';
+import type { Service, MensalistaPlan, Barber } from '../types';
 import { useServices } from './useServices';
 import { getMensalistaPlans, applyCoupon } from '../lib/api';
 import { useMensalistaFilter } from './useMensalistaFilter';
 
-export function useBookingWizard(
-  showError: (msg: string) => void,
-  showSuccess?: (msg: string) => void
-) {
+export function useBookingWizard(showError: (msg: string) => void) {
   const navigate = useNavigate();
 
   // Step control
@@ -32,6 +28,7 @@ export function useBookingWizard(
   const { services: allServices, loading: servicesLoading } = useServices();
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
+  const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
 
   // Mensalista plans
   const [allPlans, setAllPlans] = useState<MensalistaPlan[]>([]);
@@ -71,8 +68,18 @@ export function useBookingWizard(
   // Date & time slots
   const slots = useBookingSlots(showError);
 
-  // Submit
-  const { isSubmitting, handleConfirm: rawConfirm } = useBookingSubmit(showError, () => setStep(5));
+  // Payment (coupon + submit merged)
+  const {
+    coupon,
+    couponLoading,
+    couponError,
+    handleCouponValidate,
+    handleCouponRemove,
+    calculatedTotalPrice,
+    finalPrice,
+    isSubmitting,
+    handleConfirm: rawConfirm,
+  } = useBookingPayment(selectedServices, showError, () => setStep(5));
 
   // Mensalista filter (shared hook)
   const handleServicesChange = useCallback((services: Service[]) => {
@@ -106,22 +113,6 @@ export function useBookingWizard(
   const [token, setToken] = useState('');
   const [isOfflineBooking, setIsOfflineBooking] = useState(false);
 
-  // Coupon (extracted hook)
-  const { coupon, couponLoading, couponError, handleCouponValidate, handleCouponRemove } =
-    useBookingCoupon(selectedServices);
-
-  // Calculate total price
-  const calculatedTotalPrice = useMemo(
-    () => selectedServices.reduce((sum, s) => sum + Number(s.price), 0),
-    [selectedServices]
-  );
-
-  // Final price after coupon discount
-  const finalPrice = useMemo(
-    () => Math.max(0, calculatedTotalPrice - (coupon?.discount_amount || 0)),
-    [calculatedTotalPrice, coupon]
-  );
-
   // Confirm with full params
   const handleConfirm = useCallback(async () => {
     if (isSubmitting) return null;
@@ -134,6 +125,8 @@ export function useBookingWizard(
       isMensalista,
       couponId: coupon?.coupon_id,
       discountAmount: coupon?.discount_amount,
+      barberId: selectedBarber?.id,
+      barberPhone: selectedBarber?.phone,
     });
     if (result) {
       setToken(result.token);
@@ -158,6 +151,8 @@ export function useBookingWizard(
     finalPrice,
     isMensalista,
     coupon,
+    selectedBarber?.id,
+    selectedBarber?.phone,
   ]);
 
   // Wrap wizardGoNext to pass handleConfirm for the last step
@@ -170,12 +165,21 @@ export function useBookingWizard(
       step,
       name: userInfo.name,
       phone: userInfo.phone,
+      selectedBarber,
       selectedServices,
       selectedDate: slots.selectedDate,
       selectedTime: slots.selectedTime,
       isSubmitting,
     }),
-    [step, userInfo, selectedServices, slots.selectedDate, slots.selectedTime, isSubmitting]
+    [
+      step,
+      userInfo,
+      selectedBarber,
+      selectedServices,
+      slots.selectedDate,
+      slots.selectedTime,
+      isSubmitting,
+    ]
   );
 
   const disabled = useMemo(
@@ -195,6 +199,8 @@ export function useBookingWizard(
     setSelectedTime: slots.setSelectedTime,
     userInfo,
     setUserInfo,
+    selectedBarber,
+    setSelectedBarber,
     isSubmitting,
     existingBookings: slots.existingBookings,
     availableSlots: slots.availableSlots,
