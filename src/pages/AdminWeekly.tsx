@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { getLocalDateString } from '../lib/utils';
+import { getLocalDateString, getTimeSlotsForDate } from '../lib/utils';
 import { getAvailableSlots } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { useBookings } from '../hooks/useBookings';
@@ -156,9 +156,20 @@ const AdminWeekly: FC = () => {
 
     const loadAll = () => {
       loadData();
-      getAvailableSlots(selectedDateStr).then((slots) => {
-        if (mounted) setAllSlots(slots);
-      });
+      getAvailableSlots(selectedDateStr)
+        .then((slots) => {
+          if (mounted) setAllSlots(slots);
+        })
+        .catch(() => {
+          // Fallback: gera slots localmente se a RPC falhar
+          getTimeSlotsForDate(selectedDateStr)
+            .then((slots) => {
+              if (mounted) setAllSlots(slots);
+            })
+            .catch(() => {
+              if (mounted) setAllSlots([]);
+            });
+        });
     };
 
     const setupRealtime = async () => {

@@ -29,18 +29,16 @@ const AdminClients: FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const filterParam = searchParams.get('filter');
 
-  type ClientFilter = 'all' | 'pending' | 'sent' | 'inactive';
+  type ClientFilter = 'all' | 'pending' | 'sent';
   const [reminderFilter, setReminderFilter] = useState<ClientFilter>(
-    filterParam === 'pending' || filterParam === 'sent' || filterParam === 'inactive'
-      ? filterParam
-      : 'all'
+    filterParam === 'pending' || filterParam === 'sent' ? filterParam : 'all'
   );
   const [nowTimestamp] = useState(() => Date.now());
   const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [reminderClient, setReminderClient] = useState<Client | null>(null);
 
   useEffect(() => {
-    if (filterParam === 'pending' || filterParam === 'sent' || filterParam === 'inactive') {
+    if (filterParam === 'pending' || filterParam === 'sent') {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setReminderFilter(filterParam);
     } else {
@@ -67,20 +65,17 @@ const AdminClients: FC = () => {
     let matchFilter = true;
     if (reminderFilter === 'pending') matchFilter = !r.isReminderRecent(cl.id);
     else if (reminderFilter === 'sent') matchFilter = r.isReminderRecent(cl.id);
-    else if (reminderFilter === 'inactive') matchFilter = cl.isInactive;
     return matchSearch && matchFilter;
   });
 
   const counts = useMemo(() => {
     let pending = 0;
     let sent = 0;
-    let inactive = 0;
     c.clients.forEach((cl) => {
       if (r.isReminderRecent(cl.id)) sent++;
       else pending++;
-      if (cl.isInactive) inactive++;
     });
-    return { all: c.clients.length, pending, sent, inactive };
+    return { all: c.clients.length, pending, sent };
   }, [c.clients, r]);
 
   const handleOpenPanel = (client: (typeof c.clients)[0]) => {
@@ -169,9 +164,7 @@ const AdminClients: FC = () => {
                   ? 'Todos os clientes já foram lembrados recentemente!'
                   : reminderFilter === 'sent'
                     ? 'Nenhum lembrete enviado recentemente.'
-                    : reminderFilter === 'inactive'
-                      ? 'Nenhum cliente inativo! Todos cortaram nos últimos 30 dias.'
-                      : 'Nenhum cliente cadastrado.'}
+                    : 'Nenhum cliente cadastrado.'}
             </p>
           </div>
         ) : (

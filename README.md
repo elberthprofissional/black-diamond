@@ -18,7 +18,7 @@
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/version-3.22.0-blue?style=flat-square" alt="Version"/>
+    <img src="https://img.shields.io/badge/version-3.23.0-blue?style=flat-square" alt="Version"/>
     <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"/>
     <img src="https://img.shields.io/badge/build-passing-brightgreen?style=flat-square" alt="Build"/>
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React"/>
@@ -89,9 +89,11 @@
 
 | Funcionalidade | Descrição |
 |----------------|-----------|
-| **📊 Dashboard** | Métricas do dia, faturamento, próximos clientes, taxa de ocupação |
-| **📆 Agenda Semanal** | Visão completa da semana com horários ocupados/livres |
-| **👥 Gestão de Clientes** | CRUD completo, busca, filtros, anotações, status de lembrete |
+| **📊 Dashboard** | Métricas do dia, resumo de clientes/concluídos/cancelados/no-shows, faturamento |
+| **📆 Agenda Semanal** | Visão completa da semana com horários ocupados/livres/bloqueados |
+| **👥 Gestão de Clientes** | Cards simplificados com status visual (bolinha verde/amarela/vermelha), filtros de lembrete |
+| **📋 Histórico do Cliente** | Lista completa de agendamentos com filtros, paginação e ocultar/restaurar |
+| **⚡ Reagendar Rápido** | 1 toque pra reagendar com últimos dados do cliente |
 | **✂️ Serviços** | Gerenciar preços, duração e descrição dos serviços |
 | **🕐 Horários de Funcionamento** | Configurar dias abertos/fechados, horário de almoço |
 | **📸 Galeria** | Upload de fotos com conversão WebP, reordenação, preview |

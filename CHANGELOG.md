@@ -5,7 +5,27 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
-## [3.22.0] - 2026-07-13
+## [3.23.0] - 2026-07-22
+
+### Added
+- **Histórico de agendamentos no painel do cliente** — Clica em "Visitas" e vê todo o histórico: data, serviços, valor, status. Filtros por mês e status (Concluído/Cancelado/Ocultos). Paginação com "Carregar mais". Ocultar/restaurar agendamentos individualmente (localStorage, sem mexer no banco).
+- **Reagendar rápido** — Botão "Reagendar" no painel do cliente pré-preenche cliente, telefone, últimos serviços, data e hora do último agendamento. 1 toque em vez de 4.
+- **Resumo do dia no dashboard** — Linha compacta mostrando total de clientes, concluídos, cancelados e no-shows do dia.
+- **Filtros de lembretes simplificados** — Abas: Todos, Lembrados (bolinha verde), A Lembrar (bolinha amarela).
+
+### Changed
+- **Cards de clientes simplificados** — 2 linhas (nome + telefone/último corte), sem badges de texto (ATIVO, A LEMBRAR, Inativo). Bolinha verde/amarela/vermelha indica status.
+- **Filtros de clientes simplificados** — Só 3 abas (Todos, Lembrados, A Lembrar) em vez de 4.
+- **"Meu Dia" renomeado para "Agenda do Dia"** no sidebar.
+- **Migrations consolidadas** — 10 arquivos → 6 (001-006). `007_reminder_logs` e `009_service_name_unique` → `001_schema`. `005_seed_data` + `006_cron` → `005_seed_cron`. `008_multi_barber` (duplicata) removido.
+
+### Removed
+- **RevenueChart** — Gráfico de barras com 4 abas (Diário/Semanal/Dia da Semana/Comparação Mensal) removido do perfil do admin. Informação demais para um barbeiro individual. Junto com hook `useRevenueChartData` e dependência `recharts`.
+- **instalar-cliente.mjs** — Script de instalação automática removido + todas as referências em docs.
+- **PROXIMOS_PASSOS.md** — Documento de próximos passos removido.
+
+### Fixed
+- **Agenda Semanal bugada** — Slots não carregavam quando a RPC `get_available_slots` falhava silenciosamente. Adicionado fallback para `getTimeSlotsForDate` local.
 
 ### Added
 - **Export XLSX (Excel) integrado** — Novo hook `useXlsxExport` para gerar arquivos .xls compatíveis com Excel via XML SpreadsheetML, zero dependências. Botão Exportar agora tem menu em 2 níveis: tipo de dado (Agendamentos, Clientes, Financeiro) → formato (Excel ou CSV).
