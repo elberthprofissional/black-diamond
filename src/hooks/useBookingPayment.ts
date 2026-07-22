@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { createBooking, validateCoupon, applyCoupon } from '../lib/api';
+import { createBooking, validateCoupon } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
 import { openWhatsApp, formatWaDate, formatWaTime, formatWaCurrency } from '../lib/whatsapp';
 import { useBarberSettings } from './useBarberSettings';

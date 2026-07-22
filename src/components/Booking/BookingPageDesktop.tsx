@@ -94,7 +94,6 @@ const BookingPageDesktop: FC<BookingPageDesktopProps> = memo(
     setUserInfo,
     goNext,
     goBack,
-    navigate,
     nextDays,
     isMensalista,
     planName,

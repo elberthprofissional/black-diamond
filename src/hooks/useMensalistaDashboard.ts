@@ -82,7 +82,7 @@ export function useMensalistaDashboard(): MensalistaDashboardData {
       .filter((c) => c.is_mensalista)
       .map((c) => {
         const plan = c.mensalista_plan_id ? planMap.get(c.mensalista_plan_id) : null;
-        const daysUntilExpiry = computeDaysUntilExpiry(c.mensalista_expires_at);
+        const daysUntilExpiry = computeDaysUntilExpiry(c.mensalista_expires_at ?? null);
         const isExpired = daysUntilExpiry !== null && daysUntilExpiry < 0;
         const isExpiringSoon =
           daysUntilExpiry !== null &&
@@ -93,10 +93,10 @@ export function useMensalistaDashboard(): MensalistaDashboardData {
           id: c.id,
           name: c.name,
           phone: c.phone,
-          planId: c.mensalista_plan_id,
+          planId: c.mensalista_plan_id ?? null,
           planName: plan?.name || 'Plano',
           planPrice: plan?.price || 0,
-          expiresAt: c.mensalista_expires_at,
+          expiresAt: c.mensalista_expires_at ?? null,
           daysUntilExpiry,
           isExpired,
           isExpiringSoon,
