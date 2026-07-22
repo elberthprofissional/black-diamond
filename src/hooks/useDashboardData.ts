@@ -9,7 +9,7 @@ import { logError } from '../lib/logger';
 
 export function useDashboardData(barberId?: string) {
   const selectedDate = getLocalDateString();
-  const { bookings, loading, refetch: loadData } = useBookings(selectedDate, barberId);
+  const { bookings, loading, isCached, refetch: loadData } = useBookings(selectedDate, barberId);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
 
   const {
@@ -160,6 +160,7 @@ export function useDashboardData(barberId?: string) {
     selectedDate,
     bookings,
     loading,
+    isCached,
     loadData,
     availableSlots,
     dailyRevenue,

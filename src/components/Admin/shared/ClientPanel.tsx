@@ -1,13 +1,25 @@
-import { useState, type FC } from 'react';
+import { useState, useEffect, useMemo, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Pencil, Trash2, Plus, Crown, Gift, ArrowLeft, Check } from 'lucide-react';
+import {
+  X,
+  Pencil,
+  Trash2,
+  Plus,
+  Crown,
+  Gift,
+  ArrowLeft,
+  Check,
+  ChevronRight,
+  EyeOff,
+  RotateCcw,
+} from 'lucide-react';
 import { formatPhone, formatPricePublic } from '../../../lib/utils';
 import { cleanPhoneForWhatsApp } from '../../../lib/whatsapp';
-import type { ClientWithStats, BookingWithClient, MensalistaPlan } from '../../../types';
-
-import type { MilestoneProgress } from '../../../lib/api';
+import { getServices, type MilestoneProgress } from '../../../lib/api';
+import type { ClientWithStats, BookingWithClient, MensalistaPlan, Service } from '../../../types';
 import PlanSelectorModal from './PlanSelectorModal';
+import HistoryView from './HistoryView';
 
 interface ClientPanelProps {
   client: ClientWithStats;
@@ -58,6 +70,98 @@ const ClientPanel: FC<ClientPanelProps> = ({
   const [showPlanSelector, setShowPlanSelector] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
   const [savingMensalista, setSavingMensalista] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [services, setServices] = useState<Service[]>([]);
+  const [historyFilter, setHistoryFilter] = useState<
+    'all' | 'completed' | 'cancelled' | 'confirmed' | 'hidden'
+  >('all');
+  const [historyMonth, setHistoryMonth] = useState<string>('all');
+  const [visibleCount, setVisibleCount] = useState(10);
+  const [hiddenIds, setHiddenIds] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(`hidden_bookings_${client.id}`) || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    if (showHistory && services.length === 0) {
+      getServices()
+        .then(setServices)
+        .catch(() => {});
+    }
+  }, [showHistory, services.length]);
+
+  const toggleHideBooking = (bookingId: string) => {
+    setHiddenIds((prev) => {
+      const next = prev.includes(bookingId)
+        ? prev.filter((id) => id !== bookingId)
+        : [...prev, bookingId];
+      localStorage.setItem(`hidden_bookings_${client.id}`, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const availableMonths = useMemo(() => {
+    const months = new Set<string>();
+    panelBookings.forEach((b) => {
+      const d = new Date(b.booking_date + 'T12:00:00');
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      months.add(key);
+    });
+    return Array.from(months).sort().reverse();
+  }, [panelBookings]);
+
+  const filteredBookings = useMemo(() => {
+    let result = panelBookings;
+
+    // Filter by visibility
+    if (historyFilter === 'hidden') {
+      result = result.filter((b) => hiddenIds.includes(b.id));
+    } else {
+      result = result.filter((b) => !hiddenIds.includes(b.id));
+      if (historyFilter !== 'all') {
+        result = result.filter((b) => b.status === historyFilter);
+      }
+    }
+
+    // Filter by month
+    if (historyMonth !== 'all') {
+      result = result.filter((b) => {
+        const d = new Date(b.booking_date + 'T12:00:00');
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        return key === historyMonth;
+      });
+    }
+
+    return result;
+  }, [panelBookings, historyFilter, historyMonth, hiddenIds]);
+
+  const visibleBookings = filteredBookings.slice(0, visibleCount);
+  const hasMore = filteredBookings.length > visibleCount;
+
+  const getServiceNames = (serviceIds: string[]) => {
+    return (
+      serviceIds
+        .map((id) => services.find((s) => s.id === id)?.name)
+        .filter(Boolean)
+        .join(', ') || 'Serviço'
+    );
+  };
+
+  const formatMonth = (key: string) => {
+    const [year, month] = key.split('-');
+    const date = new Date(Number(year), Number(month) - 1);
+    return date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+  };
+
+  const openHistory = () => {
+    setHistoryFilter('all');
+    setHistoryMonth('all');
+    setVisibleCount(10);
+    setShowHistory(true);
+  };
 
   const handleMensalistaClick = async () => {
     if (client.is_mensalista) {
@@ -158,14 +262,18 @@ const ClientPanel: FC<ClientPanelProps> = ({
           </div>
 
           <div className="bg-[#121212] border border-white/[0.03] rounded-xl p-4 space-y-3">
-            <div className="flex justify-between items-center px-2 py-1">
+            <button
+              onClick={openHistory}
+              className="w-full flex justify-between items-center px-2 py-1 cursor-pointer hover:bg-white/[0.02] rounded-lg transition-colors"
+            >
               <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
-                Total de Visitas
+                Visitas
               </span>
-              <span className="text-sm font-black text-[#D4AF37]">
+              <span className="flex items-center gap-1.5 text-sm font-black text-[#D4AF37]">
                 {panelBookings.length} {panelBookings.length === 1 ? 'visita' : 'visitas'}
+                <ChevronRight size={14} className="text-[#D4AF37]/60" />
               </span>
-            </div>
+            </button>
             <div className="flex justify-between items-center px-2">
               <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
                 Valor Gasto
@@ -410,6 +518,106 @@ const ClientPanel: FC<ClientPanelProps> = ({
               />
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* History View */}
+      <AnimatePresence>
+        {showHistory && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowHistory(false)}
+              className="fixed inset-0 z-[299] bg-black/75 backdrop-blur-sm"
+            />
+            {/* Mobile: full-screen slide */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="fixed inset-0 z-[300] bg-[#0A0A0A] flex flex-col lg:hidden"
+            >
+              <div className="flex items-center justify-between px-4 h-14 border-b border-white/[0.06]">
+                <button
+                  onClick={() => setShowHistory(false)}
+                  className="text-zinc-400 hover:text-white transition-colors cursor-pointer flex items-center gap-2"
+                  aria-label="Voltar"
+                >
+                  <ArrowLeft size={20} />
+                  <span className="text-sm font-bold text-white">Voltar</span>
+                </button>
+                <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.2em]">
+                  Histórico
+                </span>
+                <div className="w-16" />
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                <HistoryView
+                  filteredBookings={filteredBookings}
+                  visibleBookings={visibleBookings}
+                  hiddenIds={hiddenIds}
+                  services={services}
+                  historyFilter={historyFilter}
+                  availableMonths={availableMonths}
+                  historyMonth={historyMonth}
+                  hasMore={hasMore}
+                  remaining={filteredBookings.length - visibleCount}
+                  onFilterChange={(f) => setHistoryFilter(f as typeof historyFilter)}
+                  onMonthChange={setHistoryMonth}
+                  onToggleHide={toggleHideBooking}
+                  onLoadMore={() => setVisibleCount((prev) => prev + 10)}
+                  formatMonth={formatMonth}
+                />
+              </div>
+            </motion.div>
+            {/* Desktop: centered panel */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+              className="hidden lg:flex fixed inset-0 z-[300] items-center justify-center"
+            >
+              <div className="w-[520px] max-h-[80vh] bg-[#0E0E0E] border border-white/[0.06] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+                  <button
+                    onClick={() => setShowHistory(false)}
+                    className="text-zinc-400 hover:text-white transition-colors cursor-pointer flex items-center gap-2"
+                    aria-label="Fechar"
+                  >
+                    <X size={16} />
+                    <span className="text-sm font-bold text-white">Fechar</span>
+                  </button>
+                  <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.2em]">
+                    Histórico de {client.name?.split(' ')[0]}
+                  </span>
+                  <div className="w-16" />
+                </div>
+                <div className="flex-1 overflow-y-auto p-6 space-y-2">
+                  <HistoryView
+                    filteredBookings={filteredBookings}
+                    visibleBookings={visibleBookings}
+                    hiddenIds={hiddenIds}
+                    services={services}
+                    historyFilter={historyFilter}
+                    availableMonths={availableMonths}
+                    historyMonth={historyMonth}
+                    hasMore={hasMore}
+                    remaining={filteredBookings.length - visibleCount}
+                    onFilterChange={(f) => setHistoryFilter(f as typeof historyFilter)}
+                    onMonthChange={setHistoryMonth}
+                    onToggleHide={toggleHideBooking}
+                    onLoadMore={() => setVisibleCount((prev) => prev + 10)}
+                    formatMonth={formatMonth}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 

@@ -28,7 +28,7 @@ describe('getServices', () => {
     expect(result).toEqual(services);
   });
 
-  it('deduplicates services by name', async () => {
+  it('returns all services without frontend dedup (unique constraint in DB)', async () => {
     const services = [
       { id: '1', name: 'Corte', price: 50, duration: 30 },
       { id: '2', name: 'Corte', price: 60, duration: 40 },
@@ -40,9 +40,8 @@ describe('getServices', () => {
     });
 
     const result = await getServices();
-    expect(result).toHaveLength(2);
-    expect(result[0].name).toBe('Corte');
-    expect(result[1].name).toBe('Barba');
+    // Dedup removido — unique constraint agora é no banco (migration 009)
+    expect(result).toHaveLength(3);
   });
 
   it('returns empty array when no data', async () => {

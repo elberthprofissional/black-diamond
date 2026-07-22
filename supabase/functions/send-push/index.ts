@@ -90,6 +90,25 @@ Deno.serve(async (req) => {
     });
   }
 
+  // ── Admin verification ──
+  const { data: adminCheck } = await authClient
+    .from('admin_users')
+    .select('user_id')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (!adminCheck) {
+    return new Response(
+      JSON.stringify({
+        error: 'Acesso negado. Apenas administradores podem enviar notificações push.',
+      }),
+      {
+        status: 403,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    );
+  }
+
   if (!VAPID_PRIVATE_KEY || !VAPID_PUBLIC_KEY) {
     return new Response(JSON.stringify({ error: 'VAPID not configured' }), {
       status: 500,

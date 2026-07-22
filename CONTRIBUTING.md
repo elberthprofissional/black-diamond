@@ -250,8 +250,6 @@ Cada barbearia tem seu próprio projeto Supabase. Para setup:
 3. Crie o usuário admin em Authentication > Users
 4. Adicione na tabela `admin_users`
 
-Ou use a instalação automática: `node instalar-cliente.mjs`
-
 ---
 
 ## Deploy

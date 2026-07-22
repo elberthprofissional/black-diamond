@@ -34,8 +34,6 @@ import { useProfileStats } from '../hooks/useProfileStats';
 import ProfileMobile from '../components/Admin/shared/ProfileMobile';
 import ProfileDesktopMetrics from '../components/Admin/shared/ProfileDesktopMetrics';
 import ProfileServicesChart from '../components/Admin/shared/ProfileServicesChart';
-import RevenueChart from '../components/Admin/shared/RevenueChart';
-import { useRevenueChartData } from '../hooks/useRevenueChartData';
 import ExportButton from '../components/Admin/shared/ExportButton';
 import LogoutConfirmModal from '../components/Admin/profile/LogoutConfirmModal';
 import ResetDataModal from '../components/Admin/profile/ResetDataModal';
@@ -63,8 +61,7 @@ import { logError } from '../lib/logger';
 const AdminProfile: FC = () => {
   const [searchParams] = useSearchParams();
   const showSettings = searchParams.get('tab') === 'settings';
-  const { bookings, stats, loading, loadData } = useProfileStats();
-  const chartData = useRevenueChartData(bookings);
+  const { stats, loading, loadData } = useProfileStats();
   const [timeRange, setTimeRange] = useState<'week' | 'month'>('week');
   const [showBalance, setShowBalance] = useState(
     () => localStorage.getItem('barber_show_balance') !== 'false'
@@ -410,13 +407,6 @@ const AdminProfile: FC = () => {
         </div>
       )}
 
-      {/* DESKTOP REVENUE CHART */}
-      {!showSettings && (
-        <div className="hidden lg:block">
-          <RevenueChart data={chartData} />
-        </div>
-      )}
-
       {/* MOBILE LAYOUT */}
       {!showSettings && (
         <ProfileMobile
@@ -440,13 +430,6 @@ const AdminProfile: FC = () => {
           topServices={stats.topServices}
           quickActions={quickActions}
         />
-      )}
-
-      {/* MOBILE REVENUE CHART */}
-      {!showSettings && (
-        <div className="lg:hidden px-4">
-          <RevenueChart data={chartData} />
-        </div>
       )}
 
       {/* Modals */}

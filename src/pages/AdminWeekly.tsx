@@ -11,6 +11,7 @@ import { useBarberSettings } from '../hooks/useBarberSettings';
 import { useBarberContext } from '../contexts/BarberContext';
 import AdminLayout from '../components/Admin/AdminLayout';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
+import OfflineBanner from '../components/Admin/shared/OfflineBanner';
 import AdminBookingShell from '../components/Admin/shared/AdminBookingShell';
 import { SkeletonDashboard } from '../components/Skeleton';
 import WeekDayBar from '../components/Admin/weekly/WeekDayBar';
@@ -73,7 +74,7 @@ function getMondayFromDate(d: Date, barberHoursJson?: string): Date {
 const AdminWeekly: FC = () => {
   const { currentBarber, isOwner } = useBarberContext();
   const barberFilter = isOwner ? undefined : currentBarber?.id;
-  const { bookings, loading, refetch: loadData } = useBookings(undefined, barberFilter);
+  const { bookings, loading, isCached, refetch: loadData } = useBookings(undefined, barberFilter);
   const mgmt = useBookingManagement(loadData);
   const navigate = useNavigate();
   const today = useMemo(() => new Date(), []);
@@ -288,6 +289,8 @@ const AdminWeekly: FC = () => {
   return (
     <AdminLayout mainClassName="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-8 pb-40">
       <div className="max-w-4xl mx-auto space-y-5 w-full">
+        <OfflineBanner isCached={isCached} onRetry={loadData} />
+
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
           <div className="flex items-center gap-3">
             <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-white uppercase italic">

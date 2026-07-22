@@ -91,7 +91,6 @@ async function runDiagnostics() {
     'audit_logs', 'gallery_images', 'whatsapp_templates', 'booking_tokens',
     'notifications', 'admin_users', 'mensalista_plans', 'rate_limits',
     'coupons', 'loyalty_milestones', 'client_milestones', 'testimonials',
-    'subscription_plans', 'subscriptions', 'payments',
     'barbers', 'barber_settings'  // multi-barber
   ];
 

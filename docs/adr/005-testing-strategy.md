@@ -21,7 +21,7 @@ Estratégia de testes em 4 camadas com ferramentas específicas para cada uma.
 - **Exemplo**: `useToast`, `useBookingWizard`, `getErrorMessage`
 
 ### 2. API/Integração (Vitest + Supabase mock)
-- **Escopo**: Funções de API (bookings, clients, billing, loyalty, coupons)
+- **Escopo**: Funções de API (bookings, clients, loyalty, coupons)
 - **Cobertura**: 38+ testes em arquivos `*.test.ts` no `lib/api/`
 - **Setup**: Mock de query builder com chain methods
 - **Exemplo**: `createBooking`, `validateCoupon`, `getClientMilestones`

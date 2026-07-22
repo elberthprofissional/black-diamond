@@ -106,20 +106,6 @@
 
 ## ⚡ Instalação
 
-### 🤖 Instalação Automática (Recomendado)
-
-O instalador configura tudo em ~5 minutos — Supabase, GitHub e Vercel:
-
-```bash
-node instalar-cliente.mjs
-```
-
-**Pré-requisitos gratuitos:**
-- **Node.js 18+** — [nodejs.org](https://nodejs.org)
-- **GitHub CLI** — `gh auth login` ([cli.github.com](https://cli.github.com))
-- **Vercel CLI** — `npm i -g vercel && vercel login`
-- **Supabase Access Token** — [Criar token](https://supabase.com/dashboard/account/tokens)
-
 ### 🛠️ Instalação Manual
 
 ```bash
@@ -246,7 +232,7 @@ Decisões de arquitetura documentadas em [`docs/adr/`](docs/adr/):
 
 | Tipo | Framework | Status |
 |------|-----------|--------|
-| **Unitários** | Vitest | 607 testes |
+| **Unitários** | Vitest | 756+ testes |
 | **Integração** | Vitest + Supabase mock | APIs |
 | **E2E** | Playwright | Fluxos críticos |
 | **Visual** | TestSprite | 14/16 passando |
@@ -280,11 +266,46 @@ O deploy é feito na **Vercel** com integração contínua via GitHub Actions.
 
 ## 🌐 Variáveis de Ambiente
 
+### Obrigatórias
+
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `VITE_SUPABASE_URL` | URL do projeto Supabase | `https://xxxxx.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | Chave anônima do Supabase (pública) | `eyJxxx...` |
+| `VITE_BARBER_WHATSAPP` | Número de WhatsApp do barbeiro (com DDI) | `5531999999999` |
+
+### Opcionais
+
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `VITE_SITE_URL` | URL pública do site (para links de gerenciamento) | `https://black-diamond.vercel.app` |
+| `VITE_VAPID_PUBLIC_KEY` | Chave pública VAPID para notificações push | `BLxxx...` |
+| `VITE_GA_ID` | Google Analytics ID | `G-XXXXXXXXXX` |
+| `VITE_SENTRY_DSN` | DSN do Sentry para monitoramento de erros | `https://xxx@xxx.ingest.sentry.io/xxx` |
+
+### Supabase Edge Functions (secrets)
+
+| Variável | Descrição |
+|----------|-----------|
+| `VAPID_PRIVATE_KEY` | Chave privada VAPID para push notifications |
+| `VAPID_PUBLIC_KEY` | Chave pública VAPID (mesma do VITE) |
+| `VAPID_SUBJECT` | Email de contato para VAPID |
+| `GOOGLE_PLACES_API_KEY` | API Key do Google Places para sincronizar reviews |
+| `GOOGLE_PLACE_ID` | ID do lugar no Google Places |
+
+### Arquivo .env.example
+
 ```env
+# Obrigatórias
 VITE_SUPABASE_URL=https://xxxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJxxx...
+VITE_BARBER_WHATSAPP=5531999999999
+
+# Opcionais
+VITE_SITE_URL=https://black-diamond.vercel.app
 VITE_VAPID_PUBLIC_KEY=BLxxx...
-SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
+VITE_GA_ID=G-XXXXXXXXXX
+VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
 ```
 
 ---

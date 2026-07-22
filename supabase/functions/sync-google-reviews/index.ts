@@ -82,6 +82,23 @@ Deno.serve(async (req) => {
     });
   }
 
+  // ── Admin verification ──
+  const { data: adminCheck } = await authClient
+    .from('admin_users')
+    .select('user_id')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (!adminCheck) {
+    return new Response(
+      JSON.stringify({ error: 'Acesso negado. Apenas administradores podem sincronizar reviews.' }),
+      {
+        status: 403,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    );
+  }
+
   // ── Get API key and Place ID from Edge Function secrets ──
   const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY') ?? '';
   const placeId = Deno.env.get('GOOGLE_PLACE_ID') ?? '';

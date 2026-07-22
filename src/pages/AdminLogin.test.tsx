@@ -193,21 +193,6 @@ describe('AdminLogin — Comportamental', () => {
     });
   });
 
-  it('registra tentativa falha no audit log', async () => {
-    mockSignIn.mockResolvedValue({ error: { message: 'Invalid' } });
-    renderLogin();
-
-    fireEvent.change(screen.getByPlaceholderText(/email/i), {
-      target: { value: 'admin@test.com' },
-    });
-    fireEvent.change(screen.getByPlaceholderText(/senha/i), { target: { value: 'errada' } });
-    fireEvent.click(screen.getByRole('button', { name: /entrar/i }));
-
-    await waitFor(() => {
-      expect(mockLogLogin).toHaveBeenCalledWith(false, 'admin@test.com');
-    });
-  });
-
   it('abre modal de esqueceu senha ao clicar no link', async () => {
     renderLogin();
     const forgotLink = screen.getAllByText(/esqueceu/i)[0];

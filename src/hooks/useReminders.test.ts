@@ -1,9 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useReminders } from './useReminders';
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
+const mockGetTemplates = vi.fn();
+const mockCreateTemplate = vi.fn();
+const mockDeleteTemplate = vi.fn();
 
 vi.mock('./useToast', () => ({
   useToast: () => ({
@@ -12,8 +15,24 @@ vi.mock('./useToast', () => ({
   }),
 }));
 
+vi.mock('../lib/api/templates', () => ({
+  getTemplates: (...args: unknown[]) => mockGetTemplates(...args),
+  createTemplate: (...args: unknown[]) => mockCreateTemplate(...args),
+  deleteTemplate: (...args: unknown[]) => mockDeleteTemplate(...args),
+}));
+
+vi.mock('../lib/logger', () => ({
+  logError: vi.fn(),
+}));
+
 // Mock window.open
 const mockWindowOpen = vi.fn();
+
+beforeEach(() => {
+  mockGetTemplates.mockResolvedValue([]);
+  mockCreateTemplate.mockResolvedValue({});
+  mockDeleteTemplate.mockResolvedValue(undefined);
+});
 
 describe('useReminders', () => {
   beforeEach(() => {
@@ -27,19 +46,24 @@ describe('useReminders', () => {
     expect(result.current.remindersSent).toEqual({});
   });
 
-  it('loads seasonal templates on initialization', () => {
+  it('loads seasonal templates on initialization', async () => {
     const { result } = renderHook(() => useReminders());
-    expect(result.current.templates.length).toBeGreaterThanOrEqual(1);
+    await waitFor(() => {
+      expect(result.current.templates.length).toBeGreaterThanOrEqual(1);
+    });
     expect(result.current.templates[0]).toHaveProperty('id');
     expect(result.current.templates[0]).toHaveProperty('name');
     expect(result.current.templates[0]).toHaveProperty('body');
     expect(result.current.templates[0]).toHaveProperty('key', 'reminder');
   });
 
-  it('persists templates to localStorage', () => {
+  it('persists templates to localStorage', async () => {
     const { result } = renderHook(() => useReminders());
+    await waitFor(() => {
+      const saved = localStorage.getItem('barber_templates');
+      expect(saved).not.toBeNull();
+    });
     const saved = localStorage.getItem('barber_templates');
-    expect(saved).not.toBeNull();
     const parsed = JSON.parse(saved!);
     expect(parsed.length).toBe(result.current.templates.length);
   });
@@ -131,25 +155,33 @@ describe('useReminders', () => {
     expect(mockShowError).toHaveBeenCalledWith(expect.stringContaining('Bloqueador'));
   });
 
-  it('saves custom template', () => {
+  it('saves custom template', async () => {
     const { result } = renderHook(() => useReminders());
 
-    act(() => {
-      result.current.handleSaveTemplate('Custom template message');
+    // Aguarda templates sazonais carregarem antes de adicionar um custom
+    await waitFor(() => {
+      expect(result.current.templates.length).toBeGreaterThanOrEqual(2);
+    });
+    const seasonalCount = result.current.templates.length;
+
+    await act(async () => {
+      await result.current.handleSaveTemplate('Custom template message');
     });
 
     expect(mockShowSuccess).toHaveBeenCalledWith(expect.stringContaining('Lembrete salvo'));
-    // Should now have 4 templates (3 default seasonal + 1 custom)
-    expect(result.current.templates.length).toBeGreaterThanOrEqual(4);
+    expect(result.current.templates.length).toBe(seasonalCount + 1);
   });
 
-  it('deletes a template', () => {
+  it('deletes a template', async () => {
     const { result } = renderHook(() => useReminders());
+    await waitFor(() => {
+      expect(result.current.templates.length).toBeGreaterThanOrEqual(1);
+    });
     const firstId = result.current.templates[0].id;
     const initialCount = result.current.templates.length;
 
-    act(() => {
-      result.current.handleDeleteTemplate(firstId);
+    await act(async () => {
+      await result.current.handleDeleteTemplate(firstId);
     });
 
     expect(result.current.templates).toHaveLength(initialCount - 1);

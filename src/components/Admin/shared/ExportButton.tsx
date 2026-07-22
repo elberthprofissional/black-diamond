@@ -7,6 +7,7 @@ import {
   ChevronDown,
   Loader2,
   FileSpreadsheet,
+  File,
 } from 'lucide-react';
 import { useExport, type ExportType } from '../../../hooks/useExport';
 import { useToast } from '../../../hooks/useToast';
@@ -29,7 +30,7 @@ const ExportButton: FC = () => {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [isOpen]);
 
-  const handleFormatSelect = async (type: ExportType, format: 'csv' | 'xlsx') => {
+  const handleFormatSelect = async (type: ExportType, format: 'csv' | 'xlsx' | 'pdf') => {
     setIsOpen(false);
     setFormatMenu(null);
     await exportData(type, format);
@@ -104,6 +105,18 @@ const ExportButton: FC = () => {
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left hover:bg-white/[0.04] transition-all cursor-pointer text-[11px] text-zinc-400"
             >
               <ChevronDown size={12} className="rotate-90" /> Voltar
+            </button>
+            <div className="h-px bg-white/[0.04] my-1" />
+            <button
+              onClick={() => handleFormatSelect(formatMenu, 'pdf')}
+              disabled={isExporting}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-white/[0.04] transition-all cursor-pointer"
+            >
+              <File size={14} className="text-red-500 shrink-0" />
+              <div>
+                <p className="text-[12px] font-medium text-white">PDF (.pdf)</p>
+                <p className="text-[10px] text-zinc-500">Visualizar e imprimir</p>
+              </div>
             </button>
             <div className="h-px bg-white/[0.04] my-1" />
             <button

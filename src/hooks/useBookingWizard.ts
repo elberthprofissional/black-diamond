@@ -6,15 +6,21 @@ import { useClientLookup } from './useClientLookup';
 import { useBookingSlots } from './useBookingSlots';
 import { useBookingPayment } from './useBookingPayment';
 import { useBookingLoyalty } from './useBookingLoyalty';
-import type { Service, MensalistaPlan, Barber } from '../types';
 import { useServices } from './useServices';
-import { getMensalistaPlans, applyCoupon } from '../lib/api';
 import { useMensalistaFilter } from './useMensalistaFilter';
+import { getMensalistaPlans, applyCoupon } from '../lib/api';
+import type { Service, MensalistaPlan, Barber } from '../types';
 
+/**
+ * Combines booking wizard state: steps, services, client data, slots, payment, loyalty, mensalista.
+ *
+ * Composition approach: each concern is delegated to a dedicated sub-hook.
+ * The wizard orchestrates them and exposes a unified API to the UI layer.
+ */
 export function useBookingWizard(showError: (msg: string) => void) {
   const navigate = useNavigate();
 
-  // Step control
+  // ── Step control ──────────────────────────────────────────────────────
   const {
     step,
     setStep,
@@ -24,34 +30,39 @@ export function useBookingWizard(showError: (msg: string) => void) {
     goBack,
   } = useWizardStep();
 
-  // Services
+  // ── Services ──────────────────────────────────────────────────────────
   const { services: allServices, loading: servicesLoading } = useServices();
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
-  const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
   const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
+  const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
 
-  // Mensalista plans
+  // ── Client lookup (debounced, auto-fills name) ────────────────────────
+  const handleNameFound = useCallback((name: string) => {
+    setUserInfo((prev) => ({ ...prev, name }));
+  }, []);
+
+  const { isMensalista, mensalistaPlanId, clientLookupLoading, clientId, lastBooking } =
+    useClientLookup(userInfo.phone, handleNameFound);
+
+  // ── Mensalista plans ──────────────────────────────────────────────────
   const [allPlans, setAllPlans] = useState<MensalistaPlan[]>([]);
-
   useEffect(() => {
     getMensalistaPlans(true)
       .then(setAllPlans)
       .catch(() => {
-        // Planos mensalistas indisponíveis — silencioso
+        /* silencioso */
       });
   }, []);
 
-  // Client lookup
-  const handleNameFound = useCallback((name: string) => {
-    setUserInfo((prev) => ({ ...prev, name }));
-  }, []);
-  const { isMensalista, mensalistaPlanId, clientLookupLoading, clientId, lastBooking } =
-    useClientLookup(userInfo.phone, handleNameFound);
+  const currentPlan = useMemo(
+    () => allPlans.find((p) => p.id === mensalistaPlanId) || null,
+    [allPlans, mensalistaPlanId]
+  );
 
-  // Loyalty (extracted hook)
+  // ── Loyalty ───────────────────────────────────────────────────────────
   const { nextMilestone } = useBookingLoyalty(clientId);
 
-  // Apply last booking services
+  // ── Apply last booking (quick repeat) ─────────────────────────────────
   const applyLastBooking = useCallback(() => {
     if (!lastBooking) return;
     const services = allServices.filter((s) => lastBooking.serviceIds.includes(s.id));
@@ -59,16 +70,10 @@ export function useBookingWizard(showError: (msg: string) => void) {
     wizardGoNext();
   }, [lastBooking, allServices, wizardGoNext]);
 
-  // Current plan
-  const currentPlan = useMemo(
-    () => allPlans.find((p) => p.id === mensalistaPlanId) || null,
-    [allPlans, mensalistaPlanId]
-  );
-
-  // Date & time slots
+  // ── Date & time slots ─────────────────────────────────────────────────
   const slots = useBookingSlots(showError);
 
-  // Payment (coupon + submit merged)
+  // ── Payment: coupon + submit ──────────────────────────────────────────
   const {
     coupon,
     couponLoading,
@@ -81,7 +86,7 @@ export function useBookingWizard(showError: (msg: string) => void) {
     handleConfirm: rawConfirm,
   } = useBookingPayment(selectedServices, showError, () => setStep(5));
 
-  // Mensalista filter (shared hook)
+  // ── Mensalista filter (services + days) ───────────────────────────────
   const handleServicesChange = useCallback((services: Service[]) => {
     setSelectedServices(services);
   }, []);
@@ -94,13 +99,12 @@ export function useBookingWizard(showError: (msg: string) => void) {
     onServicesChange: handleServicesChange,
   });
 
-  // Apply days filter
   const filteredNextDays = useMemo(
     () => filterDaysForMensalista(slots.nextDays),
     [filterDaysForMensalista, slots.nextDays]
   );
 
-  // Toggle service
+  // ── Toggle service selection ──────────────────────────────────────────
   const toggleService = useCallback((service: Service) => {
     setSelectedServices((prev) =>
       prev.find((s) => s.id === service.id)
@@ -109,11 +113,11 @@ export function useBookingWizard(showError: (msg: string) => void) {
     );
   }, []);
 
-  const [manageUrl, setManageUrl] = useState('');
+  // ── Confirm booking (wraps rawConfirm with wizard state) ──────────────
   const [token, setToken] = useState('');
+  const [manageUrl, setManageUrl] = useState('');
   const [isOfflineBooking, setIsOfflineBooking] = useState(false);
 
-  // Confirm with full params
   const handleConfirm = useCallback(async () => {
     if (isSubmitting) return null;
     const result = await rawConfirm({
@@ -131,16 +135,14 @@ export function useBookingWizard(showError: (msg: string) => void) {
     if (result) {
       setToken(result.token);
       setManageUrl(result.manageUrl);
-      if (result.queued) {
-        setIsOfflineBooking(true);
-      }
-      // Apply coupon usage after successful booking
+      if (result.queued) setIsOfflineBooking(true);
       if (coupon?.coupon_id && !result.queued) {
         applyCoupon(coupon.coupon_id).catch(() => {
-          // Falha ao registrar uso do cupom — não crítica, o booking já foi criado
+          /* não crítica */
         });
       }
     }
+    return result;
   }, [
     rawConfirm,
     isSubmitting,
@@ -155,11 +157,11 @@ export function useBookingWizard(showError: (msg: string) => void) {
     selectedBarber?.phone,
   ]);
 
-  // Wrap wizardGoNext to pass handleConfirm for the last step
   const goNext = useCallback(() => {
     wizardGoNext(handleConfirm);
   }, [wizardGoNext, handleConfirm]);
 
+  // ── Validation ────────────────────────────────────────────────────────
   const validationInput = useMemo(
     () => ({
       step,
@@ -187,6 +189,7 @@ export function useBookingWizard(showError: (msg: string) => void) {
     [isStepDisabled, validationInput]
   );
 
+  // ── Return unified API ────────────────────────────────────────────────
   return {
     step,
     setStep,

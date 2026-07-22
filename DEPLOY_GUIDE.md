@@ -4,28 +4,6 @@
 
 ---
 
-## Instalacao 100% Automatica (Recomendado)
-
-O script `instalar-cliente.mjs` faz TUDO sozinho:
-
-```bash
-node instalar-cliente.mjs
-```
-
-O que ele faz:
-1. Coleta dados do cliente (nome, email, senha, WhatsApp)
-2. Verifica GitHub CLI e Vercel CLI
-3. Escolhe a conta GitHub e cria o repositorio
-4. Cria o projeto Supabase via API (banco + schema + admin)
-5. Gera o arquivo `.env`
-6. Faz push pro GitHub
-7. Cria projeto na Vercel com deploy automatico
-
-**Pre-requisitos:**
-- `gh auth login` (GitHub CLI)
-- `vercel login` (Vercel CLI)
-- Supabase Access Token
-
 ---
 
 ## Instalacao Manual (alternativa)
@@ -212,32 +190,6 @@ Pronto, o sistema já está no ar! Agora o barbeiro configura o resto **sozinho*
 | **Total pra você** | **ZERO** | |
 
 ---
-
-## 🚀 Script de Setup Rápido
-
-O projeto inclui um script de setup em `instalar-cliente.mjs` que automatiza grande parte do processo.
-
-```bash
-# 1. Clone o repositório
-git clone <url-do-repositorio> barbearia-do-joao
-cd barbearia-do-joao
-
-# 2. Instale as dependências
-npm install
-
-# 3. Execute o setup
-node instalar-cliente.mjs
-```
-
-O script vai perguntar:
-- Nome da barbearia
-- Endereço
-- Instagram
-- WhatsApp
-- E-mail do admin
-- URLs do Supabase
-
-E vai gerar um arquivo `.env` pronto e um resumo do que precisa ser alterado no código.
 
 ---
 

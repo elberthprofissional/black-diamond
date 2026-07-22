@@ -5,6 +5,7 @@ import { useBarberSettings } from '../hooks/useBarberSettings';
 import { useBarberContext } from '../contexts/BarberContext';
 import AdminLayout from '../components/Admin/AdminLayout';
 import DashboardHeader from '../components/Admin/shared/DashboardHeader';
+import OfflineBanner from '../components/Admin/shared/OfflineBanner';
 
 import FilterTabs from '../components/Admin/shared/FilterTabs';
 import OccupiedPanel from '../components/Admin/shared/OccupiedPanel';
@@ -65,6 +66,8 @@ const AdminDashboard: FC = () => {
     <AdminLayout mainClassName={LAYOUT_CLASS}>
       <div className="space-y-5">
         <div className="space-y-5">
+          <OfflineBanner isCached={data.isCached} onRetry={data.loadData} />
+
           <DashboardHeader
             nextBooking={data.nextBooking}
             dailyRevenue={data.dailyRevenue}

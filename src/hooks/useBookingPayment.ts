@@ -101,13 +101,14 @@ export function useBookingPayment(
   useEffect(() => {
     if (!couponCode || selectedServices.length === 0) return;
     let cancelled = false;
-    setCouponLoading(true);
 
-    validateCoupon(
-      couponCode,
-      selectedServices.map((s) => s.id)
-    )
-      .then((result) => {
+    const revalidateCoupon = async () => {
+      setCouponLoading(true);
+      try {
+        const result = await validateCoupon(
+          couponCode,
+          selectedServices.map((s) => s.id)
+        );
         if (cancelled) return;
         if (result.valid) {
           setCoupon({
@@ -121,16 +122,17 @@ export function useBookingPayment(
           setCouponCode('');
           setCouponError(result.error || 'Cupom inválido para os serviços selecionados.');
         }
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) {
           setCoupon(null);
           setCouponCode('');
         }
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setCouponLoading(false);
-      });
+      }
+    };
+
+    revalidateCoupon();
 
     return () => {
       cancelled = true;

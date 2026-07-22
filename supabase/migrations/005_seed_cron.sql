@@ -1,7 +1,11 @@
 -- =========================================================================
--- BLACK DIAMOND - DADOS INICIAIS CONSOLIDADO
+-- BLACK DIAMOND - DADOS INICIAIS + CRON JOBS
 -- =========================================================================
--- Servicos, planos, configuracoes, depoimentos, cupons, milestones e billing.
+-- Servicos, planos, configuracoes, depoimentos, cupons, milestones e cron.
+-- =========================================================================
+
+-- =========================================================================
+-- SEED DATA
 -- =========================================================================
 
 -- Servicos
@@ -72,11 +76,39 @@ VALUES
     ('c0000002-0000-0000-0000-000000000002', 10, (SELECT id FROM services WHERE name = 'Pezinho'), true)
 ON CONFLICT (id) DO NOTHING;
 
--- Planos de billing (SaaS)
-INSERT INTO subscription_plans (name, slug, description, price_monthly, price_setup, interval_months, is_active)
-VALUES
-    ('Mensal', 'mensal-sdominio', 'Acesso mensal sem dominio personalizado', 49.90, 0, 1, true),
-    ('Anual', 'anual-sdominio', 'Acesso anual sem dominio - economize 20%', 55.00, 0, 12, true),
-    ('Mensal + Dominio', 'mensal-cdominio', '1o mes: R$149,90 (setup). Depois: R$49,90/mes', 49.90, 149.90, 1, true),
-    ('Anual + Dominio', 'anual-cdominio', 'Acesso anual com dominio incluso', 70.00, 0, 12, true)
-ON CONFLICT (slug) DO NOTHING;
+-- =========================================================================
+-- CRON JOBS
+-- =========================================================================
+
+-- Remover jobs existentes antes de recriar
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'auto-block-lunch') THEN PERFORM cron.unschedule('auto-block-lunch'); END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'completar-agendamentos') THEN PERFORM cron.unschedule('completar-agendamentos'); END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'verificar-mensalistas') THEN PERFORM cron.unschedule('verificar-mensalistas'); END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'monthly-cleanup') THEN PERFORM cron.unschedule('monthly-cleanup'); END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'weekly-report') THEN PERFORM cron.unschedule('weekly-report'); END IF;
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'cleanup-all') THEN PERFORM cron.unschedule('cleanup-all'); END IF;
+END $$;
+
+-- 1. Completar agendamentos expirados (a cada 15 min)
+SELECT cron.schedule('completar-agendamentos', '*/15 * * * *', $$ SELECT completar_agendamentos_expirados() $$);
+
+-- 2. Cleanup diario: tokens + notificacoes + rate limits (6h da manha)
+SELECT cron.schedule('cleanup-all', '0 6 * * *', $$
+    DELETE FROM booking_tokens WHERE expires_at < NOW();
+    DELETE FROM notifications WHERE created_at < NOW() - INTERVAL '30 days';
+    DELETE FROM rate_limits WHERE window_start < NOW() - INTERVAL '1 hour';
+$$);
+
+-- 3. Bloquear horarios de almoco (3h da manha)
+SELECT cron.schedule('auto-block-lunch', '0 3 * * *', $$ SELECT auto_block_lunch_break() $$);
+
+-- 4. Verificar mensalistas proximos do vencimento (11h da manha)
+SELECT cron.schedule('verificar-mensalistas', '0 11 * * *', $$ SELECT verificar_mensalistas() $$);
+
+-- 5. Limpeza mensal de dados antigos (dia 1, 5h da manha)
+SELECT cron.schedule('monthly-cleanup', '0 5 1 * *', $$ SELECT cleanup_old_data() $$);
+
+-- 6. Relatorio semanal (domingo, 23h)
+SELECT cron.schedule('weekly-report', '0 23 * * 0', $$ SELECT send_weekly_report() $$);

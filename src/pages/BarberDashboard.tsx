@@ -4,6 +4,7 @@ import { useBookings } from '../hooks/useBookings';
 import { useBookingModals } from '../hooks/useBookingModals';
 import { getLocalDateString, formatDisplayName } from '../lib/utils';
 import AdminLayout from '../components/Admin/AdminLayout';
+import OfflineBanner from '../components/Admin/shared/OfflineBanner';
 import { SkeletonDashboard } from '../components/Skeleton';
 import { Check } from 'lucide-react';
 
@@ -12,7 +13,7 @@ const BarberDashboard: FC = () => {
   const barberId = currentBarber?.id;
 
   const today = getLocalDateString(new Date());
-  const { bookings, loading, refetch } = useBookings(today, barberId);
+  const { bookings, loading, isCached, refetch } = useBookings(today, barberId);
   const mgmt = useBookingModals(refetch);
 
   const todayBookings = bookings.filter((b) => b.status !== 'cancelled' && !b.is_blocked);
@@ -28,6 +29,8 @@ const BarberDashboard: FC = () => {
       mainClassName="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 pt-28 lg:pt-8 pb-40"
     >
       <div className="space-y-6">
+        <OfflineBanner isCached={isCached} onRetry={refetch} />
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

@@ -35,12 +35,13 @@
     "@sentry/react": "^10.67.0",
     "@supabase/supabase-js": "^2.110.8",
     "framer-motion": "^12.42.2",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "lucide-react": "^1.25.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-helmet-async": "^3.0.0",
-    "react-router-dom": "^7.18.1",
-    "recharts": "^3.10.0"
+    "react-router-dom": "^7.18.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",

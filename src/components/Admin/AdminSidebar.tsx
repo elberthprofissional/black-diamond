@@ -26,7 +26,7 @@ const AdminSidebar: FC = memo(() => {
         { label: 'Meus Clientes', path: '/admin/clients', icon: Users, testId: 'nav-clients' },
       ]
     : [
-        { label: 'Meu Dia', path: '/admin', icon: Clock, testId: 'nav-today' },
+        { label: 'Agenda do Dia', path: '/admin', icon: Clock, testId: 'nav-today' },
         { label: 'Agenda Semanal', path: '/admin/weekly', icon: Calendar, testId: 'nav-weekly' },
         { label: 'Meus Clientes', path: '/admin/clients', icon: Users, testId: 'nav-clients' },
       ];

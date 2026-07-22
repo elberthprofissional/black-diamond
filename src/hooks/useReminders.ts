@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useToast } from './useToast';
 import { supabase } from '../lib/supabase';
 import { logError } from '../lib/logger';
+import { getTemplates, createTemplate, deleteTemplate } from '../lib/api/templates';
 import { STORAGE_REMINDERS_SENT, STORAGE_REMINDER_TEMPLATES } from '../lib/constants';
 // TypeScript infere tipos muito restritivos de JSON imports (cada season tem dayRange diferente).
 // Cast único para o tipo nomeado definido abaixo.
@@ -83,7 +84,19 @@ function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
-function loadTemplatesFromStorage(): LocalTemplate[] {
+/** Carrega templates do Supabase (com fallback para localStorage). */
+async function loadTemplatesFromDB(): Promise<LocalTemplate[]> {
+  try {
+    const dbTemplates = await getTemplates('reminder');
+    if (dbTemplates.length > 0) {
+      // Sincroniza localStorage como cache offline
+      localStorage.setItem(STORAGE_REMINDER_TEMPLATES, JSON.stringify(dbTemplates));
+      return dbTemplates;
+    }
+  } catch (e) {
+    logError(e);
+  }
+  // Fallback para localStorage quando offline
   try {
     const saved = localStorage.getItem(STORAGE_REMINDER_TEMPLATES);
     return saved ? JSON.parse(saved) : [];
@@ -93,13 +106,48 @@ function loadTemplatesFromStorage(): LocalTemplate[] {
   }
 }
 
-function saveTemplatesToStorage(templates: LocalTemplate[]) {
+/** Salva um ou mais templates NOVOS no Supabase (evita duplicatas dos existentes).
+ *  Atualiza localStorage como cache offline.
+ *  Para grande volume, a função deve receber apenas templates que ainda não existem no DB. */
+async function saveTemplatesToDB(
+  newTemplate: LocalTemplate,
+  existingTemplates: LocalTemplate[]
+): Promise<void> {
   try {
-    localStorage.setItem(STORAGE_REMINDER_TEMPLATES, JSON.stringify(templates));
+    // Insere APENAS o template novo no Supabase
+    await createTemplate(newTemplate.key, newTemplate.name, newTemplate.body);
+    // Atualiza localStorage com o array completo (cache offline)
+    const allTemplates = [...existingTemplates, newTemplate];
+    localStorage.setItem(STORAGE_REMINDER_TEMPLATES, JSON.stringify(allTemplates));
   } catch (e) {
     logError(e);
-    // localStorage cheio ou indisponível — ignora
+    // Fallback: salva apenas no localStorage
+    try {
+      const allTemplates = [...existingTemplates, newTemplate];
+      localStorage.setItem(STORAGE_REMINDER_TEMPLATES, JSON.stringify(allTemplates));
+    } catch {
+      // localStorage indisponível — ignora
+    }
   }
+}
+
+/** Deleta um template do Supabase (com fallback para localStorage). */
+async function deleteTemplateFromDB(
+  id: string,
+  templates: LocalTemplate[]
+): Promise<LocalTemplate[]> {
+  try {
+    await deleteTemplate(id);
+  } catch (e) {
+    logError(e);
+  }
+  const updated = templates.filter((t) => t.id !== id);
+  try {
+    localStorage.setItem(STORAGE_REMINDER_TEMPLATES, JSON.stringify(updated));
+  } catch {
+    // localStorage indisponível — ignora
+  }
+  return updated;
 }
 
 /** Carrega o histórico de lembretes do Supabase (últimos 7 dias) */
@@ -143,7 +191,13 @@ export function useReminders() {
   });
 
   const [templates, setTemplates] = useState<LocalTemplate[]>(() => {
-    return loadTemplatesFromStorage();
+    // Estado inicial síncrono do localStorage (evita flash de vazio)
+    try {
+      const saved = localStorage.getItem(STORAGE_REMINDER_TEMPLATES);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
 
   const [loading, setLoading] = useState(true);
@@ -182,26 +236,64 @@ export function useReminders() {
     };
   }, []);
 
-  // Inicializa templates padrão sazonais se estiver vazio
+  // Carrega templates do Supabase ao montar; cria sazonais se vazio
   useEffect(() => {
-    const existing = loadTemplatesFromStorage();
-    if (existing.length === 0) {
-      const baseUrl = import.meta.env.VITE_SITE_URL || 'https://black-diamond.vercel.app';
-      const siteUrl = baseUrl + '/agendar';
-      const defaults = getSeasonalTemplates(siteUrl);
-      const now = new Date().toISOString();
-      const created: LocalTemplate[] = defaults.map((t) => ({
-        id: generateId(),
-        key: 'reminder',
-        name: t.name,
-        body: t.body,
-        created_at: now,
-        updated_at: now,
-      }));
-      saveTemplatesToStorage(created);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTemplates(created);
-    }
+    let mounted = true;
+
+    const initTemplates = async () => {
+      try {
+        const dbTemplates = await loadTemplatesFromDB();
+        if (!mounted) return;
+
+        if (dbTemplates.length > 0) {
+          setTemplates(dbTemplates);
+          templatesRef.current = dbTemplates;
+        } else {
+          // Cria templates sazonais padrão (primeira execução)
+          const baseUrl = import.meta.env.VITE_SITE_URL || 'https://black-diamond.vercel.app';
+          const siteUrl = baseUrl + '/agendar';
+          const defaults = getSeasonalTemplates(siteUrl);
+          const now = new Date().toISOString();
+          const created: LocalTemplate[] = defaults.map((t) => ({
+            id: generateId(),
+            key: 'reminder',
+            name: t.name,
+            body: t.body,
+            created_at: now,
+            updated_at: now,
+          }));
+          // Insere cada template sazonal individualmente no Supabase
+          for (const ct of created) {
+            try {
+              await createTemplate(ct.key, ct.name, ct.body);
+            } catch {
+              /* ignora duplicatas */
+            }
+          }
+          localStorage.setItem(STORAGE_REMINDER_TEMPLATES, JSON.stringify(created));
+          if (!mounted) return;
+          setTemplates(created);
+          templatesRef.current = created;
+        }
+      } catch (e) {
+        logError(e);
+        // Fallback: tenta carregar do localStorage
+        try {
+          const saved = localStorage.getItem(STORAGE_REMINDER_TEMPLATES);
+          const local = saved ? JSON.parse(saved) : [];
+          if (!mounted) return;
+          setTemplates(local);
+          templatesRef.current = local;
+        } catch {
+          // ignora
+        }
+      }
+    };
+
+    initTemplates();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const markReminderSent = useCallback(
@@ -272,17 +364,17 @@ export function useReminders() {
   );
 
   const handleDeleteTemplate = useCallback(
-    (id: string) => {
-      const updated = templatesRef.current.filter((t) => t.id !== id);
-      saveTemplatesToStorage(updated);
+    async (id: string) => {
+      const updated = await deleteTemplateFromDB(id, templatesRef.current);
       setTemplates(updated);
+      templatesRef.current = updated;
       showSuccess('Modelo de lembrete excluído!');
     },
     [showSuccess]
   );
 
   const handleSaveTemplate = useCallback(
-    (text: string) => {
+    async (text: string) => {
       const now = new Date().toISOString();
       const newTemplate: LocalTemplate = {
         id: generateId(),
@@ -293,8 +385,9 @@ export function useReminders() {
         updated_at: now,
       };
       const updated = [...templatesRef.current, newTemplate];
-      saveTemplatesToStorage(updated);
+      await saveTemplatesToDB(newTemplate, templatesRef.current);
       setTemplates(updated);
+      templatesRef.current = updated;
       showSuccess('Lembrete salvo nos modelos!');
     },
     [showSuccess]

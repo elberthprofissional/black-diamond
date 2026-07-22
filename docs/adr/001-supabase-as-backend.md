@@ -20,7 +20,7 @@ Utilizar **Supabase** como plataforma backend completa.
 
 - **PostgreSQL real**: Schema relacional completo com RLS, indexes compostos, funções RPC complexas
 - **Row Level Security**: Controle de acesso nativo no banco, sem lógica duplicada no client
-- **Edge Functions**: Deno runtime para webhooks (Asaas) e push notifications
+- **Edge Functions**: Deno runtime para push notifications
 - **Real-time**: Subscriptions para dashboard admin atualizar em tempo real
 - **Storage**: Upload de imagens da galeria com policies de acesso
 - **Auth**: Autenticação admin com Supabase Auth

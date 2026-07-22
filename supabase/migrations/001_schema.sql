@@ -207,53 +207,6 @@ CREATE TABLE IF NOT EXISTS client_milestones (
 );
 
 -- =========================================================================
--- TABELAS DE BILLING (SaaS)
--- =========================================================================
-
--- Planos oferecidos aos barbeiros
-CREATE TABLE IF NOT EXISTS subscription_plans (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name TEXT NOT NULL,
-    slug TEXT NOT NULL UNIQUE,
-    description TEXT,
-    price_monthly DECIMAL(10,2) NOT NULL,
-    price_setup DECIMAL(10,2) DEFAULT 0,
-    interval_months INTEGER NOT NULL DEFAULT 1,
-    asaas_plan_id TEXT,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Assinaturas dos barbeiros
-CREATE TABLE IF NOT EXISTS subscriptions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-    plan_id UUID REFERENCES subscription_plans(id),
-    asaas_customer_id TEXT,
-    asaas_subscription_id TEXT,
-    status TEXT DEFAULT 'pending',
-    has_domain BOOLEAN DEFAULT FALSE,
-    trial_ends_at TIMESTAMPTZ,
-    current_period_start TIMESTAMPTZ,
-    current_period_end TIMESTAMPTZ,
-    cancel_at_period_end BOOLEAN DEFAULT FALSE,
-    canceled_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Pagamentos (historico)
-CREATE TABLE IF NOT EXISTS payments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    subscription_id UUID REFERENCES subscriptions(id) ON DELETE CASCADE,
-    asaas_payment_id TEXT,
-    amount DECIMAL(10,2) NOT NULL,
-    currency TEXT DEFAULT 'brl',
-    status TEXT DEFAULT 'pending',
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- =========================================================================
 -- FOREIGN KEYS
 -- =========================================================================
 ALTER TABLE bookings
@@ -292,16 +245,6 @@ CREATE INDEX IF NOT EXISTS idx_rate_limits_ip_lookup ON rate_limits(key, ip_addr
 CREATE INDEX IF NOT EXISTS idx_client_milestones_client ON client_milestones(client_id);
 CREATE INDEX IF NOT EXISTS idx_loyalty_milestones_active ON loyalty_milestones(is_active) WHERE is_active;
 
--- Billing indexes
-CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
-CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
-CREATE INDEX IF NOT EXISTS idx_subscriptions_asaas_customer ON subscriptions(asaas_customer_id);
-CREATE INDEX IF NOT EXISTS idx_subscriptions_asaas_subscription ON subscriptions(asaas_subscription_id);
-CREATE INDEX IF NOT EXISTS idx_subscriptions_trial_ends ON subscriptions(trial_ends_at) WHERE trial_ends_at IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_payments_subscription ON payments(subscription_id);
-CREATE INDEX IF NOT EXISTS idx_payments_asaas_payment ON payments(asaas_payment_id);
-CREATE INDEX IF NOT EXISTS idx_subscription_plans_asaas_plan ON subscription_plans(asaas_plan_id);
-
 -- =========================================================================
 -- CONSTRAINTS
 -- =========================================================================
@@ -332,7 +275,29 @@ ALTER TABLE testimonials ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rate_limits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE coupons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE loyalty_milestones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reminder_logs ENABLE ROW LEVEL SECURITY;
+
+-- =========================================================================
+-- TABELA: reminder_logs
+-- =========================================================================
+CREATE TABLE IF NOT EXISTS reminder_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    template_id TEXT,
+    template_name TEXT,
+    message_preview TEXT,
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_reminder_logs_client_id ON reminder_logs(client_id);
+CREATE INDEX IF NOT EXISTS idx_reminder_logs_sent_at ON reminder_logs(sent_at DESC);
+CREATE INDEX IF NOT EXISTS idx_reminder_logs_user_id ON reminder_logs(user_id);
+
+-- =========================================================================
+-- CONSTRAINT: unique service name
+-- =========================================================================
+ALTER TABLE services ADD CONSTRAINT uq_services_name UNIQUE (name);
 ALTER TABLE client_milestones ENABLE ROW LEVEL SECURITY;
-ALTER TABLE subscription_plans ENABLE ROW LEVEL SECURITY;
-ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+

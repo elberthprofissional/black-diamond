@@ -70,7 +70,7 @@ beforeEach(() => {
 });
 
 describe('getServices', () => {
-  it('retorna servicos unicos', async () => {
+  it('retorna servicos (unicidade garantida por constraint no banco)', async () => {
     queryResult = {
       data: [
         { id: '1', name: 'Corte', price: 35, duration: 40 },
@@ -81,9 +81,8 @@ describe('getServices', () => {
     };
 
     const result = await getServices();
-    expect(result).toHaveLength(2);
-    expect(result[0].name).toBe('Corte');
-    expect(result[1].name).toBe('Barba');
+    // Nomes únicos garantidos por constraint no banco — sem dedup no frontend
+    expect(result).toHaveLength(3);
   });
 
   it('retorna array vazio quando nao ha dados', async () => {

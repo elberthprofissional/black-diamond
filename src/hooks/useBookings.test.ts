@@ -11,6 +11,7 @@ vi.mock('../lib/api', () => ({
 describe('useBookings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
     mockGetBookings.mockResolvedValue({ data: [], total: 0, page: 1, pageSize: 200 });
   });
 
@@ -32,6 +33,7 @@ describe('useBookings', () => {
 
     expect(result.current.bookings).toHaveLength(1);
     expect(result.current.bookings[0].id).toBe('b1');
+    expect(result.current.isCached).toBe(false);
   });
 
   it('chama getBookings com a data correta', async () => {
@@ -42,7 +44,8 @@ describe('useBookings', () => {
     });
   });
 
-  it('trata erro na busca', async () => {
+  it('trata erro na busca sem cache', async () => {
+    // Sem cache no localStorage
     mockGetBookings.mockRejectedValue(new Error('Network error'));
 
     const { result } = renderHook(() => useBookings('2026-07-05'));
@@ -51,6 +54,7 @@ describe('useBookings', () => {
       expect(result.current.error).toBeTruthy();
     });
     expect(result.current.error?.message).toBe('Network error');
+    expect(result.current.isCached).toBe(false);
   });
 
   it('refetch recarrega os dados', async () => {

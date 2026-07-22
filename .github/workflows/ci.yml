@@ -42,7 +42,26 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run test:run -- --coverage
+      - name: Run tests with coverage threshold (70%)
+        run: npm run test:run -- --coverage
+      - name: Check coverage thresholds
+        run: |
+          # Parse JSON summary to verify thresholds
+          COVERAGE_FILE="coverage/coverage-summary.json"
+          if [ -f "$COVERAGE_FILE" ]; then
+            LINES=$(node -e "const c=require('$COVERAGE_FILE');console.log(c.total.lines.pct)" 2>/dev/null || echo "0")
+            STATEMENTS=$(node -e "const c=require('$COVERAGE_FILE');console.log(c.total.statements.pct)" 2>/dev/null || echo "0")
+            FUNCTIONS=$(node -e "const c=require('$COVERAGE_FILE');console.log(c.total.functions.pct)" 2>/dev/null || echo "0")
+            BRANCHES=$(node -e "const c=require('$COVERAGE_FILE');console.log(c.total.branches.pct)" 2>/dev/null || echo "0")
+            echo "Coverage: Lines=${LINES}% Statements=${STATEMENTS}% Functions=${FUNCTIONS}% Branches=${BRANCHES}%"
+            if (( $(echo "$LINES < 70" | bc -l) )); then echo "❌ Lines coverage below 70%"; exit 1; fi
+            if (( $(echo "$STATEMENTS < 70" | bc -l) )); then echo "❌ Statements coverage below 70%"; exit 1; fi
+            if (( $(echo "$FUNCTIONS < 70" | bc -l) )); then echo "❌ Functions coverage below 70%"; exit 1; fi
+            if (( $(echo "$BRANCHES < 70" | bc -l) )); then echo "❌ Branches coverage below 70%"; exit 1; fi
+            echo "✅ All coverage thresholds met!"
+          else
+            echo "⚠️ Coverage summary not found, skipping threshold check"
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -112,7 +131,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
         if: always()
@@ -132,7 +151,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium firefox webkit
       - run: npx playwright test e2e/accessibility.spec.ts
 
   lighthouse:

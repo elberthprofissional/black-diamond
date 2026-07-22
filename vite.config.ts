@@ -43,8 +43,8 @@ export default defineConfig({
         },
       },
     },
-    // Limite ajustado para chunks de vendor (alguns ultrapassam 400kB)
-    chunkSizeWarningLimit: 600,
+    // Limite reduzido para 400kB para identificar chunks grandes mais cedo
+    chunkSizeWarningLimit: 400,
     cssCodeSplit: true,
     sourcemap: !!process.env.SENTRY_AUTH_TOKEN,
   },

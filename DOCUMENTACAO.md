@@ -4,6 +4,9 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 
 **Versao:** 3.22.0 | **Ultima atualizacao:** Julho 2026
 
+> NOTA: Esta versao incorpora correcoes de seguranca (verificacao is_admin nas edge functions),
+> CHECK constraints no banco, e correcao de testes duplicados.
+
 ---
 
 ## Sumario
@@ -56,7 +59,6 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 - Coverage minimo no CI (qualidade garantida)
 - Projeto universal: template pronto para qualquer barbearia
 - Custo operacional zero (Vercel + Supabase Free Tier + Sentry Free)
-- Instalação 100% automática: `node instalar-cliente.mjs` faz tudo
 
 ---
 
@@ -83,11 +85,9 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 ### Visao Geral do Projeto
 O Black Diamond foi projetado para ser **universal** — pronto para qualquer barbearia. O projeto inclui:
 - `DEPLOY_GUIDE.md` — Guia passo a passo para deploy em novas barbearias
-- `instalar-cliente.mjs` — Script automático de instalação para novos clientes
 - `supabase/universal.sql` — Schema universal do banco (tabelas, RLS, funcoes, crons)
 - `supabase/migrations/` — Migrations consolidadas (6 arquivos: schema, rls, functions, triggers, seed, cron)
 - Placeholder generico na secao About (sem foto fixa do Tato)
-- Script de instalação automática (`instalar-cliente.mjs`)
 - Sentry para error reporting em producao
 
 ### Filosofia "Template de Barbearia"
@@ -205,7 +205,6 @@ No Settings > Conta, ao clicar na foto de perfil abre um popover com opcoes:
 - `useNotifications` — Notificacoes in-app com realtime, som, badge, preview toast
 - `useNotificationPrefs` — Preferencias de notificacao (in-app, sound, preview, badge)
 - `usePwaInstall` — Deteccao de plataforma e instalacao PWA
-- `useSubscription` — Gerenciamento de assinatura SaaS (billing)
 - `useXlsxExport` — Exportacao de dados para Excel (XLSX)
 - `useCsvExport` — Exportacao de dados para CSV
 - `useRevenueChartData` — Calculo de dados para graficos de faturamento
@@ -308,7 +307,6 @@ O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto v
 - **Cupons:** Gerenciamento de cupons de desconto (CRUD) — tipos: valor fixo, porcentagem e servico gratis
 - **Depoimentos:** Gerenciamento de depoimentos de clientes (CRUD)
 - **Notificacoes:** Toggle de notificacoes push
-- **Plano:** Gerenciamento de assinatura SaaS (billing com Asaas)
 - **Zona de Seguranca:** Resetar financeiro e deletar clientes
 
 ---
@@ -327,7 +325,7 @@ O projeto usa 7 migrations consolidadas (substituem as 14+ migrations anteriores
 | `002_rls.sql` | Todas as politicas RLS + is_admin() + storage |
 | `003_functions.sql` | 30+ funcoes RPC (versoes finais) |
 | `004_triggers.sql` | Triggers de notificacao + realtime |
-| `005_seed_data.sql` | Dados iniciais + billing plans |
+| `005_seed_data.sql` | Dados iniciais |
 | `006_cron.sql` | 6 cron jobs consolidados |
 | `007_reminder_logs.sql` | Logs de lembretes WhatsApp |
 
@@ -406,29 +404,7 @@ discount_value NUMERIC, valid_from DATE, valid_until DATE, max_uses INTEGER,
 current_uses INTEGER, is_active BOOLEAN, applicable_service_ids UUID[], created_at TIMESTAMPTZ
 ```
 
-**subscription_plans** — Planos SaaS oferecidos aos barbeiros
-```sql
-id UUID PK, name TEXT, slug TEXT UNIQUE, description TEXT,
-price_monthly DECIMAL, price_setup DECIMAL, interval_months INTEGER,
-asaas_plan_id TEXT, is_active BOOLEAN, created_at TIMESTAMPTZ
-```
 
-**subscriptions** — Assinaturas dos barbeiros
-```sql
-id UUID PK, user_id UUID FK, plan_id UUID FK,
-asaas_customer_id TEXT, asaas_subscription_id TEXT,
-status TEXT ('pending'|'active'|'past_due'|'canceled'|'trialing'),
-has_domain BOOLEAN, trial_ends_at TIMESTAMPTZ,
-current_period_start TIMESTAMPTZ, current_period_end TIMESTAMPTZ,
-cancel_at_period_end BOOLEAN, canceled_at TIMESTAMPTZ,
-created_at TIMESTAMPTZ, updated_at TIMESTAMPTZ
-```
-
-**payments** — Historico de pagamentos
-```sql
-id UUID PK, subscription_id UUID FK, asaas_payment_id TEXT,
-amount DECIMAL, currency TEXT, status TEXT, created_at TIMESTAMPTZ
-```
 
 ### Indexes
 - `idx_no_double_booking` — Unique em (booking_date, booking_time) WHERE status != 'cancelled'
@@ -485,9 +461,6 @@ amount DECIMAL, currency TEXT, status TEXT, created_at TIMESTAMPTZ
 - **push_subscriptions:** Apenas admin autenticado
 - **admin_users:** Apenas admin pode ver/modificar a lista de admins
 - **gallery_images:** Leitura publica, gerenciamento apenas admin autenticado (storage: admin-only via is_admin())
-- **subscription_plans:** Leitura publica (planos ativos)
-- **subscriptions:** Usuario ve as proprias assinaturas (SELECT), usuarios podem criar trial (INSERT)
-- **payments:** Usuario ve pagamentos das proprias assinaturas (SELECT)
 - **coupons/loyalty_milestones/client_milestones:** Apenas admin autenticado
 
 ### Gerenciamento de Admins
@@ -559,16 +532,7 @@ cd "Black Diamond"
 npm install
 ```
 
-### Opção A: Instalação Automática (Recomendado)
-```bash
-node instalar-cliente.mjs
-```
-O script faz tudo sozinho:
-1. Cria o projeto Supabase via API de gerenciamento
-2. Roda o `universal.sql` automaticamente
-3. Cria o usuário admin e já adiciona na tabela `admin_users`
-4. Gera o `.env` completo
-5. Faz deploy na Vercel (opcional)
+### Opção B: Instalação Manual
 
 ### Opção B: Manual
 1. Crie um projeto no [supabase.com](https://supabase.com)
@@ -911,22 +875,18 @@ Black Diamond/
 │   │   ├── 002_rls.sql        # Politicas RLS + storage
 │   │   ├── 003_functions.sql  # Funcoes RPC (30+)
 │   │   ├── 004_triggers.sql   # Triggers + realtime
-│   │   ├── 005_seed_data.sql  # Dados iniciais + billing
+│   │   ├── 005_seed_data.sql  # Dados iniciais
 │   │   ├── 006_cron.sql       # Cron jobs
 │   │   └── 007_reminder_logs.sql # Logs de lembretes WhatsApp
 │   └── functions/
 │       ├── send-push/          # Edge function de notificacao push
-│       ├── sync-google-reviews/ # Edge function de sincronizacao de reviews
-│       ├── asaas-checkout/     # Edge function de checkout Asaas
-│       ├── asaas-portal/       # Edge function de portal Asaas
-│       └── asaas-webhook/      # Edge function de webhook Asaas
+│       └── sync-google-reviews/ # Edge function de sincronizacao de reviews
 ├── e2e/                        # Testes E2E (Playwright)
 │   ├── accessibility.spec.ts   # Testes de acessibilidade
 │   ├── admin.spec.ts           # Testes do admin (login, navegacao, rate limiting)
 │   ├── booking.spec.ts         # Testes do agendamento
 │   ├── booking-errors.spec.ts  # Testes de erros, concorrencia, limites
 │   └── visual.spec.ts          # Testes visuais (screenshots)
-├── instalar-cliente.mjs       # Script automatico de instalacao para novos clientes
 ├── vercel.json                 # Configuracao de deploy + headers de seguranca
 ├── package.json
 ├── vite.config.ts
@@ -1119,7 +1079,6 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [x] WhatsApp dinamico (configuravel pelo admin)
 - [x] Animacao marquee na galeria
 - [x] Projeto universal: template pronto para qualquer barbearia
-- [x] Script de instalacao automatica (instalar-cliente.mjs)
 - [x] Schema universal do banco (universal.sql)
 - [x] Clipping mask na foto de perfil (drag + zoom estilo Instagram)
 - [x] Anti-burro: validacao de horarios, preco minimo, DDD
@@ -1164,9 +1123,6 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [x] Sentry release tag + source maps no CI
 - [x] Export XLSX (Excel) com XML SpreadsheetML, zero dependencias externas
 - [x] Analise por dia da semana no RevenueChart
-- [x] Billing/Assinatura SaaS com Asaas (checkout, webhook, portal)
-- [x] Pricing page com planos mensal/anual
-- [x] SubscriptionGuard para proteger areas do admin
 - [x] Cupons de desconto (percentage, fixed, free) com validacao server-side
 - [x] Programa de fidelidade com milestones e progresso
 - [x] Controle de faltas (no-show) com bloqueio automatico
@@ -1699,4 +1655,4 @@ Visualizacao completa do faturamento com 3 modos: diario, semanal e comparativo 
 
 ---
 
-*Documento atualizado em Julho 2026. Versao do sistema: 3.20.0*
+*Documento atualizado em Julho 2026. Versao do sistema: 3.22.0*

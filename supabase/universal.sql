@@ -51,8 +51,8 @@ CREATE TABLE IF NOT EXISTS services (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
     description TEXT,
-    price DECIMAL(10,2) NOT NULL,
-    duration INTEGER NOT NULL,
+    price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
+    duration INTEGER NOT NULL CHECK (duration > 0),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -83,9 +83,9 @@ CREATE TABLE IF NOT EXISTS bookings (
     service_ids UUID[] NOT NULL,
     booking_date DATE NOT NULL,
     booking_time TIME NOT NULL,
-    total_price DECIMAL(10,2) NOT NULL,
-    total_duration INTEGER NOT NULL,
-    status TEXT DEFAULT 'pending',
+    total_price DECIMAL(10,2) NOT NULL CHECK (total_price >= 0),
+    total_duration INTEGER NOT NULL CHECK (total_duration > 0),
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled', 'completed')),
     is_blocked BOOLEAN DEFAULT FALSE,
     reminder_sent BOOLEAN DEFAULT FALSE,
     notes TEXT,
@@ -584,25 +584,20 @@ BEGIN
         WHERE id = v_plan_id AND is_active = TRUE;
     END IF;
 
-    -- CÁLCULO DE VALOR E DURAÇÃO NO SERVIDOR
-    v_total_calculated_price := 0;
-    
-    FOREACH v_service_id IN ARRAY p_servicos
-    LOOP
-        SELECT price INTO v_service_price
-        FROM services WHERE id = v_service_id;
-        
-        IF NOT FOUND THEN
-            RAISE EXCEPTION 'Serviço inválido.';
-        END IF;
-        
-        -- Se o cliente for mensalista e o serviço estiver incluso no seu plano, custa R$ 0,00
-        IF v_is_mensalista = TRUE AND v_plan_services IS NOT NULL AND (v_service_id = ANY(v_plan_services)) THEN
-            v_service_price := 0;
-        END IF;
-        
-        v_total_calculated_price := v_total_calculated_price + v_service_price;
-    END LOOP;
+    -- CÁLCULO DE VALOR E DURAÇÃO NO SERVIDOR (batch query em vez de FOREACH)
+    SELECT COALESCE(SUM(
+        CASE
+            WHEN v_is_mensalista = TRUE AND v_plan_services IS NOT NULL AND (s.id = ANY(v_plan_services)) THEN 0
+            ELSE s.price
+        END
+    ), 0) INTO v_total_calculated_price
+    FROM services s
+    WHERE s.id = ANY(p_servicos);
+
+    -- Verifica se todos os serviços são válidos
+    IF (SELECT COUNT(*) FROM services WHERE id = ANY(p_servicos)) != array_length(p_servicos, 1) THEN
+        RAISE EXCEPTION 'Serviço inválido.';
+    END IF;
 
     -- Duração total acumulada dos serviços
     SELECT COALESCE(SUM(duration), 0) INTO v_server_duration
