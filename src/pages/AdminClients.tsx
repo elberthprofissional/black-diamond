@@ -196,7 +196,6 @@ const AdminClients: FC = () => {
                       </div>
                       <div className="space-y-1">
                         {clients.map((client, idx) => {
-                          const needsReminder = !r.isReminderRecent(client.id);
                           return (
                             <div
                               key={client.id}
@@ -207,55 +206,37 @@ const AdminClients: FC = () => {
                                 if (e.key === 'Enter' || e.key === ' ') handleOpenPanel(client);
                               }}
                               aria-label={`Cliente ${client.name}`}
-                              className="w-full flex items-center gap-3 py-4 px-4 rounded-xl cursor-pointer border border-white/[0.04] bg-white/[0.02] transition-all duration-200 group text-left hover:bg-white/[0.04] active:scale-[0.98]"
-                              style={{ animationDelay: `${idx * 30}ms` }}
+                              className="w-full flex items-center gap-3 py-3 px-4 rounded-xl cursor-pointer border border-white/[0.04] bg-white/[0.02] transition-all duration-200 group text-left hover:bg-white/[0.04] active:scale-[0.98]"
                             >
                               <div className="relative shrink-0">
-                                <div className="w-10 h-10 rounded-full bg-[#111111] border border-white/[0.08] flex items-center justify-center text-sm font-bold text-white uppercase">
+                                <div className="w-9 h-9 rounded-full bg-[#111111] border border-white/[0.08] flex items-center justify-center text-xs font-bold text-white uppercase">
                                   {client.name.charAt(0)}
                                 </div>
-                                {client.is_mensalista ? (
-                                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-[#0A0A0A] bg-[#D4AF37] flex items-center justify-center">
-                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
-                                      <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14v2H5v-2z" />
-                                    </svg>
-                                  </div>
-                                ) : (
-                                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0A0A0A] bg-emerald-500" />
-                                )}
+                                <div
+                                  className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#0A0A0A] ${
+                                    client.isInactive
+                                      ? 'bg-red-500'
+                                      : r.isReminderRecent(client.id)
+                                        ? 'bg-emerald-500'
+                                        : 'bg-amber-500'
+                                  }`}
+                                />
                               </div>
                               <div className="flex-1 min-w-0 text-left">
-                                <p className="text-[14px] font-semibold text-[#FFFFFF] truncate flex items-center gap-1.5">
+                                <p className="text-[13px] font-semibold text-white truncate">
                                   {client.name}
-                                  {client.isInactive && (
-                                    <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400 font-bold uppercase tracking-wider shrink-0">
-                                      Inativo
+                                  {client.is_mensalista && (
+                                    <span className="ml-1.5 text-[8px] px-1.5 py-0.5 rounded bg-[#D4AF37]/10 text-[#D4AF37] font-bold align-middle">
+                                      {c.plans.find((p) => p.id === client.mensalista_plan_id)
+                                        ?.name || 'Plano'}
                                     </span>
                                   )}
                                 </p>
-                                <p className="text-[11px] text-[#8A8A8A] mt-0.5">
-                                  {formatPhone(client.phone)}
-                                </p>
-                                <p className="text-[9px] text-zinc-600 uppercase tracking-wider mt-1">
-                                  Último corte:{' '}
-                                  <span className="text-zinc-400">{client.lastVisit}</span>
+                                <p className="text-[11px] text-zinc-500 truncate mt-0.5">
+                                  {formatPhone(client.phone)} · {client.lastVisit}
                                 </p>
                               </div>
-                              <div className="shrink-0 flex items-center gap-2">
-                                {needsReminder && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      c.setSelectedClient(client);
-                                      setIsReminderOpen(true);
-                                    }}
-                                    className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer active:scale-95 bg-white/[0.06] hover:bg-white/[0.1] text-zinc-400 hover:text-white border border-white/[0.08]"
-                                  >
-                                    Lembrar
-                                  </button>
-                                )}
-                                <ChevronRight size={14} className="text-zinc-600 shrink-0" />
-                              </div>
+                              <ChevronRight size={14} className="text-zinc-700 shrink-0" />
                             </div>
                           );
                         })}
@@ -268,50 +249,7 @@ const AdminClients: FC = () => {
             {/* Desktop */}
             <div className="hidden lg:grid lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
               {filteredClients.map((client) => {
-                const daysSinceVisit = client.lastVisitDate
-                  ? Math.floor(
-                      (nowTimestamp - client.lastVisitDate.getTime()) / (1000 * 60 * 60 * 24)
-                    )
-                  : 999;
-
                 const initial = (client.name || '?').charAt(0).toUpperCase();
-
-                // Badge de status
-                let statusBadge = null;
-                const hasTodayBooking =
-                  client.upcomingBooking?.date ===
-                  (() => {
-                    const d = new Date();
-                    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                  })();
-
-                if (hasTodayBooking) {
-                  statusBadge = (
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] text-[9px] font-bold uppercase tracking-wider">
-                      Hoje
-                    </span>
-                  );
-                } else if (client.isInactive) {
-                  statusBadge = (
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-500/10 text-red-400 text-[9px] font-bold uppercase tracking-wider">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                      Inativo
-                    </span>
-                  );
-                } else if (daysSinceVisit <= 14) {
-                  statusBadge = (
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold uppercase tracking-wider">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      Ativo
-                    </span>
-                  );
-                } else if (daysSinceVisit <= 30) {
-                  statusBadge = (
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 text-[9px] font-bold uppercase tracking-wider">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />A Lembrar
-                    </span>
-                  );
-                }
 
                 return (
                   <div
@@ -323,18 +261,17 @@ const AdminClients: FC = () => {
                       if (e.key === 'Enter' || e.key === ' ') handleOpenPanel(client);
                     }}
                     aria-label={`Cliente ${client.name}, último corte: ${client.lastVisit}`}
-                    className="p-5 rounded-2xl border border-white/[0.04] bg-white/[0.02] transition-all duration-200 cursor-pointer group text-left hover:-translate-y-[3px] hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] hover:shadow-[#D4AF37]/5 hover:border-[#D4AF37]/35 hover:bg-white/[0.04]"
+                    className="p-4 rounded-2xl border border-white/[0.04] bg-white/[0.02] transition-all duration-200 cursor-pointer group text-left hover:-translate-y-[3px] hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] hover:shadow-[#D4AF37]/5 hover:border-[#D4AF37]/35 hover:bg-white/[0.04]"
                   >
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-center gap-3">
                       <div className="relative">
                         <div
-                          className={`w-12 h-12 rounded-xl ${AVATAR_STYLE} flex items-center justify-center text-base font-bold shrink-0`}
+                          className={`w-10 h-10 rounded-xl ${AVATAR_STYLE} flex items-center justify-center text-sm font-bold shrink-0`}
                         >
                           {initial}
                         </div>
-                        {/* Status dot */}
                         <div
-                          className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-[#0E0E0E] ${
+                          className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#0E0E0E] ${
                             client.isInactive
                               ? 'bg-red-500'
                               : r.isReminderRecent(client.id)
@@ -344,45 +281,26 @@ const AdminClients: FC = () => {
                         />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <p
-                            className="text-[15px] font-bold text-[#FFFFFF] truncate"
-                            title={client.name}
-                            style={{ fontFamily: 'var(--font-montserrat)' }}
-                          >
-                            {client.name}
-                          </p>
+                        <p
+                          className="text-[13px] font-bold text-white truncate"
+                          title={client.name}
+                        >
+                          {client.name}
                           {client.is_mensalista && (
-                            <span className="text-[8px] px-1.5 py-0.5 rounded bg-[#D4AF37]/10 text-[#D4AF37] font-bold shrink-0">
+                            <span className="ml-1.5 text-[8px] px-1.5 py-0.5 rounded bg-[#D4AF37]/10 text-[#D4AF37] font-bold align-middle">
                               {c.plans.find((p) => p.id === client.mensalista_plan_id)?.name ||
                                 'Plano'}
                             </span>
                           )}
-                        </div>
-                        <p className="text-[12px] text-[#8A8A8A] truncate">
-                          {formatPhone(client.phone)}
+                        </p>
+                        <p className="text-[11px] text-zinc-500 truncate mt-0.5">
+                          {formatPhone(client.phone)} · {client.lastVisit}
                         </p>
                       </div>
-                      <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <svg
-                          className="w-4 h-4 text-zinc-600"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/[0.03]">
-                      <p className="text-[11px] text-zinc-600">
-                        Último corte:{' '}
-                        <span className={client.isInactive ? 'text-amber-400/60' : 'text-zinc-400'}>
-                          {client.lastVisit}
-                        </span>
-                      </p>
-                      {statusBadge}
+                      <ChevronRight
+                        size={14}
+                        className="text-zinc-700 group-hover:text-zinc-500 shrink-0 transition-colors"
+                      />
                     </div>
                   </div>
                 );
