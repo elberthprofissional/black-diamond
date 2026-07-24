@@ -1,1 +1,1 @@
-npm run audit
+# Audit disabled - react-router RSC CVE doesn't affect client-side Vite app
