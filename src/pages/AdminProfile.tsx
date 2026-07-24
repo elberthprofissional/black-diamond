@@ -5,8 +5,6 @@ import AdminLayout from '../components/Admin/AdminLayout';
 import AdminProfileSettings from '../components/Admin/settings/AdminProfileSettings';
 import ProfileMobile from '../components/Admin/shared/ProfileMobile';
 import ProfileDesktopMetrics from '../components/Admin/shared/ProfileDesktopMetrics';
-import ProfileServicesChart from '../components/Admin/shared/ProfileServicesChart';
-import ExportButton from '../components/Admin/shared/ExportButton';
 import LogoutConfirmModal from '../components/Admin/profile/LogoutConfirmModal';
 import ResetDataModal from '../components/Admin/profile/ResetDataModal';
 import HelpModal from '../components/Admin/settings/HelpModal';
@@ -49,25 +47,8 @@ const AdminProfile: FC = () => {
           greeting={p.greeting}
           barberName={p.barberName}
           barberPhoto={p.barberPhoto}
-          lucroTotal={p.stats.lucroTotal}
-          lucroSemana={p.stats.lucroSemana}
-          lucroMes={p.stats.lucroMes}
-          currentConcluidos={p.currentConcluidos}
-          currentCancelados={p.currentCancelados}
           onLogout={() => p.setShowLogoutConfirm(true)}
         />
-      )}
-
-      {/* Export + Chart - Desktop */}
-      {!p.showSettings && (
-        <>
-          <div className="hidden lg:flex justify-end px-8 -mt-4 mb-2">
-            <ExportButton />
-          </div>
-          <div className="hidden lg:block">
-            <ProfileServicesChart topServices={p.stats.topServices} />
-          </div>
-        </>
       )}
 
       {/* Profile View - Mobile */}
@@ -76,21 +57,6 @@ const AdminProfile: FC = () => {
           greeting={p.greeting}
           barberName={p.barberName}
           barberPhoto={p.barberPhoto}
-          showBalance={p.showBalance}
-          toggleBalance={() => {
-            p.setShowBalance((prev: boolean) => {
-              localStorage.setItem('barber_show_balance', String(!prev));
-              return !prev;
-            });
-          }}
-          lucroTotal={p.stats.lucroTotal}
-          lucroSemana={p.stats.lucroSemana}
-          lucroMes={p.stats.lucroMes}
-          currentConcluidos={p.currentConcluidos}
-          currentCancelados={p.currentCancelados}
-          timeRange={p.timeRange}
-          setTimeRange={p.setTimeRange}
-          topServices={p.stats.topServices}
           quickActions={[
             { label: 'Notificar', icon: Bell, onClick: p.handleToggleNotifications, active: p.isSubscribed },
             { label: 'Limpar', icon: Trash2, onClick: () => p.setShowResetConfirm(true) },
