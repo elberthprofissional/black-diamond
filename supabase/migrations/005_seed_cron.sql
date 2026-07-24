@@ -60,14 +60,7 @@ INSERT INTO testimonials (name, rating, text, sort_order) VALUES
     ('MATHEUS', 5, 'Tato e bom demais, cara sabe como cuidar de um cabelo.', 6)
 ON CONFLICT DO NOTHING;
 
--- Cupom de exemplo
-INSERT INTO coupons (id, code, description, discount_type, discount_value, valid_from, valid_until, max_uses, is_active, applicable_service_ids)
-VALUES
-    ('b0000001-0000-0000-0000-000000000001', 'BEMVINDO', 'Desconto de R$10 na primeira visita!', 'fixed', 10.00, CURRENT_DATE, CURRENT_DATE + INTERVAL '90 days', 50, true, ARRAY[
-        (SELECT id FROM services WHERE name = 'Corte de Cabelo'),
-        (SELECT id FROM services WHERE name = 'Barba com Toalha Quente')
-    ])
-ON CONFLICT (id) DO NOTHING;
+-- Cupons: o barbeiro cria manualmente pelo painel Settings > Cupons
 
 -- Milestones de fidelidade
 INSERT INTO loyalty_milestones (id, visits_required, reward_service_id, is_active)

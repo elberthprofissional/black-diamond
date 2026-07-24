@@ -2,16 +2,21 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Hero from '../components/Hero';
+import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 
 const renderWithRouter = (ui: React.ReactElement) => {
-  return render(<MemoryRouter>{ui}</MemoryRouter>);
+  return render(
+    <MemoryRouter>
+      <BarberSettingsProvider>{ui}</BarberSettingsProvider>
+    </MemoryRouter>
+  );
 };
 
 describe('Hero', () => {
   it('renderiza o titulo BLACK DIAMOND', () => {
     renderWithRouter(<Hero onBookingClick={vi.fn()} />);
-    expect(screen.getByText('BLACK')).toBeInTheDocument();
-    expect(screen.getByText('DIAMOND')).toBeInTheDocument();
+    expect(screen.getByText('Black')).toBeInTheDocument();
+    expect(screen.getByText('Diamond')).toBeInTheDocument();
   });
 
   it('renderiza a descricao', () => {
@@ -36,7 +41,7 @@ describe('Hero', () => {
 
   it('renderiza a imagem de fundo', () => {
     renderWithRouter(<Hero onBookingClick={vi.fn()} />);
-    const img = screen.getByAltText('Black Diamond');
+    const img = screen.getByRole('img', { name: /black diamond/i });
     expect(img).toBeInTheDocument();
     expect(img).toHaveAttribute('src', '/assets/hero-bg.webp');
   });

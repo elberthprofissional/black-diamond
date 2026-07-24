@@ -10,6 +10,9 @@ const SETTINGS_KEYS = [
   'barber_quote',
   'barber_instagram',
   'barber_hours',
+  'brand_logo',
+  'brand_login_bg',
+  'onboarding_completed',
 ] as const;
 
 interface BarberSettingsContextType {
@@ -20,6 +23,11 @@ interface BarberSettingsContextType {
   barberQuote: string;
   barberInstagram: string;
   barberHours: string;
+  brandName: string;
+  brandColor: string;
+  brandLogo: string;
+  brandLoginBg: string;
+  onboardingCompleted: boolean;
   loading: boolean;
   updateBarberName: (name: string) => Promise<boolean>;
   updateBarberPhone: (phone: string) => Promise<boolean>;
@@ -28,6 +36,7 @@ interface BarberSettingsContextType {
   updateBarberQuote: (quote: string) => Promise<boolean>;
   updateBarberInstagram: (instagram: string) => Promise<boolean>;
   updateBarberHours: (hours: string) => Promise<boolean>;
+  updateOnboardingCompleted: (completed: boolean) => Promise<boolean>;
   refetch: () => Promise<void>;
 }
 
@@ -43,6 +52,11 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
   const [barberQuote, setBarberQuote] = useState<string>('');
   const [barberInstagram, setBarberInstagram] = useState<string>('');
   const [barberHours, setBarberHours] = useState<string>('');
+  const brandName = 'Black Diamond';
+  const brandColor = '#D4AF37';
+  const [brandLogo, setBrandLogo] = useState<string>('');
+  const [brandLoginBg, setBrandLoginBg] = useState<string>('');
+  const [onboardingCompleted, setOnboardingCompleted] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
   const refetch = useCallback(async () => {
@@ -74,6 +88,15 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
           }
           if (row.key === 'barber_hours') {
             setBarberHours(row.value || '');
+          }
+          if (row.key === 'brand_logo') {
+            setBrandLogo(row.value || '');
+          }
+          if (row.key === 'brand_login_bg') {
+            setBrandLoginBg(row.value || '');
+          }
+          if (row.key === 'onboarding_completed') {
+            setOnboardingCompleted(row.value === 'true');
           }
         }
       }
@@ -215,6 +238,17 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
     return true;
   }, []);
 
+  const updateOnboardingCompleted = useCallback(async (completed: boolean) => {
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key: 'onboarding_completed', value: String(completed) }, { onConflict: 'key' });
+    if (!error) {
+      setOnboardingCompleted(completed);
+      return true;
+    }
+    return false;
+  }, []);
+
   return (
     <BarberSettingsContext.Provider
       value={{
@@ -225,6 +259,11 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
         barberQuote,
         barberInstagram,
         barberHours,
+        brandName,
+        brandColor,
+        brandLogo,
+        brandLoginBg,
+        onboardingCompleted,
         loading,
         updateBarberName,
         updateBarberPhone,
@@ -233,6 +272,7 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
         updateBarberQuote,
         updateBarberInstagram,
         updateBarberHours,
+        updateOnboardingCompleted,
         refetch,
       }}
     >
@@ -257,6 +297,11 @@ export function useBarberSettings() {
       barberQuote: '',
       barberInstagram: '',
       barberHours: '',
+      brandName: 'Black Diamond',
+      brandColor: '#D4AF37',
+      brandLogo: '',
+      brandLoginBg: '',
+      onboardingCompleted: false,
       loading: false,
       updateBarberName: async () => false,
       updateBarberPhone: async () => false,
@@ -265,6 +310,7 @@ export function useBarberSettings() {
       updateBarberQuote: async () => false,
       updateBarberInstagram: async () => false,
       updateBarberHours: async () => false,
+      updateOnboardingCompleted: async () => false,
       refetch: async () => {},
     };
   }

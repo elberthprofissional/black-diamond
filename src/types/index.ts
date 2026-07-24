@@ -22,6 +22,8 @@ export interface Booking {
   discount_amount?: number;
   reminder_sent?: boolean;
   notes?: string;
+  stats_preserved?: boolean;
+  google_event_id?: string | null;
   created_at: string;
   clients?: {
     name: string;
@@ -104,13 +106,6 @@ export interface LoyaltyMilestone {
   created_at: string;
 }
 
-export interface ClientMilestone {
-  id: string;
-  client_id: string;
-  milestone_id: string;
-  claimed_at: string;
-}
-
 // Progresso de um cliente em relação a uma milestone
 export interface MilestoneProgress {
   milestone: LoyaltyMilestone;
@@ -149,6 +144,9 @@ export interface Barber {
   photo_url?: string;
   bio?: string;
   quote?: string;
+  commission?: number;
+  working_days?: number[];
+  is_hidden?: boolean;
   is_active: boolean;
   is_owner: boolean;
   sort_order: number;
@@ -159,4 +157,31 @@ export interface BarberSettings {
   barber_id: string;
   key: string;
   value: string;
+}
+
+export interface WhatsAppTemplate {
+  id: string;
+  key: string;
+  name: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  body: string;
+  tag: string | null;
+  url: string | null;
+  read: boolean;
+  created_at: string;
+}
+
+export interface GalleryImage {
+  id: string;
+  image_url: string;
+  alt: string;
+  position: number;
+  created_at?: string;
 }

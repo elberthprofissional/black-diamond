@@ -33,7 +33,7 @@ export default function BookingStepIndicator({
               aria-current={isActive ? 'step' : undefined}
             >
               <div
-                className={`w-5 h-5 flex items-center justify-center text-[8px] font-bold rounded-full transition-all shrink-0 ${
+                className={`w-5 h-5 flex items-center justify-center text-[10px] font-bold rounded-full transition-all shrink-0 ${
                   isActive
                     ? 'bg-[#D4AF37] text-black'
                     : isPassed
@@ -44,7 +44,7 @@ export default function BookingStepIndicator({
                 {isPassed ? <Check size={10} strokeWidth={3} /> : s.step}
               </div>
               <span
-                className={`text-[9px] font-bold uppercase tracking-wider truncate transition-all ${
+                className={`text-[10px] font-bold uppercase tracking-wider truncate transition-all ${
                   isActive ? 'text-[#D4AF37]' : isPassed ? 'text-white/50' : 'text-zinc-600'
                 }`}
               >

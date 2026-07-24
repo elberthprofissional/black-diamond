@@ -59,7 +59,7 @@ const ProfileDesktopMetrics: FC<ProfileDesktopMetricsProps> = ({
 
       {/* Total Revenue */}
       <div className="bg-[#111111] border border-white/5 rounded-2xl p-5">
-        <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">
+        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">
           Faturamento Total
         </span>
         <p className="text-3xl font-black text-white tracking-tight">
@@ -76,7 +76,7 @@ const ProfileDesktopMetrics: FC<ProfileDesktopMetricsProps> = ({
         <div className="bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
           <Scissors size={22} className="text-[#D4AF37]/30" />
           <div>
-            <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">
               Atendimentos
             </span>
             <p className="text-xl font-black text-white tracking-tight tabular-nums">
@@ -87,7 +87,7 @@ const ProfileDesktopMetrics: FC<ProfileDesktopMetricsProps> = ({
         <div className="bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
           <span className="text-[#D4AF37]/30 text-lg font-black">✕</span>
           <div>
-            <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">
               Cancelados
             </span>
             <p className="text-xl font-black text-red-500/70 tracking-tight tabular-nums">
@@ -98,7 +98,7 @@ const ProfileDesktopMetrics: FC<ProfileDesktopMetricsProps> = ({
         <div className="col-span-2 lg:col-span-2 bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
           <DollarSign size={22} className="text-[#D4AF37]/30" />
           <div>
-            <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">
               Faturamento Semanal
             </span>
             <p className="text-xl font-black text-[#D4AF37] tracking-tight tabular-nums">
@@ -109,7 +109,7 @@ const ProfileDesktopMetrics: FC<ProfileDesktopMetricsProps> = ({
         <div className="col-span-2 lg:col-span-2 bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3">
           <DollarSign size={22} className="text-[#D4AF37]/30" />
           <div>
-            <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.15em] block mb-1">
               Faturamento Mensal
             </span>
             <p className="text-xl font-black text-[#D4AF37] tracking-tight tabular-nums">

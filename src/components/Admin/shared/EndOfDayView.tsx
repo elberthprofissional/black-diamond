@@ -26,14 +26,14 @@ const EndOfDayView: FC<EndOfDayViewProps> = ({ completedCount, dailyRevenue }) =
         <div className="flex items-center gap-3 mt-4">
           <div className="text-center">
             <p className="text-xl font-black text-white">{completedCount}</p>
-            <p className="text-[9px] text-zinc-500 uppercase tracking-wider mt-0.5">
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mt-0.5">
               {completedCount === 1 ? 'agendamento' : 'agendamentos'}
             </p>
           </div>
           <div className="w-px h-8 bg-white/[0.06]" />
           <div className="text-center">
             <p className="text-xl font-black text-[#D4AF37]">{formatPrice(dailyRevenue)}</p>
-            <p className="text-[9px] text-zinc-500 uppercase tracking-wider mt-0.5">faturados</p>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mt-0.5">faturados</p>
           </div>
         </div>
       )}

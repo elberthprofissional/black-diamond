@@ -277,20 +277,20 @@ export default function CancelPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
             >
-              <form onSubmit={handleSearch} className="space-y-3">
+              <form onSubmit={handleSearch} className="space-y-4">
                 <input
                   type="tel"
                   value={formattedPhone}
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                   placeholder="(00) 00000-0000"
                   maxLength={11}
-                  className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[15px] text-white outline-none focus:border-[#D4AF37] transition-all placeholder:text-zinc-600"
+                  className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[16px] text-white outline-none focus:border-[#D4AF37] transition-all placeholder:text-zinc-600"
                   required
                 />
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-11 bg-[#D4AF37] text-black font-bold text-[11px] uppercase tracking-[0.2em] rounded-xl hover:bg-[#b8962e] transition-all disabled:opacity-50 cursor-pointer"
+                  className="btn-gold w-full h-11 disabled:opacity-50"
                 >
                   {loading ? 'Buscando...' : 'Buscar'}
                 </button>
@@ -314,7 +314,7 @@ export default function CancelPage() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              className="space-y-3"
+              className="space-y-4"
             >
               {error && <p className="text-[12px] text-red-400/80 text-center">{error}</p>}
               {bookings.map((b) => (
@@ -324,7 +324,7 @@ export default function CancelPage() {
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <p className="text-[13px] font-bold text-white capitalize">
+                      <p className="text-[14px] font-bold text-white capitalize">
                         {formatDate(b.booking_date)}
                       </p>
                       <p className="text-[12px] text-[#D4AF37] font-bold">
@@ -355,7 +355,7 @@ export default function CancelPage() {
               {!initialToken && (
                 <button
                   onClick={() => setView('search')}
-                  className="w-full py-3 text-[11px] text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                  className="w-full py-3 text-[12px] text-zinc-500 hover:text-white transition-colors cursor-pointer"
                 >
                   Buscar outro telefone
                 </button>
@@ -370,7 +370,7 @@ export default function CancelPage() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="space-y-5"
+              className="space-y-4"
             >
               {/* Current appointment info */}
               <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3 flex items-center justify-between">
@@ -379,7 +379,7 @@ export default function CancelPage() {
                     <Calendar size={14} className="text-red-400" />
                   </div>
                   <div>
-                    <p className="text-[11px] text-zinc-500">Agendamento atual</p>
+                    <p className="text-[12px] text-zinc-500">Agendamento atual</p>
                     <p className="text-[12px] font-bold text-white">
                       {formatShortDate(rescheduleBooking.booking_date)} às{' '}
                       {rescheduleBooking.booking_time?.slice(0, 5)}
@@ -404,8 +404,8 @@ export default function CancelPage() {
                           : 'border-white/[0.06] text-zinc-400 hover:border-white/[0.12]'
                       }`}
                     >
-                      <p className="text-[9px] font-bold uppercase">{day.dayName}</p>
-                      <p className="text-[18px] font-bold mt-0.5">{day.dayNumber}</p>
+                      <p className="text-[10px] font-bold uppercase">{day.dayName}</p>
+                      <p className="text-[16px] font-bold mt-0.5">{day.dayNumber}</p>
                     </button>
                   ))}
                 </div>
@@ -451,14 +451,14 @@ export default function CancelPage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => setView('list')}
-                  className="px-5 h-11 border border-white/[0.08] text-zinc-400 hover:text-white rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                  className="px-5 h-11 border border-white/[0.08] text-zinc-400 hover:text-white rounded-xl text-[12px] font-bold uppercase tracking-wider transition-all cursor-pointer"
                 >
                   Voltar
                 </button>
                 <button
                   onClick={handleConfirmReschedule}
                   disabled={!selectedDate || !selectedTime || rescheduling}
-                  className="flex-1 h-11 bg-[#D4AF37] text-black font-bold text-[11px] uppercase tracking-[0.2em] rounded-xl hover:bg-[#b8962e] transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  className="btn-gold flex-1 h-11 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {rescheduling ? 'Reagendando...' : 'Confirmar'}
                 </button>
@@ -478,7 +478,7 @@ export default function CancelPage() {
                 <Check size={24} className="text-emerald-400" />
               </div>
               <div>
-                <p className="text-[15px] font-bold text-white">Agendamento reagendado!</p>
+                <p className="text-[16px] font-bold text-white">Agendamento reagendado!</p>
                 <p className="text-[12px] text-zinc-500 mt-1">
                   Novo horário confirmado com sucesso.
                 </p>
@@ -489,7 +489,7 @@ export default function CancelPage() {
                   setPhone('');
                   setBookings([]);
                 }}
-                className="px-6 py-2.5 bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-white rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                className="btn-ghost px-6 py-2.5"
               >
                 Voltar ao início
               </button>
@@ -516,9 +516,9 @@ export default function CancelPage() {
               className="bg-[#111] border border-white/[0.08] rounded-2xl p-5 w-full max-w-sm space-y-4"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="text-center space-y-1">
-                <p className="text-[13px] font-bold text-white">Token de gerenciamento</p>
-                <p className="text-[11px] text-zinc-500">
+              <div className="text-center space-y-2">
+                <p className="text-[14px] font-bold text-white">Token de gerenciamento</p>
+                <p className="text-[12px] text-zinc-500">
                   Informe o token enviado no link de gerenciamento do agendamento.
                 </p>
               </div>
@@ -528,11 +528,11 @@ export default function CancelPage() {
                 onChange={(e) => setTokenInput(e.target.value)}
                 placeholder="Cole o token aqui"
                 maxLength={255}
-                className="w-full h-10 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 text-[13px] text-white outline-none focus:border-[#D4AF37] transition-all placeholder:text-zinc-600"
+                className="w-full h-10 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 text-[14px] text-white outline-none focus:border-[#D4AF37] transition-all placeholder:text-zinc-600"
                 autoFocus
               />
               {error && showTokenModal && (
-                <p className="text-[11px] text-red-400/80 text-center">{error}</p>
+                <p className="text-[12px] text-red-400/80 text-center">{error}</p>
               )}
               <div className="flex gap-2">
                 <button
@@ -541,14 +541,14 @@ export default function CancelPage() {
                     setTokenInput('');
                     setPendingCancelId(null);
                   }}
-                  className="px-4 h-10 border border-white/[0.08] text-zinc-400 hover:text-white rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                  className="px-4 h-10 border border-white/[0.08] text-zinc-400 hover:text-white rounded-xl text-[12px] font-bold uppercase tracking-wider transition-all cursor-pointer"
                 >
                   Voltar
                 </button>
                 <button
                   onClick={handleTokenSubmit}
                   disabled={!tokenInput.trim() || cancellingId === pendingCancelId}
-                  className="flex-1 h-10 bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-40"
+                  className="flex-1 h-10 bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 rounded-xl text-[12px] font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-40"
                 >
                   {cancellingId === pendingCancelId ? 'Cancelando...' : 'Confirmar cancelamento'}
                 </button>

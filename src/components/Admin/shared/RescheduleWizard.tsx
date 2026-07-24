@@ -100,7 +100,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
               </svg>
             </button>
             <div>
-              <span className="text-[9px] font-black text-[#D4AF37] uppercase tracking-[0.25em] block">
+              <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.25em] block">
                 Reagendamento
               </span>
               <h3 className="text-sm font-bold text-white uppercase tracking-wider mt-0.5 truncate max-w-[180px]">
@@ -146,10 +146,10 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="px-6 py-6 space-y-5"
+              className="px-6 py-6 space-y-4"
             >
-              <div className="space-y-1">
-                <span className="text-[9px] font-bold text-[#D4AF37] uppercase tracking-[0.25em] block">
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.25em] block">
                   Serviços
                 </span>
                 <p className="text-[10px] text-zinc-600">
@@ -190,9 +190,9 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                           )}
                         </span>
                         <div className="flex flex-col min-w-0">
-                          <span className="text-[11px] font-bold text-zinc-100">{srv.name}</span>
+                          <span className="text-[12px] font-bold text-zinc-100">{srv.name}</span>
                           {srv.duration && (
-                            <span className="text-[9px] text-zinc-500 mt-0.5">
+                            <span className="text-[10px] text-zinc-500 mt-0.5">
                               {srv.duration} min
                             </span>
                           )}
@@ -239,16 +239,16 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
               transition={{ duration: 0.2 }}
               className="px-6 py-6 space-y-6"
             >
-              <div className="space-y-1">
-                <span className="text-[9px] font-bold text-[#D4AF37] uppercase tracking-[0.25em] block">
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.25em] block">
                   Data e Horário
                 </span>
                 <p className="text-[10px] text-zinc-600">Escolha a nova data e horário</p>
               </div>
 
               {/* Date ribbon */}
-              <div className="space-y-3">
-                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest block px-1">
+              <div className="space-y-4">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block px-1">
                   Nova Data
                 </span>
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x flex-nowrap">
@@ -261,7 +261,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                         onClick={() => setRescheduleDate(day.dateStr)}
                         className={`flex flex-col items-center justify-center shrink-0 w-[52px] py-3 rounded-xl border transition-all cursor-pointer snap-start ${isSelected ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-white shadow-[0_0_15px_rgba(197,160,89,0.15)]' : 'border-white/[0.04] bg-white/[0.01] text-zinc-500 hover:text-zinc-200 hover:border-white/[0.08]'}`}
                       >
-                        <span className="text-[7px] font-extrabold uppercase tracking-wider opacity-60 mb-1 leading-none">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider opacity-60 mb-1 leading-none">
                           {day.dayName}
                         </span>
                         <span
@@ -269,7 +269,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                         >
                           {day.dayNum}
                         </span>
-                        <span className="text-[7px] font-bold uppercase tracking-wider opacity-60 mt-1 leading-none">
+                        <span className="text-[10px] font-bold uppercase tracking-wider opacity-60 mt-1 leading-none">
                           {day.monthName}
                         </span>
                       </button>
@@ -301,7 +301,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                         <line x1="8" y1="2" x2="8" y2="6" />
                         <line x1="3" y1="10" x2="21" y2="10" />
                       </svg>
-                      <span className="text-[6px] font-black uppercase tracking-widest text-center leading-none">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-center leading-none">
                         Outra
                       </span>
                     </div>
@@ -310,13 +310,13 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
               </div>
 
               {/* Time grid */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex justify-between items-center px-1">
-                  <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                     Novo Horário
                   </span>
                   {!loadingSlots && (
-                    <span className="text-[7px] font-bold text-[#D4AF37] uppercase tracking-wider">
+                    <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider">
                       {
                         rescheduleSlots.filter((slot: string) => {
                           const occupied =
@@ -337,7 +337,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                 {loadingSlots ? (
                   <div className="py-8 text-center flex flex-col items-center justify-center gap-2">
                     <div className="w-5 h-5 border-2 border-zinc-800 border-t-[#D4AF37] rounded-full animate-spin" />
-                    <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">
+                    <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
                       Carregando...
                     </span>
                   </div>
@@ -398,10 +398,10 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="px-6 py-6 space-y-5"
+              className="px-6 py-6 space-y-4"
             >
-              <div className="space-y-1">
-                <span className="text-[9px] font-bold text-[#D4AF37] uppercase tracking-[0.25em] block">
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.25em] block">
                   Revisar
                 </span>
                 <p className="text-[10px] text-zinc-600">Confirme as alterações antes de salvar</p>
@@ -409,7 +409,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
 
               <div className="bg-white/[0.02] border border-white/[0.04] rounded-2xl overflow-hidden">
                 <div className="px-5 py-4 border-b border-white/[0.04]">
-                  <span className="text-[7px] font-black text-zinc-500 uppercase tracking-widest block mb-2">
+                  <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">
                     Agendamento Atual
                   </span>
                   <div className="flex items-start gap-4">
@@ -455,7 +455,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                   </svg>
                 </div>
                 <div className="px-5 py-4">
-                  <span className="text-[7px] font-black text-[#D4AF37] uppercase tracking-widest block mb-2">
+                  <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-widest block mb-2">
                     Novo Agendamento
                   </span>
                   <div className="flex items-start gap-4">
@@ -491,7 +491,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
               </div>
 
               <div className="flex justify-between items-center px-1">
-                <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                   Investimento Total
                 </span>
                 <span className="text-lg font-black text-[#D4AF37]">

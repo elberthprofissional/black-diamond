@@ -66,9 +66,9 @@ const EditableField: FC<EditableFieldProps> = ({
       <div className="hidden lg:block">
         <div className="border border-white/[0.04] rounded-2xl overflow-hidden">
           {isEditing ? (
-            <div className="p-5 space-y-3">
+            <div className="p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
                   {label}
                 </span>
                 {mobileHelper && <span className="text-[10px] text-zinc-600">{mobileHelper}</span>}
@@ -90,10 +90,10 @@ const EditableField: FC<EditableFieldProps> = ({
               className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
             >
               <div className="text-left">
-                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">
                   {label}
                 </span>
-                <span className={`text-[13px] ${showPlaceholder ? 'text-zinc-500' : 'text-white'}`}>
+                <span className={`text-[14px] ${showPlaceholder ? 'text-zinc-500' : 'text-white'}`}>
                   {showPlaceholder ? placeholder : displayValue}
                 </span>
               </div>
@@ -110,10 +110,10 @@ const EditableField: FC<EditableFieldProps> = ({
           className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-all cursor-pointer"
         >
           <div className="text-left">
-            <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-1">
               {label}
             </span>
-            <span className={`text-[13px] ${showPlaceholder ? 'text-zinc-500' : 'text-white'}`}>
+            <span className={`text-[14px] ${showPlaceholder ? 'text-zinc-500' : 'text-white'}`}>
               {showPlaceholder ? placeholder : displayValue}
             </span>
           </div>
@@ -130,7 +130,7 @@ const EditableField: FC<EditableFieldProps> = ({
         canSave={canSave}
       >
         {renderMobileInput(inputRef)}
-        {mobileHelper && <p className="text-[11px] text-zinc-600 text-right">{mobileHelper}</p>}
+        {mobileHelper && <p className="text-[12px] text-zinc-600 text-right">{mobileHelper}</p>}
       </MobileScreen>
     </>
   );

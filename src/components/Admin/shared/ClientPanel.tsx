@@ -6,7 +6,6 @@ import { formatPhone, formatPricePublic } from '../../../lib/utils';
 import { cleanPhoneForWhatsApp } from '../../../lib/whatsapp';
 import { getServices, type MilestoneProgress } from '../../../lib/api';
 import type { ClientWithStats, BookingWithClient, MensalistaPlan, Service } from '../../../types';
-import PlanSelectorModal from './PlanSelectorModal';
 import HistoryView from './HistoryView';
 
 interface ClientPanelProps {
@@ -40,7 +39,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
   notesText,
   isEditingNotes,
   savingNotes,
-  plans,
+  plans: _plans,
   planName,
   milestoneProgress,
   onNotesChange,
@@ -55,8 +54,6 @@ const ClientPanel: FC<ClientPanelProps> = ({
   expiresAt,
 }) => {
   const navigate = useNavigate();
-  const [showPlanSelector, setShowPlanSelector] = useState(false);
-  const [selectedPlanId, setSelectedPlanId] = useState<string>('');
   const [savingMensalista, setSavingMensalista] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
@@ -143,24 +140,9 @@ const ClientPanel: FC<ClientPanelProps> = ({
   };
 
   const handleMensalistaClick = async () => {
-    if (client.is_mensalista) {
-      setSavingMensalista(true);
-      await onToggleMensalista();
-      setSavingMensalista(false);
-    } else {
-      setShowPlanSelector(true);
-    }
-  };
-
-  const confirmToggleMensalista = async () => {
-    if (!selectedPlanId || savingMensalista) return;
     setSavingMensalista(true);
-    const success = await onToggleMensalista(selectedPlanId);
+    await onToggleMensalista(client.is_mensalista ? undefined : 'plan-id');
     setSavingMensalista(false);
-    if (success) {
-      setShowPlanSelector(false);
-      setSelectedPlanId('');
-    }
   };
 
   return (
@@ -177,8 +159,13 @@ const ClientPanel: FC<ClientPanelProps> = ({
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-        className="relative w-full sm:w-[440px] h-[100dvh] sm:h-full mt-auto sm:mt-0 bg-[#0E0E0E] border-t sm:border-t-0 sm:border-l border-[#D4AF37]/20 shadow-2xl overflow-y-auto scrollbar-hide flex flex-col text-left"
+        className="relative w-full sm:w-[440px] max-h-[85vh] sm:max-h-none sm:h-full mt-auto sm:mt-0 bg-[#0E0E0E] border-t sm:border-t-0 sm:border-l border-[#D4AF37]/20 shadow-2xl overflow-y-auto scrollbar-hide flex flex-col text-left rounded-t-2xl sm:rounded-none"
       >
+        {/* Mobile drag handle */}
+        <div className="sm:hidden flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 bg-zinc-600 rounded-full" />
+        </div>
+
         <div className="sticky top-0 bg-[#0E0E0E]/95 backdrop-blur-md z-10 px-6 py-4 border-b border-white/[0.04] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -188,7 +175,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
             >
               <X size={16} />
             </button>
-            <span className="text-[9px] font-black text-[#D4AF37] uppercase tracking-[0.25em]">
+            <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.25em]">
               Dados do Cliente
             </span>
           </div>
@@ -223,14 +210,14 @@ const ClientPanel: FC<ClientPanelProps> = ({
                 {client.is_mensalista && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-full shrink-0">
                     <Crown size={10} className="text-[#D4AF37]" />
-                    <span className="text-[8px] font-bold text-[#D4AF37] uppercase">
+                    <span className="text-[10px] font-bold text-[#D4AF37] uppercase">
                       {planName || 'Mensalista'}
                     </span>
                   </span>
                 )}
               </div>
               <p className="text-xs text-zinc-500 mt-0.5">{formatPhone(client.phone)}</p>
-              <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest mt-1">
+              <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mt-1">
                 Membro desde{' '}
                 {new Date(client.created_at).toLocaleDateString('pt-BR', {
                   month: 'short',
@@ -240,12 +227,12 @@ const ClientPanel: FC<ClientPanelProps> = ({
             </div>
           </div>
 
-          <div className="bg-[#121212] border border-white/[0.03] rounded-xl p-4 space-y-3">
+          <div className="bg-[#121212] border border-white/[0.03] rounded-xl p-4 space-y-4">
             <button
               onClick={openHistory}
               className="w-full flex justify-between items-center px-2 py-1 cursor-pointer hover:bg-white/[0.02] rounded-lg transition-colors"
             >
-              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                 Visitas
               </span>
               <span className="flex items-center gap-1.5 text-sm font-black text-[#D4AF37]">
@@ -254,13 +241,13 @@ const ClientPanel: FC<ClientPanelProps> = ({
               </span>
             </button>
             <div className="flex justify-between items-center px-2">
-              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                 Valor Gasto
               </span>
               <span className="text-sm font-black text-white">{formatPricePublic(panelTotal)}</span>
             </div>
             <div className="flex justify-between items-center pt-3 border-t border-white/[0.04] px-2">
-              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                 Última Visita
               </span>
               <span className="text-xs font-bold text-white uppercase">
@@ -274,13 +261,13 @@ const ClientPanel: FC<ClientPanelProps> = ({
               href={`https://wa.me/${cleanPhoneForWhatsApp(client.phone ?? '')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 h-10 border border-white/[0.06] bg-white/[0.02] text-zinc-300 font-bold text-[9px] uppercase tracking-wider rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer flex items-center justify-center"
+              className="flex-1 h-10 border border-white/[0.06] bg-white/[0.02] text-zinc-300 font-bold text-[10px] uppercase tracking-wider rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer flex items-center justify-center"
             >
               WhatsApp
             </a>
             <button
               onClick={onReminder}
-              className="flex-1 h-10 border border-white/[0.06] bg-white/[0.02] text-zinc-300 font-bold text-[9px] uppercase tracking-wider rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              className="flex-1 h-10 border border-white/[0.06] bg-white/[0.02] text-zinc-300 font-bold text-[10px] uppercase tracking-wider rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer flex items-center justify-center gap-1.5"
             >
               Enviar Lembrete
             </button>
@@ -302,7 +289,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                 }
                 navigate(`/admin/agendar?${params.toString()}`);
               }}
-              className="flex-1 h-10 bg-[#D4AF37] hover:bg-[#b8962e] text-black font-bold text-[9px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              className="flex-1 h-10 bg-[#D4AF37] hover:bg-[#b8962e] text-black font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Plus size={12} strokeWidth={3} />
               {panelBookings.length > 0 ? 'Reagendar' : 'Agendar'}
@@ -312,7 +299,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
           <button
             onClick={handleMensalistaClick}
             disabled={savingMensalista}
-            className={`w-full h-10 border rounded-xl font-bold text-[9px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`w-full h-10 border rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               client.is_mensalista
                 ? 'border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37]/20'
                 : 'border-white/[0.06] bg-white/[0.02] text-zinc-400 hover:bg-white/[0.04] hover:text-white'
@@ -328,10 +315,10 @@ const ClientPanel: FC<ClientPanelProps> = ({
 
           {/* Loyalty Milestones */}
           {milestoneProgress && milestoneProgress.length > 0 && (
-            <div className="bg-[#121212] border border-[#D4AF37]/10 rounded-xl p-4 space-y-3">
+            <div className="bg-[#121212] border border-[#D4AF37]/10 rounded-xl p-4 space-y-4">
               <div className="flex items-center gap-2">
                 <Gift size={14} className="text-[#D4AF37]" />
-                <span className="text-[9px] font-bold text-[#D4AF37] uppercase tracking-widest">
+                <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest">
                   Fidelidade — {milestoneProgress[0]?.progress || 0} visitas
                 </span>
               </div>
@@ -342,15 +329,15 @@ const ClientPanel: FC<ClientPanelProps> = ({
                   const isClaimed = mp.already_claimed;
 
                   return (
-                    <div key={mp.milestone.id} className="space-y-1">
+                    <div key={mp.milestone.id} className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span
-                          className={`text-[11px] ${isClaimed ? 'text-emerald-400' : 'text-zinc-400'}`}
+                          className={`text-[12px] ${isClaimed ? 'text-emerald-400' : 'text-zinc-400'}`}
                         >
                           {needed} visitas
                         </span>
                         {isClaimed ? (
-                          <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider flex items-center gap-1">
+                          <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider flex items-center gap-1">
                             <Check size={10} /> GANHOU!
                           </span>
                         ) : (
@@ -373,7 +360,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                           />
                         ))}
                         {needed > 10 && (
-                          <span className="text-[8px] text-zinc-600 ml-1 self-center">
+                          <span className="text-[10px] text-zinc-600 ml-1 self-center">
                             +{needed - 10}
                           </span>
                         )}
@@ -388,11 +375,11 @@ const ClientPanel: FC<ClientPanelProps> = ({
           {client.is_mensalista && expiresAt && (
             <div className="flex items-center justify-between px-4 py-3 bg-[#121212] border border-white/[0.04] rounded-xl">
               <div>
-                <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                   Válido até
                 </p>
                 <p
-                  className={`text-[13px] font-bold mt-0.5 ${new Date(expiresAt) < new Date() ? 'text-red-400' : 'text-[#D4AF37]'}`}
+                  className={`text-[14px] font-bold mt-0.5 ${new Date(expiresAt) < new Date() ? 'text-red-400' : 'text-[#D4AF37]'}`}
                 >
                   {new Date(expiresAt).toLocaleDateString('pt-BR')}
                 </p>
@@ -402,7 +389,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                   e.stopPropagation();
                   onRenewMensalidade?.();
                 }}
-                className={`px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
                   new Date(expiresAt) < new Date()
                     ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
                     : 'bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37]/20'
@@ -413,14 +400,14 @@ const ClientPanel: FC<ClientPanelProps> = ({
             </div>
           )}
 
-          <div className="space-y-3 pt-2">
+          <div className="space-y-4 pt-2">
             <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.04]">
-              <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-[#D4AF37]">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D4AF37]">
                 Anotações
               </h3>
               <button
                 onClick={onToggleEditNotes}
-                className="text-[9px] font-bold uppercase tracking-wider text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 hover:text-white transition-colors cursor-pointer"
               >
                 {isEditingNotes ? 'Cancelar' : notesText.trim() ? 'Editar' : '+ Adicionar'}
               </button>
@@ -487,13 +474,13 @@ const ClientPanel: FC<ClientPanelProps> = ({
               >
                 <ArrowLeft size={20} />
               </button>
-              <span className="text-[15px] font-bold text-white">Anotações</span>
+              <span className="text-[16px] font-bold text-white">Anotações</span>
               <button
                 onClick={async () => {
                   await onSaveNotes();
                 }}
                 disabled={savingNotes}
-                className="text-[#D4AF37] font-bold text-[15px] transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                className="text-[#D4AF37] font-bold text-[16px] transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                 aria-label="Salvar"
               >
                 {savingNotes ? '...' : <Check size={20} />}
@@ -504,7 +491,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                 value={notesText}
                 onChange={(e) => onNotesChange(e.target.value)}
                 placeholder="Ex: Prefere degradê baixo..."
-                className="w-full h-full bg-transparent text-white text-[15px] placeholder:text-zinc-600 outline-none resize-none leading-relaxed"
+                className="w-full h-full bg-transparent text-white text-[16px] placeholder:text-zinc-600 outline-none resize-none leading-relaxed"
                 autoFocus
               />
             </div>
@@ -612,19 +599,6 @@ const ClientPanel: FC<ClientPanelProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Plan Selector Modal */}
-      <PlanSelectorModal
-        isOpen={showPlanSelector}
-        plans={plans}
-        selectedPlanId={selectedPlanId}
-        saving={savingMensalista}
-        onSelectPlan={setSelectedPlanId}
-        onConfirm={confirmToggleMensalista}
-        onClose={() => {
-          setShowPlanSelector(false);
-          setSelectedPlanId('');
-        }}
-      />
     </div>
   );
 };

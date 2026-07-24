@@ -2,10 +2,11 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, notificacoes push e integracao com WhatsApp.
 
-**Versao:** 3.22.0 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.24.0 | **Ultima atualizacao:** Julho 2026
 
-> NOTA: Esta versao incorpora correcoes de seguranca (verificacao is_admin nas edge functions),
-> CHECK constraints no banco, e correcao de testes duplicados.
+> NOTA: Esta versao inclui reestruturacao do layout admin (container 1440px, hierarquia visual),
+> correcao do embed do Google Maps, botao de acesso restrito no Footer, e melhorias de
+> responsividade mobile.
 
 ---
 
@@ -85,13 +86,13 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 ### Visao Geral do Projeto
 O Black Diamond foi projetado para ser **universal** — pronto para qualquer barbearia. O projeto inclui:
 - `DEPLOY_GUIDE.md` — Guia passo a passo para deploy em novas barbearias
-- `supabase/universal.sql` — Schema universal do banco (tabelas, RLS, funcoes, crons)
 - `supabase/migrations/` — Migrations consolidadas (6 arquivos: schema, rls, functions, triggers, seed, cron)
+- `supabase/seeds/` — Dados iniciais (depoimentos, etc)
 - Placeholder generico na secao About (sem foto fixa do Tato)
 - Sentry para error reporting em producao
 
 ### Filosofia "Template de Barbearia"
-> O projeto e feito para ser **replicado**. Cada barbeiro tem seu proprio deploy (Vercel + Supabase), seu proprio dominio, e configura tudo pelo painel. O sistema usa `universal.sql` para setup instantâneo do banco.
+> O projeto e feito para ser **replicado**. Cada barbeiro tem seu proprio deploy (Vercel + Supabase), seu proprio dominio, e configura tudo pelo painel. O sistema usa as migrations em `supabase/migrations/` para setup do banco.
 
 ---
 
@@ -313,21 +314,20 @@ O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto v
 
 ## 5. Schema do Banco de Dados
 
-Schema completo: `supabase/universal.sql` (setup instantaneo) ou `supabase/migrations/` (migrations consolidadas)
+Schema completo: `supabase/migrations/` (migrations consolidadas)
 
 ### Migrations Consolidadas
 
-O projeto usa 7 migrations consolidadas (substituem as 14+ migrations anteriores):
+O projeto usa 6 migrations consolidadas (substituem as 14+ migrations anteriores):
 
 | Arquivo | Conteudo |
 |---------|----------|
-| `001_schema.sql` | 20 tabelas + indexes + constraints + RLS enable |
+| `001_schema.sql` | 20+ tabelas + indexes + constraints + RLS enable |
 | `002_rls.sql` | Todas as politicas RLS + is_admin() + storage |
 | `003_functions.sql` | 30+ funcoes RPC (versoes finais) |
 | `004_triggers.sql` | Triggers de notificacao + realtime |
-| `005_seed_data.sql` | Dados iniciais |
-| `006_cron.sql` | 6 cron jobs consolidados |
-| `007_reminder_logs.sql` | Logs de lembretes WhatsApp |
+| `005_seed_cron.sql` | Dados iniciais + 6 cron jobs (seed e cron unificados) |
+| `006_multi_barber.sql` | Multi-barber (barbers, barber_settings, RPCs, triggers atualizados) |
 
 ### Tabelas
 
@@ -349,7 +349,9 @@ historical_visits INTEGER, historical_spent DECIMAL, last_visit_date DATE
 id UUID PK, client_id UUID FK, service_ids UUID[], booking_date DATE,
 booking_time TIME, total_price DECIMAL, total_duration INTEGER,
 status TEXT (pending/confirmed/cancelled/completed), is_blocked BOOLEAN,
-reminder_sent BOOLEAN, notes TEXT, created_at TIMESTAMPTZ
+reminder_sent BOOLEAN, notes TEXT, no_show BOOLEAN,
+coupon_id UUID, discount_amount NUMERIC, barber_id UUID,
+stats_preserved BOOLEAN, created_at TIMESTAMPTZ
 ```
 
 **notifications** — Notificacoes in-app
@@ -358,13 +360,14 @@ id UUID PK, user_id UUID FK (auth.users), title TEXT, body TEXT,
 tag TEXT, url TEXT, read BOOLEAN, created_at TIMESTAMPTZ
 ```
 
-**reviews** — Avaliacoes de clientes (REMOVIDO na v3.13.0)
-
 **settings** — Configuracoes do sistema
 ```sql
 key TEXT PK, value TEXT, updated_at TIMESTAMPTZ
 -- Chaves: opening_time, closing_time, saturday_opening, saturday_closing,
--- working_days, barber_name, barber_phone
+-- working_days, barber_name, barber_phone, barber_hours, barber_bio,
+-- barber_quote, barber_instagram, barber_photo, brand_name, brand_color,
+-- brand_logo, brand_login_bg, max_no_shows, mensalista_enabled,
+-- multi_barber_enabled, site_url, notification_preferences
 ```
 
 **push_subscriptions** — Inscricoes de notificacao push
@@ -537,7 +540,7 @@ npm install
 ### Opção B: Manual
 1. Crie um projeto no [supabase.com](https://supabase.com)
 2. Acesse o SQL Editor
-3. Cole e execute o conteudo de `supabase/universal.sql` no SQL Editor
+3. Execute as migrations em ordem: `001_schema.sql` → `002_rls.sql` → `003_functions.sql` → `004_triggers.sql` → `005_seed_cron.sql` → `006_multi_barber.sql` no SQL Editor
 4. Acesse Authentication > Users e crie o usuario admin
 
 ### Passo 3: Configurar variaveis de ambiente
@@ -869,15 +872,14 @@ Black Diamond/
 │   ├── main.tsx                # Entry point + Service Worker
 │   └── vite-env.d.ts           # Tipos globais (Window, Navigator)
 ├── supabase/
-│   ├── universal.sql           # Schema completo do banco (universal)
-│   ├── migrations/             # Migrations consolidadas (7 arquivos)
+│   ├── seeds/                  # Dados iniciais (depoimentos)
+│   ├── migrations/             # Migrations consolidadas (6 arquivos)
 │   │   ├── 001_schema.sql     # Tabelas + indexes + constraints
 │   │   ├── 002_rls.sql        # Politicas RLS + storage
 │   │   ├── 003_functions.sql  # Funcoes RPC (30+)
 │   │   ├── 004_triggers.sql   # Triggers + realtime
-│   │   ├── 005_seed_data.sql  # Dados iniciais
-│   │   ├── 006_cron.sql       # Cron jobs
-│   │   └── 007_reminder_logs.sql # Logs de lembretes WhatsApp
+│   │   ├── 005_seed_cron.sql  # Dados iniciais + cron jobs
+│   │   └── 006_multi_barber.sql # Multi-barber
 │   └── functions/
 │       ├── send-push/          # Edge function de notificacao push
 │       └── sync-google-reviews/ # Edge function de sincronizacao de reviews
@@ -962,11 +964,22 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 
 ### Cobertura atual
 
-- 80 arquivos de teste
-- 607 testes (unit + E2E)
+- **105 arquivos de teste**
+- **1162 testes** (unit + E2E)
 - Hooks, Utils, API, Componentes e Paginas cobertos
 - CI/CD com GitHub Actions: lint → test:coverage → typecheck → build
 - **Coverage minimo:** 70% (statements, branches, functions, lines)
+
+### Cobertura atual (v3.23.1)
+
+| Métrica | Cobertura |
+|---------|-----------|
+| Statements | 68.49% |
+| Branches | 55.13% |
+| Functions | 60.34% |
+| Lines | 70.19% |
+
+> ⚠️ Branches e Functions ainda abaixo do threshold de 70%. Melhorias em andamento.
 
 ---
 
@@ -1079,18 +1092,17 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 - [x] WhatsApp dinamico (configuravel pelo admin)
 - [x] Animacao marquee na galeria
 - [x] Projeto universal: template pronto para qualquer barbearia
-- [x] Schema universal do banco (universal.sql)
+- [x] Schema do banco via migrations (001-006)
 - [x] Clipping mask na foto de perfil (drag + zoom estilo Instagram)
 - [x] Anti-burro: validacao de horarios, preco minimo, DDD
 - [x] UX da galeria estilo Google Fotos (header compacto, selecao integrada)
 - [x] Scrollbar dourada so no desktop (mobile limpo)
 - [x] AdminLogin splitado em 5 componentes (melhor manutenibilidade)
-- [x] Horarios do Footer e Location dinamicos (refletem configuracoes do admin)
+- [x] Horarios do Footer dinamicos (refletem configuracoes do admin). Location exibe apenas mapa.
 - [x] Admin booking filtra dias desativados (working_days) igual o cliente
 - [x] Login com inputs transparentes, borda dourada no focus e altura maior no desktop
 - [x] WhatsApp do barbeiro integrado ao contexto (useBarberSettings) — alteração no admin reflete em todo o site
 - [x] Toggle de horário de almoço funcional — desativar remove o objeto do JSON completamente
-- [x] WhatsApp dinâmico no Footer — 'Criado por Elberth Mayan' com número do banco
 - [x] WhatsApp na confirmação do booking — mensagem vai pro barbeiro com número configurado
 - [x] working_days não corrompe mais com 'lunch_break' — bug de iteração corrigido
 - [x] Desktop/Mobile Steps unificados — 6 componentes virarem 3 responsivos (menos código duplicado)
@@ -1209,7 +1221,7 @@ VAPID_SUBJECT=mailto:seu-email@gmail.com
 SUPABASE_SERVICE_ROLE_KEY=<sua_service_role_key>
 ```
 
-#### 4. Rodar SQL no Supabase Execute as secoes de push do `universal.sql`
+#### 4. Rodar SQL no Supabase Execute as migrations em ordem (001→006)
 
 #### 5. Deploy da edge function
 ```bash
@@ -1222,7 +1234,7 @@ supabase functions deploy send-push
 - `src/components/Admin/NotificationBell.tsx` — Botao WhatsApp nas notificacoes
 - `src/hooks/useBookingSubmit.ts` — Envia notificacao apos criar agendamento
 - `public/sw.js` — Service Worker que recebe e mostra a notificacao
-- `supabase/universal.sql` — Trigger, RPCs e cron jobs
+- `supabase/migrations/` — Schema completo do banco
 
 ---
 

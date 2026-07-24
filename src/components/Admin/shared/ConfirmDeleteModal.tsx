@@ -45,7 +45,7 @@ const ConfirmDeleteModal: FC<ConfirmDeleteModalProps> = ({ open, onConfirm, onCa
                   <X size={16} />
                 </button>
               </div>
-              <p className="text-[11px] text-zinc-500 leading-relaxed">
+              <p className="text-[12px] text-zinc-500 leading-relaxed">
                 Essa ação é <span className="text-zinc-300">irreversível</span>. A notificação será
                 removida permanentemente.
               </p>

@@ -307,7 +307,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 2. SLOTS E HORARIOS
 -- =========================================================================
 
-CREATE OR REPLACE FUNCTION get_available_slots(p_date date)
+CREATE OR REPLACE FUNCTION get_available_slots(p_date date, p_barber_id uuid DEFAULT NULL)
 RETURNS TABLE(slot_time text) AS $$
 DECLARE
     v_opening time; v_closing time; v_day_of_week integer; v_hours_json jsonb;
@@ -348,15 +348,25 @@ BEGIN
     RETURN QUERY
     SELECT to_char(slot, 'HH24:MI:SS') AS slot_time
     FROM generate_series(p_date + v_opening, p_date + v_closing - interval '1 second', interval '1 hour') AS slot
-    WHERE NOT EXISTS (SELECT 1 FROM bookings b WHERE b.booking_date = p_date AND b.booking_time = slot::time AND b.status != 'cancelled')
+    WHERE NOT EXISTS (
+        SELECT 1 FROM bookings b
+        WHERE b.booking_date = p_date
+        AND b.booking_time = slot::time
+        AND b.status != 'cancelled'
+        AND (p_barber_id IS NULL OR b.barber_id = p_barber_id)
+    )
     AND (NOT v_lunch_enabled OR NOT (v_day_of_week = ANY(v_lunch_days)) OR slot::time < v_lunch_start OR slot::time >= v_lunch_end);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION get_occupied_slots(p_date date)
+CREATE OR REPLACE FUNCTION get_occupied_slots(p_date date, p_barber_id uuid DEFAULT NULL)
 RETURNS TABLE(booking_time time, status text) AS $$
 BEGIN
-    RETURN QUERY SELECT b.booking_time, b.status FROM bookings b WHERE b.booking_date = p_date AND b.status != 'cancelled';
+    RETURN QUERY SELECT b.booking_time, b.status
+    FROM bookings b
+    WHERE b.booking_date = p_date
+    AND b.status != 'cancelled'
+    AND (p_barber_id IS NULL OR b.barber_id = p_barber_id);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -511,11 +521,17 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION get_client_milestones_public TO anon, authenticated;
+-- Removed public access: milestones expose visit counts and reward data
+-- Only admins should query this via the admin panel
+-- GRANT EXECUTE ON FUNCTION get_client_milestones_public TO anon, authenticated;
 
 CREATE OR REPLACE FUNCTION increment_client_visit(p_client_id UUID)
 RETURNS void AS $$
 BEGIN
+    -- Only admins or the system (via SECURITY DEFINER booking flow) should call this
+    IF NOT is_admin() THEN
+        RAISE EXCEPTION 'Acesso negado.';
+    END IF;
     UPDATE clients SET historical_visits = COALESCE(historical_visits, 0) + 1 WHERE id = p_client_id;
     IF NOT FOUND THEN RAISE EXCEPTION 'Cliente nao encontrado.'; END IF;
 END;
@@ -782,7 +798,7 @@ DECLARE v_status TEXT := 'ok'; v_s INTEGER; v_b INTEGER; v_c INTEGER;
 BEGIN
     BEGIN SELECT COUNT(*) INTO v_s FROM services; SELECT COUNT(*) INTO v_b FROM bookings; SELECT COUNT(*) INTO v_c FROM clients;
     EXCEPTION WHEN OTHERS THEN v_status := 'error'; END;
-    RETURN jsonb_build_object('status', v_status, 'timestamp', NOW(), 'version', '3.22.0',
+    RETURN jsonb_build_object('status', v_status, 'timestamp', NOW(), 'version', '3.23.0',
         'database', jsonb_build_object('services', v_s, 'bookings', v_b, 'clients', v_c),
         'uptime', EXTRACT(EPOCH FROM (NOW() - pg_postmaster_start_time()))::integer);
 END;

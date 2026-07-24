@@ -55,10 +55,10 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
     {/* ─── Codigo do Cupom ─── */}
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
+        <span className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider">
           Nome do cupom
         </span>
-        <span className="text-[11px] text-zinc-600 tabular-nums">
+        <span className="text-[12px] text-zinc-600 tabular-nums">
           {code.length}/{MAX_CODE_LENGTH}
         </span>
       </div>
@@ -71,13 +71,13 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
         }}
         placeholder="Ex: NATAL10"
         maxLength={MAX_CODE_LENGTH}
-        className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3.5 text-[15px] text-white font-bold tracking-wider outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 transition-all placeholder:text-zinc-600 placeholder:font-normal placeholder:tracking-normal uppercase"
+        className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3.5 text-[16px] text-white font-bold tracking-wider outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 transition-all placeholder:text-zinc-600 placeholder:font-normal placeholder:tracking-normal uppercase"
       />
     </div>
 
     {/* ─── Tipo de Desconto ─── */}
-    <div className="space-y-3">
-      <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">
+    <div className="space-y-4">
+      <span className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider block">
         Tipo de desconto
       </span>
       <div className="flex gap-2">
@@ -108,11 +108,11 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
     {/* ─── Valor do Desconto (para 'fixed') ─── */}
     {discountType === 'fixed' && (
       <div className="space-y-2">
-        <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">
+        <span className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider block">
           Valor do desconto
         </span>
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-[15px] font-medium">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-[16px] font-medium">
             R$
           </span>
           <input
@@ -120,7 +120,7 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
             value={discountValue}
             onChange={(e) => setDiscountValue(e.target.value.replace(/[^\d.,]/g, ''))}
             placeholder="15,00"
-            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-10 pr-4 py-3.5 text-[15px] text-white outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 transition-all placeholder:text-zinc-600"
+            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-10 pr-4 py-3.5 text-[16px] text-white outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 transition-all placeholder:text-zinc-600"
           />
         </div>
       </div>
@@ -129,7 +129,7 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
     {/* ─── Valor do Desconto (para 'percentage') ─── */}
     {discountType === 'percentage' && (
       <div className="space-y-2">
-        <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">
+        <span className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider block">
           Percentual de desconto
         </span>
         <div className="relative">
@@ -141,9 +141,9 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
               if (val === '' || parseInt(val) <= 100) setDiscountValue(val);
             }}
             placeholder="10"
-            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-4 pr-10 py-3.5 text-[15px] text-white outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 transition-all placeholder:text-zinc-600"
+            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-4 pr-10 py-3.5 text-[16px] text-white outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 transition-all placeholder:text-zinc-600"
           />
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 text-[15px] font-medium">
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 text-[16px] font-medium">
             %
           </span>
         </div>
@@ -152,11 +152,11 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
 
     {/* ─── Seletor de Servicos (so para 'free') ─── */}
     {discountType === 'free' && (
-      <div className="space-y-3">
-        <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">
+      <div className="space-y-4">
+        <span className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider block">
           Selecione o(s) serviço(s) do prêmio
         </span>
-        <div className="space-y-1">
+        <div className="space-y-2">
           {services.map((service) => {
             const selected = applicableServiceIds.includes(service.id);
             return (
@@ -178,7 +178,7 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
                   {selected && <Check size={11} className="text-white stroke-[3]" />}
                 </div>
                 <span
-                  className={`text-[13px] font-medium flex-1 ${selected ? 'text-[#D4AF37]' : 'text-zinc-200'}`}
+                  className={`text-[14px] font-medium flex-1 ${selected ? 'text-[#D4AF37]' : 'text-zinc-200'}`}
                 >
                   {service.name}
                 </span>
@@ -196,7 +196,7 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
 
     {/* ─── Validade e Limites ─── */}
     <div className="border-t border-white/[0.06] pt-5 space-y-4">
-      <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">
+      <span className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider block">
         Limites do cupom
       </span>
       <div className="grid grid-cols-2 gap-3">
@@ -206,7 +206,7 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
             type="date"
             value={validFrom}
             onChange={(e) => setValidFrom(e.target.value)}
-            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 transition-all [color-scheme:dark]"
+            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[14px] text-white outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 transition-all [color-scheme:dark]"
           />
         </div>
         <div className="space-y-2">
@@ -216,7 +216,7 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
             value={validUntil}
             onChange={(e) => setValidUntil(e.target.value)}
             min={validFrom}
-            className={`w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 transition-all [color-scheme:dark] ${validUntil ? 'text-white' : 'text-zinc-600'}`}
+            className={`w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 transition-all [color-scheme:dark] ${validUntil ? 'text-white' : 'text-zinc-600'}`}
             placeholder="Sem prazo"
           />
         </div>
@@ -231,7 +231,7 @@ const CouponFormFields: FC<CouponFormFieldsProps> = ({
           value={maxUses}
           onChange={(e) => setMaxUses(e.target.value.replace(/\D/g, '').slice(0, 5))}
           placeholder="Ilimitado"
-          className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 transition-all [color-scheme:dark] text-white placeholder:text-zinc-600"
+          className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 transition-all [color-scheme:dark] text-white placeholder:text-zinc-600"
         />
         {!maxUses && <HelperText text="Sem limite = pode ser usado quantas vezes quiser" />}
       </div>

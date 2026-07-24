@@ -26,7 +26,7 @@ const BarberDashboard: FC = () => {
   return (
     <AdminLayout
       hideBottomTabs={false}
-      mainClassName="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 pt-28 lg:pt-8 pb-40"
+      mainClassName="w-full mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-8 pb-40 max-w-[900px]"
     >
       <div className="space-y-6">
         <OfflineBanner isCached={isCached} onRetry={refetch} />
@@ -37,7 +37,7 @@ const BarberDashboard: FC = () => {
             <h1 className="text-xl font-bold text-white">
               Olá, {currentBarber?.name?.split(' ')[0] || 'Barbeiro'} 👋
             </h1>
-            <p className="text-[11px] text-zinc-500 mt-1">
+            <p className="text-[12px] text-zinc-500 mt-1">
               {new Date().toLocaleDateString('pt-BR', {
                 weekday: 'long',
                 day: 'numeric',
@@ -48,19 +48,19 @@ const BarberDashboard: FC = () => {
           <div className="flex items-center gap-3">
             <div className="text-center">
               <p className="text-lg font-bold text-[#D4AF37]">{pendingCount}</p>
-              <p className="text-[9px] text-zinc-500 uppercase tracking-wider">Pendentes</p>
+              <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Pendentes</p>
             </div>
             <div className="w-px h-8 bg-white/5" />
             <div className="text-center">
               <p className="text-lg font-bold text-emerald-400">{completedCount}</p>
-              <p className="text-[9px] text-zinc-500 uppercase tracking-wider">Finalizados</p>
+              <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Finalizados</p>
             </div>
           </div>
         </div>
 
         {/* Today's Bookings */}
         <div>
-          <h2 className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-3">
+          <h2 className="text-[12px] font-bold text-zinc-400 uppercase tracking-widest mb-3">
             Meus Agendamentos de Hoje
           </h2>
 
@@ -71,7 +71,7 @@ const BarberDashboard: FC = () => {
               <div className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mx-auto mb-4">
                 <Check size={24} className="text-zinc-600" />
               </div>
-              <p className="text-[13px] text-zinc-500">Nenhum agendamento hoje</p>
+              <p className="text-[14px] text-zinc-500">Nenhum agendamento hoje</p>
               <p className="text-[10px] text-zinc-600 mt-1">Aproveite para organizar o salão!</p>
             </div>
           ) : (
@@ -86,7 +86,7 @@ const BarberDashboard: FC = () => {
                   </span>
                   <div className="w-px h-3.5 bg-white/10 mx-3 shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-medium text-white truncate">
+                    <p className="text-[14px] font-medium text-white truncate">
                       {formatDisplayName(booking.clients?.name)}
                     </p>
                     <p className="text-[10px] text-zinc-500">
@@ -122,7 +122,7 @@ const BarberDashboard: FC = () => {
               <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
                 <Check size={24} className="text-emerald-400" />
               </div>
-              <p className="text-[15px] font-bold text-white mb-1">Finalizar Atendimento?</p>
+              <p className="text-[16px] font-bold text-white mb-1">Finalizar Atendimento?</p>
               <p className="text-[12px] text-zinc-400">
                 {formatDisplayName(mgmt.completingBooking.clients?.name)} às{' '}
                 {mgmt.completingBooking.booking_time.slice(0, 5)}
@@ -131,7 +131,7 @@ const BarberDashboard: FC = () => {
             <div className="border-t border-white/[0.06] flex">
               <button
                 onClick={() => mgmt.setCompletingBooking(null)}
-                className="flex-1 py-3.5 text-[11px] font-bold text-zinc-400 hover:bg-white/[0.03] transition-colors cursor-pointer"
+                className="flex-1 py-3.5 text-[12px] font-bold text-zinc-400 hover:bg-white/[0.03] transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
@@ -140,7 +140,7 @@ const BarberDashboard: FC = () => {
                 onClick={() => {
                   mgmt.handleComplete();
                 }}
-                className="flex-1 py-3.5 text-[11px] font-bold text-emerald-400 hover:bg-white/[0.03] transition-colors cursor-pointer"
+                className="flex-1 py-3.5 text-[12px] font-bold text-emerald-400 hover:bg-white/[0.03] transition-colors cursor-pointer"
               >
                 Confirmar
               </button>
@@ -160,7 +160,7 @@ const BarberDashboard: FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 text-center">
-              <p className="text-[15px] font-bold text-white mb-2">Enviar agradecimento?</p>
+              <p className="text-[16px] font-bold text-white mb-2">Enviar agradecimento?</p>
               <p className="text-[12px] text-zinc-400">
                 Abrir WhatsApp para agradecer{' '}
                 {formatDisplayName(mgmt.thankYouBooking.clients?.name)}?
@@ -169,14 +169,14 @@ const BarberDashboard: FC = () => {
             <div className="border-t border-white/[0.06] flex">
               <button
                 onClick={mgmt.handleCancelThankYou}
-                className="flex-1 py-3.5 text-[11px] font-bold text-zinc-400 hover:bg-white/[0.03] transition-colors cursor-pointer"
+                className="flex-1 py-3.5 text-[12px] font-bold text-zinc-400 hover:bg-white/[0.03] transition-colors cursor-pointer"
               >
                 Pular
               </button>
               <div className="w-px bg-white/[0.06]" />
               <button
                 onClick={mgmt.handleSendThankYou}
-                className="flex-1 py-3.5 text-[11px] font-bold text-emerald-400 hover:bg-white/[0.03] transition-colors cursor-pointer"
+                className="flex-1 py-3.5 text-[12px] font-bold text-emerald-400 hover:bg-white/[0.03] transition-colors cursor-pointer"
               >
                 Enviar
               </button>

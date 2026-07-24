@@ -11,20 +11,19 @@ const { mockGetUser, mockFrom, mockRemoveChannel } = vi.hoisted(() => ({
 }));
 
 let _chainResult: { data: unknown; error: unknown } = { data: [], error: null };
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let _lastChain: Record<string, (...args: unknown[]) => any> = {};
+let _lastChain: Record<string, (...args: unknown[]) => unknown> = {};
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function _buildChain(): Record<string, any> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const chain: Record<string, any> = {};
+function _buildChain(): Record<string, unknown> {
+  const chain: Record<string, unknown> = {};
   const methods = ['select', 'update', 'delete', 'eq', 'in', 'order', 'limit', 'maybeSingle'];
   for (const m of methods) {
     chain[m] = vi.fn().mockReturnValue(chain);
   }
   chain.then = vi
     .fn()
-    .mockImplementation((resolve: (v: any) => any) => Promise.resolve(_chainResult).then(resolve));
+    .mockImplementation((resolve: (v: unknown) => unknown) =>
+      Promise.resolve(_chainResult).then(resolve as (...args: unknown[]) => unknown)
+    );
   return chain;
 }
 

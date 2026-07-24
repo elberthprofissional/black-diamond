@@ -43,7 +43,7 @@ const CouponBadge: FC<CouponBadgeProps> = ({
       <div className="flex items-center gap-2">
         <Tag size={14} className="text-[#D4AF37]" />
         <span className="text-[12px] font-semibold text-[#D4AF37]">{code}</span>
-        <span className="text-[11px] text-zinc-400">
+        <span className="text-[12px] text-zinc-400">
           {formatDiscount(discountAmount, { decimals: true })}
         </span>
       </div>

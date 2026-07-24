@@ -107,7 +107,7 @@ const BarberStep: FC<BarberStepProps> = ({ selectedBarber, onSelectBarber, layou
                     {barber.name}
                   </p>
                   {barber.quote && (
-                    <p className="text-[11px] text-zinc-500 mt-1 line-clamp-2 italic">
+                    <p className="text-[12px] text-zinc-500 mt-1 line-clamp-2 italic">
                       &ldquo;{barber.quote}&rdquo;
                     </p>
                   )}

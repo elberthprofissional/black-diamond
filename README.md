@@ -18,7 +18,7 @@
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/version-3.23.0-blue?style=flat-square" alt="Version"/>
+    <img src="https://img.shields.io/badge/version-3.24.0-blue?style=flat-square" alt="Version"/>
     <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"/>
     <img src="https://img.shields.io/badge/build-passing-brightgreen?style=flat-square" alt="Build"/>
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React"/>
@@ -89,7 +89,7 @@
 
 | Funcionalidade | Descrição |
 |----------------|-----------|
-| **📊 Dashboard** | Métricas do dia, resumo de clientes/concluídos/cancelados/no-shows, faturamento |
+| **📊 Dashboard** | Layout responsivo 1440px, metricas do dia, cards de proximo cliente e lucro com proporcoes equilibradas, resumo de clientes/concluidos/cancelados/no-shows |
 | **📆 Agenda Semanal** | Visão completa da semana com horários ocupados/livres/bloqueados |
 | **👥 Gestão de Clientes** | Cards simplificados com status visual (bolinha verde/amarela/vermelha), filtros de lembrete |
 | **📋 Histórico do Cliente** | Lista completa de agendamentos com filtros, paginação e ocultar/restaurar |
@@ -234,7 +234,7 @@ Decisões de arquitetura documentadas em [`docs/adr/`](docs/adr/):
 
 | Tipo | Framework | Status |
 |------|-----------|--------|
-| **Unitários** | Vitest | 756+ testes |
+| **Unitários** | Vitest | 1162 testes |
 | **Integração** | Vitest + Supabase mock | APIs |
 | **E2E** | Playwright | Fluxos críticos |
 | **Visual** | TestSprite | 14/16 passando |

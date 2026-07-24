@@ -47,7 +47,7 @@ const DeleteModal: FC<DeleteModalProps> = ({ booking, onConfirm, onCancel }) => 
                   <X size={16} />
                 </button>
               </div>
-              <p className="text-[11px] text-zinc-500 leading-relaxed">
+              <p className="text-[12px] text-zinc-500 leading-relaxed">
                 O agendamento de{' '}
                 <span className="text-zinc-300">{formatDisplayName(booking.clients?.name)}</span>{' '}
                 será removido permanentemente.

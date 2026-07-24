@@ -1,22 +1,18 @@
 # DEPRECATION NOTICE — universal.sql
 
-> **Status:** DEPRECATED (a partir da v3.22.0)
-> **Substituto:** `supabase/migrations/` (001-008)
+> **Status:** REMOVIDO (v3.24.0)
+> **Substituto:** `supabase/migrations/` (001-006)
 
-## O que acontece
+## O que aconteceu
 
-O arquivo `supabase/universal.sql` e mantido apenas para retrocompatibilidade com instalacoes antigas. Novos projetos devem usar as migrations consolidadas.
+O arquivo `supabase/universal.sql` foi **removido** na v3.24.0.
 
-## Por que
+Era um monolito de 2130 linhas difícil de manter e que criava divergência com as migrations incrementais.
 
-- `universal.sql` (2130 linhas) e um monolito dificil de manter
-- Migrations (001-008) sao incrementais e idempotentes
-- Manter ambos cria divergencia de schema
+## Substituto oficial
 
-## Como migrar
+Use apenas as migrations consolidadas em `supabase/migrations/`:
 
-### Para instalacoes novas
-Use apenas `supabase/migrations/`:
 ```bash
 # Rodar todas as migrations em ordem
 for f in supabase/migrations/*.sql; do
@@ -24,24 +20,19 @@ for f in supabase/migrations/*.sql; do
 done
 ```
 
-### Para instalacoes existentes
-1. Compare o que `universal.sql` tem que as migrations nao tem
-2. Crie uma migration incremental (009_*.sql) para aplicar as diferencas
-3. Nao reexecute `universal.sql` em projetos existentes
-
-## O que as migrations cobrem
-
 | Arquivo | Conteudo |
 |---------|----------|
-| `001_schema.sql` | 20 tabelas + indexes + constraints + RLS enable |
+| `001_schema.sql` | 20+ tabelas + indexes + constraints + RLS enable |
 | `002_rls.sql` | Todas as politicas RLS + is_admin() + storage |
 | `003_functions.sql` | 30+ funcoes RPC (versoes finais) |
 | `004_triggers.sql` | Triggers de notificacao + realtime |
-| `005_seed_data.sql` | Dados iniciais + billing plans |
-| `006_cron.sql` | 6 cron jobs consolidados |
-| `007_reminder_logs.sql` | Logs de lembretes WhatsApp |
-| `008_multi_barber.sql` | Suporte multi-barbeiro |
+| `005_seed_cron.sql` | Dados iniciais + cron jobs |
+| `006_multi_barber.sql` | Multi-barber + cleanup mensalista |
 
-## NOTA
+## Seeds
 
-O `universal.sql` continua funcional e sera mantido funcionando, mas nao recebera novas funcionalidades. Use as migrations para todo o desenvolvimento futuro.
+Dados iniciais (depoimentos, etc) ficam em `supabase/seeds/`.
+
+## Para projetos antigos
+
+Se você ainda tem `universal.sql` no seu projeto, pode deletá-lo com segurança. As migrations 001-006 cobrem todo o schema necessário.

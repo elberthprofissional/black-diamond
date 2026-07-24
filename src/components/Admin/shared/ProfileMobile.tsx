@@ -65,14 +65,14 @@ const ProfileMobile: FC<ProfileMobileProps> = ({
             {showBalance ? <Eye size={20} /> : <EyeOff size={20} />}
           </button>
         </div>
-        <div className="space-y-1">
+        <div className="space-y-2">
           <h1 className="text-xl font-bold tracking-tight text-white">
             {greeting}, {barberName}
           </h1>
         </div>
       </div>
 
-      <div className="px-5 py-1 space-y-1">
+      <div className="px-5 py-1 space-y-2">
         <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
           Faturamento Total
         </p>
@@ -94,7 +94,7 @@ const ProfileMobile: FC<ProfileMobileProps> = ({
       </div>
 
       <div className="space-y-2">
-        <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest pl-5">
+        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-5">
           Ações Rápidas
         </span>
         <div className="flex gap-4 overflow-x-auto pb-2 px-5 scrollbar-hide snap-x w-full">
@@ -120,7 +120,7 @@ const ProfileMobile: FC<ProfileMobileProps> = ({
                   <Icon size={18} className="transition-transform group-hover:scale-110" />
                 </div>
                 <span
-                  className={`text-[9px] font-bold uppercase tracking-widest transition-colors ${isHighlight ? 'text-[#D4AF37]' : 'text-zinc-500 group-hover:text-zinc-300'}`}
+                  className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${isHighlight ? 'text-[#D4AF37]' : 'text-zinc-500 group-hover:text-zinc-300'}`}
                 >
                   {action.label}
                 </span>
@@ -131,13 +131,13 @@ const ProfileMobile: FC<ProfileMobileProps> = ({
       </div>
 
       <div className="flex items-center justify-between border-b border-white/[0.04] pb-2 pt-2 px-5">
-        <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
           Resumo do Período
         </span>
         <div className="flex gap-4">
           <button
             onClick={() => setTimeRange('week')}
-            className={`relative pb-2 text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${timeRange === 'week' ? 'text-[#D4AF37]' : 'text-zinc-500 hover:text-zinc-300'}`}
+            className={`relative pb-2 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${timeRange === 'week' ? 'text-[#D4AF37]' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             {timeRange === 'week' && (
               <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#D4AF37] rounded-full" />
@@ -146,7 +146,7 @@ const ProfileMobile: FC<ProfileMobileProps> = ({
           </button>
           <button
             onClick={() => setTimeRange('month')}
-            className={`relative pb-2 text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${timeRange === 'month' ? 'text-[#D4AF37]' : 'text-zinc-500 hover:text-zinc-300'}`}
+            className={`relative pb-2 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${timeRange === 'month' ? 'text-[#D4AF37]' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             {timeRange === 'month' && (
               <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#D4AF37] rounded-full" />
@@ -165,24 +165,24 @@ const ProfileMobile: FC<ProfileMobileProps> = ({
             </span>
           </div>
           <div className="grid grid-cols-2 gap-4 divide-x divide-white/[0.04]">
-            <div className="space-y-1">
-              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest block">
+            <div className="space-y-2">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">
                 Faturamento
               </span>
               <div className="text-base font-bold text-[#D4AF37] tabular-nums">
                 {showBalance ? formatPrice(timeRange === 'week' ? lucroSemana : lucroMes) : '••••'}
               </div>
             </div>
-            <div className="space-y-1 pl-4">
-              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest block">
+            <div className="space-y-2 pl-4">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">
                 Atendimentos
               </span>
               <div className="text-base font-bold text-white tabular-nums">{currentConcluidos}</div>
             </div>
           </div>
           <div className="pt-2 border-t border-white/[0.03] flex justify-center">
-            <div className="space-y-1 text-center">
-              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest block">
+            <div className="space-y-2 text-center">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">
                 Cancelamentos
               </span>
               <div className="text-base font-bold text-red-500/70 tabular-nums">
@@ -199,15 +199,15 @@ const ProfileMobile: FC<ProfileMobileProps> = ({
             </span>
           </div>
           {topServices.length > 0 && topServices.some((s) => s.count > 0) ? (
-            <div className="space-y-3 pt-1">
+            <div className="space-y-4 pt-1">
               {topServices
                 .filter((s) => s.count > 0)
                 .map((srv, idx) => {
                   const maxCount = Math.max(...topServices.map((s) => s.count));
                   const percentage = maxCount > 0 ? (srv.count / maxCount) * 100 : 0;
                   return (
-                    <div key={idx} className="space-y-1">
-                      <div className="flex items-center justify-between text-[11px]">
+                    <div key={idx} className="space-y-2">
+                      <div className="flex items-center justify-between text-[12px]">
                         <span className="font-bold text-zinc-300">{srv.name}</span>
                         <span className="font-bold text-[#D4AF37] tabular-nums">{srv.count}x</span>
                       </div>
@@ -222,7 +222,7 @@ const ProfileMobile: FC<ProfileMobileProps> = ({
                 })}
             </div>
           ) : (
-            <p className="text-[9px] text-zinc-600 uppercase tracking-widest text-center py-6">
+            <p className="text-[10px] text-zinc-600 uppercase tracking-widest text-center py-6">
               Nenhum serviço no período
             </p>
           )}

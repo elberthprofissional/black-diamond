@@ -1,12 +1,3 @@
-/**
- * Google Reviews integration utilities.
- *
- * The Google Place ID is stored in Supabase edge function secrets
- * (GOOGLE_PLACE_ID). For the public review link, we store it in the
- * settings table as 'google_place_id' so the frontend can generate
- * the review URL without exposing the API key.
- */
-
 import { supabase } from './supabase';
 
 /** Cache for the place ID to avoid repeated DB queries */
@@ -16,6 +7,7 @@ let fetchPromise: Promise<string | null> | null = null;
 /**
  * Fetches the Google Place ID from the settings table.
  * Caches the result for the session lifetime.
+ * (Usado pelo ReviewRequestModal para abrir link de avaliação)
  */
 export async function getGooglePlaceId(): Promise<string | null> {
   if (cachedPlaceId !== null) return cachedPlaceId;
@@ -42,17 +34,10 @@ export async function getGooglePlaceId(): Promise<string | null> {
 
 /**
  * Generates a Google "Write a Review" URL for the given place ID.
- * Opens directly to the review compose modal on Google Maps.
+ * (Usado pelo ReviewRequestModal) — apenas gera link, sem chamar API
  */
 export function getGoogleReviewUrl(placeId: string): string {
   return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}`;
-}
-
-/**
- * Generates a Google Maps link to view all reviews.
- */
-export function getGoogleReviewsViewUrl(placeId: string): string {
-  return `https://search.google.com/local/reviews?placeid=${encodeURIComponent(placeId)}`;
 }
 
 /**

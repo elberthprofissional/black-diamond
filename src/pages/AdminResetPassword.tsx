@@ -177,10 +177,10 @@ const AdminResetPassword: FC = () => {
 
           <form onSubmit={handleUpdate} className="w-full space-y-6 lg:space-y-8">
             <div className="space-y-4 lg:space-y-8">
-              <div className="space-y-2 lg:space-y-3">
+              <div className="space-y-2 lg:space-y-4">
                 <label
                   htmlFor="reset-password"
-                  className="text-[9px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0"
+                  className="text-[10px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0"
                 >
                   Nova Senha
                 </label>
@@ -208,10 +208,10 @@ const AdminResetPassword: FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-2 lg:space-y-3">
+              <div className="space-y-2 lg:space-y-4">
                 <label
                   htmlFor="reset-confirm-password"
-                  className="text-[9px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0"
+                  className="text-[10px] font-black lg:font-medium text-zinc-500 uppercase tracking-[0.4em] lg:tracking-[0.3em] ml-1 lg:ml-0"
                 >
                   Confirmar Senha
                 </label>
@@ -245,7 +245,7 @@ const AdminResetPassword: FC = () => {
               whileTap={{ scale: 0.99 }}
               type="submit"
               disabled={isUpdating}
-              className="w-full h-14 lg:h-14 bg-[#D4AF37] text-black font-black uppercase tracking-[0.5em] text-[11px] rounded-2xl lg:rounded-xl hover:bg-white transition-all flex items-center justify-center gap-3 group lg:mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-14 lg:h-14 bg-[#D4AF37] text-black font-black uppercase tracking-[0.5em] text-[12px] rounded-2xl lg:rounded-xl hover:bg-white transition-all flex items-center justify-center gap-3 group lg:mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span>{isUpdating ? 'Salvando...' : 'Salvar'}</span>
               {!isUpdating && (

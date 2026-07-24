@@ -82,7 +82,7 @@ const BookingMobileProgress: FC<BookingMobileProgressProps> = ({ step, stepTitle
                 }`}
               />
               <span
-                className={`text-[9px] font-bold mt-1.5 transition-colors duration-500 tracking-wider text-center ${
+                className={`text-[10px] font-bold mt-1.5 transition-colors duration-500 tracking-wider text-center ${
                   isActive ? 'text-[#D4AF37]' : isCompleted ? 'text-zinc-400' : 'text-zinc-600'
                 }`}
               >

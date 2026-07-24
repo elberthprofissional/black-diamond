@@ -3,11 +3,9 @@ import { createClient } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { useToast } from './useToast';
-import { useAuditLog } from './useAuditLog';
 
 export function useClientCreation(loadData: () => Promise<void>) {
   const { showSuccess } = useToast();
-  const { log } = useAuditLog();
   const [isCreatingClient, setIsCreatingClient] = useState(false);
   const [newClientName, setNewClientName] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
@@ -82,7 +80,6 @@ export function useClientCreation(loadData: () => Promise<void>) {
         notes: newClientNotes.trim() || undefined,
         manually_added: true,
       });
-      log({ action: 'client_created', details: { name, phone } });
       setIsCreatingClient(false);
       resetNewClientForm();
       showSuccess('Cliente criado com sucesso!');
@@ -100,7 +97,6 @@ export function useClientCreation(loadData: () => Promise<void>) {
     showSuccess,
     loadData,
     resetNewClientForm,
-    log,
   ]);
 
   return {

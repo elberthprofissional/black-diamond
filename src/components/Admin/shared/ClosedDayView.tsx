@@ -12,7 +12,7 @@ const ClosedDayView: FC = () => {
     >
       <Lock size={32} className="text-zinc-600 mb-6" />
 
-      <h2 className="text-[15px] font-bold text-white mb-2">Barbearia fechada</h2>
+      <h2 className="text-[16px] font-bold text-white mb-2">Barbearia fechada</h2>
       <p className="text-[12px] text-zinc-500 max-w-[260px] leading-relaxed">
         Hoje não tem expediente. Aproveita o dia e volte no próximo horário de funcionamento!
       </p>

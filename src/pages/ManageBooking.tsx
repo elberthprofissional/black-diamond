@@ -85,7 +85,7 @@ const ManageBooking: FC = () => {
               className="text-[#D4AF37] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
             />
           </div>
-          <p className="text-[11px] text-zinc-500 tracking-wide">Carregando agendamentos...</p>
+          <p className="text-[12px] text-zinc-500 tracking-wide">Carregando agendamentos...</p>
         </div>
       </div>
     );
@@ -100,9 +100,9 @@ const ManageBooking: FC = () => {
               <X size={28} className="text-red-400" />
             </div>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             <h1 className="text-xl font-bold text-white tracking-tight">Link inválido</h1>
-            <p className="text-[13px] text-zinc-500 leading-relaxed max-w-[260px] mx-auto">
+            <p className="text-[14px] text-zinc-500 leading-relaxed max-w-[260px] mx-auto">
               {error}
             </p>
           </div>
@@ -149,7 +149,7 @@ const ManageBooking: FC = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-3 mb-5">
                 <div className="h-px flex-1 bg-gradient-to-r from-[#D4AF37]/20 to-transparent" />
-                <p className="text-[9px] font-bold text-[#D4AF37]/50 uppercase tracking-[0.25em]">
+                <p className="text-[10px] font-bold text-[#D4AF37]/50 uppercase tracking-[0.25em]">
                   Agendamentos ativos
                 </p>
                 <div className="h-px flex-1 bg-gradient-to-l from-[#D4AF37]/20 to-transparent" />
@@ -179,7 +179,7 @@ const ManageBooking: FC = () => {
                             <Calendar size={16} className="text-[#D4AF37]" />
                           </div>
                           <div>
-                            <p className="text-[15px] font-bold text-white tracking-tight">
+                            <p className="text-[16px] font-bold text-white tracking-tight">
                               {formatDateBR(booking.booking_date)}
                             </p>
                             <div className="flex items-center gap-1.5 mt-0.5">
@@ -193,7 +193,7 @@ const ManageBooking: FC = () => {
 
                         {/* Status Badge */}
                         <div
-                          className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                          className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                             booking.status === 'confirmed'
                               ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                               : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
@@ -220,7 +220,7 @@ const ManageBooking: FC = () => {
                       <div className="flex items-center justify-between pl-[52px]">
                         <div className="flex items-center gap-1.5">
                           <DollarSign size={13} className="text-[#D4AF37]/60" />
-                          <span className="text-[15px] font-bold text-white tabular-nums">
+                          <span className="text-[16px] font-bold text-white tabular-nums">
                             {formatPrice(booking.total_price, { locale: true })}
                           </span>
                         </div>
@@ -258,8 +258,8 @@ const ManageBooking: FC = () => {
 
           {/* Cancelled Bookings */}
           {cancelledBookings.length > 0 && (
-            <div className="space-y-3 mt-8">
-              <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.25em] mb-4">
+            <div className="space-y-4 mt-8">
+              <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.25em] mb-4">
                 Cancelados
               </p>
               {cancelledBookings.map((booking) => (
@@ -276,7 +276,7 @@ const ManageBooking: FC = () => {
                         {String(booking.booking_time).slice(0, 5)}
                       </span>
                     </div>
-                    <span className="text-[9px] text-zinc-700 uppercase tracking-wider">
+                    <span className="text-[10px] text-zinc-700 uppercase tracking-wider">
                       Cancelado
                     </span>
                   </div>
@@ -295,8 +295,8 @@ const ManageBooking: FC = () => {
               <div className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mx-auto mb-5">
                 <Calendar size={24} className="text-zinc-600" />
               </div>
-              <p className="text-[13px] text-zinc-500 mb-1">Nenhum agendamento encontrado</p>
-              <p className="text-[11px] text-zinc-600">Solicite um novo link ao barbeiro</p>
+              <p className="text-[14px] text-zinc-500 mb-1">Nenhum agendamento encontrado</p>
+              <p className="text-[12px] text-zinc-600">Solicite um novo link ao barbeiro</p>
             </motion.div>
           )}
 
@@ -310,7 +310,7 @@ const ManageBooking: FC = () => {
                 className="fixed bottom-8 left-4 right-4 z-[200]"
               >
                 <div className="max-w-lg mx-auto bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-center gap-3 backdrop-blur-sm">
-                  <span className="text-[11px] text-red-400">{error}</span>
+                  <span className="text-[12px] text-red-400">{error}</span>
                   <button
                     onClick={() => setError('')}
                     className="ml-auto text-red-400 hover:text-red-300 cursor-pointer"

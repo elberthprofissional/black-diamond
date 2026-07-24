@@ -46,7 +46,7 @@ export default function NotificationDetail({ notif, onBack, onClose }: Notificat
         >
           <ChevronLeft size={20} />
         </button>
-        <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+        <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">
           {isCancelled ? 'Cancelado' : 'Agendamento'}
         </span>
         <button
@@ -65,10 +65,10 @@ export default function NotificationDetail({ notif, onBack, onClose }: Notificat
             <div className="flex items-center gap-3 px-4 py-3.5 bg-amber-500/[0.06] border border-amber-500/15 rounded-xl">
               <AlertTriangle size={18} className="text-amber-400 shrink-0" />
               <div>
-                <p className="text-[13px] font-bold text-amber-400">
+                <p className="text-[14px] font-bold text-amber-400">
                   Cliente com faltas acumuladas
                 </p>
-                <p className="text-[11px] text-amber-400/60">{data.services}</p>
+                <p className="text-[12px] text-amber-400/60">{data.services}</p>
               </div>
             </div>
 
@@ -79,7 +79,7 @@ export default function NotificationDetail({ notif, onBack, onClose }: Notificat
                   {data.clientName.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[15px] font-bold text-white truncate">{data.clientName}</p>
+                  <p className="text-[16px] font-bold text-white truncate">{data.clientName}</p>
                   <p className="text-[12px] text-zinc-500 tabular-nums">
                     {formatPhone(data.clientPhone)}
                   </p>
@@ -95,7 +95,7 @@ export default function NotificationDetail({ notif, onBack, onClose }: Notificat
                     `Olá ${data.clientName}! Tudo bem? 👋\n\nVi aqui que você teve ${data.services} por aqui.\n\nVamos conversar? Bora ajustar isso! 💈`
                   )
                 }
-                className="w-full h-12 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 font-bold text-[11px] uppercase tracking-[0.12em] transition-all cursor-pointer flex items-center justify-center gap-2.5 rounded-xl active:scale-[0.98]"
+                className="w-full h-12 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 font-bold text-[12px] uppercase tracking-[0.12em] transition-all cursor-pointer flex items-center justify-center gap-2.5 rounded-xl active:scale-[0.98]"
               >
                 <WhatsAppIcon className="w-5 h-5" />
                 Conversar no WhatsApp
@@ -118,8 +118,8 @@ export default function NotificationDetail({ notif, onBack, onClose }: Notificat
               <div className="flex items-center gap-3 px-4 py-3.5 bg-red-500/[0.06] border border-red-500/15 rounded-xl">
                 <AlertTriangle size={18} className="text-red-400 shrink-0" />
                 <div>
-                  <p className="text-[13px] font-bold text-red-400">Agendamento Cancelado</p>
-                  <p className="text-[11px] text-red-400/60">
+                  <p className="text-[14px] font-bold text-red-400">Agendamento Cancelado</p>
+                  <p className="text-[12px] text-red-400/60">
                     Este agendamento não está mais ativo.
                   </p>
                 </div>
@@ -133,7 +133,7 @@ export default function NotificationDetail({ notif, onBack, onClose }: Notificat
                   {data.clientName.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[15px] font-bold text-white truncate">{data.clientName}</p>
+                  <p className="text-[16px] font-bold text-white truncate">{data.clientName}</p>
                   <p className="text-[12px] text-zinc-500 tabular-nums">
                     {formatPhone(data.clientPhone)}
                   </p>
@@ -145,11 +145,11 @@ export default function NotificationDetail({ notif, onBack, onClose }: Notificat
             <div className="flex gap-2">
               <div className="flex-1 flex items-center gap-2.5 px-3.5 py-2.5 bg-white/[0.02] border border-white/[0.04] rounded-xl">
                 <CalendarDays size={16} className="text-zinc-500 shrink-0" />
-                <span className="text-[13px] text-zinc-300">{date}</span>
+                <span className="text-[14px] text-zinc-300">{date}</span>
               </div>
               <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-[#D4AF37]/[0.06] border border-[#D4AF37]/15 rounded-xl">
                 <Clock size={16} className="text-[#D4AF37] shrink-0" />
-                <span className="text-[13px] text-[#D4AF37] font-bold">{timeRaw}</span>
+                <span className="text-[14px] text-[#D4AF37] font-bold">{timeRaw}</span>
               </div>
             </div>
 
@@ -162,7 +162,7 @@ export default function NotificationDetail({ notif, onBack, onClose }: Notificat
                 {services.map((s: string, i: number) => (
                   <div key={i} className="flex items-center gap-2.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]/50 shrink-0" />
-                    <span className="text-[13px] text-zinc-300">{s}</span>
+                    <span className="text-[14px] text-zinc-300">{s}</span>
                   </div>
                 ))}
               </div>
@@ -171,7 +171,7 @@ export default function NotificationDetail({ notif, onBack, onClose }: Notificat
                 <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
                   Total
                 </span>
-                <span className="text-[18px] font-black text-[#D4AF37] tabular-nums">
+                <span className="text-[16px] font-black text-[#D4AF37] tabular-nums">
                   {data.totalPrice}
                 </span>
               </div>
@@ -181,7 +181,7 @@ export default function NotificationDetail({ notif, onBack, onClose }: Notificat
             {isCancelled ? (
               <button
                 onClick={() => window.open(`https://wa.me/${cleanPhone}`, '_blank')}
-                className="w-full h-11 bg-white/[0.04] border border-white/[0.06] text-zinc-300 hover:bg-white/[0.06] hover:text-white rounded-xl transition-all text-[11px] font-bold uppercase tracking-[0.12em] cursor-pointer flex items-center justify-center gap-2"
+                className="w-full h-11 bg-white/[0.04] border border-white/[0.06] text-zinc-300 hover:bg-white/[0.06] hover:text-white rounded-xl transition-all text-[12px] font-bold uppercase tracking-[0.12em] cursor-pointer flex items-center justify-center gap-2"
               >
                 <Send size={14} /> Falar com Cliente
               </button>
@@ -193,7 +193,7 @@ export default function NotificationDetail({ notif, onBack, onClose }: Notificat
                       `✅ *Agendamento confirmado, ${data.clientName}!*\n\nNa *Black Diamond*\n\n✂️ ${data.services}\n📅 ${data.dateTime}\n💰 ${data.totalPrice}\n\n🔗 *Para cancelar ou reagendar:*\n${data.manageUrl}\n\nAguardamos você! 💈`
                     )
                   }
-                  className="w-full h-11 bg-[#D4AF37] text-black hover:bg-[#b8962e] font-bold text-[11px] uppercase tracking-[0.12em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl active:scale-[0.98]"
+                  className="btn-gold w-full h-11 flex items-center justify-center gap-2"
                 >
                   <WhatsAppIcon className="w-4 h-4" />
                   Enviar Lembrete

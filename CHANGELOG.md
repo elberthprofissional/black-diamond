@@ -5,6 +5,48 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.24.0] - 2026-07-24
+
+### Changed
+- **Admin layout reestruturado** — Container principal expandido de 1100px para 1440px (~85% da tela Full HD). Padding xl maior (xl:px-12). Eliminadas areas mortas em monitores grandes.
+- **Dashboard reestruturado** — Titulo "Agenda do Dia" e FilterTabs agora na mesma linha (flex-row). "X clientes hoje" movido para abaixo dos FilterTabs. Hierarquia visual: Titulo > Filtros > Resumo > Cards > Lista.
+- **Cards do Dashboard com proporcoes** — "Proximo Cliente" usa flex-[2] e "Lucro do Dia" flex-1. Proporcao 2:1 de verdade. Cards sempre lado a lado, inclusive no mobile.
+- **Mobile responsivo** — Cards do Dashboard empilham no mobile (flex-col sm:flex-row). Fontes menores em telas estreitas. FilterTabs empilham abaixo do titulo no mobile.
+- **Agenda Semanal** — Titulo e data na mesma linha. FilterTabs com borda propria (border-b). Container usa o novo max-w de 1440px.
+- **Meus Clientes** — Grid ajustado para 2/3/4/5 colunas (antes 3/4/5/6). Cards com 3 linhas (nome, telefone, ultimo corte separados). Container em 1440px.
+- **FilterTabs redesenhado** — Labels em uppercase com tracking mais largo. Count badges menores e mais compactos.
+- **ReminderFilterTabs** — Mesmo estilo dos FilterTabs principais.
+- **Paineis (Ocupados/Livres/Bloqueados)** — spacing-y-3 entre itens. Horarios em cor dourada (#D4AF37) com font-black. Separadores verticais mais altos (h-4). Rounded-xl consistente.
+- **OccupiedBookingRow** — Mais padding (py-3, px-4). Horario em dourado. Separador vertical entre hora e nome.
+- **Services.tsx** — Lista centralizada com max-w-2xl mx-auto. Grid de clientes com gap-4 e p-4.
+- **Localizacao** — Embed do Google Maps corrigido para usar endereco completo (Av. Brasilio da Gama, 139, Tupi, BH) em vez de coordenadas fixas que apontavam para a Pampulha.
+
+### Added
+- **Botao "Acesso Restrito" no Footer** — Link para /admin/login com icone de cadeado. Posicionado abaixo do copyright.
+
+### Removed
+- **Texto "Para mais, siga a gente no Instagram"** — Removido do componente Gallery.
+
+## [3.23.2] - 2026-07-24
+
+### Changed
+- **Footer simplificado** — Removida secao de menu (Home, Sobre, Servicos, Galeria, Localizacao) e texto "BLACK DIAMOND" ao lado da logo. Logo aumentada (w-24/h-24 mobile, w-32/h-32 desktop). Grid ajustado para 3 colunas.
+- **Location simplificado** — Removida grade de informacoes (endereco, horarios, WhatsApp, redes sociais) abaixo do mapa. Componente agora renderiza apenas o iframe do Google Maps.
+- **Hero com fallback de cor** — BrandColor agora e validado; se nao for hex valido, usa dourado (#D4AF37) como fallback.
+- **Mocks do Supabase completados** — AdminClients.test.tsx e Gallery.test.tsx agora incluem todos os metodos da query chain (gte, lte, in, etc), eliminando warnings nos testes.
+- **Testes corrigidos** — Footer.test.tsx e Location.test.tsx atualizados para refletir mudancas nos componentes. Lint erros corrigidos (curly braces).
+
+## [3.23.1] - 2026-07-24
+
+### Added
+- **6 novos arquivos de teste** — `testimonials.test.ts`, `barbers.test.ts`, `NotificationDetail.test.tsx`, `NotificationFilters.test.tsx`, `NotificationItem.test.tsx`, `HistoryView.test.tsx`.
+- **85 novos testes** — Cobertura de 0% para 100% nos componentes de notificação, histórico e APIs de barbeiros/depoimentos.
+
+### Changed
+- **Cobertura melhorada** — Branches: 50.84% → 55.13% (+4.29%), Functions: 57.56% → 60.34% (+2.78%).
+- **Testes totais**: 1077 → **1162** (105 arquivos).
+- **Formatação corrigida** — `npm run format` aplicado em 22 arquivos com formatação inconsistente.
+
 ## [3.23.0] - 2026-07-22
 
 ### Added

@@ -39,11 +39,33 @@ vi.mock('../../../lib/api', () => ({
   getAvailableSlots: vi.fn().mockResolvedValue(['09:00', '10:00', '11:00']),
 }));
 
-vi.mock('../../../lib/utils', () => ({
-  getLocalDateString: vi.fn(() => '2026-07-22'),
-  formatDisplayName: vi.fn((name: string) => name),
-  formatPricePublic: vi.fn((price: number) => `R$ ${price.toFixed(2)}`),
-}));
+vi.mock('../../../lib/utils', () => {
+  let counter = 0;
+  const dates = [
+    '2026-07-22',
+    '2026-07-23',
+    '2026-07-24',
+    '2026-07-25',
+    '2026-07-27',
+    '2026-07-28',
+    '2026-07-29',
+    '2026-07-30',
+    '2026-07-31',
+    '2026-08-01',
+    '2026-08-03',
+    '2026-08-04',
+    '2026-08-05',
+  ];
+  return {
+    getLocalDateString: vi.fn(() => {
+      const d = dates[counter % dates.length];
+      counter++;
+      return d;
+    }),
+    formatDisplayName: vi.fn((name: string) => name),
+    formatPricePublic: vi.fn((price: number) => `R$ ${price.toFixed(2)}`),
+  };
+});
 
 import RescheduleWizard from './RescheduleWizard';
 import type { Service, BookingWithClient } from '../../../types';

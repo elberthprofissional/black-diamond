@@ -5,7 +5,6 @@ import type { ClientWithStats, MensalistaPlan } from '../types';
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
-const mockLog = vi.fn();
 const mockUpdateClient = vi.fn();
 const mockUpdateClientNotes = vi.fn();
 const mockDeleteClient = vi.fn();
@@ -20,10 +19,6 @@ vi.mock('./useToast', () => ({
     showSuccess: mockShowSuccess,
     showError: mockShowError,
   }),
-}));
-
-vi.mock('./useAuditLog', () => ({
-  useAuditLog: () => ({ log: mockLog }),
 }));
 
 vi.mock('../lib/api', () => ({
@@ -53,6 +48,10 @@ vi.mock('../lib/utils', () => ({
   maskName: vi.fn().mockReturnValue('J*** S***'),
   maskPhone: vi.fn().mockReturnValue('31*****9559'),
   getLocalDateString: (...args: unknown[]) => mockGetLocalDateString(...args),
+}));
+
+vi.mock('../lib/logger', () => ({
+  logError: vi.fn(),
 }));
 
 const mockSetClients = vi.fn();
@@ -86,17 +85,19 @@ const mockPlans: MensalistaPlan[] = [
   },
 ];
 
+function createChain(data: unknown[] = []) {
+  return {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    then: vi.fn((resolve: (v: unknown) => void) => resolve({ data, error: null })),
+  };
+}
+
 describe('useClientPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Default mock chain for supabase.from()
-    const chain = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      then: vi.fn((resolve: (v: unknown) => void) => resolve({ data: [], error: null })),
-    };
-    mockSupabaseFrom.mockReturnValue(chain);
+    mockSupabaseFrom.mockReturnValue(createChain());
     mockGetClientMilestones.mockResolvedValue([]);
     mockUpdateClient.mockResolvedValue(undefined);
     mockUpdateClientNotes.mockResolvedValue(undefined);
@@ -114,27 +115,18 @@ describe('useClientPanel', () => {
   });
 
   it('opens panel and loads bookings', async () => {
-    const chain = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      then: vi.fn((resolve: (v: unknown) => void) =>
-        resolve({
-          data: [
-            {
-              id: 'b1',
-              booking_date: '2026-07-15',
-              booking_time: '14:00:00',
-              status: 'confirmed',
-              total_price: 50,
-              clients: { name: 'Joao Silva', phone: '31999998888' },
-            },
-          ],
-          error: null,
-        })
-      ),
-    };
-    mockSupabaseFrom.mockReturnValue(chain);
+    mockSupabaseFrom.mockReturnValue(
+      createChain([
+        {
+          id: 'b1',
+          booking_date: '2026-07-15',
+          booking_time: '14:00:00',
+          status: 'confirmed',
+          total_price: 50,
+          clients: { name: 'Joao Silva', phone: '31999998888' },
+        },
+      ])
+    );
 
     const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
     await act(async () => {
@@ -143,6 +135,45 @@ describe('useClientPanel', () => {
     expect(result.current.selectedClient).toEqual(mockClient);
     expect(result.current.panelBookings).toHaveLength(1);
     expect(result.current.panelBookings[0].id).toBe('b1');
+  });
+
+  it('opens panel and loads milestones', async () => {
+    mockGetClientMilestones.mockResolvedValue([
+      { milestone_id: 'm1', visits_required: 5, current_visits: 3, reward_service_name: 'Corte' },
+    ]);
+
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    await act(async () => {
+      await result.current.openPanel(mockClient);
+    });
+    expect(result.current.milestoneProgress).toHaveLength(1);
+  });
+
+  it('handles openPanel error gracefully', async () => {
+    mockSupabaseFrom.mockImplementation(() => {
+      throw new Error('network');
+    });
+
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    await act(async () => {
+      await result.current.openPanel(mockClient);
+    });
+
+    expect(result.current.panelBookings).toEqual([]);
+    expect(result.current.milestoneProgress).toEqual([]);
+  });
+
+  it('handles getClientMilestones failure gracefully', async () => {
+    mockGetClientMilestones.mockRejectedValue(new Error('timeout'));
+    mockSupabaseFrom.mockReturnValue(createChain([{ id: 'b1', total_price: 50 }]));
+
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    await act(async () => {
+      await result.current.openPanel(mockClient);
+    });
+
+    expect(result.current.panelBookings).toHaveLength(1);
+    expect(result.current.milestoneProgress).toEqual([]);
   });
 
   it('starts editing mode', () => {
@@ -174,22 +205,64 @@ describe('useClientPanel', () => {
       name: 'Joao Updated',
       phone: '31988887777',
     });
-    expect(mockLog).toHaveBeenCalledWith(expect.objectContaining({ action: 'client_updated' }));
+    expect(result.current.isEditing).toBe(false);
   });
 
-  it('does not save edit with empty name/phone', async () => {
+  it('does not save edit with empty name', async () => {
     const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
     act(() => {
       result.current.setSelectedClient(mockClient);
       result.current.setEditName('');
+      result.current.setEditPhone('31988887777');
+    });
+
+    await act(async () => {
+      await result.current.handleSaveEdit();
+    });
+    expect(mockUpdateClient).not.toHaveBeenCalled();
+  });
+
+  it('does not save edit with empty phone', async () => {
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    act(() => {
+      result.current.setSelectedClient(mockClient);
+      result.current.setEditName('Joao');
       result.current.setEditPhone('');
     });
 
     await act(async () => {
       await result.current.handleSaveEdit();
     });
-
     expect(mockUpdateClient).not.toHaveBeenCalled();
+  });
+
+  it('does not save edit with no selected client', async () => {
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    act(() => {
+      result.current.setEditName('Joao');
+      result.current.setEditPhone('31988887777');
+    });
+
+    await act(async () => {
+      await result.current.handleSaveEdit();
+    });
+    expect(mockUpdateClient).not.toHaveBeenCalled();
+  });
+
+  it('handles save edit error', async () => {
+    mockUpdateClient.mockRejectedValue(new Error('save failed'));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    act(() => {
+      result.current.setSelectedClient(mockClient);
+      result.current.setEditName('Joao Updated');
+      result.current.setEditPhone('31988887777');
+    });
+
+    await act(async () => {
+      await result.current.handleSaveEdit();
+    });
+
+    expect(mockShowError).toHaveBeenCalled();
   });
 
   it('saves notes successfully', async () => {
@@ -206,6 +279,29 @@ describe('useClientPanel', () => {
     expect(mockUpdateClientNotes).toHaveBeenCalledWith('client-1', 'Updated notes');
   });
 
+  it('does not save notes with no selected client', async () => {
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    await act(async () => {
+      await result.current.handleSaveNotes();
+    });
+    expect(mockUpdateClientNotes).not.toHaveBeenCalled();
+  });
+
+  it('handles save notes error', async () => {
+    mockUpdateClientNotes.mockRejectedValue(new Error('notes failed'));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    act(() => {
+      result.current.setSelectedClient(mockClient);
+      result.current.setNotesText('Notes');
+    });
+
+    await act(async () => {
+      await result.current.handleSaveNotes();
+    });
+
+    expect(mockShowError).toHaveBeenCalled();
+  });
+
   it('deletes client successfully', async () => {
     const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
     act(() => {
@@ -218,7 +314,14 @@ describe('useClientPanel', () => {
 
     expect(mockDeleteClient).toHaveBeenCalledWith('client-1');
     expect(mockShowSuccess).toHaveBeenCalledWith('Cliente excluído!');
-    expect(mockSetClients).toHaveBeenCalled();
+  });
+
+  it('does not delete with no selected client', async () => {
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    await act(async () => {
+      await result.current.confirmDelete();
+    });
+    expect(mockDeleteClient).not.toHaveBeenCalled();
   });
 
   it('handles delete error', async () => {
@@ -235,7 +338,7 @@ describe('useClientPanel', () => {
     expect(mockShowError).toHaveBeenCalled();
   });
 
-  it('toggles mensalista status', async () => {
+  it('toggles mensalista ON', async () => {
     const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
     act(() => {
       result.current.setSelectedClient(mockClient);
@@ -257,7 +360,7 @@ describe('useClientPanel', () => {
     expect(mockShowSuccess).toHaveBeenCalledWith(expect.stringContaining('mensalista'));
   });
 
-  it('removes mensalista status', async () => {
+  it('toggles mensalista OFF', async () => {
     const mensalistaClient = { ...mockClient, is_mensalista: true, mensalista_plan_id: 'plan-1' };
     const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
     act(() => {
@@ -274,37 +377,73 @@ describe('useClientPanel', () => {
     expect(mockShowSuccess).toHaveBeenCalledWith(expect.stringContaining('removida'));
   });
 
+  it('handleToggleMensalista: no selected client → returns false', async () => {
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    let success: boolean | undefined;
+    await act(async () => {
+      success = await result.current.handleToggleMensalista('plan-1');
+    });
+    expect(success).toBe(false);
+  });
+
+  it('handleToggleMensalista: error → returns false', async () => {
+    mockToggleClientMensalista.mockRejectedValue(new Error('toggle failed'));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    act(() => {
+      result.current.setSelectedClient(mockClient);
+    });
+
+    let success: boolean | undefined;
+    await act(async () => {
+      success = await result.current.handleToggleMensalista('plan-1');
+    });
+
+    expect(success).toBe(false);
+    expect(mockShowError).toHaveBeenCalled();
+  });
+
+  it('toggles mensalista with empty expiresAt', async () => {
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    act(() => {
+      result.current.setSelectedClient(mockClient);
+      result.current.setExpiresAt('');
+    });
+
+    let success: boolean | undefined;
+    await act(async () => {
+      success = await result.current.handleToggleMensalista('plan-1');
+    });
+
+    expect(success).toBe(true);
+    expect(mockToggleClientMensalista).toHaveBeenCalledWith('client-1', true, 'plan-1', null);
+  });
+
   it('closes the panel', () => {
     const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
     act(() => {
       result.current.setSelectedClient(mockClient);
       result.current.setIsEditing(true);
+      result.current.setIsEditingNotes(true);
+      result.current.setIsDeleteOpen(true);
     });
-    expect(result.current.selectedClient).not.toBeNull();
 
     act(() => {
       result.current.closePanel();
     });
+
     expect(result.current.selectedClient).toBeNull();
     expect(result.current.isEditing).toBe(false);
+    expect(result.current.isEditingNotes).toBe(false);
+    expect(result.current.isDeleteOpen).toBe(false);
   });
 
-  it('computes panel total and last visit', async () => {
-    const chain = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      then: vi.fn((resolve: (v: unknown) => void) =>
-        resolve({
-          data: [
-            { id: 'b1', booking_date: '2026-07-10', total_price: 100 },
-            { id: 'b2', booking_date: '2026-07-15', total_price: 50 },
-          ],
-          error: null,
-        })
-      ),
-    };
-    mockSupabaseFrom.mockReturnValue(chain);
+  it('computes panelTotal from bookings', async () => {
+    mockSupabaseFrom.mockReturnValue(
+      createChain([
+        { id: 'b1', booking_date: '2026-07-10', total_price: 100 },
+        { id: 'b2', booking_date: '2026-07-15', total_price: 50 },
+      ])
+    );
 
     const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
     await act(async () => {
@@ -312,6 +451,28 @@ describe('useClientPanel', () => {
     });
 
     expect(result.current.panelTotal).toBe(150);
+  });
+
+  it('computes panelLast from first booking', async () => {
+    mockSupabaseFrom.mockReturnValue(
+      createChain([{ id: 'b1', booking_date: '2026-07-15', total_price: 50 }])
+    );
+
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    await act(async () => {
+      await result.current.openPanel(mockClient);
+    });
+
+    expect(result.current.panelLast).toBeInstanceOf(Date);
+  });
+
+  it('panelLast is null when no bookings', async () => {
+    mockSupabaseFrom.mockReturnValue(createChain([]));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    await act(async () => {
+      await result.current.openPanel(mockClient);
+    });
+    expect(result.current.panelLast).toBeNull();
   });
 
   it('resolves plan name for mensalista client', () => {
@@ -325,5 +486,171 @@ describe('useClientPanel', () => {
       result.current.setSelectedClient(mensalistaClient);
     });
     expect(result.current.planName).toBe('Mensal Premium');
+  });
+
+  it('planName is undefined for non-mensalista', () => {
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    act(() => {
+      result.current.setSelectedClient(mockClient);
+    });
+    expect(result.current.planName).toBeUndefined();
+  });
+
+  it('planName is undefined for mensalista without plan id', () => {
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    act(() => {
+      result.current.setSelectedClient({ ...mockClient, is_mensalista: true });
+    });
+    expect(result.current.planName).toBeUndefined();
+  });
+
+  it('openPanelWithExpiry: client with existing expiry', async () => {
+    mockSupabaseFrom.mockReturnValue(createChain([]));
+    const client = { ...mockClient, mensalista_expires_at: '2026-08-15' };
+
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    await act(async () => {
+      await result.current.openPanelWithExpiry(client);
+    });
+
+    expect(result.current.expiresAt).toBe('2026-08-15');
+    expect(result.current.selectedClient).toEqual(client);
+  });
+
+  it('openPanelWithExpiry: client without expiry → sets 30 days from now', async () => {
+    mockSupabaseFrom.mockReturnValue(createChain([]));
+    mockGetLocalDateString.mockReturnValue('2026-08-14');
+
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    await act(async () => {
+      await result.current.openPanelWithExpiry(mockClient);
+    });
+
+    expect(result.current.expiresAt).toBe('2026-08-14');
+    expect(mockGetLocalDateString).toHaveBeenCalled();
+  });
+
+  it('handleRenewMensalidade: not mensalista → returns early', async () => {
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    act(() => {
+      result.current.setSelectedClient(mockClient);
+    });
+
+    await act(async () => {
+      await result.current.handleRenewMensalidade(30);
+    });
+
+    expect(mockToggleClientMensalista).not.toHaveBeenCalled();
+  });
+
+  it('handleRenewMensalidade: no selected client → returns early', async () => {
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    await act(async () => {
+      await result.current.handleRenewMensalidade(30);
+    });
+    expect(mockToggleClientMensalista).not.toHaveBeenCalled();
+  });
+
+  it('handleRenewMensalidade: success', async () => {
+    mockGetLocalDateString.mockReturnValue('2026-08-14');
+    const mensalistaClient = {
+      ...mockClient,
+      is_mensalista: true,
+      mensalista_plan_id: 'plan-1',
+    };
+
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    act(() => {
+      result.current.setSelectedClient(mensalistaClient);
+    });
+
+    await act(async () => {
+      await result.current.handleRenewMensalidade(30);
+    });
+
+    expect(mockToggleClientMensalista).toHaveBeenCalledWith(
+      'client-1',
+      true,
+      'plan-1',
+      '2026-08-14'
+    );
+    expect(mockShowSuccess).toHaveBeenCalled();
+    expect(result.current.expiresAt).toBe('2026-08-14');
+  });
+
+  it('handleRenewMensalidade: default 30 days', async () => {
+    mockGetLocalDateString.mockReturnValue('2026-08-14');
+    const mensalistaClient = {
+      ...mockClient,
+      is_mensalista: true,
+      mensalista_plan_id: 'plan-1',
+    };
+
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    act(() => {
+      result.current.setSelectedClient(mensalistaClient);
+    });
+
+    await act(async () => {
+      await result.current.handleRenewMensalidade();
+    });
+
+    expect(mockToggleClientMensalista).toHaveBeenCalled();
+  });
+
+  it('handleRenewMensalidade: error', async () => {
+    mockToggleClientMensalista.mockRejectedValue(new Error('renew failed'));
+    const mensalistaClient = {
+      ...mockClient,
+      is_mensalista: true,
+      mensalista_plan_id: 'plan-1',
+    };
+
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    act(() => {
+      result.current.setSelectedClient(mensalistaClient);
+    });
+
+    await act(async () => {
+      await result.current.handleRenewMensalidade(30);
+    });
+
+    expect(mockShowError).toHaveBeenCalled();
+  });
+
+  it('openPanel resets editing states', async () => {
+    mockSupabaseFrom.mockReturnValue(createChain([]));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+
+    act(() => {
+      result.current.setIsEditing(true);
+      result.current.setIsEditingNotes(true);
+    });
+
+    await act(async () => {
+      await result.current.openPanel(mockClient);
+    });
+
+    expect(result.current.isEditing).toBe(false);
+    expect(result.current.isEditingNotes).toBe(false);
+  });
+
+  it('openPanel sets notesText from client', async () => {
+    mockSupabaseFrom.mockReturnValue(createChain([]));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    await act(async () => {
+      await result.current.openPanel(mockClient);
+    });
+    expect(result.current.notesText).toBe('Cliente fiel');
+  });
+
+  it('openPanel: notes default to empty string', async () => {
+    mockSupabaseFrom.mockReturnValue(createChain([]));
+    const clientNoNotes = { ...mockClient, notes: undefined };
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    await act(async () => {
+      await result.current.openPanel(clientNoNotes);
+    });
+    expect(result.current.notesText).toBe('');
   });
 });

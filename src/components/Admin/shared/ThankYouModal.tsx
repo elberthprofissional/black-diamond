@@ -59,7 +59,7 @@ const ThankYouModal: FC<ThankYouModalProps> = ({ booking, services, onConfirm, o
                 </svg>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <p className="text-sm font-bold text-white">Atendimento concluido!</p>
                 <p className="text-xs text-zinc-400 leading-relaxed">
                   Enviar agradecimento para{' '}
@@ -71,7 +71,7 @@ const ThankYouModal: FC<ThankYouModalProps> = ({ booking, services, onConfirm, o
                 <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider mb-1.5">
                   Mensagem:
                 </p>
-                <p className="text-[11px] text-zinc-300 leading-relaxed">
+                <p className="text-[12px] text-zinc-300 leading-relaxed">
                   Oi {firstName}, obrigado por cortar com a gente! Servico: {serviceText}.
                 </p>
               </div>

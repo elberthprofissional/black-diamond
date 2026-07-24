@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { checkAndNotifyNoShowLimit } from '../lib/api/noShow';
 import { useToast } from './useToast';
-import { useAuditLog } from './useAuditLog';
 import { logError } from '../lib/logger';
 
 interface UseNoShowOptions {
@@ -11,7 +10,6 @@ interface UseNoShowOptions {
 
 export function useNoShow(options?: UseNoShowOptions) {
   const { showSuccess, showError } = useToast();
-  const { log } = useAuditLog();
   const [markingNoShow, setMarkingNoShow] = useState<string | null>(null);
   const onBookingUpdated = options?.onBookingUpdated;
 
@@ -26,13 +24,7 @@ export function useNoShow(options?: UseNoShowOptions) {
 
         if (error) throw error;
 
-        log({
-          action: 'booking_no_show',
-          target_id: bookingId,
-          details: { marked_as_no_show: true },
-        });
-
-        // Se temos dados do cliente, checa se atingiu o limite e cria notificação
+          // Se temos dados do cliente, checa se atingiu o limite e cria notificação
         if (clientId && clientName) {
           const hitLimit = await checkAndNotifyNoShowLimit(clientId, clientName, clientPhone);
           if (hitLimit) {
@@ -54,7 +46,7 @@ export function useNoShow(options?: UseNoShowOptions) {
         setMarkingNoShow(null);
       }
     },
-    [log, showSuccess, showError, onBookingUpdated]
+    [showSuccess, showError, onBookingUpdated]
   );
 
   const undoNoShow = useCallback(
@@ -68,12 +60,6 @@ export function useNoShow(options?: UseNoShowOptions) {
 
         if (error) throw error;
 
-        log({
-          action: 'booking_no_show_undone',
-          target_id: bookingId,
-          details: { marked_as_no_show: false },
-        });
-
         showSuccess('Falta removida');
         onBookingUpdated?.();
       } catch (e) {
@@ -83,7 +69,7 @@ export function useNoShow(options?: UseNoShowOptions) {
         setMarkingNoShow(null);
       }
     },
-    [log, showSuccess, showError, onBookingUpdated]
+    [showSuccess, showError, onBookingUpdated]
   );
 
   return {

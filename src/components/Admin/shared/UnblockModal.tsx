@@ -35,7 +35,7 @@ const UnblockModal: FC<UnblockModalProps> = ({ booking, onConfirm, onCancel }) =
             className="relative z-10 w-full max-w-[280px] bg-[#161618] border border-white/[0.06] rounded-2xl overflow-hidden"
           >
             <div className="p-6 text-center">
-              <p className="text-[11px] font-bold text-white uppercase tracking-wider">
+              <p className="text-[12px] font-bold text-white uppercase tracking-wider">
                 Desbloquear horário?
               </p>
               <div className="mt-4 inline-flex items-baseline gap-2">
@@ -43,7 +43,7 @@ const UnblockModal: FC<UnblockModalProps> = ({ booking, onConfirm, onCancel }) =
                   {booking.booking_time.slice(0, 5)}
                 </span>
               </div>
-              <p className="text-[9px] text-zinc-500 uppercase tracking-wider mt-2">
+              <p className="text-[10px] text-zinc-500 uppercase tracking-wider mt-2">
                 {new Date(booking.booking_date + 'T12:00:00').toLocaleDateString('pt-BR', {
                   weekday: 'short',
                   day: '2-digit',

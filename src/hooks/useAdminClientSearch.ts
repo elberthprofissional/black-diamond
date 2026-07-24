@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { getClients, getClientByPhone, getMensalistaPlans } from '../lib/api';
+import { getClients, getClientByPhone } from '../lib/api';
 import { formatPhone } from '../lib/utils';
 import { useToast } from './useToast';
 import { BLOCKED_NAME } from '../lib/constants';
@@ -45,17 +45,10 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
   const [isManualEntry, setIsManualEntry] = useState(true);
   const [isMensalista, setIsMensalista] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<MensalistaPlan | null>(null);
-  const [allPlans, setAllPlans] = useState<MensalistaPlan[]>([]);
+  const [allPlans] = useState<MensalistaPlan[]>([]);
   const [filteredClientsForModal, setFilteredClientsForModal] = useState<ClientWithEnriched[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Load mensalista plans
-  useEffect(() => {
-    getMensalistaPlans(true)
-      .then(setAllPlans)
-      .catch((e) => logError(e, 'useAdminClientSearch'));
-  }, []);
 
   // Detect mensalista when typing phone manually
   useEffect(() => {
@@ -77,11 +70,6 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
           if (cancelled) return;
           if (client) {
             setIsMensalista(!!client.is_mensalista);
-            setCurrentPlan(
-              client.is_mensalista && client.mensalista_plan_id
-                ? allPlans.find((p) => p.id === client.mensalista_plan_id) || null
-                : null
-            );
             setNewClient((prev) => {
               if (client.name && !prev.name) {
                 return { ...prev, name: client.name };
@@ -90,13 +78,11 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
             });
           } else {
             setIsMensalista(false);
-            setCurrentPlan(null);
           }
         })
         .catch(() => {
           if (!cancelled) {
             setIsMensalista(false);
-            setCurrentPlan(null);
           }
         });
     }, 400);
@@ -105,7 +91,7 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [newClient.phone, isManualEntry, allPlans, isMensalista]);
+  }, [newClient.phone, isManualEntry, isMensalista]);
 
   // Load clients for modal
   const loadClients = useCallback(async () => {
@@ -132,13 +118,9 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
       setMultipleMatches([]);
       setIsManualEntry(false);
       setIsMensalista(!!client.is_mensalista);
-      setCurrentPlan(
-        client.is_mensalista && client.mensalista_plan_id
-          ? allPlans.find((p) => p.id === client.mensalista_plan_id) || null
-          : null
-      );
+      setCurrentPlan(null);
     },
-    [allPlans]
+    []
   );
 
   const handleSearch = useCallback(() => {
@@ -188,7 +170,6 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
   }, []);
 
   return {
-    // Client search state
     searchQuery,
     setSearchQuery,
     multipleMatches,
@@ -207,13 +188,9 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
     allPlans,
     filteredClientsForModal,
     setFilteredClientsForModal,
-
-    // Actions
     handleSearch,
     selectClient,
     loadClients,
-
-    // Search modal
     isSearchOpen,
     setIsSearchOpen,
   };

@@ -46,11 +46,11 @@ const ReminderClientList: FC<ReminderClientListProps> = ({ clients, onSelect }) 
                 <div
                   className={`w-10 h-10 rounded-xl ${AVATAR_STYLE} flex items-center justify-center shrink-0`}
                 >
-                  <span className="text-[13px] font-bold">{initial}</span>
+                  <span className="text-[14px] font-bold">{initial}</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-semibold text-white truncate">{client.name}</p>
-                  <p className="text-[11px] text-zinc-500">{formatPhone(client.phone)}</p>
+                  <p className="text-[14px] font-semibold text-white truncate">{client.name}</p>
+                  <p className="text-[12px] text-zinc-500">{formatPhone(client.phone)}</p>
                 </div>
                 <ChevronRight
                   size={16}

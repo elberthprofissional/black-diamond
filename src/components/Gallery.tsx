@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, memo, type FC } from 'react';
 import { supabase } from '../lib/supabase';
 import { ImageIcon, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import Skeleton from './Skeleton';
-import { useBarberSettings } from '../hooks/useBarberSettings';
 import { useModalA11y } from '../hooks/useModalA11y';
 import { logError } from '../lib/logger';
 
@@ -14,7 +13,6 @@ interface GalleryImage {
 }
 
 const Gallery: FC = memo(() => {
-  const { barberInstagram } = useBarberSettings();
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [erroredImages, setErroredImages] = useState<Set<string>>(new Set());
@@ -197,21 +195,7 @@ const Gallery: FC = memo(() => {
           </div>
         )}
 
-        {barberInstagram && (
-          <div className="mt-8 text-center">
-            <a
-              href={`https://www.instagram.com/${barberInstagram}/`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[8px] md:text-[10px] font-medium text-zinc-500 uppercase tracking-[0.4em] hover:text-[#D4AF37] transition-colors duration-300"
-            >
-              Para mais, siga a gente no{' '}
-              <span className="text-[#D4AF37] underline underline-offset-4 decoration-[#D4AF37]/50 hover:decoration-[#D4AF37]">
-                Instagram
-              </span>
-            </a>
-          </div>
-        )}
+
       </div>
 
       {/* Lightbox */}

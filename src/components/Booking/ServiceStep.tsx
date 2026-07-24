@@ -65,7 +65,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
         <div className="space-y-6">
           {isMensalista && (
             <div className="px-4 py-3 bg-[#D4AF37]/[0.06] border border-[#D4AF37]/20 rounded-xl">
-              <p className="text-[13px] text-[#D4AF37] font-medium">
+              <p className="text-[14px] text-[#D4AF37] font-medium">
                 {planName || 'Corte de Cabelo incluso no plano mensal'}
               </p>
             </div>
@@ -74,7 +74,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
           {hasCoupon && (
             <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
               <Tag size={13} className="text-emerald-400" />
-              <p className="text-[11px] text-emerald-400 font-bold">
+              <p className="text-[12px] text-emerald-400 font-bold">
                 Cupom {coupon.code} aplicado —{' '}
                 {coupon.discount_type === 'percentage'
                   ? `${coupon.discount_amount}% de desconto`
@@ -103,7 +103,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                   {/* Discount badge */}
                   {hasCoupon && discount > 0 && (
                     <div className="absolute top-0 right-0">
-                      <div className="bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg tracking-wider">
+                      <div className="bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-bl-lg tracking-wider">
                         {getDiscountLabel(service, coupon!, originalPrice)}
                       </div>
                     </div>
@@ -145,7 +145,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
               <button
                 type="button"
                 onClick={onSkip}
-                className="w-full py-3 bg-white/[0.04] border border-white/[0.08] text-zinc-400 text-[13px] font-medium rounded-xl hover:bg-white/[0.06] hover:text-white transition-all cursor-pointer"
+                className="w-full py-3 bg-white/[0.04] border border-white/[0.08] text-zinc-400 text-[14px] font-medium rounded-xl hover:bg-white/[0.06] hover:text-white transition-all cursor-pointer"
               >
                 Pular sem adicionar
               </button>
@@ -168,7 +168,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
         {hasCoupon && (
           <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
             <Tag size={13} className="text-emerald-400" />
-            <p className="text-[11px] text-emerald-400 font-bold">
+            <p className="text-[12px] text-emerald-400 font-bold">
               Cupom {coupon.code} —{' '}
               {coupon.discount_type === 'percentage'
                 ? `${coupon.discount_amount}% OFF`
@@ -177,7 +177,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
           </div>
         )}
 
-        <div className="space-y-3" role="group" aria-label="Serviços disponíveis">
+        <div className="space-y-4" role="group" aria-label="Serviços disponíveis">
           {services.map((service) => {
             const selected = isSelected(service.id);
             const discount = hasCoupon ? getServiceDiscount(service, coupon!, originalPrice) : 0;
@@ -194,7 +194,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                 {/* Discount badge */}
                 {hasCoupon && discount > 0 && (
                   <div className="absolute top-0 right-0">
-                    <div className="bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg tracking-wider">
+                    <div className="bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-bl-lg tracking-wider">
                       {getDiscountLabel(service, coupon!, originalPrice)}
                     </div>
                   </div>
@@ -204,7 +204,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <p
-                        className="text-[15px] font-extrabold tracking-tight text-white"
+                        className="text-[16px] font-extrabold tracking-tight text-white"
                         style={{ fontFamily: 'var(--font-montserrat)' }}
                       >
                         {service.name}
@@ -212,7 +212,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
                       {hasCoupon && discount > 0 && (
-                        <span className="text-[11px] text-zinc-600 line-through tabular-nums">
+                        <span className="text-[12px] text-zinc-600 line-through tabular-nums">
                           {formatPriceAdmin(service.price)}
                         </span>
                       )}
@@ -244,7 +244,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
           <button
             type="button"
             onClick={onSkip}
-            className="w-full py-3 bg-white/[0.04] border border-white/[0.08] text-zinc-400 text-[13px] font-medium rounded-xl hover:bg-white/[0.06] hover:text-white transition-all cursor-pointer"
+            className="w-full py-3 bg-white/[0.04] border border-white/[0.08] text-zinc-400 text-[14px] font-medium rounded-xl hover:bg-white/[0.06] hover:text-white transition-all cursor-pointer"
           >
             Pular sem adicionar
           </button>

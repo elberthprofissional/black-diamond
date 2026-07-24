@@ -1,17 +1,43 @@
 import { supabase } from '../supabase';
 import type { Testimonial } from '../../types';
 
-/** Busca depoimentos ativos (ordenados por publish_time, mais recente primeiro) - para o site público */
+/**
+ * Busca depoimentos ativos para o site público.
+ * Aplica filtros anti-burro:
+ * - Só retorna depoimentos com texto não-vazio (mínimo 10 caracteres)
+ * - Só retorna depoimentos com rating válido (1-5)
+ * - Ignora depoimentos com nome vazio
+ * - Se tudo falhar, retorna array vazio (nunca quebra o slider)
+ */
 export const getActiveTestimonials = async (): Promise<Testimonial[]> => {
-  const { data, error } = await supabase
-    .from('testimonials')
-    .select('*')
-    .eq('is_active', true)
-    .order('publish_time', { ascending: false, nullsFirst: false })
-    .order('sort_order', { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from('testimonials')
+      .select('*')
+      .eq('is_active', true)
+      .not('text', 'is', null)
+      .neq('text', '')
+      .order('publish_time', { ascending: false, nullsFirst: false })
+      .order('sort_order', { ascending: true });
 
-  if (error) throw error;
-  return data ?? [];
+    if (error) throw error;
+
+    // Filtro extra de segurança no frontend (anti-burro)
+    const valid = (data ?? []).filter(
+      (t: Testimonial) =>
+        t.text &&
+        t.text.trim().length >= 3 &&
+        t.name &&
+        t.name.trim().length > 0 &&
+        t.rating >= 1 &&
+        t.rating <= 5
+    );
+
+    return valid;
+  } catch {
+    // Nunca quebra o site — se o banco falhar, mostra vazio
+    return [];
+  }
 };
 
 /** Busca TODOS os depoimentos (incluindo inativos) - para o admin */
@@ -25,16 +51,28 @@ export const getAllTestimonials = async (): Promise<Testimonial[]> => {
   return data ?? [];
 };
 
-/** Cria um novo depoimento */
+/**
+ * Cria um novo depoimento com validação anti-burro.
+ * - text precisa ter pelo menos 3 caracteres
+ * - name não pode ser vazio
+ * - rating precisa ser entre 1 e 5
+ */
 export const createTestimonial = async (
   input: Pick<Testimonial, 'name' | 'rating' | 'text'>
 ): Promise<Testimonial> => {
+  const text = (input.text || '').trim();
+  const name = (input.name || '').trim();
+
+  if (!name) throw new Error('Nome é obrigatório.');
+  if (text.length < 3) throw new Error('O depoimento precisa ter pelo menos 3 caracteres.');
+  if (input.rating < 1 || input.rating > 5) throw new Error('Avaliação precisa ser entre 1 e 5.');
+
   const { data, error } = await supabase
     .from('testimonials')
     .insert({
-      name: input.name,
+      name,
       rating: input.rating,
-      text: input.text,
+      text,
     })
     .select()
     .single();
@@ -60,37 +98,4 @@ export const deleteTestimonial = async (id: string): Promise<void> => {
   if (error) throw error;
 };
 
-interface SyncResult {
-  message: string;
-  added: number;
-  skipped: number;
-  total: number;
-  withText: number;
-}
 
-/** Sincroniza reviews do Google Places API via Edge Function */
-export const syncGoogleReviews = async (): Promise<SyncResult> => {
-  const { data: session } = await supabase.auth.getSession();
-  const token = session?.session?.access_token;
-
-  if (!token) {
-    throw new Error('Faça login novamente');
-  }
-
-  const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-google-reviews`;
-
-  const response = await fetch(functionUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({ error: 'Erro ao sincronizar' }));
-    throw new Error(err.error ?? 'Erro ao sincronizar com Google');
-  }
-
-  return response.json();
-};

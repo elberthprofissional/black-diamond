@@ -4,12 +4,14 @@ import { generateCsv, downloadCsv, formatDateRange } from '../lib/csv';
 import { downloadXlsx } from '../lib/xlsx';
 import { downloadBookingsPdf, downloadClientsPdf, downloadFinancialPdf } from '../lib/pdf';
 import { logError } from '../lib/logger';
+import { useBarberSettings } from './useBarberSettings';
 
 export type ExportFormat = 'csv' | 'xlsx' | 'pdf';
 export type ExportType = 'bookings' | 'clients' | 'financial';
 
 export function useExport(showError: (msg: string) => void) {
   const [isExporting, setIsExporting] = useState(false);
+  const { brandName, brandColor } = useBarberSettings();
 
   const exportBookings = useCallback(
     async (format: ExportFormat, startDate?: string, endDate?: string) => {
@@ -96,7 +98,7 @@ export function useExport(showError: (msg: string) => void) {
             startDate && endDate
               ? `_${formatDateRange(new Date(startDate), new Date(endDate))}`
               : '';
-          downloadBookingsPdf(
+          await downloadBookingsPdf(
             filtered.map((b) => ({
               booking_date: b.booking_date || '',
               booking_time: b.booking_time || '',
@@ -110,7 +112,9 @@ export function useExport(showError: (msg: string) => void) {
               status: b.status || '',
             })),
             `agendamentos${dateSuffix}`,
-            startDate && endDate ? `${startDate} a ${endDate}` : undefined
+            startDate && endDate ? `${startDate} a ${endDate}` : undefined,
+            brandName,
+            brandColor
           );
         }
       } catch (e) {
@@ -120,7 +124,7 @@ export function useExport(showError: (msg: string) => void) {
         setIsExporting(false);
       }
     },
-    [showError]
+    [showError, brandName, brandColor]
   );
 
   const exportClients = useCallback(
@@ -173,7 +177,7 @@ export function useExport(showError: (msg: string) => void) {
           );
         } else {
           // PDF format
-          downloadClientsPdf(
+          await downloadClientsPdf(
             clients.map((c) => ({
               name: c.name || '',
               phone: c.phone || '',
@@ -183,7 +187,9 @@ export function useExport(showError: (msg: string) => void) {
               is_mensalista: !!c.is_mensalista,
               is_favorite: !!c.is_favorite,
             })),
-            'clientes'
+            'clientes',
+            brandName,
+            brandColor
           );
         }
       } catch (e) {
@@ -193,7 +199,7 @@ export function useExport(showError: (msg: string) => void) {
         setIsExporting(false);
       }
     },
-    [showError]
+    [showError, brandName, brandColor]
   );
 
   const exportFinancial = useCallback(
@@ -251,7 +257,7 @@ export function useExport(showError: (msg: string) => void) {
           );
         } else {
           // PDF format
-          downloadFinancialPdf(
+          await downloadFinancialPdf(
             entries.map(([month, m]) => ({
               month,
               bookings: m.count,
@@ -259,7 +265,9 @@ export function useExport(showError: (msg: string) => void) {
               cancelled: m.cancelled,
               cancelRate: m.count > 0 ? `${((m.cancelled / m.count) * 100).toFixed(1)}%` : '0%',
             })),
-            'financeiro'
+            'financeiro',
+            brandName,
+            brandColor
           );
         }
       } catch (e) {
@@ -269,7 +277,7 @@ export function useExport(showError: (msg: string) => void) {
         setIsExporting(false);
       }
     },
-    [showError]
+    [showError, brandName, brandColor]
   );
 
   const exportData = useCallback(

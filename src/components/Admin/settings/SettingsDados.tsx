@@ -102,7 +102,7 @@ const SettingsDados: FC<SettingsDadosProps> = () => {
         </p>
       </div>
 
-      <div className="w-full space-y-3">
+      <div className="w-full space-y-4">
         {/* Resetar financeiro */}
         <div className="border border-white/[0.04] rounded-2xl overflow-hidden hover:border-white/[0.08] transition-colors">
           <button
@@ -116,8 +116,8 @@ const SettingsDados: FC<SettingsDadosProps> = () => {
               <RotateCcw size={16} className="text-zinc-400" />
             </div>
             <div className="text-left flex-1">
-              <span className="text-[13px] text-white block font-medium">Resetar financeiro</span>
-              <span className="text-[11px] text-zinc-500 block mt-0.5">
+              <span className="text-[14px] text-white block font-medium">Resetar financeiro</span>
+              <span className="text-[12px] text-zinc-500 block mt-0.5">
                 Zera faturamento, atendimentos e cancelados
               </span>
             </div>
@@ -137,8 +137,8 @@ const SettingsDados: FC<SettingsDadosProps> = () => {
               <Trash2 size={16} className="text-zinc-400" />
             </div>
             <div className="text-left flex-1">
-              <span className="text-[13px] text-white block font-medium">Deletar clientes</span>
-              <span className="text-[11px] text-zinc-500 block mt-0.5">
+              <span className="text-[14px] text-white block font-medium">Deletar clientes</span>
+              <span className="text-[12px] text-zinc-500 block mt-0.5">
                 Remove todos os clientes cadastrados
               </span>
             </div>
@@ -177,7 +177,7 @@ const SettingsDados: FC<SettingsDadosProps> = () => {
                     <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
                       <Lock size={20} className="text-red-400" />
                     </div>
-                    <p className="text-[15px] font-semibold text-white text-center">
+                    <p className="text-[16px] font-semibold text-white text-center">
                       Confirme sua senha
                     </p>
                     <p className="text-[12px] text-zinc-500 mt-1.5 text-center leading-relaxed">
@@ -198,7 +198,7 @@ const SettingsDados: FC<SettingsDadosProps> = () => {
                       }}
                       placeholder="Sua senha"
                       aria-label="Senha do administrador"
-                      className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-red-500/40 transition-all placeholder:text-zinc-600"
+                      className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[14px] text-white outline-none focus:border-red-500/40 transition-all placeholder:text-zinc-600"
                       autoFocus
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && adminPassword.trim()) {
@@ -208,7 +208,7 @@ const SettingsDados: FC<SettingsDadosProps> = () => {
                       }}
                     />
                     {passwordError && (
-                      <p className="text-[11px] text-red-400 mt-2">{passwordError}</p>
+                      <p className="text-[12px] text-red-400 mt-2">{passwordError}</p>
                     )}
                   </div>
                   <div className="flex border-t border-white/[0.06]">
@@ -218,7 +218,7 @@ const SettingsDados: FC<SettingsDadosProps> = () => {
                         setAdminPassword('');
                         setPasswordError('');
                       }}
-                      className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white transition-all cursor-pointer"
+                      className="flex-1 py-4 text-[14px] font-medium text-zinc-400 hover:text-white transition-all cursor-pointer"
                     >
                       Voltar
                     </button>
@@ -228,7 +228,7 @@ const SettingsDados: FC<SettingsDadosProps> = () => {
                         activeModal === 'bookings' ? handleDeleteBookings : handleDeleteClients
                       }
                       disabled={!adminPassword.trim() || processing}
-                      className="flex-1 py-4 text-[13px] font-semibold text-red-500 hover:text-red-400 transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                      className="flex-1 py-4 text-[14px] font-semibold text-red-500 hover:text-red-400 transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
                     >
                       {processing ? '...' : 'Confirmar'}
                     </button>
@@ -238,7 +238,7 @@ const SettingsDados: FC<SettingsDadosProps> = () => {
                 /* Step 1: Text confirmation */
                 <>
                   <div className="px-6 pt-6 pb-4">
-                    <p className="text-[15px] font-semibold text-white">
+                    <p className="text-[16px] font-semibold text-white">
                       {activeModal === 'bookings' ? 'Resetar financeiro' : 'Deletar clientes'}
                     </p>
                     <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
@@ -259,7 +259,7 @@ const SettingsDados: FC<SettingsDadosProps> = () => {
                           : 'Digite DELETAR para confirmar'
                       }
                       aria-label="Digite para confirmar"
-                      className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-red-500/40 transition-all placeholder:text-zinc-600"
+                      className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[14px] text-white outline-none focus:border-red-500/40 transition-all placeholder:text-zinc-600"
                       autoFocus
                       onKeyDown={(e) => {
                         const target = activeModal === 'bookings' ? 'ZERAR' : 'DELETAR';
@@ -280,7 +280,7 @@ const SettingsDados: FC<SettingsDadosProps> = () => {
                         setAdminPassword('');
                         setPasswordError('');
                       }}
-                      className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
+                      className="flex-1 py-4 text-[14px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
                     >
                       Cancelar
                     </button>
@@ -293,7 +293,7 @@ const SettingsDados: FC<SettingsDadosProps> = () => {
                         confirmText !== (activeModal === 'bookings' ? 'ZERAR' : 'DELETAR') ||
                         processing
                       }
-                      className="flex-1 py-4 text-[13px] font-semibold text-red-500 hover:text-red-400 active:bg-white/[0.03] transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                      className="flex-1 py-4 text-[14px] font-semibold text-red-500 hover:text-red-400 active:bg-white/[0.03] transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
                     >
                       {processing ? '...' : 'Confirmar'}
                     </button>

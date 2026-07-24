@@ -25,7 +25,7 @@ const OccupancyRateCard: FC<OccupancyRateCardProps> = ({ occupiedCount, totalSlo
         <TrendIcon size={20} />
       </div>
       <div className="flex-1 min-w-0">
-        <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-0.5">
+        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] block mb-0.5">
           Taxa de Ocupação
         </span>
         <div className="flex items-baseline gap-2">

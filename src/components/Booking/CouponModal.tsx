@@ -69,7 +69,7 @@ const CouponModal: FC<CouponModalProps> = ({ open, onClose, onApply, loading }) 
                     handleApply();
                   }
                 }}
-                className="w-full bg-transparent border border-white/[0.06] focus:border-[#D4AF37] rounded-xl px-4 py-3 text-[13px] text-white outline-none transition-all placeholder:text-zinc-600"
+                className="w-full bg-transparent border border-white/[0.06] focus:border-[#D4AF37] rounded-xl px-4 py-3 text-[14px] text-white outline-none transition-all placeholder:text-zinc-600"
               />
             </div>
 

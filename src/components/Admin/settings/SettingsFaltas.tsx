@@ -89,17 +89,17 @@ const SettingsFaltas: FC = () => {
   }
 
   return (
-    <div className="space-y-5 max-w-3xl mx-auto lg:mx-0">
+    <div className="space-y-4 max-w-3xl mx-auto lg:mx-0">
       {/* Header — Desktop */}
       <div className="hidden lg:block py-2">
-        <h3 className="text-[15px] font-bold text-white">Controle de Faltas</h3>
+        <h3 className="text-[16px] font-bold text-white">Controle de Faltas</h3>
         <p className="text-[12px] text-zinc-500 mt-0.5">Alertas por não comparecimento</p>
       </div>
 
       {/* Info */}
       <div className="flex items-start gap-3 bg-emerald-500/[0.03] border border-emerald-500/10 rounded-xl px-4 py-3">
         <Shield size={15} className="text-emerald-400/60 shrink-0 mt-0.5" />
-        <p className="text-[11px] text-zinc-400 leading-relaxed">
+        <p className="text-[12px] text-zinc-400 leading-relaxed">
           Quando o cliente atingir o limite de faltas, você recebe uma{' '}
           <strong className="text-zinc-300">notificação</strong> com opção de{' '}
           <strong className="text-zinc-300">contato direto via WhatsApp</strong>. Nada de bloquear —
@@ -108,13 +108,13 @@ const SettingsFaltas: FC = () => {
       </div>
 
       {/* Slider + Severity */}
-      <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 space-y-5">
+      <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.15em]">
+          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.15em]">
             Limite de faltas
           </span>
           <div className="flex items-center gap-2.5">
-            <span className={`text-[9px] font-bold uppercase tracking-wider ${sev.color}`}>
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${sev.color}`}>
               {sev.label}
             </span>
             <span className="text-xl font-black text-[#D4AF37] tabular-nums">{maxNoShows}x</span>
@@ -138,7 +138,7 @@ const SettingsFaltas: FC = () => {
             [&::-moz-range-thumb]:border-[#111111] [&::-moz-range-thumb]:cursor-pointer"
         />
 
-        <div className="flex justify-between text-[9px] text-zinc-600 px-0.5">
+        <div className="flex justify-between text-[10px] text-zinc-600 px-0.5">
           <span>1 falta</span>
           <span>10 faltas</span>
         </div>
@@ -148,7 +148,7 @@ const SettingsFaltas: FC = () => {
           className={`flex items-center gap-2 px-3 py-2.5 rounded-lg ${sev.bg} border ${sev.border}`}
         >
           <div className={`w-1.5 h-1.5 rounded-full ${sev.color.replace('text-', 'bg-')}`} />
-          <span className={`text-[11px] ${sev.color}`}>{sev.desc}</span>
+          <span className={`text-[12px] ${sev.color}`}>{sev.desc}</span>
         </div>
       </div>
 
@@ -156,9 +156,7 @@ const SettingsFaltas: FC = () => {
       <button
         onClick={handleSave}
         disabled={saving}
-        className="w-full h-12 bg-[#D4AF37] text-black font-black text-[11px] uppercase tracking-[0.2em] rounded-xl
-          hover:bg-[#b8962e] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed
-          flex items-center justify-center gap-2"
+        className="btn-gold w-full h-12 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {saving ? (
           <>

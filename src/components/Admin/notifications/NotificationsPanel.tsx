@@ -73,7 +73,7 @@ export default function NotificationsPanel({
         {selectionMode ? (
           <>
             <div className="flex items-center gap-2.5">
-              <span className="text-[13px] font-bold text-white">
+              <span className="text-[14px] font-bold text-white">
                 {selectedIds.size > 0
                   ? `${selectedIds.size} selecionada${selectedIds.size !== 1 ? 's' : ''}`
                   : 'Selecionar'}
@@ -81,7 +81,7 @@ export default function NotificationsPanel({
               {displayed.length > 0 && (
                 <button
                   onClick={toggleSelectAll}
-                  className="text-[9px] font-bold text-[#D4AF37] hover:text-[#d4b06a] transition-colors cursor-pointer"
+                  className="text-[10px] font-bold text-[#D4AF37] hover:text-[#d4b06a] transition-colors cursor-pointer"
                 >
                   {selectedIds.size === displayed.length ? 'Desmarcar' : 'Marcar todas'}
                 </button>
@@ -91,7 +91,7 @@ export default function NotificationsPanel({
               {selectedIds.size > 0 && (
                 <button
                   onClick={handleBulkDelete}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[9px] font-bold text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 transition-all cursor-pointer active:scale-95"
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 transition-all cursor-pointer active:scale-95"
                 >
                   <Trash2 size={11} />
                   Excluir {selectedIds.size}
@@ -120,7 +120,7 @@ export default function NotificationsPanel({
               {notifications.length > 0 && (
                 <button
                   onClick={toggleSelectionMode}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[9px] font-bold text-zinc-400 bg-white/[0.04] hover:bg-white/[0.08] hover:text-white border border-white/[0.06] transition-all cursor-pointer active:scale-95"
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold text-zinc-400 bg-white/[0.04] hover:bg-white/[0.08] hover:text-white border border-white/[0.06] transition-all cursor-pointer active:scale-95"
                 >
                   <ListChecks size={11} />
                   Selecionar
@@ -129,7 +129,7 @@ export default function NotificationsPanel({
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[9px] font-bold text-[#D4AF37] bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/20 hover:border-[#D4AF37]/30 transition-all cursor-pointer active:scale-95"
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold text-[#D4AF37] bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/20 hover:border-[#D4AF37]/30 transition-all cursor-pointer active:scale-95"
                 >
                   <svg
                     width="11"
@@ -191,8 +191,8 @@ export default function NotificationsPanel({
             <div className="w-14 h-14 rounded-2xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-center mb-4">
               <Bell size={24} className="text-zinc-700" />
             </div>
-            <p className="text-[13px] text-zinc-400 font-medium mb-1">Nenhuma notificação</p>
-            <p className="text-[11px] text-zinc-600">
+            <p className="text-[14px] text-zinc-400 font-medium mb-1">Nenhuma notificação</p>
+            <p className="text-[12px] text-zinc-600">
               {onlyUnread
                 ? 'Todas as notificações foram lidas.'
                 : 'Quando houver novidades, elas aparecerão aqui.'}

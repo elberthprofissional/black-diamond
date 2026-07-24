@@ -1,5 +1,5 @@
 import { useState, useEffect, type FC } from 'react';
-import { useBarberSettings } from '../../../contexts/BarberSettingsContext';
+import { useBarberSettings } from '../../../hooks/useBarberSettings';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
 import { formatPhone } from '../../../lib/utils';
@@ -225,7 +225,7 @@ const SettingsConta: FC = () => {
                   onChange={(e) => setInput(f.field, e.target.value.slice(0, MAX.bio))}
                   placeholder={f.placeholder}
                   rows={3}
-                  className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#D4AF37]/40 transition-all placeholder:text-zinc-600 resize-none"
+                  className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[14px] text-white outline-none focus:border-[#D4AF37]/40 transition-all placeholder:text-zinc-600 resize-none"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
@@ -247,7 +247,7 @@ const SettingsConta: FC = () => {
                   }
                   placeholder={f.placeholder}
                   {...f.inputProps}
-                  className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#D4AF37]/40 transition-all placeholder:text-zinc-600 tabular-nums"
+                  className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[14px] text-white outline-none focus:border-[#D4AF37]/40 transition-all placeholder:text-zinc-600 tabular-nums"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') saveField(f.field);
                     if (e.key === 'Escape') cancelEdit(f.field);
@@ -264,7 +264,7 @@ const SettingsConta: FC = () => {
                   placeholder={f.placeholder}
                   rows={4}
                   maxLength={MAX.bio}
-                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[15px] text-white outline-none focus:border-[#D4AF37]/40 transition-all placeholder:text-zinc-600 resize-none"
+                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[16px] text-white outline-none focus:border-[#D4AF37]/40 transition-all placeholder:text-zinc-600 resize-none"
                 />
               ) : (
                 <input
@@ -279,7 +279,7 @@ const SettingsConta: FC = () => {
                   }
                   placeholder={f.placeholder}
                   {...f.inputProps}
-                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[15px] text-white outline-none focus:border-[#D4AF37]/40 transition-all placeholder:text-zinc-600 tabular-nums"
+                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[16px] text-white outline-none focus:border-[#D4AF37]/40 transition-all placeholder:text-zinc-600 tabular-nums"
                 />
               )
             }

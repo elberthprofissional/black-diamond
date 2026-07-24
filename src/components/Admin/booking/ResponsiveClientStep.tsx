@@ -74,9 +74,9 @@ export default function ResponsiveClientStep({
   if (isDesktop) {
     return (
       <div className="space-y-6 h-full flex flex-col">
-        <div className="space-y-1">
+        <div className="space-y-2">
           <h2 className="text-2xl font-bold tracking-tight text-white">Cliente</h2>
-          <p className="text-[13px] text-zinc-500">
+          <p className="text-[14px] text-zinc-500">
             {selectedClient
               ? 'Cliente selecionado com sucesso.'
               : isManualEntry
@@ -94,17 +94,17 @@ export default function ResponsiveClientStep({
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <p className="text-[15px] font-semibold text-white">{selectedClient.name}</p>
+                  <p className="text-[16px] font-semibold text-white">{selectedClient.name}</p>
                   {selectedClient.is_mensalista && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-full">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
-                      <span className="text-[9px] font-bold text-[#D4AF37] uppercase">
+                      <span className="text-[10px] font-bold text-[#D4AF37] uppercase">
                         Mensalista
                       </span>
                     </span>
                   )}
                 </div>
-                <p className="text-[13px] text-zinc-500">{selectedClient.phone}</p>
+                <p className="text-[14px] text-zinc-500">{selectedClient.phone}</p>
               </div>
             </div>
             <button
@@ -124,7 +124,7 @@ export default function ResponsiveClientStep({
           multipleMatches.length > 0 ? (
             <div className="space-y-4">
               <p className="text-[12px] text-zinc-500">Múltiplos clientes encontrados:</p>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {multipleMatches.map((c) => (
                   <button
                     key={c.id}
@@ -182,7 +182,7 @@ export default function ResponsiveClientStep({
                   <input
                     type="text"
                     placeholder="Digite o número ou nome..."
-                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[15px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#D4AF37]/50 focus:bg-white/[0.05]"
+                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#D4AF37]/50 focus:bg-white/[0.05]"
                     value={searchQuery}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     onKeyDown={(e) => {
@@ -235,7 +235,7 @@ export default function ResponsiveClientStep({
                 <input
                   type="text"
                   placeholder="Nome completo"
-                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[15px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#D4AF37]/50 focus:bg-white/[0.05]"
+                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#D4AF37]/50 focus:bg-white/[0.05]"
                   value={newClient.name}
                   onChange={(e) =>
                     onSetNewClient({ ...newClient, name: e.target.value.toUpperCase() })
@@ -264,7 +264,7 @@ export default function ResponsiveClientStep({
                   <input
                     type="tel"
                     placeholder="(00) 00000-0000"
-                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[15px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#D4AF37]/50 focus:bg-white/[0.05]"
+                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#D4AF37]/50 focus:bg-white/[0.05]"
                     value={newClient.phone}
                     onChange={(e) =>
                       onSetNewClient({ ...newClient, phone: formatPhone(e.target.value) })
@@ -282,7 +282,7 @@ export default function ResponsiveClientStep({
             type="button"
             onClick={onNextStep}
             disabled={!isStepValid(1)}
-            className="w-full py-4 bg-[#D4AF37] text-black text-[13px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#b8962e] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#D4AF37]/20"
+            className="w-full py-4 bg-[#D4AF37] text-black text-[14px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#b8962e] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#D4AF37]/20"
           >
             Continuar <ChevronRight size={16} />
           </button>
@@ -312,7 +312,7 @@ export default function ResponsiveClientStep({
               type="text"
               placeholder="Buscar por nome ou WhatsApp..."
               autoFocus
-              className="w-full bg-transparent text-white text-[15px] outline-none placeholder:text-zinc-600"
+              className="w-full bg-transparent text-white text-[16px] outline-none placeholder:text-zinc-600"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={(e) => {
@@ -328,7 +328,7 @@ export default function ResponsiveClientStep({
               type="button"
               onClick={() => onSearch()}
               disabled={!searchQuery.trim() || isSearchingClient}
-              className="text-[#D4AF37] text-[13px] font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="text-[#D4AF37] text-[14px] font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {isSearchingClient ? '...' : 'Buscar'}
             </button>
@@ -340,7 +340,7 @@ export default function ResponsiveClientStep({
               <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-3">
                 Selecione o cliente
               </p>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {multipleMatches.map((c) => (
                   <button
                     key={c.id}
@@ -354,13 +354,13 @@ export default function ResponsiveClientStep({
                     className="w-full text-left py-3.5 flex items-center gap-3 cursor-pointer group"
                   >
                     <div className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center shrink-0">
-                      <span className="text-[11px] font-bold text-zinc-400">
+                      <span className="text-[12px] font-bold text-zinc-400">
                         {c.name.charAt(0)}
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[13px] font-semibold text-white truncate">{c.name}</p>
-                      <p className="text-[11px] text-zinc-500 truncate">{c.phone}</p>
+                      <p className="text-[14px] font-semibold text-white truncate">{c.name}</p>
+                      <p className="text-[12px] text-zinc-500 truncate">{c.phone}</p>
                     </div>
                   </button>
                 ))}
@@ -371,7 +371,7 @@ export default function ResponsiveClientStep({
               <div className="w-12 h-12 rounded-full bg-white/[0.04] flex items-center justify-center mb-4">
                 <Search size={20} className="text-zinc-600" />
               </div>
-              <p className="text-[13px] text-zinc-500 text-center">
+              <p className="text-[14px] text-zinc-500 text-center">
                 {searchQuery.trim()
                   ? 'Nenhum cliente encontrado'
                   : 'Digite um nome ou WhatsApp para buscar'}
@@ -384,8 +384,8 @@ export default function ResponsiveClientStep({
   }
 
   return (
-    <div className="space-y-5 h-full flex flex-col">
-      <div className="space-y-1 shrink-0">
+    <div className="space-y-4 h-full flex flex-col">
+      <div className="space-y-2 shrink-0">
         <h2 className="text-lg font-bold text-white uppercase tracking-tight">Cliente</h2>
         <p className="text-xs text-zinc-500">Insira os dados do cliente</p>
       </div>
@@ -398,13 +398,13 @@ export default function ResponsiveClientStep({
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <span className="text-[8px] font-bold text-[#D4AF37] tracking-widest uppercase block mb-0.5">
+                <span className="text-[10px] font-bold text-[#D4AF37] tracking-widest uppercase block mb-0.5">
                   CADASTRADO
                 </span>
                 {selectedClient.is_mensalista && (
                   <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-full">
                     <span className="w-1 h-1 rounded-full bg-[#D4AF37]" />
-                    <span className="text-[7px] font-bold text-[#D4AF37] uppercase">
+                    <span className="text-[10px] font-bold text-[#D4AF37] uppercase">
                       Mensalista
                     </span>
                   </span>
@@ -413,7 +413,7 @@ export default function ResponsiveClientStep({
               <h3 className="text-sm font-bold text-white uppercase tracking-wide leading-none truncate">
                 {selectedClient.name}
               </h3>
-              <p className="text-[11px] text-zinc-500 mt-1 truncate">{selectedClient.phone}</p>
+              <p className="text-[12px] text-zinc-500 mt-1 truncate">{selectedClient.phone}</p>
             </div>
           </div>
           <button
@@ -423,7 +423,7 @@ export default function ResponsiveClientStep({
               onSetSearchQuery('');
               onSetIsManualEntry(true);
             }}
-            className="text-[9px] font-bold uppercase tracking-widest text-[#D4AF37] cursor-pointer px-3 py-1.5 shrink-0 bg-white/[0.03] border border-[#D4AF37]/20 rounded-xl hover:bg-white/[0.08] hover:border-[#D4AF37]/40 hover:text-white transition-all duration-200 active:scale-95"
+            className="text-[10px] font-bold uppercase tracking-widest text-[#D4AF37] cursor-pointer px-3 py-1.5 shrink-0 bg-white/[0.03] border border-[#D4AF37]/20 rounded-xl hover:bg-white/[0.08] hover:border-[#D4AF37]/40 hover:text-white transition-all duration-200 active:scale-95"
           >
             Alterar
           </button>
@@ -445,7 +445,7 @@ export default function ResponsiveClientStep({
                 }
               />
               {newClient.name.trim().length > 0 && newClient.name.trim().length < 3 && (
-                <p className="text-[9px] text-zinc-600 ml-1">Mínimo 3 caracteres</p>
+                <p className="text-[10px] text-zinc-600 ml-1">Mínimo 3 caracteres</p>
               )}
             </div>
             <div className="space-y-2">
@@ -456,7 +456,7 @@ export default function ResponsiveClientStep({
                 {isMensalista && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-full">
                     <span className="w-1 h-1 rounded-full bg-[#D4AF37]" />
-                    <span className="text-[8px] font-bold text-[#D4AF37] uppercase">
+                    <span className="text-[10px] font-bold text-[#D4AF37] uppercase">
                       Mensalista
                     </span>
                   </span>
@@ -473,7 +473,7 @@ export default function ResponsiveClientStep({
               />
               {newClient.phone.trim().length > 0 &&
                 newClient.phone.replace(/\D/g, '').length < 8 && (
-                  <p className="text-[9px] text-zinc-600 ml-1">Telefone muito curto</p>
+                  <p className="text-[10px] text-zinc-600 ml-1">Telefone muito curto</p>
                 )}
             </div>
 
@@ -482,7 +482,7 @@ export default function ResponsiveClientStep({
               <button
                 type="button"
                 onClick={() => onSetIsManualEntry(false)}
-                className="text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-500 hover:text-[#D4AF37] transition-colors cursor-pointer whitespace-nowrap"
+                className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 hover:text-[#D4AF37] transition-colors cursor-pointer whitespace-nowrap"
               >
                 ou buscar cliente existente
               </button>
@@ -493,7 +493,7 @@ export default function ResponsiveClientStep({
               <button
                 type="button"
                 onClick={() => setShowFullSearch(true)}
-                className="w-full flex items-center justify-center gap-2 py-3 text-[11px] font-bold text-[#D4AF37] uppercase tracking-wider hover:bg-white/[0.02] rounded-xl transition-all cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-3 text-[12px] font-bold text-[#D4AF37] uppercase tracking-wider hover:bg-white/[0.02] rounded-xl transition-all cursor-pointer"
               >
                 <Search size={14} /> Ver meus clientes
               </button>

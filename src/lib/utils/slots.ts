@@ -113,12 +113,44 @@ export const getBarberHours = async (): Promise<HoursData> => {
   return DEFAULT_HOURS;
 };
 
-// Cache for getTimeSlotsForDate (TTL: 5 minutes, max 100 entries)
+/**
+ * Slots cache: TTL de 5 min, max 100 entries.
+ * Entries expiradas são removidas sob demanda a cada acesso, evitando
+ * que o cache acumule dados obsoletos entre TTLs.
+ */
 const slotsCache = new Map<string, { data: string[]; ts: number }>();
 const SLOTS_CACHE_TTL = 5 * 60 * 1000;
 const SLOTS_CACHE_MAX = 100;
 
+/** Remove todas as entries expiradas do cache. Chamado em cada acesso. */
+function evictExpiredSlots(): void {
+  const now = Date.now();
+  for (const [key, entry] of slotsCache) {
+    if (now - entry.ts >= SLOTS_CACHE_TTL) {
+      slotsCache.delete(key);
+    }
+  }
+}
+
+/** Remove a entry mais antiga se o cache estiver cheio. */
+function evictIfFull(): void {
+  if (slotsCache.size >= SLOTS_CACHE_MAX) {
+    const oldest = slotsCache.keys().next().value;
+    if (oldest) slotsCache.delete(oldest);
+  }
+}
+
+/** Atalho: atualiza o cache chamando evictExpired + evictIfFull + set */
+function cacheSet(key: string, data: string[]): void {
+  evictExpiredSlots();
+  evictIfFull();
+  slotsCache.set(key, { data, ts: Date.now() });
+}
+
 export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> => {
+  // Evita acessar dados expirados
+  evictExpiredSlots();
+
   const cached = slotsCache.get(dateStr);
   if (cached && Date.now() - cached.ts < SLOTS_CACHE_TTL) {
     return cached.data;
@@ -140,11 +172,7 @@ export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> =>
       const daySchedule = parsed[dow] as DaySchedule | undefined;
 
       if (!daySchedule?.enabled) {
-        if (slotsCache.size >= SLOTS_CACHE_MAX) {
-          const oldest = slotsCache.keys().next().value;
-          if (oldest) slotsCache.delete(oldest);
-        }
-        slotsCache.set(dateStr, { data: [], ts: Date.now() });
+        cacheSet(dateStr, []);
         return [];
       }
 
@@ -158,11 +186,7 @@ export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> =>
         slots = slots.filter((slot) => slot < lunchBreak.start || slot >= lunchBreak.end);
       }
 
-      if (slotsCache.size >= SLOTS_CACHE_MAX) {
-        const oldest = slotsCache.keys().next().value;
-        if (oldest) slotsCache.delete(oldest);
-      }
-      slotsCache.set(dateStr, { data: slots, ts: Date.now() });
+      cacheSet(dateStr, slots);
       return slots;
     }
   } catch (e) {
@@ -174,18 +198,10 @@ export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> =>
   const hours = await getBarberHours();
   const daySchedule = hours[dow];
   if (!daySchedule?.enabled) {
-    if (slotsCache.size >= SLOTS_CACHE_MAX) {
-      const oldest = slotsCache.keys().next().value;
-      if (oldest) slotsCache.delete(oldest);
-    }
-    slotsCache.set(dateStr, { data: [], ts: Date.now() });
+    cacheSet(dateStr, []);
     return [];
   }
   const slots = generateHourlySlots(daySchedule.open, daySchedule.close);
-  if (slotsCache.size >= SLOTS_CACHE_MAX) {
-    const oldest = slotsCache.keys().next().value;
-    if (oldest) slotsCache.delete(oldest);
-  }
-  slotsCache.set(dateStr, { data: slots, ts: Date.now() });
+  cacheSet(dateStr, slots);
   return slots;
 };

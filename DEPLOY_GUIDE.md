@@ -4,6 +4,26 @@
 
 ---
 
+## Setup Automático (recomendado)
+
+Um script faz tudo automaticamente: roda migrations, cria admin, gera .env.
+
+```bash
+# 1. Criar projeto no Supabase (app.supabase.com) — ~2 min
+# 2. Pegar URL + Service Role key (Settings > API)
+# 3. Rodar o setup:
+npm run setup
+
+# O script vai perguntar:
+#   - Supabase URL
+#   - Service Role key
+#   - Email do admin
+#   - Senha do admin
+#   - WhatsApp do barbeiro (opcional)
+```
+
+Pronto! O script cria as tabelas, cadastra o admin e gera o `.env`.
+
 ---
 
 ## Instalacao Manual (alternativa)
@@ -46,10 +66,14 @@ Antes de comecar, tenha em maos:
 
 1. No menu lateral, clique em **"SQL Editor"**
 2. Clique **"New Query"**
-3. Abra o arquivo `supabase/universal.sql` do projeto
-4. Copie todo o conteúdo e cole no editor
-5. Clique **"Run"** (▶️)
-6. Aguarde todas as queries executarem (deve aparecer "Success")
+3. Abra o SQL Editor e execute cada migration em ordem:
+   - `supabase/migrations/001_schema.sql`
+   - `supabase/migrations/002_rls.sql`
+   - `supabase/migrations/003_functions.sql`
+   - `supabase/migrations/004_triggers.sql`
+   - `supabase/migrations/005_seed_cron.sql`
+   - `supabase/migrations/006_multi_barber.sql`
+4. Copie e cole cada arquivo no editor e clique **"Run"**
 
 ### Passo 1.4 — Criar usuário admin
 
@@ -197,7 +221,7 @@ Pronto, o sistema já está no ar! Agora o barbeiro configura o resto **sozinho*
 
 ```
 Supabase:
-  New Project → Anotar URL + Key → SQL Editor → Rodar universal.sql → Auth > Add User
+  New Project → Anotar URL + Key → SQL Editor → Rodar migrations (001→006) → Auth > Add User
 
 Código:
   Location.tsx (iframe + endereço) → Footer.tsx (Instagram + endereço)

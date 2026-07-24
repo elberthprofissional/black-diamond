@@ -1,6 +1,10 @@
-import { createElement } from 'react';
+import { createElement, type ReactNode } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+
+vi.mock('../components/Admin/AuthGuard', () => ({
+  default: ({ children }: { children: ReactNode }) => children,
+}));
 
 vi.mock('../lib/api', () => ({
   getServices: vi.fn().mockResolvedValue([
@@ -35,6 +39,14 @@ vi.mock('../lib/supabase', () => {
     supabase: {
       from: vi.fn(() => makeBuilder()),
       rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
+      auth: {
+        getSession: vi
+          .fn()
+          .mockResolvedValue({ data: { session: { user: { id: '1' } } }, error: null }),
+        onAuthStateChange: vi
+          .fn()
+          .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+      },
     },
   };
 });

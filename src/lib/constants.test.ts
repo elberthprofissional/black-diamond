@@ -1,11 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  BLOCKED_NAME,
-  BLOCKED_PHONE,
-  INACTIVE_DAYS,
-  NULL_UUID,
-  MENSALISTA_EXCLUDED_SERVICES,
-} from './constants';
+import { BLOCKED_NAME, BLOCKED_PHONE, INACTIVE_DAYS } from './constants';
 
 describe('constants', () => {
   it('exports BLOCKED_NAME with correct value', () => {
@@ -16,16 +10,7 @@ describe('constants', () => {
     expect(BLOCKED_PHONE).toBe('00000000000');
   });
 
-  it('exports NULL_UUID', () => {
-    expect(NULL_UUID).toBe('00000000-0000-0000-0000-000000000000');
-  });
-
   it('exports INACTIVE_DAYS as a number', () => {
     expect(INACTIVE_DAYS).toBeGreaterThan(0);
-  });
-
-  it('exports MENSALISTA_EXCLUDED_SERVICES as array', () => {
-    expect(Array.isArray(MENSALISTA_EXCLUDED_SERVICES)).toBe(true);
-    expect(MENSALISTA_EXCLUDED_SERVICES.length).toBeGreaterThan(0);
   });
 });

@@ -189,7 +189,7 @@ const SettingsServicos: FC = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-white text-[15px] font-semibold">Serviços cadastrados</h3>
+            <h3 className="text-white text-[16px] font-semibold">Serviços cadastrados</h3>
             <p className="text-zinc-500 text-[12px] mt-0.5">
               {services.length} de {MAX_SERVICES}
             </p>
@@ -197,7 +197,7 @@ const SettingsServicos: FC = () => {
           <button
             onClick={openAdd}
             disabled={services.length >= MAX_SERVICES}
-            className="flex items-center gap-1.5 px-4 py-2 bg-[#D4AF37] text-black font-semibold text-[12px] rounded-lg hover:bg-[#b8962e] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            className="btn-gold flex items-center gap-1.5 px-4 py-2 text-[12px] rounded-lg disabled:opacity-30"
           >
             <Plus size={14} strokeWidth={2.5} />
             Adicionar
@@ -207,7 +207,7 @@ const SettingsServicos: FC = () => {
         {/* Empty State */}
         {services.length === 0 && (
           <div className="py-12 text-center">
-            <p className="text-zinc-600 text-[13px]">Nenhum serviço cadastrado</p>
+            <p className="text-zinc-600 text-[14px]">Nenhum serviço cadastrado</p>
           </div>
         )}
 
@@ -220,8 +220,8 @@ const SettingsServicos: FC = () => {
                 className="flex items-center justify-between py-4 border-b border-white/[0.04] hover:bg-white/[0.02] transition-all duration-200 px-2 -mx-2 rounded-lg"
               >
                 <div className="flex items-baseline gap-4">
-                  <span className="text-[15px] font-semibold text-white">{service.name}</span>
-                  <span className="text-[13px] text-[#D4AF37] font-medium">
+                  <span className="text-[16px] font-semibold text-white">{service.name}</span>
+                  <span className="text-[14px] text-[#D4AF37] font-medium">
                     {formatPrice(service.price)}
                   </span>
                 </div>
@@ -257,13 +257,13 @@ const SettingsServicos: FC = () => {
       <div className="lg:hidden">
         <div className="border border-white/[0.04] rounded-2xl overflow-hidden">
           <div className="px-5 py-3 bg-white/[0.02] flex items-center justify-between">
-            <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
               {services.length}/{MAX_SERVICES} serviços
             </span>
             <button
               onClick={openAdd}
               disabled={services.length >= MAX_SERVICES}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#D4AF37]/20 text-[#D4AF37] text-[11px] font-medium rounded-lg transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#D4AF37]/20 text-[#D4AF37] text-[12px] font-medium rounded-lg transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <Plus size={12} />
               Adicionar
@@ -282,8 +282,8 @@ const SettingsServicos: FC = () => {
               className="px-5 py-4 flex items-center justify-between border-t border-white/[0.04]"
             >
               <div>
-                <p className="text-[13px] text-white">{service.name}</p>
-                <p className="text-[11px] text-[#D4AF37] font-medium">
+                <p className="text-[14px] text-white">{service.name}</p>
+                <p className="text-[12px] text-[#D4AF37] font-medium">
                   {formatPrice(service.price)}
                 </p>
               </div>
@@ -324,12 +324,12 @@ const SettingsServicos: FC = () => {
               >
                 <X size={24} />
               </button>
-              <span className="text-[15px] font-bold text-white">
+              <span className="text-[16px] font-bold text-white">
                 {screen === 'add' ? 'Novo Serviço' : 'Editar Serviço'}
               </span>
               <button
                 onClick={handleSubmit}
-                className="text-[#D4AF37] font-bold text-[15px] transition-colors cursor-pointer"
+                className="text-[#D4AF37] font-bold text-[16px] transition-colors cursor-pointer"
                 aria-label="Salvar"
               >
                 <Check size={24} />
@@ -339,7 +339,7 @@ const SettingsServicos: FC = () => {
             <div className="p-5 space-y-6">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
                     Nome do serviço
                   </span>
                   <span className="text-[10px] text-zinc-600">
@@ -355,7 +355,7 @@ const SettingsServicos: FC = () => {
                   }}
                   placeholder="Ex: Corte de Cabelo"
                   maxLength={MAX_NAME_LENGTH}
-                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[15px] text-white outline-none focus:border-[#D4AF37]/40 transition-all placeholder:text-zinc-600"
+                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[16px] text-white outline-none focus:border-[#D4AF37]/40 transition-all placeholder:text-zinc-600"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') handleSubmit();
                   }}
@@ -363,13 +363,13 @@ const SettingsServicos: FC = () => {
               </div>
 
               <div className="space-y-2">
-                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">
                   Duração (min)
                 </span>
                 <select
                   value={durationInput}
                   onChange={(e) => setDurationInput(e.target.value)}
-                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[15px] text-white outline-none focus:border-[#D4AF37]/40 transition-all"
+                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[16px] text-white outline-none focus:border-[#D4AF37]/40 transition-all"
                 >
                   <option value="15">15 min</option>
                   <option value="30">30 min</option>
@@ -381,11 +381,11 @@ const SettingsServicos: FC = () => {
               </div>
 
               <div className="space-y-2">
-                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] block">
                   Preço
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="text-zinc-500 text-[15px] font-medium">R$</span>
+                  <span className="text-zinc-500 text-[16px] font-medium">R$</span>
                   <input
                     type="text"
                     value={priceInput}
@@ -396,7 +396,7 @@ const SettingsServicos: FC = () => {
                       }
                     }}
                     placeholder="0,00"
-                    className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[15px] text-white outline-none focus:border-[#D4AF37]/40 transition-all placeholder:text-zinc-600"
+                    className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[16px] text-white outline-none focus:border-[#D4AF37]/40 transition-all placeholder:text-zinc-600"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSubmit();
                     }}

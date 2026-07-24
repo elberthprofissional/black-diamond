@@ -52,26 +52,26 @@ const BookingDesktopSidebar: FC<BookingDesktopSidebarProps> = ({
       </div>
       <div className="mt-auto">
         {selectedServices.length > 0 && step < 4 && (
-          <div className="bg-white/[0.04] rounded-2xl p-5 space-y-3 border border-white/[0.06]">
-            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Resumo</p>
+          <div className="bg-white/[0.04] rounded-2xl p-5 space-y-4 border border-white/[0.06]">
+            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Resumo</p>
             {selectedServices.map((s) => (
               <div key={`side-${s.id}`} className="flex justify-between items-center">
-                <span className="text-[13px] text-zinc-300">{s.name}</span>
-                <span className="text-[13px] font-bold text-[#D4AF37]">
+                <span className="text-[14px] text-zinc-300">{s.name}</span>
+                <span className="text-[14px] font-bold text-[#D4AF37]">
                   {formatPrice(s.price, { locale: true })}
                 </span>
               </div>
             ))}
             {selectedDate && (
-              <div className="border-t border-white/[0.06] pt-3 space-y-1">
+              <div className="border-t border-white/[0.06] pt-3 space-y-2">
                 <div className="flex justify-between">
                   <span className="text-[10px] text-zinc-500">Data</span>
-                  <span className="text-[13px] font-bold">{formatDateBR(selectedDate)}</span>
+                  <span className="text-[14px] font-bold">{formatDateBR(selectedDate)}</span>
                 </div>
                 {selectedTime && (
                   <div className="flex justify-between">
                     <span className="text-[10px] text-zinc-500">Horário</span>
-                    <span className="text-[13px] font-bold text-[#D4AF37]">{selectedTime}</span>
+                    <span className="text-[14px] font-bold text-[#D4AF37]">{selectedTime}</span>
                   </div>
                 )}
               </div>
@@ -83,7 +83,7 @@ const BookingDesktopSidebar: FC<BookingDesktopSidebarProps> = ({
           </div>
         )}
         {step === 4 && (
-          <div className="bg-white/[0.04] rounded-2xl p-5 space-y-3 border border-white/[0.06]">
+          <div className="bg-white/[0.04] rounded-2xl p-5 space-y-4 border border-white/[0.06]">
             <p className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest">
               Procedimento
             </p>
@@ -93,7 +93,7 @@ const BookingDesktopSidebar: FC<BookingDesktopSidebarProps> = ({
             </p>
           </div>
         )}
-        <p className="text-[8px] text-zinc-600 mt-6">Precisa de ajuda? WhatsApp</p>
+        <p className="text-[10px] text-zinc-600 mt-6">Precisa de ajuda? WhatsApp</p>
       </div>
     </div>
   );

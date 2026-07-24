@@ -428,8 +428,23 @@ BEGIN
         SELECT COUNT(*) INTO v_c FROM clients;
         SELECT COUNT(*) INTO v_b2 FROM barbers;
     EXCEPTION WHEN OTHERS THEN v_status := 'error'; END;
-    RETURN jsonb_build_object('status', v_status, 'timestamp', NOW(), 'version', '3.22.0',
+    RETURN jsonb_build_object('status', v_status, 'timestamp', NOW(), 'version', '3.23.0',
         'database', jsonb_build_object('services', v_s, 'bookings', v_b, 'clients', v_c, 'barbers', v_b2),
         'uptime', EXTRACT(EPOCH FROM (NOW() - pg_postmaster_start_time()))::integer);
 END;
 $$ LANGUAGE plpgsql SECURITY INVOKER;
+
+-- =========================================================================
+-- 14. REMOVER MENSALISTA PLANS (antiga migration 007)
+-- =========================================================================
+-- A UI de gerenciamento de planos mensalistas foi removida.
+-- Remove a tabela obsoleta e ajusta a foreign key em clients.
+-- A flag is_mensalista em clients ainda é funcional (toggle manual).
+-- =========================================================================
+
+ALTER TABLE clients DROP CONSTRAINT IF EXISTS clients_mensalista_plan_id_fkey;
+DROP INDEX IF EXISTS idx_mensalista_plans_active;
+DROP POLICY IF EXISTS "Mensalista plans leitura publica" ON mensalista_plans;
+DROP POLICY IF EXISTS "Mensalista plans admin" ON mensalista_plans;
+DROP TABLE IF EXISTS mensalista_plans CASCADE;
+DROP FUNCTION IF EXISTS verificar_mensalistas CASCADE;

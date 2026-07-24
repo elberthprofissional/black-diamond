@@ -34,6 +34,21 @@ function saveCache(data: Service[]) {
   }
 }
 
+/**
+ * Hook para carregar e gerenciar a lista de serviços (cortes, barba, etc.).
+ *
+ * - Faz cache em memória (`cachedServices`) e localStorage (`STORAGE_SERVICES_CACHE`).
+ * - Cache expira após 24h.
+ * - Monitora conectividade: recarrega silenciosamente quando o usuário volta a ficar online.
+ * - Se a requisição falhar e houver cache, usa o cache e marca `isOffline = true`.
+ *
+ * @returns {{ services, loading, error, refetch, isOffline }}
+ *   - `services`: lista de serviços disponíveis
+ *   - `loading`: true enquanto carrega
+ *   - `error`: erro da última requisição, ou null
+ *   - `refetch`: força recarga mesmo com cache
+ *   - `isOffline`: true se está usando dados offline (cache)
+ */
 export function useServices() {
   const [services, setServices] = useState<Service[]>(() => cachedServices || loadCache() || []);
   const [loading, setLoading] = useState(!cachedServices && !loadCache());

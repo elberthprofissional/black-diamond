@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { logError } from '../lib/logger';
 
 interface RateLimitConfig {
   maxAttempts: number;
@@ -11,83 +10,42 @@ const DEFAULT_CONFIG: RateLimitConfig = {
   windowMs: 60000,
 };
 
-function safeParse(stored: string): { count: number; timestamp: number } | null {
-  try {
-    const parsed = JSON.parse(stored);
-    if (typeof parsed.count === 'number' && typeof parsed.timestamp === 'number') return parsed;
-    return null;
-  } catch (e) {
-    logError(e);
-    return null;
-  }
-}
-
-export function useRateLimit(key: string, config: Partial<RateLimitConfig> = {}) {
+/**
+ * Hook de rate limit simplificado — apenas in-memory.
+ * O rate limit server-side via RPC do Supabase já protege contra abusos;
+ * este hook serve apenas para feedback visual em tempo real.
+ */
+export function useRateLimit(_key: string, config: Partial<RateLimitConfig> = {}) {
   const { maxAttempts, windowMs } = { ...DEFAULT_CONFIG, ...config };
-  const [attempts, setAttempts] = useState<number>(() => {
-    const stored = localStorage.getItem(`ratelimit_${key}`);
-    if (!stored) return 0;
-    const parsed = safeParse(stored);
-    if (!parsed) {
-      localStorage.removeItem(`ratelimit_${key}`);
-      return 0;
-    }
-    if (Date.now() - parsed.timestamp > windowMs) {
-      localStorage.removeItem(`ratelimit_${key}`);
-      return 0;
-    }
-    return parsed.count;
-  });
+  const [attempts, setAttempts] = useState(0);
+  const [blockedUntil, setBlockedUntil] = useState<number | null>(null);
 
-  const isBlocked = attempts >= maxAttempts;
+  const isBlocked = blockedUntil !== null && Date.now() < blockedUntil;
 
   const recordAttempt = useCallback(() => {
     const now = Date.now();
-    const stored = localStorage.getItem(`ratelimit_${key}`);
+    if (blockedUntil && now < blockedUntil) return false;
 
-    if (stored) {
-      const parsed = safeParse(stored);
-      if (!parsed) {
-        localStorage.setItem(`ratelimit_${key}`, JSON.stringify({ count: 1, timestamp: now }));
-        setAttempts(1);
-        return true;
+    setAttempts((prev) => {
+      const next = prev + 1;
+      if (next >= maxAttempts) {
+        setBlockedUntil(now + windowMs);
       }
-      if (now - parsed.timestamp > windowMs) {
-        localStorage.setItem(`ratelimit_${key}`, JSON.stringify({ count: 1, timestamp: now }));
-        setAttempts(1);
-        return true;
-      }
-      if (parsed.count >= maxAttempts) {
-        setAttempts(parsed.count);
-        return false;
-      }
-      const newCount = parsed.count + 1;
-      localStorage.setItem(
-        `ratelimit_${key}`,
-        JSON.stringify({ count: newCount, timestamp: parsed.timestamp })
-      );
-      setAttempts(newCount);
-      return true;
-    }
-
-    localStorage.setItem(`ratelimit_${key}`, JSON.stringify({ count: 1, timestamp: now }));
-    setAttempts(1);
+      return next;
+    });
     return true;
-  }, [key, maxAttempts, windowMs]);
+  }, [blockedUntil, maxAttempts, windowMs]);
 
   const reset = useCallback(() => {
-    localStorage.removeItem(`ratelimit_${key}`);
     setAttempts(0);
-  }, [key]);
+    setBlockedUntil(null);
+  }, []);
 
   const getTimeUntilReset = useCallback(() => {
-    const stored = localStorage.getItem(`ratelimit_${key}`);
-    if (!stored) return 0;
-    const parsed = safeParse(stored);
-    if (!parsed) return 0;
-    const remaining = windowMs - (Date.now() - parsed.timestamp);
+    if (!blockedUntil) return 0;
+    const remaining = blockedUntil - Date.now();
     return remaining > 0 ? remaining : 0;
-  }, [key, windowMs]);
+  }, [blockedUntil]);
 
   return {
     isBlocked,

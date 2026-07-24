@@ -206,13 +206,3 @@ export const incrementVisit = async (clientId: string): Promise<IncrementResult>
 
   return { newMilestones };
 };
-
-/** Retorna o total de milestones já resgatadas por um cliente. */
-export const getClaimedCount = async (clientId: string): Promise<number> => {
-  const { count, error } = await supabase
-    .from('client_milestones')
-    .select('id', { count: 'exact', head: true })
-    .eq('client_id', clientId);
-  if (error) return 0;
-  return count ?? 0;
-};

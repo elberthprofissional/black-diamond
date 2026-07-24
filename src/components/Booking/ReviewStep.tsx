@@ -85,8 +85,8 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                     </span>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[15px] font-bold text-white truncate">{userName}</p>
-                    <p className="text-[13px] text-zinc-500">{formatPhone(userPhone)}</p>
+                    <p className="text-[16px] font-bold text-white truncate">{userName}</p>
+                    <p className="text-[14px] text-zinc-500">{formatPhone(userPhone)}</p>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="flex items-center gap-1.5 text-zinc-400">
@@ -105,7 +105,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                       </svg>
                       <span className="text-[12px] font-semibold">{formattedDate}</span>
                     </div>
-                    <p className="text-[13px] font-bold text-[#D4AF37] mt-0.5">{selectedTime}</p>
+                    <p className="text-[14px] font-bold text-[#D4AF37] mt-0.5">{selectedTime}</p>
                   </div>
                 </div>
               </div>
@@ -114,11 +114,11 @@ const ReviewStep: FC<ReviewStepProps> = memo(
               <div className="h-px bg-white/[0.06]" />
 
               {/* Services */}
-              <div className="p-6 pt-5 space-y-3">
+              <div className="p-6 pt-5 space-y-4">
                 {selectedServices.map((s) => (
                   <div key={`ticket-${s.id}`} className="flex justify-between items-center">
-                    <span className="text-[13px] text-zinc-300">{s.name}</span>
-                    <span className="text-[13px] font-bold text-white tabular-nums">
+                    <span className="text-[14px] text-zinc-300">{s.name}</span>
+                    <span className="text-[14px] font-bold text-white tabular-nums">
                       {formatPricePublic(s.price)}
                     </span>
                   </div>
@@ -145,22 +145,22 @@ const ReviewStep: FC<ReviewStepProps> = memo(
               <div className="p-6 pt-5 space-y-2">
                 {hasDiscount && originalPrice && (
                   <div className="flex justify-between items-center">
-                    <span className="text-[11px] text-zinc-500">Subtotal</span>
-                    <span className="text-[13px] font-bold text-zinc-500 tabular-nums line-through">
+                    <span className="text-[12px] text-zinc-500">Subtotal</span>
+                    <span className="text-[14px] font-bold text-zinc-500 tabular-nums line-through">
                       {formatPricePublic(originalPrice)}
                     </span>
                   </div>
                 )}
                 {hasDiscount && (
                   <div className="flex justify-between items-center">
-                    <span className="text-[11px] text-emerald-400 font-medium">Desconto</span>
-                    <span className="text-[13px] font-bold text-emerald-400 tabular-nums">
+                    <span className="text-[12px] text-emerald-400 font-medium">Desconto</span>
+                    <span className="text-[14px] font-bold text-emerald-400 tabular-nums">
                       {formatDiscount(coupon!.discount_amount, { decimals: true })}
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between items-center pt-2">
-                  <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
+                  <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-widest">
                     Total
                   </span>
                   <span className="text-2xl font-black text-[#D4AF37] tracking-tight tabular-nums">
@@ -176,7 +176,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
 
     return (
       <div className="space-y-4 pb-4">
-        <p className="text-[13px] text-zinc-400 px-1">Revise os dados do seu agendamento</p>
+        <p className="text-[14px] text-zinc-400 px-1">Revise os dados do seu agendamento</p>
 
         <div className="w-full border border-white/[0.06] rounded-2xl overflow-hidden">
           <div className="px-5 py-4 space-y-0">
@@ -196,7 +196,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                 />
               </svg>
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] text-zinc-500 font-medium">Cliente</p>
+                <p className="text-[12px] text-zinc-500 font-medium">Cliente</p>
                 <p className="text-[14px] font-semibold text-white truncate">{userName}</p>
               </div>
             </div>
@@ -217,7 +217,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                 />
               </svg>
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] text-zinc-500 font-medium">Telefone</p>
+                <p className="text-[12px] text-zinc-500 font-medium">Telefone</p>
                 <p className="text-[14px] font-semibold text-white">{formatPhone(userPhone)}</p>
               </div>
             </div>
@@ -238,7 +238,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                 />
               </svg>
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] text-zinc-500 font-medium">Serviço</p>
+                <p className="text-[12px] text-zinc-500 font-medium">Serviço</p>
                 <p className="text-[14px] font-semibold text-white truncate">
                   {selectedServices.map((s) => s.name).join(', ')}
                 </p>
@@ -261,7 +261,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                 />
               </svg>
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] text-zinc-500 font-medium">Data</p>
+                <p className="text-[12px] text-zinc-500 font-medium">Data</p>
                 <p className="text-[14px] font-semibold text-white">{formattedDate}</p>
               </div>
             </div>
@@ -282,7 +282,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                 />
               </svg>
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] text-zinc-500 font-medium">Horário</p>
+                <p className="text-[12px] text-zinc-500 font-medium">Horário</p>
                 <p className="text-[14px] font-semibold text-white">{selectedTime}</p>
               </div>
             </div>
@@ -296,7 +296,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                       <Tag size={18} className="text-[#D4AF37]" />
                     </div>
                     <div>
-                      <p className="text-[11px] text-zinc-500 font-medium">Cupom</p>
+                      <p className="text-[12px] text-zinc-500 font-medium">Cupom</p>
                       <div className="flex items-center gap-2">
                         <p className="text-[14px] font-bold text-[#D4AF37] tracking-wider">
                           {coupon!.code}
@@ -337,7 +337,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                   <div className="w-5 shrink-0" />
                   <div className="flex-1 flex justify-between items-center">
                     <span className="text-[10px] text-zinc-500 line-through">Subtotal</span>
-                    <span className="text-[13px] font-bold text-zinc-500 tabular-nums line-through">
+                    <span className="text-[14px] font-bold text-zinc-500 tabular-nums line-through">
                       {formatPriceAdmin(originalPrice)}
                     </span>
                   </div>
@@ -348,7 +348,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                   <div className="w-5 shrink-0" />
                   <div className="flex-1 flex justify-between items-center">
                     <span className="text-[10px] text-emerald-400 font-medium">Desconto</span>
-                    <span className="text-[13px] font-bold text-emerald-400 tabular-nums">
+                    <span className="text-[14px] font-bold text-emerald-400 tabular-nums">
                       {formatDiscount(coupon.discount_amount, { decimals: true })}
                     </span>
                   </div>
@@ -369,8 +369,8 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                   />
                 </svg>
                 <div className="flex-1 min-w-0 flex justify-between items-center">
-                  <p className="text-[11px] text-zinc-500 font-medium">Valor</p>
-                  <p className="text-[18px] font-black text-white tabular-nums">
+                  <p className="text-[12px] text-zinc-500 font-medium">Valor</p>
+                  <p className="text-[16px] font-black text-white tabular-nums">
                     {formatPriceAdmin(totalPrice)}
                   </p>
                 </div>

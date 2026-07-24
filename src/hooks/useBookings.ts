@@ -51,6 +51,19 @@ function saveBookingsCache(data: BookingWithClient[], bookingDate?: string) {
   }
 }
 
+/**
+ * Hook para carregar e gerenciar agendamentos de uma data específica.
+ *
+ * - Cache offline: armazena os agendamentos no localStorage (válido por 24h).
+ * - Se a inicialização tiver cache, começa com ele e marca `isCached = true`.
+ * - Em caso de falha de rede, recorre ao cache.
+ * - Monitora evento `online` para recarregar silenciosamente quando voltar.
+ * - Usa AbortController para cancelar requisições anteriores.
+ *
+ * @param date - Data no formato 'YYYY-MM-DD'. Se omitido, busca sem filtro de data.
+ * @param barberId - ID do barbeiro para filtrar agendamentos (multi-barber).
+ * @returns {{ bookings, loading, error, isCached, refetch }}
+ */
 export function useBookings(date?: string, barberId?: string) {
   const [bookings, setBookings] = useState<BookingWithClient[]>(
     () => loadBookingsCache(date) || []

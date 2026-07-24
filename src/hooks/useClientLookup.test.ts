@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor, act } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { useClientLookup } from './useClientLookup';
 
 const mockGetClientByPhone = vi.fn();
@@ -74,11 +74,20 @@ describe('useClientLookup', () => {
       expect(result.current.isMensalista).toBe(true);
     });
 
-    act(() => {
-      result.current.resetMensalista();
+    // resetMensalista was removed — isMensalista resets when phone becomes short
+    const { result: result2, rerender } = renderHook(({ phone }) => useClientLookup(phone), {
+      initialProps: { phone: '11999999999' },
     });
 
-    expect(result.current.isMensalista).toBe(false);
+    await waitFor(() => {
+      expect(result2.current.isMensalista).toBe(true);
+    });
+
+    rerender({ phone: '119' });
+
+    await waitFor(() => {
+      expect(result2.current.isMensalista).toBe(false);
+    });
   });
 
   it('trata erro na busca sem crashar', async () => {

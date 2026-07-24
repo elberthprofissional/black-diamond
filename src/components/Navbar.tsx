@@ -1,5 +1,6 @@
 import { useState, useEffect, memo, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useBarberSettings } from '../hooks/useBarberSettings';
 
 interface NavbarProps {
   onBookingClick: () => void;
@@ -8,6 +9,11 @@ interface NavbarProps {
 const Navbar: FC<NavbarProps> = memo(({ onBookingClick }) => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const { brandName, brandColor, brandLogo } = useBarberSettings();
+  const displayName = brandName || 'BLACK DIAMOND';
+  const displayNameParts = displayName.split(' ');
+  const firstName = displayNameParts[0] || 'BLACK';
+  const restName = displayNameParts.slice(1).join(' ') || 'DIAMOND';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -54,18 +60,21 @@ const Navbar: FC<NavbarProps> = memo(({ onBookingClick }) => {
           aria-label="Página Inicial - Black Diamond"
         >
           <img
-            src="/assets/logo.webp"
-            alt="Black Diamond"
+            src={brandLogo || '/assets/logo.webp'}
+            alt={displayName}
             className={`transition-all duration-500 object-contain -ml-2 md:-ml-6 ${
               scrolled ? 'w-16 h-16 md:w-24 md:h-24' : 'w-20 h-20 md:w-36 md:h-36'
             }`}
           />
           <div className="flex items-baseline gap-1.5 md:gap-4">
-            <span className="text-[18px] md:text-[28px] font-bebas font-normal tracking-[0.15em] md:tracking-[0.3em] text-white uppercase leading-none">
-              BLACK
+            <span className="text-[16px] md:text-[24px] font-bebas font-normal tracking-[0.15em] md:tracking-[0.3em] text-white uppercase leading-none">
+              {firstName}
             </span>
-            <span className="text-[18px] md:text-[28px] font-bebas font-normal tracking-[0.1em] md:tracking-[0.2em] text-[#D4AF37] leading-none uppercase">
-              DIAMOND
+            <span
+              className="text-[16px] md:text-[24px] font-bebas font-normal tracking-[0.1em] md:tracking-[0.2em] leading-none uppercase"
+              style={{ color: brandColor }}
+            >
+              {restName}
             </span>
           </div>
         </div>
@@ -77,7 +86,10 @@ const Navbar: FC<NavbarProps> = memo(({ onBookingClick }) => {
               key={item.id}
               onClick={() => handleNavClick(item.id)}
               aria-label={`Ir para a seção ${item.label.toLowerCase()}`}
-              className="text-[14px] uppercase tracking-[0.3em] text-zinc-400 font-bebas hover:text-[#D4AF37] transition-all cursor-pointer"
+              className="text-[14px] uppercase tracking-[0.3em] text-zinc-400 font-bebas transition-all cursor-pointer"
+              style={{ ['--hover-color' as string]: brandColor }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = brandColor)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '')}
             >
               {item.label}
             </button>
@@ -87,7 +99,16 @@ const Navbar: FC<NavbarProps> = memo(({ onBookingClick }) => {
         <button
           onClick={onBookingClick}
           aria-label="Abrir formulário de agendamento online"
-          className="px-6 sm:px-12 py-3 md:py-4 border border-[#D4AF37]/30 rounded-full text-[12px] sm:text-[14px] md:text-[16px] font-bebas uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white hover:bg-[#D4AF37] hover:text-black transition-all duration-500 cursor-pointer"
+          className="px-6 sm:px-12 py-3 md:py-4 border rounded-full text-[12px] sm:text-[14px] md:text-[16px] font-bebas uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white transition-all duration-500 cursor-pointer hover:text-black"
+          style={{ borderColor: `${brandColor}4D` }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = brandColor;
+            e.currentTarget.style.color = 'black';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = 'white';
+          }}
         >
           Agendar
         </button>

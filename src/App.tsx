@@ -3,7 +3,7 @@ import { Routes, Route, useLocation, matchPath } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import { useReducedMotion } from './hooks/useReducedMotion';
 import { useSEO } from './hooks/useSEO';
-import AuthGuard from './components/Admin/AuthGuard';
+import AdminLayout from './components/Admin/AdminLayout';
 import ErrorBoundary from './components/ErrorBoundary';
 import ConnectionStatusBanner from './components/ConnectionStatusBanner';
 import StandaloneGuard from './components/StandaloneGuard';
@@ -20,11 +20,13 @@ const TITLES: Record<string, string> = {
   '/admin/weekly': 'Agenda da Semana | Black Diamond',
   '/admin/clients': 'Clientes | Black Diamond',
   '/admin/profile': 'Perfil | Black Diamond',
+  '/admin/reports': 'Relatórios | Black Diamond',
   '/admin/reset-password': 'Redefinir Senha | Black Diamond',
   '/cancelar': 'Cancelar ou Reagendar | Black Diamond',
   '/gerenciar/:token?': 'Gerenciar Agendamento | Black Diamond',
   '/cliente': 'Meus Agendamentos | Black Diamond',
   '/admin/notificacoes': 'Notificações | Black Diamond',
+  '/admin/onboarding': 'Configuração Inicial | Black Diamond',
   '/barber': 'Meu Dia | Black Diamond',
 };
 
@@ -70,6 +72,7 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdminWeekly = lazy(() => import('./pages/AdminWeekly'));
 const AdminClients = lazy(() => import('./pages/AdminClients'));
 const AdminProfile = lazy(() => import('./pages/AdminProfile'));
+const AdminReports = lazy(() => import('./pages/AdminReports'));
 const AdminBooking = lazy(() => import('./pages/AdminBooking'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const CancelPage = lazy(() => import('./pages/CancelPage'));
@@ -77,6 +80,7 @@ const ManageBooking = lazy(() => import('./pages/ManageBooking'));
 const ClientProfile = lazy(() => import('./components/ClientProfile'));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 const BarberDashboard = lazy(() => import('./pages/BarberDashboard'));
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
 
 // Route preloader - preloads route chunks on hover/focus for instant navigation
 const routePreloaders = new Map<string, () => Promise<unknown>>();
@@ -94,12 +98,13 @@ function preloadRoute(path: string) {
     '/admin/weekly': () => import('./pages/AdminWeekly'),
     '/admin/clients': () => import('./pages/AdminClients'),
     '/admin/profile': () => import('./pages/AdminProfile'),
+    '/admin/reports': () => import('./pages/AdminReports'),
     '/admin/agendar': () => import('./pages/AdminBooking'),
     '/cancelar': () => import('./pages/CancelPage'),
     '/gerenciar': () => import('./pages/ManageBooking'),
-    '/gerenciar/:token?': () => import('./pages/ManageBooking'),
     '/cliente': () => import('./components/ClientProfile'),
     '/admin/notificacoes': () => import('./pages/NotificationsPage'),
+    '/admin/onboarding': () => import('./pages/OnboardingPage'),
     '/barber': () => import('./pages/BarberDashboard'),
   };
 
@@ -149,7 +154,7 @@ function SectionErrorBoundary({ children, name }: { children: ReactNode; name: s
     <ErrorBoundary
       fallback={
         <div className="min-h-[200px] flex items-center justify-center p-8">
-          <div className="text-center space-y-3">
+          <div className="text-center space-y-4">
             <p className="text-sm text-zinc-500">Erro ao carregar {name}.</p>
             <button
               onClick={() => window.location.reload()}
@@ -175,7 +180,7 @@ function App() {
     const preloadPaths: Record<string, string[]> = {
       '/': ['/agendar'],
       '/agendar': ['/cancelar', '/gerenciar'],
-      '/admin': ['/admin/weekly', '/admin/clients', '/admin/profile'],
+      '/admin': ['/admin/weekly', '/admin/reports', '/admin/clients', '/admin/profile'],
       '/admin/login': ['/admin'],
     };
 
@@ -188,6 +193,19 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [pathname]);
+
+  // Add PWA standalone class to body for CSS targeting
+  useEffect(() => {
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      document.body.classList.add('pwa-context');
+    }
+    const handler = (e: MediaQueryListEvent) => {
+      document.body.classList.toggle('pwa-context', e.matches);
+    };
+    const mq = window.matchMedia('(display-mode: standalone)');
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   return (
     <MotionConfig reducedMotion={reducedMotion ? 'always' : 'never'}>
@@ -216,16 +234,23 @@ function App() {
                   </SectionErrorBoundary>
                 }
               />
+
+              {/* Onboarding — configuração inicial */}
+              <Route
+                path="/admin/onboarding"
+                element={
+                  <AdminLayout hideNavbar hideBottomTabs>
+                    <OnboardingPage />
+                  </AdminLayout>
+                }
+              />
+
               <Route
                 path="/admin/notificacoes"
                 element={
-                  <BarberProvider>
-                    <AuthGuard>
-                      <SectionErrorBoundary name="Notificações">
-                        <NotificationsPage />
-                      </SectionErrorBoundary>
-                    </AuthGuard>
-                  </BarberProvider>
+                  <AdminLayout>
+                    <NotificationsPage />
+                  </AdminLayout>
                 }
               />
 
@@ -233,61 +258,49 @@ function App() {
               <Route
                 path="/admin"
                 element={
-                  <BarberProvider>
-                    <AuthGuard>
-                      <SectionErrorBoundary name="Painel Admin">
-                        <AdminDashboard />
-                      </SectionErrorBoundary>
-                    </AuthGuard>
-                  </BarberProvider>
+                  <AdminLayout>
+                    <AdminDashboard />
+                  </AdminLayout>
                 }
               />
               <Route
                 path="/admin/agendar"
                 element={
-                  <BarberProvider>
-                    <AuthGuard>
-                      <SectionErrorBoundary name="Novo Agendamento">
-                        <AdminBooking />
-                      </SectionErrorBoundary>
-                    </AuthGuard>
-                  </BarberProvider>
+                  <AdminLayout>
+                    <AdminBooking />
+                  </AdminLayout>
                 }
               />
               <Route
                 path="/admin/weekly"
                 element={
-                  <BarberProvider>
-                    <AuthGuard>
-                      <SectionErrorBoundary name="Agenda Semanal">
-                        <AdminWeekly />
-                      </SectionErrorBoundary>
-                    </AuthGuard>
-                  </BarberProvider>
+                  <AdminLayout>
+                    <AdminWeekly />
+                  </AdminLayout>
                 }
               />
               <Route
                 path="/admin/clients"
                 element={
-                  <BarberProvider>
-                    <AuthGuard>
-                      <SectionErrorBoundary name="Clientes">
-                        <AdminClients />
-                      </SectionErrorBoundary>
-                    </AuthGuard>
-                  </BarberProvider>
+                  <AdminLayout>
+                    <AdminClients />
+                  </AdminLayout>
                 }
               />
               <Route
                 path="/admin/profile"
                 element={
-                  <BarberProvider>
-                    <AuthGuard>
-                      <SectionErrorBoundary name="Perfil">
-                        <AdminProfile />
-                      </SectionErrorBoundary>
-                    </AuthGuard>
-                  </BarberProvider>
+                  <AdminLayout>
+                    <AdminProfile />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path="/admin/reports"
+                element={
+                  <AdminLayout>
+                    <AdminReports />
+                  </AdminLayout>
                 }
               />
 
@@ -295,15 +308,11 @@ function App() {
               <Route
                 path="/barber"
                 element={
-                  <BarberProvider>
-                    <AuthGuard>
-                      <BarberGuard>
-                        <SectionErrorBoundary name="Painel do Barbeiro">
-                          <BarberDashboard />
-                        </SectionErrorBoundary>
-                      </BarberGuard>
-                    </AuthGuard>
-                  </BarberProvider>
+                  <AdminLayout>
+                    <BarberGuard>
+                      <BarberDashboard />
+                    </BarberGuard>
+                  </AdminLayout>
                 }
               />
 

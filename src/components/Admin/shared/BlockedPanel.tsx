@@ -23,11 +23,11 @@ const BlockedPanel: FC<BlockedPanelProps> = ({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <button
         onClick={onUnblockDay}
         disabled={blockingDay}
-        className="group w-full mb-4 py-3.5 px-4 bg-zinc-900/30 hover:bg-emerald-500/[0.04] border border-white/[0.04] hover:border-emerald-500/20 text-zinc-400 hover:text-emerald-400 rounded-xl text-[9px] font-bold uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+        className="group w-full mb-4 py-3.5 px-4 bg-white/[0.02] hover:bg-emerald-500/[0.06] border border-white/[0.06] hover:border-emerald-500/20 text-zinc-400 hover:text-emerald-400 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-200 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {blockingDay ? (
           <div className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
@@ -50,16 +50,17 @@ const BlockedPanel: FC<BlockedPanelProps> = ({
       {blockedBookings.map((booking) => (
         <div
           key={`blocked-${booking.id}`}
-          className="flex items-center bg-[#111111] border border-white/5 rounded-lg px-3 py-2.5"
+          className="flex items-center bg-[#111] border border-white/[0.06] rounded-xl px-4 py-3"
         >
-          <span className="text-sm font-bold text-zinc-500 tabular-nums w-10 shrink-0">
+          <span className="text-sm font-black text-zinc-500 tabular-nums w-12 shrink-0">
             {booking.booking_time.slice(0, 5)}
           </span>
+          <div className="w-px h-4 bg-white/[0.08] mx-3 shrink-0" />
           <div className="flex-1 flex items-center justify-end">
             <button
               onClick={() => onUnblock(booking)}
-              aria-label={`Desbloquear horário ${booking.booking_time.slice(0, 5)}`}
-              className="text-[9px] font-bold uppercase tracking-wider text-red-400/70 hover:text-red-400 transition-colors cursor-pointer"
+              aria-label={`Desbloquear horario ${booking.booking_time.slice(0, 5)}`}
+              className="text-[10px] font-black uppercase tracking-[0.15em] text-red-400/70 hover:text-red-400 transition-colors cursor-pointer"
             >
               Desbloquear
             </button>

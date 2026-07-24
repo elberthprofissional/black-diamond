@@ -1,22 +1,138 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useToast } from './useToast';
-import { useGalleryData, type GalleryImage } from './useGalleryData';
-import { useGalleryUpload } from './useGalleryUpload';
-import { useGallerySelection } from './useGallerySelection';
-import { useGalleryPreview } from './useGalleryPreview';
+import { useGalleryData } from './useGalleryData';
+import type { GalleryImage } from '../types';
+import { logError } from '../lib/logger';
 
-export type { GalleryImage } from './useGalleryData';
+export type { GalleryImage } from '../types';
 
 export function useGallery() {
   const { toast, showSuccess, showError } = useToast();
-  const { images, setImages, loadImages } = useGalleryData();
-  const { uploading, fileInputRef, openFilePicker, handleUpload, MAX_PHOTOS } = useGalleryUpload(
-    images,
-    loadImages
+  const { images, setImages, uploading, fileInputRef, openFilePicker, handleUpload, MAX_PHOTOS } = useGalleryData();
+
+  // === Preview state ===
+  const [previewImage, setPreviewImage] = useState<GalleryImage | null>(null);
+  const [previewIndex, setPreviewIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+
+  // Keyboard navigation for preview
+  useEffect(() => {
+    if (!previewImage || images.length === 0) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        const prev = (previewIndex - 1 + images.length) % images.length;
+        const img = images[prev];
+        if (img) {
+          setPreviewIndex(prev);
+          setPreviewImage(img);
+        }
+      } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        e.preventDefault();
+        const next = (previewIndex + 1) % images.length;
+        const img = images[next];
+        if (img) {
+          setPreviewIndex(next);
+          setPreviewImage(img);
+        }
+      } else if (e.key === 'Escape') {
+        setPreviewImage(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [previewImage, previewIndex, images]);
+
+  const goToPrevPreview = useCallback(() => {
+    if (images.length === 0) return;
+    const prev = (previewIndex - 1 + images.length) % images.length;
+    const img = images[prev];
+    if (img) {
+      setPreviewIndex(prev);
+      setPreviewImage(img);
+    }
+  }, [previewIndex, images]);
+
+  const goToNextPreview = useCallback(() => {
+    if (images.length === 0) return;
+    const next = (previewIndex + 1) % images.length;
+    const img = images[next];
+    if (img) {
+      setPreviewIndex(next);
+      setPreviewImage(img);
+    }
+  }, [previewIndex, images]);
+
+  // === Selection state ===
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const toggleSelect = useCallback((imageId: string, e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) e.stopPropagation();
+    setSelectedImages((prev) => {
+      const next = prev.includes(imageId)
+        ? prev.filter((id) => id !== imageId)
+        : [...prev, imageId];
+      if (next.length > 0) setSelectionMode(true);
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectedImages([]);
+    setSelectionMode(false);
+  }, []);
+
+  const handleBulkDelete = useCallback(async () => {
+    if (selectedImages.length === 0) return;
+    const deletedIds: string[] = [];
+    try {
+      for (const id of selectedImages) {
+        const { error } = await supabase.from('gallery_images').delete().eq('id', id);
+        if (!error) deletedIds.push(id);
+      }
+      if (deletedIds.length > 0) {
+        showSuccess(`${deletedIds.length} foto(s) removida(s)!`);
+        setImages((prev) => prev.filter((img) => !deletedIds.includes(img.id)));
+      }
+      if (deletedIds.length < selectedImages.length) {
+        showError(`${selectedImages.length - deletedIds.length} foto(s) falharam ao remover`);
+      }
+      setSelectedImages([]);
+      setSelectionMode(false);
+    } catch (e) {
+      logError(e);
+      showError('Erro ao deletar fotos');
+    } finally {
+      setConfirmBulkDelete(false);
+    }
+  }, [selectedImages, showSuccess, showError, setImages]);
+
+  const handleDelete = useCallback(
+    async (id: string) => {
+      setDeleting(id);
+      try {
+        const { error } = await supabase.from('gallery_images').delete().eq('id', id);
+        if (error) {
+          showError('Erro ao deletar');
+          return;
+        }
+        showSuccess('Foto removida!');
+        setImages((prev) => prev.filter((i) => i.id !== id));
+      } catch (e) {
+        logError(e);
+        showError('Erro ao deletar');
+      } finally {
+        setDeleting(null);
+      }
+    },
+    [showSuccess, showError, setImages]
   );
-  const selection = useGallerySelection(images, setImages);
-  const preview = useGalleryPreview(images);
+
+  // === Move state ===
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [moveTarget, setMoveTarget] = useState(1);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -62,11 +178,11 @@ export function useGallery() {
   // Move to position (modal)
   const handleMoveToPosition = useCallback(
     async (targetPosition: number) => {
-      if (!preview.previewImage || targetPosition === preview.previewImage.position + 1) {
+      if (!previewImage || targetPosition === previewImage.position + 1) {
         setShowMoveModal(false);
         return;
       }
-      const currentIdx = images.findIndex((img) => img.id === preview.previewImage!.id);
+      const currentIdx = images.findIndex((img) => img.id === previewImage!.id);
       if (currentIdx === -1) {
         setShowMoveModal(false);
         return;
@@ -91,9 +207,9 @@ export function useGallery() {
       }
       setImages(updated);
       setShowMoveModal(false);
-      preview.setPreviewImage(null);
+      setPreviewImage(null);
     },
-    [preview, images, showSuccess, showError, setImages]
+    [previewImage, images, showSuccess, showError, setImages]
   );
 
   return {
@@ -109,16 +225,31 @@ export function useGallery() {
     handleUpload,
 
     // Selection
-    ...selection,
+    selectedImages,
+    selectionMode,
+    setSelectionMode,
+    confirmBulkDelete,
+    setConfirmBulkDelete,
+    deleting,
+    toggleSelect,
+    clearSelection,
+    handleBulkDelete,
+    handleDelete,
+    setSelectedImages,
 
     // Preview
-    ...preview,
+    previewImage,
+    previewIndex,
+    setPreviewImage,
+    setPreviewIndex,
+    goToPrevPreview,
+    goToNextPreview,
+    touchStart,
+    setTouchStart,
 
     // Delete (single)
     confirmDelete,
     setConfirmDelete,
-    handleDelete: selection.handleDelete,
-    deleting: selection.deleting,
 
     // Move
     showMoveModal,

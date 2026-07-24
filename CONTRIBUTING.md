@@ -143,7 +143,7 @@ src/
 
 - Nunca deletar migrations que já foram aplicadas em produção
 - Para novas features, criar migration com nome `YYYYMMDD_descricao.sql`
-- O `universal.sql` é o schema consolidado para novas instalações
+- As migrations em `supabase/migrations/` são o schema oficial (001-006)
 
 ---
 
@@ -246,7 +246,7 @@ Copie `.env.example` para `.env`:
 
 Cada barbearia tem seu próprio projeto Supabase. Para setup:
 1. Crie o projeto em [supabase.com](https://supabase.com)
-2. Execute o `supabase/universal.sql` no SQL Editor
+2. Execute as migrations em ordem no SQL Editor: `001_schema.sql` → `002_rls.sql` → `003_functions.sql` → `004_triggers.sql` → `005_seed_cron.sql` → `006_multi_barber.sql`
 3. Crie o usuário admin em Authentication > Users
 4. Adicione na tabela `admin_users`
 

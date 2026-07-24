@@ -5,24 +5,11 @@ import { logError } from '../lib/logger';
 type AuditAction =
   | 'login_success'
   | 'login_failed'
-  | 'logout'
   | 'booking_created'
   | 'booking_completed'
   | 'booking_cancelled'
   | 'booking_rescheduled'
-  | 'booking_no_show'
-  | 'booking_no_show_undone'
-  | 'thank_you_sent'
-  | 'client_created'
-  | 'client_updated'
-  | 'client_deleted'
-  | 'service_created'
-  | 'service_updated'
-  | 'service_deleted'
-  | 'slot_blocked'
-  | 'slot_unblocked'
-  | 'settings_updated'
-  | 'password_changed';
+  | 'thank_you_sent';
 
 interface AuditLogEntry {
   action: AuditAction;
@@ -30,6 +17,11 @@ interface AuditLogEntry {
   target_id?: string;
 }
 
+/**
+ * Hook de auditoria simplificado — loga APENAS login e booking.
+ * Ações secundárias (client_created, slot_blocked, etc.) foram removidas
+ * porque o banco de dados `audit_logs` cresce rápido e ninguém consulta.
+ */
 export function useAuditLog() {
   const log = useCallback(async ({ action, details, target_id }: AuditLogEntry) => {
     try {
@@ -43,12 +35,11 @@ export function useAuditLog() {
         user_id,
         target_id,
         details,
-        ip_address: null, // Será preenchido pelo RLS ou edge function se necessário
+        ip_address: null,
         user_agent: navigator.userAgent,
       });
     } catch (e) {
       logError(e);
-      // Audit log failed silently — do not block user action
     }
   }, []);
 

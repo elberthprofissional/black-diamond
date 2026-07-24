@@ -57,7 +57,7 @@ const LunchBreakContent: FC<LunchBreakContentProps> = ({
       {/* Toggle */}
       <div>
         <div className={`flex items-center justify-between ${isSm ? 'mb-2' : ''}`}>
-          <span className={`${isSm ? 'text-[15px]' : 'text-[13px]'} text-white font-medium`}>
+          <span className={`${isSm ? 'text-[16px]' : 'text-[14px]'} text-white font-medium`}>
             Ativar intervalo
           </span>
           <button
@@ -73,7 +73,7 @@ const LunchBreakContent: FC<LunchBreakContentProps> = ({
             />
           </button>
         </div>
-        <p className={`${isSm ? 'text-[12px]' : 'text-[11px]'} text-zinc-500 mt-1.5`}>
+        <p className={`${isSm ? 'text-[12px]' : 'text-[12px]'} text-zinc-500 mt-1.5`}>
           As notificações serão silenciadas durante esse período.
         </p>
       </div>
@@ -91,7 +91,7 @@ const LunchBreakContent: FC<LunchBreakContentProps> = ({
                 onChange={(v) => updateLunch({ start: v })}
                 label="Início"
               />
-              <span className={`${isSm ? 'text-[13px]' : 'text-[12px]'} text-zinc-500`}>às</span>
+              <span className={`${isSm ? 'text-[14px]' : 'text-[12px]'} text-zinc-500`}>às</span>
               <TimePickerSheet
                 value={lunch.end}
                 onChange={(v) => updateLunch({ end: v })}
@@ -119,7 +119,7 @@ const LunchBreakContent: FC<LunchBreakContentProps> = ({
                         : [...lunch.days, dayNum].sort((a, b) => a - b);
                       updateLunch({ days: newDays });
                     }}
-                    className={`flex-1 py-2.5 ${isSm ? 'py-3.5 rounded-xl border' : 'rounded-lg'} text-[10px] ${isSm ? 'text-[11px]' : ''} font-semibold transition-all cursor-pointer ${
+                    className={`flex-1 py-2.5 ${isSm ? 'py-3.5 rounded-xl border' : 'rounded-lg'} text-[10px] ${isSm ? 'text-[12px]' : ''} font-semibold transition-all cursor-pointer ${
                       isActive
                         ? 'bg-[#D4AF37]/10 border-[#D4AF37]/30 text-[#D4AF37]'
                         : 'bg-white/[0.02] border-white/[0.06] text-zinc-500'

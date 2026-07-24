@@ -59,7 +59,7 @@ const DataStep: FC<DataStepProps> = memo(
     if (layout === 'desktop') {
       return (
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-full max-w-lg space-y-10">
+          <div className="w-full max-w-lg space-y-8">
             {/* Header */}
             <div className="space-y-2">
               <h2 className="text-2xl font-bold tracking-tight text-white">Seus dados</h2>
@@ -77,7 +77,7 @@ const DataStep: FC<DataStepProps> = memo(
                     WhatsApp
                   </label>
                   {clientLookupLoading && (
-                    <span className="text-[11px] text-zinc-600 animate-pulse">Verificando...</span>
+                    <span className="text-[12px] text-zinc-600 animate-pulse">Verificando...</span>
                   )}
                   {isMensalista && !clientLookupLoading && (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-full">
@@ -102,7 +102,7 @@ const DataStep: FC<DataStepProps> = memo(
                   autoFocus
                 />
                 {getPhoneError(phone) && (
-                  <p id="phone-error-desktop" className="text-[11px] text-red-400/80" role="alert">
+                  <p id="phone-error-desktop" className="text-[12px] text-red-400/80" role="alert">
                     {getPhoneError(phone)}
                   </p>
                 )}
@@ -130,7 +130,7 @@ const DataStep: FC<DataStepProps> = memo(
                   onChange={(e) => onNameChange(e.target.value)}
                 />
                 {name && name.trim().length < 3 && (
-                  <p id="name-error-desktop" className="text-[11px] text-red-400/80" role="alert">
+                  <p id="name-error-desktop" className="text-[12px] text-red-400/80" role="alert">
                     Mínimo 3 caracteres
                   </p>
                 )}
@@ -155,11 +155,11 @@ const DataStep: FC<DataStepProps> = memo(
                 <div className="flex gap-3">
                   <button
                     onClick={onApplyLastBooking}
-                    className="flex-1 py-2.5 bg-[#D4AF37]/15 hover:bg-[#D4AF37]/25 text-[#D4AF37] text-[11px] font-semibold rounded-lg transition-all cursor-pointer"
+                    className="flex-1 py-2.5 bg-[#D4AF37]/15 hover:bg-[#D4AF37]/25 text-[#D4AF37] text-[12px] font-semibold rounded-lg transition-all cursor-pointer"
                   >
                     Repetir este agendamento
                   </button>
-                  <span className="text-[11px] text-zinc-500 self-center">ou escolha abaixo ↓</span>
+                  <span className="text-[12px] text-zinc-500 self-center">ou escolha abaixo ↓</span>
                 </div>
               </div>
             )}
@@ -205,7 +205,7 @@ const DataStep: FC<DataStepProps> = memo(
 
     // Mobile layout
     return (
-      <div className="space-y-5 pb-4">
+      <div className="space-y-4 pb-4">
         {/* Banner */}
         <div className="relative h-28 rounded-2xl overflow-hidden border border-white/[0.04] bg-[#0E0E0E] flex items-center px-5">
           <img
@@ -215,7 +215,7 @@ const DataStep: FC<DataStepProps> = memo(
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
           <div className="relative z-10">
-            <span className="text-[8px] font-black tracking-[0.4em] text-[#D4AF37] uppercase block mb-0.5">
+            <span className="text-[10px] font-black tracking-[0.4em] text-[#D4AF37] uppercase block mb-0.5">
               BLACK DIAMOND
             </span>
             <h2 className="text-xl font-black text-white tracking-tight">Preencha seus dados</h2>
@@ -229,7 +229,7 @@ const DataStep: FC<DataStepProps> = memo(
             <div className="flex items-center justify-between">
               <label
                 htmlFor="phone-mobile"
-                className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5"
+                className="text-[12px] font-semibold text-zinc-400 flex items-center gap-1.5"
               >
                 <WhatsAppIcon className="w-3 h-3 text-[#D4AF37]" />
                 WhatsApp
@@ -237,11 +237,11 @@ const DataStep: FC<DataStepProps> = memo(
               {isMensalista && !clientLookupLoading && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-full">
                   <span className="w-1 h-1 rounded-full bg-[#D4AF37]" />
-                  <span className="text-[8px] font-bold text-[#D4AF37] uppercase">Mensalista</span>
+                  <span className="text-[10px] font-bold text-[#D4AF37] uppercase">Mensalista</span>
                 </span>
               )}
               {clientLookupLoading && (
-                <span className="text-[9px] text-zinc-600 animate-pulse">Verificando...</span>
+                <span className="text-[10px] text-zinc-600 animate-pulse">Verificando...</span>
               )}
             </div>
             <input
@@ -266,7 +266,7 @@ const DataStep: FC<DataStepProps> = memo(
           <div className="space-y-2">
             <label
               htmlFor="name-mobile"
-              className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5"
+              className="text-[12px] font-semibold text-zinc-400 flex items-center gap-1.5"
             >
               <User size={12} className="text-[#D4AF37]/60" />
               Nome
@@ -307,7 +307,7 @@ const DataStep: FC<DataStepProps> = memo(
                   size={12}
                   className="text-zinc-600 group-hover:text-[#D4AF37] transition-colors"
                 />
-                <span className="text-[11px] text-zinc-500 group-hover:text-[#D4AF37] transition-colors">
+                <span className="text-[12px] text-zinc-500 group-hover:text-[#D4AF37] transition-colors">
                   Adicionar cupom de desconto
                 </span>
               </button>
@@ -320,7 +320,7 @@ const DataStep: FC<DataStepProps> = memo(
             <div className="bg-[#D4AF37]/[0.08] border border-[#D4AF37]/20 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Repeat size={14} className="text-[#D4AF37]" />
-                <span className="text-[11px] font-semibold text-[#D4AF37]">
+                <span className="text-[12px] font-semibold text-[#D4AF37]">
                   Seu último agendamento
                 </span>
               </div>
@@ -329,7 +329,7 @@ const DataStep: FC<DataStepProps> = memo(
               </p>
               <button
                 onClick={onApplyLastBooking}
-                className="w-full py-2.5 bg-[#D4AF37]/15 hover:bg-[#D4AF37]/25 text-[#D4AF37] text-[11px] font-semibold rounded-lg transition-all cursor-pointer"
+                className="w-full py-2.5 bg-[#D4AF37]/15 hover:bg-[#D4AF37]/25 text-[#D4AF37] text-[12px] font-semibold rounded-lg transition-all cursor-pointer"
               >
                 Repetir este agendamento
               </button>

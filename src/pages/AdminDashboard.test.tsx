@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 
+vi.mock('../components/Admin/AuthGuard', () => ({
+  default: ({ children }: { children: ReactNode }) => children,
+}));
+
 const mockGetBookings = vi.fn().mockResolvedValue({
   data: [
     {
@@ -170,7 +174,7 @@ describe('AdminDashboard — Comportamental', () => {
         <AdminDashboard />
       </Wrapper>
     );
-    expect(screen.getAllByText(/BLACK DIAMOND/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Agenda do Dia/i).length).toBeGreaterThan(0);
   });
 
   it('renderiza as três abas de filtro', async () => {

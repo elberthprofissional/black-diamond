@@ -97,7 +97,7 @@ const ClientProfile: FC = () => {
 
         {/* Phone Search */}
         {!searched && (
-          <form onSubmit={handleSearch} className="space-y-3">
+          <form onSubmit={handleSearch} className="space-y-4">
             <p className="text-[12px] text-zinc-500">
               Digite seu telefone para ver seus agendamentos.
             </p>
@@ -109,13 +109,13 @@ const ClientProfile: FC = () => {
                 onChange={(e) => setPhone(formatPhone(e.target.value))}
                 placeholder="(00) 00000-0000"
                 maxLength={15}
-                className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-4 text-[15px] text-white outline-none focus:border-[#D4AF37] transition-all placeholder:text-zinc-600"
+                className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-4 text-[16px] text-white outline-none focus:border-[#D4AF37] transition-all placeholder:text-zinc-600"
               />
             </div>
             <button
               type="submit"
               disabled={loading || phone.replace(/\D/g, '').length < 11}
-              className="w-full h-11 bg-[#D4AF37] text-black font-bold text-[11px] uppercase tracking-[0.2em] rounded-xl hover:bg-[#b8962e] transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+              className="btn-gold w-full h-11 flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loading ? <Loader2 size={14} className="animate-spin" /> : 'Buscar'}
             </button>
@@ -125,7 +125,7 @@ const ClientProfile: FC = () => {
 
         {/* Bookings List */}
         {searched && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {bookings.length > 0 && (
               <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
                 {bookings.length}{' '}
@@ -174,7 +174,7 @@ const ClientProfile: FC = () => {
                 <div className="flex items-center justify-between pt-3 border-t border-white/[0.04]">
                   <div className="flex items-center gap-1">
                     <DollarSign size={12} className="text-[#D4AF37]/50" />
-                    <span className="text-[13px] font-bold text-white tabular-nums">
+                    <span className="text-[14px] font-bold text-white tabular-nums">
                       {formatPrice(booking.total_price, { locale: true })}
                     </span>
                   </div>
@@ -203,7 +203,7 @@ const ClientProfile: FC = () => {
                 setBookings([]);
                 setPhone('');
               }}
-              className="w-full py-3 text-[11px] text-zinc-500 hover:text-white transition-colors cursor-pointer"
+              className="w-full py-3 text-[12px] text-zinc-500 hover:text-white transition-colors cursor-pointer"
             >
               Buscar outro telefone
             </button>
@@ -236,12 +236,12 @@ const ClientProfile: FC = () => {
                     {confirmCancel.clients?.name}, {formatDateBR(confirmCancel.booking_date)} às{' '}
                     {String(confirmCancel.booking_time).slice(0, 5)}
                   </p>
-                  <p className="text-[11px] text-zinc-600 mt-2">Esta ação não pode ser desfeita.</p>
+                  <p className="text-[12px] text-zinc-600 mt-2">Esta ação não pode ser desfeita.</p>
                 </div>
                 <div className="flex border-t border-white/[0.06]">
                   <button
                     onClick={() => setConfirmCancel(null)}
-                    className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white transition-all cursor-pointer"
+                    className="flex-1 py-4 text-[14px] font-medium text-zinc-400 hover:text-white transition-all cursor-pointer"
                   >
                     Voltar
                   </button>
@@ -249,7 +249,7 @@ const ClientProfile: FC = () => {
                   <button
                     onClick={() => handleCancel(confirmCancel)}
                     disabled={cancellingId === confirmCancel.id}
-                    className="flex-1 py-4 text-[13px] font-semibold text-red-500 hover:text-red-400 transition-all cursor-pointer disabled:opacity-30"
+                    className="flex-1 py-4 text-[14px] font-semibold text-red-500 hover:text-red-400 transition-all cursor-pointer disabled:opacity-30"
                   >
                     {cancellingId === confirmCancel.id ? (
                       <Loader2 size={14} className="animate-spin mx-auto" />
@@ -273,13 +273,13 @@ const ClientProfile: FC = () => {
               className="mt-6"
             >
               <div className="bg-zinc-900 border border-white/[0.06] rounded-xl p-6 text-center">
-                <p className="text-[13px] text-zinc-400">{error}</p>
+                <p className="text-[14px] text-zinc-400">{error}</p>
                 <button
                   onClick={() => {
                     setSearched(false);
                     setError('');
                   }}
-                  className="mt-4 text-[11px] text-[#D4AF37] hover:text-white transition-colors cursor-pointer"
+                  className="mt-4 text-[12px] text-[#D4AF37] hover:text-white transition-colors cursor-pointer"
                 >
                   Tentar novamente
                 </button>

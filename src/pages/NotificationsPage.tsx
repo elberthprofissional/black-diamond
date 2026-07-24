@@ -134,7 +134,7 @@ const NotificationsPage: FC = () => {
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="text-[11px] font-bold text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+                className="text-[12px] font-bold text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
               >
                 Marcar lidas
               </button>
@@ -154,7 +154,7 @@ const NotificationsPage: FC = () => {
             className="overflow-hidden"
           >
             <div className="px-4 py-2.5 bg-[#D4AF37]/[0.04] border-b border-[#D4AF37]/10 flex items-center justify-between">
-              <span className="text-[11px] text-zinc-400">
+              <span className="text-[12px] text-zinc-400">
                 {selectedIds.size} de {displayed.length} selecionada
                 {displayed.length !== 1 ? 's' : ''}
               </span>

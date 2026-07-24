@@ -7,6 +7,18 @@ import { useSlotBlocking } from './useSlotBlocking';
 import type { BookingWithClient } from '../types';
 import { logError } from '../lib/logger';
 
+/**
+ * Hook principal do Dashboard do Admin.
+ *
+ * - Usa `useBookings` para carregar agendamentos do dia atual.
+ * - Carrega slots disponíveis via API.
+ * - Configura subscription Realtime (Supabase) para atualizações ao vivo.
+ * - Expõe métricas calculadas: `dailyRevenue`, `occupiedBookings`, `freeSlots`, `nextBooking`.
+ * - Fornece funções para bloquear/desbloquear horários inteiros ou slots individuais.
+ *
+ * @param barberId - ID do barbeiro (opcional, para filtrar agendamentos).
+ * @returns Objeto com todos os estados e ações do dashboard.
+ */
 export function useDashboardData(barberId?: string) {
   const selectedDate = getLocalDateString();
   const { bookings, loading, isCached, refetch: loadData } = useBookings(selectedDate, barberId);
@@ -23,17 +35,26 @@ export function useDashboardData(barberId?: string) {
     unblockEntireDay,
   } = useSlotBlocking();
 
-  // Carrega slots disponiveis
+  // Carrega slots disponiveis com AbortController para evitar race condition
+  const abortRef = useRef<AbortController | null>(null);
   const loadSlots = useCallback(async () => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
       const slots = await getAvailableSlots(selectedDate);
+      if (controller.signal.aborted) return;
       setAvailableSlots(slots);
     } catch (e) {
+      if (controller.signal.aborted) return;
       logError(e);
       try {
         const fallback = await getTimeSlotsForDate(selectedDate);
+        if (controller.signal.aborted) return;
         setAvailableSlots(fallback);
       } catch (e) {
+        if (controller.signal.aborted) return;
         logError(e);
         setAvailableSlots([]);
       }

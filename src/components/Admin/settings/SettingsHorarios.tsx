@@ -1,7 +1,7 @@
 import { useState, useEffect, type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { useBarberSettings } from '../../../contexts/BarberSettingsContext';
+import { useBarberSettings } from '../../../hooks/useBarberSettings';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
 import NumInput from './horarios/NumInput';
@@ -197,7 +197,7 @@ const SettingsHorarios: FC = () => {
           />
         </button>
         <span
-          className={`text-[13px] w-36 shrink-0 ${h?.enabled ? 'text-white' : 'text-zinc-500'}`}
+          className={`text-[14px] w-36 shrink-0 ${h?.enabled ? 'text-white' : 'text-zinc-500'}`}
         >
           {DAY_NAMES[day]}
           {isModified && !justSaved && (
@@ -219,13 +219,13 @@ const SettingsHorarios: FC = () => {
   const activeCount = DAYS_ORDER.filter((d) => (hours[d] as DayHours)?.enabled).length;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* ─── DESKTOP ─── */}
       <div className="hidden lg:block max-w-3xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-white text-[15px] font-semibold">Horários de funcionamento</h3>
+            <h3 className="text-white text-[16px] font-semibold">Horários de funcionamento</h3>
             <p className="text-zinc-500 text-[12px] mt-0.5">
               {activeCount} {activeCount === 1 ? 'dia ativo' : 'dias ativos'}
             </p>
@@ -251,11 +251,11 @@ const SettingsHorarios: FC = () => {
                   {hours.lunch_break.start} às {hours.lunch_break.end}
                 </p>
               ) : (
-                <p className="text-zinc-500 text-[11px] mt-0.5">Clique para configurar</p>
+                <p className="text-zinc-500 text-[12px] mt-0.5">Clique para configurar</p>
               )}
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-zinc-600 text-[11px]">
+              <span className="text-zinc-600 text-[12px]">
                 {hours.lunch_break ? 'Ativo' : 'Inativo'}
               </span>
               <svg
@@ -303,7 +303,7 @@ const SettingsHorarios: FC = () => {
                   >
                     <X size={18} />
                   </button>
-                  <span className="text-[13px] font-semibold text-white">Intervalo de almoço</span>
+                  <span className="text-[14px] font-semibold text-white">Intervalo de almoço</span>
                   <div className="w-[18px]" />
                 </div>
                 <div className="p-5 space-y-4">
@@ -330,7 +330,7 @@ const SettingsHorarios: FC = () => {
           <button
             onClick={saveAll}
             disabled={saving || !hasChanges}
-            className="px-6 py-2.5 bg-[#D4AF37] text-black font-semibold text-[12px] rounded-lg hover:bg-[#b8962e] transition-all cursor-pointer disabled:opacity-30 flex items-center gap-2 shadow-lg shadow-[#D4AF37]/10"
+            className="btn-gold px-6 py-2.5 rounded-lg disabled:opacity-30 flex items-center gap-2"
           >
             {saving && (
               <div className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
@@ -345,14 +345,14 @@ const SettingsHorarios: FC = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-4 px-1">
           <div>
-            <h3 className="text-white text-[15px] font-semibold">Horário de funcionamento</h3>
-            <p className="text-zinc-500 text-[11px] mt-0.5">
+            <h3 className="text-white text-[16px] font-semibold">Horário de funcionamento</h3>
+            <p className="text-zinc-500 text-[12px] mt-0.5">
               {activeCount} {activeCount === 1 ? 'dia ativo' : 'dias ativos'}
             </p>
           </div>
           <button
             onClick={() => setApplyOpen(true)}
-            className="text-[11px] text-zinc-500 hover:text-[#D4AF37] transition-colors cursor-pointer"
+            className="text-[12px] text-zinc-500 hover:text-[#D4AF37] transition-colors cursor-pointer"
           >
             Aplicar para todos
           </button>
@@ -365,13 +365,13 @@ const SettingsHorarios: FC = () => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-white text-[13px] font-medium block">Horário de almoço</span>
+              <span className="text-white text-[14px] font-medium block">Horário de almoço</span>
               {hours.lunch_break ? (
                 <p className="text-[#D4AF37] text-[12px] font-medium mt-0.5">
                   {hours.lunch_break.start} às {hours.lunch_break.end}
                 </p>
               ) : (
-                <p className="text-zinc-500 text-[11px] mt-0.5">Toque para configurar</p>
+                <p className="text-zinc-500 text-[12px] mt-0.5">Toque para configurar</p>
               )}
             </div>
             <svg
@@ -405,7 +405,7 @@ const SettingsHorarios: FC = () => {
                 <span className="text-[16px] font-bold text-white">Intervalo de almoço</span>
                 <div className="w-[22px]" />
               </div>
-              <div className="p-5 space-y-5">
+              <div className="p-5 space-y-4">
                 <LunchBreakContent
                   hours={hours}
                   onChange={setHours}
@@ -414,7 +414,7 @@ const SettingsHorarios: FC = () => {
                 />
                 <button
                   onClick={() => setLunchOpen(false)}
-                  className="w-full py-3.5 rounded-xl bg-[#D4AF37] text-black font-bold text-[12px] uppercase tracking-wider cursor-pointer active:scale-[0.98] transition-all"
+                  className="btn-gold w-full py-3.5"
                 >
                   Concluir
                 </button>
@@ -460,7 +460,7 @@ const SettingsHorarios: FC = () => {
                         onChange={(v) => patch(day, { open: v })}
                         label="Abertura"
                       />
-                      <span className="text-zinc-600 text-[11px]">às</span>
+                      <span className="text-zinc-600 text-[12px]">às</span>
                       <TimePickerSheet
                         value={h.close}
                         onChange={(v) => patch(day, { close: v })}
@@ -468,7 +468,7 @@ const SettingsHorarios: FC = () => {
                       />
                     </div>
                   ) : (
-                    <span className="text-[11px] text-zinc-600">Fechado</span>
+                    <span className="text-[12px] text-zinc-600">Fechado</span>
                   )}
                 </div>
               </div>
@@ -483,7 +483,7 @@ const SettingsHorarios: FC = () => {
             <button
               onClick={saveAll}
               disabled={saving || !hasChanges}
-              className={`w-full py-3.5 rounded-xl font-bold text-[11px] uppercase tracking-[0.15em] transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-2 ${hasChanges ? 'bg-[#D4AF37] text-black' : 'bg-white/[0.04] text-zinc-600'}`}
+              className={`w-full py-3.5 rounded-xl font-bold text-[12px] uppercase tracking-[0.15em] transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-2 ${hasChanges ? 'bg-[#D4AF37] text-black' : 'bg-white/[0.04] text-zinc-600'}`}
             >
               {saving && (
                 <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />

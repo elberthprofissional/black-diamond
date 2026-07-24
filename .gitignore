@@ -56,4 +56,12 @@ __pycache__/
 
 # Temp files
 .temp/
+*.tmp
 
+# Generated reports
+lighthouse-report.html
+vite-log.txt
+
+
+*storybook.log
+storybook-static

@@ -1,16 +1,11 @@
 import { useState, useEffect, useCallback, useRef, useDeferredValue } from 'react';
-import { getClients, getBookingsForStats } from '../lib/api';
+import { getClients } from '../lib/api';
+import { supabase } from '../lib/supabase';
 import { useToast } from './useToast';
 import { BLOCKED_NAME, BLOCKED_PHONE, INACTIVE_DAYS } from '../lib/constants';
 import { getLocalDateString } from '../lib/utils';
-import type { Client, ClientWithStats } from '../types';
+import type { Client, ClientWithStats, MensalistaPlan } from '../types';
 import { logError } from '../lib/logger';
-
-interface ClientWithHistory extends Client {
-  historical_visits?: number;
-  historical_spent?: number;
-  last_visit_date?: string;
-}
 
 function daysSince(dateStr: string): number {
   const d = new Date(dateStr + 'T00:00:00');
@@ -19,9 +14,12 @@ function daysSince(dateStr: string): number {
   return Math.floor((now.getTime() - d.getTime()) / 86400000);
 }
 
+const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
 export function useClientsData() {
   const { showError } = useToast();
   const [clients, setClients] = useState<ClientWithStats[]>([]);
+  const [plans, setPlans] = useState<MensalistaPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDeferredValue(searchTerm);
@@ -36,19 +34,16 @@ export function useClientsData() {
 
   const loadData = useCallback(async () => {
     try {
-      const [clientsData, bookingsData] = await Promise.all([getClients(), getBookingsForStats()]);
-      const todayISO = new Date();
-      todayISO.setHours(0, 0, 0, 0);
+      const [clientsData, plansRes] = await Promise.all([
+        getClients(),
+        supabase.from('mensalista_plans').select('*').order('sort_order'),
+      ]);
 
-      const bookingsByClient = new Map<string, typeof bookingsData>();
-      for (const b of bookingsData || []) {
-        if (!b || b.status === 'cancelled') continue;
-        const list = bookingsByClient.get(b.client_id) || [];
-        list.push(b);
-        bookingsByClient.set(b.client_id, list);
+      if (plansRes.data && !plansRes.error) {
+        setPlans(plansRes.data as MensalistaPlan[]);
       }
 
-      const allEnriched: ClientWithStats[] = (clientsData || [])
+      const enriched: ClientWithStats[] = (clientsData || [])
         .filter(
           (c: Client) =>
             c &&
@@ -59,47 +54,12 @@ export function useClientsData() {
             !c.is_blocked
         )
         .map((c: Client) => {
-          const ch = c as ClientWithHistory;
-          const cb = bookingsByClient.get(c.id) || [];
-          const upcoming = cb
-            .filter((b) => {
-              const bookingDate = new Date(b.booking_date + 'T00:00:00');
-              return bookingDate >= todayISO;
-            })
-            .sort(
-              (a, b) => new Date(a.booking_date).getTime() - new Date(b.booking_date).getTime()
-            )[0];
-          const pastBookings = cb.filter((b) => {
-            const bookingDate = new Date(b.booking_date + 'T00:00:00');
-            return bookingDate <= todayISO;
-          });
-          const lb = [...pastBookings].sort(
-            (a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime()
-          )[0];
-
-          // Current stats from active bookings
-          const currentSpent = cb.reduce((s, b) => s + Number(b.total_price || 0), 0);
-          const currentVisits = cb.length;
-
-          // Historical stats from deleted bookings
-          const histVisits = ch.historical_visits || 0;
-          const histSpent = Number(ch.historical_spent || 0);
-
-          // Combined stats
-          const totalSpent = currentSpent + histSpent;
-          const bookingsCount = currentVisits + histVisits;
-
-          // Last visit: compare current last visit with preserved historical last visit
-          const currentLastVisit = lb ? new Date(lb.booking_date + 'T00:00:00') : null;
-          const histLastVisit = ch.last_visit_date
-            ? new Date(ch.last_visit_date + 'T00:00:00')
+          const lastVisitDate = c.last_visit_date
+            ? new Date(c.last_visit_date + 'T00:00:00')
             : null;
-          const lastVisitDate =
-            currentLastVisit && histLastVisit
-              ? currentLastVisit > histLastVisit
-                ? currentLastVisit
-                : histLastVisit
-              : currentLastVisit || histLastVisit;
+
+          const bookingsCount = c.historical_visits || 0;
+          const totalSpent = Number(c.historical_spent || 0);
 
           const isInactive = lastVisitDate
             ? daysSince(getLocalDateString(lastVisitDate)) > INACTIVE_DAYS
@@ -111,20 +71,11 @@ export function useClientsData() {
             lastVisitDate,
             totalSpent,
             bookingsCount,
-            upcomingBooking: upcoming
-              ? {
-                  date: new Date(upcoming.booking_date + 'T00:00:00').toLocaleDateString('pt-BR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                  }),
-                  time: (upcoming.booking_time || '').slice(0, 5),
-                }
-              : null,
+            upcomingBooking: null,
             isInactive,
           };
         });
 
-      const enriched = allEnriched;
       enriched.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       if (!mountedRef.current) return;
       setClients(enriched);
@@ -137,8 +88,8 @@ export function useClientsData() {
     }
   }, [showError]);
 
+  // Initial data fetching — usa o mesmo loadData() pra evitar duplicação de lógica
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
 
@@ -156,5 +107,11 @@ export function useClientsData() {
     };
   }, [loadData]);
 
-  return { clients, setClients, loading, searchTerm, setSearchTerm, debouncedSearch, loadData };
+  // Periodic refresh every 5 minutes to catch backend changes
+  useEffect(() => {
+    const interval = setInterval(loadData, REFRESH_INTERVAL);
+    return () => clearInterval(interval);
+  }, [loadData]);
+
+  return { clients, setClients, plans, loading, searchTerm, setSearchTerm, debouncedSearch, loadData };
 }

@@ -80,7 +80,7 @@ const ReminderModal: FC<ReminderModalProps> = ({
                   </button>
                 )}
                 <div className="text-left">
-                  <span className="text-[9px] font-black text-[#D4AF37] uppercase tracking-[0.25em] block">
+                  <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.25em] block">
                     {mode === 'create' ? 'Mensagem Personalizada' : 'Enviar Lembrete'}
                   </span>
                   <p className="text-sm font-semibold text-zinc-100 mt-1">{clientName}</p>
@@ -99,7 +99,7 @@ const ReminderModal: FC<ReminderModalProps> = ({
               <div className="w-full space-y-6 text-left">
                 {mode === 'list' ? (
                   <>
-                    <div className="space-y-2 sm:space-y-3">
+                    <div className="space-y-2 sm:space-y-4">
                       {templates.map((template, index) => {
                         const isExpanded = expandedIdx === index;
                         return (
@@ -123,7 +123,7 @@ const ReminderModal: FC<ReminderModalProps> = ({
                             }`}
                           >
                             <div className="flex items-center justify-between">
-                              <span className="text-[9px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                              <span className="text-[10px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
                                 {template.name || `Modelo #${index + 1}`}
                               </span>
                               <ChevronDown
@@ -133,7 +133,7 @@ const ReminderModal: FC<ReminderModalProps> = ({
                             </div>
 
                             <p
-                              className={`text-[11px] sm:text-xs text-zinc-400 leading-normal sm:leading-relaxed mt-2 sm:mt-3 whitespace-pre-wrap ${isExpanded ? '' : 'line-clamp-2'}`}
+                              className={`text-[12px] sm:text-xs text-zinc-400 leading-normal sm:leading-relaxed mt-2 sm:mt-3 whitespace-pre-wrap ${isExpanded ? '' : 'line-clamp-2'}`}
                             >
                               {template.body}
                             </p>
@@ -146,7 +146,7 @@ const ReminderModal: FC<ReminderModalProps> = ({
                                     onDeleteTemplate(template.id);
                                     if (expandedIdx === index) setExpandedIdx(null);
                                   }}
-                                  className="text-zinc-500 hover:text-red-400 text-[9px] sm:text-xs font-bold uppercase flex items-center gap-1 sm:gap-1.5 cursor-pointer transition-colors"
+                                  className="text-zinc-500 hover:text-red-400 text-[10px] sm:text-xs font-bold uppercase flex items-center gap-1 sm:gap-1.5 cursor-pointer transition-colors"
                                 >
                                   <Trash2 size={11} className="sm:w-3.5 sm:h-3.5" />
                                   <span>Excluir</span>
@@ -157,7 +157,7 @@ const ReminderModal: FC<ReminderModalProps> = ({
                                     e.stopPropagation();
                                     handleSend(template.body);
                                   }}
-                                  className="px-3.5 py-1.5 sm:px-5 sm:py-2.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.04] text-white font-bold text-[9px] sm:text-[10px] uppercase tracking-wider sm:tracking-widest rounded-lg sm:rounded-xl flex items-center gap-1.5 sm:gap-2 cursor-pointer transition-all active:scale-95"
+                                  className="px-3.5 py-1.5 sm:px-5 sm:py-2.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.04] text-white font-bold text-[10px] sm:text-[10px] uppercase tracking-wider sm:tracking-widest rounded-lg sm:rounded-xl flex items-center gap-1.5 sm:gap-2 cursor-pointer transition-all active:scale-95"
                                 >
                                   <svg
                                     className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0"
@@ -187,7 +187,7 @@ const ReminderModal: FC<ReminderModalProps> = ({
                   </>
                 ) : (
                   <>
-                    <div className="space-y-3 text-left">
+                    <div className="space-y-4 text-left">
                       <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">
                         Mensagem Personalizada
                       </span>

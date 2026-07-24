@@ -193,21 +193,21 @@ const SettingsCupons: FC = () => {
   const statusBadge = (coupon: Coupon) => {
     if (isExpired(coupon)) {
       return (
-        <span className="text-[8px] font-bold text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded uppercase">
+        <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded uppercase">
           Expirado
         </span>
       );
     }
     if (isMaxed(coupon)) {
       return (
-        <span className="text-[8px] font-bold text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded uppercase">
+        <span className="text-[10px] font-bold text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded uppercase">
           Esgotado
         </span>
       );
     }
     if (!coupon.is_active) {
       return (
-        <span className="text-[8px] font-bold text-zinc-500 bg-white/[0.04] px-1.5 py-0.5 rounded uppercase">
+        <span className="text-[10px] font-bold text-zinc-500 bg-white/[0.04] px-1.5 py-0.5 rounded uppercase">
           Inativo
         </span>
       );
@@ -234,8 +234,8 @@ const SettingsCupons: FC = () => {
       {coupons.length === 0 && (
         <div className="py-16 text-center">
           <Tag size={32} className="text-zinc-700 mx-auto mb-3" />
-          <p className="text-zinc-500 text-[13px]">Nenhum cupom cadastrado</p>
-          <p className="text-zinc-600 text-[11px] mt-1">
+          <p className="text-zinc-500 text-[14px]">Nenhum cupom cadastrado</p>
+          <p className="text-zinc-600 text-[12px] mt-1">
             Crie cupons para oferecer descontos aos clientes
           </p>
         </div>
@@ -257,7 +257,7 @@ const SettingsCupons: FC = () => {
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-[13px] font-bold text-white tracking-wider">
+                      <span className="text-[14px] font-bold text-white tracking-wider">
                         {coupon.code}
                       </span>
                       <button
@@ -270,7 +270,7 @@ const SettingsCupons: FC = () => {
                       {statusBadge(coupon)}
                     </div>
                     <div className="flex items-center gap-3 mt-1">
-                      <span className="text-[13px] text-[#D4AF37] font-bold">
+                      <span className="text-[14px] text-[#D4AF37] font-bold">
                         {formatDiscountLabel(coupon)}
                       </span>
                       {coupon.description && (
@@ -321,7 +321,7 @@ const SettingsCupons: FC = () => {
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-[13px] font-bold text-white tracking-wider">
+                        <span className="text-[14px] font-bold text-white tracking-wider">
                           {coupon.code}
                         </span>
                         {statusBadge(coupon)}
@@ -341,7 +341,7 @@ const SettingsCupons: FC = () => {
                   </div>
                 </div>
                 {coupon.description && (
-                  <p className="text-[11px] text-zinc-500 mt-2 ml-12">{coupon.description}</p>
+                  <p className="text-[12px] text-zinc-500 mt-2 ml-12">{coupon.description}</p>
                 )}
                 <div className="ml-12">
                   <ValidityDates validFrom={coupon.valid_from} validUntil={coupon.valid_until} />
@@ -395,28 +395,28 @@ const HeaderSection: FC<{ couponCount: number; onAdd: () => void }> = ({ couponC
   <>
     <div className="hidden lg:flex items-center justify-between py-2">
       <div>
-        <h3 className="text-[15px] font-bold text-white">Cupons</h3>
+        <h3 className="text-[16px] font-bold text-white">Cupons</h3>
         <p className="text-[12px] text-zinc-500 mt-0.5">
           {couponCount > 0 ? `${couponCount} cupom(ns) cadastrado(s)` : 'Nenhum cupom criado'}
         </p>
       </div>
       <button
         onClick={onAdd}
-        className="flex items-center gap-1.5 px-4 py-2 bg-[#D4AF37] text-black font-semibold text-[12px] rounded-lg hover:bg-[#b8962e] transition-all cursor-pointer"
+        className="btn-gold flex items-center gap-1.5 px-4 py-2 text-[12px] rounded-lg"
       >
         <Plus size={14} strokeWidth={2.5} /> Novo Cupom
       </button>
     </div>
     <div className="lg:hidden flex items-center justify-between py-2">
       <div>
-        <h3 className="text-[15px] font-bold text-white">Cupons</h3>
+        <h3 className="text-[16px] font-bold text-white">Cupons</h3>
         <p className="text-[12px] text-zinc-500 mt-0.5">
           {couponCount > 0 ? `${couponCount} cupom(ns) cadastrado(s)` : 'Nenhum cupom criado'}
         </p>
       </div>
       <button
         onClick={onAdd}
-        className="flex items-center gap-1.5 px-3 py-2 bg-[#D4AF37] text-black font-semibold text-[11px] rounded-lg hover:bg-[#b8962e] transition-all cursor-pointer"
+        className="btn-gold flex items-center gap-1.5 px-3 py-2 text-[12px] rounded-lg"
       >
         <Plus size={13} strokeWidth={2.5} /> Novo Cupom
       </button>
@@ -431,16 +431,16 @@ const ValidityDates: FC<{ validFrom?: string | null; validUntil?: string | null 
 }) => (
   <div className="flex items-center gap-2 mt-0.5">
     {validFrom && (
-      <span className="text-[9px] text-zinc-600">
+      <span className="text-[10px] text-zinc-600">
         De {new Date(validFrom).toLocaleDateString('pt-BR')}
       </span>
     )}
     {validUntil && (
-      <span className="text-[9px] text-zinc-600">
+      <span className="text-[10px] text-zinc-600">
         até {new Date(validUntil).toLocaleDateString('pt-BR')}
       </span>
     )}
-    {!validUntil && <span className="text-[9px] text-zinc-700">Sem expiração</span>}
+    {!validUntil && <span className="text-[10px] text-zinc-700">Sem expiração</span>}
   </div>
 );
 
@@ -491,12 +491,12 @@ const CouponFormModal: FC<
             <button onClick={onClose} className="text-zinc-400 hover:text-white cursor-pointer">
               <X size={22} />
             </button>
-            <span className="text-[15px] font-bold text-white">
+            <span className="text-[16px] font-bold text-white">
               {screen === 'add' ? 'Novo Cupom' : 'Editar Cupom'}
             </span>
             <button
               onClick={onSave}
-              className="text-[#D4AF37] font-bold text-[15px] cursor-pointer"
+              className="text-[#D4AF37] font-bold text-[16px] cursor-pointer"
             >
               <Check size={22} />
             </button>
@@ -506,7 +506,7 @@ const CouponFormModal: FC<
               e.preventDefault();
               onSave();
             }}
-            className="p-5 space-y-5 overflow-y-auto max-h-[calc(100vh-56px)]"
+            className="p-5 space-y-4 overflow-y-auto max-h-[calc(100vh-56px)]"
           >
             <CouponFormFields {...fields} />
           </form>
@@ -547,7 +547,7 @@ const CouponFormModal: FC<
                 e.preventDefault();
                 onSave();
               }}
-              className="p-5 space-y-5 max-h-[70vh] overflow-y-auto"
+              className="p-5 space-y-4 max-h-[70vh] overflow-y-auto"
             >
               <CouponFormFields {...fields} />
             </form>

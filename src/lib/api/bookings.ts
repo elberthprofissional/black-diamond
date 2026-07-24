@@ -48,10 +48,14 @@ export const createBooking = async (
   return Array.isArray(data) ? data : [data];
 };
 
-/** Busca horários disponíveis para uma data via RPC. */
-export const getAvailableSlots = async (date: string) => {
+/** Busca horários disponíveis para uma data via RPC.
+ * @param date - Data no formato YYYY-MM-DD
+ * @param barberId - ID do barbeiro (opcional). Se fornecido, filtra slots disponíveis para aquele barbeiro.
+ */
+export const getAvailableSlots = async (date: string, barberId?: string) => {
   const { data, error } = await supabase.rpc('get_available_slots', {
     p_date: date,
+    p_barber_id: barberId || null,
   });
   if (error) throw error;
   return (data || [])

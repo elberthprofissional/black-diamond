@@ -12,7 +12,6 @@ export {
   cancelBooking,
   toggleSlotBlock,
   unblockDay,
-  autoCompleteExpiredBookings,
   getBookingsForStats,
   deleteAllBookings,
   getBookingsByToken,
@@ -30,14 +29,6 @@ export {
   getClientByPhone,
 } from './clients';
 
-export {
-  getMensalistaPlans,
-  createMensalistaPlan,
-  updateMensalistaPlan,
-  deleteMensalistaPlan,
-  getMensalistaEnabled,
-  setMensalistaEnabled,
-} from './mensalista';
 export { getTemplates, createTemplate, deleteTemplate } from './templates';
 export type { WhatsAppTemplate } from './templates';
 export { getMaxNoShows, getClientNoShowCount, checkAndNotifyNoShowLimit } from './noShow';
@@ -66,7 +57,6 @@ export {
   createTestimonial,
   updateTestimonial,
   deleteTestimonial,
-  syncGoogleReviews,
 } from './testimonials';
 
 export { getBarbers, getBarberByUserId, upsertBarber, deleteBarber } from './barbers';

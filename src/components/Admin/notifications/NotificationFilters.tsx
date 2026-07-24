@@ -13,7 +13,7 @@ export default function NotificationFilters({
     <div className="flex gap-2 px-5 py-3 border-b border-white/[0.04]">
       <button
         onClick={() => onChange(false)}
-        className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${
+        className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-all ${
           !onlyUnread ? 'bg-[#D4AF37]/15 text-[#D4AF37]' : 'text-zinc-500 hover:text-zinc-300'
         }`}
       >
@@ -21,13 +21,13 @@ export default function NotificationFilters({
       </button>
       <button
         onClick={() => onChange(true)}
-        className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${
+        className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-all ${
           onlyUnread ? 'bg-[#D4AF37]/15 text-[#D4AF37]' : 'text-zinc-500 hover:text-zinc-300'
         }`}
       >
         Não lidas
         {unreadCount > 0 && (
-          <span className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full bg-white/[0.06]">
+          <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-white/[0.06]">
             {unreadCount}
           </span>
         )}

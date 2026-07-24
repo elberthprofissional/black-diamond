@@ -108,7 +108,7 @@ const SettingsGaleria: FC = () => {
               {images.length > 0 && (
                 <button
                   onClick={() => setSelectionMode(true)}
-                  className="h-8 px-3 flex items-center gap-1.5 rounded-full text-[11px] font-medium bg-white/[0.04] text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer"
+                  className="h-8 px-3 flex items-center gap-1.5 rounded-full text-[12px] font-medium bg-white/[0.04] text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer"
                 >
                   <svg
                     width="12"
@@ -129,7 +129,7 @@ const SettingsGaleria: FC = () => {
               <button
                 onClick={openFilePicker}
                 disabled={uploading}
-                className="h-8 px-3 flex items-center gap-1.5 rounded-full text-[11px] font-bold bg-[#D4AF37] hover:bg-[#b8962e] text-black transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-8 px-3 flex items-center gap-1.5 rounded-full text-[12px] font-bold bg-[#D4AF37] hover:bg-[#b8962e] text-black transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {uploading ? 'Enviando...' : 'Adicionar'}
               </button>
@@ -240,7 +240,7 @@ const SettingsGaleria: FC = () => {
                 {/* Position Badge - smaller */}
                 {!isSelecting && (
                   <div className="absolute top-1.5 left-1.5 w-4 h-4 bg-black/50 rounded-full flex items-center justify-center">
-                    <span className="text-[9px] text-white/80 font-medium">{index + 1}</span>
+                    <span className="text-[10px] text-white/80 font-medium">{index + 1}</span>
                   </div>
                 )}
               </div>

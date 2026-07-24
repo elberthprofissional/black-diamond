@@ -20,11 +20,15 @@ const OccupiedPanel: FC<OccupiedPanelProps> = ({ bookings, selectedId, onSelect,
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {bookings.map((booking) => (
         <div
           key={booking.id}
-          className={`w-full flex items-center rounded-lg border cursor-pointer transition-all group ${selectedId === booking.id ? 'border-[#D4AF37]/40 bg-[#D4AF37]/5' : 'border-white/5 bg-[#111111] hover:border-white/10'}`}
+          className={`w-full flex items-center rounded-xl border cursor-pointer transition-all duration-200 group ${
+            selectedId === booking.id
+              ? 'border-[#D4AF37]/40 bg-[#D4AF37]/[0.06]'
+              : 'border-white/[0.06] bg-[#111] hover:border-white/[0.1]'
+          }`}
         >
           <div
             onClick={() => onSelect(booking)}
@@ -36,14 +40,14 @@ const OccupiedPanel: FC<OccupiedPanelProps> = ({ bookings, selectedId, onSelect,
             }}
             role="button"
             tabIndex={0}
-            aria-label={`Agendamento às ${booking.booking_time.slice(0, 5)} com ${booking.clients?.name}`}
-            className="flex-1 flex items-center gap-3 px-3 py-2.5 min-w-0 outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/50 rounded"
+            aria-label={`Agendamento as ${booking.booking_time.slice(0, 5)} com ${booking.clients?.name}`}
+            className="flex-1 flex items-center gap-4 px-4 py-3.5 min-w-0 outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/50 rounded-xl"
           >
-            <span className="text-sm font-bold text-zinc-500 tabular-nums w-10 shrink-0">
+            <span className="text-sm font-black text-[#D4AF37] tabular-nums w-12 shrink-0">
               {booking.booking_time.slice(0, 5)}
             </span>
-            <div className="w-px h-3.5 bg-white/10 shrink-0" />
-            <span className="text-[11px] font-medium text-zinc-200 truncate">
+            <div className="w-px h-4 bg-white/[0.08] shrink-0" />
+            <span className="text-[13px] font-semibold text-zinc-200 truncate">
               {formatDisplayName(booking.clients?.name)}
             </span>
           </div>
@@ -52,12 +56,12 @@ const OccupiedPanel: FC<OccupiedPanelProps> = ({ bookings, selectedId, onSelect,
               e.stopPropagation();
               onComplete(booking);
             }}
-            className="p-2.5 text-zinc-500 hover:text-emerald-400 transition-colors shrink-0 cursor-pointer"
+            className="p-3 text-zinc-600 hover:text-emerald-400 transition-colors shrink-0 cursor-pointer"
             aria-label="Concluir atendimento"
           >
-            <Check size={15} strokeWidth={2.5} />
+            <Check size={16} strokeWidth={2.5} />
           </button>
-          <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-colors shrink-0 mr-1" />
+          <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-zinc-500 transition-colors shrink-0 mr-2" />
         </div>
       ))}
     </div>

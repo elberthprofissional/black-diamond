@@ -2,19 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNotificationPrefs, type NotificationPrefs } from './useNotificationPrefs';
 import { logError } from '../lib/logger';
+import { playNotificationSound } from '../lib/notification-sound';
+import type { Notification } from '../types';
 
-export interface Notification {
-  id: string;
-  title: string;
-  body: string;
-  tag: string | null;
-  url: string | null;
-  read: boolean;
-  created_at: string;
-}
-
-// AudioContext reutilizável para evitar esgotar o limite do browser
-let sharedAudioContext: AudioContext | null = null;
+export type { Notification } from '../types';
 
 // Singleton para subscription realtime — evita duplicação entre desktop/mobile
 let activeChannel: ReturnType<typeof supabase.channel> | null = null;
@@ -23,45 +14,6 @@ let retryTimer: ReturnType<typeof setTimeout> | null = null;
 let retryCount = 0;
 let channelId = 0;
 const MAX_RETRIES = 15;
-
-// Generate notification sound using Web Audio API (no external files needed)
-function playNotificationSound() {
-  try {
-    // Reutiliza contexto existente ou cria um novo
-    if (!sharedAudioContext || sharedAudioContext.state === 'closed') {
-      sharedAudioContext = new (
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-      )();
-    }
-    const ctx = sharedAudioContext;
-
-    // Resume se estiver suspenso (política de autoplay)
-    if (ctx.state === 'suspended') {
-      ctx.resume();
-    }
-
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
-    // Pleasant two-tone chime
-    oscillator.frequency.setValueAtTime(800, ctx.currentTime);
-    oscillator.frequency.setValueAtTime(1000, ctx.currentTime + 0.1);
-    oscillator.type = 'sine';
-
-    gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + 0.3);
-  } catch (e) {
-    logError(e);
-    // Audio not available — silently fail
-  }
-}
 
 // Update document title with unread count badge
 function updateTitleBadge(count: number) {

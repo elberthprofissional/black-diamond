@@ -17,6 +17,7 @@ interface AdminBookingSubmitParams {
   totalDuration: number;
   rescheduleBooking: (Booking & { clients?: { name: string; phone: string } | null }) | null;
   barberPhone: string;
+  selectedBarber?: { id: string; name: string } | null;
 }
 
 export function useAdminBookingSubmit(params: AdminBookingSubmitParams) {
@@ -34,6 +35,7 @@ export function useAdminBookingSubmit(params: AdminBookingSubmitParams) {
     totalDuration,
     rescheduleBooking,
     barberPhone,
+    selectedBarber,
   } = params;
 
   const handleFinish = useCallback(async () => {
@@ -69,6 +71,7 @@ export function useAdminBookingSubmit(params: AdminBookingSubmitParams) {
           booking_time: selectedTime,
           total_price: totalPrice,
           total_duration: totalDuration,
+          barber_id: selectedBarber?.id || undefined,
         },
         { name, phone }
       );
@@ -132,6 +135,7 @@ export function useAdminBookingSubmit(params: AdminBookingSubmitParams) {
     showSuccess,
     showError,
     logBooking,
+    selectedBarber,
   ]);
 
   return { isSubmitting, handleFinish };

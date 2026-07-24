@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, User, LogOut, Settings } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
-import { useBarberSettings } from '../../contexts/BarberSettingsContext';
+import { useBarberSettings } from '../../hooks/useBarberSettings';
 import NotificationBell from './NotificationBell';
 
 const AdminNavbar: FC = () => {
@@ -48,7 +48,7 @@ const AdminNavbar: FC = () => {
             onClick={() => navigate('/admin')}
           >
             <img src="/assets/logo.webp" alt="Logo" className="w-10 h-10 object-contain" />
-            <span className="text-[11px] font-black uppercase tracking-[0.3em] text-white">
+            <span className="text-[12px] font-black uppercase tracking-[0.3em] text-white">
               Black Diamond
             </span>
           </div>
@@ -90,7 +90,7 @@ const AdminNavbar: FC = () => {
                       transition={{ duration: 0.15 }}
                       className="absolute right-0 mt-2 w-48 bg-[#161618] border border-white/[0.06] rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-50 overflow-hidden"
                     >
-                      <div className="p-2 space-y-1">
+                      <div className="p-2 space-y-2">
                         <button
                           onClick={() => {
                             navigate('/admin/profile');
@@ -155,12 +155,12 @@ const AdminNavbar: FC = () => {
               className="relative z-10 w-full max-w-[260px] bg-[#1A1A1A] rounded-2xl overflow-hidden"
             >
               <div className="p-5 text-center">
-                <p className="text-[11px] text-zinc-300 font-medium">Sair da conta?</p>
+                <p className="text-[12px] text-zinc-300 font-medium">Sair da conta?</p>
               </div>
               <div className="border-t border-white/[0.06]">
                 <button
                   onClick={handleLogout}
-                  className="w-full py-3.5 text-[11px] font-bold text-red-500 active:bg-white/[0.03] transition-colors cursor-pointer"
+                  className="w-full py-3.5 text-[12px] font-bold text-red-500 active:bg-white/[0.03] transition-colors cursor-pointer"
                 >
                   Sair
                 </button>
@@ -168,7 +168,7 @@ const AdminNavbar: FC = () => {
               <div className="border-t border-white/[0.06]">
                 <button
                   onClick={() => setShowLogoutConfirm(false)}
-                  className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
+                  className="w-full py-3.5 text-[12px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
                 >
                   Manter
                 </button>

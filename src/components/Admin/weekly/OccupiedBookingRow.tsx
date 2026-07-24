@@ -27,25 +27,25 @@ const OccupiedBookingRow: FC<OccupiedBookingRowProps> = ({ booking, services, on
   };
 
   return (
-    <div className="flex items-center bg-[#111111] border border-white/5 rounded-lg px-3 py-2 transition-all hover:border-[#D4AF37]/20 group">
+    <div className="flex items-center bg-[#111] border border-white/[0.06] rounded-xl px-4 py-3 transition-all hover:border-[#D4AF37]/20 group">
       <button
         onClick={() => onSelect(booking)}
-        aria-label={`Agendamento às ${booking.booking_time.slice(0, 5)} com ${booking.clients?.name}`}
+        aria-label={`Agendamento as ${booking.booking_time.slice(0, 5)} com ${booking.clients?.name}`}
         className="flex items-center flex-1 min-w-0 text-left cursor-pointer"
       >
-        <span className="text-sm font-bold text-white tabular-nums w-12 shrink-0">
+        <span className="text-sm font-black text-[#D4AF37] tabular-nums w-12 shrink-0">
           {booking.booking_time.slice(0, 5)}
         </span>
-        <div className="w-px h-3.5 bg-white/[0.06] mx-3 shrink-0" />
-        <span className="text-[11px] font-bold text-zinc-300 truncate flex-1">
+        <div className="w-px h-4 bg-white/[0.08] mx-3 shrink-0" />
+        <span className="text-[13px] font-semibold text-zinc-200 truncate flex-1">
           {formatDisplayName(booking.clients?.name)}
         </span>
       </button>
 
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-1.5 shrink-0">
         <button
           onClick={handleReminder}
-          className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 text-[#D4AF37] text-[9px] font-bold uppercase tracking-wider rounded-md transition-all cursor-pointer"
+          className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 text-[#D4AF37] text-[10px] font-black uppercase tracking-[0.15em] rounded-lg transition-all cursor-pointer"
         >
           <svg
             width="10"
@@ -63,7 +63,7 @@ const OccupiedBookingRow: FC<OccupiedBookingRowProps> = ({ booking, services, on
 
         <button
           onClick={handleReminder}
-          className="lg:hidden p-1.5 text-zinc-600 hover:text-[#D4AF37] transition-colors cursor-pointer"
+          className="lg:hidden p-2 text-zinc-600 hover:text-[#D4AF37] transition-colors cursor-pointer"
           aria-label="Enviar lembrete"
         >
           <svg
@@ -81,7 +81,7 @@ const OccupiedBookingRow: FC<OccupiedBookingRowProps> = ({ booking, services, on
 
         <button
           onClick={() => onSelect(booking)}
-          className="p-1 text-zinc-600 hover:text-[#D4AF37] transition-colors cursor-pointer"
+          className="p-2 text-zinc-600 hover:text-[#D4AF37] transition-colors cursor-pointer"
           aria-label="Ver detalhes"
         >
           <svg

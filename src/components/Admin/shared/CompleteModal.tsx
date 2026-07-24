@@ -34,7 +34,7 @@ const CompleteModal: FC<CompleteModalProps> = ({ booking, onConfirm, onCancel })
             exit={{ opacity: 0, scale: 0.95 }}
             className="relative z-10 w-full max-w-[280px] bg-[#111] border border-white/[0.06] rounded-2xl overflow-hidden"
           >
-            <div className="p-5 text-center space-y-1">
+            <div className="p-5 text-center space-y-2">
               <p className="text-sm font-semibold text-white">Concluir atendimento?</p>
               <p className="text-xs text-zinc-500">{formatDisplayName(booking.clients?.name)}</p>
             </div>

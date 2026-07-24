@@ -46,8 +46,8 @@ const ToggleRow: FC<ToggleRowProps> = ({
         <Icon size={15} className={checked ? 'text-[#D4AF37]' : 'text-zinc-600'} />
       </div>
       <div className="text-left">
-        <span className="text-[13px] text-white block font-medium">{label}</span>
-        <span className="text-[11px] text-zinc-500 block mt-0.5">{desc}</span>
+        <span className="text-[14px] text-white block font-medium">{label}</span>
+        <span className="text-[12px] text-zinc-500 block mt-0.5">{desc}</span>
       </div>
     </div>
     <div
@@ -108,10 +108,10 @@ const SettingsNotificacoes: FC<SettingsNotificacoesProps> = ({ onBack: _onBack }
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
             <div className="text-left">
-              <span className="text-[13px] text-amber-400 block font-medium">
+              <span className="text-[14px] text-amber-400 block font-medium">
                 VAPID key não configurada
               </span>
-              <span className="text-[11px] text-amber-500/70 block mt-0.5">
+              <span className="text-[12px] text-amber-500/70 block mt-0.5">
                 Adicione VITE_VAPID_PUBLIC_KEY no .env para ativar notificações push.
               </span>
             </div>
@@ -119,8 +119,8 @@ const SettingsNotificacoes: FC<SettingsNotificacoesProps> = ({ onBack: _onBack }
         </div>
 
         {/* Still show preference toggles even without VAPID */}
-        <div className="space-y-1">
-          <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.2em] px-1 mb-3">
+        <div className="space-y-2">
+          <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] px-1 mb-3">
             Preferências do App
           </p>
           <ToggleRow
@@ -178,8 +178,8 @@ const SettingsNotificacoes: FC<SettingsNotificacoesProps> = ({ onBack: _onBack }
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.2em] px-1 mb-3">
+      <div className="space-y-2">
+        <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] px-1 mb-3">
           Preferências do App
         </p>
         <ToggleRow
@@ -221,8 +221,8 @@ const SettingsNotificacoes: FC<SettingsNotificacoesProps> = ({ onBack: _onBack }
 
       <div className="h-px bg-white/[0.04] mx-1" />
 
-      <div className="space-y-1">
-        <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.2em] px-1 mb-3">
+      <div className="space-y-2">
+        <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] px-1 mb-3">
           Push Notification
         </p>
         <ToggleRow

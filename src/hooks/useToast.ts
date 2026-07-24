@@ -5,6 +5,16 @@ export interface Toast {
   type: 'success' | 'error';
 }
 
+/**
+ * Hook para gerenciar notificações toast (pequenas mensagens temporárias).
+ *
+ * - `showSuccess(msg)`: toast verde de sucesso
+ * - `showError(msg)`: toast vermelho de erro
+ * - O toast desaparece automaticamente após `duration` ms (padrão 3000ms).
+ *
+ * @param duration - Duração em ms antes do toast desaparecer.
+ * @returns {{ toast, showToast, showSuccess, showError }}
+ */
 export function useToast(duration = 3000) {
   const [toast, setToast] = useState<Toast | null>(null);
 

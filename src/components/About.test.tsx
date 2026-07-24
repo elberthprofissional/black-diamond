@@ -9,10 +9,11 @@ const mockUseBarberSettings = vi.fn(() => ({
   barberBio: '',
   barberQuote: '',
   barberInstagram: '',
+  onboardingCompleted: false,
   loading: false,
 }));
 
-vi.mock('../contexts/BarberSettingsContext', () => ({
+vi.mock('../hooks/useBarberSettings', () => ({
   useBarberSettings: () => mockUseBarberSettings(),
 }));
 
@@ -25,6 +26,7 @@ beforeEach(() => {
     barberBio: '',
     barberQuote: '',
     barberInstagram: '',
+    onboardingCompleted: false,
     loading: false,
   });
 });

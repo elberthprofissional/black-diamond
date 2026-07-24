@@ -63,19 +63,19 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
     return (
       <>
         <div className="sticky top-0 bg-[#0E0E0E]/95 backdrop-blur-md z-10 px-5 lg:px-6 py-3.5 lg:py-4 border-b border-white/[0.04] flex items-center justify-between">
-          <span className="text-[9px] font-black text-[#D4AF37] uppercase tracking-[0.25em]">
+          <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.25em]">
             Dados do Agendamento
           </span>
         </div>
 
         {/* ==================== MOBILE: minimal ==================== */}
-        <div className="lg:hidden px-5 py-5 flex-1 text-left overflow-y-auto scrollbar-hide space-y-5">
+        <div className="lg:hidden px-5 py-5 flex-1 text-left overflow-y-auto scrollbar-hide space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white bg-white/[0.06] shrink-0">
               {booking.clients?.name?.charAt(0) || 'U'}
             </div>
             <div className="min-w-0">
-              <p className="text-[15px] font-bold text-white truncate">
+              <p className="text-[16px] font-bold text-white truncate">
                 {formatDisplayName(booking.clients?.name)}
               </p>
               <p className="text-[12px] text-zinc-500">
@@ -84,7 +84,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
             </div>
           </div>
 
-          <div className="flex items-center gap-4 text-[13px]">
+          <div className="flex items-center gap-4 text-[14px]">
             <span className="text-zinc-400">{dateStr}</span>
             <span className="text-[#D4AF37] font-bold">{timeStr}</span>
           </div>
@@ -97,18 +97,18 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                 const srv = services.find((s) => s.id === id);
                 return (
                   <div key={id} className="flex justify-between items-center">
-                    <span className="text-[13px] text-zinc-400">{srv?.name || 'Serviço'}</span>
-                    <span className="text-[13px] font-semibold text-zinc-300 tabular-nums">
+                    <span className="text-[14px] text-zinc-400">{srv?.name || 'Serviço'}</span>
+                    <span className="text-[14px] font-semibold text-zinc-300 tabular-nums">
                       {formatPricePublic(srv?.price || 0)}
                     </span>
                   </div>
                 );
               })}
               <div className="flex justify-between items-center pt-2">
-                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">
                   Total
                 </span>
-                <span className="text-[15px] font-black text-[#D4AF37]">
+                <span className="text-[16px] font-black text-[#D4AF37]">
                   {formatPricePublic(booking.total_price || 0)}
                 </span>
               </div>
@@ -130,21 +130,21 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
             )}
             <button
               onClick={handleReminder}
-              className="w-full h-9 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 text-[#D4AF37] text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5 rounded-lg transition-all"
+              className="w-full h-9 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5 rounded-lg transition-all"
             >
               <BellIcon />
               Enviar Lembrete
             </button>
             <button
               onClick={onReschedule}
-              className="w-full h-9 bg-transparent text-zinc-400 hover:text-white transition-all text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full h-9 bg-transparent text-zinc-400 hover:text-white transition-all text-[10px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
             >
               <CalendarIcon />
               Reagendar
             </button>
             <button
               onClick={() => setShowCancelConfirm(true)}
-              className="w-full h-9 bg-transparent text-red-400/40 hover:text-red-400/70 transition-all text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full h-9 bg-transparent text-red-400/40 hover:text-red-400/70 transition-all text-[10px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
             >
               <TrashIcon />
               Cancelar Agendamento
@@ -161,7 +161,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                   onClose();
                 }}
                 disabled={markingNoShow === booking.id}
-                className="w-full h-9 bg-transparent text-orange-400/40 hover:text-orange-400/70 transition-all text-[9px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="w-full h-9 bg-transparent text-orange-400/40 hover:text-orange-400/70 transition-all text-[10px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <svg
                   width="11"
@@ -198,16 +198,16 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
             </div>
           </div>
 
-          <div className="bg-[#121212] border border-white/[0.03] rounded-xl p-4 space-y-3">
+          <div className="bg-[#121212] border border-white/[0.03] rounded-xl p-4 space-y-4">
             <div className="flex justify-between items-center px-1">
-              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                 Data
               </span>
               <span className="text-xs font-bold text-white uppercase">{dateStr}</span>
             </div>
             <div className="h-px bg-white/[0.04]" />
             <div className="flex justify-between items-center px-1">
-              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                 Horário
               </span>
               <span className="text-xs font-bold text-[#D4AF37]">{timeStr}</span>
@@ -215,8 +215,8 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
           </div>
 
           {booking.service_ids && booking.service_ids.length > 0 && (
-            <div className="bg-[#121212] border border-white/[0.03] rounded-xl p-4 space-y-3">
-              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block px-1">
+            <div className="bg-[#121212] border border-white/[0.03] rounded-xl p-4 space-y-4">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block px-1">
                 Serviços
               </span>
               <div className="space-y-2.5">
@@ -234,7 +234,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
               </div>
               <div className="h-px bg-white/[0.04]" />
               <div className="flex justify-between items-center px-1">
-                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
                   Total
                 </span>
                 <span className="text-base font-black text-[#D4AF37]">
@@ -269,7 +269,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
             )}
             <button
               onClick={handleReminder}
-              className="w-full h-11 bg-[#D4AF37]/10 border border-[#D4AF37]/20 hover:bg-[#D4AF37]/20 text-[#D4AF37] rounded-xl transition-all active:scale-[0.99] text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full h-11 bg-[#D4AF37]/10 border border-[#D4AF37]/20 hover:bg-[#D4AF37]/20 text-[#D4AF37] rounded-xl transition-all active:scale-[0.99] text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
             >
               <svg
                 width="12"
@@ -286,7 +286,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
             </button>
             <button
               onClick={onReschedule}
-              className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-zinc-300 hover:bg-white/[0.05] hover:text-white rounded-xl transition-all active:scale-[0.99] text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-zinc-300 hover:bg-white/[0.05] hover:text-white rounded-xl transition-all active:scale-[0.99] text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
             >
               <svg
                 width="12"
@@ -305,7 +305,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
             </button>
             <button
               onClick={() => setShowCancelConfirm(true)}
-              className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-zinc-400 hover:bg-red-500/[0.02] hover:border-red-500/20 hover:text-red-400 rounded-xl transition-all active:scale-[0.99] text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-zinc-400 hover:bg-red-500/[0.02] hover:border-red-500/20 hover:text-red-400 rounded-xl transition-all active:scale-[0.99] text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
             >
               <svg
                 width="12"
@@ -335,7 +335,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                   onClose();
                 }}
                 disabled={markingNoShow === booking.id}
-                className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-orange-400/40 hover:bg-orange-500/[0.02] hover:border-orange-500/20 hover:text-orange-400 rounded-xl transition-all active:scale-[0.99] text-[9px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="w-full h-11 bg-white/[0.02] border border-white/[0.08] text-orange-400/40 hover:bg-orange-500/[0.02] hover:border-orange-500/20 hover:text-orange-400 rounded-xl transition-all active:scale-[0.99] text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <svg
                   width="12"

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getClientByPhone, getLastBookingByPhone } from '../lib/api';
 
 /**
@@ -75,17 +75,11 @@ export function useClientLookup(phone: string, onNameFound?: (name: string) => v
     };
   }, [phone, onNameFound]);
 
-  const resetMensalista = useCallback(() => {
-    setIsMensalista(false);
-    setMensalistaPlanId(null);
-  }, []);
-
   return {
     isMensalista,
     mensalistaPlanId,
     clientLookupLoading,
     clientId,
     lastBooking,
-    resetMensalista,
   };
 }

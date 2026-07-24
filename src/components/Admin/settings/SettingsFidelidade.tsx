@@ -157,7 +157,7 @@ const SettingsFidelidade: FC = () => {
       {/* Header — Desktop */}
       <div className="hidden lg:flex items-center justify-between py-2">
         <div>
-          <h3 className="text-[15px] font-bold text-white">Programa de Fidelidade</h3>
+          <h3 className="text-[16px] font-bold text-white">Programa de Fidelidade</h3>
           <p className="text-[12px] text-zinc-500 mt-0.5">
             {enabled
               ? `${milestones.length} meta(s) configurada(s)`
@@ -231,10 +231,10 @@ const SettingsFidelidade: FC = () => {
                       <Star size={14} className="text-[#D4AF37]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-bold text-white">
+                      <p className="text-[14px] font-bold text-white">
                         {m.visits_required} visitas
                       </p>
-                      <p className="text-[11px] text-zinc-500">🎁 {svcName}</p>
+                      <p className="text-[12px] text-zinc-500">🎁 {svcName}</p>
                     </div>
                     <button
                       onClick={() => handleRemoveMilestone(m.id)}
@@ -253,7 +253,7 @@ const SettingsFidelidade: FC = () => {
           {showNewForm ? (
             <div className="bg-[#111111] border border-[#D4AF37]/20 rounded-xl p-4 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                <span className="text-[12px] font-bold text-zinc-400 uppercase tracking-wider">
                   Nova meta
                 </span>
                 <button
@@ -287,7 +287,7 @@ const SettingsFidelidade: FC = () => {
                     <select
                       value={newServiceId}
                       onChange={(e) => setNewServiceId(e.target.value)}
-                      className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-[#D4AF37]/40 transition-all appearance-none cursor-pointer"
+                      className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[14px] text-white outline-none focus:border-[#D4AF37]/40 transition-all appearance-none cursor-pointer"
                     >
                       <option value="" className="bg-[#1A1A1A]">
                         Selecione
@@ -308,7 +308,7 @@ const SettingsFidelidade: FC = () => {
 
               <button
                 onClick={handleAddMilestone}
-                className="w-full h-10 bg-[#D4AF37] text-black font-bold text-[11px] uppercase tracking-wider rounded-xl hover:bg-[#b8962e] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                className="btn-gold w-full h-10 flex items-center justify-center gap-1.5"
               >
                 <Plus size={14} strokeWidth={2.5} />
                 Adicionar Meta
@@ -317,7 +317,7 @@ const SettingsFidelidade: FC = () => {
           ) : (
             <button
               onClick={() => setShowNewForm(true)}
-              className="w-full h-10 border border-dashed border-white/[0.12] text-zinc-400 hover:text-white hover:border-[#D4AF37]/30 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 text-[11px] font-bold"
+              className="w-full h-10 border border-dashed border-white/[0.12] text-zinc-400 hover:text-white hover:border-[#D4AF37]/30 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 text-[12px] font-bold"
             >
               <Plus size={14} />
               Adicionar Meta
@@ -329,7 +329,7 @@ const SettingsFidelidade: FC = () => {
             <button
               onClick={handleSaveAll}
               disabled={saving}
-              className="w-full h-12 bg-[#D4AF37] text-black font-black text-[11px] uppercase tracking-[0.2em] rounded-xl hover:bg-[#b8962e] transition-all cursor-pointer disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-[#D4AF37]/10"
+              className="btn-gold w-full h-12 disabled:opacity-40 flex items-center justify-center gap-2"
             >
               {saving ? (
                 <>

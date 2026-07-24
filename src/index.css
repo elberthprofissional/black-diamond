@@ -268,59 +268,56 @@
 /* Custom tuning for installed PWA standalone mode (keeps layout compact on tall screens) */
 @media (display-mode: standalone) {
   .skip-link {
-    display: none !important;
+    display: none;
   }
-  /* Reduce excessive vertical paddings for mobile viewports */
-  .lg\:hidden .py-24,
-  .lg\:hidden .py-20,
-  .lg\:hidden .py-16,
-  .lg\:hidden .py-14,
-  .lg\:hidden .py-12,
-  .lg\:hidden .py-10 {
-    padding-top: 1.25rem !important;
-    padding-bottom: 1.25rem !important;
-  }
-
-  .lg\:hidden .pt-24,
-  .lg\:hidden .pt-20,
-  .lg\:hidden .pt-16 {
-    padding-top: 1.5rem !important;
+  body.pwa-context .py-24,
+  body.pwa-context .py-20,
+  body.pwa-context .py-16,
+  body.pwa-context .py-14,
+  body.pwa-context .py-12,
+  body.pwa-context .py-10 {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
   }
 
-  .lg\:hidden .pb-40,
-  .lg\:hidden .pb-32,
-  .lg\:hidden .pb-28 {
-    padding-bottom: 5.5rem !important; /* Mantém espaço confortável para as tabs inferiores */
+  body.pwa-context .pt-24,
+  body.pwa-context .pt-20,
+  body.pwa-context .pt-16 {
+    padding-top: 1.5rem;
   }
 
-  /* Compress spacing classes */
-  .lg\:hidden .space-y-12 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 1.5rem !important;
+  body.pwa-context .pb-40,
+  body.pwa-context .pb-32,
+  body.pwa-context .pb-28 {
+    padding-bottom: 5.5rem;
   }
 
-  .lg\:hidden .space-y-8 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 1rem !important;
+  body.pwa-context .space-y-12 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1.5rem;
   }
 
-  .lg\:hidden .space-y-6 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 0.85rem !important;
+  body.pwa-context .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1rem;
   }
 
-  .lg\:hidden .mt-12 {
-    margin-top: 1.25rem !important;
+  body.pwa-context .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.85rem;
   }
 
-  /* Make form inputs and lists scroll nicely without being stretched */
-  .lg\:hidden select,
-  .lg\:hidden input,
-  .lg\:hidden textarea {
-    padding-top: 0.75rem !important;
-    padding-bottom: 0.75rem !important;
+  body.pwa-context .mt-12 {
+    margin-top: 1.25rem;
   }
 
-  .lg\:hidden button {
-    padding-top: 0.85rem !important;
-    padding-bottom: 0.85rem !important;
+  body.pwa-context select,
+  body.pwa-context input,
+  body.pwa-context textarea {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  body.pwa-context button {
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
   }
 }
 
@@ -499,4 +496,61 @@ code {
 .table-container {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* ========================================================================= */
+/* 6. REUSABLE COMPONENT CLASSES (replace long Tailwind inline strings)    */
+/* ========================================================================= */
+
+@layer components {
+
+  /* Primary gold CTA button */
+  .btn-gold {
+    @apply bg-[#D4AF37] text-black font-bold text-[12px] uppercase tracking-[0.2em] rounded-xl transition-all duration-300 cursor-pointer shadow-lg shadow-[#D4AF37]/20;
+  }
+  .btn-gold:hover {
+    @apply bg-[#b8962e] brightness-110 shadow-[#D4AF37]/30;
+  }
+  .btn-gold:active {
+    @apply scale-[0.97];
+  }
+  .btn-gold:disabled {
+    @apply bg-white/[0.04] text-zinc-700 cursor-not-allowed brightness-100 scale-100 shadow-none;
+  }
+
+  /* Ghost/outline button */
+  .btn-ghost {
+    @apply bg-white/[0.04] border border-white/[0.08] text-zinc-400 font-bold text-[12px] uppercase tracking-[0.2em] rounded-xl transition-all duration-300 cursor-pointer;
+  }
+  .btn-ghost:hover {
+    @apply text-white bg-white/[0.06] border-white/[0.12];
+  }
+  .btn-ghost:active {
+    @apply scale-[0.97];
+  }
+
+  /* Dark card container */
+  .card-dark {
+    @apply bg-[#0C0C0C]/80 border border-white/[0.05] rounded-2xl backdrop-blur-xl;
+  }
+
+  /* Form input (dark theme) */
+  .input-dark {
+    @apply w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-white text-[14px] font-light placeholder:text-zinc-500 focus:outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/30 transition-all;
+  }
+
+  /* Gold divider */
+  .divider-gold {
+    @apply h-px bg-gradient-to-r from-[#D4AF37]/40 via-[#D4AF37]/10 to-transparent;
+  }
+
+  /* Section label (small gold uppercase) */
+  .label-gold {
+    @apply text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em];
+  }
+
+  /* Skeleton pulse */
+  .skeleton-pulse {
+    @apply bg-white/[0.04] rounded-xl animate-pulse;
+  }
 }

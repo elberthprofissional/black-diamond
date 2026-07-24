@@ -4,15 +4,39 @@ import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 import Gallery from './Gallery';
 
 // Mock do Supabase
-vi.mock('../lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        order: vi.fn(() => Promise.resolve({ data: [], error: null })),
-      })),
-    })),
-  },
-}));
+vi.mock('../lib/supabase', () => {
+  const makeBuilder = () => {
+    const builder = {
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      upsert: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      neq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      gte: vi.fn().mockReturnThis(),
+      lte: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      range: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      then: (onFulfilled: (v: unknown) => void, onRejected: (v: unknown) => void) =>
+        Promise.resolve({ data: [], error: null, count: 0 }).then(onFulfilled, onRejected),
+    };
+    return builder;
+  };
+
+  return {
+    supabase: {
+      from: vi.fn(() => makeBuilder()),
+      rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
+    },
+  };
+});
 
 describe('Gallery', () => {
   it('renderiza o titulo Galeria', async () => {

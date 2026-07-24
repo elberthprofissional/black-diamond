@@ -1,10 +1,25 @@
 /**
  * PDF generator for exporting reports.
  * Uses jsPDF + jspdf-autotable for professional-looking PDFs.
+ * Dynamically imported to keep jsPDF (376 KB) out of the main bundle.
  */
 
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+// Lazy-loaded deps: jsPDF (376 kB) stays out of the main bundle
+let _jsPdf: (typeof import('jspdf'))['default'] | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _autoTable: any = null;
+
+async function loadPdfDeps() {
+  if (!_jsPdf) {
+    const [jsPdfMod, autoTableMod] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable'),
+    ]);
+    _jsPdf = jsPdfMod.default;
+    _autoTable = autoTableMod.default;
+  }
+  return { jsPDF: _jsPdf!, autoTable: _autoTable };
+}
 
 interface PdfColumn {
   header: string;
@@ -22,6 +37,20 @@ interface PdfReportOptions {
   columns: PdfColumn[];
   rows: PdfRow[];
   footerText?: string;
+  brandName?: string;
+  brandColor?: string;
+}
+
+function hexToRgb(hex?: string): { r: number; g: number; b: number } {
+  const color = hex || '#D4AF37';
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
+  return result
+    ? {
+        r: parseInt(result[1] ?? 'D4', 16),
+        g: parseInt(result[2] ?? 'AF', 16),
+        b: parseInt(result[3] ?? '37', 16),
+      }
+    : { r: 212, g: 175, b: 55 };
 }
 
 function formatDate(): string {
@@ -38,8 +67,11 @@ function formatDate(): string {
  * Gera um PDF formatado com tabela e faz o download.
  * Design profissional com cabeçalho dourado e rodapé.
  */
-export function downloadPdf(options: PdfReportOptions): void {
-  const { title, subtitle, filename, columns, rows, footerText } = options;
+export async function downloadPdf(options: PdfReportOptions): Promise<void> {
+  const { jsPDF, autoTable } = await loadPdfDeps();
+  const { title, subtitle, filename, columns, rows, footerText, brandName, brandColor } = options;
+  const displayName = brandName || 'BLACK DIAMOND';
+  const brandRgb = hexToRgb(brandColor || '#D4AF37');
 
   // Cria documento A4
   const doc = new jsPDF('portrait', 'mm', 'a4');
@@ -49,8 +81,8 @@ export function downloadPdf(options: PdfReportOptions): void {
   doc.setFillColor(26, 26, 26); // #1A1A1A
   doc.rect(0, 0, pageWidth, 40, 'F');
 
-  // Linha dourada decorativa
-  doc.setFillColor(212, 175, 55); // #D4AF37
+  // Linha decorativa
+  doc.setFillColor(brandRgb.r, brandRgb.g, brandRgb.b);
   doc.rect(0, 38, pageWidth, 1.5, 'F');
 
   // Título
@@ -62,8 +94,8 @@ export function downloadPdf(options: PdfReportOptions): void {
   // Logo / nome da barbearia
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.setTextColor(212, 175, 55);
-  doc.text('BLACK DIAMOND', pageWidth - 14, 16, { align: 'right' });
+  doc.setTextColor(brandRgb.r, brandRgb.g, brandRgb.b);
+  doc.text(displayName, pageWidth - 14, 16, { align: 'right' });
 
   // Subtítulo
   if (subtitle) {
@@ -105,7 +137,7 @@ export function downloadPdf(options: PdfReportOptions): void {
       ) as unknown as never[],
       theme: 'grid',
       headStyles: {
-        fillColor: [212, 175, 55],
+        fillColor: [brandRgb.r, brandRgb.g, brandRgb.b],
         textColor: [26, 26, 26],
         fontStyle: 'bold',
         fontSize: 9,
@@ -125,7 +157,7 @@ export function downloadPdf(options: PdfReportOptions): void {
         valign: 'middle',
       },
       margin: { left: 14, right: 14 },
-      didParseCell: (data) => {
+      didParseCell: (data: { section: string; cell: { styles: { halign: string } } }) => {
         // Células do cabeçalho centralizadas
         if (data.section === 'head') {
           data.cell.styles.halign = 'center';
@@ -160,8 +192,8 @@ export function downloadPdf(options: PdfReportOptions): void {
     // Logo no rodapé
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7);
-    doc.setTextColor(212, 175, 55);
-    doc.text('Black Diamond 💈', pageWidth / 2, pageHeight - 8, { align: 'center' });
+    doc.setTextColor(brandRgb.r, brandRgb.g, brandRgb.b);
+    doc.text(displayName, pageWidth / 2, pageHeight - 8, { align: 'center' });
   }
 
   // ── Download ─────────────────────────────────────────────────────
@@ -172,7 +204,7 @@ export function downloadPdf(options: PdfReportOptions): void {
 /**
  * Gera PDF de agendamentos.
  */
-export function downloadBookingsPdf(
+export async function downloadBookingsPdf(
   bookings: Array<{
     booking_date: string;
     booking_time: string;
@@ -184,8 +216,10 @@ export function downloadBookingsPdf(
     status: string;
   }>,
   filename: string,
-  dateRange?: string
-): void {
+  dateRange?: string,
+  brandName?: string,
+  brandColor?: string
+): Promise<void> {
   const columns: PdfColumn[] = [
     { header: 'Data', dataKey: 'date' },
     { header: 'Horário', dataKey: 'time' },
@@ -206,20 +240,22 @@ export function downloadBookingsPdf(
     status: translateStatus(b.status),
   }));
 
-  downloadPdf({
+  await downloadPdf({
     title: 'Relatório de Agendamentos',
     subtitle: dateRange || 'Todos os agendamentos',
     filename,
     columns,
     rows,
-    footerText: 'Relatório gerado pelo Black Diamond Admin',
+    footerText: `Relatório gerado pelo ${brandName || 'Black Diamond'} Admin`,
+    brandName,
+    brandColor,
   });
 }
 
 /**
  * Gera PDF de clientes.
  */
-export function downloadClientsPdf(
+export async function downloadClientsPdf(
   clients: Array<{
     name: string;
     phone: string;
@@ -229,8 +265,10 @@ export function downloadClientsPdf(
     is_mensalista: boolean;
     is_favorite: boolean;
   }>,
-  filename: string
-): void {
+  filename: string,
+  brandName?: string,
+  brandColor?: string
+): Promise<void> {
   const columns: PdfColumn[] = [
     { header: 'Nome', dataKey: 'name' },
     { header: 'Telefone', dataKey: 'phone' },
@@ -249,20 +287,22 @@ export function downloadClientsPdf(
     type: c.is_mensalista ? 'Mensalista' : c.is_favorite ? 'Favorito' : 'Regular',
   }));
 
-  downloadPdf({
+  await downloadPdf({
     title: 'Relatório de Clientes',
     subtitle: 'Base completa de clientes',
     filename,
     columns,
     rows,
-    footerText: 'Relatório gerado pelo Black Diamond Admin',
+    footerText: `Relatório gerado pelo ${brandName || 'Black Diamond'} Admin`,
+    brandName,
+    brandColor,
   });
 }
 
 /**
  * Gera PDF financeiro mensal.
  */
-export function downloadFinancialPdf(
+export async function downloadFinancialPdf(
   months: Array<{
     month: string;
     bookings: number;
@@ -270,8 +310,10 @@ export function downloadFinancialPdf(
     cancelled: number;
     cancelRate: string;
   }>,
-  filename: string
-): void {
+  filename: string,
+  brandName?: string,
+  brandColor?: string
+): Promise<void> {
   const columns: PdfColumn[] = [
     { header: 'Mês', dataKey: 'month' },
     { header: 'Agendamentos', dataKey: 'bookings' },
@@ -288,13 +330,15 @@ export function downloadFinancialPdf(
     cancelRate: m.cancelRate || '0%',
   }));
 
-  downloadPdf({
+  await downloadPdf({
     title: 'Relatório Financeiro',
     subtitle: 'Receita e cancelamentos por mês',
     filename,
     columns,
     rows,
-    footerText: 'Relatório gerado pelo Black Diamond Admin',
+    footerText: `Relatório gerado pelo ${brandName || 'Black Diamond'} Admin`,
+    brandName,
+    brandColor,
   });
 }
 

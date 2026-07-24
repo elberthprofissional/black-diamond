@@ -102,30 +102,3 @@ export function downloadXlsx(sheets: XlsxSheet[], filename: string): void {
   const xml = generateSheetXml(firstSheet);
   downloadBlob(xml, filename.replace(/\.xlsx$/, '.xls'), 'application/vnd.ms-excel');
 }
-
-export function generateBookingXlsx(
-  bookings: Record<string, unknown>[],
-  columns: { header: string; accessor: (row: Record<string, unknown>) => string | number }[],
-  filename: string
-): void {
-  const rows = bookings.map((b) => columns.map((col) => col.accessor(b)));
-  downloadXlsx([{ name: 'Agendamentos', columns, rows }], filename);
-}
-
-export function generateClientXlsx(
-  clients: Record<string, unknown>[],
-  columns: { header: string; accessor: (row: Record<string, unknown>) => string | number }[],
-  filename: string
-): void {
-  const rows = clients.map((c) => columns.map((col) => col.accessor(c)));
-  downloadXlsx([{ name: 'Clientes', columns, rows }], filename);
-}
-
-export function generateFinancialXlsx(
-  data: [string, Record<string, unknown>][],
-  columns: { header: string; accessor: (row: Record<string, unknown>) => string | number }[],
-  filename: string
-): void {
-  const rows = data.map(([, m]) => columns.map((col) => col.accessor(m)));
-  downloadXlsx([{ name: 'Financeiro', columns, rows }], filename);
-}

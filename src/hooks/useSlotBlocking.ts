@@ -1,16 +1,14 @@
 import { useState } from 'react';
 import { toggleSlotBlock, unblockDay } from '../lib/api';
 import { useToast } from './useToast';
-import { useAuditLog } from './useAuditLog';
+import { handleAsyncError } from '../lib/errorHandler';
 import type { BookingWithClient } from '../types';
-import { logError } from '../lib/logger';
 
 export function useSlotBlocking() {
   const [blockingSlot, setBlockingSlot] = useState<string | null>(null);
   const [unblockingBooking, setUnblockingBooking] = useState<BookingWithClient | null>(null);
   const [blockingDay, setBlockingDay] = useState(false);
   const { showSuccess, showError } = useToast();
-  const { log } = useAuditLog();
 
   const blockSlot = async (
     date: string,
@@ -19,40 +17,35 @@ export function useSlotBlocking() {
     customKey?: string
   ) => {
     setBlockingSlot(customKey || slot);
-    try {
-      await toggleSlotBlock(date, slot);
-      if (onBlockComplete) {
-        await onBlockComplete();
-      }
-      log({ action: 'slot_blocked', details: { date, slot } });
-      showSuccess(`Horário ${slot} bloqueado com sucesso!`);
-    } catch (e) {
-      logError(e);
-      showError('Erro ao bloquear horário.');
-    } finally {
-      setBlockingSlot(null);
-    }
+    const result = await handleAsyncError(
+      async () => {
+        await toggleSlotBlock(date, slot);
+        if (onBlockComplete) await onBlockComplete();
+        return true;
+      },
+      { context: 'useSlotBlocking/blockSlot', userMessage: 'Erro ao bloquear horário.', showError }
+    );
+    if (result) showSuccess(`Horário ${slot} bloqueado com sucesso!`);
+    setBlockingSlot(null);
   };
 
   const unblockSlot = async (
     _bookingId: string,
     onUnblockComplete?: () => Promise<void> | void
   ) => {
-    try {
-      const booking = unblockingBooking;
-      if (booking) {
-        await toggleSlotBlock(booking.booking_date, booking.booking_time.slice(0, 5));
-      }
-      log({ action: 'slot_unblocked', details: { booking_id: _bookingId } });
-      setUnblockingBooking(null);
-      if (onUnblockComplete) {
-        await onUnblockComplete();
-      }
-      showSuccess('Horário liberado com sucesso!');
-    } catch (e) {
-      logError(e);
-      showError('Erro ao desbloquear horário.');
-    }
+    const result = await handleAsyncError(
+      async () => {
+        const booking = unblockingBooking;
+        if (booking) {
+          await toggleSlotBlock(booking.booking_date, booking.booking_time.slice(0, 5));
+        }
+        setUnblockingBooking(null);
+        if (onUnblockComplete) await onUnblockComplete();
+        return true;
+      },
+      { context: 'useSlotBlocking/unblockSlot', userMessage: 'Erro ao desbloquear horário.', showError }
+    );
+    if (result) showSuccess('Horário liberado com sucesso!');
   };
 
   const blockEntireDay = async (
@@ -62,21 +55,18 @@ export function useSlotBlocking() {
   ) => {
     if (freeSlots.length === 0) return;
     setBlockingDay(true);
-    try {
-      for (const slot of freeSlots) {
-        await toggleSlotBlock(date, slot);
-      }
-      if (onComplete) {
-        await onComplete();
-      }
-      log({ action: 'slot_blocked', details: { date, slots: freeSlots.join(',') } });
-      showSuccess('Dia bloqueado com sucesso!');
-    } catch (e) {
-      logError(e);
-      showError('Erro ao bloquear o dia.');
-    } finally {
-      setBlockingDay(false);
-    }
+    const result = await handleAsyncError(
+      async () => {
+        for (const slot of freeSlots) {
+          await toggleSlotBlock(date, slot);
+        }
+        if (onComplete) await onComplete();
+        return true;
+      },
+      { context: 'useSlotBlocking/blockEntireDay', userMessage: 'Erro ao bloquear o dia.', showError }
+    );
+    if (result) showSuccess('Dia bloqueado com sucesso!');
+    setBlockingDay(false);
   };
 
   const unblockEntireDay = async (
@@ -85,22 +75,17 @@ export function useSlotBlocking() {
   ) => {
     if (blockedBookings.length === 0) return;
     setBlockingDay(true);
-    try {
-      const date = blockedBookings[0]?.booking_date;
-      if (date) {
-        await unblockDay(date);
-      }
-      log({ action: 'slot_unblocked', details: { date, bookings_count: blockedBookings.length } });
-      if (onComplete) {
-        await onComplete();
-      }
-      showSuccess('Dia liberado com sucesso!');
-    } catch (e) {
-      logError(e);
-      showError('Erro ao liberar o dia.');
-    } finally {
-      setBlockingDay(false);
-    }
+    const result = await handleAsyncError(
+      async () => {
+        const date = blockedBookings[0]?.booking_date;
+        if (date) await unblockDay(date);
+        if (onComplete) await onComplete();
+        return true;
+      },
+      { context: 'useSlotBlocking/unblockEntireDay', userMessage: 'Erro ao liberar o dia.', showError }
+    );
+    if (result) showSuccess('Dia liberado com sucesso!');
+    setBlockingDay(false);
   };
 
   return {

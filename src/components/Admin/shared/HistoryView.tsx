@@ -85,7 +85,7 @@ export default function HistoryView({
         )}
       </div>
 
-      <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest px-2 mb-3">
+      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2 mb-3">
         {filteredBookings.length} {filteredBookings.length === 1 ? 'agendamento' : 'agendamentos'}
         {historyFilter === 'hidden' && ' ocultos'}
       </p>

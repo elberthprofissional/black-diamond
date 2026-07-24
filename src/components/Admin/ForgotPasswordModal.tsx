@@ -61,7 +61,7 @@ export default function ForgotPasswordModal({
                     Insira seu email para redefinir sua senha.
                   </p>
                 </div>
-                <div className="p-6 sm:p-8 space-y-3 sm:space-y-4">
+                <div className="p-6 sm:p-8 space-y-4 sm:space-y-4">
                   <input
                     type="email"
                     value={recoveryEmail}

@@ -109,7 +109,7 @@ const ReviewRequestModal: FC<ReviewRequestModalProps> = ({ open, onClose, client
                   <div className="w-14 h-14 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center mx-auto mb-4">
                     <Star size={24} className="text-[#D4AF37]" />
                   </div>
-                  <h3 className="text-[15px] font-bold text-white">
+                  <h3 className="text-[16px] font-bold text-white">
                     {rating <= 2 ? 'Nos deu uma nota!' : `Ola, ${firstName}!`}
                   </h3>
                   <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
@@ -129,7 +129,7 @@ const ReviewRequestModal: FC<ReviewRequestModalProps> = ({ open, onClose, client
                   <div className="px-6 pb-6">
                     <button
                       onClick={handleOpenGoogle}
-                      className="w-full h-11 rounded-xl bg-[#D4AF37] text-black text-[12px] font-bold uppercase tracking-wider hover:bg-[#b8962e] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+                      className="btn-gold w-full h-11 flex items-center justify-center gap-2"
                     >
                       <GoogleIcon className="w-4 h-4" />
                       Avaliar no Google
@@ -157,13 +157,13 @@ const ReviewRequestModal: FC<ReviewRequestModalProps> = ({ open, onClose, client
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </div>
-                <h3 className="text-[15px] font-bold text-white">Obrigado!</h3>
+                <h3 className="text-[16px] font-bold text-white">Obrigado!</h3>
                 <p className="text-[12px] text-zinc-500 mt-1.5">
                   Sua avaliacao faz diferenca para nós.
                 </p>
                 <button
                   onClick={handleClose}
-                  className="mt-5 px-6 py-2.5 bg-white/[0.06] border border-white/[0.08] text-zinc-400 hover:text-white rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                  className="mt-5 px-6 py-2.5 bg-white/[0.06] border border-white/[0.08] text-zinc-400 hover:text-white rounded-xl text-[12px] font-bold uppercase tracking-wider transition-all cursor-pointer"
                 >
                   Fechar
                 </button>

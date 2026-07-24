@@ -41,7 +41,7 @@ const GalleryDeleteModal: FC<GalleryDeleteModalProps> = ({
               <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
                 <Trash2 size={20} className="text-red-500" />
               </div>
-              <p className="text-[15px] font-semibold text-white">
+              <p className="text-[16px] font-semibold text-white">
                 {isBulk ? `Excluir ${bulkCount} foto${bulkCount > 1 ? 's' : ''}?` : 'Deletar foto?'}
               </p>
               <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
@@ -53,14 +53,14 @@ const GalleryDeleteModal: FC<GalleryDeleteModalProps> = ({
               <button
                 onClick={onConfirm}
                 disabled={deleting !== null}
-                className="w-full py-4 text-[13px] font-semibold text-red-500 hover:text-red-400 active:bg-white/[0.03] transition-all cursor-pointer"
+                className="w-full py-4 text-[14px] font-semibold text-red-500 hover:text-red-400 active:bg-white/[0.03] transition-all cursor-pointer"
               >
                 {deleting ? 'Deletando...' : isBulk ? 'Excluir tudo' : 'Deletar'}
               </button>
               <div className="h-px bg-white/[0.06]" />
               <button
                 onClick={onCancel}
-                className="w-full py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
+                className="w-full py-4 text-[14px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
               >
                 Cancelar
               </button>

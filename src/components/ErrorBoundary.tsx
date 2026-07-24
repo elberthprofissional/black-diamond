@@ -22,8 +22,10 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(_error: Error, _info: ErrorInfo) {
-    // Sentry já captura automaticamente via ErrorBoundary integration
-    // O erro é logado pelo React em DEV automaticamente
+    // Log error for monitoring (Sentry captures via browserTracingIntegration)
+    if (import.meta.env.PROD) {
+      console.error('[ErrorBoundary]', _error, _info.componentStack);
+    }
   }
 
   handleRetry = () => {
@@ -86,7 +88,7 @@ class ErrorBoundary extends Component<Props, State> {
               )}
               <button
                 onClick={() => window.location.reload()}
-                className="h-11 px-8 bg-[#D4AF37] text-black font-bold text-[10px] uppercase tracking-[0.2em] rounded-xl hover:bg-[#b8962e] transition-all cursor-pointer"
+                className="btn-gold h-11 px-8 text-[10px]"
               >
                 Recarregar
               </button>

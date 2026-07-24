@@ -147,7 +147,6 @@ const AdminWeekly: FC = () => {
     ? (visibleWeekDays[selectedVisibleIndex] ?? new Date())
     : new Date();
   const selectedDateStr = getLocalDateString(selectedDate);
-  const isToday = hasVisibleDays && selectedDate.toDateString() === today.toDateString();
 
   // Realtime subscription for the selected date
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -198,6 +197,7 @@ const AdminWeekly: FC = () => {
     };
 
     setupRealtime();
+    loadAll();
 
     return () => {
       mounted = false;
@@ -208,20 +208,7 @@ const AdminWeekly: FC = () => {
     };
   }, [selectedDateStr, loadData]);
 
-  const [currentHour, setCurrentHour] = useState(() => new Date().getHours());
-  const [currentMinutes, setCurrentMinutes] = useState(
-    () => new Date().getHours() * 60 + new Date().getMinutes()
-  );
 
-  // Update time every minute so stale time values don't cause incorrect filtering
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      setCurrentHour(now.getHours());
-      setCurrentMinutes(now.getHours() * 60 + now.getMinutes());
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Se todos os dias mudarem (ex: carregou barberHours), ajusta o índice selecionado
   useEffect(() => {
@@ -254,14 +241,9 @@ const AdminWeekly: FC = () => {
       dayBookings.filter((b) => {
         if (b.status === 'cancelled') return false;
         if (b.is_blocked) return false;
-        if (!isToday) return true;
-        const parts = b.booking_time.slice(0, 5).split(':').map(Number);
-        const h = parts[0] ?? 0;
-        const m = parts[1] ?? 0;
-        const bookingEndMinutes = h * 60 + m + (b.total_duration || 60);
-        return bookingEndMinutes > currentMinutes;
+        return true;
       }),
-    [dayBookings, isToday, currentMinutes]
+    [dayBookings]
   );
 
   const freeSlots = useMemo(
@@ -272,11 +254,9 @@ const AdminWeekly: FC = () => {
         ) {
           return false;
         }
-        if (!isToday) return true;
-        const slotHour = parseInt(slot.split(':')[0] ?? '0', 10);
-        return slotHour >= currentHour;
+        return true;
       }),
-    [allSlots, dayBookings, isToday, currentHour]
+    [allSlots, dayBookings]
   );
 
   const blockedBookings = useMemo(
@@ -284,11 +264,9 @@ const AdminWeekly: FC = () => {
       dayBookings.filter((b) => {
         if (b.status === 'cancelled') return false;
         if (!b.is_blocked) return false;
-        if (!isToday) return true;
-        const slotHour = parseInt(b.booking_time.slice(0, 5).split(':')[0] ?? '0', 10);
-        return slotHour >= currentHour;
+        return true;
       }),
-    [dayBookings, isToday, currentHour]
+    [dayBookings]
   );
 
   const dayLabel = selectedDate.toLocaleDateString('pt-BR', {
@@ -298,17 +276,16 @@ const AdminWeekly: FC = () => {
   });
 
   return (
-    <AdminLayout mainClassName="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-8 pb-40">
-      <div className="max-w-4xl mx-auto space-y-5 w-full">
+    <AdminLayout>
+      <div className="space-y-5">
         <OfflineBanner isCached={isCached} onRetry={loadData} />
 
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-white uppercase italic">
-              Agenda da Semana
-            </h1>
-          </div>
-          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest capitalize">
+        {/* Titulo + data na mesma linha */}
+        <div className="flex items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+          <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-white uppercase italic shrink-0">
+            Agenda da Semana
+          </h1>
+          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] capitalize shrink-0">
             {dayLabel}
           </p>
         </div>
@@ -323,7 +300,8 @@ const AdminWeekly: FC = () => {
           onSelect={setSelectedVisibleIndex}
         />
 
-        <div className="flex border-b border-white/[0.04] pb-1 pt-1 justify-start">
+        {/* FilterTabs */}
+        <div className="flex items-center justify-between gap-4 pb-3 border-b border-white/[0.06]">
           <FilterTabs
             filter={mgmt.filter}
             setFilter={mgmt.setFilter}
@@ -362,7 +340,7 @@ const AdminWeekly: FC = () => {
                   <button
                     onClick={() => blockEntireDay(selectedDateStr, freeSlots, loadData)}
                     disabled={blockingDay}
-                    className="group w-full mb-4 py-3.5 px-4 bg-zinc-900/30 hover:bg-red-500/[0.04] border border-white/[0.04] hover:border-red-500/20 text-zinc-400 hover:text-red-400 rounded-xl text-[9px] font-bold uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="group w-full mb-4 py-3.5 px-4 bg-zinc-900/30 hover:bg-red-500/[0.04] border border-white/[0.04] hover:border-red-500/20 text-zinc-400 hover:text-red-400 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {blockingDay ? (
                       <div className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
@@ -400,7 +378,7 @@ const AdminWeekly: FC = () => {
                         <button
                           onClick={() => handleBlockSlot(selectedDateStr, slot)}
                           disabled={blockingSlot === `${selectedDateStr}-${slot}`}
-                          className="text-[9px] font-bold text-red-400/50 hover:text-red-400 uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-50"
+                          className="text-[10px] font-bold text-red-400/50 hover:text-red-400 uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-50"
                         >
                           Bloquear
                         </button>
@@ -410,7 +388,7 @@ const AdminWeekly: FC = () => {
                               state: { date: selectedDateStr, time: slot },
                             })
                           }
-                          className="text-[9px] font-bold text-zinc-500 hover:text-[#D4AF37] uppercase tracking-wider transition-colors cursor-pointer"
+                          className="text-[10px] font-bold text-zinc-500 hover:text-[#D4AF37] uppercase tracking-wider transition-colors cursor-pointer"
                         >
                           Agendar
                         </button>
@@ -426,7 +404,7 @@ const AdminWeekly: FC = () => {
                   <button
                     onClick={() => unblockEntireDay(blockedBookings, loadData)}
                     disabled={blockingDay}
-                    className="group w-full mb-4 py-3.5 px-4 bg-zinc-900/30 hover:bg-emerald-500/[0.04] border border-white/[0.04] hover:border-emerald-500/20 text-zinc-400 hover:text-[#D4AF37] rounded-xl text-[9px] font-bold uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="group w-full mb-4 py-3.5 px-4 bg-zinc-900/30 hover:bg-emerald-500/[0.04] border border-white/[0.04] hover:border-emerald-500/20 text-zinc-400 hover:text-[#D4AF37] rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {blockingDay ? (
                       <div className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
@@ -463,7 +441,7 @@ const AdminWeekly: FC = () => {
                       <div className="flex-1 flex items-center justify-end">
                         <button
                           onClick={() => setUnblockingBooking(booking)}
-                          className="text-[9px] font-bold text-red-400/70 hover:text-red-400 uppercase tracking-wider transition-colors cursor-pointer"
+                          className="text-[10px] font-bold text-red-400/70 hover:text-red-400 uppercase tracking-wider transition-colors cursor-pointer"
                         >
                           Desbloquear
                         </button>

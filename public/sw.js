@@ -1,11 +1,13 @@
-const CACHE_VERSION = 'v13';
-const STATIC_CACHE = 'static-v13';
-const API_CACHE = 'api-v13';
-const NAV_CACHE = 'nav-v13';
+const VERSION = 'v17';
+const STATIC_CACHE = `static-${VERSION}`;
+const NAV_CACHE = `nav-${VERSION}`;
+const FONT_CACHE = `fonts-${VERSION}`;
+const IMAGE_CACHE = `images-${VERSION}`;
+const API_CACHE = `api-${VERSION}`;
 
-// Cache size limits (entries)
-const MAX_API_CACHE_ENTRIES = 50;
 const MAX_NAV_CACHE_ENTRIES = 10;
+const MAX_API_CACHE_ENTRIES = 30;
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 const PRECACHE_URLS = [
   '/',
@@ -20,7 +22,7 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// Evict oldest entries when cache exceeds limit
+/** Evict oldest entries when cache exceeds limit */
 async function evictCache(cacheName, maxEntries) {
   const cache = await caches.open(cacheName);
   const keys = await cache.keys();
@@ -30,34 +32,46 @@ async function evictCache(cacheName, maxEntries) {
   }
 }
 
+/** Check if a cached response is still fresh based on stored timestamp */
+function isCacheFresh(cached) {
+  const dateHeader = cached?.headers?.get('sw-cache-date');
+  if (!dateHeader) return false;
+  const age = Date.now() - Number(dateHeader);
+  return age < CACHE_TTL_MS;
+}
+
+/** Add timestamp header to response for freshness checks */
+function addTimestamp(response) {
+  const headers = new Headers(response.headers);
+  headers.append('sw-cache-date', String(Date.now()));
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((key) => key !== STATIC_CACHE && key !== API_CACHE && key !== NAV_CACHE)
+          .filter((key) => key !== STATIC_CACHE && key !== NAV_CACHE && key !== FONT_CACHE && key !== IMAGE_CACHE && key !== API_CACHE)
           .map((key) => caches.delete(key))
       )
-    ).then(() => {
-      // Notify all clients that a new version is available
-      self.clients.matchAll().then((clients) => {
-        clients.forEach((client) => {
-          client.postMessage({ type: 'SW_UPDATED', version: CACHE_VERSION });
-        });
-      });
-      return self.clients.claim();
-    })
+    ).then(() => self.clients.claim())
   );
 });
 
-// Handle messages from the main thread
 self.addEventListener('message', (e) => {
   if (e.data && e.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
-
   if (e.data && e.data.type === 'GET_VERSION') {
-    e.source.postMessage({ type: 'SW_VERSION', version: CACHE_VERSION });
+    e.source.postMessage({ type: 'SW_VERSION', version: VERSION });
+  }
+  if (e.data && e.data.type === 'CLEAR_CACHES') {
+    caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key))));
   }
 });
 
@@ -67,7 +81,7 @@ self.addEventListener('fetch', (e) => {
 
   const url = new URL(e.request.url);
 
-  // Navigations: network-first with offline fallback
+  // Navigation requests: network-first with offline fallback
   if (e.request.mode === 'navigate') {
     e.respondWith(
       fetch(e.request).then((response) => {
@@ -81,7 +95,7 @@ self.addEventListener('fetch', (e) => {
         const cached = await caches.match(e.request);
         if (cached) return cached;
         return new Response(
-          '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline</title><style>body{background:#0A0A0A;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;text-align:center;padding:2rem}h1{color:#C5A059}</style></head><body><div><h1>Voc&#234; est&#225; offline</h1><p>Conecte-se &#224; internet para acessar o painel.</p><p style="margin-top:1rem;font-size:0.8rem;color:#666">Black Diamond Admin</p></div></body></html>',
+          '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline</title><style>body{background:#0A0A0A;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;text-align:center;padding:2rem}h1{color:#C5A059}</style></head><body><div><h1>Voc\u00ea est\u00e1 offline</h1><p>Conecte-se \u00e0 internet para acessar o painel.</p><p style="margin-top:1rem;font-size:0.8rem;color:#666">Black Diamond Admin</p></div></body></html>',
           { status: 503, headers: { 'Content-Type': 'text/html;charset=UTF-8' } }
         );
       })
@@ -89,32 +103,30 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Static assets: cache-first with background update
+  // ======================================================================
+  // Static assets: stale-while-revalidate
+  // Serve de cache com atualização em background.
+  // NOTA: .js NÃO é cacheado — o Vite gera chunks com hash no nome,
+  // e servir JS velho do SW causa tela branca (net::ERR_FAILED).
+  // ======================================================================
   if (
-    url.pathname.startsWith('/assets/') ||
+    (url.pathname.startsWith('/assets/') && !url.pathname.endsWith('.js')) ||
     url.pathname.endsWith('.webp') ||
     url.pathname.endsWith('.woff2') ||
-    url.pathname.endsWith('.css') ||
-    url.pathname.endsWith('.js')
+    url.pathname.endsWith('.css')
   ) {
     e.respondWith(
       caches.open(STATIC_CACHE).then((cache) =>
         cache.match(e.request).then((cached) => {
-          // Return cached version immediately, update in background
-          const fetched = fetch(e.request).then(async (response) => {
-            if (response.ok) {
-              await cache.put(e.request, response.clone());
-              await evictCache(STATIC_CACHE, 100);
-            }
+          const fetched = fetch(e.request).then((response) => {
+            if (response.ok) cache.put(e.request, addTimestamp(response));
             return response;
           }).catch(() => cached);
 
           if (cached) {
-            // Return cached, but wait for background update
             e.waitUntil(fetched.catch(() => {}));
             return cached;
           }
-
           return fetched;
         })
       )
@@ -122,57 +134,178 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Supabase API: network-first (never cache personal data)
-  if (url.hostname.endsWith('.supabase.co')) {
-    // Only cache GET requests for read-only public data (services, settings)
-    // Never cache POST/PUT/DELETE or responses with personal data
-    if (e.request.method !== 'GET') {
-      e.respondWith(fetch(e.request).catch(() => new Response('{"error":"offline"}', { status: 503, headers: { 'Content-Type': 'application/json' } })));
-      return;
-    }
-
-    // Check if this is a safe public endpoint to cache
-    const path = url.pathname;
-    const isPublicEndpoint = path.includes('/services') || path.includes('/settings') || path.includes('/mensalista_plans');
-    const isSupabaseRest = url.searchParams.has('apikey') && url.pathname.includes('/rest/v1/');
-
-    // Only cache public read-only Supabase REST queries; everything else is network-only
-    if (!isPublicEndpoint || !isSupabaseRest) {
-      // Network-only for sensitive data (bookings, clients, etc)
-      e.respondWith(fetch(e.request).catch(() => new Response('{"error":"offline"}', { status: 503, headers: { 'Content-Type': 'application/json' } })));
-      return;
-    }
-
-    // Stale-while-revalidate only for safe public data
+  // ======================================================================
+  // Google Fonts & external fonts: cache-first
+  // Fonts rarely change; serve from cache and refresh in background.
+  // ======================================================================
+  if (
+    url.hostname === 'fonts.googleapis.com' ||
+    url.hostname === 'fonts.gstatic.com'
+  ) {
     e.respondWith(
-      caches.open(API_CACHE).then((cache) =>
+      caches.open(FONT_CACHE).then((cache) =>
         cache.match(e.request).then((cached) => {
-          const fetched = fetch(e.request).then(async (response) => {
-            if (response.ok) {
-              await cache.put(e.request, response.clone());
-              await evictCache(API_CACHE, MAX_API_CACHE_ENTRIES);
-            }
+          if (cached && isCacheFresh(cached)) return cached;
+          return fetch(e.request).then((response) => {
+            if (response.ok) cache.put(e.request, addTimestamp(response));
             return response;
-          }).catch(() => cached || new Response('{"error":"offline"}', { status: 503, headers: { 'Content-Type': 'application/json' } }));
-
-          if (cached) {
-            e.waitUntil(fetched.then((response) => {
-              if (response.ok) cache.put(e.request, response.clone());
-            }).catch(() => {}));
-            return cached;
-          }
-
-          return fetched;
+          }).catch(() => cached);
         })
       )
     );
     return;
+  }
+
+  // ======================================================================
+  // External images: cache-first with network fallback
+  // Images from Supabase storage, Google Maps, etc.
+  // ======================================================================
+  if (
+    url.pathname.endsWith('.png') ||
+    url.pathname.endsWith('.jpg') ||
+    url.pathname.endsWith('.jpeg') ||
+    url.pathname.endsWith('.gif') ||
+    url.pathname.endsWith('.svg') ||
+    url.pathname.endsWith('.ico')
+  ) {
+    e.respondWith(
+      caches.open(IMAGE_CACHE).then((cache) =>
+        cache.match(e.request).then((cached) => {
+          if (cached && isCacheFresh(cached)) return cached;
+          return fetch(e.request).then((response) => {
+            if (response.ok) cache.put(e.request, addTimestamp(response));
+            return response;
+          }).catch(() => cached || new Response('', { status: 408 }));
+        })
+      )
+    );
+    return;
+  }
+
+  // ======================================================================
+  // Public Supabase API (read-only): stale-while-revalidate
+  // Only caches GET requests to public endpoints (services, settings).
+  // Never caches personal data (bookings, clients).
+  // ======================================================================
+  if (url.hostname.endsWith('.supabase.co') && e.request.method === 'GET') {
+    const isPublicEndpoint =
+      url.pathname.includes('/services') ||
+      url.pathname.includes('/settings') ||
+      url.pathname.includes('/gallery_images') ||
+      url.pathname.includes('/testimonials') ||
+      url.pathname.includes('/mensalista_plans');
+
+    if (isPublicEndpoint) {
+      e.respondWith(
+        caches.open(API_CACHE).then((cache) =>
+          cache.match(e.request).then((cached) => {
+            const fetched = fetch(e.request).then((response) => {
+              if (response.ok) {
+                cache.put(e.request, addTimestamp(response));
+                evictCache(API_CACHE, MAX_API_CACHE_ENTRIES);
+              }
+              return response;
+            }).catch(() => cached);
+
+            if (cached && isCacheFresh(cached)) {
+              e.waitUntil(fetched.catch(() => {}));
+              return cached;
+            }
+            return fetched;
+          })
+        )
+      );
+      return;
+    }
+  }
+
+  // ======================================================================
+  // Everything else (API, auth, etc.): network-only
+  // Never cache sensitive data.
+  // ======================================================================
+  e.respondWith(
+    fetch(e.request).catch(() =>
+      new Response('{"error":"offline"}', { status: 503, headers: { 'Content-Type': 'application/json' } })
+    )
+  );
+});
+
+// Push notifications
+self.addEventListener('push', async (e) => {
+  let data = { title: 'Black Diamond', body: 'Nova notifica\u00e7\u00e3o', icon: '/assets/logo.webp' };
+  if (e.data) {
+    try {
+      const text = await e.data.text();
+      try { data = JSON.parse(text); } catch { data.body = text; }
+    } catch {
+      // Keep default data
+    }
+  }
+  e.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon || '/assets/logo.webp',
+      badge: '/assets/logo.webp',
+      vibrate: [200, 100, 200],
+      tag: data.tag || 'black-diamond-notification',
+      renotify: true,
+      data: { url: data.url || '/admin' },
+      actions: [
+        { action: 'open', title: 'Abrir Painel' },
+        { action: 'dismiss', title: 'Dispensar' }
+      ]
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  if (e.action === 'dismiss') return;
+  const targetUrl = e.notification.data?.url || '/admin';
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        const clientUrl = new URL(client.url);
+        if (clientUrl.pathname.startsWith('/admin') && 'focus' in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(targetUrl);
+    })
+  );
+});
+
+// ======================================================================
+// Periodic background sync (if supported)
+// ======================================================================
+self.addEventListener('periodicsync', (e) => {
+  if (e.tag === 'cleanup-old-caches') {
+    e.waitUntil(
+      caches.keys().then((keys) =>
+        Promise.all(
+          keys.map(async (key) => {
+            const cache = await caches.open(key);
+            const requests = await cache.keys();
+            const now = Date.now();
+            await Promise.all(
+              requests.map(async (req) => {
+                const res = await cache.match(req);
+                if (res) {
+                  const dateHeader = res.headers.get('sw-cache-date');
+                  if (dateHeader && now - Number(dateHeader) > 7 * CACHE_TTL_MS) {
+                    await cache.delete(req);
+                  }
+                }
+              })
+            );
+          })
+        )
+      )
+    );
   }
 });
 
 // Push notifications
 self.addEventListener('push', async (e) => {
-  let data = { title: 'Black Diamond', body: 'Nova notificação', icon: '/assets/logo.webp' };
+  let data = { title: 'Black Diamond', body: 'Nova notifica\u00e7\u00e3o', icon: '/assets/logo.webp' };
   if (e.data) {
     try {
       const text = await e.data.text();

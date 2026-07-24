@@ -102,7 +102,7 @@ const ExportButton: FC = () => {
           <div className="p-1.5">
             <button
               onClick={() => setFormatMenu(null)}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left hover:bg-white/[0.04] transition-all cursor-pointer text-[11px] text-zinc-400"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left hover:bg-white/[0.04] transition-all cursor-pointer text-[12px] text-zinc-400"
             >
               <ChevronDown size={12} className="rotate-90" /> Voltar
             </button>

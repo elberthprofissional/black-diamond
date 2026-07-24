@@ -14,7 +14,7 @@ export default function RescheduleBanner({ booking }: RescheduleBannerProps) {
           <RefreshCw size={18} />
         </div>
         <div>
-          <span className="text-[9px] font-black text-[#D4AF37] tracking-[0.2em] uppercase block">
+          <span className="text-[10px] font-black text-[#D4AF37] tracking-[0.2em] uppercase block">
             Modo Reagendamento
           </span>
           <h3 className="text-sm font-bold text-white uppercase tracking-wide">
@@ -24,7 +24,7 @@ export default function RescheduleBanner({ booking }: RescheduleBannerProps) {
         </div>
       </div>
       <div className="text-right">
-        <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block">
+        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">
           Original
         </span>
         <span className="text-xs font-bold text-zinc-300">

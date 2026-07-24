@@ -28,7 +28,7 @@ const About: FC = () => {
           <div className="flex flex-col lg:flex-row items-center gap-10 md:gap-24">
             {/* Editorial Text */}
             <div className="w-full lg:w-1/2 space-y-8 text-center lg:text-left order-2 lg:order-first">
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <h3 className="text-xs font-bebas text-[#D4AF37] tracking-[0.5em] uppercase">
                   Sobre Mim
                 </h3>
@@ -62,7 +62,7 @@ const About: FC = () => {
               </div>
 
               <div className="space-y-8 max-w-lg mx-auto lg:mx-0">
-                <p className="text-zinc-400 font-roboto font-light text-[15px] md:text-2xl leading-relaxed">
+                <p className="text-zinc-400 font-roboto font-light text-[16px] md:text-2xl leading-relaxed">
                   {displayBio}
                 </p>
 
@@ -77,7 +77,7 @@ const About: FC = () => {
             {/* Barber Photo - Desktop */}
             <div className="hidden lg:block w-full lg:w-[55%] relative lg:ml-[100px]">
               {hasPhoto ? (
-                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden border border-white/[0.05] shadow-2xl bg-[#1a1a1a]">
+                <div className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl bg-[#1a1a1a]">
                   <img
                     src={barberPhoto}
                     alt="Barbeiro"
@@ -87,7 +87,7 @@ const About: FC = () => {
                   />
                 </div>
               ) : (
-                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden border border-white/[0.05] shadow-2xl bg-[#151515] flex items-center justify-center">
+                <div className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl bg-[#151515] flex items-center justify-center">
                   <div className="flex items-center justify-center">
                     <div className="w-28 h-28 rounded-full bg-white/[0.02] flex items-center justify-center ring-1 ring-white/[0.06]">
                       <User size={48} className="text-zinc-600" />

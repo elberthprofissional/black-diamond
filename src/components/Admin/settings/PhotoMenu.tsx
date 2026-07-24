@@ -38,7 +38,7 @@ const PhotoMenu: FC<PhotoMenuProps> = ({ show, onClose, onRemove, hasPhoto, file
               onClose();
               fileInputRef.current?.click();
             }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-white hover:bg-white/[0.06] transition-colors duration-150 cursor-pointer"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] text-white hover:bg-white/[0.06] transition-colors duration-150 cursor-pointer"
           >
             <Camera size={15} className="text-zinc-500 shrink-0" />
             <span>Alterar foto</span>
@@ -48,7 +48,7 @@ const PhotoMenu: FC<PhotoMenuProps> = ({ show, onClose, onRemove, hasPhoto, file
               <div className="mx-3 h-px bg-white/[0.08]" />
               <button
                 onClick={onRemove}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-[#ED4956] hover:bg-white/[0.06] transition-colors duration-150 cursor-pointer"
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] text-[#ED4956] hover:bg-white/[0.06] transition-colors duration-150 cursor-pointer"
               >
                 <Trash2 size={15} className="text-[#ED4956]/60 shrink-0" />
                 <span>Remover foto</span>
@@ -80,13 +80,13 @@ const PhotoMenu: FC<PhotoMenuProps> = ({ show, onClose, onRemove, hasPhoto, file
           <div className="flex justify-center pt-3 pb-1">
             <div className="w-9 h-1 rounded-full bg-white/[0.12]" />
           </div>
-          <div className="px-6 pb-8 pt-4 space-y-1">
+          <div className="px-6 pb-8 pt-4 space-y-2">
             <button
               onClick={() => {
                 onClose();
                 fileInputRef.current?.click();
               }}
-              className="w-full flex items-center gap-4 px-4 py-4 text-[15px] font-medium text-white hover:bg-white/[0.06] rounded-xl transition-colors duration-150 cursor-pointer"
+              className="w-full flex items-center gap-4 px-4 py-4 text-[16px] font-medium text-white hover:bg-white/[0.06] rounded-xl transition-colors duration-150 cursor-pointer"
             >
               <Camera size={18} className="text-zinc-500 shrink-0" />
               <span>Alterar foto de perfil</span>
@@ -96,7 +96,7 @@ const PhotoMenu: FC<PhotoMenuProps> = ({ show, onClose, onRemove, hasPhoto, file
               <>
                 <button
                   onClick={onRemove}
-                  className="w-full flex items-center gap-4 px-4 py-4 text-[15px] font-medium text-[#ED4956] hover:bg-white/[0.06] rounded-xl transition-colors duration-150 cursor-pointer"
+                  className="w-full flex items-center gap-4 px-4 py-4 text-[16px] font-medium text-[#ED4956] hover:bg-white/[0.06] rounded-xl transition-colors duration-150 cursor-pointer"
                 >
                   <Trash2 size={18} className="text-[#ED4956]/60 shrink-0" />
                   <span>Remover foto</span>

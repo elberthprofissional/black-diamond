@@ -39,12 +39,12 @@ const ApplyAllSheet: FC<{
   const [endH, endM] = end.split(':');
 
   const applyInputClass =
-    'bg-transparent border-b border-white/[0.08] focus:border-[#D4AF37]/40 pb-1 text-[18px] lg:text-[20px] text-white font-semibold outline-none transition-all text-center w-10';
+    'bg-transparent border-b border-white/[0.08] focus:border-[#D4AF37]/40 pb-1 text-[16px] lg:text-[20px] text-white font-semibold outline-none transition-all text-center w-10';
 
   const content = (
     <>
       <div className="flex items-center justify-between mb-6 lg:mb-8">
-        <span className="text-[14px] lg:text-[17px] text-white font-semibold tracking-tight">
+        <span className="text-[14px] lg:text-[16px] text-white font-semibold tracking-tight">
           Aplicar para todos
         </span>
         <button
@@ -81,7 +81,7 @@ const ApplyAllSheet: FC<{
             }}
             className={applyInputClass}
           />
-          <span className="text-zinc-500 text-[18px] font-semibold">:</span>
+          <span className="text-zinc-500 text-[16px] font-semibold">:</span>
           <input
             type="text"
             inputMode="numeric"
@@ -109,7 +109,7 @@ const ApplyAllSheet: FC<{
             }}
             className={applyInputClass}
           />
-          <span className="text-zinc-500 text-[18px] font-semibold">:</span>
+          <span className="text-zinc-500 text-[16px] font-semibold">:</span>
           <input
             type="text"
             inputMode="numeric"
@@ -125,7 +125,7 @@ const ApplyAllSheet: FC<{
       </div>
 
       <div className="mb-6 lg:mb-8">
-        <span className="text-[9px] lg:text-[10px] text-zinc-500 uppercase tracking-wider block mb-3">
+        <span className="text-[10px] lg:text-[10px] text-zinc-500 uppercase tracking-wider block mb-3">
           {pickedCount} {pickedCount === 1 ? 'dia selecionado' : 'dias selecionados'}
         </span>
         <div className="flex gap-1.5 lg:gap-2">
@@ -133,7 +133,7 @@ const ApplyAllSheet: FC<{
             <button
               key={d}
               onClick={() => setPicked((p) => ({ ...p, [d]: !p[d] }))}
-              className={`flex-1 py-2.5 lg:py-3 rounded-lg text-[10px] lg:text-[11px] font-medium transition-all cursor-pointer ${picked[d] ? 'text-[#D4AF37]' : 'text-zinc-600'}`}
+              className={`flex-1 py-2.5 lg:py-3 rounded-lg text-[10px] lg:text-[12px] font-medium transition-all cursor-pointer ${picked[d] ? 'text-[#D4AF37]' : 'text-zinc-600'}`}
             >
               {DAY_NAMES[d]?.slice(0, 3).toUpperCase()}
             </button>
@@ -144,7 +144,7 @@ const ApplyAllSheet: FC<{
       <button
         onClick={apply}
         disabled={pickedCount === 0}
-        className="w-full py-3.5 lg:py-4 bg-[#D4AF37] hover:bg-[#b8962e] text-black font-bold text-[11px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer active:scale-[0.98] disabled:opacity-30 shadow-lg shadow-[#D4AF37]/10"
+        className="w-full py-3.5 lg:py-4 bg-[#D4AF37] hover:bg-[#b8962e] text-black font-bold text-[12px] uppercase tracking-[0.15em] rounded-xl transition-all cursor-pointer active:scale-[0.98] disabled:opacity-30 shadow-lg shadow-[#D4AF37]/10"
       >
         Aplicar
       </button>

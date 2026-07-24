@@ -44,8 +44,8 @@ export default function NotificationItem({
 
   const isCompact = size === 'compact';
   const avatarSize = isCompact ? 'w-10 h-10' : 'w-12 h-12';
-  const textSize = isCompact ? 'text-[13px]' : 'text-[14px]';
-  const descSize = isCompact ? 'text-[11px]' : 'text-[12px]';
+  const textSize = isCompact ? 'text-[14px]' : 'text-[14px]';
+  const descSize = isCompact ? 'text-[12px]' : 'text-[12px]';
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -112,7 +112,7 @@ export default function NotificationItem({
               <Bell size={isCompact ? 16 : 18} className="text-zinc-500" />
             ) : (
               <span
-                className={`${isCompact ? 'text-[13px]' : 'text-[14px]'} font-bold text-[#D4AF37]`}
+                className={`${isCompact ? 'text-[14px]' : 'text-[14px]'} font-bold text-[#D4AF37]`}
               >
                 {name.charAt(0).toUpperCase()}
               </span>
@@ -138,7 +138,7 @@ export default function NotificationItem({
             </p>
           )}
           {!isCompact && (
-            <span className="text-[11px] text-zinc-600 mt-1 block">
+            <span className="text-[12px] text-zinc-600 mt-1 block">
               {relativeTime(notif.created_at)}
             </span>
           )}
@@ -176,7 +176,7 @@ export default function NotificationItem({
       {/* Confirm deletion hint */}
       {confirmDelete && !deleting && (
         <div className="absolute left-1/2 -translate-x-1/2 -bottom-4 whitespace-nowrap">
-          <span className="text-[9px] text-red-400/40 font-medium">Clique no ✓ p/ confirmar</span>
+          <span className="text-[10px] text-red-400/40 font-medium">Clique no ✓ p/ confirmar</span>
         </div>
       )}
     </div>

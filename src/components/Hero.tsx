@@ -1,10 +1,17 @@
 import { type FC } from 'react';
+import { useBarberSettings } from '../hooks/useBarberSettings';
 
 interface HeroProps {
   onBookingClick: () => void;
 }
 
+const VALID_HEX = /^#[0-9A-Fa-f]{6}$/;
+
 const Hero: FC<HeroProps> = ({ onBookingClick }) => {
+  const { brandName, brandColor } = useBarberSettings();
+  const displayName = brandName || 'BLACK DIAMOND';
+  const color = VALID_HEX.test(brandColor) ? brandColor : '#D4AF37';
+
   return (
     <section
       id="home"
@@ -36,10 +43,13 @@ const Hero: FC<HeroProps> = ({ onBookingClick }) => {
           <div className="space-y-4 md:space-y-2 mb-12">
             <h1 className="flex flex-col items-start">
               <span className="text-5xl sm:text-7xl md:text-[8rem] font-bebas tracking-[0.2em] md:tracking-[0.3em] text-white uppercase leading-none">
-                BLACK
+                {displayName.split(' ')[0] || 'BLACK'}
               </span>
-              <span className="text-5xl sm:text-7xl md:text-[8rem] font-bebas tracking-[0.2em] md:tracking-[0.3em] text-[#D4AF37] uppercase leading-none mt-1 md:-mt-2">
-                DIAMOND
+              <span
+                className="text-5xl sm:text-7xl md:text-[8rem] font-bebas tracking-[0.2em] md:tracking-[0.3em] uppercase leading-none mt-1 md:-mt-2"
+                style={{ color }}
+              >
+                {displayName.split(' ').slice(1).join(' ') || 'DIAMOND'}
               </span>
             </h1>
             <p className="text-[14px] md:text-[20px] font-sans font-light tracking-wide text-zinc-400 max-w-md mt-6 leading-relaxed">
@@ -49,8 +59,14 @@ const Hero: FC<HeroProps> = ({ onBookingClick }) => {
           </div>
 
           <button onClick={onBookingClick} className="mt-4 group">
-            <div className="px-8 py-3.5 border border-[#D4AF37]/60 bg-transparent group-hover:bg-[#D4AF37]/10 transition-all duration-300">
-              <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.35em] text-[#D4AF37]">
+            <div
+              className="px-8 py-3.5 border bg-transparent group-hover:bg-white/5 transition-all duration-300"
+              style={{ borderColor: `${color}99` }}
+            >
+              <span
+                className="text-[10px] md:text-[12px] font-bold uppercase tracking-[0.35em]"
+                style={{ color }}
+              >
                 Agende seu horário
               </span>
             </div>
@@ -60,7 +76,7 @@ const Hero: FC<HeroProps> = ({ onBookingClick }) => {
 
       {/* Decorative side text - Hidden on small mobile */}
       <div className="absolute bottom-10 left-10 hidden sm:block">
-        <p className="text-[7px] font-bold text-zinc-600 uppercase tracking-[0.4em] rotate-90 origin-left">
+        <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.4em] rotate-90 origin-left">
           Since 2026
         </p>
       </div>

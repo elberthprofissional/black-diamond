@@ -1,6 +1,10 @@
 import { motion } from 'framer-motion';
+import { useBarberSettings } from '../../hooks/useBarberSettings';
 
 export default function LoginBackground() {
+  const { brandName, brandColor } = useBarberSettings();
+  const displayName = brandName || 'Black Diamond';
+
   return (
     <div className="hidden lg:flex lg:w-[55%] h-full relative overflow-hidden bg-[#0A0A0A] border-r border-white/5">
       <motion.div
@@ -29,13 +33,16 @@ export default function LoginBackground() {
           transition={{ delay: 0.3, duration: 1 }}
           className="space-y-8 max-w-xl"
         >
-          <div className="w-12 h-[2px] bg-[#D4AF37]" />
+          <div className="w-12 h-[2px]" style={{ backgroundColor: brandColor }} />
           <h2 className="flex flex-col gap-2">
             <span className="text-2xl xl:text-3xl font-bebas tracking-[0.3em] text-white uppercase">
               Gestão
             </span>
-            <span className="text-6xl xl:text-7xl font-bebas leading-[0.9] tracking-widest text-[#D4AF37] italic pr-4 uppercase">
-              Black Diamond
+            <span
+              className="text-6xl xl:text-7xl font-bebas leading-[0.9] tracking-widest italic pr-4 uppercase"
+              style={{ color: brandColor }}
+            >
+              {displayName}
             </span>
           </h2>
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-zinc-500 leading-relaxed max-w-md">

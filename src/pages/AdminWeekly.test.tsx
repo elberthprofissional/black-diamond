@@ -1,6 +1,10 @@
-import { createElement } from 'react';
+import { createElement, type ReactNode } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+
+vi.mock('../components/Admin/AuthGuard', () => ({
+  default: ({ children }: { children: ReactNode }) => children,
+}));
 
 vi.mock('../lib/api', () => ({
   getBookings: vi.fn().mockResolvedValue([]),
@@ -13,19 +17,21 @@ vi.mock('../lib/api', () => ({
 }));
 
 vi.mock('../lib/supabase', () => {
+  const makeThenable = (data: unknown) => ({
+    then: (onFulfilled: (v: unknown) => void) => Promise.resolve(data).then(onFulfilled),
+  });
+
   const makeBuilder = () => {
     const builder = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      in: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockReturnThis(),
+      select: vi.fn(() => builder),
+      eq: vi.fn(() => builder),
+      in: vi.fn(() => builder),
+      order: vi.fn(() => builder),
+      limit: vi.fn(() => builder),
       single: vi.fn().mockResolvedValue({ data: null, error: null }),
       maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-      then: (onFulfilled: (v: unknown) => void, onRejected: (v: unknown) => void) =>
-        Promise.resolve({ data: [], error: null }).then(onFulfilled, onRejected),
     };
-    return builder;
+    return Object.assign(builder, makeThenable({ data: [], error: null }));
   };
 
   return {
@@ -59,6 +65,62 @@ vi.mock('../hooks/useToast', () => ({
     toast: null,
     showSuccess: vi.fn(),
     showError: vi.fn(),
+  }),
+}));
+
+vi.mock('../hooks/useBarberSettings', () => ({
+  useBarberSettings: () => ({
+    barberName: 'Admin',
+    barberPhone: '5531999999999',
+    barberPhoto: '',
+    barberBio: '',
+    barberQuote: '',
+    barberInstagram: '',
+    barberHours: JSON.stringify({
+      '1': { enabled: true, open: '09:00', close: '18:00' },
+      '2': { enabled: true, open: '09:00', close: '18:00' },
+      '3': { enabled: true, open: '09:00', close: '18:00' },
+      '4': { enabled: true, open: '09:00', close: '18:00' },
+      '5': { enabled: true, open: '09:00', close: '18:00' },
+      '6': { enabled: true, open: '09:00', close: '17:00' },
+    }),
+    brandName: 'Black Diamond',
+    brandColor: '#D4AF37',
+    brandLogo: '',
+    brandLoginBg: '',
+    loading: false,
+  }),
+}));
+
+vi.mock('../hooks/useBookingModals', () => ({
+  useBookingModals: () => ({
+    selectedBooking: null,
+    setSelectedBooking: vi.fn(),
+    isRescheduling: false,
+    rescheduleStep: 1,
+    setRescheduleStep: vi.fn(),
+    rescheduleServices: [],
+    setRescheduleServices: vi.fn(),
+    rescheduleDate: '',
+    setRescheduleDate: vi.fn(),
+    rescheduleTime: '',
+    setRescheduleTime: vi.fn(),
+    existingBookingsForReschedule: [],
+    loadingSlots: false,
+    isSavingReschedule: false,
+    handleConfirmReschedule: vi.fn(),
+    handleStartReschedule: vi.fn(),
+    cancelReschedule: vi.fn(),
+    completingBooking: null,
+    setCompletingBooking: vi.fn(),
+    handleComplete: vi.fn(),
+    thankYouBooking: null,
+    handleSendThankYou: vi.fn(),
+    handleCancelThankYou: vi.fn(),
+    bookingToDelete: null,
+    setBookingToDelete: vi.fn(),
+    confirmDelete: vi.fn(),
+    toast: null,
   }),
 }));
 
@@ -98,16 +160,11 @@ vi.mock('../lib/api/barbers', () => ({
   getBarberByUserId: vi.fn().mockResolvedValue(null),
 }));
 
-import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 import { BarberProvider } from '../contexts/BarberContext';
 import AdminWeekly from './AdminWeekly';
 
 function Wrapper({ children }: { children: React.ReactNode }) {
-  return (
-    <BarberSettingsProvider>
-      <BarberProvider>{children}</BarberProvider>
-    </BarberSettingsProvider>
-  );
+  return <BarberProvider>{children}</BarberProvider>;
 }
 
 describe('AdminWeekly', () => {

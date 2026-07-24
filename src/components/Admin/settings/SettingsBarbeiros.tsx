@@ -116,7 +116,7 @@ const SettingsBarbeiros: FC = () => {
         {editingId !== 'new' && (
           <button
             onClick={startCreate}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] text-[11px] font-bold uppercase tracking-wider hover:bg-[#D4AF37]/20 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] text-[12px] font-bold uppercase tracking-wider hover:bg-[#D4AF37]/20 transition-all cursor-pointer"
           >
             <Plus size={14} />
             Adicionar
@@ -137,7 +137,7 @@ const SettingsBarbeiros: FC = () => {
             <p className="text-sm text-zinc-500">Nenhum barbeiro cadastrado.</p>
             <button
               onClick={startCreate}
-              className="mt-3 text-[11px] font-bold text-[#D4AF37] uppercase tracking-wider hover:text-white transition-colors cursor-pointer"
+              className="mt-3 text-[12px] font-bold text-[#D4AF37] uppercase tracking-wider hover:text-white transition-colors cursor-pointer"
             >
               Adicionar barbeiro
             </button>
@@ -164,7 +164,7 @@ const SettingsBarbeiros: FC = () => {
                   <p className="text-sm font-medium text-white truncate">{barber.name}</p>
                   {barber.is_owner && <Star size={12} className="text-[#D4AF37] fill-[#D4AF37]" />}
                   {!barber.is_active && (
-                    <span className="text-[9px] text-red-400 font-bold uppercase tracking-wider">
+                    <span className="text-[10px] text-red-400 font-bold uppercase tracking-wider">
                       Inativo
                     </span>
                   )}
@@ -216,9 +216,9 @@ const SettingsBarbeiros: FC = () => {
                 </button>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                  <label className="block text-[12px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
                     Nome
                   </label>
                   <input
@@ -232,7 +232,7 @@ const SettingsBarbeiros: FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                  <label className="block text-[12px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
                     WhatsApp
                   </label>
                   <input
@@ -246,7 +246,7 @@ const SettingsBarbeiros: FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                  <label className="block text-[12px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
                     Bio
                   </label>
                   <textarea
@@ -260,7 +260,7 @@ const SettingsBarbeiros: FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                  <label className="block text-[12px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
                     Frase
                   </label>
                   <input
@@ -277,14 +277,14 @@ const SettingsBarbeiros: FC = () => {
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   onClick={cancelEdit}
-                  className="px-4 py-2 rounded-xl border border-white/[0.06] text-zinc-400 text-[11px] font-bold uppercase tracking-wider hover:text-white transition-all cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-white/[0.06] text-zinc-400 text-[12px] font-bold uppercase tracking-wider hover:text-white transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={saving || !form.name.trim()}
-                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[#D4AF37] text-black text-[11px] font-bold uppercase tracking-wider hover:bg-[#b8962e] transition-all cursor-pointer disabled:opacity-50"
+                  className="btn-gold flex items-center gap-2 px-5 py-2 disabled:opacity-50"
                 >
                   {saving ? (
                     <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
@@ -324,14 +324,14 @@ const SettingsBarbeiros: FC = () => {
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => setConfirmDelete(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-white/[0.06] text-zinc-400 text-[11px] font-bold uppercase tracking-wider hover:text-white transition-all cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl border border-white/[0.06] text-zinc-400 text-[12px] font-bold uppercase tracking-wider hover:text-white transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={() => handleDelete(confirmDelete)}
                   disabled={saving}
-                  className="flex-1 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-[11px] font-bold uppercase tracking-wider hover:bg-red-500/20 transition-all cursor-pointer disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-[12px] font-bold uppercase tracking-wider hover:bg-red-500/20 transition-all cursor-pointer disabled:opacity-50"
                 >
                   {saving ? 'Removendo...' : 'Remover'}
                 </button>

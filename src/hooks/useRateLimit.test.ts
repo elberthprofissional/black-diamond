@@ -4,7 +4,6 @@ import { useRateLimit } from './useRateLimit';
 
 describe('useRateLimit', () => {
   beforeEach(() => {
-    localStorage.clear();
     vi.useFakeTimers();
   });
 
@@ -63,23 +62,8 @@ describe('useRateLimit', () => {
     expect(result.current.isBlocked).toBe(false);
   });
 
-  it('usa storage separado por key', () => {
-    const { result: r1 } = renderHook(() => useRateLimit('key1', { maxAttempts: 2 }));
-    const { result: r2 } = renderHook(() => useRateLimit('key2', { maxAttempts: 2 }));
-
-    act(() => {
-      r1.current.recordAttempt();
-    });
-    act(() => {
-      r1.current.recordAttempt();
-    });
-
-    expect(r1.current.isBlocked).toBe(true);
-    expect(r2.current.isBlocked).toBe(false);
-  });
-
-  it('expira após windowMs e reseta automaticamente', () => {
-    const { result } = renderHook(() =>
+  it('bloqueio expira após windowMs', () => {
+    const { result, rerender } = renderHook(() =>
       useRateLimit('expiry-test', { maxAttempts: 2, windowMs: 5000 })
     );
 
@@ -90,25 +74,31 @@ describe('useRateLimit', () => {
       result.current.recordAttempt();
     });
     expect(result.current.isBlocked).toBe(true);
+    expect(result.current.recordAttempt()).toBe(false);
 
     // Avançar tempo além da janela
     act(() => {
       vi.advanceTimersByTime(6000);
     });
 
-    // Re-render after expiry
-    const { result: result2 } = renderHook(() =>
-      useRateLimit('expiry-test', { maxAttempts: 2, windowMs: 5000 })
-    );
-    expect(result2.current.isBlocked).toBe(false);
-    expect(result2.current.attempts).toBe(0);
+    // Re-render para recalcular isBlocked com o novo Date.now()
+    rerender();
+
+    expect(result.current.isBlocked).toBe(false);
+    expect(result.current.recordAttempt()).toBe(true);
   });
 
   it('getTimeUntilReset retorna tempo restante correto', () => {
     const { result } = renderHook(() =>
-      useRateLimit('time-test', { maxAttempts: 5, windowMs: 10000 })
+      useRateLimit('time-test', { maxAttempts: 2, windowMs: 10000 })
     );
 
+    // Ainda não bloqueou → 0
+    expect(result.current.getTimeUntilReset()).toBe(0);
+
+    act(() => {
+      result.current.recordAttempt();
+    });
     act(() => {
       result.current.recordAttempt();
     });
@@ -118,25 +108,19 @@ describe('useRateLimit', () => {
     expect(remaining).toBeLessThanOrEqual(10000);
   });
 
-  it('persiste no localStorage', () => {
-    const { result } = renderHook(() => useRateLimit('persist-test', { maxAttempts: 3 }));
+  it('retorna false no recordAttempt se bloqueado', () => {
+    const { result } = renderHook(() =>
+      useRateLimit('retry-test', { maxAttempts: 1, windowMs: 10000 })
+    );
 
     act(() => {
-      result.current.recordAttempt();
+      const allowed = result.current.recordAttempt();
+      expect(allowed).toBe(true);
     });
 
-    const stored = localStorage.getItem('ratelimit_persist-test');
-    expect(stored).toBeTruthy();
-    const parsed = JSON.parse(stored!);
-    expect(parsed.count).toBe(1);
-  });
-
-  it('lida com localStorage corrompido', () => {
-    localStorage.setItem('ratelimit_corrupt', 'not-json');
-
-    const { result } = renderHook(() => useRateLimit('corrupt', { maxAttempts: 3 }));
-
-    expect(result.current.attempts).toBe(0);
-    expect(result.current.isBlocked).toBe(false);
+    act(() => {
+      const allowed = result.current.recordAttempt();
+      expect(allowed).toBe(false);
+    });
   });
 });

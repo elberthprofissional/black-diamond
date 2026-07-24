@@ -79,13 +79,13 @@ export default function ResponsiveDateTimeStep({
   if (isPreFilled && selectedDate && selectedTime) {
     return (
       <div className="space-y-6 h-full flex flex-col">
-        <div className="space-y-1">
+        <div className="space-y-2">
           <h2
             className={`font-bold tracking-tight text-white ${isDesktop ? 'text-xl' : 'text-lg uppercase'}`}
           >
             {isDesktop ? 'Confirmar Agendamento' : 'Confirmar'}
           </h2>
-          <p className={`text-zinc-500 ${isDesktop ? 'text-[13px]' : 'text-xs'}`}>
+          <p className={`text-zinc-500 ${isDesktop ? 'text-[14px]' : 'text-xs'}`}>
             Revise os dados antes de confirmar.
           </p>
         </div>
@@ -109,8 +109,8 @@ export default function ResponsiveDateTimeStep({
             <span className="text-[12px] text-zinc-500 uppercase tracking-wider">Serviços</span>
             {selectedServices.map((s) => (
               <div key={s.id} className="flex justify-between items-center">
-                <span className="text-[13px] text-zinc-400">{s.name}</span>
-                <span className="text-[13px] font-medium text-white">
+                <span className="text-[14px] text-zinc-400">{s.name}</span>
+                <span className="text-[14px] font-medium text-white">
                   {formatPricePublic(s.price)}
                 </span>
               </div>
@@ -144,7 +144,7 @@ export default function ResponsiveDateTimeStep({
   const renderDatePicker = () => (
     <div className="space-y-2">
       <span
-        className={`font-medium text-zinc-500 uppercase tracking-wider ${isDesktop ? 'text-[11px]' : 'text-[10px] font-bold tracking-widest'}`}
+        className={`font-medium text-zinc-500 uppercase tracking-wider ${isDesktop ? 'text-[12px]' : 'text-[10px] font-bold tracking-widest'}`}
       >
         {isDesktop ? 'Dia' : 'SELECIONE O DIA'}
       </span>
@@ -165,7 +165,7 @@ export default function ResponsiveDateTimeStep({
               }`}
             >
               <span
-                className={`font-medium uppercase opacity-60 ${isDesktop ? 'text-[10px]' : 'text-[8px] font-bold tracking-widest'}`}
+                className={`font-medium uppercase opacity-60 ${isDesktop ? 'text-[10px]' : 'text-[10px] font-bold tracking-widest'}`}
               >
                 {day.dayName}
               </span>
@@ -182,7 +182,7 @@ export default function ResponsiveDateTimeStep({
   const renderTimePicker = () => (
     <div className="space-y-2">
       <span
-        className={`font-medium text-zinc-500 uppercase tracking-wider ${isDesktop ? 'text-[11px]' : 'text-[10px] font-bold tracking-widest'}`}
+        className={`font-medium text-zinc-500 uppercase tracking-wider ${isDesktop ? 'text-[12px]' : 'text-[10px] font-bold tracking-widest'}`}
       >
         {isDesktop ? 'Horários' : 'HORÁRIOS DISPONÍVEIS'}
       </span>
@@ -198,7 +198,7 @@ export default function ResponsiveDateTimeStep({
                 disabled={occupied}
                 onClick={() => onSelectTime(time)}
                 className={`py-3 rounded-xl border font-medium transition-all cursor-pointer ${
-                  isDesktop ? 'text-[13px]' : 'text-[11px] font-bold uppercase tracking-wider'
+                  isDesktop ? 'text-[14px]' : 'text-[12px] font-bold uppercase tracking-wider'
                 } ${
                   occupied
                     ? 'text-zinc-700 cursor-not-allowed line-through opacity-30'
@@ -214,7 +214,7 @@ export default function ResponsiveDateTimeStep({
         </div>
       ) : (
         <p
-          className={`text-zinc-600 ${isDesktop ? 'text-[13px] py-4' : 'text-xs py-10 text-center'}`}
+          className={`text-zinc-600 ${isDesktop ? 'text-[14px] py-4' : 'text-xs py-10 text-center'}`}
         >
           Selecione um dia acima para ver os horários.
         </p>
@@ -225,16 +225,16 @@ export default function ResponsiveDateTimeStep({
   // Mobile layout with reschedule banner
   if (!isDesktop) {
     return (
-      <div className="space-y-5 h-full flex flex-col">
+      <div className="space-y-4 h-full flex flex-col">
         {rescheduleBooking ? (
           <div className="p-4 bg-[#111111] border border-[#D4AF37]/20 rounded-2xl flex flex-col gap-1.5 shrink-0">
-            <span className="text-[8px] font-bold text-[#D4AF37] uppercase tracking-[0.25em]">
+            <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.25em]">
               REAGENDANDO ATENDIMENTO
             </span>
             <h3 className="text-sm font-bold text-white uppercase tracking-wide leading-none">
               {formatDisplayName(rescheduleBooking.clients?.name)}
             </h3>
-            <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5">
+            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5">
               Original:{' '}
               {new Date(rescheduleBooking.booking_date + 'T12:00:00').toLocaleDateString('pt-BR', {
                 day: '2-digit',
@@ -244,7 +244,7 @@ export default function ResponsiveDateTimeStep({
             </p>
           </div>
         ) : (
-          <div className="space-y-1 shrink-0">
+          <div className="space-y-2 shrink-0">
             <h2 className="text-lg font-bold text-white uppercase tracking-tight">
               Data e horário
             </h2>
@@ -261,9 +261,9 @@ export default function ResponsiveDateTimeStep({
   // Desktop layout
   return (
     <div className="space-y-6 h-full flex flex-col">
-      <div className="space-y-1">
+      <div className="space-y-2">
         <h2 className="text-xl font-bold tracking-tight text-white">Data e Horário</h2>
-        <p className="text-[13px] text-zinc-500">Defina o dia e horário do agendamento.</p>
+        <p className="text-[14px] text-zinc-500">Defina o dia e horário do agendamento.</p>
       </div>
 
       {renderDatePicker()}

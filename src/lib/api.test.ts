@@ -57,7 +57,6 @@ const {
   deleteClient,
   createClient,
   updateClient,
-  autoCompleteExpiredBookings,
 } = await import('./api');
 
 beforeEach(() => {
@@ -330,13 +329,5 @@ describe('updateClient', () => {
     queryResult = { data: null, error: null };
     await updateClient('c1', { name: 'Atualizado', phone: '456' });
     expect(queryBuilder.update).toHaveBeenCalledWith({ name: 'Atualizado', phone: '456' });
-  });
-});
-
-describe('autoCompleteExpiredBookings', () => {
-  it('retorna 0 quando nao ha bookings', async () => {
-    queryResult = { data: [], error: null };
-    const result = await autoCompleteExpiredBookings('2026-07-01');
-    expect(result).toBe(0);
   });
 });

@@ -59,4 +59,4 @@ export const TIME_OPTIONS = Array.from({ length: 36 }, (_, i) => {
 }).filter(Boolean) as string[];
 
 export const inputClass =
-  'bg-transparent border-b border-white/[0.08] focus:border-[#D4AF37]/40 pb-1 text-[13px] text-zinc-300 outline-none transition-all text-center w-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none';
+  'bg-transparent border-b border-white/[0.08] focus:border-[#D4AF37]/40 pb-1 text-[14px] text-zinc-300 outline-none transition-all text-center w-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none';

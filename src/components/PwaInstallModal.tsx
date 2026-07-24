@@ -25,7 +25,7 @@ const PwaInstallModal: FC<PwaInstallModalProps> = ({
   const { dialogRef } = useModalA11y(open, onClose);
 
   const renderIOSInstructions = () => (
-    <div className="space-y-3 text-sm text-gray-300">
+    <div className="space-y-4 text-sm text-gray-300">
       <p className="text-gray-400">Siga os passos abaixo para instalar no seu iPhone:</p>
       {[
         {
@@ -63,7 +63,7 @@ const PwaInstallModal: FC<PwaInstallModalProps> = ({
   const renderAndroidInstructions = () => {
     if (isSamsung) {
       return (
-        <div className="space-y-3 text-sm text-gray-300">
+        <div className="space-y-4 text-sm text-gray-300">
           <p className="text-gray-400">Siga os passos abaixo para instalar no Samsung Internet:</p>
           {[
             {
@@ -93,7 +93,7 @@ const PwaInstallModal: FC<PwaInstallModalProps> = ({
       );
     }
     return (
-      <div className="space-y-3 text-sm text-gray-300">
+      <div className="space-y-4 text-sm text-gray-300">
         <p className="text-gray-400">Siga os passos abaixo para instalar no Android:</p>
         {[
           {

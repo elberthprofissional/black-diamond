@@ -38,6 +38,12 @@ export default defineConfig({
             if (id.includes('@sentry')) {
               return 'vendor-sentry';
             }
+            if (id.includes('jspdf') || id.includes('jspdf-autotable') || id.includes('fflate') || id.includes('fast-png')) {
+              return 'vendor-pdf';
+            }
+            if (id.includes('react-helmet-async')) {
+              return 'vendor-helmet';
+            }
             return 'vendor-other';
           }
         },

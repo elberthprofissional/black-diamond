@@ -9,7 +9,6 @@ import {
   Clock,
   Scissors,
   LogOut,
-  Crown,
   UserX,
   Gift,
   Tag,
@@ -34,7 +33,6 @@ const groups = [
     items: [
       { id: 'servicos', label: 'Serviços', icon: Scissors, danger: false },
       { id: 'horarios', label: 'Horários', icon: Clock, danger: false },
-      { id: 'mensalista', label: 'Mensalista', icon: Crown, danger: false },
       { id: 'faltas', label: 'Controle de Faltas', icon: UserX, danger: false },
       { id: 'fidelidade', label: 'Fidelidade', icon: Gift, danger: false },
       { id: 'cupons', label: 'Cupons', icon: Tag, danger: false },
@@ -77,7 +75,7 @@ const SettingsList: FC<SettingsListProps> = ({ onSelect, onLogoutClick }) => {
                     className={`shrink-0 ${cat.danger ? 'text-red-500/80' : 'text-zinc-400'}`}
                   />
                   <span
-                    className={`flex-1 text-left text-[13px] font-medium ${cat.danger ? 'text-red-400/90' : 'text-white'}`}
+                    className={`flex-1 text-left text-[14px] font-medium ${cat.danger ? 'text-red-400/90' : 'text-white'}`}
                   >
                     {cat.label}
                   </span>

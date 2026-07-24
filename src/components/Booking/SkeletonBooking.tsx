@@ -12,9 +12,9 @@ const SkeletonBooking: FC<SkeletonBookingProps> = ({ layout }) => {
         aria-busy="true"
         aria-label="Carregando formulário de agendamento"
       >
-        <div className="w-full max-w-lg space-y-10">
+        <div className="w-full max-w-lg space-y-8">
           {/* Header skeleton */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="h-7 w-48 bg-white/[0.04] rounded-lg animate-pulse" />
             <div className="h-4 w-64 bg-white/[0.03] rounded animate-pulse" />
           </div>
@@ -22,13 +22,13 @@ const SkeletonBooking: FC<SkeletonBookingProps> = ({ layout }) => {
           {/* Form fields */}
           <div className="space-y-8">
             {/* Nome field */}
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="h-3 w-12 bg-white/[0.04] rounded animate-pulse" />
               <div className="h-12 w-full bg-white/[0.03] rounded-lg animate-pulse" />
             </div>
 
             {/* WhatsApp field */}
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="h-3 w-20 bg-white/[0.04] rounded animate-pulse" />
               </div>
@@ -47,7 +47,7 @@ const SkeletonBooking: FC<SkeletonBookingProps> = ({ layout }) => {
 
   return (
     <div
-      className="space-y-5 pb-4"
+      className="space-y-4 pb-4"
       aria-busy="true"
       aria-label="Carregando formulário de agendamento"
     >
@@ -55,7 +55,7 @@ const SkeletonBooking: FC<SkeletonBookingProps> = ({ layout }) => {
       <div className="h-28 rounded-2xl bg-white/[0.02] border border-white/[0.04] animate-pulse" />
 
       {/* Form fields */}
-      <div className="space-y-5">
+      <div className="space-y-4">
         {/* Nome */}
         <div className="space-y-2">
           <div className="h-3 w-12 bg-white/[0.04] rounded animate-pulse" />
@@ -75,7 +75,7 @@ const SkeletonBooking: FC<SkeletonBookingProps> = ({ layout }) => {
       </div>
 
       {/* Services skeleton (mostra hints dos serviços) */}
-      <div className="space-y-3 pt-4">
+      <div className="space-y-4 pt-4">
         <div className="h-3 w-24 bg-white/[0.04] rounded animate-pulse" />
         {[1, 2, 3].map((i) => (
           <div

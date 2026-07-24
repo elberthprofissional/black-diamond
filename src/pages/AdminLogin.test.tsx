@@ -32,6 +32,7 @@ vi.mock('../lib/supabase', () => ({
       signInWithPassword: (...args: unknown[]) => mockSignIn(...args),
       resetPasswordForEmail: (...args: unknown[]) => mockResetPassword(...args),
     },
+    rpc: (..._args: unknown[]) => Promise.resolve({ data: null, error: null }),
   },
 }));
 

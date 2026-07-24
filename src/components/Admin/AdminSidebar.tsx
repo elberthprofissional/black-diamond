@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users, ChevronDown, User, LogOut, Clock, Settings } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';
-import { useBarberSettings } from '../../contexts/BarberSettingsContext';
+import { useBarberSettings } from '../../hooks/useBarberSettings';
 import { useBarberContext } from '../../contexts/BarberContext';
 import NotificationBell from './NotificationBell';
 
@@ -19,11 +19,20 @@ const AdminSidebar: FC = memo(() => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const reportsIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10" />
+      <line x1="12" y1="20" x2="12" y2="4" />
+      <line x1="6" y1="20" x2="6" y2="14" />
+    </svg>
+  );
+
   const mainMenuItems = isOwner
     ? [
         { label: 'Agenda do Dia', path: '/admin', icon: Clock, testId: 'nav-today' },
         { label: 'Agenda Semanal', path: '/admin/weekly', icon: Calendar, testId: 'nav-weekly' },
         { label: 'Meus Clientes', path: '/admin/clients', icon: Users, testId: 'nav-clients' },
+        { label: 'Relatórios', path: '/admin/reports', icon: reportsIcon, testId: 'nav-reports' },
       ]
     : [
         { label: 'Agenda do Dia', path: '/admin', icon: Clock, testId: 'nav-today' },
@@ -49,9 +58,9 @@ const AdminSidebar: FC = memo(() => {
       </div>
 
       {/* 2. NAVIGATION - SaaS STYLE */}
-      <div className="flex-1 px-6 py-4 overflow-y-auto scrollbar-hide space-y-10">
+      <div className="flex-1 px-6 py-4 overflow-y-auto scrollbar-hide space-y-8">
         <div>
-          <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.3em] px-4 block mb-5">
+          <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em] px-4 block mb-5">
             Menu Principal
           </span>
           <nav className="space-y-1.5">
@@ -83,7 +92,7 @@ const AdminSidebar: FC = memo(() => {
                   />
 
                   <span
-                    className={`text-[11px] font-bold tracking-wide ${active ? 'text-white' : 'text-zinc-500'}`}
+                    className={`text-[12px] font-bold tracking-wide ${active ? 'text-white' : 'text-zinc-500'}`}
                   >
                     {item.label}
                   </span>
@@ -121,7 +130,7 @@ const AdminSidebar: FC = memo(() => {
               <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#0A0A0A] rounded-full" />
             </div>
             <div className="text-left flex-1 min-w-0">
-              <p className="text-[11px] font-bold text-white truncate leading-none">{barberName}</p>
+              <p className="text-[12px] font-bold text-white truncate leading-none">{barberName}</p>
             </div>
             <ChevronDown
               size={14}
@@ -149,7 +158,7 @@ const AdminSidebar: FC = memo(() => {
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all"
                   >
                     <User size={14} className="text-zinc-500 shrink-0" />
-                    <span className="text-[11px] font-medium">Meu Perfil</span>
+                    <span className="text-[12px] font-medium">Meu Perfil</span>
                   </button>
                   <button
                     onClick={() => {
@@ -159,7 +168,7 @@ const AdminSidebar: FC = memo(() => {
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all"
                   >
                     <Settings size={14} className="text-zinc-500 shrink-0" />
-                    <span className="text-[11px] font-medium">Configurações</span>
+                    <span className="text-[12px] font-medium">Configurações</span>
                   </button>
                 </div>
 
@@ -174,7 +183,7 @@ const AdminSidebar: FC = memo(() => {
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/[0.06] transition-all"
                   >
                     <LogOut size={14} className="shrink-0" />
-                    <span className="text-[11px] font-medium">Sair</span>
+                    <span className="text-[12px] font-medium">Sair</span>
                   </button>
                 </div>
               </motion.div>
@@ -208,12 +217,12 @@ const AdminSidebar: FC = memo(() => {
                 className="relative z-10 w-full max-w-[260px] bg-[#1A1A1A] rounded-2xl overflow-hidden"
               >
                 <div className="p-5 text-center">
-                  <p className="text-[11px] text-zinc-300 font-medium">Sair da conta?</p>
+                  <p className="text-[12px] text-zinc-300 font-medium">Sair da conta?</p>
                 </div>
                 <div className="border-t border-white/[0.06]">
                   <button
                     onClick={handleLogout}
-                    className="w-full py-3.5 text-[11px] font-bold text-red-500 active:bg-white/[0.03] transition-colors cursor-pointer"
+                    className="w-full py-3.5 text-[12px] font-bold text-red-500 active:bg-white/[0.03] transition-colors cursor-pointer"
                   >
                     Sair
                   </button>
@@ -221,7 +230,7 @@ const AdminSidebar: FC = memo(() => {
                 <div className="border-t border-white/[0.06]">
                   <button
                     onClick={() => setShowLogoutConfirm(false)}
-                    className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
+                    className="w-full py-3.5 text-[12px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
                   >
                     Manter
                   </button>

@@ -1,13 +1,7 @@
 import { supabase } from '../supabase';
+import type { WhatsAppTemplate } from '../../types';
 
-export interface WhatsAppTemplate {
-  id: string;
-  key: string;
-  name: string;
-  body: string;
-  created_at: string;
-  updated_at: string;
-}
+export type { WhatsAppTemplate } from '../../types';
 
 /** Busca todos os templates de WhatsApp. */
 export const getTemplates = async (key: string): Promise<WhatsAppTemplate[]> => {

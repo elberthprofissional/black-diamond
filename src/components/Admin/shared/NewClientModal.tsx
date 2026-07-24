@@ -53,7 +53,7 @@ const NewClientModal: FC<NewClientModalProps> = ({
           >
             <div className="px-6 pt-6 pb-5 text-left">
               <div className="flex items-center justify-between mb-5">
-                <span className="text-[9px] font-black text-[#D4AF37] uppercase tracking-[0.2em]">
+                <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.2em]">
                   Novo cliente
                 </span>
                 <button
@@ -66,7 +66,7 @@ const NewClientModal: FC<NewClientModalProps> = ({
               </div>
               <div className="space-y-4">
                 <div>
-                  <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">
+                  <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">
                     Nome
                   </span>
                   <input
@@ -82,7 +82,7 @@ const NewClientModal: FC<NewClientModalProps> = ({
                   />
                 </div>
                 <div>
-                  <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">
+                  <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">
                     WhatsApp
                   </span>
                   <input
@@ -99,13 +99,13 @@ const NewClientModal: FC<NewClientModalProps> = ({
                   <motion.p
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-[11px] text-red-400 bg-red-500/[0.08] border border-red-500/20 rounded-lg px-3 py-2"
+                    className="text-[12px] text-red-400 bg-red-500/[0.08] border border-red-500/20 rounded-lg px-3 py-2"
                   >
                     {error}
                   </motion.p>
                 )}
                 <div>
-                  <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">
+                  <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">
                     Anotações <span className="text-zinc-500">(opcional)</span>
                   </span>
                   <textarea

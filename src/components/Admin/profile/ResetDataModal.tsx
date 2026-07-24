@@ -48,7 +48,7 @@ const ResetDataModal: FC<ResetDataModalProps> = ({
           <div className="px-6 pt-6 pb-4">
             {step === 'password' ? (
               <>
-                <p className="text-[15px] font-semibold text-white text-center">
+                <p className="text-[16px] font-semibold text-white text-center">
                   Confirme sua senha
                 </p>
                 <p className="text-[12px] text-zinc-500 mt-1.5 text-center leading-relaxed">
@@ -57,7 +57,7 @@ const ResetDataModal: FC<ResetDataModalProps> = ({
               </>
             ) : (
               <>
-                <p className="text-[15px] font-semibold text-white">Limpar dados</p>
+                <p className="text-[16px] font-semibold text-white">Limpar dados</p>
                 <p className="text-[12px] text-zinc-500 mt-1.5 leading-relaxed">
                   Todos os dados da barbearia vao ser apagados permanentemente.
                 </p>
@@ -72,7 +72,7 @@ const ResetDataModal: FC<ResetDataModalProps> = ({
                 onChange={(e) => onResetPasswordChange(e.target.value)}
                 placeholder="Sua senha"
                 aria-label="Senha do administrador"
-                className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-red-500/40 transition-all placeholder:text-zinc-600"
+                className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[14px] text-white outline-none focus:border-red-500/40 transition-all placeholder:text-zinc-600"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && resetPassword.trim()) onConfirm();
@@ -85,7 +85,7 @@ const ResetDataModal: FC<ResetDataModalProps> = ({
                 onChange={(e) => onResetTextChange(e.target.value.toUpperCase())}
                 placeholder="Digite LIMPAR para confirmar"
                 aria-label="Digite LIMPAR para confirmar a limpeza dos dados"
-                className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[13px] text-white outline-none focus:border-red-500/40 focus:ring-1 focus:ring-red-500/10 transition-all placeholder:text-zinc-600"
+                className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[14px] text-white outline-none focus:border-red-500/40 focus:ring-1 focus:ring-red-500/10 transition-all placeholder:text-zinc-600"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && resetText === 'LIMPAR') onConfirm();
@@ -93,13 +93,13 @@ const ResetDataModal: FC<ResetDataModalProps> = ({
               />
             )}
             {resetPasswordError && (
-              <p className="text-[11px] text-red-400 mt-2">{resetPasswordError}</p>
+              <p className="text-[12px] text-red-400 mt-2">{resetPasswordError}</p>
             )}
           </div>
           <div className="flex border-t border-white/[0.06]">
             <button
               onClick={onBack}
-              className="flex-1 py-4 text-[13px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
+              className="flex-1 py-4 text-[14px] font-medium text-zinc-400 hover:text-white active:bg-white/[0.03] transition-all cursor-pointer"
             >
               {step === 'password' ? 'Voltar' : 'Cancelar'}
             </button>
@@ -111,7 +111,7 @@ const ResetDataModal: FC<ResetDataModalProps> = ({
                   ? resetText !== 'LIMPAR' || resetting
                   : !resetPassword.trim() || resetting
               }
-              className="flex-1 py-4 text-[13px] font-semibold text-red-500 hover:text-red-400 active:bg-white/[0.03] transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+              className="flex-1 py-4 text-[14px] font-semibold text-red-500 hover:text-red-400 active:bg-white/[0.03] transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
             >
               {resetting ? '...' : step === 'password' ? 'Confirmar' : 'Limpar'}
             </button>

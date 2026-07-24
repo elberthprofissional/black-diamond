@@ -71,7 +71,7 @@ const BookingSearchModal: FC<BookingSearchModalProps> = ({
                 <Search size={14} className="text-[#D4AF37]" />
               </div>
               <div>
-                <span className="text-[9px] font-black text-[#D4AF37] uppercase tracking-[0.25em] block">
+                <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.25em] block">
                   Buscar Cliente
                 </span>
                 <p className="text-[12px] font-medium text-zinc-400 mt-0.5">
@@ -129,11 +129,11 @@ const BookingSearchModal: FC<BookingSearchModalProps> = ({
                       <div
                         className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center shrink-0`}
                       >
-                        <span className="text-[13px] font-bold">{initial}</span>
+                        <span className="text-[14px] font-bold">{initial}</span>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[13px] font-semibold text-white truncate">{c.name}</p>
-                        <p className="text-[11px] text-zinc-500">{formatPhone(c.phone)}</p>
+                        <p className="text-[14px] font-semibold text-white truncate">{c.name}</p>
+                        <p className="text-[12px] text-zinc-500">{formatPhone(c.phone)}</p>
                       </div>
                       <ChevronRight
                         size={16}

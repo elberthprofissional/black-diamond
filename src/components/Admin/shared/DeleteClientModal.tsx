@@ -56,7 +56,7 @@ const DeleteClientModal: FC<DeleteClientModalProps> = ({
                 <AlertTriangle size={18} className="text-red-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-[15px] font-bold text-white">Excluir Cliente</h3>
+                <h3 className="text-[16px] font-bold text-white">Excluir Cliente</h3>
                 <p className="text-[12px] text-zinc-400 mt-1 leading-relaxed">
                   Tem certeza que deseja excluir{' '}
                   <span className="text-white font-semibold">{clientName}</span>?
@@ -70,7 +70,7 @@ const DeleteClientModal: FC<DeleteClientModalProps> = ({
 
             {/* Confirmação extra: digitar EXCLUIR */}
             <div className="px-6 py-3">
-              <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">
+              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">
                 Digite <span className="text-red-400">EXCLUIR</span> para confirmar
               </label>
               <input

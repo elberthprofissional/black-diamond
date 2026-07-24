@@ -2,16 +2,21 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 
 const renderWithRouter = (ui: React.ReactElement) => {
-  return render(<MemoryRouter>{ui}</MemoryRouter>);
+  return render(
+    <MemoryRouter>
+      <BarberSettingsProvider>{ui}</BarberSettingsProvider>
+    </MemoryRouter>
+  );
 };
 
 describe('Navbar', () => {
   it('renderiza o logo e nome', () => {
     renderWithRouter(<Navbar onBookingClick={vi.fn()} />);
-    expect(screen.getByText('BLACK')).toBeInTheDocument();
-    expect(screen.getByText('DIAMOND')).toBeInTheDocument();
+    expect(screen.getByText('Black')).toBeInTheDocument();
+    expect(screen.getByText('Diamond')).toBeInTheDocument();
   });
 
   it('renderiza links de navegacao', () => {
@@ -37,7 +42,7 @@ describe('Navbar', () => {
 
   it('renderiza imagem do logo', () => {
     renderWithRouter(<Navbar onBookingClick={vi.fn()} />);
-    const logo = screen.getByAltText('Black Diamond');
+    const logo = screen.getByRole('img', { name: /black diamond/i });
     expect(logo).toHaveAttribute('src', '/assets/logo.webp');
   });
 

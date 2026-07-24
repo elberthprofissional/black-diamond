@@ -48,9 +48,9 @@ const EditClientModal: FC<EditClientModalProps> = ({
             className="bg-[#0A0A0A] border border-white/10 w-full max-w-sm relative z-10 rounded-2xl shadow-2xl p-5"
           >
             <h3 className="text-sm font-semibold text-white mb-4">Editar Cliente</h3>
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">
+                <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">
                   Nome
                 </span>
                 <input
@@ -63,7 +63,7 @@ const EditClientModal: FC<EditClientModalProps> = ({
                 />
               </div>
               <div>
-                <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">
+                <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1.5">
                   WhatsApp
                 </span>
                 <input
@@ -86,7 +86,7 @@ const EditClientModal: FC<EditClientModalProps> = ({
               <button
                 onClick={onSave}
                 disabled={saving || !name.trim() || !phone.trim()}
-                className="flex-1 py-3 bg-[#D4AF37] text-black font-semibold text-xs rounded-xl hover:bg-[#b8962e] active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
+                className="btn-gold flex-1 py-3 text-xs disabled:opacity-50"
               >
                 {saving ? '...' : 'Salvar'}
               </button>

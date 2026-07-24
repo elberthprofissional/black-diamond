@@ -1,5 +1,3 @@
-import { type FC } from 'react';
-
 const GoogleIcon = ({ className = 'w-3.5 h-3.5' }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
     <path
@@ -21,25 +19,4 @@ const GoogleIcon = ({ className = 'w-3.5 h-3.5' }: { className?: string }) => (
   </svg>
 );
 
-interface GoogleReviewBadgeProps {
-  size?: 'sm' | 'md';
-}
-
-/** Small badge indicating a review came from Google */
-const GoogleReviewBadge: FC<GoogleReviewBadgeProps> = ({ size = 'sm' }) => {
-  const sizeClasses =
-    size === 'sm' ? 'text-[9px] px-1.5 py-0.5 gap-1' : 'text-[10px] px-2 py-1 gap-1.5';
-  const iconSize = size === 'sm' ? 'w-3 h-3' : 'w-3.5 h-3.5';
-
-  return (
-    <span
-      className={`inline-flex items-center font-medium text-zinc-500 bg-white/[0.04] rounded-md ${sizeClasses}`}
-    >
-      <GoogleIcon className={iconSize} />
-      Google
-    </span>
-  );
-};
-
 export { GoogleIcon };
-export default GoogleReviewBadge;

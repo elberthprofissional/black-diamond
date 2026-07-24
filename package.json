@@ -19,6 +19,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",
     "test:lighthouse": "lhci autorun",
+    "setup": "node scripts/setup.mjs",
     "prepare": "husky",
     "audit": "npm audit --audit-level=high"
   },

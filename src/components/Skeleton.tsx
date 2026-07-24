@@ -46,7 +46,7 @@ export const SkeletonList: FC<{ count?: number; className?: string }> = ({
   count = 5,
   className = '',
 }) => (
-  <div className={`space-y-3 ${className}`} aria-busy="true" aria-label="Carregando lista">
+  <div className={`space-y-4 ${className}`} aria-busy="true" aria-label="Carregando lista">
     {Array.from({ length: count }).map((_, i) => (
       <div key={i} className="flex items-center gap-4 py-3">
         <Skeleton variant="circle" width={40} height={40} />

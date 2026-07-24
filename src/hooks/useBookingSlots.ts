@@ -5,7 +5,20 @@ import { useDateDragScroll } from './useDateDragScroll';
 import { supabase } from '../lib/supabase';
 import { logError } from '../lib/logger';
 
-export function useBookingSlots(showError: (msg: string) => void) {
+/**
+ * Hook para gerenciar seleção de data/horário no fluxo público de agendamento.
+ *
+ * - Carrega configurações de dias úteis e horários do Supabase (settings).
+ * - Filtra os próximos dias disponíveis com base nos dias úteis.
+ * - Ao selecionar uma data, busca agendamentos existentes + slots disponíveis.
+ * - Usa `useDateDragScroll` para suporte a arraste horizontal no calendário.
+ * - Aceita barberId opcional para filtrar slots por barbeiro (multi-barber).
+ *
+ * @param showError - Função para exibir mensagens de erro.
+ * @param barberId - ID do barbeiro (opcional) para filtrar slots.
+ * @returns {{ selectedDate, selectedTime, availableSlots, nextDays, ... }}
+ */
+export function useBookingSlots(showError: (msg: string) => void, barberId?: string) {
   const [barberHoursJson, setBarberHoursJson] = useState('');
   const [nextDaysConfig, setNextDaysConfig] = useState<{
     saturdayCloseHour?: number;
@@ -86,8 +99,10 @@ export function useBookingSlots(showError: (msg: string) => void) {
       const loadData = async () => {
         try {
           const [bookingsResult, slotsData] = await Promise.all([
-            getBookings(selectedDate).catch(() => ({ data: [] })),
-            getAvailableSlots(selectedDate).catch(() => getTimeSlotsForDate(selectedDate)),
+            getBookings(selectedDate, { barberId }).catch(() => ({ data: [] })),
+            getAvailableSlots(selectedDate, barberId).catch(() =>
+              getTimeSlotsForDate(selectedDate)
+            ),
           ]);
           if (!active) return;
           setExistingBookings(bookingsResult.data || []);
@@ -102,7 +117,7 @@ export function useBookingSlots(showError: (msg: string) => void) {
         active = false;
       };
     }
-  }, [selectedDate, showError]);
+  }, [selectedDate, showError, barberId]);
 
   return {
     selectedDate,

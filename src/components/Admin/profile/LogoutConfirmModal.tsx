@@ -26,12 +26,12 @@ const LogoutConfirmModal: FC<LogoutConfirmModalProps> = ({ open, onConfirm, onCa
           className="relative z-10 w-full max-w-[260px] bg-[#1A1A1A] border border-white/5 rounded-2xl overflow-hidden"
         >
           <div className="p-5 text-center">
-            <p className="text-[11px] text-zinc-300 font-medium">Sair da conta?</p>
+            <p className="text-[12px] text-zinc-300 font-medium">Sair da conta?</p>
           </div>
           <div className="border-t border-white/[0.06]">
             <button
               onClick={onConfirm}
-              className="w-full py-3.5 text-[11px] font-bold text-red-500 active:bg-white/[0.03] transition-colors cursor-pointer"
+              className="w-full py-3.5 text-[12px] font-bold text-red-500 active:bg-white/[0.03] transition-colors cursor-pointer"
             >
               Sair
             </button>
@@ -39,7 +39,7 @@ const LogoutConfirmModal: FC<LogoutConfirmModalProps> = ({ open, onConfirm, onCa
           <div className="border-t border-white/[0.06]">
             <button
               onClick={onCancel}
-              className="w-full py-3.5 text-[11px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
+              className="w-full py-3.5 text-[12px] font-bold text-zinc-300 active:bg-white/[0.03] transition-colors cursor-pointer"
             >
               Manter
             </button>

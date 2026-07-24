@@ -37,11 +37,11 @@ const MobileEditScreen: FC<MobileEditScreenProps> = ({
             >
               <X size={24} />
             </button>
-            <span className="text-[15px] font-bold text-white">{title}</span>
+            <span className="text-[16px] font-bold text-white">{title}</span>
             <button
               onClick={onSave}
               disabled={!canSave}
-              className="text-[#D4AF37] font-bold text-[15px] transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="text-[#D4AF37] font-bold text-[16px] transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
               aria-label="Salvar"
             >
               <Check size={24} />

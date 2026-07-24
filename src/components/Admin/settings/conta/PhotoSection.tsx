@@ -1,7 +1,7 @@
 import { useState, useRef, type FC, type ChangeEvent } from 'react';
 import { User, Camera } from 'lucide-react';
 import { supabase } from '../../../../lib/supabase';
-import { useBarberSettings } from '../../../../contexts/BarberSettingsContext';
+import { useBarberSettings } from '../../../../hooks/useBarberSettings';
 import { useToast } from '../../../../hooks/useToast';
 import PhotoMenu from '../PhotoMenu';
 import { logError } from '../../../../lib/logger';

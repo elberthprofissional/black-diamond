@@ -66,7 +66,7 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
                 }`}
               >
                 <span
-                  className={`text-[8px] font-bold uppercase tracking-widest ${isSelected ? 'text-black/60' : 'opacity-50'}`}
+                  className={`text-[10px] font-bold uppercase tracking-widest ${isSelected ? 'text-black/60' : 'opacity-50'}`}
                 >
                   {day.dayName}
                 </span>
@@ -154,14 +154,14 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
               }`}
             >
               <span
-                className={`text-[9px] font-bold uppercase tracking-widest ${
+                className={`text-[10px] font-bold uppercase tracking-widest ${
                   isSelected ? 'text-black/60' : day.isToday ? 'text-[#D4AF37]' : 'text-zinc-500'
                 }`}
               >
                 {day.dayName}
               </span>
               <span
-                className={`text-[19px] font-black leading-none ${
+                className={`text-[20px] font-black leading-none ${
                   isSelected ? 'text-black' : day.isToday ? 'text-[#D4AF37]' : 'text-white'
                 }`}
               >
@@ -173,7 +173,7 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
       </div>
 
       <div>
-        <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-3">
+        <p className="text-[12px] font-bold text-zinc-500 uppercase tracking-widest mb-3">
           Horários
         </p>
         {selectedDate ? (
@@ -209,7 +209,7 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
             })}
           </div>
         ) : (
-          <p className="text-zinc-600 text-[11px] py-8 text-center">Selecione uma data acima</p>
+          <p className="text-zinc-600 text-[12px] py-8 text-center">Selecione uma data acima</p>
         )}
       </div>
     </div>

@@ -1,7 +1,11 @@
-import { createElement } from 'react';
+import { createElement, type ReactNode } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+
+vi.mock('../components/Admin/AuthGuard', () => ({
+  default: ({ children }: { children: ReactNode }) => children,
+}));
 
 vi.mock('../lib/api', () => ({
   getClients: vi.fn().mockResolvedValue([
@@ -42,14 +46,24 @@ vi.mock('../lib/supabase', () => {
   const makeBuilder = () => {
     const builder = {
       select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      upsert: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      neq: vi.fn().mockReturnThis(),
       in: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      gte: vi.fn().mockReturnThis(),
+      lte: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       limit: vi.fn().mockReturnThis(),
+      range: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: null, error: null }),
       maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
       then: (onFulfilled: (v: unknown) => void, onRejected: (v: unknown) => void) =>
-        Promise.resolve({ data: [], error: null }).then(onFulfilled, onRejected),
+        Promise.resolve({ data: [], error: null, count: 0 }).then(onFulfilled, onRejected),
     };
     return builder;
   };
@@ -58,6 +72,14 @@ vi.mock('../lib/supabase', () => {
     supabase: {
       from: vi.fn(() => makeBuilder()),
       rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
+      auth: {
+        getSession: vi
+          .fn()
+          .mockResolvedValue({ data: { session: { user: { id: '1' } } }, error: null }),
+        onAuthStateChange: vi
+          .fn()
+          .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+      },
     },
   };
 });

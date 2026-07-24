@@ -12,12 +12,12 @@ const ProfileServicesChart: FC<ProfileServicesChartProps> = ({ topServices }) =>
   if (!hasAnyRequested) {
     return (
       <div className="bg-[#111111] border border-white/5 rounded-2xl p-5">
-        <h2 className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4">
+        <h2 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4">
           Top serviços mais pedidos no mês
         </h2>
         <div className="flex flex-col items-center py-6 gap-3">
           <BarChart3 size={24} className="text-zinc-700" />
-          <p className="text-[11px] text-zinc-600 text-center max-w-xs">
+          <p className="text-[12px] text-zinc-600 text-center max-w-xs">
             Nenhum serviço foi solicitado neste período. Os dados aparecerão assim que houver
             agendamentos concluídos.
           </p>
@@ -32,10 +32,10 @@ const ProfileServicesChart: FC<ProfileServicesChartProps> = ({ topServices }) =>
   return (
     <div className="bg-[#111111] border border-white/5 rounded-2xl p-5">
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+        <h2 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
           Top serviços mais pedidos no mês
         </h2>
-        <span className="text-[9px] text-zinc-600 tabular-nums">{totalCount} pedidos</span>
+        <span className="text-[10px] text-zinc-600 tabular-nums">{totalCount} pedidos</span>
       </div>
       <div className="space-y-4">
         {topServices.slice(0, 5).map((srv, idx) => {
@@ -52,7 +52,7 @@ const ProfileServicesChart: FC<ProfileServicesChartProps> = ({ topServices }) =>
                   }`}
                 >
                   <span
-                    className={`text-[11px] font-black ${isFirst ? 'text-[#D4AF37]' : 'text-zinc-500'}`}
+                    className={`text-[12px] font-black ${isFirst ? 'text-[#D4AF37]' : 'text-zinc-500'}`}
                   >
                     {idx + 1}
                   </span>
@@ -75,7 +75,7 @@ const ProfileServicesChart: FC<ProfileServicesChartProps> = ({ topServices }) =>
                       >
                         {srv.count}x
                       </span>
-                      <span className="text-[8px] text-zinc-600 tabular-nums">
+                      <span className="text-[10px] text-zinc-600 tabular-nums">
                         {percentOfTotal}%
                       </span>
                     </div>

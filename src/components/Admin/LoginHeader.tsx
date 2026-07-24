@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useBarberSettings } from '../../hooks/useBarberSettings';
 
 interface LoginHeaderProps {
   isPWA: boolean;
@@ -7,6 +8,7 @@ interface LoginHeaderProps {
 
 export default function LoginHeader({ isPWA }: LoginHeaderProps) {
   const navigate = useNavigate();
+  const { brandLogo } = useBarberSettings();
 
   return (
     <>
@@ -23,7 +25,11 @@ export default function LoginHeader({ isPWA }: LoginHeaderProps) {
 
       {/* Mobile Logo */}
       <div className="lg:hidden flex flex-col items-center mb-6">
-        <img src="/assets/logo.webp" alt="Logo" className="w-28 h-28" />
+        {brandLogo ? (
+          <img src={brandLogo} alt="Logo" className="w-28 h-28 object-contain" />
+        ) : (
+          <img src="/assets/logo.webp" alt="Logo" className="w-28 h-28" />
+        )}
       </div>
 
       {/* Header Desktop */}

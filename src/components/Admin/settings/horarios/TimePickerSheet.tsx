@@ -18,7 +18,7 @@ const TimePickerSheet: FC<{
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="bg-white/[0.04] border border-white/[0.06] rounded-xl px-5 py-3 text-[15px] text-white font-semibold cursor-pointer active:scale-95 transition-all min-w-[80px]"
+        className="bg-white/[0.04] border border-white/[0.06] rounded-xl px-5 py-3 text-[16px] text-white font-semibold cursor-pointer active:scale-95 transition-all min-w-[80px]"
       >
         {value}
       </button>
@@ -42,12 +42,12 @@ const TimePickerSheet: FC<{
             >
               <div className="w-10 h-1 bg-white/10 rounded-full mx-auto mb-4" />
               <div className="flex items-center justify-between mb-5">
-                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">
                   {label}
                 </span>
                 <button
                   onClick={() => setOpen(false)}
-                  className="text-[#D4AF37] text-[13px] font-semibold cursor-pointer"
+                  className="text-[#D4AF37] text-[14px] font-semibold cursor-pointer"
                 >
                   OK
                 </button>
@@ -60,7 +60,7 @@ const TimePickerSheet: FC<{
                       onChange(t);
                       setOpen(false);
                     }}
-                    className={`py-3 rounded-xl text-[13px] font-bold transition-all cursor-pointer active:scale-95 ${value === t ? 'bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30' : 'bg-white/[0.03] text-zinc-400 border border-white/[0.04]'}`}
+                    className={`py-3 rounded-xl text-[14px] font-bold transition-all cursor-pointer active:scale-95 ${value === t ? 'bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30' : 'bg-white/[0.03] text-zinc-400 border border-white/[0.04]'}`}
                   >
                     {t}
                   </button>

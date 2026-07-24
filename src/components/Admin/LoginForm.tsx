@@ -1,6 +1,7 @@
 import { type FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import { EyeOff, Eye } from 'lucide-react';
+import { useBarberSettings } from '../../hooks/useBarberSettings';
 
 interface LoginFormProps {
   email: string;
@@ -33,10 +34,11 @@ export default function LoginForm({
   maxAttempts,
   error,
 }: LoginFormProps) {
+  const { brandColor } = useBarberSettings();
   return (
     <motion.form
       onSubmit={onSubmit}
-      className="w-full space-y-6 lg:space-y-12"
+      className="w-full space-y-6 lg:space-y-8"
       animate={error ? { x: [0, -8, 8, -6, 6, -3, 3, 0] } : {}}
       transition={{ duration: 0.4 }}
     >
@@ -58,7 +60,7 @@ export default function LoginForm({
             placeholder="seu@email.com"
             data-testid="input-email"
             maxLength={120}
-            className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl px-5 text-sm font-medium text-zinc-100 outline-none focus:border-[#D4AF37] transition-all lg:h-14 lg:text-base"
+            className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl px-5 text-sm font-medium text-zinc-100 outline-none transition-all lg:h-14 lg:text-base focus:border-[#D4AF37]"
             required
           />
         </div>
@@ -81,7 +83,7 @@ export default function LoginForm({
               placeholder="Sua senha"
               data-testid="input-password"
               maxLength={128}
-              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl px-5 pr-12 text-sm font-medium text-zinc-100 outline-none focus:border-[#D4AF37] transition-all lg:h-14 lg:text-base"
+              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl px-5 pr-12 text-sm font-medium text-zinc-100 outline-none transition-all lg:h-14 lg:text-base focus:border-[#D4AF37]"
               required
             />
             <button
@@ -98,7 +100,10 @@ export default function LoginForm({
             <button
               type="button"
               onClick={onForgotPassword}
-              className="text-[9px] font-medium text-[#D4AF37]/70 uppercase tracking-widest hover:text-[#D4AF37] transition-colors cursor-pointer"
+              className="text-[10px] font-medium uppercase tracking-widest transition-colors cursor-pointer"
+              style={{ color: `${brandColor}B3` }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = brandColor)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = `${brandColor}B3`)}
             >
               Esqueceu a senha?
             </button>
@@ -128,7 +133,8 @@ export default function LoginForm({
         type="submit"
         data-testid="btn-login"
         disabled={isLoggingIn || isBlocked}
-        className="w-full h-11 lg:h-12 bg-[#D4AF37] text-black font-black uppercase tracking-[0.5em] text-[11px] rounded-2xl lg:rounded-sm hover:bg-white transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full h-11 lg:h-12 text-black font-black uppercase tracking-[0.5em] text-[12px] rounded-2xl lg:rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{ backgroundColor: brandColor }}
       >
         <span>{isLoggingIn ? 'Entrando...' : isBlocked ? 'Bloqueado' : 'Entrar'}</span>
       </motion.button>
@@ -137,7 +143,10 @@ export default function LoginForm({
         <button
           type="button"
           onClick={onForgotPassword}
-          className="text-[9px] font-medium text-[#D4AF37]/70 uppercase tracking-widest hover:text-[#D4AF37] transition-colors cursor-pointer"
+          className="text-[10px] font-medium uppercase tracking-widest transition-colors cursor-pointer"
+          style={{ color: `${brandColor}B3` }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = brandColor)}
+          onMouseLeave={(e) => (e.currentTarget.style.color = `${brandColor}B3`)}
         >
           Esqueceu a senha?
         </button>
