@@ -1,7 +1,7 @@
 import { useMemo, type FC } from 'react';
 import { Phone, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useBarberSettings } from '../hooks/useBarberSettings';
+import { useBarberSettings } from '../contexts/BarberSettingsContext';
 import { formatPhone } from '../lib/utils';
 import { WhatsAppIcon } from './WhatsAppIcon';
 import { logError } from '../lib/logger';
