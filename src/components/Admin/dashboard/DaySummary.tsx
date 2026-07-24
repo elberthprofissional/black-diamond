@@ -18,10 +18,6 @@ const DaySummary: FC<DaySummaryProps> = ({
 
   return (
     <div className="flex flex-wrap items-center gap-3 sm:gap-5">
-      <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.15em]">
-        {totalCount} {totalCount === 1 ? 'cliente' : 'clientes'} hoje
-      </span>
-      <div className="w-px h-3 bg-white/[0.08]" />
       <div className="flex items-center gap-3 sm:gap-4">
         {completedCount > 0 && (
           <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400">

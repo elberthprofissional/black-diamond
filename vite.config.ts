@@ -29,7 +29,7 @@ export default defineConfig({
             if (id.includes('framer-motion')) {
               return 'vendor-motion';
             }
-            if (id.includes('@supabase')) {
+            if (id.includes('@supabase/supabase-js')) {
               return 'vendor-supabase';
             }
             if (id.includes('lucide-react')) {
@@ -43,6 +43,12 @@ export default defineConfig({
             }
             if (id.includes('react-helmet-async')) {
               return 'vendor-helmet';
+            }
+            if (id.includes('@supabase/realtime-js') || id.includes('@supabase/postgrest-js') || id.includes('@supabase/storage-js') || id.includes('@supabase/functions-js')) {
+              return 'vendor-supabase-core';
+            }
+            if (id.includes('ws') || id.includes('cross-fetch') || id.includes('node-fetch')) {
+              return 'vendor-network';
             }
             return 'vendor-other';
           }

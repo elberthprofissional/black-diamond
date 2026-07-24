@@ -1,11 +1,12 @@
 import { type FC } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Clock, CalendarDays, Users } from 'lucide-react';
+import { Clock, CalendarDays, Users, BarChart3 } from 'lucide-react';
 
 const tabs = [
   { label: 'Hoje', path: '/admin', icon: Clock },
   { label: 'Semana', path: '/admin/weekly', icon: CalendarDays },
   { label: 'Clientes', path: '/admin/clients', icon: Users },
+  { label: 'Relatórios', path: '/admin/reports', icon: BarChart3 },
 ];
 
 const BottomTabs: FC = () => {
