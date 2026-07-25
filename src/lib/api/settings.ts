@@ -52,12 +52,22 @@ export const getWorkSettings = async (): Promise<{
   return result;
 };
 
-/** Busca todos os planos mensalistas. */
+/** Busca todos os planos mensalistas ativos. */
 export const getMensalistaPlans = async (): Promise<MensalistaPlan[]> => {
-  const { data, error } = await supabase.from('mensalista_plans').select('*').order('sort_order');
+  try {
+    const { data, error } = await supabase
+      .from('mensalista_plans')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .order('name', { ascending: true });
 
-  if (error) throw error;
-  return (data || []) as MensalistaPlan[];
+    if (error) throw error;
+    return (data || []) as MensalistaPlan[];
+  } catch (e) {
+    logError(e);
+    return [];
+  }
 };
 
 /** Busca as preferências de notificação do usuário. */

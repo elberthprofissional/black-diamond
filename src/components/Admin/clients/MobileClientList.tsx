@@ -1,6 +1,6 @@
 import { type FC, useMemo } from 'react';
 import { formatPhone } from '../../../lib/utils';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, AlertTriangle } from 'lucide-react';
 import type { ClientWithStats } from '../../../types';
 
 interface MobileClientListProps {
@@ -63,11 +63,32 @@ const MobileClientList: FC<MobileClientListProps> = ({
                 <div className="flex-1 min-w-0 text-left">
                   <p className="text-[14px] font-semibold text-white truncate">
                     {client.name}
-                    {client.is_mensalista && (
-                      <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-[#D4AF37]/10 text-[#D4AF37] font-bold align-middle">
-                        {plans.find((p) => p.id === client.mensalista_plan_id)?.name || 'Plano'}
-                      </span>
-                    )}
+                    {client.is_mensalista &&
+                      (() => {
+                        const plan = plans.find((p) => p.id === client.mensalista_plan_id);
+                        const expDate = client.mensalista_expires_at
+                          ? new Date(client.mensalista_expires_at + 'T23:59:59')
+                          : null;
+                        const isExpiring =
+                          expDate &&
+                          expDate > new Date() &&
+                          expDate <= new Date(Date.now() + 5 * 86400000);
+                        const isExpired = expDate && expDate < new Date();
+                        return (
+                          <span
+                            className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded font-bold align-middle inline-flex items-center gap-0.5 ${
+                              isExpired
+                                ? 'bg-red-500/10 text-red-400'
+                                : isExpiring
+                                  ? 'bg-amber-500/10 text-amber-400'
+                                  : 'bg-[#D4AF37]/10 text-[#D4AF37]'
+                            }`}
+                          >
+                            {isExpired && <AlertTriangle size={8} />}
+                            {plan?.name || 'Mensalista'}
+                          </span>
+                        );
+                      })()}
                   </p>
                   <p className="text-[12px] text-zinc-500 truncate mt-0.5">
                     {formatPhone(client.phone)} · {client.lastVisit}

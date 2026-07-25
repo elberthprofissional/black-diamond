@@ -9,6 +9,9 @@ type AuditAction =
   | 'booking_completed'
   | 'booking_cancelled'
   | 'booking_rescheduled'
+  | 'booking_no_show'
+  | 'booking_no_show_undone'
+  | 'client_created'
   | 'thank_you_sent';
 
 interface AuditLogEntry {

@@ -1,8 +1,9 @@
-import { useState, useMemo, lazy, Suspense, useEffect, type FC } from 'react';
+import { useState, useMemo, lazy, Suspense, type FC } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useClients } from '../hooks/useClients';
 import ReminderFilterTabs from '../components/Admin/shared/ReminderFilterTabs';
+import MensalistaFilterTabs from '../components/Admin/shared/MensalistaFilterTabs';
 import { useReminders } from '../hooks/useReminders';
 import { useToast } from '../hooks/useToast';
 import AdminLayout from '../components/Admin/AdminLayout';
@@ -20,7 +21,7 @@ import type { Client } from '../types';
 const NewClientModal = lazy(() => import('../components/Admin/shared/NewClientModal'));
 const ReminderModal = lazy(() => import('../components/Admin/shared/ReminderModal'));
 
-type ClientFilter = 'all' | 'pending' | 'sent';
+type ClientFilter = 'all' | 'pending' | 'sent' | 'mensalistas' | 'vencendo';
 
 const AdminClients: FC = () => {
   const c = useClients();
@@ -33,7 +34,12 @@ const AdminClients: FC = () => {
   const [reminderClient, setReminderClient] = useState<Client | null>(null);
 
   const reminderFilter: ClientFilter =
-    filterParam === 'pending' || filterParam === 'sent' ? filterParam : 'all';
+    filterParam === 'pending' ||
+    filterParam === 'sent' ||
+    filterParam === 'mensalistas' ||
+    filterParam === 'vencendo'
+      ? filterParam
+      : 'all';
 
   const handleFilterChange = (filter: ClientFilter) => {
     // already derived from URL params, no local state needed
@@ -54,17 +60,37 @@ const AdminClients: FC = () => {
     let matchFilter = true;
     if (reminderFilter === 'pending') matchFilter = !r.isReminderRecent(cl.id);
     else if (reminderFilter === 'sent') matchFilter = r.isReminderRecent(cl.id);
+    else if (reminderFilter === 'mensalistas') matchFilter = !!cl.is_mensalista;
+    else if (reminderFilter === 'vencendo') {
+      if (!cl.is_mensalista || !cl.mensalista_expires_at) {
+        matchFilter = false;
+      } else {
+        const expDate = new Date(cl.mensalista_expires_at + 'T23:59:59');
+        matchFilter = expDate > new Date() && expDate <= new Date(Date.now() + 5 * 86400000);
+      }
+    }
     return matchSearch && matchFilter;
   });
 
   const counts = useMemo(() => {
     let pending = 0;
     let sent = 0;
+    let mensalistas = 0;
+    let vencendo = 0;
     c.clients.forEach((cl) => {
       if (r.isReminderRecent(cl.id)) sent++;
       else pending++;
+      if (cl.is_mensalista) {
+        mensalistas++;
+        if (cl.mensalista_expires_at) {
+          const expDate = new Date(cl.mensalista_expires_at + 'T23:59:59');
+          if (expDate > new Date() && expDate <= new Date(Date.now() + 5 * 86400000)) {
+            vencendo++;
+          }
+        }
+      }
     });
-    return { all: c.clients.length, pending, sent };
+    return { all: c.clients.length, pending, sent, mensalistas, vencendo };
   }, [c.clients, r]);
 
   const clientsNeedingReminder = useMemo(
@@ -87,11 +113,18 @@ const AdminClients: FC = () => {
         onOpenReminders={() => setIsReminderOpen(true)}
       />
 
-      <ReminderFilterTabs
-        activeFilter={reminderFilter}
-        onFilterChange={handleFilterChange}
-        counts={counts}
-      />
+      <div className="space-y-3">
+        <ReminderFilterTabs
+          activeFilter={reminderFilter as 'all' | 'pending' | 'sent'}
+          onFilterChange={handleFilterChange}
+          counts={{ all: counts.all, pending: counts.pending, sent: counts.sent }}
+        />
+        <MensalistaFilterTabs
+          activeFilter={reminderFilter}
+          onFilterChange={handleFilterChange}
+          counts={{ mensalistas: counts.mensalistas, vencendo: counts.vencendo }}
+        />
+      </div>
 
       {/* Client list */}
       <div>

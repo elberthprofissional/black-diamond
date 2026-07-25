@@ -294,9 +294,9 @@ describe('useAdminClientSearch', () => {
       expect(result.current.isMensalista).toBe(true);
       expect(result.current.isManualEntry).toBe(false);
       expect(result.current.multipleMatches).toEqual([]);
-      // O hook atualmente não busca o plano durante selectClient
-      // currentPlan permanece null — setado apenas manualmente via setCurrentPlan
-      expect(result.current.currentPlan).toBeNull();
+      // O hook agora busca o plano automaticamente durante selectClient
+      expect(result.current.currentPlan).not.toBeNull();
+      expect(result.current.currentPlan?.name).toBe('Plano Básico');
     });
 
     it('selects a non-mensalista client', () => {

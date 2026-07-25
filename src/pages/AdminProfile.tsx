@@ -79,7 +79,6 @@ const AdminProfile: FC = () => {
         settingsSection={p.settingsSection}
         setSettingsSection={p.setSettingsSection}
         setShowHelp={p.setShowHelp}
-        onLogoutClick={() => p.setShowLogoutConfirm(true)}
       />
     </div>
   );
@@ -92,7 +91,6 @@ const AdminProfile: FC = () => {
           settingsSection={p.settingsSection}
           setSettingsSection={p.setSettingsSection}
           setShowHelp={p.setShowHelp}
-          onLogoutClick={() => p.setShowLogoutConfirm(true)}
         />
       ) : (
         <div className="min-h-[calc(100vh-8rem)] flex flex-col">

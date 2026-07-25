@@ -18,7 +18,7 @@
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/version-3.25.0-blue?style=flat-square" alt="Version"/>
+    <img src="https://img.shields.io/badge/version-3.26.0-blue?style=flat-square" alt="Version"/>
     <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"/>
     <img src="https://img.shields.io/badge/build-passing-brightgreen?style=flat-square" alt="Build"/>
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React"/>

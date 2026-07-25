@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback, memo, type FC } from 'react';
 import { supabase } from '../lib/supabase';
-import { ImageIcon, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ImageIcon } from 'lucide-react';
 import Skeleton from './Skeleton';
-import { useModalA11y } from '../hooks/useModalA11y';
 import { logError } from '../lib/logger';
 
 interface GalleryImage {
@@ -16,43 +15,6 @@ const Gallery: FC = memo(() => {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [erroredImages, setErroredImages] = useState<Set<string>>(new Set());
-  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
-
-  const closePreview = useCallback(() => setPreviewIndex(null), []);
-  const { dialogRef } = useModalA11y(previewIndex !== null, closePreview);
-
-  // Keyboard navigation for lightbox
-  useEffect(() => {
-    if (previewIndex === null) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        setPreviewIndex((prev) => (prev !== null ? (prev + 1) % images.length : null));
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        setPreviewIndex((prev) =>
-          prev !== null ? (prev - 1 + images.length) % images.length : null
-        );
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        setPreviewIndex(null);
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [previewIndex, images.length]);
-
-  const openPreview = useCallback((index: number) => {
-    setPreviewIndex(index);
-  }, []);
-
-  const goNext = useCallback(() => {
-    setPreviewIndex((prev) => (prev !== null ? (prev + 1) % images.length : null));
-  }, [images.length]);
-
-  const goPrev = useCallback(() => {
-    setPreviewIndex((prev) => (prev !== null ? (prev - 1 + images.length) % images.length : null));
-  }, [images.length]);
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -65,7 +27,6 @@ const Gallery: FC = memo(() => {
         if (data) setImages(data);
       } catch (e) {
         logError(e);
-        // gallery load failed
       } finally {
         setLoading(false);
       }
@@ -130,14 +91,11 @@ const Gallery: FC = memo(() => {
             {images.map((img, i) => {
               const isLastOdd = i === images.length - 1 && images.length % 2 === 1;
               return (
-                <button
+                <div
                   key={img.id}
-                  type="button"
-                  onClick={() => openPreview(i)}
-                  className={`relative bg-[#1a1a1a] overflow-hidden group aspect-[3/4] cursor-pointer ${
+                  className={`relative bg-[#1a1a1a] overflow-hidden group aspect-[3/4] ${
                     isLastOdd ? 'md:col-start-2' : ''
                   }`}
-                  aria-label={`Ver foto: ${img.alt || i + 1}`}
                 >
                   {erroredImages.has(img.id) ? (
                     <div className="absolute inset-0 flex items-center justify-center bg-[#1a1a1a] border border-dashed border-white/10">
@@ -155,7 +113,7 @@ const Gallery: FC = memo(() => {
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
                     </>
                   )}
-                </button>
+                </div>
               );
             })}
           </div>
@@ -166,12 +124,9 @@ const Gallery: FC = memo(() => {
           <div className="overflow-hidden -mx-6 px-6">
             <div className="flex animate-marquee gap-3 md:gap-4">
               {[...images, ...images].map((img, i) => (
-                <button
+                <div
                   key={`${img.id}-${i}`}
-                  type="button"
-                  onClick={() => openPreview(i % images.length)}
-                  className="relative w-[200px] sm:w-[260px] md:w-[380px] aspect-[3/4] bg-[#1a1a1a] overflow-hidden flex-shrink-0 group cursor-pointer"
-                  aria-label={`Ver foto: ${img.alt || (i % images.length) + 1}`}
+                  className="relative w-[200px] sm:w-[260px] md:w-[380px] aspect-[3/4] bg-[#1a1a1a] overflow-hidden flex-shrink-0 group"
                 >
                   {erroredImages.has(img.id) ? (
                     <div className="absolute inset-0 flex items-center justify-center bg-[#1a1a1a] border border-dashed border-white/10">
@@ -189,78 +144,12 @@ const Gallery: FC = memo(() => {
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
                     </>
                   )}
-                </button>
+                </div>
               ))}
             </div>
           </div>
         )}
       </div>
-
-      {/* Lightbox */}
-      {previewIndex !== null && images[previewIndex] && (
-        <div
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-sm"
-          onClick={closePreview}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Visualização da foto"
-        >
-          <div
-            ref={dialogRef}
-            className="relative w-full h-full flex items-center justify-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close */}
-            <button
-              type="button"
-              onClick={closePreview}
-              className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
-              aria-label="Fechar visualização"
-            >
-              <X size={20} />
-            </button>
-
-            {/* Prev */}
-            {images.length > 1 && (
-              <button
-                type="button"
-                onClick={goPrev}
-                className="absolute left-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
-                aria-label="Foto anterior"
-              >
-                <ChevronLeft size={20} />
-              </button>
-            )}
-
-            {/* Image */}
-            <img
-              src={images[previewIndex].image_url}
-              alt={images[previewIndex].alt || `Foto ${previewIndex + 1}`}
-              className="max-w-[90vw] max-h-[85vh] object-contain select-none"
-              draggable={false}
-            />
-
-            {/* Next */}
-            {images.length > 1 && (
-              <button
-                type="button"
-                onClick={goNext}
-                className="absolute right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
-                aria-label="Próxima foto"
-              >
-                <ChevronRight size={20} />
-              </button>
-            )}
-
-            {/* Counter */}
-            {images.length > 1 && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-white/10 text-white text-[12px] font-medium">
-                {previewIndex + 1} / {images.length}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </section>
   );
 });

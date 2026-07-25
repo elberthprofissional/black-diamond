@@ -373,7 +373,7 @@ describe('useClientPanel', () => {
     });
 
     expect(success).toBe(true);
-    expect(mockToggleClientMensalista).toHaveBeenCalledWith('client-1', false, undefined, null);
+    expect(mockToggleClientMensalista).toHaveBeenCalledWith('client-1', false);
     expect(mockShowSuccess).toHaveBeenCalledWith(expect.stringContaining('removida'));
   });
 

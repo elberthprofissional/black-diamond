@@ -220,16 +220,16 @@ describe('ClientPanel', () => {
     expect(onToggleMensalista).toHaveBeenCalledTimes(1);
   });
 
-  it('Mensalista toggle: calls onToggleMensalista when adding', () => {
+  it('Mensalista toggle: calls onToggleMensalista when adding (no plans → no modal)', () => {
     const onToggleMensalista = vi.fn().mockResolvedValue(true);
     renderClientPanel({
       client: { ...mockClient, is_mensalista: false },
       onToggleMensalista,
+      plans: [],
     });
     const toggleBtn = screen.getByText('Tornar Mensalista');
     fireEvent.click(toggleBtn);
-    // O componente chama onToggleMensalista com 'plan-id' em vez de abrir modal
+    // Sem planos cadastrados, chama diretamente sem argumentos
     expect(onToggleMensalista).toHaveBeenCalled();
-    expect(onToggleMensalista).toHaveBeenCalledWith('plan-id');
   });
 });

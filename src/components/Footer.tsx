@@ -33,13 +33,44 @@ const Footer: FC = () => {
     }
   }, [barberHours]);
 
-  const segSex =
-    hours?.['1']?.enabled && hours['1']?.open && hours['1']?.close
-      ? `${hours['1'].open} às ${hours['1'].close}`
+  const DAY_LABELS: Record<string, string> = {
+    '1': 'Seg',
+    '2': 'Ter',
+    '3': 'Qua',
+    '4': 'Qui',
+    '5': 'Sex',
+    '6': 'Sáb',
+  };
+
+  // Encontra o range de dias úteis ativos (1-6) e monta label dinâmico
+  const enabledDays = hours
+    ? Object.keys(hours)
+        .filter((k) => k !== '0' && hours[k]?.enabled)
+        .map(Number)
+        .sort((a, b) => a - b)
+    : [];
+
+  const firstDay = enabledDays.length > 0 ? enabledDays[0] : null;
+  const lastDay = enabledDays.length > 0 ? enabledDays[enabledDays.length - 1] : null;
+
+  const rangeLabel =
+    firstDay && lastDay && firstDay === lastDay
+      ? DAY_LABELS[String(firstDay)] || ''
+      : firstDay && lastDay
+        ? `${DAY_LABELS[String(firstDay)] || ''} - ${DAY_LABELS[String(lastDay)] || ''}`
+        : '';
+
+  const diaHours =
+    firstDay &&
+    hours?.[String(firstDay)]?.enabled &&
+    hours[String(firstDay)]?.open &&
+    hours[String(firstDay)]?.close
+      ? `${hours[String(firstDay)]!.open} às ${hours[String(firstDay)]!.close}`
       : null;
-  const sabado =
-    hours?.['6']?.enabled && hours['6']?.open && hours['6']?.close
-      ? `${hours['6'].open} às ${hours['6'].close}`
+
+  const domingo =
+    hours?.['0']?.enabled && hours['0']?.open && hours['0']?.close
+      ? `${hours['0'].open} às ${hours['0'].close}`
       : null;
 
   return (
@@ -82,7 +113,7 @@ const Footer: FC = () => {
                   Bairro Tupi, BH
                 </p>
               </div>
-              {segSex && (
+              {diaHours && (
                 <div className="flex flex-col items-center text-zinc-400">
                   <svg
                     viewBox="0 0 24 24"
@@ -92,15 +123,15 @@ const Footer: FC = () => {
                     <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
                   </svg>
                   <p className="font-light text-sm text-center">
-                    <span className="text-[#D4AF37]">Seg - Sáb:</span> {segSex}
+                    <span className="text-[#D4AF37]">{rangeLabel}:</span> {diaHours}
                   </p>
                 </div>
               )}
-              {sabado && segSex !== `${sabado}` && (
+              {domingo && (
                 <div className="flex flex-col items-center text-zinc-400">
                   <div className="w-5 h-5 mb-2" />
                   <p className="font-light text-sm text-center">
-                    <span className="text-[#D4AF37]">Sábado:</span> {sabado}
+                    <span className="text-[#D4AF37]">Domingo:</span> {domingo}
                   </p>
                 </div>
               )}
@@ -199,7 +230,7 @@ const Footer: FC = () => {
                   Bairro Tupi, BH
                 </p>
               </div>
-              {segSex && (
+              {diaHours && (
                 <div className="flex items-start gap-3 text-zinc-400">
                   <svg
                     viewBox="0 0 24 24"
@@ -209,15 +240,15 @@ const Footer: FC = () => {
                     <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
                   </svg>
                   <p className="font-light text-sm">
-                    <span className="text-[#D4AF37]">Seg - Sáb:</span> {segSex}
+                    <span className="text-[#D4AF37]">{rangeLabel}:</span> {diaHours}
                   </p>
                 </div>
               )}
-              {sabado && segSex !== `${sabado}` && (
+              {domingo && (
                 <div className="flex items-start gap-3 text-zinc-400">
                   <div className="w-4 h-4 shrink-0" />
                   <p className="font-light text-sm">
-                    <span className="text-[#D4AF37]">Sábado:</span> {sabado}
+                    <span className="text-[#D4AF37]">Domingo:</span> {domingo}
                   </p>
                 </div>
               )}

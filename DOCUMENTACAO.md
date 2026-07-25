@@ -8,7 +8,8 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 > botao 'Tirar Folga' no dashboard (DayOffButton), trigger de normalizacao de nomes de
 > clientes (anti-burro), correcao RLS dos depoimentos (TO anon, authenticated),
 > centralizacao de APIs em src/lib/api/, hooks useAsyncData/useAsyncEffect,
-> e limpeza de codigo morto (~30 refatoracoes de setStateInEffect).
+> limpeza de codigo morto (~30 refatoracoes de setStateInEffect),
+> e simplificacao do menu de configuracoes mobile (remocao de items redundantes).
 
 ---
 
@@ -210,7 +211,6 @@ No Settings > Conta, ao clicar na foto de perfil abre um popover com opcoes:
 - `usePwaInstall` — Deteccao de plataforma e instalacao PWA
 - `useXlsxExport` — Exportacao de dados para Excel (XLSX)
 - `useCsvExport` — Exportacao de dados para CSV
-- `useRevenueChartData` — Calculo de dados para graficos de faturamento
 - `useProfileStats` — Estatisticas do perfil do admin
 - `useMensalistaFilter` — Filtro de clientes mensalistas
 - `useNoShow` — Controle de faltas (markAsNoShow, undoNoShow)

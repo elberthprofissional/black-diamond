@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { getClients, getClientByPhone } from '../lib/api';
+import { getClients, getClientByPhone, getMensalistaPlans } from '../lib/api';
 import { formatPhone } from '../lib/utils';
 import { useToast } from './useToast';
 import { BLOCKED_NAME } from '../lib/constants';
@@ -45,7 +45,14 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
   const [isManualEntry, setIsManualEntry] = useState(true);
   const [isMensalista, setIsMensalista] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<MensalistaPlan | null>(null);
-  const [allPlans] = useState<MensalistaPlan[]>([]);
+  const [allPlans, setAllPlans] = useState<MensalistaPlan[]>([]);
+
+  // Load plans on mount
+  useEffect(() => {
+    getMensalistaPlans()
+      .then(setAllPlans)
+      .catch(() => {});
+  }, []);
   const [filteredClientsForModal, setFilteredClientsForModal] = useState<ClientWithEnriched[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -111,13 +118,22 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
   }, [showError]);
 
   // Select a matched client (from search results or modal)
-  const selectClient = useCallback((client: Client) => {
-    setSelectedClient(client);
-    setMultipleMatches([]);
-    setIsManualEntry(false);
-    setIsMensalista(!!client.is_mensalista);
-    setCurrentPlan(null);
-  }, []);
+  const selectClient = useCallback(
+    (client: Client) => {
+      setSelectedClient(client);
+      setMultipleMatches([]);
+      setIsManualEntry(false);
+      setIsMensalista(!!client.is_mensalista);
+      // Find matching plan
+      if (client.mensalista_plan_id) {
+        const plan = allPlans.find((p) => p.id === client.mensalista_plan_id);
+        setCurrentPlan(plan || null);
+      } else {
+        setCurrentPlan(null);
+      }
+    },
+    [allPlans]
+  );
 
   const handleSearch = useCallback(() => {
     if (!searchQuery.trim()) {

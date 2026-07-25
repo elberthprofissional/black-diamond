@@ -118,18 +118,47 @@ export function useClientPanel(
   const [expiresAt, setExpiresAt] = useState<string>('');
 
   const handleToggleMensalista = useCallback(
-    async (planId?: string): Promise<boolean> => {
+    async (planId?: string, expiryDate?: string): Promise<boolean> => {
       if (!selectedClient) return false;
       try {
         const newValue = !selectedClient.is_mensalista;
-        const expDate = newValue ? expiresAt || null : null;
-        await toggleClientMensalista(selectedClient.id, newValue, planId, expDate);
+        // If removing, just toggle off
+        if (!newValue) {
+          await toggleClientMensalista(selectedClient.id, false);
+          setSelectedClient((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  is_mensalista: false,
+                  mensalista_plan_id: undefined,
+                  mensalista_expires_at: undefined,
+                }
+              : prev
+          );
+          setClients((prev) =>
+            prev.map((c) =>
+              c.id === selectedClient.id
+                ? {
+                    ...c,
+                    is_mensalista: false,
+                    mensalista_plan_id: undefined,
+                    mensalista_expires_at: undefined,
+                  }
+                : c
+            )
+          );
+          showSuccess('Mensalidade removida.');
+          return true;
+        }
+        // If activating, use provided planId and expiryDate
+        const expDate = expiryDate || expiresAt || null;
+        await toggleClientMensalista(selectedClient.id, true, planId, expDate);
         setSelectedClient((prev) =>
           prev
             ? {
                 ...prev,
-                is_mensalista: newValue,
-                mensalista_plan_id: newValue ? planId : undefined,
+                is_mensalista: true,
+                mensalista_plan_id: planId || undefined,
                 mensalista_expires_at: expDate || undefined,
               }
             : prev
@@ -139,15 +168,15 @@ export function useClientPanel(
             c.id === selectedClient.id
               ? {
                   ...c,
-                  is_mensalista: newValue,
-                  mensalista_plan_id: newValue ? planId : undefined,
+                  is_mensalista: true,
+                  mensalista_plan_id: planId || undefined,
                   mensalista_expires_at: expDate || undefined,
                 }
               : c
           )
         );
         setExpiresAt('');
-        showSuccess(newValue ? 'Cliente agora é mensalista!' : 'Mensalidade removida.');
+        showSuccess('Cliente agora é mensalista!');
         return true;
       } catch (error) {
         showError(getErrorMessage(error));

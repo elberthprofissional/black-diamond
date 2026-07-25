@@ -1,4 +1,4 @@
-import { useState, useEffect, type FC } from 'react';
+import { useEffect, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 import OnboardingWizard from '../components/Admin/OnboardingWizard';

@@ -44,13 +44,6 @@ const AdminDashboard: FC = () => {
       <div className="space-y-5">
         <OfflineBanner isCached={data.isCached} onRetry={data.loadData} />
 
-        <CompleteBanner
-          expiredCount={data.expiredCount}
-          loading={data.loading}
-          onComplete={data.handleAutoComplete}
-          onDismiss={data.dismissExpiredBanner}
-        />
-
         {isOwner && barbers.length > 1 && (
           <BarberFilter
             selectedBarberId={selectedBarberFilter}
@@ -88,6 +81,13 @@ const AdminDashboard: FC = () => {
           nextBooking={data.nextBooking}
           dailyRevenue={data.dailyRevenue}
           onSelectNext={() => data.nextBooking && mgmt.setSelectedBooking(data.nextBooking)}
+        />
+
+        <CompleteBanner
+          expiredCount={data.expiredCount}
+          loading={data.loading}
+          onComplete={data.handleAutoComplete}
+          onDismiss={data.dismissExpiredBanner}
         />
 
         {showFilterTabs && (

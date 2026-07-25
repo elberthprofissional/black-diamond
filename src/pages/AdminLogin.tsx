@@ -27,7 +27,7 @@ const AdminLogin: FC = () => {
   const { toast, showError } = useToast();
   const navigate = useNavigate();
   const isPWA =
-    window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    window.matchMedia('(display-mode: standalone)').matches || !!window.navigator.standalone;
   const { isBlocked, attempts, maxAttempts, recordAttempt, getTimeUntilReset } = useRateLimit(
     'login',
     {

@@ -110,8 +110,14 @@ export function BookingWizardProvider({
     setUserInfo((prev) => ({ ...prev, name }));
   }, []);
 
-  const { isMensalista, mensalistaPlanId, clientLookupLoading, clientId, lastBooking } =
-    useClientLookup(userInfo.phone, handleNameFound);
+  const {
+    isMensalista,
+    mensalistaPlanId,
+    planName: clientPlanName,
+    clientLookupLoading,
+    clientId,
+    lastBooking,
+  } = useClientLookup(userInfo.phone, handleNameFound);
 
   // ── Loyalty ──
   const { nextMilestone } = useBookingLoyalty(clientId);
@@ -223,8 +229,8 @@ export function BookingWizardProvider({
 
   const planName = useMemo(() => {
     if (!isMensalista || !mensalistaPlanId) return undefined;
-    return 'Mensalista';
-  }, [isMensalista, mensalistaPlanId]);
+    return clientPlanName || 'Mensalista';
+  }, [isMensalista, mensalistaPlanId, clientPlanName]);
 
   const value = useMemo<BookingWizardValue>(
     () => ({

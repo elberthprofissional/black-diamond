@@ -1,55 +1,39 @@
 import { type FC } from 'react';
 import {
-  User,
-  Bell,
-  Trash2,
+  Users,
   ChevronRight,
-  AlertTriangle,
   Image as ImageIcon,
   Clock,
   Scissors,
-  LogOut,
   UserX,
   Gift,
   Tag,
   MessageSquare,
+  Crown,
 } from 'lucide-react';
 
 interface SettingsListProps {
   onSelect: (section: string) => void;
-  onLogoutClick?: () => void;
 }
 
 const groups = [
   {
-    title: 'Sua Conta',
-    items: [
-      { id: 'conta', label: 'Conta', icon: User, danger: false },
-      { id: 'notificacoes', label: 'Notificações', icon: Bell, danger: false },
-    ],
-  },
-  {
     title: 'Barbearia',
     items: [
       { id: 'servicos', label: 'Serviços', icon: Scissors, danger: false },
+      { id: 'barbeiros', label: 'Barbeiros', icon: Users, danger: false },
       { id: 'horarios', label: 'Horários', icon: Clock, danger: false },
       { id: 'faltas', label: 'Controle de Faltas', icon: UserX, danger: false },
       { id: 'fidelidade', label: 'Fidelidade', icon: Gift, danger: false },
       { id: 'cupons', label: 'Cupons', icon: Tag, danger: false },
+      { id: 'mensalista', label: 'Mensalista', icon: Crown, danger: false },
       { id: 'galeria', label: 'Galeria', icon: ImageIcon, danger: false },
       { id: 'depoimentos', label: 'Depoimentos', icon: MessageSquare, danger: false },
     ],
   },
-  {
-    title: 'Segurança',
-    items: [
-      { id: 'dados', label: 'Zona de Segurança', icon: Trash2, danger: true },
-      { id: 'sair', label: 'Sair', icon: LogOut, danger: true },
-    ],
-  },
 ];
 
-const SettingsList: FC<SettingsListProps> = ({ onSelect, onLogoutClick }) => {
+const SettingsList: FC<SettingsListProps> = ({ onSelect }) => {
   return (
     <div className="max-w-lg mx-auto space-y-6 px-4 sm:px-0">
       {groups.map((group) => (
@@ -63,7 +47,7 @@ const SettingsList: FC<SettingsListProps> = ({ onSelect, onLogoutClick }) => {
               return (
                 <button
                   key={cat.id}
-                  onClick={() => (cat.id === 'sair' ? onLogoutClick?.() : onSelect(cat.id))}
+                  onClick={() => onSelect(cat.id)}
                   className={`w-full flex items-center gap-4 py-4 transition-all cursor-pointer ${
                     cat.danger
                       ? 'hover:bg-red-500/[0.04] border border-transparent hover:border-red-500/20 rounded-xl px-1'
@@ -79,11 +63,7 @@ const SettingsList: FC<SettingsListProps> = ({ onSelect, onLogoutClick }) => {
                   >
                     {cat.label}
                   </span>
-                  {cat.danger ? (
-                    <AlertTriangle size={14} className="text-red-500/60 animate-pulse" />
-                  ) : (
-                    <ChevronRight size={16} className="text-zinc-600" />
-                  )}
+                  <ChevronRight size={16} className="text-zinc-600" />
                 </button>
               );
             })}

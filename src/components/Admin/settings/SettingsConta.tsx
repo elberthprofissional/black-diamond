@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type FC } from 'react';
+import { useState, useRef, type FC } from 'react';
 import { useBarberSettings } from '../../../hooks/useBarberSettings';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';

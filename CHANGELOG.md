@@ -5,6 +5,26 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.26.0] - 2026-07-25
+
+### Changed
+- **Depoimentos — layout reordenado** — Nome do cliente movido para o topo dos cards (acima das estrelas). Ícone de aspas decorativo (`Quote`) removido dos cards.
+- **Depoimentos — header Google Reviews** — Seção "de X depoimentos" substituída por badge estilizado com ícone Google, nota média e texto "X avaliações no Google".
+- **Galeria — lightbox removido** — Lightbox (modal de preview em tela cheia) removido da galeria pública. Imagens ficam apenas para visualização com hover zoom. Lightbox mantido apenas no painel admin.
+- **Footer — horários dinâmicos** — Labels de dias agora são calculados dinamicamente baseados nos dias habilitados (antes era hardcoded "Seg - Sáb"). Suporte a domingo.
+- **Service Worker — response.clone()** — Adicionado `.clone()` antes de `cache.put()` para evitar erro "Response body already consumed".
+- **Testimonials API — ordenação** — Ordenação alterada de `publish_time` para `created_at` (mais confiável).
+- **Google Fonts — crossorigin removido** — Removido atributo `crossorigin` do preload de fontes (causava warning).
+
+### Removed
+- **Galeria — lightbox** — Modal de preview em tela cheia removido da galeria pública (mantido no admin).
+- **Galeria — imports mortos** — `X`, `ChevronLeft`, `ChevronRight`, `useModalA11y` removidos.
+- **Mensalista plans API** — `getMensalistaPlans` retorna array vazio (tabela removida do banco).
+- **useRevenueChartData** — Hook removido (gráfico de faturamento removido anteriormente).
+
+### Fixed
+- **Service Worker body consumed** — Corrigido bug onde `response` era consumido sem `.clone()` antes de salvar no cache, causando erros silenciosos em beberapa fetch strategies.
+
 ## [3.25.0] - 2026-07-25
 
 ### Added
@@ -36,6 +56,11 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 ### Changed
 - **"Folga" renomeado para "Tirar Folga"** — Botão no dashboard mais autoexplicativo.
 - **DayOffButton** — Modal de confirmação com backdrop blur para evitar ações acidentais.
+- **Mobile settings simplificado** — Removida redundância: "Conta", "Notificações", "Zona de Segurança" e "Sair" duplicavam atalhos já presentes na página de perfil. SettingsList agora exibe apenas configurações da Barbearia (Serviços, Barbeiros, Horários, Controle de Faltas, Fidelidade, Cupons, Galeria, Depoimentos).
+
+### Cleanup
+- **onLogoutClick prop morta** — Removida de SettingsList, AdminProfileSettings e AdminProfile.
+- **Imports não utilizados** — User, Bell, Trash2, AlertTriangle, LogOut removidos do SettingsList.
 
 ### Tests
 - **1.211 testes passando** — 111 arquivos, 100% verde.

@@ -17,7 +17,7 @@ export const getActiveTestimonials = async (): Promise<Testimonial[]> => {
       .eq('is_active', true)
       .not('text', 'is', null)
       .neq('text', '')
-      .order('publish_time', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false, nullsFirst: false })
       .order('sort_order', { ascending: true });
 
     if (error) throw error;

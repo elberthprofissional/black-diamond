@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type FC } from 'react';
+import { useState, useRef, type FC } from 'react';
 import { User } from 'lucide-react';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 

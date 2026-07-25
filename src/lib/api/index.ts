@@ -61,5 +61,15 @@ export {
   deleteTestimonial,
 } from './testimonials';
 
+export {
+  getMensalistaPlans,
+  getAllMensalistaPlans,
+  createMensalistaPlan,
+  updateMensalistaPlan,
+  deleteMensalistaPlan,
+  getMensalistaPlanName,
+  getMensalistaPlanServices,
+} from './mensalista';
+
 export { getBarbers, getBarberByUserId, upsertBarber, deleteBarber } from './barbers';
 export type { Barber } from '../../types';

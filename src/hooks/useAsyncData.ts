@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { logError } from '../lib/logger';
 
 interface UseAsyncDataOptions<T> {
   /** Called on mount to fetch initial data */

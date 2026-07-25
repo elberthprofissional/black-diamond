@@ -119,7 +119,7 @@ self.addEventListener('fetch', (e) => {
       caches.open(STATIC_CACHE).then((cache) =>
         cache.match(e.request).then((cached) => {
           const fetched = fetch(e.request).then((response) => {
-            if (response.ok) cache.put(e.request, addTimestamp(response));
+            if (response.ok) cache.put(e.request, addTimestamp(response.clone()));
             return response;
           }).catch(() => cached);
 
@@ -147,7 +147,7 @@ self.addEventListener('fetch', (e) => {
         cache.match(e.request).then((cached) => {
           if (cached && isCacheFresh(cached)) return cached;
           return fetch(e.request).then((response) => {
-            if (response.ok) cache.put(e.request, addTimestamp(response));
+            if (response.ok) cache.put(e.request, addTimestamp(response.clone()));
             return response;
           }).catch(() => cached);
         })
@@ -173,7 +173,7 @@ self.addEventListener('fetch', (e) => {
         cache.match(e.request).then((cached) => {
           if (cached && isCacheFresh(cached)) return cached;
           return fetch(e.request).then((response) => {
-            if (response.ok) cache.put(e.request, addTimestamp(response));
+            if (response.ok) cache.put(e.request, addTimestamp(response.clone()));
             return response;
           }).catch(() => cached || new Response('', { status: 408 }));
         })

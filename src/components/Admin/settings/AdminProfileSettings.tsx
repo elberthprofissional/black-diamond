@@ -13,6 +13,7 @@ import {
   Bell,
   Scissors,
   Users,
+  Crown,
 } from 'lucide-react';
 import SettingsList from './SettingsList';
 
@@ -26,6 +27,7 @@ const SettingsFaltas = lazy(() => import('./SettingsFaltas'));
 const SettingsFidelidade = lazy(() => import('./SettingsFidelidade'));
 const SettingsCupons = lazy(() => import('./SettingsCupons'));
 const SettingsBarbeiros = lazy(() => import('./SettingsBarbeiros'));
+const SettingsMensalista = lazy(() => import('./SettingsMensalista'));
 
 const sectionTitle = (section: string | null) => {
   const titles: Record<string, string> = {
@@ -37,6 +39,7 @@ const sectionTitle = (section: string | null) => {
     barbeiros: 'Barbeiros',
     fidelidade: 'Fidelidade',
     cupons: 'Cupons',
+    mensalista: 'Mensalista',
     notificacoes: 'Notificações',
     dados: 'Zona de Segurança',
   };
@@ -52,6 +55,7 @@ const NAV_ITEMS = [
   { id: 'faltas', label: 'Controle de Faltas', icon: UserX },
   { id: 'fidelidade', label: 'Fidelidade', icon: Gift },
   { id: 'cupons', label: 'Cupons', icon: Tag },
+  { id: 'mensalista', label: 'Mensalista', icon: Crown },
   { id: 'notificacoes', label: 'Notificações', icon: Bell },
   { id: 'dados', label: 'Segurança', icon: Shield },
 ];
@@ -60,17 +64,11 @@ interface Props {
   settingsSection: string | null;
   setSettingsSection: (s: string | null) => void;
   setShowHelp: (s: boolean) => void;
-  onLogoutClick: () => void;
 }
 
 const Fallback = () => <div className="skeleton-pulse h-32" />;
 
-const AdminProfileSettings: FC<Props> = ({
-  settingsSection,
-  setSettingsSection,
-  setShowHelp,
-  onLogoutClick,
-}) => (
+const AdminProfileSettings: FC<Props> = ({ settingsSection, setSettingsSection, setShowHelp }) => (
   <>
     {/* Mobile header */}
     <div className="lg:hidden flex items-center gap-3 px-4 -mt-1 mb-4">
@@ -100,9 +98,7 @@ const AdminProfileSettings: FC<Props> = ({
 
     {/* Mobile: list or section */}
     <div className="lg:hidden">
-      {settingsSection === null && (
-        <SettingsList onSelect={setSettingsSection} onLogoutClick={onLogoutClick} />
-      )}
+      {settingsSection === null && <SettingsList onSelect={setSettingsSection} />}
       <Suspense fallback={<Fallback />}>
         {settingsSection === 'conta' && <SettingsConta />}
         {settingsSection === 'galeria' && <SettingsGaleria />}
@@ -112,6 +108,7 @@ const AdminProfileSettings: FC<Props> = ({
         {settingsSection === 'faltas' && <SettingsFaltas />}
         {settingsSection === 'fidelidade' && <SettingsFidelidade />}
         {settingsSection === 'cupons' && <SettingsCupons />}
+        {settingsSection === 'mensalista' && <SettingsMensalista />}
         {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
         {settingsSection === 'dados' && <SettingsDados />}
       </Suspense>
@@ -163,6 +160,7 @@ const AdminProfileSettings: FC<Props> = ({
               {settingsSection === 'faltas' && <SettingsFaltas />}
               {settingsSection === 'fidelidade' && <SettingsFidelidade />}
               {settingsSection === 'cupons' && <SettingsCupons />}
+              {settingsSection === 'mensalista' && <SettingsMensalista />}
               {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
               {settingsSection === 'dados' && <SettingsDados />}
             </Suspense>

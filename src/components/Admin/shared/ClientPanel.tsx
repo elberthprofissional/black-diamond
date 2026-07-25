@@ -1,8 +1,19 @@
 import { useState, useEffect, useMemo, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Pencil, Trash2, Plus, Crown, Gift, ArrowLeft, Check, ChevronRight } from 'lucide-react';
-import { formatPhone, formatPricePublic } from '../../../lib/utils';
+import {
+  X,
+  Pencil,
+  Trash2,
+  Plus,
+  Crown,
+  Gift,
+  ArrowLeft,
+  Check,
+  ChevronRight,
+  AlertTriangle,
+} from 'lucide-react';
+import { formatPhone, formatPricePublic, getLocalDateString } from '../../../lib/utils';
 import { cleanPhoneForWhatsApp } from '../../../lib/whatsapp';
 import { getServices, type MilestoneProgress } from '../../../lib/api';
 import type { ClientWithStats, BookingWithClient, MensalistaPlan, Service } from '../../../types';
@@ -139,11 +150,52 @@ const ClientPanel: FC<ClientPanelProps> = ({
     setShowHistory(true);
   };
 
+  const [showMensalistaModal, setShowMensalistaModal] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState('');
+  const [mensalistaExpiryDate, setMensalistaExpiryDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return getLocalDateString(d);
+  });
+
   const handleMensalistaClick = async () => {
+    // If already mensalista, just remove
+    if (client.is_mensalista) {
+      setSavingMensalista(true);
+      await onToggleMensalista();
+      setSavingMensalista(false);
+      return;
+    }
+    // Show plan selection modal
+    if (_plans.length > 0) {
+      setSelectedPlanId(_plans[0]?.id || '');
+      const d = new Date();
+      d.setDate(d.getDate() + 30);
+      setMensalistaExpiryDate(getLocalDateString(d));
+      setShowMensalistaModal(true);
+    } else {
+      setSavingMensalista(true);
+      await onToggleMensalista();
+      setSavingMensalista(false);
+    }
+  };
+
+  const confirmMensalistaPlan = async () => {
+    setShowMensalistaModal(false);
     setSavingMensalista(true);
-    await onToggleMensalista(client.is_mensalista ? undefined : 'plan-id');
+    await onToggleMensalista(selectedPlanId || undefined, mensalistaExpiryDate);
     setSavingMensalista(false);
   };
+
+  // Detect expiration status
+  const expiryDate = client.mensalista_expires_at
+    ? new Date(client.mensalista_expires_at + 'T23:59:59')
+    : null;
+  const isExpiringSoon =
+    expiryDate &&
+    expiryDate > new Date() &&
+    expiryDate <= new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
+  const isExpired = expiryDate && expiryDate < new Date();
 
   return (
     <div className="fixed inset-0 z-[200] flex justify-end flex-col sm:flex-row">
@@ -208,9 +260,17 @@ const ClientPanel: FC<ClientPanelProps> = ({
                   {client.name}
                 </h2>
                 {client.is_mensalista && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-full shrink-0">
-                    <Crown size={10} className="text-[#D4AF37]" />
-                    <span className="text-[10px] font-bold text-[#D4AF37] uppercase">
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full shrink-0 ${
+                      isExpired
+                        ? 'bg-red-500/10 border border-red-500/20 text-red-400'
+                        : isExpiringSoon
+                          ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
+                          : 'bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-[#D4AF37]'
+                    }`}
+                  >
+                    {isExpired ? <AlertTriangle size={10} /> : <Crown size={10} />}
+                    <span className="text-[10px] font-bold uppercase">
                       {planName || 'Mensalista'}
                     </span>
                   </span>
@@ -305,11 +365,13 @@ const ClientPanel: FC<ClientPanelProps> = ({
                 : 'border-white/[0.06] bg-white/[0.02] text-zinc-400 hover:bg-white/[0.04] hover:text-white'
             }`}
           >
-            <Crown size={12} />
+            {isExpired ? <AlertTriangle size={12} /> : <Crown size={12} />}
             {savingMensalista
               ? 'Salvando...'
               : client.is_mensalista
-                ? 'Remover Mensalista'
+                ? isExpired
+                  ? 'Renovar Mensalista'
+                  : 'Remover Mensalista'
                 : 'Tornar Mensalista'}
           </button>
 
@@ -371,6 +433,91 @@ const ClientPanel: FC<ClientPanelProps> = ({
               </div>
             </div>
           )}
+
+          {/* Mensalista Plan Selection Modal */}
+          <AnimatePresence>
+            {showMensalistaModal && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[500] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center"
+                onClick={() => setShowMensalistaModal(false)}
+              >
+                <motion.div
+                  initial={{ y: '100%' }}
+                  animate={{ y: 0 }}
+                  exit={{ y: '100%' }}
+                  transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+                  className="w-full sm:max-w-sm bg-[#141414] sm:rounded-xl rounded-t-2xl overflow-hidden border border-white/[0.06]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="px-5 pt-5 pb-3 space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Crown size={16} className="text-[#D4AF37]" />
+                      <p className="text-[14px] font-semibold text-white">Ativar Mensalista</p>
+                    </div>
+                    <p className="text-[12px] text-zinc-500">
+                      Selecione o plano e a data de validade.
+                    </p>
+
+                    {/* Plan selection */}
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">
+                        Plano
+                      </label>
+                      <div className="space-y-1">
+                        {_plans.map((plan) => (
+                          <button
+                            key={plan.id}
+                            onClick={() => setSelectedPlanId(plan.id)}
+                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all cursor-pointer ${
+                              selectedPlanId === plan.id
+                                ? 'bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-[#D4AF37]'
+                                : 'hover:bg-white/[0.03] border border-transparent text-zinc-400'
+                            }`}
+                          >
+                            <span className="text-[13px] font-medium">{plan.name}</span>
+                            <span className="text-[13px] font-bold">
+                              {formatPricePublic(plan.price)}/mês
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Expiry date */}
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">
+                        Válido até
+                      </label>
+                      <input
+                        type="date"
+                        value={mensalistaExpiryDate}
+                        onChange={(e) => setMensalistaExpiryDate(e.target.value)}
+                        className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-[#D4AF37]/30 transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex border-t border-white/[0.06]">
+                    <button
+                      onClick={() => setShowMensalistaModal(false)}
+                      className="flex-1 py-3 text-[12px] font-medium text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <div className="w-px bg-white/[0.06]" />
+                    <button
+                      onClick={confirmMensalistaPlan}
+                      className="flex-1 py-3 text-[12px] font-semibold text-[#D4AF37] hover:text-[#b8962e] transition-colors cursor-pointer"
+                    >
+                      Ativar
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {client.is_mensalista && expiresAt && (
             <div className="flex items-center justify-between px-4 py-3 bg-[#121212] border border-white/[0.04] rounded-xl">
