@@ -6,6 +6,9 @@ type ConnectionStatus = 'connected' | 'disconnected' | 'checking';
 let globalStatus: ConnectionStatus = 'connected';
 const listeners: Set<(s: ConnectionStatus) => void> = new Set();
 
+// Singleton do heartbeat channel — evita canal duplicado
+let heartbeatChannel: ReturnType<typeof supabase.channel> | null = null;
+
 function notifyListeners(status: ConnectionStatus) {
   globalStatus = status;
   listeners.forEach((fn) => fn(status));
@@ -13,8 +16,8 @@ function notifyListeners(status: ConnectionStatus) {
 
 export function useConnectionStatus() {
   const [status, setStatus] = useState<ConnectionStatus>(globalStatus);
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const mountedRef = useRef(true);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     listeners.add(setStatus);
@@ -48,31 +51,29 @@ export function useConnectionStatus() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Supabase channel heartbeat — most reliable connection indicator
-    const channel = supabase.channel('connection-heartbeat');
-    channel
-      .on('system', { event: 'connected' }, () => {
-        if (mountedRef.current) notifyListeners('connected');
-      })
-      .on('system', { event: 'disconnected' }, () => {
-        if (mountedRef.current) notifyListeners('disconnected');
-      })
-      .subscribe((s) => {
-        if (!mountedRef.current) return;
-        if (s === 'SUBSCRIBED') notifyListeners('connected');
-        else if (s === 'CHANNEL_ERROR') notifyListeners('disconnected');
-      });
-
-    channelRef.current = channel;
+    // Só cria o heartbeat se ainda não existe — singleton real
+    if (!heartbeatChannel) {
+      heartbeatChannel = supabase.channel('connection-heartbeat');
+      heartbeatChannel
+        .on('system', { event: 'connected' }, () => {
+          if (mountedRef.current) notifyListeners('connected');
+        })
+        .on('system', { event: 'disconnected' }, () => {
+          if (mountedRef.current) notifyListeners('disconnected');
+        })
+        .subscribe((s) => {
+          if (!mountedRef.current) return;
+          if (s === 'SUBSCRIBED') notifyListeners('connected');
+          else if (s === 'CHANNEL_ERROR') notifyListeners('disconnected');
+        });
+    }
 
     return () => {
       mountedRef.current = false;
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
+      // Não remove o canal no cleanup — é singleton global
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
     };
   }, [checkConnection]);
 

@@ -104,22 +104,25 @@ export function useBookingModals(loadData: () => Promise<void>, services: Servic
       setSelectedBooking(null);
 
       // Fire-and-forget: create notification (don't block UI)
-      supabase.auth.getUser().then(({ data: { user } }) => {
-        if (!user) return;
-        supabase
-          .from('notifications')
-          .insert({
-            user_id: user.id,
-            title: 'Agendamento Cancelado',
-            body: `${clientName || 'Cliente'} — ${bookingDate} às ${bookingTime?.slice(0, 5)}`,
-            tag: `booking-cancelled-${id}`,
-            url: '/admin',
-          })
-          .then(
-            () => {},
-            () => {}
-          );
-      });
+      supabase.auth.getUser().then(
+        ({ data: { user } }) => {
+          if (!user) return;
+          supabase
+            .from('notifications')
+            .insert({
+              user_id: user.id,
+              title: 'Agendamento Cancelado',
+              body: `${clientName || 'Cliente'} — ${bookingDate} às ${bookingTime?.slice(0, 5)}`,
+              tag: `booking-cancelled-${id}`,
+              url: '/admin',
+            })
+            .then(
+              () => {},
+              () => {}
+            );
+        },
+        () => {}
+      );
 
       showSuccess('Agendamento cancelado!');
     } catch (error) {

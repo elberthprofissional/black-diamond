@@ -2,14 +2,12 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, notificacoes push e integracao com WhatsApp.
 
-**Versao:** 3.25.0 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.27.1 | **Ultima atualizacao:** Julho 2026
 
-> NOTA: Esta versao inclui auto-complete de agendamentos expirados (CompleteBanner),
-> botao 'Tirar Folga' no dashboard (DayOffButton), trigger de normalizacao de nomes de
-> clientes (anti-burro), correcao RLS dos depoimentos (TO anon, authenticated),
-> centralizacao de APIs em src/lib/api/, hooks useAsyncData/useAsyncEffect,
-> limpeza de codigo morto (~30 refatoracoes de setStateInEffect),
-> e simplificacao do menu de configuracoes mobile (remocao de items redundantes).
+> NOTA: Esta versao inclui Mensalista Reborn (CRUD de planos premium,
+> badges com status de expiracao, booking inteligente), Auto-cancel
+> com 2h de buffer (marca como cancelled, sem banner), e No-show
+> inteligente (notifica o barbeiro com WhatsApp DM ao inves de bloquear).
 
 ---
 
@@ -304,13 +302,13 @@ O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto v
 - **Galeria:** Upload, delete, reordenacao e multi-select de fotos do portfolio (max 8 fotos)
 - **Horarios:** Configuracao de dias e horarios de funcionamento + **horario de almoço recorrente**
 - **Servicos:** Gerenciamento de servicos e precos
-- **Mensalista:** Planos, servicos exclusos, gestao de clientes mensalistas
-- **Controle de Faltas:** Configuracao de limite de faltas e bloqueio automatico
+- **Barbeiros:** Gerenciamento de barbeiros
+- **Mensalista:** Planos, servicos inclusos, duracao, dias permitidos — CRUD premium com glassmorphism
+- **Controle de Faltas:** Configuracao de limite de faltas (agora sem bloqueio automatico — so notifica)
 - **Fidelidade:** Configuracao de meta de visitas e servico premio
 - **Cupons:** Gerenciamento de cupons de desconto (CRUD) — tipos: valor fixo, porcentagem e servico gratis
 - **Depoimentos:** Gerenciamento de depoimentos de clientes (CRUD)
 - **Notificacoes:** Toggle de notificacoes push
-- **Zona de Seguranca:** Resetar financeiro e deletar clientes
 
 ---
 
@@ -318,9 +316,9 @@ O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto v
 
 Schema completo: `supabase/migrations/` (migrations consolidadas)
 
-### Migrations Consolidadas
+### Migrations
 
-O projeto usa 6 migrations consolidadas (substituem as 14+ migrations anteriores):
+O projeto usa 9 migrations:
 
 | Arquivo | Conteudo |
 |---------|----------|
@@ -330,6 +328,9 @@ O projeto usa 6 migrations consolidadas (substituem as 14+ migrations anteriores
 | `004_triggers.sql` | Triggers de notificacao + realtime |
 | `005_seed_cron.sql` | Dados iniciais + 6 cron jobs (seed e cron unificados) |
 | `006_multi_barber.sql` | Multi-barber (barbers, barber_settings, RPCs, triggers atualizados) |
+| `007_mensalista_reborn.sql` | Tabela mensalista_plans, RPCs, RLS, cron de notificacao |
+| `008_auto_complete_2h_buffer.sql` | Auto-cancel com 2h de buffer (cancelled ao inves de completed) |
+| `009_remove_no_show_block.sql` | Remove bloqueio automatico de clientes (so notifica) |
 
 ### Tabelas
 
@@ -437,8 +438,8 @@ current_uses INTEGER, is_active BOOLEAN, applicable_service_ids UUID[], created_
 | `health_check` | Verifica status do banco e retorna metricas basicas |
 | `validate_coupon` | Valida cupom por codigo, verifica validade, usos e servicos elegiveis |
 | `apply_coupon` | Incrementa contador de usos do cupom |
-| `is_client_blocked_by_no_show` | Verifica se cliente esta bloqueado por excesso de faltas |
-| `check_client_no_show_block` | Bloqueia agendamento se cliente exceder limite de faltas |
+| `is_client_blocked_by_no_show` | ~~Verifica se cliente esta bloqueado~~ Sempre retorna false (desativado) |
+| `check_client_no_show_block` | ~~Bloqueia agendamento~~ No-op (so notifica, nao bloqueia) |
 | `get_last_booking_by_phone` | Busca ultimo agendamento por telefone (com rate limit) |
 | `lookup_client_by_phone_rate_limited` | Busca cliente com rate limit (wrapper) |
 | `get_bookings_by_phone_rate_limited` | Busca agendamentos com rate limit (wrapper) |

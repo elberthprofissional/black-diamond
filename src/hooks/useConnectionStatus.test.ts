@@ -98,12 +98,13 @@ describe('useConnectionStatus', () => {
     });
   });
 
-  it('remove canal do Supabase no unmount', async () => {
+  it('mantem canal heartbeat como singleton (nao remove no unmount)', async () => {
     const { useConnectionStatus } = await import('./useConnectionStatus');
     const { unmount } = renderHook(() => useConnectionStatus());
 
     unmount();
 
-    expect(mockRemoveChannel).toHaveBeenCalled();
+    // O heartbeat channel é singleton global — não deve ser removido no unmount
+    expect(mockRemoveChannel).not.toHaveBeenCalled();
   });
 });

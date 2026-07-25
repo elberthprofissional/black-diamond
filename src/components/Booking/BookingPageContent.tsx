@@ -1,4 +1,4 @@
-import { memo, type FC } from 'react';
+import { memo, useRef, useEffect, type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DataStep from './DataStep';
 import BarberStep from './BarberStep';
@@ -24,6 +24,14 @@ const BookingPageContent: FC = memo(() => {
   const ctx = useBookingWizardContext();
   const isDesktop = useIsDesktop();
   const layout = isDesktop ? ('desktop' as const) : ('mobile' as const);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const renderStepContent = (stepIndex: number) => {
     switch (stepIndex) {
@@ -127,7 +135,7 @@ const BookingPageContent: FC = memo(() => {
           <BookingDesktopProgress step={ctx.step} stepTitle={ctx.stepTitle} goBack={ctx.goBack} />
 
           <div className="flex-1 overflow-y-auto px-14 pt-10 pb-6 flex flex-col">
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
               {ctx.servicesLoading && (
                 <motion.div
                   key="skeleton-desktop"
@@ -225,7 +233,7 @@ const BookingPageContent: FC = memo(() => {
         )}
 
         {!ctx.servicesLoading && (
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="popLayout">
             {ctx.step <= 5 && (
               <motion.div
                 key={`m${ctx.step}`}

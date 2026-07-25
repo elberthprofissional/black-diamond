@@ -8,7 +8,6 @@ import { useBookingStatusCounts } from '../hooks/useBookingStatusCounts';
 import AdminLayout from '../components/Admin/AdminLayout';
 import DashboardHeader from '../components/Admin/shared/DashboardHeader';
 import OfflineBanner from '../components/Admin/shared/OfflineBanner';
-import CompleteBanner from '../components/Admin/shared/CompleteBanner';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
 import OccupiedPanel from '../components/Admin/shared/OccupiedPanel';
 import FreePanel from '../components/Admin/shared/FreePanel';
@@ -81,13 +80,6 @@ const AdminDashboard: FC = () => {
           nextBooking={data.nextBooking}
           dailyRevenue={data.dailyRevenue}
           onSelectNext={() => data.nextBooking && mgmt.setSelectedBooking(data.nextBooking)}
-        />
-
-        <CompleteBanner
-          expiredCount={data.expiredCount}
-          loading={data.loading}
-          onComplete={data.handleAutoComplete}
-          onDismiss={data.dismissExpiredBanner}
         />
 
         {showFilterTabs && (

@@ -10,9 +10,7 @@ export type { Notification } from '../types';
 // Singleton para subscription realtime — evita duplicação entre desktop/mobile
 let activeChannel: ReturnType<typeof supabase.channel> | null = null;
 let activeUserId: string | null = null;
-let retryTimer: ReturnType<typeof setTimeout> | null = null;
-let retryCount = 0;
-let channelId = 0;
+let isSettingUp = false;
 const MAX_RETRIES = 15;
 
 // Update document title with unread count badge
@@ -30,6 +28,8 @@ export function useNotifications() {
   const [loading, setLoading] = useState(true);
   const [showPreview, setShowPreview] = useState<Notification | null>(null);
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryCountRef = useRef(0);
   const notificationsRef = useRef<Notification[]>([]);
   const prefsRef = useRef<NotificationPrefs>({
     inApp: true,
@@ -92,11 +92,22 @@ export function useNotifications() {
   // Realtime subscription with auto-reconnect (singleton)
   useEffect(() => {
     let mounted = true;
+    let localChannelId = 0;
 
     const setupRealtime = async () => {
       try {
         if (!mounted) return;
         if (!supabase?.auth?.getUser) return;
+        if (isSettingUp) return;
+        isSettingUp = true;
+
+        // Clear stale channel before async gap so retries can proceed
+        if (activeChannel && activeUserId) {
+          const stale = activeChannel;
+          activeChannel = null;
+          activeUserId = null;
+          supabase.removeChannel(stale).catch(() => {});
+        }
 
         const {
           data: { user },
@@ -106,16 +117,9 @@ export function useNotifications() {
         // Se já existe uma subscription para este usuário, não cria outra
         if (activeChannel && activeUserId === user.id) return;
 
-        // Remove canal anterior se existir
-        if (activeChannel) {
-          await supabase.removeChannel(activeChannel);
-          activeChannel = null;
-          await new Promise((r) => setTimeout(r, 100));
-        }
-
         activeUserId = user.id;
-        channelId++;
-        const channelName = `notifications-${user.id}-${channelId}`;
+        localChannelId++;
+        const channelName = `notifications-${user.id}-${localChannelId}`;
 
         const channel = supabase
           .channel(channelName)
@@ -150,11 +154,9 @@ export function useNotifications() {
                   previewTimerRef.current = setTimeout(() => setShowPreview(null), 5000);
                 }
               } else if (payload.eventType === 'DELETE') {
-                // Remove notificação deletada (ex: trigger de cancelamento)
                 const deletedId = (payload.old as Notification).id;
                 setNotifications((prev) => prev.filter((n) => n.id !== deletedId));
               } else if (payload.eventType === 'UPDATE') {
-                // Atualiza notificação em tempo real (ex: marcou como lida em outra aba)
                 const updated = payload.new as Notification;
                 setNotifications((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
               }
@@ -164,18 +166,18 @@ export function useNotifications() {
             if (!mounted) return;
 
             if (status === 'SUBSCRIBED') {
-              retryCount = 0;
+              retryCountRef.current = 0;
             } else if (
               status === 'CHANNEL_ERROR' ||
               status === 'TIMED_OUT' ||
               status === 'CLOSED'
             ) {
-              if (retryCount < MAX_RETRIES) {
-                const delay = Math.min(1000 * Math.pow(1.5, retryCount), 15000);
-                retryCount++;
+              if (retryCountRef.current < MAX_RETRIES) {
+                const delay = Math.min(1000 * Math.pow(1.5, retryCountRef.current), 15000);
+                retryCountRef.current++;
 
-                if (retryTimer) clearTimeout(retryTimer);
-                retryTimer = setTimeout(() => {
+                if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+                retryTimerRef.current = setTimeout(() => {
                   if (mounted) setupRealtime();
                 }, delay);
               }
@@ -185,7 +187,8 @@ export function useNotifications() {
         activeChannel = channel;
       } catch (e) {
         logError(e);
-        // Erro na subscription — silencioso
+      } finally {
+        isSettingUp = false;
       }
     };
 
@@ -193,12 +196,12 @@ export function useNotifications() {
 
     return () => {
       mounted = false;
-      if (retryTimer) clearTimeout(retryTimer);
-      // Remove o canal se este componente e o unico consumidor
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       if (activeChannel) {
-        supabase.removeChannel(activeChannel);
+        const ch = activeChannel;
         activeChannel = null;
         activeUserId = null;
+        supabase.removeChannel(ch).catch(() => {});
       }
       if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
     };

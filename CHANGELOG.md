@@ -5,6 +5,46 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.27.1] - 2026-07-25
+
+### Fixed
+- **Sentry: realtime subscribe race condition** — Adicionado lock `isSettingUp` no useNotifications pra evitar que dois NotificationBell (sidebar + navbar) criem canais duplicados. Corrigido retry: limpa canal stale antes do async gap pra reconexão funcionar.
+- **Sentry: unhandled promise rejection** — Adicionado `.catch()` no `loadData()` do AdminWeekly e no `getUser()` do useBookingModals. Rejeições Supabase agora são tratadas silenciosamente.
+- **Sentry: removeChild DOM error** — Trocado `AnimatePresence mode="wait"` por `mode="popLayout"` no BookingPageContent (desktop + mobile). Remove elemento do fluxo de layout imediatamente na saída, evitando conflito DOM no unmount rápido.
+- **Removido variável não utilizada** — `retryCountRef` no useConnectionStatus.
+
+### Changed
+- **CompleteBanner reposicionado** — Movido pra baixo do DashboardHeader no AdminDashboard, dando contexto do dia antes do alerta.
+- **AdminClients tabs unificados** — "Mensalistas" e "Vencendo" agora ficam na mesma row dos tabs "Todos/Lembrados/A Lembrar", com scroll horizontal no mobile.
+- **SettingsMensalista redesign** — Empty state mais minimalista, sem borda no card vazio.
+- **Navbar mobile gap** — Aumentado espaçamento entre sino de notificações e foto de perfil.
+- **AdminProfile mobile** — Removido botão de engrenagem ao lado de "Meu perfil".
+
+## [3.27.0] - 2026-07-25
+
+### Added
+- **Mensalista Reborn** — Sistema completo de planos mensais: CRUD de planos com nome, preço, duração, serviços inclusos e dias permitidos. Badges com status de expiração (🟢 ativo / 🟡 vencendo / 🔴 vencido). Filtros "Mensalistas" e "Vencendo" na página de clientes. Booking inteligente detecta plano do cliente automaticamente. Modal de seleção de plano ao ativar mensalista.
+- **Auto-cancel com buffer de 2h** — Agendamentos confirmados que passaram 2h do horário sem finalização são automaticamente marcados como `cancelled` (não mais `completed`). Remove o `CompleteBanner` do frontend. O barbeiro tem 2h de tolerância pra finalizar manualmente.
+- **No-show inteligente (sem bloqueio)** — Ao atingir o limite de faltas, o sistema NOTIFICA o barbeiro com opção "Conversar no WhatsApp" ao invés de BLOQUEAR o cliente. O barbeiro pode recuperar o cliente ao invés de perdê-lo.
+- **SettingsMensalista premium** — UI com glassmorphism, bottom sheet no mobile, preview de preço em tempo real, animações framer-motion, skeleton shimmer.
+- **MensalistaFilterTabs** — Componente de filtro "Mensalistas" e "Vencendo" na página de clientes.
+
+### Changed
+- **completar_agendamentos_expirados** — Migrations 008/009: mudança de `'completed'` para `'cancelled'` nos bookings do dia atual (2h após horário). Dias anteriores continuam como `'completed'` (cleanup).
+- **check_client_no_show_block** — Agora é um no-op (não bloqueia mais clientes). A notificação com WhatsApp DM substitui o bloqueio automático.
+- **is_client_blocked_by_no_show** — Sempre retorna `false`. Cliente nunca é bloqueado por faltas.
+- **useDashboardData.ts** — Removido `expiredCount`, `loadExpiredCount`, `handleAutoComplete`, `dismissExpiredBanner` (banner substituído pelo auto-cancel silencioso).
+
+### Removed
+- **CompleteBanner.tsx** — Componente deletado. Banner de "X agendamentos atrasados" substituído pelo auto-cancel automático com 2h de buffer.
+
+### Fixed
+- **Cliente bloqueado por falta perdia o cliente** — Agora o barbeiro recebe notificação com WhatsApp em vez de bloquear, permitindo recuperar o cliente.
+
+### Tests
+- **1.211 testes passando** — 111 arquivos, 100% verde.
+- **TypeScript 0 erros** — Compilação limpa.
+
 ## [3.26.0] - 2026-07-25
 
 ### Changed

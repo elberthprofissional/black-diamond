@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useClients } from '../hooks/useClients';
 import ReminderFilterTabs from '../components/Admin/shared/ReminderFilterTabs';
-import MensalistaFilterTabs from '../components/Admin/shared/MensalistaFilterTabs';
 import { useReminders } from '../hooks/useReminders';
 import { useToast } from '../hooks/useToast';
 import AdminLayout from '../components/Admin/AdminLayout';
@@ -113,18 +112,11 @@ const AdminClients: FC = () => {
         onOpenReminders={() => setIsReminderOpen(true)}
       />
 
-      <div className="space-y-3">
-        <ReminderFilterTabs
-          activeFilter={reminderFilter as 'all' | 'pending' | 'sent'}
-          onFilterChange={handleFilterChange}
-          counts={{ all: counts.all, pending: counts.pending, sent: counts.sent }}
-        />
-        <MensalistaFilterTabs
-          activeFilter={reminderFilter}
-          onFilterChange={handleFilterChange}
-          counts={{ mensalistas: counts.mensalistas, vencendo: counts.vencendo }}
-        />
-      </div>
+      <ReminderFilterTabs
+        activeFilter={reminderFilter}
+        onFilterChange={handleFilterChange}
+        counts={counts}
+      />
 
       {/* Client list */}
       <div>

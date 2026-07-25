@@ -83,13 +83,11 @@ const BarberDashboard = lazy(() => import('./pages/BarberDashboard'));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
 
 // Route preloader - preloads route chunks on hover/focus for instant navigation
-const routePreloaders = new Map<string, () => Promise<unknown>>();
+// Usa cache de promessas pra evitar duplicacao de import() — previne ChunkLoadError
+const preloadCache = new Map<string, Promise<unknown>>();
 
 function preloadRoute(path: string) {
-  if (routePreloaders.has(path)) {
-    routePreloaders.get(path)?.();
-    return;
-  }
+  if (preloadCache.has(path)) return;
 
   const preloaders: Record<string, () => Promise<unknown>> = {
     '/agendar': () => import('./pages/BookingPage'),
@@ -110,8 +108,11 @@ function preloadRoute(path: string) {
 
   const preloader = preloaders[path];
   if (preloader) {
-    routePreloaders.set(path, preloader);
-    preloader();
+    const promise = preloader().catch(() => {
+      // Se o preload falhar (ex: cache stale), remove do cache pra tentar de novo depois
+      preloadCache.delete(path);
+    });
+    preloadCache.set(path, promise);
   }
 }
 

@@ -165,7 +165,7 @@ const AdminWeekly: FC = () => {
     let mounted = true;
 
     const loadAll = () => {
-      loadData();
+      loadData().catch(() => {});
       getAvailableSlots(selectedDateStr)
         .then((slots) => {
           if (mounted) setAllSlots(slots);

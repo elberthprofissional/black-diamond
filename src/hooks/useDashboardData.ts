@@ -1,10 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import {
-  getAvailableSlots,
-  getExpiredConfirmedBookingsCount,
-  completarAgendamentosExpirados,
-} from '../lib/api';
+import { getAvailableSlots } from '../lib/api';
 import { getLocalDateString, getTimeSlotsForDate } from '../lib/utils';
 import { useBookings } from './useBookings';
 import { useSlotBlocking } from './useSlotBlocking';
@@ -65,40 +61,9 @@ export function useDashboardData(barberId?: string) {
     }
   }, [selectedDate]);
 
-  // Estado para agendamentos expirados (auto-complete)
-  const [expiredCount, setExpiredCount] = useState(0);
-
-  const loadExpiredCount = useCallback(async () => {
-    try {
-      const count = await getExpiredConfirmedBookingsCount();
-      setExpiredCount(count);
-    } catch (e) {
-      logError(e);
-      setExpiredCount(0);
-    }
-  }, []);
-
-  const handleAutoComplete = useCallback(async () => {
-    setExpiredCount(0);
-    try {
-      await completarAgendamentosExpirados();
-      loadData();
-      loadSlots();
-    } catch (e) {
-      logError(e);
-      // Recarrega o count se falhar
-      loadExpiredCount();
-    }
-  }, [loadData, loadSlots, loadExpiredCount]);
-
-  const dismissExpiredBanner = useCallback(() => {
-    setExpiredCount(0);
-  }, []);
-
   useEffect(() => {
     loadSlots();
-    loadExpiredCount();
-  }, [loadSlots, loadExpiredCount]);
+  }, [loadSlots]);
 
   // Realtime subscription para mudancas na tabela bookings
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -165,7 +130,7 @@ export function useDashboardData(barberId?: string) {
       mounted = false;
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        supabase.removeChannel(channelRef.current).catch(() => {});
         channelRef.current = null;
       }
     };
@@ -231,8 +196,5 @@ export function useDashboardData(barberId?: string) {
     blockingDay,
     blockEntireDay,
     unblockEntireDay,
-    expiredCount,
-    handleAutoComplete,
-    dismissExpiredBanner,
   };
 }

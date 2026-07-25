@@ -52,7 +52,7 @@ const AdminNavbar: FC = () => {
               Black Diamond
             </span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-3">
             <NotificationBell variant="mobile" />
             <div className="relative">
               <button

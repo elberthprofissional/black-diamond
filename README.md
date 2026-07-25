@@ -18,7 +18,7 @@
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/version-3.26.0-blue?style=flat-square" alt="Version"/>
+    <img src="https://img.shields.io/badge/version-3.27.1-blue?style=flat-square" alt="Version"/>
     <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"/>
     <img src="https://img.shields.io/badge/build-passing-brightgreen?style=flat-square" alt="Build"/>
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React"/>
@@ -89,7 +89,7 @@
 
 | Funcionalidade | Descrição |
 |----------------|-----------|
-| **📊 Dashboard** | Layout responsivo 1440px, metricas do dia, cards de proximo cliente e lucro, resumo de clientes/concluidos/cancelados/no-shows, **botão 'Tirar Folga'** pra bloquear/liberar dia inteiro, **banner de auto-complete** pra bookings atrasados |
+| **📊 Dashboard** | Layout responsivo 1440px, metricas do dia, cards de proximo cliente e lucro, resumo de clientes/concluidos/cancelados/no-shows, **botão 'Tirar Folga'** pra bloquear/liberar dia inteiro, **auto-cancel silencioso** de bookings apos 2h (sem banner) |
 | **📆 Agenda Semanal** | Visão completa da semana com horários ocupados/livres/bloqueados |
 | **👥 Gestão de Clientes** | Cards simplificados com status visual (bolinha verde/amarela/vermelha), filtros de lembrete |
 | **📋 Histórico do Cliente** | Lista completa de agendamentos com filtros, paginação e ocultar/restaurar |
@@ -97,8 +97,8 @@
 | **✂️ Serviços** | Gerenciar preços, duração e descrição dos serviços |
 | **🕐 Horários de Funcionamento** | Configurar dias abertos/fechados, horário de almoço |
 | **📸 Galeria** | Upload de fotos com conversão WebP, reordenação, preview |
-| **💎 Mensalista** | Planos de assinatura mensal com renovação |
-| **🚫 Controle de Faltas** | Marcar no-show, bloquear cliente após N faltas |
+| **💎 Mensalista** | Planos de assinatura mensal com CRUD premium, badges de expiração (🟢/🟡/🔴), booking inteligente com detecção automática, filtros de clientes mensalistas |
+| **🚫 Controle de Faltas** | Marcar no-show, notificação inteligente com WhatsApp DM ao invés de bloqueio automático |
 | **🎁 Fidelidade** | Configurar visitas para prêmio, notificação automática |
 | **🔔 Notificações Push** | Notificações in-app + push para novos agendamentos |
 | **💬 Lembretes WhatsApp** | Envio de lembretes com templates personalizáveis |

@@ -148,9 +148,6 @@ export default function CancelPage() {
     handleCancel(pendingCancelId, tokenInput.trim());
   };
 
-  // Deriva a view do estado: se não há bookings, volta para search
-  const displayView = bookings.length === 0 && view === 'list' ? 'search' : view;
-
   const startReschedule = async (booking: BookingEntry) => {
     setRescheduleBooking(booking);
     setSelectedDate('');
@@ -255,16 +252,16 @@ export default function CancelPage() {
         <div className="text-center space-y-2">
           <img src="/assets/logo.webp" alt="Black Diamond" className="w-12 h-12 mx-auto" />
           <h1 className="text-lg font-bold text-white">
-            {displayView === 'reschedule' ? 'Reagendar' : 'Cancelar ou Reagendar'}
+            {view === 'reschedule' ? 'Reagendar' : 'Cancelar ou Reagendar'}
           </h1>
-          {displayView === 'search' && (
+          {view === 'search' && (
             <p className="text-[12px] text-zinc-500">Digite o telefone do agendamento.</p>
           )}
         </div>
 
         <AnimatePresence mode="wait">
           {/* SEARCH VIEW */}
-          {displayView === 'search' && (
+          {view === 'search' && (
             <motion.div
               key="search"
               initial={{ opacity: 0, y: 8 }}
@@ -302,7 +299,7 @@ export default function CancelPage() {
           )}
 
           {/* LIST VIEW */}
-          {displayView === 'list' && (
+          {view === 'list' && (
             <motion.div
               key="list"
               initial={{ opacity: 0, y: 8 }}
@@ -311,41 +308,47 @@ export default function CancelPage() {
               className="space-y-4"
             >
               {error && <p className="text-[12px] text-red-400/80 text-center">{error}</p>}
-              {bookings.map((b) => (
-                <div
-                  key={b.id}
-                  className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <p className="text-[14px] font-bold text-white capitalize">
-                        {formatDate(b.booking_date)}
-                      </p>
-                      <p className="text-[12px] text-[#D4AF37] font-bold">
-                        {b.booking_time?.slice(0, 5)}
-                      </p>
+              {bookings.length === 0 ? (
+                <p className="text-[12px] text-zinc-600 text-center py-8">
+                  Nenhum agendamento futuro encontrado.
+                </p>
+              ) : (
+                bookings.map((b) => (
+                  <div
+                    key={b.id}
+                    className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-[14px] font-bold text-white capitalize">
+                          {formatDate(b.booking_date)}
+                        </p>
+                        <p className="text-[12px] text-[#D4AF37] font-bold">
+                          {b.booking_time?.slice(0, 5)}
+                        </p>
+                      </div>
+                      <span className="text-[12px] font-bold text-zinc-400">
+                        {formatPrice(b.total_price, { locale: true })}
+                      </span>
                     </div>
-                    <span className="text-[12px] font-bold text-zinc-400">
-                      {formatPrice(b.total_price, { locale: true })}
-                    </span>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startReschedule(b)}
+                        className="flex-1 h-9 bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-[#D4AF37] hover:bg-[#D4AF37]/20 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                      >
+                        Reagendar
+                      </button>
+                      <button
+                        onClick={() => handleCancelClick(b.id)}
+                        disabled={cancellingId === b.id}
+                        className="flex-1 h-9 border border-red-500/20 text-red-400/80 hover:bg-red-500/10 hover:text-red-400 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
+                      >
+                        {cancellingId === b.id ? '...' : 'Cancelar'}
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => startReschedule(b)}
-                      className="flex-1 h-9 bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-[#D4AF37] hover:bg-[#D4AF37]/20 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
-                    >
-                      Reagendar
-                    </button>
-                    <button
-                      onClick={() => handleCancelClick(b.id)}
-                      disabled={cancellingId === b.id}
-                      className="flex-1 h-9 border border-red-500/20 text-red-400/80 hover:bg-red-500/10 hover:text-red-400 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
-                    >
-                      {cancellingId === b.id ? '...' : 'Cancelar'}
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
               {!initialToken && (
                 <button
                   onClick={() => setView('search')}
@@ -358,7 +361,7 @@ export default function CancelPage() {
           )}
 
           {/* RESCHEDULE VIEW */}
-          {displayView === 'reschedule' && rescheduleBooking && (
+          {view === 'reschedule' && rescheduleBooking && (
             <motion.div
               key="reschedule"
               initial={{ opacity: 0, x: 20 }}
@@ -461,7 +464,7 @@ export default function CancelPage() {
           )}
 
           {/* SUCCESS VIEW */}
-          {displayView === 'success' && (
+          {view === 'success' && (
             <motion.div
               key="success"
               initial={{ opacity: 0, scale: 0.95 }}

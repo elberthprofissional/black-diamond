@@ -95,23 +95,11 @@ const AdminProfile: FC = () => {
       ) : (
         <div className="min-h-[calc(100vh-8rem)] flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">Meu perfil</h1>
-              <p className="text-[12px] text-zinc-500 mt-1">
-                Veja suas informações e altere se necessário.
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                p.setSettingsSection(null);
-                p.navigate('/admin/profile?tab=settings');
-              }}
-              className="w-10 h-10 rounded-full bg-white/[0.04] flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer"
-              aria-label="Configurações"
-            >
-              <Settings size={18} />
-            </button>
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-white tracking-tight">Meu perfil</h1>
+            <p className="text-[12px] text-zinc-500 mt-1">
+              Veja suas informações e altere se necessário.
+            </p>
           </div>
 
           {/* Avatar + Name */}

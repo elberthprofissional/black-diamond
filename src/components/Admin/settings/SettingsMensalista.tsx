@@ -8,11 +8,9 @@ import {
   Pencil,
   DollarSign,
   CalendarDays,
-  Sparkles,
   ArrowLeft,
   Calendar,
   AlertTriangle,
-  Clock,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../../../hooks/useToast';
@@ -274,81 +272,32 @@ const SettingsMensalista: FC = () => {
         </motion.button>
       </motion.div>
 
-      {/* ── Premium Empty State ── */}
+      {/* ── Empty State ── */}
       {plans.length === 0 && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: 'spring', damping: 25 }}
-          className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-b from-[#0E0E0E] to-[#0A0A0A]"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="relative p-8 sm:p-12"
         >
-          {/* Background glow */}
-          <div className="absolute -top-20 -right-20 w-60 h-60 bg-[#D4AF37]/[0.03] rounded-full blur-3xl" />
-          <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-[#D4AF37]/[0.02] rounded-full blur-3xl" />
-
-          <div className="relative px-8 py-16 sm:py-20 text-center">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', damping: 15, delay: 0.1 }}
-              className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/20 flex items-center justify-center mx-auto mb-5"
-            >
-              <Sparkles size={28} className="text-[#D4AF37]" />
-            </motion.div>
-
-            <h4 className="text-lg font-bold text-white mb-2">
-              Crie seu primeiro plano mensalista
-            </h4>
-            <p className="text-[13px] text-zinc-500 max-w-sm mx-auto mb-8 leading-relaxed">
-              Ofereça assinatura mensal com serviços inclusos, dias específicos e preço fixo.
-              Clientes mensalistas ganham badges exclusivos e agendamento inteligente.
+          <div className="text-center max-w-md mx-auto">
+            <div className="w-14 h-14 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/15 flex items-center justify-center mx-auto mb-5">
+              <Crown size={24} className="text-[#D4AF37]" />
+            </div>
+            <h4 className="text-[16px] font-bold text-white mb-1.5">Nenhum plano cadastrado</h4>
+            <p className="text-[13px] text-zinc-500 leading-relaxed mb-6">
+              Crie planos de assinatura mensal com serviços inclusos e preço fixo para seus clientes
+              frequentes.
             </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={openAdd}
-                className="btn-gold flex items-center gap-2 px-6 py-3 text-[13px] rounded-xl shadow-lg shadow-[#D4AF37]/15"
-              >
-                <Plus size={16} strokeWidth={2.5} />
-                Criar Plano
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => {
-                  // Quick fill: exemplo
-                  setName('Corte Black');
-                  setPrice('89,90');
-                  setDurationDays('30');
-                  if (services.length > 0) {
-                    setIncludedServiceIds([services[0]?.id || ''].filter(Boolean));
-                  }
-                  setScreen('add');
-                }}
-                className="px-5 py-3 text-[12px] font-medium text-zinc-400 bg-white/[0.03] border border-white/[0.06] rounded-xl hover:bg-white/[0.06] hover:text-white transition-all"
-              >
-                Usar modelo rápido
-              </motion.button>
-            </div>
-
-            {/* Preview benefits */}
-            <div className="mt-10 grid grid-cols-3 gap-4 max-w-xs mx-auto">
-              {[
-                { icon: Crown, label: 'Badge', desc: 'Identificação' },
-                { icon: CalendarDays, label: 'Agenda', desc: 'Inteligente' },
-                { icon: Clock, label: 'Lembrete', desc: 'Vencimento' },
-              ].map(({ icon: Icon, label, desc }) => (
-                <div key={label} className="text-center">
-                  <div className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.04] flex items-center justify-center mx-auto mb-1.5">
-                    <Icon size={13} className="text-zinc-500" />
-                  </div>
-                  <p className="text-[11px] font-medium text-zinc-400">{label}</p>
-                  <p className="text-[9px] text-zinc-600">{desc}</p>
-                </div>
-              ))}
-            </div>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={openAdd}
+              className="btn-gold inline-flex items-center gap-2 px-5 py-2.5 text-[12px] rounded-xl"
+            >
+              <Plus size={14} strokeWidth={2.5} />
+              Criar primeiro plano
+            </motion.button>
           </div>
         </motion.div>
       )}
