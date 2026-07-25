@@ -77,6 +77,7 @@ export interface MensalistaPlan {
   price: number;
   included_service_ids: string[];
   allowed_days: number[];
+  duration_days: number;
   is_active: boolean;
   is_default: boolean;
   sort_order: number;

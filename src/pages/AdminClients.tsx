@@ -41,7 +41,7 @@ const AdminClients: FC = () => {
       ? filterParam
       : 'all';
 
-  const handleFilterChange = (filter: ClientFilter) => {
+  const handleFilterChange = (filter: string) => {
     // already derived from URL params, no local state needed
     if (filter === 'all') {
       searchParams.delete('filter');

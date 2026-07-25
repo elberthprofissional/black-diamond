@@ -38,7 +38,7 @@ interface ClientPanelProps {
   onDelete: () => void;
   onReminder: () => void;
   onClose: () => void;
-  onToggleMensalista: (planId?: string) => Promise<boolean> | boolean;
+  onToggleMensalista: (planId?: string, expiryDate?: string) => Promise<boolean> | boolean;
   onRenewMensalidade?: () => void;
 }
 

@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   Calendar,
   AlertTriangle,
+  Clock,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../../../hooks/useToast';
@@ -52,7 +53,11 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring', damping: 25, stiffness: 300 } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring' as const, damping: 25, stiffness: 300 },
+  },
 };
 
 /* ─── Main Component ─── */
