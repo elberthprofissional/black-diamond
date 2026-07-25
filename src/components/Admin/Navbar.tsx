@@ -90,19 +90,10 @@ const AdminNavbar: FC = () => {
                       transition={{ duration: 0.15 }}
                       className="absolute right-0 mt-2 w-48 bg-[#161618] border border-white/[0.06] rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-50 overflow-hidden"
                     >
-                      <div className="p-2 space-y-2">
+                      <div className="p-2">
                         <button
                           onClick={() => {
                             navigate('/admin/profile');
-                            setIsMenuOpen(false);
-                          }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-bold text-zinc-300 hover:text-white hover:bg-white/[0.04] rounded-lg transition-all"
-                        >
-                          <User size={13} className="text-zinc-500" /> Meu Perfil
-                        </button>
-                        <button
-                          onClick={() => {
-                            navigate('/admin/profile?tab=settings');
                             setIsMenuOpen(false);
                           }}
                           className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-bold text-zinc-300 hover:text-white hover:bg-white/[0.04] rounded-lg transition-all"

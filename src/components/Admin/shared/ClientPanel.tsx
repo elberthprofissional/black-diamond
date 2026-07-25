@@ -598,7 +598,6 @@ const ClientPanel: FC<ClientPanelProps> = ({
           </>
         )}
       </AnimatePresence>
-
     </div>
   );
 };

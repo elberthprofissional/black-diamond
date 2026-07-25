@@ -3,7 +3,7 @@ import { getBookings, getServices } from '../lib/api';
 import type { Booking, Service } from '../types';
 import { logError } from '../lib/logger';
 
-export interface TopService {
+interface TopService {
   name: string;
   count: number;
 }
@@ -130,7 +130,6 @@ export function useProfileStats() {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
 

@@ -12,7 +12,7 @@ export const formatDateBR = (dateStr: string): string => {
   return dateStr.split('-').reverse().join('/');
 };
 
-export interface NextDaysConfig {
+interface NextDaysConfig {
   saturdayCloseHour?: number;
   sundayEnabled?: boolean;
 }

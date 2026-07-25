@@ -44,7 +44,11 @@ const Services: FC<ServicesProps> = memo(({ onBookingClick }) => {
               ))}
             </div>
           ) : (
-            <div className="w-full max-w-2xl mx-auto space-y-0" role="list" aria-label="Lista de serviços">
+            <div
+              className="w-full max-w-2xl mx-auto space-y-0"
+              role="list"
+              aria-label="Lista de serviços"
+            >
               {services.map((service) => (
                 <div
                   key={service.id}

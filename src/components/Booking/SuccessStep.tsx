@@ -136,10 +136,7 @@ const SuccessStep: FC<SuccessStepProps> = ({
         <div className="w-12 h-[2px] bg-[#D4AF37]/30 rounded-full mb-10" />
 
         <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={() => navigate('/')}
-            className="btn-gold px-8 py-3.5"
-          >
+          <button onClick={() => navigate('/')} className="btn-gold px-8 py-3.5">
             Voltar ao início
           </button>
           <button
@@ -243,10 +240,7 @@ const SuccessStep: FC<SuccessStepProps> = ({
           <h2 className="text-2xl font-bold text-white">{title}</h2>
           <p className="text-sm text-zinc-500">{subtitle}</p>
         </div>
-        <button
-          onClick={() => navigate('/')}
-          className="btn-ghost px-6 py-3 mt-4"
-        >
+        <button onClick={() => navigate('/')} className="btn-ghost px-6 py-3 mt-4">
           Voltar ao início
         </button>
       </div>

@@ -109,7 +109,6 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
   }, [defaultPhone]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     refetch();
   }, [refetch]);
 

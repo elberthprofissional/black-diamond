@@ -169,36 +169,43 @@ describe('AdminProfile', () => {
     expect(container).toBeTruthy();
   });
 
-  it('renderiza titulo do perfil', async () => {
+  it('renderiza nome do barbeiro', async () => {
     render(
       <BarberProvider>
         <AdminProfile />
       </BarberProvider>
     );
     await waitFor(() => {
-      expect(screen.getAllByText(/Faturamento Total/i).length).toBeGreaterThan(0);
+      expect(screen.getByRole('heading', { name: /Admin|Barbeiro/i })).toBeInTheDocument();
     });
   });
 
-  it('renderiza metricas de faturamento', async () => {
+  it('renderiza botoes de menu do perfil', async () => {
     render(
       <BarberProvider>
         <AdminProfile />
       </BarberProvider>
     );
     await waitFor(() => {
-      expect(screen.getAllByText(/Faturamento Total/i).length).toBeGreaterThan(0);
+      expect(screen.getByText('Editar perfil')).toBeInTheDocument();
+      expect(screen.getAllByText('Notificações')[0]).toBeInTheDocument();
+      // Menu items like 'Serviços' and 'Horários' appear in the profile page
+      // and also in admin sidebar/nav — so use getAllByText
+      expect(screen.getAllByText('Serviços').length).toBeGreaterThanOrEqual(1);
     });
   });
 
-  it('renderiza botao de notificacoes', async () => {
+  it('renderiza acoes rapidas', async () => {
     render(
       <BarberProvider>
         <AdminProfile />
       </BarberProvider>
     );
     await waitFor(() => {
-      expect(screen.getAllByText(/Notificar/i).length).toBeGreaterThan(0);
+      // Notification toggle shows "Notificações" label with "Ativas" or "Off" badge
+      // Can appear in both sidebar and mobile profile — use getAllByText
+      expect(screen.getAllByText('Notificações').length).toBeGreaterThan(0);
+      expect(screen.getByText('Off')).toBeInTheDocument();
     });
   });
 
@@ -209,7 +216,8 @@ describe('AdminProfile', () => {
       </BarberProvider>
     );
     await waitFor(() => {
-      expect(screen.getAllByText(/Limpar/i).length).toBeGreaterThan(0);
+      // 'Limpar Dados' appears in profile actions and possibly nav
+      expect(screen.getAllByText('Limpar Dados').length).toBeGreaterThanOrEqual(1);
     });
   });
 });

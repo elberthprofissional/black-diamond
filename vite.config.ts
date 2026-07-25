@@ -23,8 +23,11 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('react-dom') || id.includes('react/') || id.includes('react-router')) {
-              return 'vendor-react';
+            if (id.includes('react-dom') || id.includes('react/')) {
+              return 'vendor-react-core';
+            }
+            if (id.includes('react-router')) {
+              return 'vendor-router';
             }
             if (id.includes('framer-motion')) {
               return 'vendor-motion';
@@ -38,13 +41,23 @@ export default defineConfig({
             if (id.includes('@sentry')) {
               return 'vendor-sentry';
             }
-            if (id.includes('jspdf') || id.includes('jspdf-autotable') || id.includes('fflate') || id.includes('fast-png')) {
+            if (
+              id.includes('jspdf') ||
+              id.includes('jspdf-autotable') ||
+              id.includes('fflate') ||
+              id.includes('fast-png')
+            ) {
               return 'vendor-pdf';
             }
             if (id.includes('react-helmet-async')) {
               return 'vendor-helmet';
             }
-            if (id.includes('@supabase/realtime-js') || id.includes('@supabase/postgrest-js') || id.includes('@supabase/storage-js') || id.includes('@supabase/functions-js')) {
+            if (
+              id.includes('@supabase/realtime-js') ||
+              id.includes('@supabase/postgrest-js') ||
+              id.includes('@supabase/storage-js') ||
+              id.includes('@supabase/functions-js')
+            ) {
               return 'vendor-supabase-core';
             }
             if (id.includes('ws') || id.includes('cross-fetch') || id.includes('node-fetch')) {
@@ -55,8 +68,9 @@ export default defineConfig({
         },
       },
     },
-    // Limite reduzido para 400kB para identificar chunks grandes mais cedo
-    chunkSizeWarningLimit: 400,
+    // Limite ajustado: o core do React + react-dom (~232 kB min/gzip) + react-helmet (~23 kB)
+    // naturalmente somam ~260 kB; outros vendors são carregados em paralelo
+    chunkSizeWarningLimit: 500,
     cssCodeSplit: true,
     sourcemap: !!process.env.SENTRY_AUTH_TOKEN,
   },
@@ -67,6 +81,9 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
+    env: {
+      VITE_VAPID_PUBLIC_KEY: 'test-vapid-public-key',
+    },
     css: true,
     include: ['src/**/*.test.{ts,tsx}'],
     exclude: ['e2e/**', 'node_modules/**', '.mimocode/**'],

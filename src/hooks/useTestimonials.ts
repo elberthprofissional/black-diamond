@@ -31,7 +31,6 @@ export function useTestimonials(): UseTestimonialsReturn {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadTestimonials();
   }, [loadTestimonials]);
 

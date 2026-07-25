@@ -1,54 +1,77 @@
 import { describe, it, expect } from 'vitest';
-import { generateCsv, type CsvColumn } from './csv';
+import { generateCsv, formatDateRange } from './csv';
 
-describe('csv', () => {
-  describe('generateCsv', () => {
-    const columns: CsvColumn<{ name: string; age: number }>[] = [
-      { header: 'Nome', accessor: (r) => r.name },
-      { header: 'Idade', accessor: (r) => r.age },
+describe('generateCsv', () => {
+  interface Person {
+    name: string;
+    age: number;
+  }
+
+  const columns = [
+    { header: 'Nome', accessor: (p: Person) => p.name },
+    { header: 'Idade', accessor: (p: Person) => p.age },
+  ];
+
+  it('generates CSV with header and rows', () => {
+    const data: Person[] = [
+      { name: 'João', age: 30 },
+      { name: 'Maria', age: 25 },
     ];
 
-    it('generates CSV with header and rows', () => {
-      const data = [{ name: 'Joao', age: 30 }];
-      const csv = generateCsv(data, columns);
-      expect(csv).toContain('Nome;Idade');
-      expect(csv).toContain('Joao;30');
-    });
+    const csv = generateCsv(data, columns);
+    const lines = csv.split('\r\n');
 
-    it('handles empty data', () => {
-      const csv = generateCsv([], columns);
-      expect(csv).toBe('Nome;Idade');
-    });
+    expect(lines).toHaveLength(3);
+    expect(lines[0]).toBe('Nome;Idade');
+    expect(lines[1]).toBe('João;30');
+    expect(lines[2]).toBe('Maria;25');
+  });
 
-    it('escapes values containing separator', () => {
-      const cols: CsvColumn<{ val: string }>[] = [{ header: 'Val', accessor: (r) => r.val }];
-      const csv = generateCsv([{ val: 'a;b' }], cols);
-      expect(csv).toContain('"a;b"');
-    });
+  it('sanitizes CSV injection attempts', () => {
+    const data: Person[] = [{ name: '=SUM(1,1)', age: 30 }];
 
-    it('escapes values containing double quotes', () => {
-      const cols: CsvColumn<{ val: string }>[] = [{ header: 'Val', accessor: (r) => r.val }];
-      const csv = generateCsv([{ val: 'say "hello"' }], cols);
-      expect(csv).toContain('"say ""hello"""');
-    });
+    const csv = generateCsv(data, columns);
+    expect(csv).toContain("'=SUM(1,1)");
+  });
 
-    it('prevents CSV injection', () => {
-      const cols: CsvColumn<{ val: string }>[] = [{ header: 'Val', accessor: (r) => r.val }];
-      const csv = generateCsv([{ val: '=SUM(A1)' }], cols);
-      expect(csv).toContain("'=SUM(A1)");
-    });
+  it('escapes double quotes in values', () => {
+    const data: Person[] = [{ name: 'João "Jão" Silva', age: 30 }];
 
-    it('handles null/undefined values', () => {
-      const cols: CsvColumn<{ val: string | null }>[] = [{ header: 'Val', accessor: (r) => r.val }];
-      const csv = generateCsv([{ val: null }], cols);
-      expect(csv).toContain('Val');
-    });
+    const csv = generateCsv(data, columns);
+    expect(csv).toContain('"João ""Jão"" Silva"');
+  });
 
-    it('uses custom separator', () => {
-      const data = [{ name: 'Joao', age: 30 }];
-      const csv = generateCsv(data, columns, ',');
-      expect(csv).toContain('Nome,Idade');
-      expect(csv).toContain('Joao,30');
-    });
+  it('wraps values containing separator in quotes', () => {
+    const cols = [{ header: 'Nome', accessor: (p: Person) => p.name }];
+    const data: Person[] = [{ name: 'João;Silva', age: 30 }];
+
+    const csv = generateCsv(data, cols);
+    expect(csv).toContain('"João;Silva"');
+  });
+
+  it('handles null and undefined values', () => {
+    const data = [{ name: null, age: undefined }] as unknown as Person[];
+
+    const csv = generateCsv(data, columns);
+    expect(csv).toContain(';');
+  });
+
+  it('handles empty data', () => {
+    const csv = generateCsv([], columns);
+    expect(csv).toBe('Nome;Idade');
+  });
+});
+
+describe('formatDateRange', () => {
+  it('formats date range as YYYYMMDD-YYYYMMDD', () => {
+    const start = new Date(2026, 0, 1);
+    const end = new Date(2026, 6, 31);
+    expect(formatDateRange(start, end)).toBe('20260101-20260731');
+  });
+
+  it('pads single digit months and days', () => {
+    const start = new Date(2026, 0, 5);
+    const end = new Date(2026, 1, 1);
+    expect(formatDateRange(start, end)).toBe('20260105-20260201');
   });
 });

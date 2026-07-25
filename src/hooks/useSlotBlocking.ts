@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { toggleSlotBlock, unblockDay } from '../lib/api';
 import { useToast } from './useToast';
-import { handleAsyncError } from '../lib/errorHandler';
+import { logError } from '../lib/logger';
 import type { BookingWithClient } from '../types';
 
 export function useSlotBlocking() {
@@ -17,15 +17,14 @@ export function useSlotBlocking() {
     customKey?: string
   ) => {
     setBlockingSlot(customKey || slot);
-    const result = await handleAsyncError(
-      async () => {
-        await toggleSlotBlock(date, slot);
-        if (onBlockComplete) await onBlockComplete();
-        return true;
-      },
-      { context: 'useSlotBlocking/blockSlot', userMessage: 'Erro ao bloquear horário.', showError }
-    );
-    if (result) showSuccess(`Horário ${slot} bloqueado com sucesso!`);
+    try {
+      await toggleSlotBlock(date, slot);
+      if (onBlockComplete) await onBlockComplete();
+      showSuccess(`Horário ${slot} bloqueado com sucesso!`);
+    } catch (e) {
+      logError(e, 'useSlotBlocking/blockSlot');
+      showError('Erro ao bloquear horário.');
+    }
     setBlockingSlot(null);
   };
 
@@ -33,19 +32,18 @@ export function useSlotBlocking() {
     _bookingId: string,
     onUnblockComplete?: () => Promise<void> | void
   ) => {
-    const result = await handleAsyncError(
-      async () => {
-        const booking = unblockingBooking;
-        if (booking) {
-          await toggleSlotBlock(booking.booking_date, booking.booking_time.slice(0, 5));
-        }
-        setUnblockingBooking(null);
-        if (onUnblockComplete) await onUnblockComplete();
-        return true;
-      },
-      { context: 'useSlotBlocking/unblockSlot', userMessage: 'Erro ao desbloquear horário.', showError }
-    );
-    if (result) showSuccess('Horário liberado com sucesso!');
+    try {
+      const booking = unblockingBooking;
+      if (booking) {
+        await toggleSlotBlock(booking.booking_date, booking.booking_time.slice(0, 5));
+      }
+      setUnblockingBooking(null);
+      if (onUnblockComplete) await onUnblockComplete();
+      showSuccess('Horário liberado com sucesso!');
+    } catch (e) {
+      logError(e, 'useSlotBlocking/unblockSlot');
+      showError('Erro ao desbloquear horário.');
+    }
   };
 
   const blockEntireDay = async (
@@ -55,17 +53,16 @@ export function useSlotBlocking() {
   ) => {
     if (freeSlots.length === 0) return;
     setBlockingDay(true);
-    const result = await handleAsyncError(
-      async () => {
-        for (const slot of freeSlots) {
-          await toggleSlotBlock(date, slot);
-        }
-        if (onComplete) await onComplete();
-        return true;
-      },
-      { context: 'useSlotBlocking/blockEntireDay', userMessage: 'Erro ao bloquear o dia.', showError }
-    );
-    if (result) showSuccess('Dia bloqueado com sucesso!');
+    try {
+      for (const slot of freeSlots) {
+        await toggleSlotBlock(date, slot);
+      }
+      if (onComplete) await onComplete();
+      showSuccess('Dia bloqueado com sucesso!');
+    } catch (e) {
+      logError(e, 'useSlotBlocking/blockEntireDay');
+      showError('Erro ao bloquear o dia.');
+    }
     setBlockingDay(false);
   };
 
@@ -75,16 +72,15 @@ export function useSlotBlocking() {
   ) => {
     if (blockedBookings.length === 0) return;
     setBlockingDay(true);
-    const result = await handleAsyncError(
-      async () => {
-        const date = blockedBookings[0]?.booking_date;
-        if (date) await unblockDay(date);
-        if (onComplete) await onComplete();
-        return true;
-      },
-      { context: 'useSlotBlocking/unblockEntireDay', userMessage: 'Erro ao liberar o dia.', showError }
-    );
-    if (result) showSuccess('Dia liberado com sucesso!');
+    try {
+      const date = blockedBookings[0]?.booking_date;
+      if (date) await unblockDay(date);
+      if (onComplete) await onComplete();
+      showSuccess('Dia liberado com sucesso!');
+    } catch (e) {
+      logError(e, 'useSlotBlocking/unblockEntireDay');
+      showError('Erro ao liberar o dia.');
+    }
     setBlockingDay(false);
   };
 

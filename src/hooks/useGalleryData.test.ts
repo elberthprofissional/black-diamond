@@ -107,8 +107,20 @@ describe('useGalleryData', () => {
       then: vi.fn((resolve: (v: unknown) => void) =>
         resolve({
           data: [
-            { id: 'img-1', image_url: 'url-1', alt: 'Foto 1', position: 0, created_at: '2026-01-01' },
-            { id: 'img-2', image_url: 'url-2', alt: 'Foto 2', position: 1, created_at: '2026-01-02' },
+            {
+              id: 'img-1',
+              image_url: 'url-1',
+              alt: 'Foto 1',
+              position: 0,
+              created_at: '2026-01-01',
+            },
+            {
+              id: 'img-2',
+              image_url: 'url-2',
+              alt: 'Foto 2',
+              position: 1,
+              created_at: '2026-01-02',
+            },
           ],
           error: null,
         })
@@ -165,7 +177,9 @@ describe('useGalleryData', () => {
     await waitFor(() => expect(result.current.images).toEqual([]));
 
     const badFile = createMockFile('test.txt', 100, 'text/plain');
-    const event = { target: { files: [badFile] } } as unknown as React.ChangeEvent<HTMLInputElement>;
+    const event = {
+      target: { files: [badFile] },
+    } as unknown as React.ChangeEvent<HTMLInputElement>;
     await act(async () => {
       await result.current.handleUpload(event);
     });
@@ -184,7 +198,9 @@ describe('useGalleryData', () => {
     await waitFor(() => expect(result.current.images).toEqual([]));
 
     const bigFile = createMockFile('test.jpg', 3 * 1024 * 1024, 'image/jpeg');
-    const event = { target: { files: [bigFile] } } as unknown as React.ChangeEvent<HTMLInputElement>;
+    const event = {
+      target: { files: [bigFile] },
+    } as unknown as React.ChangeEvent<HTMLInputElement>;
     await act(async () => {
       await result.current.handleUpload(event);
     });
@@ -278,6 +294,6 @@ describe('useGalleryData', () => {
     await act(async () => {
       await result.current.handleUpload(event);
     });
-    expect(mockShowError).toHaveBeenCalledWith('Erro: Storage full');
+    expect(mockShowError).toHaveBeenCalledWith('Erro ao enviar imagem');
   });
 });

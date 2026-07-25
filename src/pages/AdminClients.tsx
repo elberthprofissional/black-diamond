@@ -29,23 +29,14 @@ const AdminClients: FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const filterParam = searchParams.get('filter');
 
-  const [reminderFilter, setReminderFilter] = useState<ClientFilter>(
-    filterParam === 'pending' || filterParam === 'sent' ? filterParam : 'all'
-  );
   const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [reminderClient, setReminderClient] = useState<Client | null>(null);
 
-  useEffect(() => {
-    if (filterParam === 'pending' || filterParam === 'sent') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setReminderFilter(filterParam);
-    } else {
-      setReminderFilter('all');
-    }
-  }, [filterParam]);
+  const reminderFilter: ClientFilter =
+    filterParam === 'pending' || filterParam === 'sent' ? filterParam : 'all';
 
   const handleFilterChange = (filter: ClientFilter) => {
-    setReminderFilter(filter);
+    // already derived from URL params, no local state needed
     if (filter === 'all') {
       searchParams.delete('filter');
     } else {

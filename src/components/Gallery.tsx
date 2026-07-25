@@ -194,8 +194,6 @@ const Gallery: FC = memo(() => {
             </div>
           </div>
         )}
-
-
       </div>
 
       {/* Lightbox */}

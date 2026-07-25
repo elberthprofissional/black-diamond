@@ -1,19 +1,13 @@
 import { type FC } from 'react';
-import { CheckCircle, XCircle, UserX } from 'lucide-react';
+import { CheckCircle, UserX } from 'lucide-react';
 
 interface DaySummaryProps {
   totalCount: number;
   completedCount: number;
-  cancelledCount: number;
   noShowCount: number;
 }
 
-const DaySummary: FC<DaySummaryProps> = ({
-  totalCount,
-  completedCount,
-  cancelledCount,
-  noShowCount,
-}) => {
+const DaySummary: FC<DaySummaryProps> = ({ totalCount, completedCount, noShowCount }) => {
   if (totalCount === 0) return null;
 
   return (
@@ -23,12 +17,6 @@ const DaySummary: FC<DaySummaryProps> = ({
           <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400">
             <CheckCircle size={11} />
             {completedCount}
-          </span>
-        )}
-        {cancelledCount > 0 && (
-          <span className="flex items-center gap-1.5 text-[10px] font-bold text-red-400">
-            <XCircle size={11} />
-            {cancelledCount}
           </span>
         )}
         {noShowCount > 0 && (

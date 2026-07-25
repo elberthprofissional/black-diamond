@@ -83,24 +83,32 @@ describe('useBookingPayment', () => {
   });
 
   it('bloqueia quando rate limit ativo', async () => {
-    localStorage.setItem(
-      'ratelimit_booking_submit',
-      JSON.stringify({ count: 3, timestamp: Date.now() })
-    );
+    // O rate limit é in-memory (useState), então precisamos atingir o limite
+    // chamando handleConfirm 3 vezes para exaurir as tentativas
+    vi.mocked(createBooking).mockRejectedValue(new Error('Erro no servidor'));
 
     const showError = vi.fn();
     const onComplete = vi.fn();
     const { result } = renderHook(() => useBookingPayment(defaultServices, showError, onComplete));
 
-    const response = await result.current.handleConfirm({
+    const params = {
       selectedServices: [{ id: '1', name: 'Corte', price: 35, duration: 40 }],
       selectedDate: '2026-07-15',
       selectedTime: '10:00',
       userInfo: { name: 'Test', phone: '11999887766' },
       totalPrice: 35,
       isMensalista: false,
-    });
+    };
 
+    // Usa 3 tentativas para atingir o rate limit (maxAttempts: 3)
+    for (let i = 0; i < 3; i++) {
+      await act(async () => {
+        await result.current.handleConfirm(params);
+      });
+    }
+
+    // Agora deve estar bloqueado
+    const response = await result.current.handleConfirm(params);
     expect(response).toBeNull();
     expect(showError).toHaveBeenCalledWith(expect.stringContaining('Muitas tentativas'));
   });

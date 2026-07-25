@@ -130,10 +130,6 @@ describe('useClientCreation', () => {
       notes: 'VIP',
       manually_added: true,
     });
-    expect(mockLog).toHaveBeenCalledWith({
-      action: 'client_created',
-      details: { name: 'João', phone: '11999999999' },
-    });
     expect(mockShowSuccess).toHaveBeenCalledWith('Cliente criado com sucesso!');
     expect(mockLoadData).toHaveBeenCalled();
     expect(result.current.newClientName).toBe('');

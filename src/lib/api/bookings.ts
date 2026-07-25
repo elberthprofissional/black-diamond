@@ -173,15 +173,6 @@ export const unblockDay = async (date: string) => {
   if (error) throw error;
 };
 
-/** Marca como concluídos os agendamentos cujo horário já passou (delega ao RPC server-side). */
-export const autoCompleteExpiredBookings = async (): Promise<number> => {
-  const { error } = await supabase.rpc('completar_agendamentos_expirados');
-  if (error) return 0;
-  // RPC não retorna count — retorna 0 para não causar loop infinito de refetch
-  // O auto-complete acontece server-side; o dashboard atualiza no próximo refresh natural
-  return 0;
-};
-
 /** Busca bookings para cálculo de estatísticas. Limita aos últimos 12 meses por padrão. */
 export const getBookingsForStats = async (monthsBack: number = 12) => {
   const cutoff = new Date();
@@ -196,6 +187,38 @@ export const getBookingsForStats = async (monthsBack: number = 12) => {
 
   if (error) throw error;
   return data || [];
+};
+
+/**
+ * Completar agendamentos expirados via RPC.
+ * Marca como 'completed' bookings de dias anteriores ou horários já passados.
+ */
+export const completarAgendamentosExpirados = async (): Promise<number> => {
+  const { error } = await supabase.rpc('completar_agendamentos_expirados');
+  if (error) throw error;
+  return 0;
+};
+
+/** Busca bookings confirmados que já passaram do horário atual (hoje). */
+export const getExpiredConfirmedBookingsCount = async (): Promise<number> => {
+  const today = getLocalDateString();
+  const now = new Date();
+  const currentTime =
+    now.getHours().toString().padStart(2, '0') +
+    ':' +
+    now.getMinutes().toString().padStart(2, '0') +
+    ':00';
+
+  const { count, error } = await supabase
+    .from('bookings')
+    .select('id', { count: 'exact', head: true })
+    .eq('booking_date', today)
+    .eq('status', 'confirmed')
+    .eq('is_blocked', false)
+    .lt('booking_time', currentTime);
+
+  if (error) throw error;
+  return count || 0;
 };
 
 /** Cancela todos os agendamentos (soft-delete: status → cancelled). Preserva dados históricos. */

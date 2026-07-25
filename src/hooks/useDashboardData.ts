@@ -1,6 +1,10 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { getAvailableSlots } from '../lib/api';
+import {
+  getAvailableSlots,
+  getExpiredConfirmedBookingsCount,
+  completarAgendamentosExpirados,
+} from '../lib/api';
 import { getLocalDateString, getTimeSlotsForDate } from '../lib/utils';
 import { useBookings } from './useBookings';
 import { useSlotBlocking } from './useSlotBlocking';
@@ -61,10 +65,40 @@ export function useDashboardData(barberId?: string) {
     }
   }, [selectedDate]);
 
+  // Estado para agendamentos expirados (auto-complete)
+  const [expiredCount, setExpiredCount] = useState(0);
+
+  const loadExpiredCount = useCallback(async () => {
+    try {
+      const count = await getExpiredConfirmedBookingsCount();
+      setExpiredCount(count);
+    } catch (e) {
+      logError(e);
+      setExpiredCount(0);
+    }
+  }, []);
+
+  const handleAutoComplete = useCallback(async () => {
+    setExpiredCount(0);
+    try {
+      await completarAgendamentosExpirados();
+      loadData();
+      loadSlots();
+    } catch (e) {
+      logError(e);
+      // Recarrega o count se falhar
+      loadExpiredCount();
+    }
+  }, [loadData, loadSlots, loadExpiredCount]);
+
+  const dismissExpiredBanner = useCallback(() => {
+    setExpiredCount(0);
+  }, []);
+
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadSlots();
-  }, [loadSlots]);
+    loadExpiredCount();
+  }, [loadSlots, loadExpiredCount]);
 
   // Realtime subscription para mudancas na tabela bookings
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -197,5 +231,8 @@ export function useDashboardData(barberId?: string) {
     blockingDay,
     blockEntireDay,
     unblockEntireDay,
+    expiredCount,
+    handleAutoComplete,
+    dismissExpiredBanner,
   };
 }

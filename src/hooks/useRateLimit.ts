@@ -20,6 +20,7 @@ export function useRateLimit(_key: string, config: Partial<RateLimitConfig> = {}
   const [attempts, setAttempts] = useState(0);
   const [blockedUntil, setBlockedUntil] = useState<number | null>(null);
 
+  // eslint-disable-next-line react-hooks/purity
   const isBlocked = blockedUntil !== null && Date.now() < blockedUntil;
 
   const recordAttempt = useCallback(() => {

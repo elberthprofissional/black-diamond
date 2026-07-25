@@ -1,9 +1,4 @@
-import {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-} from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getBookings } from '../lib/api';
 import { useToast } from './useToast';
@@ -182,9 +177,11 @@ export function useAdminBookingState() {
     if (prefilledServiceIds.length > 0 && services.length > 0 && selectedServices.length === 0) {
       const toSelect = services.filter((s) => prefilledServiceIds.includes(s.id));
       if (toSelect.length > 0) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedServices(toSelect);
       }
     }
+    // setSelectedServices é estável (useState), chamada dentro de useEffect
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefilledServiceIdsStr, services.length]);
 
@@ -214,17 +211,21 @@ export function useAdminBookingState() {
         setSelectedServices(matchedServices);
       });
     }
+    // setSelectedServices é estável (useState), chamada dentro de efeito assíncrono
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rescheduleBooking, services.length]);
 
-  const toggleService = useCallback((service: Service) => {
-    setSelectedServices((prev) => {
-      if (prev.find((s) => s.id === service.id)) {
-        return prev.filter((s) => s.id !== service.id);
-      }
-      return [...prev, service];
-    });
-  }, []);
+  const toggleService = useCallback(
+    (service: Service) => {
+      setSelectedServices((prev) => {
+        if (prev.find((s) => s.id === service.id)) {
+          return prev.filter((s) => s.id !== service.id);
+        }
+        return [...prev, service];
+      });
+    },
+    [setSelectedServices]
+  );
 
   const { isSubmitting, handleFinish } = useAdminBookingSubmit({
     selectedClient,
@@ -255,22 +256,37 @@ export function useAdminBookingState() {
       return;
     }
     setCurrentStep((prev) => prev + 1);
-  }, [currentStep, selectedClient, newClient, selectedServices, selectedDate, selectedTime, showError]);
+  }, [
+    currentStep,
+    selectedClient,
+    newClient,
+    selectedServices,
+    selectedDate,
+    selectedTime,
+    showError,
+    setCurrentStep,
+  ]);
 
-  const isStepValid = useCallback((step: number) => {
-    if (step === 1) {
-      if (selectedClient) return true;
-      return newClient.name.trim() !== '' && newClient.phone.trim().length >= 8;
-    }
-    if (step === 2) return selectedServices.length > 0;
-    if (step === 3) return !!selectedDate && !!selectedTime;
-    return false;
-  }, [selectedClient, newClient, selectedServices, selectedDate, selectedTime]);
+  const isStepValid = useCallback(
+    (step: number) => {
+      if (step === 1) {
+        if (selectedClient) return true;
+        return newClient.name.trim() !== '' && newClient.phone.trim().length >= 8;
+      }
+      if (step === 2) return selectedServices.length > 0;
+      if (step === 3) return !!selectedDate && !!selectedTime;
+      return false;
+    },
+    [selectedClient, newClient, selectedServices, selectedDate, selectedTime]
+  );
 
-  const handleSelectDate = useCallback((date: string) => {
-    setSelectedDate(date);
-    setSelectedTime('');
-  }, []);
+  const handleSelectDate = useCallback(
+    (date: string) => {
+      setSelectedDate(date);
+      setSelectedTime('');
+    },
+    [setSelectedDate, setSelectedTime]
+  );
 
   return {
     // Navigation

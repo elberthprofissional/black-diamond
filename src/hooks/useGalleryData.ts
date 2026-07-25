@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '../lib/supabase';
 import { useToast } from './useToast';
 import type { GalleryImage } from '../types';
 import { logError } from '../lib/logger';
+import { getGalleryImages, uploadGalleryImage, insertGalleryImage } from '../lib/api/gallery';
 
 export type { GalleryImage } from '../types';
 
@@ -15,16 +15,11 @@ export function useGalleryData() {
   const { showError, showSuccess } = useToast();
 
   const loadImages = useCallback(async () => {
-    const { data } = await supabase
-      .from('gallery_images')
-      .select('id, image_url, alt, position, created_at')
-      .order('position', { ascending: true });
-
+    const data = await getGalleryImages();
     if (data) setImages(data);
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadImages();
   }, [loadImages]);
 
@@ -99,31 +94,11 @@ export function useGalleryData() {
       try {
         const webpBlob = await convertToWebP(file);
         const filePath = `gallery/${Date.now()}.webp`;
-        const { error: uploadError } = await supabase.storage
-          .from('gallery')
-          .upload(filePath, webpBlob, { contentType: 'image/webp' });
-        if (uploadError) {
-          showError(`Erro: ${uploadError.message}`);
-          return;
-        }
-
-        const { data: urlData } = supabase.storage.from('gallery').getPublicUrl(filePath);
-        if (urlData?.publicUrl) {
-          const imageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-          const nextPosition =
-            images.length > 0 ? Math.max(...images.map((i) => i.position)) + 1 : 0;
-          const { error: insertError } = await supabase.from('gallery_images').insert({
-            image_url: imageUrl,
-            alt: '',
-            position: nextPosition,
-          });
-          if (insertError) {
-            showError('Erro ao salvar no banco');
-            return;
-          }
-          showSuccess('Foto adicionada!');
-          await loadImages();
-        }
+        const imageUrl = await uploadGalleryImage(webpBlob, filePath);
+        const nextPosition = images.length > 0 ? Math.max(...images.map((i) => i.position)) + 1 : 0;
+        await insertGalleryImage({ image_url: imageUrl, position: nextPosition });
+        showSuccess('Foto adicionada!');
+        await loadImages();
       } catch (e) {
         logError(e);
         showError('Erro ao enviar imagem');
@@ -135,5 +110,14 @@ export function useGalleryData() {
     [images, convertToWebP, showError, showSuccess, loadImages]
   );
 
-  return { images, setImages, loadImages, uploading, fileInputRef, openFilePicker, handleUpload, MAX_PHOTOS };
+  return {
+    images,
+    setImages,
+    loadImages,
+    uploading,
+    fileInputRef,
+    openFilePicker,
+    handleUpload,
+    MAX_PHOTOS,
+  };
 }

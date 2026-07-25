@@ -6,11 +6,7 @@ import OnboardingWizard from '../components/Admin/OnboardingWizard';
 const OnboardingPage: FC = () => {
   const navigate = useNavigate();
   const { onboardingCompleted, loading } = useBarberSettings();
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    if (!loading) setReady(true);
-  }, [loading]);
+  const ready = !loading;
 
   // Se já completou onboarding, redireciona pro dashboard
   useEffect(() => {

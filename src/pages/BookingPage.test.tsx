@@ -26,7 +26,9 @@ vi.mock('../lib/supabase', () => ({
     })),
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
-      onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+      onAuthStateChange: vi
+        .fn()
+        .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
     },
     channel: vi.fn().mockReturnValue({ on: vi.fn().mockReturnThis(), subscribe: vi.fn() }),
     removeChannel: vi.fn(),
@@ -35,12 +37,29 @@ vi.mock('../lib/supabase', () => ({
 
 vi.mock('framer-motion', () => {
   const FM = new Set([
-    'whileHover', 'whileTap', 'whileFocus', 'whileDrag', 'whileInView',
-    'layoutId', 'layout', 'animate', 'initial', 'exit', 'transition',
-    'variants', 'onAnimationStart', 'onAnimationComplete',
+    'whileHover',
+    'whileTap',
+    'whileFocus',
+    'whileDrag',
+    'whileInView',
+    'layoutId',
+    'layout',
+    'animate',
+    'initial',
+    'exit',
+    'transition',
+    'variants',
+    'onAnimationStart',
+    'onAnimationComplete',
   ]);
-  const M = (tag: string) => ({ children, ...p }: Record<string, unknown>) =>
-    createElement(tag, Object.fromEntries(Object.entries(p).filter(([k]) => !FM.has(k))), children);
+  const M =
+    (tag: string) =>
+    ({ children, ...p }: Record<string, unknown>) =>
+      createElement(
+        tag,
+        Object.fromEntries(Object.entries(p).filter(([k]) => !FM.has(k))),
+        children
+      );
   return {
     motion: { div: M('div'), button: M('button'), main: M('main'), span: M('span'), p: M('p') },
     AnimatePresence: ({ children }: { children: React.ReactNode }) => children,

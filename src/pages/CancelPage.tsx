@@ -59,7 +59,6 @@ export default function CancelPage() {
   useEffect(() => {
     if (!initialToken) return;
     let active = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     getBookingsByToken(initialToken)
       .then((data) => {
@@ -149,12 +148,8 @@ export default function CancelPage() {
     handleCancel(pendingCancelId, tokenInput.trim());
   };
 
-  useEffect(() => {
-    if (bookings.length === 0 && view === 'list') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setView('search');
-    }
-  }, [bookings.length, view]);
+  // Deriva a view do estado: se não há bookings, volta para search
+  const displayView = bookings.length === 0 && view === 'list' ? 'search' : view;
 
   const startReschedule = async (booking: BookingEntry) => {
     setRescheduleBooking(booking);
@@ -169,7 +164,6 @@ export default function CancelPage() {
 
   useEffect(() => {
     if (!selectedDate || !rescheduleBooking) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAvailableSlots([]);
       return;
     }
@@ -261,16 +255,16 @@ export default function CancelPage() {
         <div className="text-center space-y-2">
           <img src="/assets/logo.webp" alt="Black Diamond" className="w-12 h-12 mx-auto" />
           <h1 className="text-lg font-bold text-white">
-            {view === 'reschedule' ? 'Reagendar' : 'Cancelar ou Reagendar'}
+            {displayView === 'reschedule' ? 'Reagendar' : 'Cancelar ou Reagendar'}
           </h1>
-          {view === 'search' && (
+          {displayView === 'search' && (
             <p className="text-[12px] text-zinc-500">Digite o telefone do agendamento.</p>
           )}
         </div>
 
         <AnimatePresence mode="wait">
           {/* SEARCH VIEW */}
-          {view === 'search' && (
+          {displayView === 'search' && (
             <motion.div
               key="search"
               initial={{ opacity: 0, y: 8 }}
@@ -308,7 +302,7 @@ export default function CancelPage() {
           )}
 
           {/* LIST VIEW */}
-          {view === 'list' && (
+          {displayView === 'list' && (
             <motion.div
               key="list"
               initial={{ opacity: 0, y: 8 }}
@@ -364,7 +358,7 @@ export default function CancelPage() {
           )}
 
           {/* RESCHEDULE VIEW */}
-          {view === 'reschedule' && rescheduleBooking && (
+          {displayView === 'reschedule' && rescheduleBooking && (
             <motion.div
               key="reschedule"
               initial={{ opacity: 0, x: 20 }}
@@ -467,7 +461,7 @@ export default function CancelPage() {
           )}
 
           {/* SUCCESS VIEW */}
-          {view === 'success' && (
+          {displayView === 'success' && (
             <motion.div
               key="success"
               initial={{ opacity: 0, scale: 0.95 }}

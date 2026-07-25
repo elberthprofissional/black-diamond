@@ -26,7 +26,8 @@ const AdminLogin: FC = () => {
   const [loginError, setLoginError] = useState<string | null>(null);
   const { toast, showError } = useToast();
   const navigate = useNavigate();
-  const [isPWA, setIsPWA] = useState(false);
+  const isPWA =
+    window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   const { isBlocked, attempts, maxAttempts, recordAttempt, getTimeUntilReset } = useRateLimit(
     'login',
     {
@@ -49,24 +50,17 @@ const AdminLogin: FC = () => {
     checkSession();
   }, [navigate]);
 
-  // Detecta PWA e trava navegação de voltar caso esteja standalone
+  // PWA: trava navegação de voltar caso esteja standalone
   useEffect(() => {
-    const isStandalone =
-      window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsPWA(!!isStandalone);
-
-    if (isStandalone) {
-      const handlePopState = () => {
-        window.close();
-      };
-
-      window.addEventListener('popstate', handlePopState);
-      return () => {
-        window.removeEventListener('popstate', handlePopState);
-      };
-    }
-  }, []);
+    if (!isPWA) return;
+    const handlePopState = () => {
+      window.close();
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isPWA]);
 
   useScrollLock();
 

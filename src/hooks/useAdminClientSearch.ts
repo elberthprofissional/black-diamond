@@ -57,7 +57,6 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
     const digits = newClient.phone.replace(/\D/g, '');
     if (digits.length < 11) {
       if (isMensalista) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsMensalista(false);
       }
       return;
@@ -112,16 +111,13 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
   }, [showError]);
 
   // Select a matched client (from search results or modal)
-  const selectClient = useCallback(
-    (client: Client) => {
-      setSelectedClient(client);
-      setMultipleMatches([]);
-      setIsManualEntry(false);
-      setIsMensalista(!!client.is_mensalista);
-      setCurrentPlan(null);
-    },
-    []
-  );
+  const selectClient = useCallback((client: Client) => {
+    setSelectedClient(client);
+    setMultipleMatches([]);
+    setIsManualEntry(false);
+    setIsMensalista(!!client.is_mensalista);
+    setCurrentPlan(null);
+  }, []);
 
   const handleSearch = useCallback(() => {
     if (!searchQuery.trim()) {

@@ -53,10 +53,7 @@ const DesktopClientGrid: FC<DesktopClientGridProps> = ({
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <p
-                  className="text-[13px] font-bold text-white truncate"
-                  title={client.name}
-                >
+                <p className="text-[13px] font-bold text-white truncate" title={client.name}>
                   {client.name}
                   {client.is_mensalista && (
                     <span className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded-md bg-[#D4AF37]/10 text-[#D4AF37] font-black uppercase tracking-wider align-middle">
@@ -67,9 +64,7 @@ const DesktopClientGrid: FC<DesktopClientGridProps> = ({
                 <p className="text-[11px] text-zinc-500 truncate mt-0.5">
                   {formatPhone(client.phone)}
                 </p>
-                <p className="text-[10px] text-zinc-700 truncate mt-0.5">
-                  {client.lastVisit}
-                </p>
+                <p className="text-[10px] text-zinc-700 truncate mt-0.5">{client.lastVisit}</p>
               </div>
               <ChevronRight
                 size={14}

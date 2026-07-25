@@ -26,11 +26,12 @@ const renderWithRouter = (initialRoute = '/admin') => {
 };
 
 describe('BottomTabs', () => {
-  it('renderiza os 3 botoes de navegacao para owner', () => {
+  it('renderiza os 4 botoes de navegacao para owner', () => {
     renderWithRouter();
     expect(screen.getByLabelText('Hoje')).toBeInTheDocument();
     expect(screen.getByLabelText('Semana')).toBeInTheDocument();
     expect(screen.getByLabelText('Clientes')).toBeInTheDocument();
+    expect(screen.getByLabelText('Relatórios')).toBeInTheDocument();
   });
 
   it('renderiza labels visiveis', () => {
@@ -38,6 +39,7 @@ describe('BottomTabs', () => {
     expect(screen.getByLabelText('Hoje')).toBeInTheDocument();
     expect(screen.getByLabelText('Semana')).toBeInTheDocument();
     expect(screen.getByLabelText('Clientes')).toBeInTheDocument();
+    expect(screen.getByLabelText('Relatórios')).toBeInTheDocument();
   });
 
   it('tem role="tablist" no container', () => {
@@ -48,7 +50,7 @@ describe('BottomTabs', () => {
   it('tem role="tab" em cada botao', () => {
     renderWithRouter();
     const tabs = screen.getAllByRole('tab');
-    expect(tabs).toHaveLength(3);
+    expect(tabs).toHaveLength(4);
   });
 
   it('aba ativa tem aria-selected=true', () => {

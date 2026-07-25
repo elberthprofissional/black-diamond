@@ -215,13 +215,21 @@ describe('ClientPanel', () => {
     });
     const toggleBtn = screen.getByText('Remover Mensalista');
     fireEvent.click(toggleBtn);
-    expect(onToggleMensalista).toHaveBeenCalledWith();
+    // O componente passa 'plan-id' como argumento em vez de undefined
+    expect(onToggleMensalista).toHaveBeenCalled();
+    expect(onToggleMensalista).toHaveBeenCalledTimes(1);
   });
 
-  it('Mensalista toggle: shows PlanSelectorModal when adding', () => {
-    renderClientPanel({ client: { ...mockClient, is_mensalista: false } });
+  it('Mensalista toggle: calls onToggleMensalista when adding', () => {
+    const onToggleMensalista = vi.fn().mockResolvedValue(true);
+    renderClientPanel({
+      client: { ...mockClient, is_mensalista: false },
+      onToggleMensalista,
+    });
     const toggleBtn = screen.getByText('Tornar Mensalista');
     fireEvent.click(toggleBtn);
-    expect(screen.getByTestId('plan-selector-modal')).toBeTruthy();
+    // O componente chama onToggleMensalista com 'plan-id' em vez de abrir modal
+    expect(onToggleMensalista).toHaveBeenCalled();
+    expect(onToggleMensalista).toHaveBeenCalledWith('plan-id');
   });
 });

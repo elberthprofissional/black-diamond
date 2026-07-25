@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useDeferredValue } from 'react';
 import { getClients } from '../lib/api';
-import { supabase } from '../lib/supabase';
+import { getMensalistaPlans } from '../lib/api/settings';
 import { useToast } from './useToast';
 import { BLOCKED_NAME, BLOCKED_PHONE, INACTIVE_DAYS } from '../lib/constants';
 import { getLocalDateString } from '../lib/utils';
@@ -34,14 +34,9 @@ export function useClientsData() {
 
   const loadData = useCallback(async () => {
     try {
-      const [clientsData, plansRes] = await Promise.all([
-        getClients(),
-        supabase.from('mensalista_plans').select('*').order('sort_order'),
-      ]);
+      const [clientsData, plans] = await Promise.all([getClients(), getMensalistaPlans()]);
 
-      if (plansRes.data && !plansRes.error) {
-        setPlans(plansRes.data as MensalistaPlan[]);
-      }
+      setPlans(plans);
 
       const enriched: ClientWithStats[] = (clientsData || [])
         .filter(
@@ -88,7 +83,7 @@ export function useClientsData() {
     }
   }, [showError]);
 
-  // Initial data fetching — usa o mesmo loadData() pra evitar duplicação de lógica
+  // Initial data fetching — call to loadData sets state intentionally
   useEffect(() => {
     loadData();
   }, [loadData]);
@@ -113,5 +108,14 @@ export function useClientsData() {
     return () => clearInterval(interval);
   }, [loadData]);
 
-  return { clients, setClients, plans, loading, searchTerm, setSearchTerm, debouncedSearch, loadData };
+  return {
+    clients,
+    setClients,
+    plans,
+    loading,
+    searchTerm,
+    setSearchTerm,
+    debouncedSearch,
+    loadData,
+  };
 }

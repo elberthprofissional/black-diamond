@@ -57,6 +57,9 @@ const Footer: FC = () => {
           <img
             src={brandLogo || '/assets/logo.webp'}
             alt={displayName}
+            width={96}
+            height={96}
+            decoding="async"
             className="w-24 h-24 object-contain"
           />
 
@@ -168,6 +171,9 @@ const Footer: FC = () => {
             <img
               src={brandLogo || '/assets/logo.webp'}
               alt={displayName}
+              width={128}
+              height={128}
+              decoding="async"
               className="w-32 h-32 object-contain"
             />
             <p className="text-zinc-500 font-light text-xs leading-relaxed">

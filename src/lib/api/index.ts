@@ -15,6 +15,8 @@ export {
   getBookingsForStats,
   deleteAllBookings,
   getBookingsByToken,
+  completarAgendamentosExpirados,
+  getExpiredConfirmedBookingsCount,
 } from './bookings';
 export type { ManagedBooking } from './bookings';
 

@@ -120,7 +120,8 @@ function LoadingFallback() {
     <div
       className="min-h-screen bg-[#0f0f0f] flex items-center justify-center"
       role="status"
-      aria-label="Carregando página"
+      aria-live="polite"
+      aria-label="Página está carregando"
       aria-busy="true"
     >
       <div className="flex flex-col items-center gap-4">
@@ -142,7 +143,9 @@ function LoadingFallback() {
             style={{ animationDelay: '300ms' }}
           />
         </div>
-        <span className="sr-only">Carregando... Aguarde um momento.</span>
+        <span className="sr-only" role="alert">
+          Carregando... Aguarde um momento.
+        </span>
       </div>
     </div>
   );

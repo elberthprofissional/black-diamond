@@ -58,7 +58,9 @@ const FreePanel: FC<FreePanelProps> = ({
           key={`free-${slot}`}
           className="flex items-center bg-[#111] border border-white/[0.06] rounded-xl px-4 py-3"
         >
-          <span className="text-sm font-black text-[#D4AF37] tabular-nums w-12 shrink-0">{slot}</span>
+          <span className="text-sm font-black text-[#D4AF37] tabular-nums w-12 shrink-0">
+            {slot}
+          </span>
           <div className="w-px h-4 bg-white/[0.08] mx-3 shrink-0" />
           <div className="flex-1 flex items-center justify-end gap-6">
             <button

@@ -1,8 +1,18 @@
 import { lazy, Suspense, type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  User, ArrowLeft, Shield, Clock, Image as ImageIcon, HelpCircle,
-  UserX, Gift, Tag, Bell, Scissors, Users,
+  User,
+  ArrowLeft,
+  Shield,
+  Clock,
+  Image as ImageIcon,
+  HelpCircle,
+  UserX,
+  Gift,
+  Tag,
+  Bell,
+  Scissors,
+  Users,
 } from 'lucide-react';
 import SettingsList from './SettingsList';
 
@@ -19,10 +29,16 @@ const SettingsBarbeiros = lazy(() => import('./SettingsBarbeiros'));
 
 const sectionTitle = (section: string | null) => {
   const titles: Record<string, string> = {
-    conta: 'Conta', galeria: 'Galeria', servicos: 'Serviços',
-    horarios: 'Horários', faltas: 'Controle de Faltas',
-    barbeiros: 'Barbeiros', fidelidade: 'Fidelidade',
-    cupons: 'Cupons', notificacoes: 'Notificações', dados: 'Zona de Segurança',
+    conta: 'Conta',
+    galeria: 'Galeria',
+    servicos: 'Serviços',
+    horarios: 'Horários',
+    faltas: 'Controle de Faltas',
+    barbeiros: 'Barbeiros',
+    fidelidade: 'Fidelidade',
+    cupons: 'Cupons',
+    notificacoes: 'Notificações',
+    dados: 'Zona de Segurança',
   };
   return titles[section || ''] || 'Configurações';
 };
@@ -50,7 +66,10 @@ interface Props {
 const Fallback = () => <div className="skeleton-pulse h-32" />;
 
 const AdminProfileSettings: FC<Props> = ({
-  settingsSection, setSettingsSection, setShowHelp, onLogoutClick,
+  settingsSection,
+  setSettingsSection,
+  setShowHelp,
+  onLogoutClick,
 }) => (
   <>
     {/* Mobile header */}
@@ -66,7 +85,9 @@ const AdminProfileSettings: FC<Props> = ({
         <ArrowLeft size={20} />
       </button>
       <div className="flex-1">
-        <h1 className="text-lg font-bold tracking-tight text-white">{sectionTitle(settingsSection)}</h1>
+        <h1 className="text-lg font-bold tracking-tight text-white">
+          {sectionTitle(settingsSection)}
+        </h1>
       </div>
       <button
         onClick={() => setShowHelp(true)}
@@ -97,7 +118,7 @@ const AdminProfileSettings: FC<Props> = ({
     </div>
 
     {/* Desktop: sidebar + content */}
-    <div className="hidden lg:flex gap-8 max-w-4xl mx-auto items-start">
+    <div className="hidden lg:flex gap-8 items-start">
       <div className="w-[200px] shrink-0 sticky top-6 self-start">
         <div className="space-y-2">
           <h2 className="label-gold px-3 mb-4">Configurações</h2>
@@ -128,8 +149,10 @@ const AdminProfileSettings: FC<Props> = ({
         <AnimatePresence mode="wait">
           <motion.div
             key={settingsSection || 'conta'}
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }} transition={{ duration: 0.12 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
           >
             <Suspense fallback={<Fallback />}>
               {(!settingsSection || settingsSection === 'conta') && <SettingsConta />}

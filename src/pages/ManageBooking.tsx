@@ -1,4 +1,4 @@
-import { useState, useEffect, type FC } from 'react';
+import { useState, useEffect, useRef, type FC } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -28,7 +28,6 @@ const ManageBooking: FC = () => {
 
   useEffect(() => {
     if (!token) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError('Link inválido. Solicite um novo link ao barbeiro.');
       setLoading(false);
       return;

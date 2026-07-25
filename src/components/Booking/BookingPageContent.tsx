@@ -23,7 +23,7 @@ const stepAnimation = {
 const BookingPageContent: FC = memo(() => {
   const ctx = useBookingWizardContext();
   const isDesktop = useIsDesktop();
-  const layout = isDesktop ? 'desktop' as const : 'mobile' as const;
+  const layout = isDesktop ? ('desktop' as const) : ('mobile' as const);
 
   const renderStepContent = (stepIndex: number) => {
     switch (stepIndex) {
@@ -148,13 +148,17 @@ const BookingPageContent: FC = memo(() => {
             </AnimatePresence>
 
             {ctx.step < 6 && (
-              <div className={`flex justify-end ${ctx.step === 4 || ctx.step === 5 ? 'pt-2' : 'pt-6'}`}>
+              <div
+                className={`flex justify-end ${ctx.step === 4 || ctx.step === 5 ? 'pt-2' : 'pt-6'}`}
+              >
                 <button
                   onClick={ctx.goNext}
                   disabled={ctx.isStepDisabled}
                   data-testid={ctx.step === 5 ? 'confirm-booking' : 'next-step'}
                   aria-label={
-                    ctx.step === 5 ? 'Confirmar e concluir agendamento' : 'Continuar para a próxima etapa'
+                    ctx.step === 5
+                      ? 'Confirmar e concluir agendamento'
+                      : 'Continuar para a próxima etapa'
                   }
                   className={`h-11 px-8 rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] transition-all duration-300 ${
                     !ctx.isStepDisabled
@@ -257,7 +261,11 @@ const BookingPageContent: FC = memo(() => {
                 : 'bg-gradient-to-r from-[#D4AF37] to-[#b8923f] text-black hover:brightness-110 active:scale-[0.98] shadow-lg shadow-[#D4AF37]/20 hover:shadow-xl hover:shadow-[#D4AF37]/30'
             }`}
           >
-            {ctx.isSubmitting ? 'CONFIRMANDO...' : ctx.step < 5 ? 'Continuar' : 'Confirmar Agendamento'}
+            {ctx.isSubmitting
+              ? 'CONFIRMANDO...'
+              : ctx.step < 5
+                ? 'Continuar'
+                : 'Confirmar Agendamento'}
           </button>
         </div>
       )}

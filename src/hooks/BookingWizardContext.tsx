@@ -1,4 +1,13 @@
-import { createContext, useContext, useState, useMemo, useCallback, type ReactNode, type RefObject, type MouseEvent } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+  type ReactNode,
+  type RefObject,
+  type MouseEvent,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWizardStep } from './useWizardStep';
 import { useClientLookup } from './useClientLookup';
@@ -36,7 +45,13 @@ interface BookingWizardValue {
   goNext: () => void;
   goBack: () => void;
   navigate: (path: string) => void;
-  nextDays: { fullDate: string; dayName: string; dayNumber: number; isToday: boolean; isPast: boolean }[];
+  nextDays: {
+    fullDate: string;
+    dayName: string;
+    dayNumber: number;
+    isToday: boolean;
+    isPast: boolean;
+  }[];
   isMensalista: boolean;
   planName?: string;
   clientLookupLoading: boolean;
@@ -44,8 +59,17 @@ interface BookingWizardValue {
   lastBooking?: { serviceIds: string[]; totalPrice: number } | null;
   onApplyLastBooking?: () => void;
   isOfflineBooking: boolean;
-  nextMilestone?: { milestone: { visits_required: number; reward_service_id: string }; progress: number; already_claimed: boolean } | null;
-  coupon?: { coupon_id: string; code: string; discount_type: string; discount_amount: number } | null;
+  nextMilestone?: {
+    milestone: { visits_required: number; reward_service_id: string };
+    progress: number;
+    already_claimed: boolean;
+  } | null;
+  coupon?: {
+    coupon_id: string;
+    code: string;
+    discount_type: string;
+    discount_amount: number;
+  } | null;
   couponLoading?: boolean;
   couponError?: string;
   originalPrice?: number;
@@ -53,6 +77,7 @@ interface BookingWizardValue {
   onCouponRemove?: () => void;
 }
 
+/* eslint-disable react-refresh/only-export-components */
 const BookingWizardContext = createContext<BookingWizardValue | null>(null);
 
 export function BookingWizardProvider({
@@ -65,7 +90,14 @@ export function BookingWizardProvider({
   const navigate = useNavigate();
 
   // ── Step control ──
-  const { step, setStep, isStepDisabled, stepTitle, goNext: wizardGoNext, goBack } = useWizardStep();
+  const {
+    step,
+    setStep,
+    isStepDisabled,
+    stepTitle,
+    goNext: wizardGoNext,
+    goBack,
+  } = useWizardStep();
 
   // ── Services ──
   const { services: allServices, loading: servicesLoading } = useServices();
@@ -144,8 +176,17 @@ export function BookingWizardProvider({
     }
     return result;
   }, [
-    rawConfirm, isSubmitting, selectedServices, slots.selectedDate, slots.selectedTime,
-    userInfo, finalPrice, isMensalista, coupon, selectedBarber?.id, selectedBarber?.phone,
+    rawConfirm,
+    isSubmitting,
+    selectedServices,
+    slots.selectedDate,
+    slots.selectedTime,
+    userInfo,
+    finalPrice,
+    isMensalista,
+    coupon,
+    selectedBarber?.id,
+    selectedBarber?.phone,
   ]);
 
   const goNext = useCallback(() => {
@@ -164,10 +205,21 @@ export function BookingWizardProvider({
       selectedTime: slots.selectedTime,
       isSubmitting,
     }),
-    [step, userInfo, selectedBarber, selectedServices, slots.selectedDate, slots.selectedTime, isSubmitting]
+    [
+      step,
+      userInfo,
+      selectedBarber,
+      selectedServices,
+      slots.selectedDate,
+      slots.selectedTime,
+      isSubmitting,
+    ]
   );
 
-  const disabled = useMemo(() => isStepDisabled(validationInput), [isStepDisabled, validationInput]);
+  const disabled = useMemo(
+    () => isStepDisabled(validationInput),
+    [isStepDisabled, validationInput]
+  );
 
   const planName = useMemo(() => {
     if (!isMensalista || !mensalistaPlanId) return undefined;
@@ -221,16 +273,47 @@ export function BookingWizardProvider({
       nextMilestone,
     }),
     [
-      step, stepTitle, allServices, selectedServices, toggleService,
-      slots.selectedDate, slots.setSelectedDate, slots.selectedTime, slots.setSelectedTime,
-      userInfo, setUserInfo, selectedBarber, isSubmitting,
-      slots.existingBookings, slots.availableSlots, slots.dateContainerRef,
-      slots.handleMouseDown, slots.handleMouseLeave, slots.handleMouseUp, slots.handleMouseMove,
-      disabled, handleConfirm, goNext, goBack, navigate, slots.nextDays,
-      isMensalista, planName, clientLookupLoading, calculatedTotalPrice,
-      lastBooking, applyLastBooking, isOfflineBooking,
-      coupon, couponLoading, couponError, finalPrice,
-      handleCouponValidate, handleCouponRemove, servicesLoading, nextMilestone,
+      step,
+      stepTitle,
+      allServices,
+      selectedServices,
+      toggleService,
+      slots.selectedDate,
+      slots.setSelectedDate,
+      slots.selectedTime,
+      slots.setSelectedTime,
+      userInfo,
+      setUserInfo,
+      selectedBarber,
+      isSubmitting,
+      slots.existingBookings,
+      slots.availableSlots,
+      slots.dateContainerRef,
+      slots.handleMouseDown,
+      slots.handleMouseLeave,
+      slots.handleMouseUp,
+      slots.handleMouseMove,
+      disabled,
+      handleConfirm,
+      goNext,
+      goBack,
+      navigate,
+      slots.nextDays,
+      isMensalista,
+      planName,
+      clientLookupLoading,
+      calculatedTotalPrice,
+      lastBooking,
+      applyLastBooking,
+      isOfflineBooking,
+      coupon,
+      couponLoading,
+      couponError,
+      finalPrice,
+      handleCouponValidate,
+      handleCouponRemove,
+      servicesLoading,
+      nextMilestone,
     ]
   );
 

@@ -222,15 +222,21 @@ describe('useGallery', () => {
 
   it('sets and clears showMoveModal', () => {
     const { result } = renderHook(() => useGallery());
-    act(() => { result.current.setShowMoveModal(true); });
+    act(() => {
+      result.current.setShowMoveModal(true);
+    });
     expect(result.current.showMoveModal).toBe(true);
-    act(() => { result.current.setShowMoveModal(false); });
+    act(() => {
+      result.current.setShowMoveModal(false);
+    });
     expect(result.current.showMoveModal).toBe(false);
   });
 
   it('sets confirmDelete', () => {
     const { result } = renderHook(() => useGallery());
-    act(() => { result.current.setConfirmDelete('img-1'); });
+    act(() => {
+      result.current.setConfirmDelete('img-1');
+    });
     expect(result.current.confirmDelete).toBe('img-1');
   });
 

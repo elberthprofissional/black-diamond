@@ -20,7 +20,16 @@ const AdminSidebar: FC = memo(() => {
   const isActive = (path: string) => location.pathname === path;
 
   const reportsIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <line x1="18" y1="20" x2="18" y2="10" />
       <line x1="12" y1="20" x2="12" y2="4" />
       <line x1="6" y1="20" x2="6" y2="14" />
@@ -153,17 +162,6 @@ const AdminSidebar: FC = memo(() => {
                     onClick={() => {
                       setIsProfileOpen(false);
                       navigate('/admin/profile');
-                    }}
-                    data-testid="nav-profile"
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all"
-                  >
-                    <User size={14} className="text-zinc-500 shrink-0" />
-                    <span className="text-[12px] font-medium">Meu Perfil</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsProfileOpen(false);
-                      navigate('/admin/profile?tab=settings');
                     }}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all"
                   >

@@ -53,15 +53,18 @@ const Navbar: FC<NavbarProps> = memo(({ onBookingClick }) => {
       }`}
     >
       <div className="container mx-auto h-full px-4 md:px-8 flex justify-between items-center max-w-[1920px]">
-        <div
-          className="flex items-center gap-2 md:gap-6 cursor-pointer group"
+        <button
+          className="flex items-center gap-2 md:gap-6 cursor-pointer group bg-transparent border-none p-0"
           onClick={() => navigate('/')}
-          role="button"
           aria-label="Página Inicial - Black Diamond"
+          type="button"
         >
           <img
             src={brandLogo || '/assets/logo.webp'}
             alt={displayName}
+            width={80}
+            height={80}
+            decoding="async"
             className={`transition-all duration-500 object-contain -ml-2 md:-ml-6 ${
               scrolled ? 'w-16 h-16 md:w-24 md:h-24' : 'w-20 h-20 md:w-36 md:h-36'
             }`}
@@ -76,8 +79,8 @@ const Navbar: FC<NavbarProps> = memo(({ onBookingClick }) => {
             >
               {restName}
             </span>
-          </div>
-        </div>
+          </div>{' '}
+        </button>
 
         {/* Desktop Links */}
         <nav className="hidden lg:flex items-center space-x-12" aria-label="Menu de navegação">

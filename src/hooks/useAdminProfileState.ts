@@ -11,8 +11,6 @@ import { useProfileStats } from './useProfileStats';
 import { usePwaInstall } from './usePwaInstall';
 import { logError } from '../lib/logger';
 
-export type UseAdminProfileReturn = ReturnType<typeof useAdminProfileState>;
-
 export function useAdminProfileState() {
   const [searchParams] = useSearchParams();
   const showSettings = searchParams.get('tab') === 'settings';
@@ -78,7 +76,8 @@ export function useAdminProfileState() {
     }
   }, [settingsSection, navigate]);
 
-  const greeting = new Date().getHours() < 12 ? 'Bom dia' : new Date().getHours() < 18 ? 'Boa tarde' : 'Boa noite';
+  const greeting =
+    new Date().getHours() < 12 ? 'Bom dia' : new Date().getHours() < 18 ? 'Boa tarde' : 'Boa noite';
 
   const currentConcluidos = timeRange === 'week' ? stats.concluidosSemana : stats.concluidosMes;
   const currentCancelados = timeRange === 'week' ? stats.canceladosSemana : stats.canceladosMes;
@@ -120,7 +119,9 @@ export function useAdminProfileState() {
     }
     setResetPasswordError('');
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const email = session?.user?.email;
       if (!email) {
         setResetPasswordError('Sessão expirada.');

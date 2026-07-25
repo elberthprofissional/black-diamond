@@ -18,8 +18,7 @@ const OnboardingWizard: FC<{ onComplete: () => void }> = ({ onComplete }) => {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState<number | null>(null);
   const { toast, showError } = useToast();
-  const { updateBarberName, updateBarberBio, updateBarberPhone } =
-    useBarberSettings();
+  const { updateBarberName, updateBarberBio, updateBarberPhone } = useBarberSettings();
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -65,7 +64,8 @@ const OnboardingWizard: FC<{ onComplete: () => void }> = ({ onComplete }) => {
     {
       id: 'finish',
       title: 'Tudo pronto!',
-      description: 'Configuração inicial concluída. Você pode ajustar tudo depois nas configurações.',
+      description:
+        'Configuração inicial concluída. Você pode ajustar tudo depois nas configurações.',
       icon: Clock,
       action: async () => {
         onComplete();

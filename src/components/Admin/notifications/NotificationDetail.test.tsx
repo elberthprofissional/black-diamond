@@ -152,7 +152,13 @@ describe('NotificationDetail', () => {
   it('chama onBack ao clicar no botão voltar', () => {
     const onBack = vi.fn();
     const notif = createMockNotif();
-    render(<NotificationDetail notif={notif as unknown as Notification} {...defaultProps} onBack={onBack} />);
+    render(
+      <NotificationDetail
+        notif={notif as unknown as Notification}
+        {...defaultProps}
+        onBack={onBack}
+      />
+    );
     const backButtons = screen.getAllByRole('button');
     // O primeiro botão com ChevronLeft é o voltar
     backButtons[0]?.click();

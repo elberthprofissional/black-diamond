@@ -123,7 +123,7 @@ export default function HelpModal({ isOpen, onClose }: { isOpen: boolean; onClos
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: '100%', opacity: 0 }}
             transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-            className="relative z-10 w-full sm:max-w-[420px] max-h-[80vh] bg-[#1C1C1E] sm:rounded-2xl rounded-t-2xl overflow-hidden flex flex-col"
+            className="relative z-10 w-full h-full sm:max-w-[420px] sm:max-h-[80vh] bg-[#1C1C1E] sm:rounded-2xl overflow-hidden flex flex-col"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">

@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getNextDays, getTimeSlotsForDate } from '../lib/utils';
 import { getAvailableSlots, getBookings } from '../lib/api';
+import { getWorkSettings } from '../lib/api/settings';
 import { useDateDragScroll } from './useDateDragScroll';
-import { supabase } from '../lib/supabase';
 import { logError } from '../lib/logger';
 
 /**
@@ -54,35 +54,25 @@ export function useBookingSlots(showError: (msg: string) => void, barberId?: str
     let mounted = true;
     const fetchSettings = async () => {
       try {
-        const { data } = await supabase
-          .from('settings')
-          .select('key, value')
-          .in('key', ['working_days', 'barber_hours']);
-
-        if (data && mounted) {
-          for (const row of data) {
-            if (row.key === 'working_days' && row.value) setWorkingDays(row.value);
-            else if (row.key === 'barber_hours' && row.value) {
-              setBarberHoursJson(row.value);
-              // Parse do JSON pra passar config limpa pro getNextDays
-              try {
-                const parsed = JSON.parse(row.value);
-                setNextDaysConfig({
-                  saturdayCloseHour: parsed['6']?.close
-                    ? parseInt(parsed['6'].close.split(':')[0], 10)
-                    : undefined,
-                  sundayEnabled: parsed['0'] ? parsed['0'].enabled !== false : undefined,
-                });
-              } catch (e) {
-                logError(e);
-                /* keep defaults */
-              }
-            }
+        const config = await getWorkSettings();
+        if (!mounted) return;
+        setWorkingDays(config.workingDays);
+        if (config.barberHours) {
+          setBarberHoursJson(config.barberHours);
+          try {
+            const parsed = JSON.parse(config.barberHours);
+            setNextDaysConfig({
+              saturdayCloseHour: parsed['6']?.close
+                ? parseInt(parsed['6'].close.split(':')[0], 10)
+                : undefined,
+              sundayEnabled: parsed['0'] ? parsed['0'].enabled !== false : undefined,
+            });
+          } catch (e) {
+            logError(e);
           }
         }
       } catch (e) {
         logError(e);
-        // settings fetch failed, keep defaults
       }
     };
     fetchSettings();
@@ -92,7 +82,6 @@ export function useBookingSlots(showError: (msg: string) => void, barberId?: str
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedTime('');
     if (selectedDate) {
       let active = true;

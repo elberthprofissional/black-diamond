@@ -50,8 +50,18 @@ const defaultProps = {
   formatMonth: vi.fn((key: string) => {
     const [year, month] = key.split('-');
     const months = [
-      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+      'Janeiro',
+      'Fevereiro',
+      'Março',
+      'Abril',
+      'Maio',
+      'Junho',
+      'Julho',
+      'Agosto',
+      'Setembro',
+      'Outubro',
+      'Novembro',
+      'Dezembro',
     ];
     return `${months[parseInt(month) - 1] ?? ''} ${year}`;
   }),
@@ -74,34 +84,18 @@ describe('HistoryView', () => {
   it('renderiza contagem pluralizada', () => {
     const bookings = [createMockBooking(), createMockBooking({ id: 'booking-2' })];
     render(
-      <HistoryView
-        {...defaultProps}
-        filteredBookings={bookings}
-        visibleBookings={bookings}
-      />
+      <HistoryView {...defaultProps} filteredBookings={bookings} visibleBookings={bookings} />
     );
     expect(screen.getByText(/2 agendamentos/)).toBeInTheDocument();
   });
 
   it('mostra mensagem de vazio para filtro hidden', () => {
-    render(
-      <HistoryView
-        {...defaultProps}
-        visibleBookings={[]}
-        historyFilter="hidden"
-      />
-    );
+    render(<HistoryView {...defaultProps} visibleBookings={[]} historyFilter="hidden" />);
     expect(screen.getByText('Nenhum agendamento oculto.')).toBeInTheDocument();
   });
 
   it('mostra mensagem de vazio para outros filtros', () => {
-    render(
-      <HistoryView
-        {...defaultProps}
-        visibleBookings={[]}
-        historyFilter="all"
-      />
-    );
+    render(<HistoryView {...defaultProps} visibleBookings={[]} historyFilter="all" />);
     expect(screen.getByText('Nenhum agendamento encontrado.')).toBeInTheDocument();
   });
 
@@ -119,9 +113,7 @@ describe('HistoryView', () => {
   });
 
   it('não renderiza seletor de meses quando há apenas 1 mês', () => {
-    render(
-      <HistoryView {...defaultProps} availableMonths={['2026-07']} />
-    );
+    render(<HistoryView {...defaultProps} availableMonths={['2026-07']} />);
     expect(screen.queryByText('Todos os meses')).not.toBeInTheDocument();
   });
 
@@ -143,12 +135,7 @@ describe('HistoryView', () => {
       booking_time: '14:00',
       total_duration: 50,
     });
-    render(
-      <HistoryView
-        {...defaultProps}
-        visibleBookings={[booking]}
-      />
-    );
+    render(<HistoryView {...defaultProps} visibleBookings={[booking]} />);
     expect(screen.getByText('Concluído')).toBeInTheDocument();
     // O horário e duração são renderizados juntos no mesmo elemento
     expect(screen.getByText(/14:00/)).toBeInTheDocument();
@@ -165,12 +152,7 @@ describe('HistoryView', () => {
 
     for (const { status, label } of statusTestCases) {
       const booking = createMockBooking({ status });
-      const { unmount } = render(
-        <HistoryView
-          {...defaultProps}
-          visibleBookings={[booking]}
-        />
-      );
+      const { unmount } = render(<HistoryView {...defaultProps} visibleBookings={[booking]} />);
       expect(screen.getByText(label)).toBeInTheDocument();
       unmount();
     }
@@ -178,37 +160,19 @@ describe('HistoryView', () => {
 
   it('mostra "Serviço" quando não há service_ids', () => {
     const booking = createMockBooking({ service_ids: [] });
-    render(
-      <HistoryView
-        {...defaultProps}
-        visibleBookings={[booking]}
-      />
-    );
+    render(<HistoryView {...defaultProps} visibleBookings={[booking]} />);
     expect(screen.getAllByText('Serviço').length).toBeGreaterThan(0);
   });
 
   it('mostra botão "Carregar mais" quando hasMore é true', () => {
-    render(
-      <HistoryView
-        {...defaultProps}
-        hasMore={true}
-        remaining={3}
-      />
-    );
+    render(<HistoryView {...defaultProps} hasMore={true} remaining={3} />);
     expect(screen.getByText(/Carregar mais/)).toBeInTheDocument();
     expect(screen.getByText(/3 restantes/)).toBeInTheDocument();
   });
 
   it('chama onLoadMore ao clicar em "Carregar mais"', () => {
     const onLoadMore = vi.fn();
-    render(
-      <HistoryView
-        {...defaultProps}
-        hasMore={true}
-        remaining={3}
-        onLoadMore={onLoadMore}
-      />
-    );
+    render(<HistoryView {...defaultProps} hasMore={true} remaining={3} onLoadMore={onLoadMore} />);
     screen.getByText(/Carregar mais/).click();
     expect(onLoadMore).toHaveBeenCalled();
   });
@@ -216,11 +180,7 @@ describe('HistoryView', () => {
   it('mostra booking como oculto quando id está em hiddenIds', () => {
     const booking = createMockBooking({ id: 'booking-hidden' });
     render(
-      <HistoryView
-        {...defaultProps}
-        visibleBookings={[booking]}
-        hiddenIds={['booking-hidden']}
-      />
+      <HistoryView {...defaultProps} visibleBookings={[booking]} hiddenIds={['booking-hidden']} />
     );
     // O botão de toggle deve ter aria-label "Mostrar agendamento" quando oculto
     expect(screen.getByTitle('Restaurar')).toBeInTheDocument();
@@ -228,13 +188,7 @@ describe('HistoryView', () => {
 
   it('mostra booking como normal quando não oculto', () => {
     const booking = createMockBooking();
-    render(
-      <HistoryView
-        {...defaultProps}
-        visibleBookings={[booking]}
-        hiddenIds={[]}
-      />
-    );
+    render(<HistoryView {...defaultProps} visibleBookings={[booking]} hiddenIds={[]} />);
     expect(screen.getByTitle('Ocultar do histórico')).toBeInTheDocument();
   });
 
@@ -242,11 +196,7 @@ describe('HistoryView', () => {
     const onToggleHide = vi.fn();
     const booking = createMockBooking();
     render(
-      <HistoryView
-        {...defaultProps}
-        visibleBookings={[booking]}
-        onToggleHide={onToggleHide}
-      />
+      <HistoryView {...defaultProps} visibleBookings={[booking]} onToggleHide={onToggleHide} />
     );
     screen.getByTitle('Ocultar do histórico').click();
     expect(onToggleHide).toHaveBeenCalledWith('booking-1');

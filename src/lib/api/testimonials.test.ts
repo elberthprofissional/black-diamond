@@ -143,9 +143,9 @@ describe('createTestimonial', () => {
     });
     mockFrom.mockReturnValue(builder);
 
-    await expect(
-      createTestimonial({ name: 'João', rating: 5, text: 'Teste' })
-    ).rejects.toThrow('Insert failed');
+    await expect(createTestimonial({ name: 'João', rating: 5, text: 'Teste' })).rejects.toThrow(
+      'Insert failed'
+    );
   });
 });
 
@@ -188,4 +188,3 @@ describe('deleteTestimonial', () => {
     await expect(deleteTestimonial('t1')).rejects.toThrow();
   });
 });
-

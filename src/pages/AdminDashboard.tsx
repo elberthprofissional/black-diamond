@@ -8,6 +8,7 @@ import { useBookingStatusCounts } from '../hooks/useBookingStatusCounts';
 import AdminLayout from '../components/Admin/AdminLayout';
 import DashboardHeader from '../components/Admin/shared/DashboardHeader';
 import OfflineBanner from '../components/Admin/shared/OfflineBanner';
+import CompleteBanner from '../components/Admin/shared/CompleteBanner';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
 import OccupiedPanel from '../components/Admin/shared/OccupiedPanel';
 import FreePanel from '../components/Admin/shared/FreePanel';
@@ -17,6 +18,7 @@ import ClosedDayView from '../components/Admin/shared/ClosedDayView';
 import EndOfDayView from '../components/Admin/shared/EndOfDayView';
 import BarberFilter from '../components/Admin/dashboard/BarberFilter';
 import DaySummary from '../components/Admin/dashboard/DaySummary';
+import DayOffButton from '../components/Admin/shared/DayOffButton';
 import { SkeletonDashboard } from '../components/Skeleton';
 
 const AdminDashboard: FC = () => {
@@ -42,6 +44,13 @@ const AdminDashboard: FC = () => {
       <div className="space-y-5">
         <OfflineBanner isCached={data.isCached} onRetry={data.loadData} />
 
+        <CompleteBanner
+          expiredCount={data.expiredCount}
+          loading={data.loading}
+          onComplete={data.handleAutoComplete}
+          onDismiss={data.dismissExpiredBanner}
+        />
+
         {isOwner && barbers.length > 1 && (
           <BarberFilter
             selectedBarberId={selectedBarberFilter}
@@ -50,28 +59,30 @@ const AdminDashboard: FC = () => {
           />
         )}
 
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-4 border-b border-white/[0.06]">
-          <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-white uppercase italic shrink-0">
+        <div className="flex items-center justify-between gap-3 pb-4 border-b border-white/[0.06]">
+          <h1 className="text-lg lg:text-2xl font-bold tracking-tight text-white uppercase shrink-0">
             Agenda do Dia
           </h1>
-          {showFilterTabs && (
-            <FilterTabs
-              filter={mgmt.filter}
-              setFilter={mgmt.setFilter}
-              layoutId="dailyFilter"
-              occupiedCount={data.occupiedBookings.length}
-              freeCount={data.freeSlots.length}
-              blockedCount={data.blockedBookings.length}
+          <div className="flex items-center gap-3">
+            <DaySummary
+              totalCount={data.bookings.length}
+              completedCount={statusCounts.completedCount}
+              noShowCount={statusCounts.noShowCount}
             />
-          )}
+            {!data.loading && !dayStatus.isClosed && !dayStatus.isPastClosing && (
+              <DayOffButton
+                isBlocked={data.blockedBookings.length > 0}
+                freeSlotsCount={data.freeSlots.length}
+                blockedCount={data.blockedBookings.length}
+                loading={data.loading}
+                onBlockDay={() =>
+                  data.blockEntireDay(data.selectedDate, data.freeSlots, data.loadData)
+                }
+                onUnblockDay={() => data.unblockEntireDay(data.blockedBookings, data.loadData)}
+              />
+            )}
+          </div>
         </div>
-
-        <DaySummary
-          totalCount={data.bookings.length}
-          completedCount={statusCounts.completedCount}
-          cancelledCount={statusCounts.cancelledCount}
-          noShowCount={statusCounts.noShowCount}
-        />
 
         <DashboardHeader
           nextBooking={data.nextBooking}
@@ -79,12 +90,26 @@ const AdminDashboard: FC = () => {
           onSelectNext={() => data.nextBooking && mgmt.setSelectedBooking(data.nextBooking)}
         />
 
+        {showFilterTabs && (
+          <FilterTabs
+            filter={mgmt.filter}
+            setFilter={mgmt.setFilter}
+            layoutId="dailyFilter"
+            occupiedCount={data.occupiedBookings.length}
+            freeCount={data.freeSlots.length}
+            blockedCount={data.blockedBookings.length}
+          />
+        )}
+
         {data.loading ? (
           <SkeletonDashboard />
         ) : dayStatus.isClosed ? (
           <ClosedDayView />
         ) : dayStatus.isPastClosing ? (
-          <EndOfDayView completedCount={statusCounts.completedCount} dailyRevenue={data.dailyRevenue} />
+          <EndOfDayView
+            completedCount={statusCounts.completedCount}
+            dailyRevenue={data.dailyRevenue}
+          />
         ) : (
           <div className="pt-1">
             {mgmt.filter === 'occupied' && (

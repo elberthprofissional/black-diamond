@@ -1,16 +1,17 @@
-import { useState, useEffect, type FC } from 'react';
+import { useState, useRef, useEffect, type FC } from 'react';
 import { User } from 'lucide-react';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 
 const About: FC = () => {
   const { barberPhoto, barberBio, barberName, barberQuote } = useBarberSettings();
   const [photoError, setPhotoError] = useState(false);
+  const prevPhotoRef = useRef(barberPhoto);
 
   // Reset photo error when photo URL changes
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+  if (prevPhotoRef.current !== barberPhoto) {
+    prevPhotoRef.current = barberPhoto;
     setPhotoError(false);
-  }, [barberPhoto]);
+  }
 
   const hasPhoto = !!barberPhoto && !photoError;
   const displayBio =

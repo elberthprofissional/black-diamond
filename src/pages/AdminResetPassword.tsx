@@ -14,7 +14,8 @@ const AdminResetPassword: FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const { toast, showSuccess, showError } = useToast();
   const navigate = useNavigate();
-  const [isPWA, setIsPWA] = useState(false);
+  const isPWA =
+    window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
   useEffect(() => {
     const {
@@ -43,13 +44,6 @@ const AdminResetPassword: FC = () => {
       clearTimeout(timer);
     };
   }, [navigate, showError]);
-
-  useEffect(() => {
-    const isStandalone =
-      window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsPWA(!!isStandalone);
-  }, []);
 
   useScrollLock();
 

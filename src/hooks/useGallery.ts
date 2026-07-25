@@ -9,7 +9,8 @@ export type { GalleryImage } from '../types';
 
 export function useGallery() {
   const { toast, showSuccess, showError } = useToast();
-  const { images, setImages, uploading, fileInputRef, openFilePicker, handleUpload, MAX_PHOTOS } = useGalleryData();
+  const { images, setImages, uploading, fileInputRef, openFilePicker, handleUpload, MAX_PHOTOS } =
+    useGalleryData();
 
   // === Preview state ===
   const [previewImage, setPreviewImage] = useState<GalleryImage | null>(null);

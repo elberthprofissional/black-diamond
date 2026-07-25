@@ -84,8 +84,7 @@ export function useClientPanel(
     } finally {
       setSaving(false);
     }
-  },    [selectedClient, editName, editPhone, showError, setClients]
-  );
+  }, [selectedClient, editName, editPhone, showError, setClients]);
 
   const handleSaveNotes = useCallback(async () => {
     if (!selectedClient) return;
@@ -114,8 +113,7 @@ export function useClientPanel(
       setIsDeleting(false);
       setIsDeleteOpen(false);
     }
-  },    [selectedClient, closePanel, showSuccess, showError, setClients]
-  );
+  }, [selectedClient, closePanel, showSuccess, showError, setClients]);
 
   const [expiresAt, setExpiresAt] = useState<string>('');
 

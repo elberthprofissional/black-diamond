@@ -97,5 +97,3 @@ export const deleteTestimonial = async (id: string): Promise<void> => {
 
   if (error) throw error;
 };
-
-

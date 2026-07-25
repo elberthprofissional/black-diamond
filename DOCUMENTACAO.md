@@ -2,11 +2,13 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, notificacoes push e integracao com WhatsApp.
 
-**Versao:** 3.24.0 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.25.0 | **Ultima atualizacao:** Julho 2026
 
-> NOTA: Esta versao inclui reestruturacao do layout admin (container 1440px, hierarquia visual),
-> correcao do embed do Google Maps, botao de acesso restrito no Footer, e melhorias de
-> responsividade mobile.
+> NOTA: Esta versao inclui auto-complete de agendamentos expirados (CompleteBanner),
+> botao 'Tirar Folga' no dashboard (DayOffButton), trigger de normalizacao de nomes de
+> clientes (anti-burro), correcao RLS dos depoimentos (TO anon, authenticated),
+> centralizacao de APIs em src/lib/api/, hooks useAsyncData/useAsyncEffect,
+> e limpeza de codigo morto (~30 refatoracoes de setStateInEffect).
 
 ---
 

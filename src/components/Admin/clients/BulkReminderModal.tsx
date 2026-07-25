@@ -56,10 +56,7 @@ const BulkReminderModal: FC<BulkReminderModalProps> = ({
               </button>
             </div>
 
-            <ReminderClientList
-              clients={clientsNeedingReminder}
-              onSelect={onSelectClient}
-            />
+            <ReminderClientList clients={clientsNeedingReminder} onSelect={onSelectClient} />
           </motion.div>
         </motion.div>
       )}

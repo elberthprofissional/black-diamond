@@ -1,4 +1,4 @@
-import { useState, useEffect, type FC } from 'react';
+import { useState, useEffect, useRef, type FC } from 'react';
 import { useBarberSettings } from '../../../hooks/useBarberSettings';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
@@ -27,22 +27,24 @@ const SettingsConta: FC = () => {
     instagram: settings.barberInstagram,
   });
   // Sync form state when settings load from context
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setVals({
-      name: settings.barberName,
-      phone: settings.barberPhone,
-      bio: settings.barberBio,
-      quote: settings.barberQuote,
-      instagram: settings.barberInstagram,
-    });
-  }, [
-    settings.barberName,
-    settings.barberPhone,
-    settings.barberBio,
-    settings.barberQuote,
-    settings.barberInstagram,
-  ]);
+  const prevSettingsRef = useRef({ name: '', phone: '', bio: '', quote: '', instagram: '' });
+  const currentSettings = {
+    name: settings.barberName,
+    phone: settings.barberPhone,
+    bio: settings.barberBio,
+    quote: settings.barberQuote,
+    instagram: settings.barberInstagram,
+  };
+  if (
+    currentSettings.name !== prevSettingsRef.current.name ||
+    currentSettings.phone !== prevSettingsRef.current.phone ||
+    currentSettings.bio !== prevSettingsRef.current.bio ||
+    currentSettings.quote !== prevSettingsRef.current.quote ||
+    currentSettings.instagram !== prevSettingsRef.current.instagram
+  ) {
+    prevSettingsRef.current = currentSettings;
+    setVals(currentSettings);
+  }
 
   const [editing, setEditing] = useState<Record<string, boolean>>({});
   const [inputs, setInputs] = useState<Record<string, string>>({});

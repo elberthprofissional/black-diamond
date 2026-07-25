@@ -2,6 +2,9 @@ import '@testing-library/jest-dom';
 import { cleanup, act } from '@testing-library/react';
 import { vi, afterEach } from 'vitest';
 
+// ─── Global env vars ───
+// VAPID public key for Push Notifications is set in vite.config.ts (test.env)
+
 // ─── Global cleanup after each test ───
 // Suppresses act() warnings from async state updates that resolve after test completion
 afterEach(() => {

@@ -55,7 +55,7 @@ describe('SettingsList', () => {
     expect(screen.getByText('Sua Conta')).toBeInTheDocument();
     expect(screen.getByText('Barbearia')).toBeInTheDocument();
     expect(screen.getByText('Segurança')).toBeInTheDocument();
-    expect(screen.getByText('Mensalista')).toBeInTheDocument();
+    expect(screen.getByText('Controle de Faltas')).toBeInTheDocument();
     expect(screen.getByText('Sair')).toBeInTheDocument();
   });
 

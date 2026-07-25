@@ -1,4 +1,4 @@
-import { useState, useEffect, type FC } from 'react';
+import { useState, useEffect, useRef, type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useBarberSettings } from '../../../hooks/useBarberSettings';
@@ -37,19 +37,17 @@ const SettingsHorarios: FC = () => {
   const [applyOpen, setApplyOpen] = useState(false);
   const [lunchOpen, setLunchOpen] = useState(false);
 
-  // Carrega dados salvos do context ao montar
-  useEffect(() => {
-    if (barberHours) {
-      try {
-        // Sync local hours state when barberHours changes
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setHours({ ...DEFAULT_HOURS, ...JSON.parse(barberHours) });
-      } catch (e) {
-        logError(e);
-        setHours(DEFAULT_HOURS);
-      }
+  // Sync local hours state when barberHours changes — derived during render
+  const prevHoursRef = useRef<string | undefined>(undefined);
+  if (barberHours && barberHours !== prevHoursRef.current) {
+    prevHoursRef.current = barberHours;
+    try {
+      setHours({ ...DEFAULT_HOURS, ...JSON.parse(barberHours) });
+    } catch (e) {
+      logError(e);
+      setHours(DEFAULT_HOURS);
     }
-  }, [barberHours]);
+  }
 
   // Alerta se tentar sair da pagina com alteracoes nao salvas
   useEffect(() => {
@@ -412,10 +410,7 @@ const SettingsHorarios: FC = () => {
                   onHasChange={() => setHasChanges(true)}
                   layout="mobile"
                 />
-                <button
-                  onClick={() => setLunchOpen(false)}
-                  className="btn-gold w-full py-3.5"
-                >
+                <button onClick={() => setLunchOpen(false)} className="btn-gold w-full py-3.5">
                   Concluir
                 </button>
               </div>

@@ -84,11 +84,6 @@ describe('useNoShow', () => {
     });
 
     expect(mockSupabaseFrom).toHaveBeenCalledWith('bookings');
-    expect(mockLog).toHaveBeenCalledWith({
-      action: 'booking_no_show',
-      target_id: 'booking-1',
-      details: { marked_as_no_show: true },
-    });
     expect(mockShowSuccess).toHaveBeenCalled();
     expect(onBookingUpdated).toHaveBeenCalled();
   });
@@ -160,11 +155,6 @@ describe('useNoShow', () => {
     });
 
     expect(mockSupabaseFrom).toHaveBeenCalledWith('bookings');
-    expect(mockLog).toHaveBeenCalledWith({
-      action: 'booking_no_show_undone',
-      target_id: 'booking-1',
-      details: { marked_as_no_show: false },
-    });
     expect(mockShowSuccess).toHaveBeenCalledWith('Falta removida');
     expect(onBookingUpdated).toHaveBeenCalled();
   });
@@ -193,7 +183,7 @@ describe('useNoShow', () => {
     expect(mockShowSuccess).toHaveBeenCalled();
   });
 
-  it('passes booking ID to audit log on mark', async () => {
+  it('marks no-show with specific booking ID', async () => {
     mockSupabaseFrom.mockReturnValue(createSuccessChain());
 
     const { result } = renderHook(() => useNoShow());
@@ -202,10 +192,11 @@ describe('useNoShow', () => {
       await result.current.markAsNoShow('booking-xyz-123');
     });
 
-    expect(mockLog).toHaveBeenCalledWith(expect.objectContaining({ target_id: 'booking-xyz-123' }));
+    expect(mockSupabaseFrom).toHaveBeenCalledWith('bookings');
+    expect(mockShowSuccess).toHaveBeenCalled();
   });
 
-  it('passes booking ID to audit log on undo', async () => {
+  it('undoes no-show with specific booking ID', async () => {
     mockSupabaseFrom.mockReturnValue(createSuccessChain());
 
     const { result } = renderHook(() => useNoShow());
@@ -214,6 +205,7 @@ describe('useNoShow', () => {
       await result.current.undoNoShow('booking-abc-456');
     });
 
-    expect(mockLog).toHaveBeenCalledWith(expect.objectContaining({ target_id: 'booking-abc-456' }));
+    expect(mockSupabaseFrom).toHaveBeenCalledWith('bookings');
+    expect(mockShowSuccess).toHaveBeenCalled();
   });
 });

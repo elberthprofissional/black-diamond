@@ -143,8 +143,19 @@ const AdminWeekly: FC = () => {
 
   // Se todos os dias estão desabilitados, não quebra
   const hasVisibleDays = visibleWeekDays.length > 0;
+
+  // Deriva o índice seguro: se o índice selecionado está fora do range, reseta
+  const safeVisibleIndex =
+    selectedVisibleIndex < visibleWeekDays.length
+      ? selectedVisibleIndex
+      : (() => {
+          const todayStr = today.toDateString();
+          const todayIdx = visibleWeekDays.findIndex((d) => d.toDateString() === todayStr);
+          return todayIdx >= 0 ? todayIdx : 0;
+        })();
+
   const selectedDate = hasVisibleDays
-    ? (visibleWeekDays[selectedVisibleIndex] ?? new Date())
+    ? (visibleWeekDays[safeVisibleIndex] ?? new Date())
     : new Date();
   const selectedDateStr = getLocalDateString(selectedDate);
 
@@ -208,20 +219,6 @@ const AdminWeekly: FC = () => {
     };
   }, [selectedDateStr, loadData]);
 
-
-
-  // Se todos os dias mudarem (ex: carregou barberHours), ajusta o índice selecionado
-  useEffect(() => {
-    if (selectedVisibleIndex >= visibleWeekDays.length) {
-      // Tenta encontrar hoje no novo array; senão, pega o primeiro
-      const todayStr = today.toDateString();
-      const todayIdx = visibleWeekDays.findIndex((d) => d.toDateString() === todayStr);
-      // Necessary sync update: keeps selected day valid when week config changes
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSelectedVisibleIndex(todayIdx >= 0 ? todayIdx : 0);
-    }
-  }, [visibleWeekDays, visibleWeekDays.length, selectedVisibleIndex, today]);
-
   const handleBlockSlot = async (date: string, slot: string) => {
     await blockSlot(date, slot, loadData, `${date}-${slot}`);
   };
@@ -282,7 +279,7 @@ const AdminWeekly: FC = () => {
 
         {/* Titulo + data na mesma linha */}
         <div className="flex items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
-          <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-white uppercase italic shrink-0">
+          <h1 className="text-lg lg:text-2xl font-bold tracking-tight text-white uppercase shrink-0">
             Agenda da Semana
           </h1>
           <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] capitalize shrink-0">
@@ -295,7 +292,7 @@ const AdminWeekly: FC = () => {
             date: day,
             isToday: day.toDateString() === today.toDateString(),
             isPast: day < today && day.toDateString() !== today.toDateString(),
-            isSelected: idx === selectedVisibleIndex,
+            isSelected: idx === safeVisibleIndex,
           }))}
           onSelect={setSelectedVisibleIndex}
         />

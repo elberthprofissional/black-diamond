@@ -177,67 +177,67 @@ const Testimonials: FC = () => {
           onMouseUp={handleMouseUp}
         >
           {testimonials.map((review, index) => {
-          // Anti-burro: fallback seguro pra qualquer campo
-          const safeName = review.name || 'Cliente';
-          const safeText = review.text || 'Excelente atendimento!';  // Fallback se texto vazio
-          const safeRating = Math.min(Math.max(review.rating || 5, 1), 5);
-          return (
-            <div
-              key={review.id}
-              role="group"
-              aria-roledescription="slide"
-              aria-label={`Depoimento ${index + 1} de ${count}`}
-              className="group relative bg-[#111111] border border-white/[0.04] hover:border-[#D4AF37]/25 p-6 md:p-8 rounded-2xl flex flex-col justify-between gap-5 h-auto w-[80vw] sm:w-[75vw] md:w-[360px] snap-center shrink-0 transition-all duration-500 hover:shadow-lg hover:shadow-[#D4AF37]/5"
-            >
-              {/* Quote decoration */}
-              <div className="absolute top-4 right-4 md:top-6 md:right-6 text-[#D4AF37]/10">
-                <Quote size={40} className="md:w-12 md:h-12" />
-              </div>
-
-              {/* Rating stars */}
-              <div className="flex gap-0.5 mb-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    size={14}
-                    className={`transition-all duration-300 ${
-                      i < safeRating
-                        ? 'fill-[#D4AF37] text-[#D4AF37] drop-shadow-[0_0_4px_rgba(212,175,55,0.3)]'
-                        : 'text-zinc-700'
-                    }`}
-                  />
-                ))}
-              </div>
-
-              {/* Testimonial text */}
-              <p className="text-zinc-300 font-roboto font-light text-[14px] md:text-[16px] leading-[1.8] flex-1 relative z-10">
-                <span className="text-[#D4AF37]/40 text-xl font-serif mr-1">&ldquo;</span>
-                {safeText}
-                <span className="text-[#D4AF37]/40 text-xl font-serif ml-1">&rdquo;</span>
-              </p>
-
-              {/* Author */}
-              <div className="flex items-center gap-3 pt-2 border-t border-white/[0.03]">
-                <div className="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 rounded-full shrink-0 flex items-center justify-center border border-[#D4AF37]/10 group-hover:border-[#D4AF37]/30 transition-all duration-500">
-                  <User size={15} className="text-[#D4AF37]/70" />
+            // Anti-burro: fallback seguro pra qualquer campo
+            const safeName = review.name || 'Cliente';
+            const safeText = review.text || 'Excelente atendimento!'; // Fallback se texto vazio
+            const safeRating = Math.min(Math.max(review.rating || 5, 1), 5);
+            return (
+              <div
+                key={review.id}
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`Depoimento ${index + 1} de ${count}`}
+                className="group relative bg-[#111111] border border-white/[0.04] hover:border-[#D4AF37]/25 p-6 md:p-8 rounded-2xl flex flex-col justify-between gap-5 h-auto w-[80vw] sm:w-[75vw] md:w-[360px] snap-center shrink-0 transition-all duration-500 hover:shadow-lg hover:shadow-[#D4AF37]/5"
+              >
+                {/* Quote decoration */}
+                <div className="absolute top-4 right-4 md:top-6 md:right-6 text-[#D4AF37]/10">
+                  <Quote size={40} className="md:w-12 md:h-12" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[12px] md:text-[14px] font-bold text-white tracking-wide">
-                    {safeName}
-                  </span>
-                  {review.publish_time && (
-                    <span className="text-[10px] text-zinc-600 font-roboto">
-                      {new Date(review.publish_time).toLocaleDateString('pt-BR', {
-                        month: 'short',
-                        year: 'numeric',
-                      })}
+
+                {/* Rating stars */}
+                <div className="flex gap-0.5 mb-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      size={14}
+                      className={`transition-all duration-300 ${
+                        i < safeRating
+                          ? 'fill-[#D4AF37] text-[#D4AF37] drop-shadow-[0_0_4px_rgba(212,175,55,0.3)]'
+                          : 'text-zinc-700'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                {/* Testimonial text */}
+                <p className="text-zinc-300 font-roboto font-light text-[14px] md:text-[16px] leading-[1.8] flex-1 relative z-10">
+                  <span className="text-[#D4AF37]/40 text-xl font-serif mr-1">&ldquo;</span>
+                  {safeText}
+                  <span className="text-[#D4AF37]/40 text-xl font-serif ml-1">&rdquo;</span>
+                </p>
+
+                {/* Author */}
+                <div className="flex items-center gap-3 pt-2 border-t border-white/[0.03]">
+                  <div className="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 rounded-full shrink-0 flex items-center justify-center border border-[#D4AF37]/10 group-hover:border-[#D4AF37]/30 transition-all duration-500">
+                    <User size={15} className="text-[#D4AF37]/70" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[12px] md:text-[14px] font-bold text-white tracking-wide">
+                      {safeName}
                     </span>
-                  )}
+                    {review.publish_time && (
+                      <span className="text-[10px] text-zinc-600 font-roboto">
+                        {new Date(review.publish_time).toLocaleDateString('pt-BR', {
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
         </div>
 
         {/* Controls */}
