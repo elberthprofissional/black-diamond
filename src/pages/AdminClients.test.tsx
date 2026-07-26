@@ -128,6 +128,20 @@ vi.mock('../lib/api/barbers', () => ({
   getBarberByUserId: vi.fn().mockResolvedValue(null),
 }));
 
+vi.mock('../hooks/useSubscription', () => ({
+  useSubscription: () => ({
+    status: null,
+    loading: false,
+    error: null,
+    payments: [],
+    generatingPayment: false,
+    paymentResult: null,
+    paymentError: null,
+    refresh: vi.fn().mockResolvedValue(undefined),
+    generatePayment: vi.fn().mockResolvedValue(undefined),
+  }),
+}));
+
 import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 import { BarberProvider } from '../contexts/BarberContext';
 import AdminClients from './AdminClients';

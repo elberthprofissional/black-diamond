@@ -1,5 +1,6 @@
 import { supabase } from '../supabase';
 import { logError } from '../logger';
+import { getSetting, upsertSetting } from './settings';
 
 export interface SubscriptionStatus {
   has_subscription: boolean;
@@ -119,4 +120,23 @@ export async function markAsPaid(barberId: string): Promise<void> {
   });
 
   if (error) throw error;
+}
+
+/**
+ * Busca a chave PIX do dono (para exibir aos barbeiros).
+ */
+export async function getOwnerPixKey(): Promise<string | null> {
+  try {
+    return await getSetting('owner_pix_key');
+  } catch (e) {
+    logError(e, 'getOwnerPixKey');
+    return null;
+  }
+}
+
+/**
+ * Salva/atualiza a chave PIX do dono.
+ */
+export async function saveOwnerPixKey(key: string): Promise<void> {
+  await upsertSetting('owner_pix_key', key);
 }

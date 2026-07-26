@@ -34,13 +34,8 @@ const BarberDashboard: FC = () => {
 
   const mgmt = useBookingModals(loadData, services);
   const noShow = useNoShow({ onBookingUpdated: loadData });
-  const {
-    blockingSlot,
-    unblockingBooking,
-    setUnblockingBooking,
-    unblockSlot,
-    blockSlot,
-  } = useSlotBlocking();
+  const { blockingSlot, unblockingBooking, setUnblockingBooking, unblockSlot, blockSlot } =
+    useSlotBlocking();
 
   const confirmUnblock = useCallback(async () => {
     if (!unblockingBooking) return;
@@ -51,7 +46,10 @@ const BarberDashboard: FC = () => {
 
   // Metrics
   const dailyRevenue = useMemo(
-    () => bookings.filter((b) => b.status === 'completed').reduce((sum, b) => sum + (b.total_price || 0), 0),
+    () =>
+      bookings
+        .filter((b) => b.status === 'completed')
+        .reduce((sum, b) => sum + (b.total_price || 0), 0),
     [bookings]
   );
 
@@ -61,12 +59,15 @@ const BarberDashboard: FC = () => {
   );
 
   const pendingCount = useMemo(
-    () => bookings.filter((b) => (b.status === 'confirmed' || b.status === 'pending') && !b.is_blocked).length,
+    () =>
+      bookings.filter((b) => (b.status === 'confirmed' || b.status === 'pending') && !b.is_blocked)
+        .length,
     [bookings]
   );
 
   const occupiedBookings = useMemo(
-    () => bookings.filter((b) => b.status !== 'completed' && b.status !== 'cancelled' && !b.is_blocked),
+    () =>
+      bookings.filter((b) => b.status !== 'completed' && b.status !== 'cancelled' && !b.is_blocked),
     [bookings]
   );
 
@@ -157,10 +158,15 @@ const BarberDashboard: FC = () => {
         {/* Next Booking */}
         {!loading && pendingCount > 0 && (
           <DashboardHeader
-            nextBooking={occupiedBookings.sort((a, b) => a.booking_time.localeCompare(b.booking_time))[0] || null}
+            nextBooking={
+              occupiedBookings.sort((a, b) => a.booking_time.localeCompare(b.booking_time))[0] ||
+              null
+            }
             dailyRevenue={dailyRevenue}
             onSelectNext={() => {
-              const next = occupiedBookings.sort((a, b) => a.booking_time.localeCompare(b.booking_time))[0];
+              const next = occupiedBookings.sort((a, b) =>
+                a.booking_time.localeCompare(b.booking_time)
+              )[0];
               if (next) mgmt.setSelectedBooking(next);
             }}
           />
@@ -189,7 +195,9 @@ const BarberDashboard: FC = () => {
                 {occupiedBookings.length === 0 ? (
                   <div className="py-12 text-center">
                     <p className="text-[14px] text-zinc-500">Nenhum agendamento pendente</p>
-                    <p className="text-[10px] text-zinc-600 mt-1">Aproveite para organizar o salão!</p>
+                    <p className="text-[10px] text-zinc-600 mt-1">
+                      Aproveite para organizar o salão!
+                    </p>
                   </div>
                 ) : (
                   occupiedBookings.map((booking) => (
@@ -308,7 +316,14 @@ const BarberDashboard: FC = () => {
           >
             <div className="p-6 text-center">
               <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2.5">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#34d399"
+                  strokeWidth="2.5"
+                >
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>

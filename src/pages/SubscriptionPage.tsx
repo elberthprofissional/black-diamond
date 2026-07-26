@@ -1,27 +1,25 @@
-import { type FC } from 'react';
+import { type FC, useState, useEffect } from 'react';
 import { useBarberContext } from '../contexts/BarberContext';
 import { useSubscription } from '../hooks/useSubscription';
+import { getOwnerPixKey } from '../lib/api/subscriptions';
 import AdminLayout from '../components/Admin/AdminLayout';
 import { SkeletonDashboard } from '../components/Skeleton';
 
-import {
-  CreditCard,
-  CheckCircle,
-  AlertTriangle,
-  Clock,
-  Copy,
-  ExternalLink,
-  Loader2,
-  Crown,
-} from 'lucide-react';
-import { useState } from 'react';
-
+import { CreditCard, CheckCircle, AlertTriangle, Clock, Copy, Loader2, Crown } from 'lucide-react';
 
 const SubscriptionPage: FC = () => {
   const { currentBarber, isOwner } = useBarberContext();
-  const { status, loading, payments, generatePayment, generatingPayment, paymentResult, paymentError } =
-    useSubscription(currentBarber?.id);
+  const { status, loading, payments } = useSubscription(currentBarber?.id);
+  const [ownerPixKey, setOwnerPixKey] = useState<string | null>(null);
+  const [pixKeyLoading, setPixKeyLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    getOwnerPixKey().then((key) => {
+      setOwnerPixKey(key);
+      setPixKeyLoading(false);
+    });
+  }, []);
 
   const handleCopyPix = async (text: string) => {
     try {
@@ -46,6 +44,12 @@ const SubscriptionPage: FC = () => {
   const isActive = status?.is_active;
   const daysLeft = status?.days_remaining ?? 0;
   const blocked = status?.is_blocked;
+  const periodEnd = status?.current_period_end
+    ? (() => {
+        const [y, m, d] = status.current_period_end!.split('-');
+        return `${d}/${m}/${y}`;
+      })()
+    : null;
 
   return (
     <AdminLayout
@@ -100,7 +104,12 @@ const SubscriptionPage: FC = () => {
                       ? 'Assinatura Bloqueada'
                       : 'Pagamento Pendente'}
                 </p>
-                {isActive && (
+                {isActive && periodEnd && (
+                  <p className="text-xs text-zinc-500 mt-0.5">
+                    Válido até <span className="text-zinc-300 font-medium">{periodEnd}</span>
+                  </p>
+                )}
+                {isActive && !periodEnd && (
                   <p className="text-xs text-zinc-500 mt-0.5">
                     {daysLeft > 0
                       ? `Vence em ${daysLeft} ${daysLeft === 1 ? 'dia' : 'dias'}`
@@ -116,74 +125,77 @@ const SubscriptionPage: FC = () => {
           </div>
         </div>
 
-        {/* Payment Section */}
+        {/* Payment Section - PIX Key from owner */}
         {!isOwner && (
           <div className="bg-[#1a1a1a] border border-white/[0.06] rounded-2xl overflow-hidden">
             <div className="p-5">
               <h3 className="text-sm font-bold text-white mb-1">
-                {isActive ? 'Renovar Assinatura' : 'Pagar Assinatura'}
+                {isActive ? 'Próximo Pagamento' : 'Pagar Assinatura'}
               </h3>
               <p className="text-xs text-zinc-500 mb-4">
                 {isActive
-                  ? 'Gere um novo PIX para renovar sua assinatura por mais 30 dias.'
-                  : 'Gere um PIX ou link de pagamento para liberar seu acesso.'}
+                  ? 'Sua assinatura está ativa. Pague R$ 50,00 no último dia do mês para garantir o mês inteiro seguinte.'
+                  : 'Sua assinatura está pendente. Pague R$ 50,00 via PIX para liberar seu acesso.'}
               </p>
 
-              <button
-                onClick={generatePayment}
-                disabled={generatingPayment}
-                className="btn-gold w-full flex items-center justify-center gap-2 py-3 disabled:opacity-50"
-              >
-                {generatingPayment ? (
-                  <>
-                    <Loader2 size={14} className="animate-spin" />
-                    Gerando...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard size={14} />
-                    Gerar PIX para Pagamento
-                  </>
-                )}
-              </button>
-
-              {paymentError && (
-                <p className="text-xs text-red-400 text-center mt-3">{paymentError}</p>
-              )}
-
-              {/* PIX QR Code */}
-              {paymentResult?.pix_qrcode && (
-                <div className="mt-4 space-y-3">
-                  <div className="bg-white rounded-xl p-4 flex justify-center">
-                    <img
-                      src={`data:image/png;base64,${paymentResult.pix_qrcode.encodedImage}`}
-                      alt="QR Code PIX"
-                      className="w-48 h-48"
-                    />
-                  </div>
-                  <button
-                    onClick={() => handleCopyPix(paymentResult.pix_qrcode!.payload)}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] text-zinc-400 hover:text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
-                  >
-                    <Copy size={12} />
-                    {copied ? 'Copiado!' : 'Copiar código PIX'}
-                  </button>
-                  <a
-                    href={paymentResult.payment_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] text-zinc-400 hover:text-white text-xs font-bold uppercase tracking-wider transition-all"
-                  >
-                    <ExternalLink size={12} />
-                    Abrir link de pagamento
-                  </a>
+              {pixKeyLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 size={16} className="animate-spin text-zinc-600" />
                 </div>
-              )}
+              ) : ownerPixKey ? (
+                <div className="space-y-3">
+                  {/* PIX Key Display */}
+                  <div className="bg-white/[0.02] border border-[#D4AF37]/20 rounded-xl p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center">
+                        <CreditCard size={14} className="text-[#D4AF37]" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-zinc-500 uppercase tracking-wider">
+                          Chave PIX do proprietário
+                        </p>
+                        <p className="text-[13px] font-bold text-zinc-400">CPF / Celular / Email</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between bg-black/40 border border-white/[0.04] rounded-lg px-4 py-3.5">
+                      <span className="text-[15px] font-mono font-bold text-[#D4AF37] tracking-wider">
+                        {ownerPixKey}
+                      </span>
+                      <button
+                        onClick={() => handleCopyPix(ownerPixKey)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37]/20 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                      >
+                        <Copy size={10} />
+                        {copied ? 'Copiado!' : 'Copiar'}
+                      </button>
+                    </div>
+                  </div>
 
-              {!paymentResult && generatingPayment === false && isActive && (
-                <p className="text-[10px] text-zinc-600 text-center mt-3">
-                  Sua assinatura está ativa. Gere um novo pagamento apenas quando quiser renovar.
-                </p>
+                  {/* Instructions */}
+                  <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle size={14} className="text-amber-400 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-[11px] font-bold text-amber-300 mb-1">
+                          Após pagar, avise o administrador!
+                        </p>
+                        <p className="text-[10px] text-zinc-500 leading-relaxed">
+                          Faça o PIX de <strong className="text-white">R$ 50,00</strong> para a
+                          chave acima. Depois de pagar, avise o administrador para liberar seu
+                          acesso. Se pagou no{' '}
+                          <strong className="text-white">último dia do mês</strong>, leva o mês
+                          inteiro seguinte! Se pagou antes, vale só até o fim deste mês.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-4 text-center">
+                  <p className="text-xs text-zinc-500">
+                    Chave PIX não configurada. Entre em contato com o administrador.
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -251,7 +263,9 @@ const SubscriptionPage: FC = () => {
               <p className="text-xs font-bold text-white mb-1">Black Diamond Pro</p>
               <p className="text-[10px] text-zinc-500 leading-relaxed">
                 Sua assinatura dá acesso completo ao sistema de agendamento, gestão de clientes,
-                relatórios e muito mais. Pagamento via PIX é processado pelo Asaas.
+                relatórios e muito mais. <strong className="text-white">R$ 50,00/mês</strong> via
+                PIX. Pague no último dia do mês e garanta o mês inteiro seguinte. No último dia de
+                cada mês, o acesso é bloqueado até o próximo pagamento.
               </p>
             </div>
           </div>

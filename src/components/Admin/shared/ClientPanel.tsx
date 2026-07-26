@@ -191,11 +191,12 @@ const ClientPanel: FC<ClientPanelProps> = ({
   const expiryDate = client.mensalista_expires_at
     ? new Date(client.mensalista_expires_at + 'T23:59:59')
     : null;
+  const now = useMemo(() => new Date(), []);
   const isExpiringSoon =
     expiryDate &&
-    expiryDate > new Date() &&
-    expiryDate <= new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
-  const isExpired = expiryDate && expiryDate < new Date();
+    expiryDate > now &&
+    expiryDate <= new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
+  const isExpired = expiryDate && expiryDate < now;
 
   return (
     <div className="fixed inset-0 z-[200] flex justify-end flex-col sm:flex-row">

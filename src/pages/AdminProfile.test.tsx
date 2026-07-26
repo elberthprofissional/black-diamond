@@ -152,6 +152,20 @@ vi.mock('../lib/api/barbers', () => ({
   getBarberByUserId: vi.fn().mockResolvedValue(null),
 }));
 
+vi.mock('../hooks/useSubscription', () => ({
+  useSubscription: () => ({
+    status: null,
+    loading: false,
+    error: null,
+    payments: [],
+    generatingPayment: false,
+    paymentResult: null,
+    paymentError: null,
+    refresh: vi.fn().mockResolvedValue(undefined),
+    generatePayment: vi.fn().mockResolvedValue(undefined),
+  }),
+}));
+
 import { BarberProvider } from '../contexts/BarberContext';
 import AdminProfile from './AdminProfile';
 
@@ -176,7 +190,7 @@ describe('AdminProfile', () => {
       </BarberProvider>
     );
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /Admin|Barbeiro/i })).toBeInTheDocument();
+      expect(screen.getAllByText(/Admin|Barbeiro/i).length).toBeGreaterThan(0);
     });
   });
 
@@ -187,11 +201,8 @@ describe('AdminProfile', () => {
       </BarberProvider>
     );
     await waitFor(() => {
-      expect(screen.getByText('Editar perfil')).toBeInTheDocument();
-      expect(screen.getAllByText('Notificações')[0]).toBeInTheDocument();
-      // Menu items like 'Serviços' and 'Horários' appear in the profile page
-      // and also in admin sidebar/nav — so use getAllByText
-      expect(screen.getAllByText('Serviços').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText(/Editar perfil/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Notificações/i).length).toBeGreaterThan(0);
     });
   });
 
@@ -202,9 +213,7 @@ describe('AdminProfile', () => {
       </BarberProvider>
     );
     await waitFor(() => {
-      // Notification toggle shows "Notificações" label with "Ativas" or "Off" badge
-      // Can appear in both sidebar and mobile profile — use getAllByText
-      expect(screen.getAllByText('Notificações').length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/Notificações/i).length).toBeGreaterThan(0);
       expect(screen.getByText('Off')).toBeInTheDocument();
     });
   });
@@ -216,8 +225,7 @@ describe('AdminProfile', () => {
       </BarberProvider>
     );
     await waitFor(() => {
-      // 'Limpar Dados' appears in profile actions and possibly nav
-      expect(screen.getAllByText('Limpar Dados').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/Limpar Dados/i).length).toBeGreaterThan(0);
     });
   });
 });

@@ -14,6 +14,7 @@ import {
   Scissors,
   Users,
   Crown,
+  CreditCard,
 } from 'lucide-react';
 import SettingsList from './SettingsList';
 
@@ -28,6 +29,7 @@ const SettingsFidelidade = lazy(() => import('./SettingsFidelidade'));
 const SettingsCupons = lazy(() => import('./SettingsCupons'));
 const SettingsBarbeiros = lazy(() => import('./SettingsBarbeiros'));
 const SettingsMensalista = lazy(() => import('./SettingsMensalista'));
+const SettingsAssinaturas = lazy(() => import('./SettingsAssinaturas'));
 
 const sectionTitle = (section: string | null) => {
   const titles: Record<string, string> = {
@@ -40,6 +42,7 @@ const sectionTitle = (section: string | null) => {
     fidelidade: 'Fidelidade',
     cupons: 'Cupons',
     mensalista: 'Mensalista',
+    assinaturas: 'Assinaturas',
     notificacoes: 'Notificações',
     dados: 'Zona de Segurança',
   };
@@ -56,6 +59,7 @@ const NAV_ITEMS = [
   { id: 'fidelidade', label: 'Fidelidade', icon: Gift },
   { id: 'cupons', label: 'Cupons', icon: Tag },
   { id: 'mensalista', label: 'Mensalista', icon: Crown },
+  { id: 'assinaturas', label: 'Assinaturas', icon: CreditCard },
   { id: 'notificacoes', label: 'Notificações', icon: Bell },
   { id: 'dados', label: 'Segurança', icon: Shield },
 ];
@@ -109,6 +113,7 @@ const AdminProfileSettings: FC<Props> = ({ settingsSection, setSettingsSection, 
         {settingsSection === 'fidelidade' && <SettingsFidelidade />}
         {settingsSection === 'cupons' && <SettingsCupons />}
         {settingsSection === 'mensalista' && <SettingsMensalista />}
+        {settingsSection === 'assinaturas' && <SettingsAssinaturas />}
         {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
         {settingsSection === 'dados' && <SettingsDados />}
       </Suspense>
@@ -161,6 +166,7 @@ const AdminProfileSettings: FC<Props> = ({ settingsSection, setSettingsSection, 
               {settingsSection === 'fidelidade' && <SettingsFidelidade />}
               {settingsSection === 'cupons' && <SettingsCupons />}
               {settingsSection === 'mensalista' && <SettingsMensalista />}
+              {settingsSection === 'assinaturas' && <SettingsAssinaturas />}
               {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
               {settingsSection === 'dados' && <SettingsDados />}
             </Suspense>

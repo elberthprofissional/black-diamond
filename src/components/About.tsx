@@ -1,4 +1,4 @@
-import { useState, useRef, type FC } from 'react';
+import { useState, useEffect, useRef, type FC } from 'react';
 import { User } from 'lucide-react';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 
@@ -8,10 +8,12 @@ const About: FC = () => {
   const prevPhotoRef = useRef(barberPhoto);
 
   // Reset photo error when photo URL changes
-  if (prevPhotoRef.current !== barberPhoto) {
-    prevPhotoRef.current = barberPhoto;
-    setPhotoError(false);
-  }
+  useEffect(() => {
+    if (prevPhotoRef.current !== barberPhoto) {
+      prevPhotoRef.current = barberPhoto;
+      setPhotoError(false);
+    }
+  }, [barberPhoto]);
 
   const hasPhoto = !!barberPhoto && !photoError;
   const displayBio =

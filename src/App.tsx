@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, type ReactNode } from 'react';
-import { Routes, Route, useLocation, matchPath } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, matchPath } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import { useReducedMotion } from './hooks/useReducedMotion';
 import { useSEO } from './hooks/useSEO';
@@ -320,6 +320,9 @@ function App() {
                   </AdminLayout>
                 }
               />
+
+              {/* Redirect old /admin/assinaturas to profile settings */}
+              <Route path="/admin/assinaturas" element={<Navigate to="/admin/profile" replace />} />
 
               {/* Barber Route - simplified dashboard for barber employees */}
               <Route

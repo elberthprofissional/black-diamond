@@ -88,9 +88,7 @@ const AdminLayout: FC<AdminLayoutProps> = ({
               {/* Main Content — flex-1 wrapper centers the child via mx-auto on block */}
               <div className="flex-1 min-w-0 overflow-y-auto">
                 <main id="main-content" className={mainClassName}>
-                  <SubscriptionGuard>
-                    {children}
-                  </SubscriptionGuard>
+                  <SubscriptionGuard>{children}</SubscriptionGuard>
                 </main>
               </div>
             </div>

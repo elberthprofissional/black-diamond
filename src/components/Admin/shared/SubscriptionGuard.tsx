@@ -1,8 +1,9 @@
-import { type FC, type ReactNode, useState } from 'react';
+import { type FC, type ReactNode, useState, useEffect } from 'react';
 import { useBarberContext } from '../../../contexts/BarberContext';
 import { useSubscription } from '../../../hooks/useSubscription';
+import { getOwnerPixKey } from '../../../lib/api/subscriptions';
 import { SkeletonDashboard } from '../../Skeleton';
-import { AlertTriangle, CreditCard, CheckCircle, Loader2, Copy, ExternalLink } from 'lucide-react';
+import { AlertTriangle, CreditCard, CheckCircle, Copy } from 'lucide-react';
 
 interface SubscriptionGuardProps {
   children: ReactNode;
@@ -16,10 +17,28 @@ interface SubscriptionGuardProps {
  */
 const SubscriptionGuard: FC<SubscriptionGuardProps> = ({ children }) => {
   const { currentBarber, isOwner } = useBarberContext();
-  const { status, loading, payments, generatePayment, generatingPayment, paymentResult, paymentError } =
-    useSubscription(currentBarber?.id);
+  const { status, loading, payments } = useSubscription(currentBarber?.id);
 
+  const [ownerPixKey, setOwnerPixKey] = useState<string | null>(null);
+  const [pixKeyLoading, setPixKeyLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    getOwnerPixKey().then((key) => {
+      setOwnerPixKey(key);
+      setPixKeyLoading(false);
+    });
+  }, []);
+
+  const handleCopyPix = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } catch {
+      // fallback
+    }
+  };
 
   // Owners sempre passam
   if (isOwner) {
@@ -27,7 +46,7 @@ const SubscriptionGuard: FC<SubscriptionGuardProps> = ({ children }) => {
   }
 
   // Loading
-  if (loading) {
+  if (loading || pixKeyLoading) {
     return (
       <div className="p-6">
         <SkeletonDashboard />
@@ -43,6 +62,12 @@ const SubscriptionGuard: FC<SubscriptionGuardProps> = ({ children }) => {
   // Assinatura ativa - pode acessar
   if (status.is_active) {
     const daysLeft = status.days_remaining;
+    const periodEnd = status.current_period_end
+      ? (() => {
+          const [y, m, d] = status.current_period_end!.split('-');
+          return `${d}/${m}/${y}`;
+        })()
+      : null;
 
     // Mostra aviso se estiver perto de vencer
     if (daysLeft <= 7 && daysLeft > 0) {
@@ -52,15 +77,9 @@ const SubscriptionGuard: FC<SubscriptionGuardProps> = ({ children }) => {
             <div className="flex items-center justify-center gap-2 text-xs text-amber-400">
               <AlertTriangle size={12} />
               <span>
-                Assinatura vence em <strong>{daysLeft} {daysLeft === 1 ? 'dia' : 'dias'}</strong>.
-                {' '}
-                <button
-                  onClick={generatePayment}
-                  disabled={generatingPayment}
-                  className="underline font-bold hover:text-amber-300 transition-colors cursor-pointer"
-                >
-                  {generatingPayment ? 'Gerando...' : 'Renovar agora'}
-                </button>
+                Assinatura válida até{' '}
+                <strong>{periodEnd || `${daysLeft} ${daysLeft === 1 ? 'dia' : 'dias'}`}</strong>.{' '}
+                <span className="text-zinc-500">Pague via PIX para renovar.</span>
               </span>
             </div>
           </div>
@@ -73,16 +92,6 @@ const SubscriptionGuard: FC<SubscriptionGuardProps> = ({ children }) => {
   }
 
   // Assinatura expirada ou bloqueada - mostra tela de pagamento
-  const handleCopyPix = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 3000);
-    } catch {
-      // fallback
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -101,67 +110,51 @@ const SubscriptionGuard: FC<SubscriptionGuardProps> = ({ children }) => {
               .
             </p>
             <p className="text-xs text-zinc-500">
-              Para continuar usando o sistema, faça o pagamento da mensalidade de{' '}
-              <strong className="text-[#D4AF37]">R$ 50,00</strong>.
+              Faça o pagamento de <strong className="text-[#D4AF37]">R$ 50,00</strong> via PIX para
+              liberar seu acesso. Pague no{' '}
+              <strong className="text-[#D4AF37]">último dia do mês</strong> e garanta o mês inteiro
+              seguinte.
             </p>
           </div>
 
-          {/* Payment Actions */}
+          {/* PIX Key Display */}
           <div className="px-6 pb-6 space-y-3">
-            <button
-              onClick={generatePayment}
-              disabled={generatingPayment}
-              className="btn-gold w-full flex items-center justify-center gap-2 py-3.5 disabled:opacity-50"
-            >
-              {generatingPayment ? (
-                <>
-                  <Loader2 size={14} className="animate-spin" />
-                  Gerando pagamento...
-                </>
-              ) : (
-                <>
-                  <CreditCard size={14} />
-                  Gerar PIX para Pagamento
-                </>
-              )}
-            </button>
-
-            {paymentError && (
-              <p className="text-xs text-red-400 text-center">{paymentError}</p>
-            )}
-
-            {/* PIX QR Code & Copy */}
-            {paymentResult?.pix_qrcode && (
-              <div className="space-y-3">
-                <div className="bg-white rounded-xl p-4 flex justify-center">
-                  <img
-                    src={`data:image/png;base64,${paymentResult.pix_qrcode.encodedImage}`}
-                    alt="PIX QR Code"
-                    className="w-48 h-48"
-                  />
+            {ownerPixKey ? (
+              <>
+                <div className="bg-white/[0.02] border border-[#D4AF37]/20 rounded-xl p-4">
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2 text-center">
+                    Pague via PIX para a chave abaixo
+                  </p>
+                  <div className="flex items-center justify-between bg-black/40 border border-white/[0.04] rounded-lg px-4 py-3.5">
+                    <span className="text-[15px] font-mono font-bold text-[#D4AF37] tracking-wider">
+                      {ownerPixKey}
+                    </span>
+                    <button
+                      onClick={() => handleCopyPix(ownerPixKey)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37]/20 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                    >
+                      <Copy size={10} />
+                      {copied ? 'Copiado!' : 'Copiar'}
+                    </button>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <button
-                    onClick={() => handleCopyPix(paymentResult.pix_qrcode!.payload)}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] text-zinc-400 hover:text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
-                  >
-                    <Copy size={12} />
-                    {copied ? 'Copiado!' : 'Copiar código PIX'}
-                  </button>
-                  <a
-                    href={paymentResult.payment_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] text-zinc-400 hover:text-white text-xs font-bold uppercase tracking-wider transition-all"
-                  >
-                    <ExternalLink size={12} />
-                    Abrir link de pagamento
-                  </a>
+
+                <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-4">
+                  <p className="text-[10px] text-zinc-400 text-center leading-relaxed">
+                    Após pagar, avise o administrador para liberar seu acesso. Dica: pague no último
+                    dia do mês e garanta o mês inteiro!
+                  </p>
                 </div>
+              </>
+            ) : (
+              <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-4 text-center">
+                <p className="text-xs text-zinc-500">
+                  Chave PIX não disponível. Entre em contato com o administrador.
+                </p>
               </div>
             )}
 
-            {!paymentResult && payments.length > 0 && (
+            {payments.length > 0 && (
               <div className="space-y-2">
                 <p className="text-center text-[10px] text-zinc-600 uppercase tracking-wider">
                   Últimos pagamentos
@@ -177,12 +170,14 @@ const SubscriptionGuard: FC<SubscriptionGuardProps> = ({ children }) => {
                       ) : (
                         <AlertTriangle size={12} className="text-amber-400" />
                       )}
-                      <span className="text-[11px] text-zinc-400">
-                        R$ {p.amount.toFixed(2)}
-                      </span>
+                      <span className="text-[11px] text-zinc-400">R$ {p.amount.toFixed(2)}</span>
                     </div>
                     <span className="text-[10px] text-zinc-600">
-                      {p.status === 'confirmed' ? 'Pago' : p.status === 'pending' ? 'Pendente' : 'Vencido'}
+                      {p.status === 'confirmed'
+                        ? 'Pago'
+                        : p.status === 'pending'
+                          ? 'Pendente'
+                          : 'Vencido'}
                     </span>
                   </div>
                 ))}
@@ -193,7 +188,7 @@ const SubscriptionGuard: FC<SubscriptionGuardProps> = ({ children }) => {
           {/* Footer */}
           <div className="border-t border-white/[0.04] px-6 py-3">
             <p className="text-[10px] text-zinc-600 text-center">
-              Após o pagamento, o acesso é liberado automaticamente em até 2 minutos.
+              Após o pagamento, o administrador libera seu acesso manualmente.
               <br />
               Dúvidas? Fale com o administrador.
             </p>

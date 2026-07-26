@@ -1,5 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { checkSubscriptionStatus, getPaymentHistory, createAsaasPayment, type SubscriptionStatus, type PaymentInfo, type PaymentResult } from '../lib/api/subscriptions';
+import {
+  checkSubscriptionStatus,
+  getPaymentHistory,
+  createAsaasPayment,
+  type SubscriptionStatus,
+  type PaymentInfo,
+  type PaymentResult,
+} from '../lib/api/subscriptions';
 import { logError } from '../lib/logger';
 
 interface UseSubscriptionReturn {

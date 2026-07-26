@@ -1,6 +1,6 @@
 import { createElement, type ReactNode } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 
 vi.mock('../components/Admin/AuthGuard', () => ({
   default: ({ children }: { children: ReactNode }) => children,
@@ -110,6 +110,44 @@ vi.mock('../lib/api/barbers', () => ({
   getBarberByUserId: vi.fn().mockResolvedValue(null),
 }));
 
+vi.mock('../hooks/useBarberSettings', () => ({
+  useBarberSettings: () => ({
+    barberName: 'Admin',
+    barberPhone: '5531999999999',
+    barberPhoto: '',
+    barberBio: '',
+    barberQuote: '',
+    barberInstagram: '',
+    barberHours: JSON.stringify({
+      '1': { enabled: true, open: '09:00', close: '18:00' },
+      '2': { enabled: true, open: '09:00', close: '18:00' },
+      '3': { enabled: true, open: '09:00', close: '18:00' },
+      '4': { enabled: true, open: '09:00', close: '18:00' },
+      '5': { enabled: true, open: '09:00', close: '18:00' },
+      '6': { enabled: true, open: '09:00', close: '17:00' },
+    }),
+    brandName: 'Black Diamond',
+    brandColor: '#D4AF37',
+    brandLogo: '',
+    brandLoginBg: '',
+    loading: false,
+  }),
+}));
+
+vi.mock('../hooks/useSubscription', () => ({
+  useSubscription: () => ({
+    status: null,
+    loading: false,
+    error: null,
+    payments: [],
+    generatingPayment: false,
+    paymentResult: null,
+    paymentError: null,
+    refresh: vi.fn().mockResolvedValue(undefined),
+    generatePayment: vi.fn().mockResolvedValue(undefined),
+  }),
+}));
+
 import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 import { BarberProvider } from '../contexts/BarberContext';
 import AdminBooking from './AdminBooking';
@@ -119,7 +157,7 @@ describe('AdminBooking', () => {
     vi.clearAllMocks();
   });
 
-  it('renderiza titulo do agendamento', () => {
+  it('renderiza titulo do agendamento', async () => {
     render(
       <BarberSettingsProvider>
         <BarberProvider>
@@ -127,10 +165,12 @@ describe('AdminBooking', () => {
         </BarberProvider>
       </BarberSettingsProvider>
     );
-    expect(screen.getAllByText(/Novo Agendamento/i).length).toBeGreaterThan(0);
+    await waitFor(() => {
+      expect(screen.getAllByText(/Novo Agendamento/i).length).toBeGreaterThan(0);
+    });
   });
 
-  it('renderiza secao de cliente', () => {
+  it('renderiza secao de cliente', async () => {
     render(
       <BarberSettingsProvider>
         <BarberProvider>
@@ -138,10 +178,12 @@ describe('AdminBooking', () => {
         </BarberProvider>
       </BarberSettingsProvider>
     );
-    expect(screen.getAllByText(/CLIENTE/i).length).toBeGreaterThan(0);
+    await waitFor(() => {
+      expect(screen.getAllByText(/CLIENTE/i).length).toBeGreaterThan(0);
+    });
   });
 
-  it('renderiza campo de nome', () => {
+  it('renderiza campo de nome', async () => {
     render(
       <BarberSettingsProvider>
         <BarberProvider>
@@ -149,10 +191,12 @@ describe('AdminBooking', () => {
         </BarberProvider>
       </BarberSettingsProvider>
     );
-    expect(screen.getAllByPlaceholderText(/nome/i).length).toBeGreaterThan(0);
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/nome/i)).toBeInTheDocument();
+    });
   });
 
-  it('renderiza campo de telefone', () => {
+  it('renderiza campo de telefone', async () => {
     render(
       <BarberSettingsProvider>
         <BarberProvider>
@@ -160,10 +204,12 @@ describe('AdminBooking', () => {
         </BarberProvider>
       </BarberSettingsProvider>
     );
-    expect(screen.getAllByPlaceholderText(/00000/i).length).toBeGreaterThan(0);
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/00000/i)).toBeInTheDocument();
+    });
   });
 
-  it('renderiza secao de servicos', () => {
+  it('renderiza secao de servicos', async () => {
     render(
       <BarberSettingsProvider>
         <BarberProvider>
@@ -171,10 +217,12 @@ describe('AdminBooking', () => {
         </BarberProvider>
       </BarberSettingsProvider>
     );
-    expect(screen.getAllByText(/SERVIÇOS/i).length).toBeGreaterThan(0);
+    await waitFor(() => {
+      expect(screen.getAllByText(/SERVIÇOS/i).length).toBeGreaterThan(0);
+    });
   });
 
-  it('renderiza secao de agenda', () => {
+  it('renderiza secao de agenda', async () => {
     render(
       <BarberSettingsProvider>
         <BarberProvider>
@@ -182,10 +230,12 @@ describe('AdminBooking', () => {
         </BarberProvider>
       </BarberSettingsProvider>
     );
-    expect(screen.getAllByText(/AGENDA/i).length).toBeGreaterThan(0);
+    await waitFor(() => {
+      expect(screen.getAllByText(/AGENDA/i).length).toBeGreaterThan(0);
+    });
   });
 
-  it('renderiza botao de buscar cliente', () => {
+  it('renderiza botao de buscar cliente', async () => {
     render(
       <BarberSettingsProvider>
         <BarberProvider>
@@ -193,10 +243,12 @@ describe('AdminBooking', () => {
         </BarberProvider>
       </BarberSettingsProvider>
     );
-    expect(screen.getAllByText(/Buscar|Dados|Cliente/i).length).toBeGreaterThan(0);
+    await waitFor(() => {
+      expect(screen.getAllByText(/Buscar|Dados|Cliente/i).length).toBeGreaterThan(0);
+    });
   });
 
-  it('renderiza botao de avancar', () => {
+  it('renderiza botao de avancar', async () => {
     render(
       <BarberSettingsProvider>
         <BarberProvider>
@@ -204,6 +256,8 @@ describe('AdminBooking', () => {
         </BarberProvider>
       </BarberSettingsProvider>
     );
-    expect(screen.getAllByText(/Continuar/i).length).toBeGreaterThan(0);
+    await waitFor(() => {
+      expect(screen.getAllByText(/Continuar/i).length).toBeGreaterThan(0);
+    });
   });
 });
