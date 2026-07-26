@@ -145,8 +145,6 @@ export interface Barber {
   photo_url?: string;
   bio?: string;
   quote?: string;
-  commission?: number;
-  working_days?: number[];
   is_hidden?: boolean;
   is_active: boolean;
   is_owner: boolean;

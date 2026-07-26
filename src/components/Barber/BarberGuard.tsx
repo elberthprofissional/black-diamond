@@ -9,6 +9,7 @@ interface BarberGuardProps {
 /**
  * BarberGuard - Ensures only barber employees (non-owners) can access the barber route.
  * Owners are redirected to /admin.
+ * Authenticated users without a barber record are redirected to /admin (not login).
  */
 const BarberGuard: FC<BarberGuardProps> = ({ children }) => {
   const { currentBarber, loading, isOwner } = useBarberContext();
@@ -22,9 +23,11 @@ const BarberGuard: FC<BarberGuardProps> = ({ children }) => {
     return <Navigate to="/admin" replace />;
   }
 
-  // If no barber is set (shouldn't happen if authenticated), redirect to login
+  // If no barber is set but user is authenticated, send to admin (not login)
+  // This prevents a redirect loop when admin_users exist but haven't been
+  // migrated to the barbers table yet
   if (!currentBarber) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to="/admin" replace />;
   }
 
   return <>{children}</>;

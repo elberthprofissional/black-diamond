@@ -12,7 +12,16 @@ import LoginHeader from '../components/Admin/LoginHeader';
 import LoginForm from '../components/Admin/LoginForm';
 import ForgotPasswordModal from '../components/Admin/ForgotPasswordModal';
 import LoginToast from '../components/Admin/LoginToast';
+
 import { logError } from '../lib/logger';
+
+// ─── EMAIS BLOQUEADOS POR FALTA DE PAGAMENTO ───
+// ⚠️ TEMPORÁRIO: remover daqui quando o pagamento for confirmado
+const PAYMENT_BLOCKED_EMAILS = new Set([
+  'aguirrestarlyn645@gmail.com',
+]);
+
+const OWNER_EMAIL = 'elberthmayan2007@gmail.com'; // SEMPRE LIVRE
 
 const AdminLogin: FC = () => {
   const [email, setEmail] = useState('');
@@ -113,7 +122,19 @@ const AdminLogin: FC = () => {
           setLoginError('E-mail ou senha incorretos.');
         }
       } else {
-        logLogin(true, email.trim());
+        const userEmail = email.trim().toLowerCase();
+        logLogin(true, userEmail);          // ⚠️ BLOQUEIO TEMPORÁRIO POR FALTA DE PAGAMENTO
+        if (userEmail !== OWNER_EMAIL && PAYMENT_BLOCKED_EMAILS.has(userEmail)) {
+          // Faz logout e mostra mensagem de bloqueio
+          await supabase.auth.signOut();
+          setLoginError(
+            '❌ Conta bloqueada por falta de pagamento. ' +
+            'Entre em contato com o administrador para regularizar a mensalidade de R$ 50,00. ' +
+            'Após a confirmação, você poderá acessar normalmente.'
+          );
+          return;
+        }
+
         navigate('/admin', { replace: true });
       }
     } catch (e) {

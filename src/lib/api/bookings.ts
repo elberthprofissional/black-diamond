@@ -81,7 +81,7 @@ export const getBookings = async (
         name,
         phone
       ),
-      barbers (
+      barbers!barber_id (
         name,
         phone,
         photo_url

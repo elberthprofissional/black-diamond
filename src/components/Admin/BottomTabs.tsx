@@ -1,17 +1,22 @@
 import { type FC } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Clock, CalendarDays, Users, BarChart3 } from 'lucide-react';
+import { useBarberContext } from '../../contexts/BarberContext';
 
-const tabs = [
+const BASE_TABS = [
   { label: 'Hoje', path: '/admin', icon: Clock },
   { label: 'Semana', path: '/admin/weekly', icon: CalendarDays },
   { label: 'Clientes', path: '/admin/clients', icon: Users },
-  { label: 'Relatórios', path: '/admin/reports', icon: BarChart3 },
 ];
+
+const OWNER_TAB = { label: 'Relatórios', path: '/admin/reports', icon: BarChart3 };
 
 const BottomTabs: FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isOwner } = useBarberContext();
+
+  const tabs = isOwner ? [...BASE_TABS, OWNER_TAB] : BASE_TABS;
 
   const isActive = (path: string) => location.pathname === path;
 

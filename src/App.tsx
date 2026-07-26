@@ -28,6 +28,7 @@ const TITLES: Record<string, string> = {
   '/admin/notificacoes': 'Notificações | Black Diamond',
   '/admin/onboarding': 'Configuração Inicial | Black Diamond',
   '/barber': 'Meu Dia | Black Diamond',
+  '/admin/assinatura': 'Assinatura | Black Diamond',
 };
 
 function TitleManager() {
@@ -81,6 +82,7 @@ const ClientProfile = lazy(() => import('./components/ClientProfile'));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 const BarberDashboard = lazy(() => import('./pages/BarberDashboard'));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
+const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage'));
 
 // Route preloader - preloads route chunks on hover/focus for instant navigation
 // Usa cache de promessas pra evitar duplicacao de import() — previne ChunkLoadError
@@ -104,6 +106,7 @@ function preloadRoute(path: string) {
     '/admin/notificacoes': () => import('./pages/NotificationsPage'),
     '/admin/onboarding': () => import('./pages/OnboardingPage'),
     '/barber': () => import('./pages/BarberDashboard'),
+    '/admin/assinatura': () => import('./pages/SubscriptionPage'),
   };
 
   const preloader = preloaders[path];
@@ -304,6 +307,16 @@ function App() {
                 element={
                   <AdminLayout>
                     <AdminReports />
+                  </AdminLayout>
+                }
+              />
+
+              {/* Subscription management page */}
+              <Route
+                path="/admin/assinatura"
+                element={
+                  <AdminLayout hideBottomTabs>
+                    <SubscriptionPage />
                   </AdminLayout>
                 }
               />
