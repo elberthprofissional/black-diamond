@@ -1,0 +1,36 @@
+{
+  "projectId": "fd821351-8286-45a2-bd1d-df63cea0db27",
+  "type": "frontend",
+  "name": "Home page - seções e navegação",
+  "description": "Visitante acessa a página inicial e verifica todas as seções visíveis",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to https://black-diamond-wheat.vercel.app" },
+    {
+      "type": "assertion",
+      "description": "Verify the hero section displays 'Black Diamond' branding and an 'Agendar' call-to-action button"
+    },
+    { "type": "action", "description": "Click on the Agendar button in the hero section" },
+    {
+      "type": "assertion",
+      "description": "Verify the browser navigates to the booking/agendar page"
+    },
+    { "type": "action", "description": "Navigate back to https://black-diamond-wheat.vercel.app" },
+    {
+      "type": "assertion",
+      "description": "Verify the services section with at least 3 service cards showing names and prices is visible below the hero"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the About/Sobre section with barber photo and bio is visible"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the location/map section with address or embedded map is visible"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the footer with opening hours, Instagram link, and WhatsApp contact is visible"
+    }
+  ]
+}

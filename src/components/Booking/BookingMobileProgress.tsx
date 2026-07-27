@@ -1,5 +1,5 @@
 import { type FC } from 'react';
-import { User, Scissors, Clock, Check } from 'lucide-react';
+import { User, Scissors, Clock } from 'lucide-react';
 
 interface BookingMobileProgressProps {
   step: number;
@@ -7,21 +7,21 @@ interface BookingMobileProgressProps {
   onBack: () => void;
 }
 
-const STEP_ICONS: FC<{ size?: number; className?: string }>[] = [User, Scissors, Clock, Check];
-const STEP_LABELS = ['Dados', 'Serviços', 'Agenda', 'Revisar'];
+const STEP_ICONS: FC<{ size?: number; className?: string }>[] = [User, Scissors, Clock];
+const STEP_LABELS = ['Dados', 'Serviços', 'Agenda'];
 
 const BookingMobileProgress: FC<BookingMobileProgressProps> = ({ step, stepTitle, onBack }) => {
   return (
-    <header className="px-5 pt-5 pb-4 shrink-0 border-b border-white/[0.04] bg-[#050505] sticky top-0 z-50">
-      <div className="flex items-center gap-3">
+    <header className="px-4 pt-3 pb-3 shrink-0 border-b border-white/[0.04] bg-[#050505] sticky top-0 z-50">
+      <div className="flex items-center gap-2.5">
         <button
           onClick={onBack}
           aria-label="Voltar"
           className="text-zinc-500 hover:text-white transition-all cursor-pointer"
         >
           <svg
-            width="20"
-            height="20"
+            width="18"
+            height="18"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -31,10 +31,10 @@ const BookingMobileProgress: FC<BookingMobileProgressProps> = ({ step, stepTitle
           </svg>
         </button>
         <div className="flex-1">
-          <h1 className="text-base font-bold text-white">{stepTitle}</h1>
+          <h1 className="text-sm font-bold text-white">{stepTitle}</h1>
         </div>
       </div>
-      <div className="relative flex justify-between items-center w-full mt-4 px-4 pb-1 select-none">
+      <div className="relative flex justify-between items-center w-full mt-3 px-4 pb-0.5 select-none">
         <div className="absolute left-0 right-0 -mx-9 top-[28px] h-[1px] bg-white/10 z-0" />
         <div
           className="absolute left-0 -ml-9 top-[28px] h-[1px] bg-[#D4AF37] transition-all duration-500 z-0"
@@ -49,7 +49,7 @@ const BookingMobileProgress: FC<BookingMobileProgressProps> = ({ step, stepTitle
                     : 'calc(100% + 72px)',
           }}
         />
-        {[1, 2, 3, 4].map((s) => {
+        {[1, 2, 3].map((s) => {
           const Icon = STEP_ICONS[s - 1];
           if (!Icon) return null;
           const isCompleted = step > s;

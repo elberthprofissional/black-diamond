@@ -48,9 +48,6 @@ const AdminNavbar: FC = () => {
             onClick={() => navigate('/admin')}
           >
             <img src="/assets/logo.webp" alt="Logo" className="w-10 h-10 object-contain" />
-            <span className="text-[12px] font-black uppercase tracking-[0.3em] text-white">
-              Black Diamond
-            </span>
           </div>
           <div className="flex items-center gap-3">
             <NotificationBell variant="mobile" />

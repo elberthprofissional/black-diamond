@@ -19,12 +19,12 @@ const Home: FC = () => {
   return (
     <>
       <Navbar onBookingClick={handleBooking} />
-      <main id="main-content" className="bg-[#0f0f0f]">
-        <Hero onBookingClick={handleBooking} />
+      <main id="main-content" className="bg-[#121212]">
+        <Hero />
         <About />
-        <Services onBookingClick={handleBooking} />
-        <Testimonials />
+        <Services />
         <Gallery />
+        <Testimonials />
         <Location />
       </main>
       <Footer />

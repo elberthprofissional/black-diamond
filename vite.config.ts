@@ -1,6 +1,7 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 import { execSync } from 'child_process';
 
 // Git commit SHA for Sentry releases
@@ -13,7 +14,68 @@ try {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'sw.js',
+      manifest: {
+        name: 'Black Diamond Barbearia',
+        short_name: 'Black Diamond',
+        description: 'Painel administrativo da Black Diamond Barbearia.',
+        lang: 'pt-BR',
+        start_url: '/admin/login',
+        scope: '/',
+        display: 'standalone',
+        background_color: '#050505',
+        theme_color: '#D4AF37',
+        orientation: 'portrait',
+        categories: ['business'],
+        icons: [
+          { src: '/assets/logo.webp', sizes: '192x192', type: 'image/webp', purpose: 'any' },
+          { src: '/assets/logo.webp', sizes: '512x512', type: 'image/webp', purpose: 'maskable' },
+        ],
+        screenshots: [
+          {
+            src: '/assets/hero-bg.webp',
+            sizes: '1920x1080',
+            type: 'image/webp',
+            form_factor: 'wide',
+            label: 'Painel administrativo',
+          },
+          {
+            src: '/assets/hero-bg-mobile.webp',
+            sizes: '750x1334',
+            type: 'image/webp',
+            form_factor: 'narrow',
+            label: 'Painel administrativo mobile',
+          },
+        ],
+        shortcuts: [
+          {
+            name: 'Painel Admin',
+            short_name: 'Admin',
+            url: '/admin',
+            description: 'Painel administrativo da barbearia',
+            icons: [{ src: '/assets/logo.webp', sizes: '192x192', type: 'image/webp' }],
+          },
+          {
+            name: 'Agenda Semanal',
+            short_name: 'Agenda',
+            url: '/admin/weekly',
+            description: 'Visualizar agenda da semana',
+            icons: [{ src: '/assets/logo.webp', sizes: '192x192', type: 'image/webp' }],
+          },
+        ],
+      },
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,webp,png,svg,ico,woff2}'],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
+      },
+    }),
+  ],
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '0.0.0'),
     __COMMIT_SHA__: JSON.stringify(commitHash),
@@ -68,8 +130,6 @@ export default defineConfig({
         },
       },
     },
-    // Limite ajustado: o core do React + react-dom (~232 kB min/gzip) + react-helmet (~23 kB)
-    // naturalmente somam ~260 kB; outros vendors são carregados em paralelo
     chunkSizeWarningLimit: 500,
     cssCodeSplit: true,
     sourcemap: !!process.env.SENTRY_AUTH_TOKEN,

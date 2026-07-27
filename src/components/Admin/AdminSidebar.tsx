@@ -14,7 +14,7 @@ const AdminSidebar: FC = memo(() => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const handleLogout = useAdminLogout();
-  const { barberName, barberPhoto } = useBarberSettings();
+  const { barberName, barberPhoto, brandName } = useBarberSettings();
   const { isOwner } = useBarberContext();
 
   const isActive = (path: string) => location.pathname === path;
@@ -51,26 +51,29 @@ const AdminSidebar: FC = memo(() => {
 
   return (
     <aside className="hidden lg:flex flex-col w-[260px] h-screen fixed left-0 top-0 bg-[#0A0A0A] border-r border-white/5 z-[100] font-sans">
-      {/* 1. BRANDING - HIGH END UTILITY */}
+      {/* Branding */}
       <div className="h-28 flex items-center px-6">
         <div
-          className="flex items-center gap-4 cursor-pointer"
+          className="flex items-center gap-3 cursor-pointer"
           onClick={() => navigate(isOwner ? '/admin' : '/barber')}
         >
           <img src="/assets/logo.webp" alt="Black Diamond" className="w-10 h-10 object-contain" />
-          <div className="flex flex-col">
-            <h2 className="text-xs font-black tracking-[0.2em] text-white uppercase leading-none">
-              Black Diamond
-            </h2>
+          <div className="flex items-baseline gap-1">
+            <span className="text-[14px] font-bebas tracking-[0.06em] text-white uppercase leading-none">
+              {(brandName || 'BLACK DIAMOND').split(' ')[0]}
+            </span>
+            <span className="text-[14px] font-bebas tracking-[0.05em] leading-none uppercase text-[#D4AF37]">
+              {(brandName || 'BLACK DIAMOND').split(' ').slice(1).join(' ') || 'DIAMOND'}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* 2. NAVIGATION - SaaS STYLE */}
+      {/* Navigation */}
       <div className="flex-1 px-6 py-4 overflow-y-auto scrollbar-hide space-y-8">
         <div>
-          <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em] px-4 block mb-5">
-            Menu Principal
+          <span className="text-[10px] font-medium text-zinc-600 uppercase tracking-[0.15em] px-4 block mb-4">
+            Menu
           </span>
           <nav className="space-y-1.5">
             {mainMenuItems.map((item) => {
@@ -109,13 +112,13 @@ const AdminSidebar: FC = memo(() => {
               );
             })}
 
-            {/* Notifications - Instagram style */}
+            {/* Notifications */}
             <NotificationBell variant="desktop" />
           </nav>
         </div>
       </div>
 
-      {/* 3. PROFILE */}
+      {/* Profile */}
       <div className="mt-auto border-t border-white/5 p-4">
         <div className="relative">
           <button
@@ -190,7 +193,7 @@ const AdminSidebar: FC = memo(() => {
         </div>
       </div>
 
-      {/* LOGOUT CONFIRMATION MODAL */}
+      {/* Logout confirmation */}
       {showLogoutConfirm &&
         createPortal(
           <AnimatePresence>

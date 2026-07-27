@@ -2,12 +2,12 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, notificacoes push e integracao com WhatsApp.
 
-**Versao:** 3.27.1 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.28.0 | **Ultima atualizacao:** Julho 2026
 
-> NOTA: Esta versao inclui Mensalista Reborn (CRUD de planos premium,
-> badges com status de expiracao, booking inteligente), Auto-cancel
-> com 2h de buffer (marca como cancelled, sem banner), e No-show
-> inteligente (notifica o barbeiro com WhatsApp DM ao inves de bloquear).
+> NOTA: Esta versao inclui Assinatura Simplificada via PIX (R$50/mes),
+> Login Opcional do Cliente (codigo na tela, dashboard com stats),
+> Badge Aberto/Fechado no Hero, e diversas melhorias de UI/UX e
+> performance. Mensalista Reborn e Auto-cancel continuam presentes.
 
 ---
 
@@ -57,6 +57,9 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 - Placeholder de perfil generico (sem foto fixa do Tato)
 - Acessibilidade: focus-visible, contraste aprimorado, skip-link
 - Estado gerenciado com hooks + Context API (leve e sem dependências)
+- **Login opcional do cliente** — Dashboard com historico, stats e cancelamento via codigo na tela
+- **Assinatura simplificada via PIX** — R$50/mes sem gateway de pagamento
+- **Badge Aberto/Fechado** no Hero em tempo real
 - Error reporting com Sentry (captura automatica de erros)
 - Coverage minimo no CI (qualidade garantida)
 - Projeto universal: template pronto para qualquer barbearia
@@ -77,6 +80,7 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 | Backend/Banco | Supabase (PostgreSQL) | ^2.108 |
 | Error Reporting | Sentry | ^1.x |
 | Hospedagem | Vercel | Gratis |
+| Pagamentos | PIX manual (sem gateway) | — |
 | Testes | Vitest + Testing Library + Playwright | Vitest 4.x |
 | CI/CD | GitHub Actions | Gratis |
 
@@ -1043,7 +1047,113 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 
 ---
 
-## 16. Notas de Negocio
+## 16. Sistema de Assinatura (PIX Simplificado)
+
+### Visao Geral
+O Black Diamond usa um sistema de assinatura simplificado via PIX, sem gateway de pagamento.
+O barbeiro paga R$50/mes para usar o painel administrativo.
+
+### Fluxo Completo
+
+```
+📅 Dia 1-30 (trial) → Barbeiro usa o sistema de graca
+📅 Dia 30/31      → Sistema BLOQUEIA o admin
+                    (site publico continua funcionando)
+💳 Tela bloqueio  → Mostra chave PIX + QR Code
+💰 Barbeiro paga  → R$50 via PIX para chave do dono
+📧 Dono recebe    → Aviso de pagamento (email/WhatsApp)
+🔓 Dono libera    → Configuracoes > Assinaturas > "Confirmar Pgto"
+✅ Sistema ativo  → Liberado ate o proximo dia 30/31
+```
+
+### Como funciona
+
+**Para o barbeiro:**
+- Ao acessar o admin, o `SubscriptionGuard` verifica se a assinatura esta ativa
+- Se vencida, mostra tela de bloqueio com chave PIX, valor e instrucoes
+- A pagina `/admin/assinatura` exibe os dados de pagamento
+
+**Para o dono (voce):**
+- Acesse **Configuracoes > Assinaturas** (so aparece pro seu email)
+- Veja a lista de barbeiros com status:
+  - 🟢 Ativo — ate quando
+  - 🔴 Bloqueado — venceu em quando
+- Clique em **"Confirmar Pgto"** para liberar o barbeiro ate o fim do mes seguinte
+- Configure a chave PIX diretamente na pagina
+
+### Configuracao no Banco
+
+- Tabela `subscriptions` — subscriptions dos barbeiros (status, current_period_end, grace_period_end)
+- Tabela `payment_logs` — Historico de pagamentos
+- Setting `owner_pix_key` — Chave PIX configurada pelo dono
+- RPC `check_subscription_status` — Verifica status da subscription (is_active, is_blocked, dias_restantes)
+- RPC `update_subscription_paid` — Atualiza subscription como paga (estende current_period_end)
+
+### Comandos Uteis
+
+```sql
+-- Ver subscription de todos os barbeiros
+SELECT b.name, s.status, s.current_period_end, s.grace_period_end
+FROM barbers b
+LEFT JOIN subscriptions s ON s.barber_id = b.id;
+
+-- Ver historico de pagamentos
+SELECT * FROM payment_logs ORDER BY paid_at DESC;
+
+-- Liberar manualmente pelo SQL (emergencia)
+UPDATE subscriptions
+SET status = 'active',
+    current_period_start = CURRENT_DATE,
+    current_period_end = (DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month - 1 day')::DATE
+WHERE barber_id = 'UUID_DO_BARBEIRO';
+```
+
+---
+
+## 17. Login Opcional do Cliente
+
+### Visao Geral
+O cliente pode acessar seus agendamentos sem precisar de senha ou email.
+Basta digitar o telefone e confirmar um codigo exibido na tela.
+
+### Fluxo
+
+```
+/cliente
+
+▸ Digita o telefone
+  → Sistema verifica se tem agendamentos
+  → Gera codigo de 4 digitos
+
+▸ Codigo aparece na TELA
+  ┌─┐ ┌─┐ ┌─┐ ┌─┐
+  │2│ │8│ │4│ │7│
+  └─┘ └─┘ └─┘ └─┘
+  Expira em 4:32
+
+▸ Cliente digita o codigo
+  → Se valido, entra no dashboard
+
+▸ Dashboard: "Ola, [Nome]!"
+  📊 Stats: visitas, gasto total, valor pendente
+  📅 Seus agendamentos (cards premium)
+  ✓ Cancelar agendamento (com confirmacao)
+  ➕ Novo agendamento
+  🚪 Sair (limpa sessao)
+```
+
+### Seguranca
+- Sessao salva no localStorage por 7 dias
+- Codigo de 4 digitos gerado aleatoriamente
+- Nao requer SMS, email ou API externa — custo zero
+- So é possivel acessar agendamentos associados ao telefone informado
+
+### Rotas
+- `/cliente` — Pagina de login/dashboard do cliente
+
+---
+
+## 18. Notas de Negocio
 
 ### Custo de operacao
 - Hospedagem (Vercel): R$ 0,00

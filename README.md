@@ -18,7 +18,7 @@
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/version-3.27.1-blue?style=flat-square" alt="Version"/>
+    <img src="https://img.shields.io/badge/version-3.28.0-blue?style=flat-square" alt="Version"/>
     <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"/>
     <img src="https://img.shields.io/badge/build-passing-brightgreen?style=flat-square" alt="Build"/>
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React"/>
@@ -103,6 +103,8 @@
 | **🔔 Notificações Push** | Notificações in-app + push para novos agendamentos |
 | **💬 Lembretes WhatsApp** | Envio de lembretes com templates personalizáveis |
 | **📋 Audit Logs** | Registro de todas as ações administrativas |
+| **👤 Login Opcional do Cliente** | Dashboard com historico, stats e cancelamento via codigo na tela |
+| **🔒 Assinatura Simplificada (PIX)** | R$50/mês via PIX com bloqueio automático no fim do mês |
 
 ---
 
@@ -234,7 +236,7 @@ Decisões de arquitetura documentadas em [`docs/adr/`](docs/adr/):
 
 | Tipo | Framework | Status |
 |------|-----------|--------|
-| **Unitários** | Vitest | 1211 testes |
+| **Unitários** | Vitest | 1211+ testes |
 | **Integração** | Vitest + Supabase mock | APIs |
 | **E2E** | Playwright | Fluxos críticos |
 | **Visual** | Playwright | Screenshots responsivos |

@@ -6,7 +6,6 @@ import {
   Shield,
   Clock,
   Image as ImageIcon,
-  HelpCircle,
   UserX,
   Gift,
   Tag,
@@ -67,12 +66,11 @@ const NAV_ITEMS = [
 interface Props {
   settingsSection: string | null;
   setSettingsSection: (s: string | null) => void;
-  setShowHelp: (s: boolean) => void;
 }
 
 const Fallback = () => <div className="skeleton-pulse h-32" />;
 
-const AdminProfileSettings: FC<Props> = ({ settingsSection, setSettingsSection, setShowHelp }) => (
+const AdminProfileSettings: FC<Props> = ({ settingsSection, setSettingsSection }) => (
   <>
     {/* Mobile header */}
     <div className="lg:hidden flex items-center gap-3 px-4 -mt-1 mb-4">
@@ -91,13 +89,6 @@ const AdminProfileSettings: FC<Props> = ({ settingsSection, setSettingsSection, 
           {sectionTitle(settingsSection)}
         </h1>
       </div>
-      <button
-        onClick={() => setShowHelp(true)}
-        className="text-zinc-500 hover:text-[#D4AF37] transition-colors cursor-pointer"
-        aria-label="Ajuda"
-      >
-        <HelpCircle size={20} />
-      </button>
     </div>
 
     {/* Mobile: list or section */}
@@ -138,13 +129,6 @@ const AdminProfileSettings: FC<Props> = ({ settingsSection, setSettingsSection, 
               </button>
             );
           })}
-          <button
-            onClick={() => setShowHelp(true)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03] transition-all cursor-pointer mt-4"
-          >
-            <HelpCircle size={15} />
-            Ajuda
-          </button>
         </div>
       </div>
       <div className="flex-1 min-w-0 min-h-[600px]">

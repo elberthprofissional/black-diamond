@@ -4,12 +4,14 @@ import {
   useState,
   useMemo,
   useCallback,
+  useEffect,
   type ReactNode,
   type RefObject,
   type MouseEvent,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWizardStep } from './useWizardStep';
+import { useBarberContext } from '../contexts/BarberContext';
 import { useClientLookup } from './useClientLookup';
 import { useBookingSlots } from './useBookingSlots';
 import { useBookingPayment } from './useBookingPayment';
@@ -88,6 +90,7 @@ export function BookingWizardProvider({
   showError: (msg: string) => void;
 }) {
   const navigate = useNavigate();
+  const { barbers } = useBarberContext();
 
   // ── Step control ──
   const {
@@ -104,6 +107,13 @@ export function BookingWizardProvider({
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
   const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
+
+  // ── Auto-select first barber ──
+  useEffect(() => {
+    if (barbers.length > 0 && !selectedBarber) {
+      setSelectedBarber(barbers[0] ?? null);
+    }
+  }, [barbers, selectedBarber]);
 
   // ── Client lookup ──
   const handleNameFound = useCallback((name: string) => {

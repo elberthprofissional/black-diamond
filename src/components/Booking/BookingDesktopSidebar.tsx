@@ -22,7 +22,7 @@ const BookingDesktopSidebar: FC<BookingDesktopSidebarProps> = ({
   planName,
 }) => {
   return (
-    <div className="w-[420px] shrink-0 bg-[#0A0A0A] flex flex-col justify-between p-12 text-white relative overflow-hidden">
+    <div className="w-[300px] xl:w-[380px] 2xl:w-[420px] shrink-0 bg-[#0A0A0A] flex flex-col justify-between p-6 lg:p-8 xl:p-12 text-white relative overflow-hidden">
       <img
         src="/assets/agendamento.webp"
         alt=""
@@ -33,12 +33,12 @@ const BookingDesktopSidebar: FC<BookingDesktopSidebarProps> = ({
         <span className="text-[10px] font-black tracking-[0.5em] text-[#D4AF37] uppercase">
           BLACK DIAMOND
         </span>
-        <h1 className="text-3xl font-bold mt-6 leading-tight">
+        <h1 className="text-2xl xl:text-3xl font-bold mt-4 xl:mt-6 leading-tight">
           Agendamento
           <br />
           Online
         </h1>
-        <p className="text-sm text-zinc-500 mt-3 leading-relaxed">
+        <p className="text-xs xl:text-sm text-zinc-500 mt-2 xl:mt-3 leading-relaxed">
           Escolha seus serviços, horário e confirme. Rápido e fácil.
         </p>
         {isMensalista && (

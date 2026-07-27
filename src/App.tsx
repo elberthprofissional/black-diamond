@@ -6,7 +6,6 @@ import { useSEO } from './hooks/useSEO';
 import AdminLayout from './components/Admin/AdminLayout';
 import ErrorBoundary from './components/ErrorBoundary';
 import ConnectionStatusBanner from './components/ConnectionStatusBanner';
-import StandaloneGuard from './components/StandaloneGuard';
 import { BarberProvider } from './contexts/BarberContext';
 import BarberGuard from './components/Barber/BarberGuard';
 import { logError } from './lib/logger';
@@ -26,7 +25,7 @@ const TITLES: Record<string, string> = {
   '/gerenciar/:token?': 'Gerenciar Agendamento | Black Diamond',
   '/cliente': 'Meus Agendamentos | Black Diamond',
   '/admin/notificacoes': 'Notificações | Black Diamond',
-  '/admin/onboarding': 'Configuração Inicial | Black Diamond',
+
   '/barber': 'Meu Dia | Black Diamond',
   '/admin/assinatura': 'Assinatura | Black Diamond',
 };
@@ -81,7 +80,6 @@ const ManageBooking = lazy(() => import('./pages/ManageBooking'));
 const ClientProfile = lazy(() => import('./components/ClientProfile'));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 const BarberDashboard = lazy(() => import('./pages/BarberDashboard'));
-const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
 const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage'));
 
 // Route preloader - preloads route chunks on hover/focus for instant navigation
@@ -104,7 +102,6 @@ function preloadRoute(path: string) {
     '/gerenciar': () => import('./pages/ManageBooking'),
     '/cliente': () => import('./components/ClientProfile'),
     '/admin/notificacoes': () => import('./pages/NotificationsPage'),
-    '/admin/onboarding': () => import('./pages/OnboardingPage'),
     '/barber': () => import('./pages/BarberDashboard'),
     '/admin/assinatura': () => import('./pages/SubscriptionPage'),
   };
@@ -220,7 +217,7 @@ function App() {
         Pular para o conteúdo
       </a>
       <TitleManager />
-      <div className="min-h-screen bg-[#0f0f0f] overflow-x-hidden">
+      <div className="min-h-screen bg-[#0f0f0f]">
         <ConnectionStatusBanner />
         <ErrorBoundary>
           <Suspense fallback={<LoadingFallback />}>
@@ -239,16 +236,6 @@ function App() {
                   <SectionErrorBoundary name="Redefinir Senha">
                     <AdminResetPassword />
                   </SectionErrorBoundary>
-                }
-              />
-
-              {/* Onboarding — configuração inicial */}
-              <Route
-                path="/admin/onboarding"
-                element={
-                  <AdminLayout hideNavbar hideBottomTabs>
-                    <OnboardingPage />
-                  </AdminLayout>
                 }
               />
 
@@ -340,53 +327,43 @@ function App() {
               <Route
                 path="/"
                 element={
-                  <StandaloneGuard>
-                    <SectionErrorBoundary name="Página Inicial">
-                      <Home />
-                    </SectionErrorBoundary>
-                  </StandaloneGuard>
+                  <SectionErrorBoundary name="Página Inicial">
+                    <Home />
+                  </SectionErrorBoundary>
                 }
               />
               <Route
                 path="/agendar"
                 element={
                   <BarberProvider>
-                    <StandaloneGuard>
-                      <SectionErrorBoundary name="Agendamento">
-                        <BookingPage />
-                      </SectionErrorBoundary>
-                    </StandaloneGuard>
+                    <SectionErrorBoundary name="Agendamento">
+                      <BookingPage />
+                    </SectionErrorBoundary>
                   </BarberProvider>
                 }
               />
               <Route
                 path="/cancelar"
                 element={
-                  <StandaloneGuard>
-                    <SectionErrorBoundary name="Cancelar Agendamento">
-                      <CancelPage />
-                    </SectionErrorBoundary>
-                  </StandaloneGuard>
+                  <SectionErrorBoundary name="Cancelar Agendamento">
+                    <CancelPage />
+                  </SectionErrorBoundary>
                 }
               />
               <Route
                 path="/gerenciar/:token?"
                 element={
-                  <StandaloneGuard>
-                    <SectionErrorBoundary name="Gerenciar Agendamento">
-                      <ManageBooking />
-                    </SectionErrorBoundary>
-                  </StandaloneGuard>
+                  <SectionErrorBoundary name="Gerenciar Agendamento">
+                    <ManageBooking />
+                  </SectionErrorBoundary>
                 }
               />
               <Route
                 path="/cliente"
                 element={
-                  <StandaloneGuard>
-                    <SectionErrorBoundary name="Perfil do Cliente">
-                      <ClientProfile />
-                    </SectionErrorBoundary>
-                  </StandaloneGuard>
+                  <SectionErrorBoundary name="Perfil do Cliente">
+                    <ClientProfile />
+                  </SectionErrorBoundary>
                 }
               />
 

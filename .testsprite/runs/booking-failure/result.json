@@ -1,0 +1,20 @@
+{
+  "testId": "28d125c4-95d0-4e99-ad43-8e63498ba54a",
+  "status": "failed",
+  "startedAt": "2026-07-27T00:30:54.560Z",
+  "finishedAt": "2026-07-27T00:35:59.329Z",
+  "videoUrl": "https://testsprite-videos.s3.us-east-1.amazonaws.com/44d874d8-c0a1-70d8-9655-a47afc230a59/1785112556162612//tmp/863eac0b-9352-47ed-9d7e-29ec8ea2b701/result.webm",
+  "failureAnalysisUrl": null,
+  "snapshotId": "snap_0aceed86e4ae0510",
+  "runIdIfAvailable": "64f69738-a0a5-465b-b1ca-e9240ba0f35f",
+  "codeVersion": "v1",
+  "targetUrl": "https://black-diamond-wheat.vercel.app",
+  "targetUrlSource": "run",
+  "failedStepIndex": 10,
+  "failureKind": "assertion",
+  "verdict": "failed",
+  "executionStatus": "completed",
+  "summary": "Failed (assertion): TEST FAILURE\n\nThe services list is not displayed after advancing to the 'Serviços' step, preventing completion of the booking flow.\n\nObservations:\n- The stepper shows 'Serviços' as the active step but no service cards, names, or price strings (e.g., 'R$') are visible on the page.\n- The page only shows header/placeholder content, the stepper, and the 'Continuar' button; no selectable services, dates, or time slots could be found.\n- Multiple attempts were made (clicking the 'S…",
+  "apiOutput": null,
+  "trace": null
+}

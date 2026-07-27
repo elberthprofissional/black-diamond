@@ -81,7 +81,7 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
         </p>
         {selectedDate ? (
           <div
-            className="grid grid-cols-7 gap-2"
+            className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-7 gap-2"
             role="radiogroup"
             aria-label="Horários disponíveis"
           >
@@ -143,7 +143,7 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
               role="radio"
               aria-checked={isSelected}
               aria-label={`${day.dayName} ${day.dayNumber}${day.isToday ? ' (hoje)' : ''}${day.isPast ? ' (indisponível)' : ''}`}
-              className={`w-[64px] h-[76px] shrink-0 snap-center flex flex-col items-center justify-center gap-1 rounded-xl transition-all duration-300 border ${
+              className={`w-[56px] h-[68px] shrink-0 snap-center flex flex-col items-center justify-center gap-0.5 rounded-xl transition-all duration-300 border ${
                 day.isPast
                   ? 'opacity-30 cursor-not-allowed border-transparent bg-transparent'
                   : isSelected
@@ -154,14 +154,14 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
               }`}
             >
               <span
-                className={`text-[10px] font-bold uppercase tracking-widest ${
+                className={`text-[9px] font-bold uppercase tracking-widest ${
                   isSelected ? 'text-black/60' : day.isToday ? 'text-[#D4AF37]' : 'text-zinc-500'
                 }`}
               >
-                {day.dayName}
+                {day.dayName.slice(0, 3)}
               </span>
               <span
-                className={`text-[20px] font-black leading-none ${
+                className={`text-[18px] font-black leading-none ${
                   isSelected ? 'text-black' : day.isToday ? 'text-[#D4AF37]' : 'text-white'
                 }`}
               >
@@ -173,12 +173,13 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
       </div>
 
       <div>
-        <p className="text-[12px] font-bold text-zinc-500 uppercase tracking-widest mb-3">
-          Horários
+        {' '}
+        <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-2">
+          Horários disponíveis
         </p>
         {selectedDate ? (
           <div
-            className="grid grid-cols-3 gap-2"
+            className="grid grid-cols-2 xs:grid-cols-3 gap-2"
             role="radiogroup"
             aria-label="Horários disponíveis"
           >
@@ -209,7 +210,7 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
             })}
           </div>
         ) : (
-          <p className="text-zinc-600 text-[12px] py-8 text-center">Selecione uma data acima</p>
+          <p className="text-zinc-600 text-[11px] py-6 text-center">Selecione uma data acima</p>
         )}
       </div>
     </div>

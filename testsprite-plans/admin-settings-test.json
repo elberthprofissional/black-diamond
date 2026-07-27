@@ -1,0 +1,41 @@
+{
+  "projectId": "fd821351-8286-45a2-bd1d-df63cea0db27",
+  "type": "frontend",
+  "name": "Admin configurações - navegação nas abas",
+  "description": "Admin logado acessa as configurações e navega entre categorias",
+  "priority": "p1",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Navigate to https://black-diamond-wheat.vercel.app/admin/login"
+    },
+    { "type": "assertion", "description": "Verify login form is visible" },
+    {
+      "type": "action",
+      "description": "Login with email elberthmayan2007@gmail.com and password mayan123"
+    },
+    { "type": "action", "description": "Navigate to the profile/settings page" },
+    {
+      "type": "assertion",
+      "description": "Verify the settings page shows categories like Conta, Horários, Serviços, Barbeiros"
+    },
+    { "type": "action", "description": "Click on the 'Horários' settings option" },
+    {
+      "type": "assertion",
+      "description": "Verify the working hours configuration is displayed with days of the week and time pickers"
+    },
+    { "type": "action", "description": "Navigate back and click on 'Serviços' settings option" },
+    {
+      "type": "assertion",
+      "description": "Verify the services list with names and prices is visible"
+    },
+    {
+      "type": "action",
+      "description": "Navigate back and click on 'Assinaturas' settings option (only visible for owner)"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the subscription management page with PIX key and barber list is visible"
+    }
+  ]
+}

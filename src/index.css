@@ -22,9 +22,11 @@
   --z-banner: 9999;
 
   --font-sans: 'Plus Jakarta Sans', sans-serif;
-  --font-bebas: 'Bebas Neue', sans-serif;
+  --font-bebas: 'Anton', sans-serif;
   --font-montserrat: 'Montserrat', sans-serif;
   --font-roboto: 'Roboto', sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-cinzel: 'Cinzel', serif;
 }
 
 @layer base {
@@ -32,7 +34,7 @@
     @apply scroll-smooth overflow-x-hidden;
   }
   body {
-    @apply bg-[#0f0f0f] text-white font-sans antialiased selection:bg-gold selection:text-white overflow-x-hidden;
+    @apply bg-dark-pure text-white font-sans antialiased selection:bg-gold selection:text-white overflow-x-hidden;
   }
 
   h1,
@@ -48,9 +50,12 @@
   .skip-link {
     position: absolute;
     top: -100%;
-    left: 0;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 9999;
-    padding: 1rem 1.5rem;
+    padding: 0.75rem 1.5rem;
+    min-width: 200px;
+    text-align: center;
     background: var(--color-gold);
     color: #000;
     font-weight: 700;
@@ -58,10 +63,13 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     text-decoration: none;
+    border-radius: 0 0 8px 8px;
     transition: top 0.2s;
   }
   .skip-link:focus {
     top: 0;
+    outline: 3px solid #fff;
+    outline-offset: 2px;
   }
 
   /* Autofill do Chrome: fundo escuro igual ao site e texto visível */
@@ -86,8 +94,6 @@
     scroll-behavior: auto !important;
   }
 }
-
-/* Touch target sizing — handled per-component where needed */
 
 .scrollbar-hide {
   overscroll-behavior: contain;
@@ -169,23 +175,121 @@
 }
 
 .bg-gold-gradient {
-  background: linear-gradient(
-    135deg,
-    var(--color-gold-bright) 0%,
-    #ffedd5 50%,
-    var(--color-gold-bright) 100%
-  );
+  background: linear-gradient(135deg, #c5a05a 0%, #e8d5a0 50%, #c5a05a 100%);
 }
 
 .text-gold-gradient {
-  background: linear-gradient(
-    135deg,
-    var(--color-gold-bright) 0%,
-    #ffedd5 50%,
-    var(--color-gold-bright) 100%
-  );
+  background: linear-gradient(135deg, #c5a05a 0%, #e8d5a0 50%, #c5a05a 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* ========================================================================= */
+/* REMAKE 2026 —Animations & utilities                                       */
+/* ========================================================================= */
+
+/* Scroll-reveal: elements .reveal start hidden and fade/translate up when .is-visible */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s ease-out,
+    transform 0.7s ease-out;
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 {
+  transition-delay: 0.08s;
+}
+.reveal-delay-2 {
+  transition-delay: 0.16s;
+}
+.reveal-delay-3 {
+  transition-delay: 0.24s;
+}
+.reveal-delay-4 {
+  transition-delay: 0.32s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Horizontal marquee text strip — infinite scroll */
+@keyframes text-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+.animate-text-marquee {
+  animation: text-marquee 24s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-text-marquee {
+    animation: none;
+  }
+}
+
+/* Hairline corner ticks — premium editorial detail */
+.corner-ticks::before,
+.corner-ticks::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--color-gold);
+  opacity: 0.35;
+  pointer-events: none;
+}
+.corner-ticks::before {
+  top: 10px;
+  left: 10px;
+  border-right: 0;
+  border-bottom: 0;
+}
+.corner-ticks::after {
+  bottom: 10px;
+  right: 10px;
+  border-left: 0;
+  border-top: 0;
+}
+
+/* Editorial mega-outline number (for stats/section numerals) */
+.mega-number {
+  font-family: var(--font-bebas);
+  font-size: clamp(5rem, 14vw, 11rem);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(212, 175, 55, 0.35);
+}
+
+/* Gold underline link hover (nav) */
+.nav-underline {
+  position: relative;
+}
+.nav-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 0;
+  height: 1px;
+  background: var(--color-gold);
+  transition: width 0.35s ease;
+}
+.nav-underline:hover::after {
+  width: 100%;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -263,59 +367,15 @@
   scrollbar-width: none !important;
 }
 
-/* Custom tuning for installed PWA standalone mode (keeps layout compact on tall screens) */
+/* Custom tuning for installed PWA standalone mode — reduce vertical rhythm on compact screens */
 @media (display-mode: standalone) {
   .skip-link {
     display: none;
   }
-  body.pwa-context .py-24,
-  body.pwa-context .py-20,
-  body.pwa-context .py-16,
-  body.pwa-context .py-14,
-  body.pwa-context .py-12,
-  body.pwa-context .py-10 {
+
+  body.pwa-context section {
     padding-top: 1.25rem;
     padding-bottom: 1.25rem;
-  }
-
-  body.pwa-context .pt-24,
-  body.pwa-context .pt-20,
-  body.pwa-context .pt-16 {
-    padding-top: 1.5rem;
-  }
-
-  body.pwa-context .pb-40,
-  body.pwa-context .pb-32,
-  body.pwa-context .pb-28 {
-    padding-bottom: 5.5rem;
-  }
-
-  body.pwa-context .space-y-12 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 1.5rem;
-  }
-
-  body.pwa-context .space-y-8 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 1rem;
-  }
-
-  body.pwa-context .space-y-6 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 0.85rem;
-  }
-
-  body.pwa-context .mt-12 {
-    margin-top: 1.25rem;
-  }
-
-  body.pwa-context select,
-  body.pwa-context input,
-  body.pwa-context textarea {
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
-  }
-
-  body.pwa-context button {
-    padding-top: 0.85rem;
-    padding-bottom: 0.85rem;
   }
 }
 
@@ -323,69 +383,29 @@
 /* 2.5 ACCESSIBILITY — FOCUS VISIBLE & CONTRAST IMPROVEMENTS                */
 /* ========================================================================= */
 
-/* Global focus-visible ring — aparece apenas na navegação por teclado, não no clique */
-:focus-visible {
+:where(
+  button,
+  a,
+  [role='button'],
+  [role='tab'],
+  [role='menuitem'],
+  input,
+  select,
+  textarea
+):focus-visible {
   outline: 2px solid var(--color-gold-bright);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* Botões com foco via teclado */
-button:focus-visible,
-a:focus-visible,
-[role='button']:focus-visible,
-[role='tab']:focus-visible,
-[role='menuitem']:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid var(--color-gold-bright);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* Remove outline feio do focus padrão do navegador quando não via teclado */
 :focus:not(:focus-visible) {
   outline: none;
 }
 
-/* Melhora contraste do texto gold em fundo escuro para WCAG AA */
-.text-\[\#D4AF37\],
+/* WCAG AA: gold text gets subtle shadow on small sizes for legibility */
 .text-gold,
 .text-gold-bright {
-  /* Texto médio/grande (>24px ou bold>18px) já passa WCAG AA com gold #D4AF37 em fundo #0f0f0f */
-  /* Para texto pequeno (<18px), adiciona text-shadow pra melhorar legibilidade */
   text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
-}
-
-/* Garante que texto gold pequeno tenha contraste suficiente */
-.text-xs.text-gold,
-.text-sm.text-gold,
-.text-\[10px\].text-gold,
-.text-\[9px\].text-gold,
-.text-\[8px\].text-gold,
-.text-gold.font-bebas,
-button.text-gold,
-.text-xs.text-\[\#D4AF37\],
-.text-sm.text-\[\#D4AF37\],
-.text-\[10px\].text-\[\#D4AF37\],
-.text-\[9px\].text-\[\#D4AF37\],
-.text-\[8px\].text-\[\#D4AF37\],
-.text-\[\#D4AF37\].font-bebas,
-button.text-\[\#D4AF37\] {
-  text-shadow:
-    0 0 2px rgba(0, 0, 0, 0.7),
-    0 0 4px rgba(0, 0, 0, 0.3);
-}
-
-/* Skip link - enhanced version (overrides base @layer) */
-.skip-link {
-  min-width: 200px;
-  text-align: center;
-}
-.skip-link:focus {
-  outline: 3px solid #fff;
-  outline-offset: 2px;
 }
 
 /* ========================================================================= */
@@ -424,48 +444,13 @@ a,
 }
 
 /* ========================================================================= */
-/* 4. VERY SMALL SCREENS (< 360px) — UNIVERSAL RESPONSIVE                  */
+/* 4. VERY SMALL SCREENS (< 360px) — CONTAIN ONLY                            */
 /* ========================================================================= */
 
 @media (max-width: 359px) {
   .container {
     padding-left: 12px !important;
     padding-right: 12px !important;
-  }
-
-  /* Reduce font sizes on tiny screens */
-  h1,
-  .text-5xl {
-    font-size: 2rem !important; /* 32px */
-  }
-  h2,
-  .text-4xl {
-    font-size: 1.75rem !important; /* 28px */
-  }
-
-  /* Prevent any element from causing horizontal scroll */
-  img,
-  svg,
-  video,
-  iframe {
-    max-width: 100% !important;
-  }
-
-  /* Ensure buttons don't overflow */
-  button,
-  a {
-    word-break: break-word;
-  }
-
-  /* Reduce padding on sections */
-  .px-6 {
-    padding-left: 0.75rem !important;
-    padding-right: 0.75rem !important;
-  }
-
-  .px-4 {
-    padding-left: 0.5rem !important;
-    padding-right: 0.5rem !important;
   }
 }
 
@@ -503,10 +488,10 @@ code {
 @layer components {
   /* Primary gold CTA button */
   .btn-gold {
-    @apply bg-[#D4AF37] text-black font-bold text-[12px] uppercase tracking-[0.2em] rounded-xl transition-all duration-300 cursor-pointer shadow-lg shadow-[#D4AF37]/20;
+    @apply bg-gold text-black font-bold text-[12px] uppercase tracking-[0.15em] rounded-xl transition-all duration-300 cursor-pointer shadow-lg shadow-gold/20;
   }
   .btn-gold:hover {
-    @apply bg-[#b8962e] brightness-110 shadow-[#D4AF37]/30;
+    @apply bg-gold-hover brightness-110 shadow-gold/30;
   }
   .btn-gold:active {
     @apply scale-[0.97];
@@ -517,7 +502,7 @@ code {
 
   /* Ghost/outline button */
   .btn-ghost {
-    @apply bg-white/[0.04] border border-white/[0.08] text-zinc-400 font-bold text-[12px] uppercase tracking-[0.2em] rounded-xl transition-all duration-300 cursor-pointer;
+    @apply bg-white/[0.04] border border-white/[0.08] text-zinc-400 font-bold text-[12px] uppercase tracking-[0.15em] rounded-xl transition-all duration-300 cursor-pointer;
   }
   .btn-ghost:hover {
     @apply text-white bg-white/[0.06] border-white/[0.12];
@@ -528,26 +513,54 @@ code {
 
   /* Dark card container */
   .card-dark {
-    @apply bg-[#0C0C0C]/80 border border-white/[0.05] rounded-2xl backdrop-blur-xl;
+    @apply bg-dark-card/80 border border-dark-border rounded-2xl backdrop-blur-xl;
   }
 
   /* Form input (dark theme) */
   .input-dark {
-    @apply w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-white text-[14px] font-light placeholder:text-zinc-500 focus:outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/30 transition-all;
+    @apply w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-white text-[14px] font-light placeholder:text-zinc-500 focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/30 transition-all;
   }
 
   /* Gold divider */
   .divider-gold {
-    @apply h-px bg-gradient-to-r from-[#D4AF37]/40 via-[#D4AF37]/10 to-transparent;
+    @apply h-px bg-gradient-to-r from-gold/40 via-gold/10 to-transparent;
   }
 
   /* Section label (small gold uppercase) */
   .label-gold {
-    @apply text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em];
+    @apply text-[10px] font-bold text-zinc-500 uppercase tracking-[0.15em];
   }
 
   /* Skeleton pulse */
   .skeleton-pulse {
     @apply bg-white/[0.04] rounded-xl animate-pulse;
+  }
+
+  /* Polaroid Frame Style */
+  .polaroid-card {
+    @apply bg-white p-3 pt-3 pb-8 shadow-2xl transition-all duration-500 text-black relative;
+  }
+
+  /* Adhesive Tape effect */
+  .tape-effect {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-1deg);
+    width: 90px;
+    height: 26px;
+    background-color: rgba(245, 245, 240, 0.65);
+    border: 1px solid rgba(200, 200, 190, 0.4);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(2px);
+    z-index: 20;
+  }
+
+  /* Dark grunge backdrop texture */
+  .bg-dark-texture {
+    background-color: #111111;
+    background-image:
+      radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.03) 0%, transparent 70%),
+      radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.04) 0%, transparent 60%);
   }
 }

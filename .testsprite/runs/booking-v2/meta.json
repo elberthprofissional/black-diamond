@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "cli-v1",
+  "snapshotId": "snap_0091491d6aa275f9",
+  "testId": "57a43bc7-d9af-4e8a-9cec-0bfe8011efd1",
+  "projectId": "fd821351-8286-45a2-bd1d-df63cea0db27",
+  "codeVersion": "v1",
+  "runIdIfAvailable": "4bf59cb2-d047-4c7f-9abd-c497eee3a0be",
+  "targetUrl": "https://black-diamond-wheat.vercel.app",
+  "failedStepIndex": 10,
+  "failureKind": "assertion",
+  "capturedAt": "2026-07-27T04:40:48.468Z",
+  "fetchedAt": "2026-07-27T04:40:58.480Z"
+}

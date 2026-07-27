@@ -159,7 +159,7 @@ describe('useGalleryData', () => {
 
     const { result } = renderHook(() => useGalleryData());
     expect(result.current.uploading).toBe(false);
-    expect(result.current.MAX_PHOTOS).toBe(20);
+    expect(result.current.MAX_PHOTOS).toBe(5);
     expect(typeof result.current.openFilePicker).toBe('function');
     expect(typeof result.current.handleUpload).toBe('function');
     expect(result.current.fileInputRef.current).toBeNull();
@@ -213,7 +213,7 @@ describe('useGalleryData', () => {
       order: vi.fn().mockReturnThis(),
       then: vi.fn((resolve: (v: unknown) => void) =>
         resolve({
-          data: Array.from({ length: 20 }, (_, i) => ({
+          data: Array.from({ length: 5 }, (_, i) => ({
             id: `img-${i}`,
             image_url: `url-${i}`,
             alt: `Foto ${i}`,
@@ -227,14 +227,14 @@ describe('useGalleryData', () => {
     mockSupabaseFrom.mockReturnValue(chain);
 
     const { result } = renderHook(() => useGalleryData());
-    await waitFor(() => expect(result.current.images.length).toBe(20));
+    await waitFor(() => expect(result.current.images.length).toBe(5));
 
     const file = createMockFile('test.jpg');
     const event = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
     await act(async () => {
       await result.current.handleUpload(event);
     });
-    expect(mockShowError).toHaveBeenCalledWith('Máximo de 20 fotos');
+    expect(mockShowError).toHaveBeenCalledWith('Máximo de 5 fotos');
   });
 
   it('handles no file selected', async () => {

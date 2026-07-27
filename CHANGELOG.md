@@ -5,6 +5,45 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.28.0] - 2026-07-27
+
+### Added
+- **Sistema de Assinatura Simplificado (PIX)** — Substitui a integracao Asaas por um modelo manual de R$50/mes via PIX.
+  - Barbeiro ganha trial gratuito ate o ultimo dia do mes.
+  - Ao vencer, o admin dele é bloqueado com tela exibindo chave PIX para pagamento.
+  - Dono (elberthmayan2007@gmail.com) ve botao "Confirmar Pgto" em Configuracoes > Assinaturas.
+  - Chave PIX configurada: 70263397610.
+  - Migration 008 aplicada via CLI.
+- **Login opcional do cliente** — Novo fluxo em `/cliente`:
+  - Digita o telefone → sistema gera codigo de 4 digitos exibido na tela.
+  - Cliente digita o codigo e acessa o dashboard.
+  - Dashboard com stats (visitas, gasto total, valor pendente), booking cards redesenhados, cancelamento com confirmacao.
+  - Sessao salva no localStorage por 7 dias.
+- **Badge de Aberto/Fechado no Hero** — Indicador em tempo real abaixo do subtitulo mostrando se a barbearia esta aberta baseado nos horarios configurados.
+
+### Removed
+- **Onboarding Page** (`/admin/onboarding`) — Removido completamente (arquivo + rotas + imports). Nunca era usado.
+- **HelpModal/Ajuda** — Removido das configuracoes.
+- **MarqueeStrip.tsx** — Componente morto deletado.
+- **HeroProps** — Interface vazia removida.
+- **Hover zoom nas fotos da galeria** — Efeito removido para experiencia mais fluida.
+
+### Changed
+- **Assinatura simplificada** — Asaas removido. Agora funciona com PIX manual + confirmacao do dono.
+- **SubscriptionGuard** — Agora mostra tela de bloqueio com chave PIX + QR Code quando subscription expira.
+- **SettingsAssinaturas** — Só visivel pro dono (elberthmayan2007@gmail.com). Lista barbeiros com status e botao "Confirmar Pgto".
+- **Migration 008_pix_setup.sql** — Configura chave PIX e cria subscription ativa ate fim do mes.
+- **Responsivo mobile** — Hero mais compacto (80vh, menos padding), galeria com polaroids 15px mais estreitas. Footer redesenhado com tons acinzentados.
+- **Footer** — Redesign com paleta cinza escuro em vez de preto puro. Aberto/Fechado movido para o Hero.
+- **Servicos** — Tabela de servicos com visual premium combinando com o tema do site.
+- **Navbar** — Logo ampliada. Badge de aberto/fechado removido da navbar (movido para o Hero).
+- **Sobre Mim** — Layout responsivo: mobile empilha foto + texto verticalmente.
+- **ClientProfile.tsx** — Dashboard reformulado com cards de estatisticas, booking cards com linha dourada e status badge, empty state com CTA.
+
+### Fixed
+- **Fontes Google preload** — Preload corrigido para usar as fontes corretas (Anton substituiu Bebas Neue).
+- **Erro de build** — TS6133 (imports nao usados) corrigidos em ClientProfile.tsx.
+
 ## [3.27.1] - 2026-07-25
 
 ### Fixed

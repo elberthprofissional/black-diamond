@@ -13,10 +13,11 @@ const renderWithRouter = (ui: React.ReactElement) => {
 };
 
 describe('Navbar', () => {
-  it('renderiza o logo e nome', () => {
+  it('renderiza o logo', () => {
     renderWithRouter(<Navbar onBookingClick={vi.fn()} />);
-    expect(screen.getByText('Black')).toBeInTheDocument();
-    expect(screen.getByText('Diamond')).toBeInTheDocument();
+    const logo = screen.getByRole('img', { name: /black diamond/i });
+    expect(logo).toBeInTheDocument();
+    expect(logo).toHaveAttribute('src', '/assets/logo.webp');
   });
 
   it('renderiza links de navegacao', () => {
@@ -40,15 +41,9 @@ describe('Navbar', () => {
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 
-  it('renderiza imagem do logo', () => {
-    renderWithRouter(<Navbar onBookingClick={vi.fn()} />);
-    const logo = screen.getByRole('img', { name: /black diamond/i });
-    expect(logo).toHaveAttribute('src', '/assets/logo.webp');
-  });
-
   it('tem aria-label no botao de agendamento', () => {
     renderWithRouter(<Navbar onBookingClick={vi.fn()} />);
-    const button = screen.getByLabelText('Abrir formulário de agendamento online');
+    const button = screen.getByLabelText('Agendar um horário');
     expect(button).toBeInTheDocument();
   });
 });

@@ -6,15 +6,15 @@ interface BookingDesktopProgressProps {
   goBack?: () => void;
 }
 
-const STEP_LABELS = ['', 'Dados', 'Serviços', 'Horário', 'Confirmar'];
+const STEP_LABELS = ['', 'Dados', 'Serviços', 'Horário'];
 
 const BookingDesktopProgress: FC<BookingDesktopProgressProps> = ({ step, stepTitle, goBack }) => {
-  if (step >= 5) return null;
+  if (step >= 4) return null;
 
   return (
-    <div className="px-14 py-6 flex items-center justify-between border-b border-white/[0.04]">
+    <div className="px-6 lg:px-10 xl:px-14 py-4 lg:py-6 flex items-center justify-between border-b border-white/[0.04]">
       <div className="flex items-center gap-5">
-        {step > 1 && step < 5 && goBack && (
+        {step > 1 && step < 4 && goBack && (
           <button
             onClick={goBack}
             aria-label="Voltar para o passo anterior"
@@ -34,22 +34,21 @@ const BookingDesktopProgress: FC<BookingDesktopProgressProps> = ({ step, stepTit
             </svg>
           </button>
         )}
-        {step < 5 && (
+        {step < 4 && (
           <div>
-            <h2 className="text-xl font-bold text-white">{stepTitle}</h2>
+            <h2 className="text-lg xl:text-xl font-bold text-white">{stepTitle}</h2>
             <p className="text-[12px] text-zinc-500 mt-0.5">
               {step === 1 && 'Preencha suas informações'}
               {step === 2 && 'Escolha os serviços'}
               {step === 3 && 'Defina data e horário'}
-              {step === 4 && 'Revise e confirme'}
             </p>
           </div>
         )}
       </div>
 
-      {step < 5 && (
+      {step < 4 && (
         <div className="flex items-center gap-3" role="list" aria-label="Progresso do agendamento">
-          {[1, 2, 3, 4].map((s, i) => (
+          {[1, 2, 3].map((s, i) => (
             <Fragment key={s}>
               <div
                 role="listitem"
@@ -76,7 +75,7 @@ const BookingDesktopProgress: FC<BookingDesktopProgressProps> = ({ step, stepTit
                 </span>
                 <span className="hidden xl:inline text-zinc-400">{STEP_LABELS[s]}</span>
               </div>
-              {i < 3 && (
+              {i < 2 && (
                 <div className={`w-6 h-px ${step > s ? 'bg-[#D4AF37]/30' : 'bg-white/[0.06]'}`} />
               )}
             </Fragment>

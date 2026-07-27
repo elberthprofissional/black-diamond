@@ -1,0 +1,9 @@
+{
+  "rootCauseHypothesis": "TEST FAILURE\n\nThe services list is not displayed after advancing to the 'Serviços' step, preventing completion of the booking flow.\n\nObservations:\n- The stepper shows 'Serviços' as the active step but no service cards, names, or price strings (e.g., 'R$') are visible on the page.\n- The page only shows header/placeholder content, the stepper, and the 'Continuar' button; no selectable services, dates, or time slots could be found.\n- Multiple attempts were made (clicking the 'Serviços' step, scrolling, searching the DOM, filling contact fields and clicking 'Continuar') and none revealed the expected service listings.",
+  "recommendedFixTarget": {
+    "kind": "unknown",
+    "reference": "Serviços",
+    "rationale": null
+  },
+  "evidence": []
+}

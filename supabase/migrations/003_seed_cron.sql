@@ -11,11 +11,11 @@
 -- Servicos
 INSERT INTO services (name, price, duration, description)
 SELECT name, price, duration, description FROM (VALUES
-    ('Corte de Cabelo', 35.00, 40, 'Corte moderno e personalizado.'),
+    ('Corte de Cabelo', 35.00, 40, ''),
     ('Barba', 27.00, 20, 'Aparacao e modelagem de barba.'),
-    ('Barba com Toalha Quente', 30.00, 30, 'Experiencia relaxante com toalha quente.'),
-    ('Sobrancelha', 15.00, 10, 'Limpeza e design de sobrancelha.'),
-    ('Pezinho', 15.00, 10, 'Acabamento perfeito.')
+    ('Barba com Toalha Quente', 30.00, 30, ''),
+    ('Sobrancelha', 15.00, 10, ''),
+    ('Pezinho', 15.00, 10, '')
 ) AS temp_data(name, price, duration, description)
 WHERE NOT EXISTS (SELECT 1 FROM services WHERE services.name = temp_data.name);
 

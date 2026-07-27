@@ -1,0 +1,18 @@
+{
+  "projectId": "fd821351-8286-45a2-bd1d-df63cea0db27",
+  "type": "frontend",
+  "name": "Home page carrega corretamente",
+  "description": "Visitante acessa a página inicial e vê o conteúdo da barbearia carregado",
+  "priority": "p0",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to https://black-diamond.vercel.app" },
+    {
+      "type": "assertion",
+      "description": "Verify the page title or logo 'Black Diamond' or 'Barbearia' is visible on the page"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the navigation or hero section with booking information is displayed"
+    }
+  ]
+}

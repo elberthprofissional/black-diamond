@@ -11,7 +11,7 @@ const loadFonts = () => {
   const link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href =
-    'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bebas+Neue&family=Roboto:wght@300;400;500;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap';
+    'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Anton&family=Roboto:wght@300;400;500;700&family=Montserrat:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600;1,700;1,900&family=Cinzel:wght@500;700;900&display=swap';
   document.head.appendChild(link);
 };
 if (document.readyState === 'complete') {
@@ -88,45 +88,3 @@ createRoot(document.getElementById('root')!).render(
     </HelmetProvider>
   </StrictMode>
 );
-
-// Service Worker update notification
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.addEventListener('message', (event) => {
-    if (event.data?.type === 'SW_UPDATED') {
-      // Show a subtle notification that a new version is available
-      const toast = document.createElement('div');
-      toast.className =
-        'fixed bottom-4 left-1/2 -translate-x-1/2 z-[9999] bg-[#1a1a1a] border border-[#D4AF37]/30 rounded-xl px-6 py-3 flex items-center gap-3 shadow-2xl shadow-black/40';
-
-      const dot = document.createElement('span');
-      dot.className = 'w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse';
-
-      const label = document.createElement('span');
-      label.className = 'text-xs font-medium text-zinc-300';
-      label.textContent = 'Nova vers\u00e3o dispon\u00edvel';
-
-      const btn = document.createElement('button');
-      btn.className =
-        'text-[10px] font-bold text-[#D4AF37] hover:text-white transition-colors cursor-pointer uppercase tracking-wider';
-      btn.textContent = 'Atualizar';
-      btn.addEventListener('click', () => window.location.reload());
-
-      toast.append(dot, label, btn);
-      document.body.appendChild(toast);
-
-      // Auto-remove after 10 seconds
-      setTimeout(() => {
-        toast.remove();
-      }, 10000);
-    }
-  });
-}
-
-// Registra o Service Worker para PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
-      // SW registration failed — non-critical
-    });
-  });
-}

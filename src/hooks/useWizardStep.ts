@@ -4,7 +4,6 @@ interface WizardValidation {
   step: number;
   name?: string;
   phone?: string;
-  selectedBarber?: unknown;
   selectedServices: unknown[];
   selectedDate: string;
   selectedTime: string;
@@ -13,13 +12,12 @@ interface WizardValidation {
 
 const STEP_TITLES: Record<number, string> = {
   1: 'Seus dados',
-  2: 'Escolha o barbeiro',
-  3: 'Escolha os serviços',
-  4: 'Data e horário',
-  5: 'Revisar agendamento',
+  2: 'Escolha os serviços',
+  3: 'Data e horário',
+  4: 'Revisar agendamento',
 };
 
-export function useWizardStep(totalSteps = 5) {
+export function useWizardStep(totalSteps = 4) {
   const [step, setStep] = useState(1);
 
   const isStepDisabled = useCallback(
@@ -27,7 +25,6 @@ export function useWizardStep(totalSteps = 5) {
       step: currentStep,
       name,
       phone,
-      selectedBarber,
       selectedServices,
       selectedDate,
       selectedTime,
@@ -40,10 +37,9 @@ export function useWizardStep(totalSteps = 5) {
           (phone?.replace(/\D/g, '').length ?? 0) < 11
         );
       }
-      if (currentStep === 2) return !selectedBarber;
-      if (currentStep === 3) return selectedServices.length === 0;
-      if (currentStep === 4) return !selectedDate || !selectedTime;
-      if (currentStep === 5) return isSubmitting;
+      if (currentStep === 2) return selectedServices.length === 0;
+      if (currentStep === 3) return !selectedDate || !selectedTime;
+      if (currentStep === 4) return isSubmitting;
       return false;
     },
     []

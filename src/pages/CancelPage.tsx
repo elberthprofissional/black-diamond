@@ -390,7 +390,7 @@ export default function CancelPage() {
                 <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">
                   Escolha o novo dia
                 </p>
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-5 px-5">
                   {nextDays.map((day) => (
                     <button
                       key={day.fullDate}
@@ -415,13 +415,13 @@ export default function CancelPage() {
                     Escolha o horário
                   </p>
                   {loadingSlots ? (
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 xs:grid-cols-3 gap-2">
                       {[1, 2, 3, 4, 5, 6].map((i) => (
                         <div key={i} className="h-11 bg-white/[0.03] rounded-xl animate-pulse" />
                       ))}
                     </div>
                   ) : availableSlots.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 xs:grid-cols-3 gap-2">
                       {availableSlots.map((slot) => (
                         <button
                           key={slot}

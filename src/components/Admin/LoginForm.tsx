@@ -47,7 +47,7 @@ export default function LoginForm({
         <div className="space-y-1.5 lg:space-y-2">
           <label
             htmlFor="login-email"
-            className="block text-[10px] lg:text-xs font-medium uppercase tracking-widest text-zinc-500"
+            className="block text-[10px] lg:text-xs font-medium uppercase tracking-[0.1em] text-zinc-500"
           >
             E-mail
           </label>{' '}
@@ -69,7 +69,7 @@ export default function LoginForm({
         <div className="space-y-1.5 lg:space-y-2">
           <label
             htmlFor="login-password"
-            className="block text-[10px] lg:text-xs font-medium uppercase tracking-widest text-zinc-500"
+            className="block text-[10px] lg:text-xs font-medium uppercase tracking-[0.1em] text-zinc-500"
           >
             Senha
           </label>
@@ -100,10 +100,8 @@ export default function LoginForm({
             <button
               type="button"
               onClick={onForgotPassword}
-              className="text-[10px] font-medium uppercase tracking-widest transition-colors cursor-pointer"
-              style={{ color: `${brandColor}B3` }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = brandColor)}
-              onMouseLeave={(e) => (e.currentTarget.style.color = `${brandColor}B3`)}
+              className="text-[10px] font-medium uppercase tracking-[0.1em] transition-colors cursor-pointer opacity-70 hover:opacity-100"
+              style={{ color: brandColor || '#d4af37' }}
             >
               Esqueceu a senha?
             </button>
@@ -133,8 +131,8 @@ export default function LoginForm({
         type="submit"
         data-testid="btn-login"
         disabled={isLoggingIn || isBlocked}
-        className="w-full h-11 lg:h-12 text-black font-black uppercase tracking-[0.5em] text-[12px] rounded-2xl lg:rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed"
-        style={{ backgroundColor: brandColor }}
+        className="w-full h-11 lg:h-12 text-black font-bold uppercase tracking-[0.15em] text-[12px] rounded-2xl lg:rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{ backgroundColor: brandColor || '#d4af37' }}
       >
         <span>{isLoggingIn ? 'Entrando...' : isBlocked ? 'Bloqueado' : 'Entrar'}</span>
       </motion.button>
@@ -143,10 +141,8 @@ export default function LoginForm({
         <button
           type="button"
           onClick={onForgotPassword}
-          className="text-[10px] font-medium uppercase tracking-widest transition-colors cursor-pointer"
-          style={{ color: `${brandColor}B3` }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = brandColor)}
-          onMouseLeave={(e) => (e.currentTarget.style.color = `${brandColor}B3`)}
+          className="text-[10px] font-medium uppercase tracking-[0.1em] transition-colors cursor-pointer opacity-70 hover:opacity-100"
+          style={{ color: brandColor || '#d4af37' }}
         >
           Esqueceu a senha?
         </button>

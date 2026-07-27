@@ -1,0 +1,15 @@
+{
+  "projectId": "fd821351-8286-45a2-bd1d-df63cea0db27",
+  "type": "frontend",
+  "name": "Página de login admin carrega",
+  "description": "Admin acessa a página de login e vê o formulário de autenticação",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to https://black-diamond.vercel.app/admin/login" },
+    {
+      "type": "assertion",
+      "description": "Verify the login form is visible with email and password input fields"
+    },
+    { "type": "assertion", "description": "Verify there is a submit/login button on the form" }
+  ]
+}

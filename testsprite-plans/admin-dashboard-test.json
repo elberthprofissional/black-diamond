@@ -1,0 +1,31 @@
+{
+  "projectId": "fd821351-8286-45a2-bd1d-df63cea0db27",
+  "type": "frontend",
+  "name": "Admin dashboard - métricas e navegação",
+  "description": "Admin logado acessa o dashboard e verifica métricas e opções de navegação",
+  "priority": "p0",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Navigate to https://black-diamond-wheat.vercel.app/admin/login"
+    },
+    { "type": "assertion", "description": "Verify the login form is visible" },
+    { "type": "action", "description": "Type elberthmayan2007@gmail.com in the email field" },
+    { "type": "action", "description": "Type mayan123 in the password field" },
+    { "type": "action", "description": "Click the login/submit button" },
+    {
+      "type": "assertion",
+      "description": "Verify the dashboard shows daily metrics like agendamentos hoje, faturamento, ocupação"
+    },
+    {
+      "type": "action",
+      "description": "Click on the 'Agenda' or 'Agendamentos' navigation item in the sidebar"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the agenda page shows today's bookings with client names, services, and times"
+    },
+    { "type": "action", "description": "Click on the 'Clientes' navigation item in the sidebar" },
+    { "type": "assertion", "description": "Verify the client list page shows registered clients" }
+  ]
+}

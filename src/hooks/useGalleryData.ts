@@ -6,7 +6,7 @@ import { getGalleryImages, uploadGalleryImage, insertGalleryImage } from '../lib
 
 export type { GalleryImage } from '../types';
 
-const MAX_PHOTOS = 20;
+const MAX_PHOTOS = 5;
 
 export function useGalleryData() {
   const [images, setImages] = useState<GalleryImage[]>([]);

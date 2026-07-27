@@ -1,8 +1,7 @@
-import { useRef, useCallback, useState, useEffect, useMemo, type FC, type MouseEvent } from 'react';
+import { useRef, useCallback, useState, useEffect, type FC, type MouseEvent } from 'react';
 import { User, Star } from 'lucide-react';
 import { getActiveTestimonials } from '../lib/api/testimonials';
 import { GoogleIcon } from './GoogleReviewBadge';
-import { calculateAverageRating } from '../lib/google-reviews';
 import type { Testimonial } from '../types';
 
 const Testimonials: FC = () => {
@@ -33,7 +32,6 @@ const Testimonials: FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
 
   const count = testimonials.length;
-  const avgRating = useMemo(() => calculateAverageRating(testimonials), [testimonials]);
 
   // Intersection Observer para animação de entrada
   useEffect(() => {
@@ -117,43 +115,40 @@ const Testimonials: FC = () => {
     <section
       id="depoimentos"
       ref={sectionRef}
-      className="relative py-20 md:py-40 bg-[#0A0A0A] text-white overflow-hidden"
+      className="relative py-24 md:py-32 bg-[#0A0A0A] text-white overflow-hidden"
     >
       {/* Background decoration */}
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent" />
-      <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#D4AF37]/[0.02] rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#D4AF37]/[0.01] rounded-full blur-[100px] pointer-events-none" />
 
       <div className="container mx-auto px-6 relative z-10">
         {/* Header */}
-        <div className="max-w-4xl mx-auto text-center mb-12 md:mb-20">
+        <div className="max-w-4xl mx-auto text-center mb-10 md:mb-20">
+          <span className="text-[11px] font-sans font-bold uppercase tracking-[0.3em] text-zinc-400 block mb-3">
+            DEPOIMENTOS
+          </span>
           <h3
-            className={`text-3xl sm:text-4xl md:text-6xl font-bebas text-white mb-4 uppercase tracking-[0.05em] transition-all duration-700 ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            className={`text-3xl sm:text-5xl font-bold uppercase tracking-tight font-sans text-white mb-6 transition-[opacity,transform] duration-500 ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
           >
-            O QUE DIZEM NOSSOS <span className="text-[#D4AF37]">CLIENTES</span>
+            O QUE DIZEM NOSSOS{' '}
+            <span className="font-serif italic font-normal text-zinc-300 lowercase">clientes</span>
           </h3>
-          {avgRating > 0 && count > 0 && (
+          {count > 0 && (
             <div
-              className={`inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.06] transition-all duration-700 delay-200 ${
-                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              className={`inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.06] transition-[opacity,transform] duration-500 delay-100 ${
+                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}
             >
               <GoogleIcon className="w-4 h-4" />
-              <div className="flex items-center gap-1.5">
-                <span className="text-[13px] font-bold text-white font-roboto">
-                  {avgRating.toFixed(1)}
-                </span>
-                <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={11} className="fill-[#D4AF37] text-[#D4AF37]" />
-                  ))}
-                </div>
+              <div className="flex items-center gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} size={11} className="fill-[#D4AF37] text-[#D4AF37]" />
+                ))}
               </div>
               <div className="w-px h-3 bg-white/10" />
-              <span className="text-[11px] text-zinc-400 font-roboto">
-                {count} avaliações no Google
+              <span className="text-[11px] text-zinc-400 font-sans whitespace-nowrap">
+                Avaliações retiradas do Google
               </span>
             </div>
           )}
@@ -171,8 +166,8 @@ const Testimonials: FC = () => {
             setIsHovered(false);
             handleMouseUp();
           }}
-          className={`flex gap-5 md:gap-6 mb-8 items-stretch overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 scroll-smooth cursor-grab outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/50 rounded-lg transition-all duration-700 delay-150 ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          className={`flex gap-4 md:gap-6 mb-6 md:mb-8 items-stretch overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 scroll-smooth cursor-grab outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/50 rounded-lg transition-[opacity,transform] duration-500 delay-75 ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
           onScroll={handleScroll}
           onMouseDown={handleMouseDown}
@@ -190,19 +185,19 @@ const Testimonials: FC = () => {
                 role="group"
                 aria-roledescription="slide"
                 aria-label={`Depoimento ${index + 1} de ${count}`}
-                className="group relative bg-[#111111] border border-white/[0.04] hover:border-[#D4AF37]/25 p-6 md:p-8 rounded-2xl flex flex-col justify-between gap-5 h-auto w-[80vw] sm:w-[75vw] md:w-[360px] snap-center shrink-0 transition-all duration-500 hover:shadow-lg hover:shadow-[#D4AF37]/5"
+                className="group relative bg-[#111111] border border-white/[0.04] hover:border-[#D4AF37]/25 p-5 md:p-8 rounded-2xl flex flex-col justify-between gap-4 md:gap-5 h-auto w-[85vw] sm:w-[75vw] md:w-[360px] snap-center shrink-0 transition-[border-color,box-shadow] duration-500 hover:shadow-lg hover:shadow-[#D4AF37]/5"
               >
                 {/* Author - top */}
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 rounded-full shrink-0 flex items-center justify-center border border-[#D4AF37]/10 group-hover:border-[#D4AF37]/30 transition-all duration-500">
-                    <User size={15} className="text-[#D4AF37]/70" />
+                  <div className="w-9 h-9 md:w-10 md:h-10 bg-white/[0.06] rounded-full shrink-0 flex items-center justify-center border border-white/[0.08] group-hover:border-white/[0.15] transition-[border-color] duration-500">
+                    <User size={15} className="text-zinc-500" />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[12px] md:text-[14px] font-bold text-white tracking-wide">
                       {safeName}
                     </span>
                     {review.publish_time && (
-                      <span className="text-[10px] text-zinc-600 font-roboto">
+                      <span className="text-[10px] text-zinc-600 font-sans">
                         {new Date(review.publish_time).toLocaleDateString('pt-BR', {
                           month: 'short',
                           year: 'numeric',
@@ -218,7 +213,7 @@ const Testimonials: FC = () => {
                     <Star
                       key={i}
                       size={14}
-                      className={`transition-all duration-300 ${
+                      className={`transition-[fill,color,filter] duration-300 ${
                         i < safeRating
                           ? 'fill-[#D4AF37] text-[#D4AF37] drop-shadow-[0_0_4px_rgba(212,175,55,0.3)]'
                           : 'text-zinc-700'
@@ -228,7 +223,7 @@ const Testimonials: FC = () => {
                 </div>
 
                 {/* Testimonial text */}
-                <p className="text-zinc-300 font-roboto font-light text-[14px] md:text-[16px] leading-[1.8] flex-1 relative z-10">
+                <p className="text-zinc-300 font-sans font-light text-[14px] md:text-[16px] leading-[1.8] flex-1 relative z-10">
                   {safeText}
                 </p>
               </div>
@@ -239,8 +234,8 @@ const Testimonials: FC = () => {
         {/* Controls */}
         {count > 1 && (
           <div
-            className={`flex flex-col items-center gap-4 transition-all duration-700 delay-300 ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            className={`flex flex-col items-center gap-4 transition-[opacity,transform] duration-500 delay-150 ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
           >
             {/* Dots */}
@@ -256,7 +251,7 @@ const Testimonials: FC = () => {
                   aria-selected={activeIndex === index}
                   aria-label={`Ir para depoimento ${index + 1}`}
                   onClick={() => scrollToIndex(index)}
-                  className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer ${
+                  className={`h-1.5 rounded-full transition-[width,background-color] duration-500 cursor-pointer ${
                     activeIndex === index
                       ? 'bg-[#D4AF37] w-8'
                       : 'bg-zinc-700 w-1.5 hover:bg-zinc-500'

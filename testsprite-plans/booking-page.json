@@ -1,0 +1,19 @@
+{
+  "projectId": "fd821351-8286-45a2-bd1d-df63cea0db27",
+  "type": "frontend",
+  "name": "Página de agendamento carrega com serviços",
+  "description": "Visitante acessa a página de agendamento e vê os serviços disponíveis para seleção",
+  "priority": "p0",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to https://black-diamond.vercel.app/agendar" },
+    {
+      "type": "assertion",
+      "description": "Verify the page shows a list or selection of available barber services with their names and prices"
+    },
+    { "type": "action", "description": "Click on one of the available services to select it" },
+    {
+      "type": "assertion",
+      "description": "Verify that after selecting a service, the next step (date/time selection) becomes visible or the selected service is highlighted"
+    }
+  ]
+}
