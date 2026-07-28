@@ -1,5 +1,5 @@
 import { type FC } from 'react';
-import { Phone, MapPin, Clock } from 'lucide-react';
+import { Phone, MapPin, Clock, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 import { formatPhone } from '../lib/utils';
@@ -16,7 +16,7 @@ const Footer: FC = () => {
 
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 pb-10">
-          {/* COL 1: Brand */}
+          {/* COL 1: Brand + Nav Links */}
           <div className="space-y-4">
             <p className="text-lg md:text-xl font-bold text-white/90 uppercase tracking-[0.06em]">
               {displayName}
@@ -25,6 +25,33 @@ const Footer: FC = () => {
               Corte na régua. Barba na régua. Papo reto. Esquece fila — agenda, vem, senta e sai
               renovado.
             </p>
+            {/* Quick nav links */}
+            <nav
+              className="flex flex-wrap gap-x-5 gap-y-2 pt-2"
+              aria-label="Links rápidos do rodapé"
+            >
+              {[
+                { label: 'Sobre', id: 'sobre' },
+                { label: 'Serviços', id: 'servicos' },
+                { label: 'Galeria', id: 'galeria' },
+                { label: 'Localização', id: 'localizacao' },
+              ].map((link) => (
+                <button
+                  key={link.id}
+                  onClick={() => {
+                    const el = document.getElementById(link.id);
+                    if (el) {
+                      const offset = 80;
+                      const top = el.getBoundingClientRect().top + window.scrollY - offset;
+                      window.scrollTo({ top, behavior: 'smooth' });
+                    }
+                  }}
+                  className="text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors uppercase tracking-[0.12em] cursor-pointer"
+                >
+                  {link.label}
+                </button>
+              ))}
+            </nav>
           </div>
 
           {/* COL 2: Contato */}
@@ -116,12 +143,21 @@ const Footer: FC = () => {
           <p className="text-[11px] text-zinc-700 tracking-wide font-light">
             © {new Date().getFullYear()} {displayName}. Todos os direitos reservados.
           </p>
-          <Link
-            to="/admin/login"
-            className="text-[10px] text-zinc-700 uppercase tracking-[0.2em] hover:text-zinc-500 transition-colors font-medium"
-          >
-            Acesso restrito
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/cliente"
+              className="flex items-center gap-1.5 text-[10px] text-zinc-700 uppercase tracking-[0.2em] hover:text-[#D4AF37] transition-colors font-medium group"
+            >
+              <User size={10} className="group-hover:text-[#D4AF37] transition-colors" />
+              Meus Agendamentos
+            </Link>
+            <Link
+              to="/admin/login"
+              className="text-[10px] text-zinc-700 uppercase tracking-[0.2em] hover:text-zinc-500 transition-colors font-medium"
+            >
+              Acesso restrito
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

@@ -9,7 +9,7 @@ import {
   type RefObject,
   type MouseEvent,
 } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useWizardStep } from './useWizardStep';
 import { useBarberContext } from '../contexts/BarberContext';
 import { useClientLookup } from './useClientLookup';
@@ -90,6 +90,7 @@ export function BookingWizardProvider({
   showError: (msg: string) => void;
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { barbers } = useBarberContext();
 
   // ── Step control ──
@@ -106,11 +107,19 @@ export function BookingWizardProvider({
   const { services: allServices, loading: servicesLoading } = useServices();
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
-  const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
+  const [userInfo, setUserInfo] = useState<{ name: string; phone: string }>(() => {
+    // Pre-fill from route state (passed by BookingPreScreen)
+    const state = location.state as { name?: string; phone?: string } | undefined;
+    return {
+      name: state?.name || '',
+      phone: state?.phone || '',
+    };
+  });
 
   // ── Auto-select first barber ──
   useEffect(() => {
     if (barbers.length > 0 && !selectedBarber) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedBarber(barbers[0] ?? null);
     }
   }, [barbers, selectedBarber]);

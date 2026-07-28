@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, type ReactNode } from 'react';
-import { Routes, Route, Navigate, useLocation, matchPath } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useParams, matchPath } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import { useReducedMotion } from './hooks/useReducedMotion';
 import { useSEO } from './hooks/useSEO';
@@ -13,6 +13,7 @@ import { logError } from './lib/logger';
 const TITLES: Record<string, string> = {
   '/': 'BLACK DIAMOND',
   '/agendar': 'Agendar Horário | Black Diamond',
+  '/agendar/entrada': 'Agendar | Black Diamond',
   '/admin': 'Painel Admin | Black Diamond',
   '/admin/login': 'Login Admin | Black Diamond',
   '/admin/agendar': 'Novo Agendamento | Black Diamond',
@@ -22,7 +23,6 @@ const TITLES: Record<string, string> = {
   '/admin/reports': 'Relatórios | Black Diamond',
   '/admin/reset-password': 'Redefinir Senha | Black Diamond',
   '/cancelar': 'Cancelar ou Reagendar | Black Diamond',
-  '/gerenciar/:token?': 'Gerenciar Agendamento | Black Diamond',
   '/cliente': 'Meus Agendamentos | Black Diamond',
   '/admin/notificacoes': 'Notificações | Black Diamond',
 
@@ -66,6 +66,7 @@ function TitleManager() {
 // Lazy-loaded route components
 const Home = lazy(() => import('./pages/Home'));
 const BookingPage = lazy(() => import('./pages/BookingPage'));
+const BookingPreScreen = lazy(() => import('./components/Booking/BookingPreScreen'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const AdminResetPassword = lazy(() => import('./pages/AdminResetPassword'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
@@ -76,7 +77,7 @@ const AdminReports = lazy(() => import('./pages/AdminReports'));
 const AdminBooking = lazy(() => import('./pages/AdminBooking'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const CancelPage = lazy(() => import('./pages/CancelPage'));
-const ManageBooking = lazy(() => import('./pages/ManageBooking'));
+
 const ClientProfile = lazy(() => import('./components/ClientProfile'));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 const BarberDashboard = lazy(() => import('./pages/BarberDashboard'));
@@ -91,6 +92,7 @@ function preloadRoute(path: string) {
 
   const preloaders: Record<string, () => Promise<unknown>> = {
     '/agendar': () => import('./pages/BookingPage'),
+    '/agendar/entrada': () => import('./components/Booking/BookingPreScreen'),
     '/admin': () => import('./pages/AdminDashboard'),
     '/admin/login': () => import('./pages/AdminLogin'),
     '/admin/weekly': () => import('./pages/AdminWeekly'),
@@ -99,7 +101,6 @@ function preloadRoute(path: string) {
     '/admin/reports': () => import('./pages/AdminReports'),
     '/admin/agendar': () => import('./pages/AdminBooking'),
     '/cancelar': () => import('./pages/CancelPage'),
-    '/gerenciar': () => import('./pages/ManageBooking'),
     '/cliente': () => import('./components/ClientProfile'),
     '/admin/notificacoes': () => import('./pages/NotificationsPage'),
     '/barber': () => import('./pages/BarberDashboard'),
@@ -114,6 +115,11 @@ function preloadRoute(path: string) {
     });
     preloadCache.set(path, promise);
   }
+}
+
+function GerenciarRedirect() {
+  const { token } = useParams<{ token: string }>();
+  return <Navigate to={`/cancelar${token ? `?token=${token}` : ''}`} replace />;
 }
 
 function LoadingFallback() {
@@ -333,6 +339,14 @@ function App() {
                 }
               />
               <Route
+                path="/agendar/entrada"
+                element={
+                  <SectionErrorBoundary name="Entrada Agendamento">
+                    <BookingPreScreen />
+                  </SectionErrorBoundary>
+                }
+              />
+              <Route
                 path="/agendar"
                 element={
                   <BarberProvider>
@@ -350,14 +364,8 @@ function App() {
                   </SectionErrorBoundary>
                 }
               />
-              <Route
-                path="/gerenciar/:token?"
-                element={
-                  <SectionErrorBoundary name="Gerenciar Agendamento">
-                    <ManageBooking />
-                  </SectionErrorBoundary>
-                }
-              />
+              <Route path="/gerenciar" element={<Navigate to="/cancelar" replace />} />
+              <Route path="/gerenciar/:token" element={<GerenciarRedirect />} />
               <Route
                 path="/cliente"
                 element={

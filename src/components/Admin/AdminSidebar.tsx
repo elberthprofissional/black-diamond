@@ -72,9 +72,6 @@ const AdminSidebar: FC = memo(() => {
       {/* Navigation */}
       <div className="flex-1 px-6 py-4 overflow-y-auto scrollbar-hide space-y-8">
         <div>
-          <span className="text-[10px] font-medium text-zinc-600 uppercase tracking-[0.15em] px-4 block mb-4">
-            Menu
-          </span>
           <nav className="space-y-1.5">
             {mainMenuItems.map((item) => {
               const active = isActive(item.path);

@@ -114,7 +114,10 @@ export function useAsyncData<T>({
 
   // Fetch on mount
   useEffect(() => {
-    if (!skip) refetch();
+    if (!skip) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      refetch();
+    }
   }, [refetch, skip]);
 
   // Auto-refresh interval

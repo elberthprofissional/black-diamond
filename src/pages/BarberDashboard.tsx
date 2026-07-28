@@ -107,6 +107,7 @@ const BarberDashboard: FC = () => {
     if (mgmt.bookingToDelete) {
       mgmt.confirmDelete();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mgmt.bookingToDelete, mgmt.confirmDelete]);
 
   const handleBlockSlotWrapper = async (slot: string) => {

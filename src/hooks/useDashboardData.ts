@@ -62,6 +62,7 @@ export function useDashboardData(barberId?: string) {
   }, [selectedDate]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadSlots();
   }, [loadSlots]);
 

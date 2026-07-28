@@ -8,7 +8,8 @@ interface SkeletonProps {
 }
 
 const Skeleton: FC<SkeletonProps> = ({ className = '', variant = 'text', width, height }) => {
-  const baseClass = 'animate-pulse bg-white/[0.04] rounded';
+  const baseClass =
+    'animate-pulse bg-gradient-to-r from-white/[0.04] via-white/[0.08] to-white/[0.04] bg-[length:200%_100%] rounded';
 
   const variantClass = {
     text: 'h-4 rounded',

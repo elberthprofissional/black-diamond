@@ -15,32 +15,29 @@ function urlBase64ToUint8Array(base64String: string) {
   return outputArray;
 }
 
+function getInitialPushSupport() {
+  const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+  const isStandalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (navigator as unknown as { standalone?: boolean }).standalone === true;
+
+  // iOS only supports push when installed as PWA (standalone)
+  if (isIOS && !isStandalone) return false;
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+  return true;
+}
+
 export function usePushNotifications() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>('default');
-  const [loading, setLoading] = useState(true);
-  const [isSupported, setIsSupported] = useState(true);
+  const [loading, setLoading] = useState(getInitialPushSupport);
+  const [isSupported] = useState(getInitialPushSupport);
   const vapidMissing = !VAPID_PUBLIC_KEY;
   const isBlocked = permission === 'denied';
 
   useEffect(() => {
-    const isIOS = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-    const isStandalone =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (navigator as unknown as { standalone?: boolean }).standalone === true;
-
-    // iOS only supports push when installed as PWA (standalone)
-    if (isIOS && !isStandalone) {
-      setIsSupported(false);
-      setLoading(false);
-      return;
-    }
-
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      setIsSupported(false);
-      setLoading(false);
-      return;
-    }
+    // If push is not supported, we're already done (loading=false)
+    if (!isSupported) return;
 
     const checkSubscription = async () => {
       try {
@@ -57,7 +54,7 @@ export function usePushNotifications() {
     };
 
     checkSubscription();
-  }, []);
+  }, [isSupported]);
 
   const subscribe = useCallback(async () => {
     if (!VAPID_PUBLIC_KEY) {

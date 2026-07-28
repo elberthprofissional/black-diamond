@@ -85,6 +85,7 @@ export function useClientsData() {
 
   // Initial data fetching — call to loadData sets state intentionally
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
 

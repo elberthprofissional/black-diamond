@@ -2,12 +2,11 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, notificacoes push e integracao com WhatsApp.
 
-**Versao:** 3.28.0 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.29.0 | **Ultima atualizacao:** Julho 2026
 
-> NOTA: Esta versao inclui Assinatura Simplificada via PIX (R$50/mes),
-> Login Opcional do Cliente (codigo na tela, dashboard com stats),
-> Badge Aberto/Fechado no Hero, e diversas melhorias de UI/UX e
-> performance. Mensalista Reborn e Auto-cancel continuam presentes.
+> NOTA: Esta versao inclui Unificacao CancelPage + ManageBooking,
+> Historico completo no /cliente, Botao Reagendar, Botao Compartilhar
+> no Hero, e correcoes de testes e lint.
 
 ---
 

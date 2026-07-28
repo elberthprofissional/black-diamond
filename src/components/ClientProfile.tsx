@@ -15,9 +15,13 @@ import {
   CalendarCheck,
   TrendingUp,
   CreditCard,
+  ChevronRight,
+  History,
+  Crown,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getBookingsByPhone, cancelBooking } from '../lib/api';
+import { getBookingsByPhone, cancelBooking, getServices } from '../lib/api';
+import { getMensalistaPlanName, getMensalistaPlanServices } from '../lib/api/mensalista';
 import { formatPhone, formatDateBR, formatPrice } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { logError } from '../lib/logger';
@@ -49,20 +53,52 @@ function generateCode(): string {
   return String(Math.floor(1000 + Math.random() * 9000));
 }
 
+interface SessionData {
+  phone: string;
+  name: string;
+}
+
+function restoreSession(): SessionData | null {
+  try {
+    const saved = localStorage.getItem(CLIENT_SESSION_KEY);
+    if (saved) {
+      const session = JSON.parse(saved);
+      if (session.expiresAt > Date.now()) {
+        return { phone: session.phone, name: session.name };
+      }
+      localStorage.removeItem(CLIENT_SESSION_KEY);
+    }
+  } catch {
+    localStorage.removeItem(CLIENT_SESSION_KEY);
+  }
+  return null;
+}
+
 const ClientProfile: FC = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState<Step>('phone');
-  const [phone, setPhone] = useState('');
+  const initialSession = restoreSession();
+  const initialSessionRef = useRef(initialSession);
+  const [step, setStep] = useState<Step>(initialSession ? 'dashboard' : 'phone');
+  const [phone, setPhone] = useState(initialSession?.phone ?? '');
   const [code, setCode] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
   const [codeExpiresAt, setCodeExpiresAt] = useState<number>(0);
-  const [clientName, setClientName] = useState('');
+  const [clientName, setClientName] = useState(initialSession?.name ?? '');
   const [bookings, setBookings] = useState<BookingEntry[]>([]);
   const [stats, setStats] = useState<ClientStats | null>(null);
+  const [mensalistaInfo, setMensalistaInfo] = useState<{
+    planName: string;
+    services: string[];
+    expiresAt: string | null;
+    daysLeft: number;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState<BookingEntry | null>(null);
+  const [historyBookings, setHistoryBookings] = useState<BookingEntry[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const codeInputRef = useRef<HTMLInputElement>(null);
 
   const fetchClientStats = async (phoneNumber: string): Promise<ClientStats | null> => {
@@ -72,25 +108,112 @@ const ClientProfile: FC = () => {
       });
       if (error || !data || !Array.isArray(data) || data.length === 0) return null;
 
-      // Busca históricos do cliente via consulta direta
-      // Se falhar (RLS), retorna null e o dashboard só não mostra stats
       const clientId = (data as Array<{ id: string }>)[0]?.id;
       if (!clientId) return null;
 
       const { data: stats } = await supabase
         .from('clients')
-        .select('historical_visits, historical_spent, last_visit_date')
+        .select('historical_visits, historical_spent, last_visit_date, is_mensalista, mensalista_plan_id, mensalista_expires_at')
         .eq('id', clientId)
         .single();
 
       if (!stats) return null;
+
+      // Fetch mensalista details if applicable
+      const rawStats = stats as {
+        historical_visits?: number;
+        historical_spent?: number;
+        last_visit_date?: string | null;
+        is_mensalista?: boolean;
+        mensalista_plan_id?: string | null;
+        mensalista_expires_at?: string | null;
+      };
+
+      const isMensalista = rawStats.is_mensalista && rawStats.mensalista_plan_id;
+      if (isMensalista && rawStats.mensalista_plan_id) {
+        try {
+          const [planName, planServiceIds] = await Promise.all([
+            getMensalistaPlanName(rawStats.mensalista_plan_id),
+            getMensalistaPlanServices(rawStats.mensalista_plan_id),
+          ]);
+
+          if (planName && planServiceIds.length > 0) {
+            const allServices = await getServices();
+            const serviceNames = planServiceIds
+              .map((sid) => allServices.find((s) => s.id === sid)?.name)
+              .filter(Boolean) as string[];
+
+            const expiresAt = rawStats.mensalista_expires_at;
+            let daysLeft = 0;
+            if (expiresAt) {
+              const now = new Date();
+              const exp = new Date(expiresAt + 'T23:59:59');
+              daysLeft = Math.max(0, Math.ceil((exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+            }
+
+            setMensalistaInfo({
+              planName,
+              services: serviceNames,
+              expiresAt: expiresAt ?? null,
+              daysLeft,
+            });
+          }
+        } catch {
+          // Silently fail for mensalista details
+        }
+      } else {
+        setMensalistaInfo(null);
+      }
+
       return {
-        total_visits: (stats as { historical_visits?: number }).historical_visits || 0,
-        total_spent: (stats as { historical_spent?: number }).historical_spent || 0,
-        last_visit: (stats as { last_visit_date?: string | null }).last_visit_date || null,
+        total_visits: rawStats.historical_visits || 0,
+        total_spent: rawStats.historical_spent || 0,
+        last_visit: rawStats.last_visit_date || null,
       };
     } catch {
       return null;
+    }
+  };
+
+  const fetchHistory = async (phoneNumber: string) => {
+    setHistoryLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('lookup_client_by_phone_rate_limited', {
+        p_phone: phoneNumber,
+      });
+      if (error || !data || !Array.isArray(data) || data.length === 0) {
+        setHistoryLoading(false);
+        return;
+      }
+      const clientId = (data as Array<{ id: string }>)[0]?.id;
+      if (!clientId) {
+        setHistoryLoading(false);
+        return;
+      }
+
+      const { data: past } = await supabase
+        .from('bookings')
+        .select('id, booking_date, booking_time, status, total_price, total_duration, service_ids')
+        .eq('client_id', clientId)
+        .in('status', ['completed', 'cancelled'])
+        .order('booking_date', { ascending: false })
+        .limit(20);
+
+      const mapped: BookingEntry[] = (past || []).map((b: Record<string, unknown>) => ({
+        id: b.id as string,
+        booking_date: b.booking_date as string,
+        booking_time: b.booking_time as string,
+        status: b.status as string,
+        total_price: b.total_price as number,
+        total_duration: b.total_duration as number,
+        service_ids: b.service_ids as string[],
+        clients: { name: clientName, phone: phoneNumber },
+      }));
+      setHistoryBookings(mapped);
+    } catch {
+      // Silently fail for history
+    } finally {
+      setHistoryLoading(false);
     }
   };
 
@@ -115,23 +238,9 @@ const ClientProfile: FC = () => {
     }
   };
 
-  // Restaura sessão ativa do localStorage ao montar
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(CLIENT_SESSION_KEY);
-      if (saved) {
-        const session = JSON.parse(saved);
-        if (session.expiresAt > Date.now()) {
-          setPhone(session.phone);
-          setClientName(session.name);
-          setStep('dashboard');
-          loadBookings(session.phone);
-        } else {
-          localStorage.removeItem(CLIENT_SESSION_KEY);
-        }
-      }
-    } catch {
-      localStorage.removeItem(CLIENT_SESSION_KEY);
+    if (initialSessionRef.current) {
+      loadBookings(initialSessionRef.current.phone);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -220,6 +329,15 @@ const ClientProfile: FC = () => {
     }
   };
 
+  const handleReschedule = (booking: BookingEntry) => {
+    navigate('/cancelar', {
+      state: {
+        phone: phone.replace(/\D/g, ''),
+        bookingId: booking.id,
+      },
+    });
+  };
+
   const handleLogout = () => {
     localStorage.removeItem(CLIENT_SESSION_KEY);
     setStep('phone');
@@ -230,6 +348,9 @@ const ClientProfile: FC = () => {
     setBookings([]);
     setStats(null);
     setError('');
+    setHistoryBookings([]);
+    setShowHistory(false);
+    setMensalistaInfo(null);
   };
 
   const handleNewCode = () => {
@@ -241,6 +362,14 @@ const ClientProfile: FC = () => {
     setTimeout(() => codeInputRef.current?.focus(), 100);
   };
 
+  const toggleHistory = () => {
+    if (!showHistory && historyBookings.length === 0) {
+      fetchHistory(phone.replace(/\D/g, ''));
+    }
+    setShowHistory(!showHistory);
+  };
+
+  // eslint-disable-next-line react-hooks/purity
   const timeLeft = Math.max(0, Math.floor((codeExpiresAt - Date.now()) / 1000));
   const totalFutureSpent = bookings.reduce((sum, b) => sum + b.total_price, 0);
 
@@ -310,8 +439,7 @@ const ClientProfile: FC = () => {
                   <Loader2 size={14} className="animate-spin" />
                 ) : (
                   <>
-                    <ShieldCheck size={14} />
-                    Entrar
+                    <ShieldCheck size={14} /> Entrar
                   </>
                 )}
               </button>
@@ -330,8 +458,8 @@ const ClientProfile: FC = () => {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <form onSubmit={handleVerifyCode} className="space-y-4">
               <div className="text-center mb-6">
-                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
-                  <KeyRound size={28} className="text-emerald-400" />
+                <div className="w-16 h-16 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center mx-auto mb-4">
+                  <KeyRound size={28} className="text-[#D4AF37]" />
                 </div>
                 <p className="text-[14px] text-zinc-400 leading-relaxed mb-1">
                   Código de acesso para <strong className="text-white">{phone}</strong>
@@ -391,8 +519,7 @@ const ClientProfile: FC = () => {
                 disabled={code.length < 4}
                 className="btn-gold w-full h-11 flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                <ShieldCheck size={14} />
-                Verificar
+                <ShieldCheck size={14} /> Verificar
               </button>
 
               <button
@@ -415,7 +542,7 @@ const ClientProfile: FC = () => {
         {/* STEP 3: Dashboard */}
         {step === 'dashboard' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            {/* Welcome + Stats Row */}
+            {/* Welcome + Stats */}
             <div className="bg-[#111111] border border-white/[0.06] rounded-2xl p-5 mb-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -435,7 +562,6 @@ const ClientProfile: FC = () => {
                 </button>
               </div>
 
-              {/* Stats Cards */}
               {stats && !loading && (
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-white/[0.03] rounded-xl p-3 text-center border border-white/[0.04]">
@@ -444,7 +570,7 @@ const ClientProfile: FC = () => {
                     <p className="text-[8px] text-zinc-600 uppercase tracking-wider">Visitas</p>
                   </div>
                   <div className="bg-white/[0.03] rounded-xl p-3 text-center border border-white/[0.04]">
-                    <TrendingUp size={14} className="text-emerald-400 mx-auto mb-1" />
+                    <TrendingUp size={14} className="text-[#D4AF37] mx-auto mb-1" />
                     <p className="text-[16px] font-bold text-white">
                       {formatPrice(stats.total_spent, { locale: true })}
                     </p>
@@ -459,6 +585,55 @@ const ClientProfile: FC = () => {
                   </div>
                 </div>
               )}
+
+            {/* Mensalista Info Section */}
+            {!loading && mensalistaInfo && (
+              <div className="mt-4 bg-gradient-to-br from-[#D4AF37]/[0.04] to-transparent border border-[#D4AF37]/15 rounded-2xl p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center">
+                    <Crown size={16} className="text-[#D4AF37]" />
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-bold text-[#D4AF37]">Plano Mensalista</p>
+                    <p className="text-[10px] text-zinc-500">{mensalistaInfo.planName}</p>
+                  </div>
+                  {mensalistaInfo.daysLeft > 0 ? (
+                    <span className="ml-auto text-[10px] font-bold text-[#D4AF37] bg-[#D4AF37]/10 px-2.5 py-1 rounded-full">
+                      {mensalistaInfo.daysLeft}d restantes
+                    </span>
+                  ) : (
+                    <span className="ml-auto text-[10px] font-bold text-red-400 bg-red-500/10 px-2.5 py-1 rounded-full">
+                      Vencido
+                    </span>
+                  )}
+                </div>
+
+                {mensalistaInfo.services.length > 0 && (
+                  <div className="space-y-1.5 ml-11">
+                    <p className="text-[9px] text-zinc-600 uppercase tracking-wider">Serviços inclusos</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {mensalistaInfo.services.map((svc, i) => (
+                        <span
+                          key={i}
+                          className="text-[10px] text-zinc-400 bg-white/[0.03] border border-white/[0.06] px-2.5 py-1 rounded-lg"
+                        >
+                          {svc}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {mensalistaInfo.expiresAt && (
+                  <p className="text-[9px] text-zinc-600 ml-11 mt-2">
+                    Válido até{' '}
+                    <span className="text-zinc-400">
+                      {formatDateBR(mensalistaInfo.expiresAt)}
+                    </span>
+                  </p>
+                )}
+              </div>
+            )}
             </div>
 
             {/* Loading */}
@@ -489,7 +664,6 @@ const ClientProfile: FC = () => {
                   >
                     <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="p-5 space-y-4">
-                      {/* Date + Time + Status */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/15 flex items-center justify-center">
@@ -508,22 +682,17 @@ const ClientProfile: FC = () => {
                           </div>
                         </div>
                         <span
-                          className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            booking.status === 'confirmed'
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                          }`}
+                          className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${booking.status === 'confirmed' ? 'bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}
                         >
                           {booking.status === 'confirmed' ? 'Confirmado' : 'Pendente'}
                         </span>
                       </div>
 
-                      {/* Service count + Price */}
                       <div className="flex items-center justify-between pl-[52px]">
                         <div className="flex items-center gap-2">
                           <Scissors size={12} className="text-zinc-600 shrink-0" />
                           <span className="text-[12px] text-zinc-400">
-                            {booking.service_ids.length} servico
+                            {booking.service_ids.length} serviço
                             {booking.service_ids.length > 1 ? 's' : ''}
                           </span>
                         </div>
@@ -532,8 +701,14 @@ const ClientProfile: FC = () => {
                         </span>
                       </div>
 
-                      {/* Action Buttons */}
+                      {/* Action Buttons: Reagendar + Cancelar */}
                       <div className="flex items-center gap-2.5 pl-[52px]">
+                        <button
+                          onClick={() => handleReschedule(booking)}
+                          className="flex-1 h-9 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#b8944d] text-black font-bold text-[10px] uppercase tracking-[0.15em] hover:from-[#d4b06a] hover:to-[#D4AF37] transition-all cursor-pointer flex items-center justify-center gap-1 shadow-lg shadow-[#D4AF37]/20"
+                        >
+                          Reagendar <ChevronRight size={10} />
+                        </button>
                         <button
                           onClick={() => setConfirmCancel(booking)}
                           disabled={cancellingId === booking.id}
@@ -549,6 +724,87 @@ const ClientProfile: FC = () => {
                     </div>
                   </motion.div>
                 ))}
+              </div>
+            )}
+
+            {/* History Section */}
+            {!loading && (
+              <div className="mb-6">
+                <button
+                  onClick={toggleHistory}
+                  className="w-full flex items-center justify-between bg-[#111111] border border-white/[0.06] rounded-2xl p-4 hover:border-[#D4AF37]/20 transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center group-hover:border-[#D4AF37]/20 transition-colors">
+                      <History
+                        size={16}
+                        className="text-zinc-500 group-hover:text-[#D4AF37] transition-colors"
+                      />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-[14px] font-bold text-white group-hover:text-[#D4AF37] transition-colors">
+                        Histórico
+                      </p>
+                      <p className="text-[10px] text-zinc-500">Agendamentos passados</p>
+                    </div>
+                  </div>
+                  <ChevronRight
+                    size={16}
+                    className={`text-zinc-500 transition-transform duration-300 ${showHistory ? 'rotate-90' : ''}`}
+                  />
+                </button>
+
+                <AnimatePresence>
+                  {showHistory && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pt-3 space-y-2">
+                        {historyLoading ? (
+                          <div className="flex items-center justify-center py-8">
+                            <Loader2 size={16} className="animate-spin text-zinc-500" />
+                          </div>
+                        ) : historyBookings.length > 0 ? (
+                          historyBookings.map((hb) => (
+                            <div
+                              key={hb.id}
+                              className="bg-white/[0.02] border border-white/[0.04] rounded-xl p-3 flex items-center justify-between"
+                            >
+                              <div className="flex items-center gap-3">
+                                <Calendar size={12} className="text-zinc-600" />
+                                <div>
+                                  <p className="text-[12px] text-zinc-400">
+                                    {formatDateBR(hb.booking_date)}
+                                  </p>
+                                  <p className="text-[10px] text-zinc-600">
+                                    {String(hb.booking_time).slice(0, 5)}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[12px] font-bold text-zinc-400">
+                                  {formatPrice(hb.total_price, { locale: true })}
+                                </span>
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider ${hb.status === 'completed' ? 'bg-[#D4AF37]/10 text-[#D4AF37]' : 'bg-red-500/10 text-red-400'}`}
+                                >
+                                  {hb.status === 'completed' ? 'Concluído' : 'Cancelado'}
+                                </span>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-[12px] text-zinc-600 text-center py-4">
+                            Nenhum histórico encontrado.
+                          </p>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )}
 

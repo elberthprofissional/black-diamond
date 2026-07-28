@@ -32,6 +32,9 @@ const AdminClients: FC = () => {
   const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [reminderClient, setReminderClient] = useState<Client | null>(null);
 
+  // eslint-disable-next-line react-hooks/purity
+  const [nowMs] = useState(Date.now());
+
   const reminderFilter: ClientFilter =
     filterParam === 'pending' ||
     filterParam === 'sent' ||
@@ -65,7 +68,7 @@ const AdminClients: FC = () => {
         matchFilter = false;
       } else {
         const expDate = new Date(cl.mensalista_expires_at + 'T23:59:59');
-        matchFilter = expDate > new Date() && expDate <= new Date(Date.now() + 5 * 86400000);
+        matchFilter = expDate > new Date() && expDate <= new Date(nowMs + 5 * 86400000);
       }
     }
     return matchSearch && matchFilter;
@@ -83,14 +86,14 @@ const AdminClients: FC = () => {
         mensalistas++;
         if (cl.mensalista_expires_at) {
           const expDate = new Date(cl.mensalista_expires_at + 'T23:59:59');
-          if (expDate > new Date() && expDate <= new Date(Date.now() + 5 * 86400000)) {
+          if (expDate > new Date() && expDate <= new Date(nowMs + 5 * 86400000)) {
             vencendo++;
           }
         }
       }
     });
     return { all: c.clients.length, pending, sent, mensalistas, vencendo };
-  }, [c.clients, r]);
+  }, [c.clients, r, nowMs]);
 
   const clientsNeedingReminder = useMemo(
     () => c.clients.filter((client) => !r.isReminderRecent(client.id)),

@@ -82,8 +82,10 @@
 | **✂️ Galeria de Fotos** | Carrossel com preview em tela cheia |
 | **📍 Localização** | Mapa integrado com Google Maps |
 | **💬 WhatsApp** | Contato direto via botão flutuante |
-| **📋 Gerenciar Agendamento** | Cancelar/reagendar via token enviado por email |
-| **🏆 Programa de Fidelidade** | Cliente acumula visitas e ganha serviços gratuitos |
+| **📋 Gerenciar Agendamento** | Cancelar/reagendar via token ou telefone (rota unificada `/cancelar`) |
+| **🔗 Compartilhar** | Botao no Hero que copia o link da barbearia |
+| **📱 Login do Cliente** | Dashboard com historico, stats, cancelar e reagendar via codigo na tela |
+| **🏆 Programa de Fidelidade** | Cliente acumula visitas e ganha servicos gratuitos |
 
 ### 🔐 Área Administrativa
 
@@ -103,8 +105,9 @@
 | **🔔 Notificações Push** | Notificações in-app + push para novos agendamentos |
 | **💬 Lembretes WhatsApp** | Envio de lembretes com templates personalizáveis |
 | **📋 Audit Logs** | Registro de todas as ações administrativas |
-| **👤 Login Opcional do Cliente** | Dashboard com historico, stats e cancelamento via codigo na tela |
-| **🔒 Assinatura Simplificada (PIX)** | R$50/mês via PIX com bloqueio automático no fim do mês |
+| **👤 Login Opcional do Cliente** | Dashboard com historico, stats, cancelamento e historico completo via codigo na tela |
+| **🔒 Assinatura Simplificada (PIX)** | R$50/mes via PIX com bloqueio automatico no fim do mes |
+| **🔗 Compartilhar Link** | Botao no Hero que copia o link da barbearia para divulgar |
 
 ---
 
@@ -120,6 +123,9 @@ npm install
 
 # 2. Configurar variáveis de ambiente
 cp .env.example .env
+# Validate variables (optional)
+# Install dotenv-cli globally if not present: npm install -g dotenv-cli
+# Then run: npx dotenv -e .env -- npx dotenv-safe
 # Edite .env com suas credenciais do Supabase
 
 # 3. Rodar migrations do banco

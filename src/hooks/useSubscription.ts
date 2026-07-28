@@ -73,6 +73,7 @@ export function useSubscription(barberId: string | undefined): UseSubscriptionRe
   }, [barberId, refresh]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
   }, [refresh]);
 

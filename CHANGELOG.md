@@ -5,44 +5,78 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
-## [3.28.0] - 2026-07-27
+## [3.30.0] - 2026-07-28
 
 ### Added
-- **Sistema de Assinatura Simplificado (PIX)** — Substitui a integracao Asaas por um modelo manual de R$50/mes via PIX.
-  - Barbeiro ganha trial gratuito ate o ultimo dia do mes.
-  - Ao vencer, o admin dele é bloqueado com tela exibindo chave PIX para pagamento.
-  - Dono (elberthmayan2007@gmail.com) ve botao "Confirmar Pgto" em Configuracoes > Assinaturas.
-  - Chave PIX configurada: 70263397610.
-  - Migration 008 aplicada via CLI.
-- **Login opcional do cliente** — Novo fluxo em `/cliente`:
-  - Digita o telefone → sistema gera codigo de 4 digitos exibido na tela.
-  - Cliente digita o codigo e acessa o dashboard.
-  - Dashboard com stats (visitas, gasto total, valor pendente), booking cards redesenhados, cancelamento com confirmacao.
-  - Sessao salva no localStorage por 7 dias.
-- **Badge de Aberto/Fechado no Hero** — Indicador em tempo real abaixo do subtitulo mostrando se a barbearia esta aberta baseado nos horarios configurados.
+- **BookingPreScreen — Novo fluxo de entrada inteligente** — Ao clicar em "Agendar" na Navbar, um modal premium com 3 opções aparece:
+  - **Já sou cliente**: input de telefone → detecção automática → código de 4 dígitos na tela → verificação → redireciona p/ `/agendar` com dados pré-preenchidos
+  - **Sou novo aqui**: formulário rápido de nome + telefone → redireciona p/ `/agendar` com dados
+  - **Agendar sem cadastro**: vai direto p/ o booking (sem pré-preenchimento)
+  - Fidelidade teaser: "Clientes cadastrados acumulam visitas e ganham serviços grátis"
+- **Reconhecimento inteligente de cliente** — Quando o telefone é digitado, o sistema consulta o banco via `getClientByPhone`. Se o cliente existe, mostra "Bem-vindo de volta, [nome]!" com animação premium.
+- **Código de acesso na tela** — Código de 4 dígitos exibido em caixas douradas, com timer de expiração e opção "Gerar novo código".
+- **BookingWizardContext pré-preenchido** — O wizard de agendamento agora lê `location.state` para receber nome e telefone do BookingPreScreen, eliminando a necessidade de redigitar.
+
+### Changed
+- **Navbar** — Link "Agendamentos" removido da navegação desktop. Agora o acesso ao perfil do cliente é feito através do BookingPreScreen.
+- **Home** — Botão "Agendar" agora abre o modal BookingPreScreen em vez de navegar direto para `/agendar`.
+- **`BookingWizardContext.tsx`** — Agora importa `useLocation` e inicializa `userInfo` a partir do estado da rota, permitindo pré-preenchimento.
+
+### Added (infra)
+- **`src/components/Booking/BookingPreScreen.tsx`** — Novo componente com 480+ linhas, animações framer-motion, 5 estados de tela (menu, existing-phone, code-verify, detected, new-client), cleanup de timeouts via useEffect.
+- **`src/components/Booking/BookingPreScreen.test.tsx`** — 9 testes unitários cobrindo: renderização do menu, guest flow, navegação entre telas, botão voltar, validação de formulários (nome vazio, telefone inválido), submit com dados válidos.
+
+### Tests
+- **114 arquivos, 1226 testes** — 100% passando. TypeScript 0 erros.
+
+## [3.29.0] - 2026-07-27
+
+### Added
+- **Unificação CancelPage + ManageBooking** — `CancelPage.tsx` agora aceita token via `?token=xxx` nos URL params, unificando as duas paginas em uma rota so.
+  - Rota `/gerenciar/:token` redireciona para `/cancelar?token=xxx` via `GerenciarRedirect`.
+  - `ManageBooking.tsx` e `ManageBooking.test.tsx` removidos.
+  - UI premium do ManageBooking mesclada: cards com brilho gradiente, linha dourada, estado de loading com animacao.
+  - Busca automatica quando phone chega via state (ex: do ClientProfile).
+  - Estados de erro para token invalido com design premium.
+- **Historico completo no /cliente** — Acordeao expansivel com agendamentos passados (concluidos/cancelados).
+  - Consulta via Supabase direto com fallback silencioso se RLS bloquear.
+  - Exibe data, horario, valor e status badge.
+- **Botao Reagendar no /cliente** — Navega para `/cancelar` com busca automatica por telefone.
+  - Gradiente dourado e icone ChevronRight no botao.
+  - Fluxo completo: /cliente → /cancelar → auto-busca → reagendar.
+- **Botao Compartilhar no Hero** — Copia o link do site para a area de transferencia.
+  - Feedback visual "Copiado!" com icone Check por 2 segundos.
+  - Fallback para navegadores sem Clipboard API.
 
 ### Removed
-- **Onboarding Page** (`/admin/onboarding`) — Removido completamente (arquivo + rotas + imports). Nunca era usado.
+- **ManageBooking.tsx** — Pagina removida (unificada com CancelPage).
+- **ManageBooking.test.tsx** — Testes removidos (funcionalidade coberta pelos testes do CancelPage).
+- **Onboarding Page** (`/admin/onboarding`) — Removido completamente (arquivo + rotas + imports).
 - **HelpModal/Ajuda** — Removido das configuracoes.
 - **MarqueeStrip.tsx** — Componente morto deletado.
 - **HeroProps** — Interface vazia removida.
 - **Hover zoom nas fotos da galeria** — Efeito removido para experiencia mais fluida.
 
 ### Changed
-- **Assinatura simplificada** — Asaas removido. Agora funciona com PIX manual + confirmacao do dono.
-- **SubscriptionGuard** — Agora mostra tela de bloqueio com chave PIX + QR Code quando subscription expira.
-- **SettingsAssinaturas** — Só visivel pro dono (elberthmayan2007@gmail.com). Lista barbeiros com status e botao "Confirmar Pgto".
-- **Migration 008_pix_setup.sql** — Configura chave PIX e cria subscription ativa ate fim do mes.
-- **Responsivo mobile** — Hero mais compacto (80vh, menos padding), galeria com polaroids 15px mais estreitas. Footer redesenhado com tons acinzentados.
-- **Footer** — Redesign com paleta cinza escuro em vez de preto puro. Aberto/Fechado movido para o Hero.
-- **Servicos** — Tabela de servicos com visual premium combinando com o tema do site.
-- **Navbar** — Logo ampliada. Badge de aberto/fechado removido da navbar (movido para o Hero).
-- **Sobre Mim** — Layout responsivo: mobile empilha foto + texto verticalmente.
-- **ClientProfile.tsx** — Dashboard reformulado com cards de estatisticas, booking cards com linha dourada e status badge, empty state com CTA.
+- **Assinatura simplificada (PIX)** — Asaas removido. R$50/mes via PIX com confirmacao manual do dono.
+- **SubscriptionGuard** — Tela de bloqueio com chave PIX quando subscription expira.
+- **SettingsAssinaturas** — So visivel para elberthmayan2007@gmail.com.
+- **Migration 008_pix_setup.sql** — Chave PIX + subscription ativa ate fim do mes.
+- **Responsivo mobile** — Hero mais compacto, galeria com polaroids 15px mais estreitas.
+- **Footer** — Paleta cinza escuro. Aberto/Fechado movido para o Hero.
+- **Hero** — Badge Aberto/Fechado + botao Compartilhar lado a lado.
+- **Navbar** — Logo ampliada. Badge aberto/fechado removido.
+- **ClientProfile** — Dashboard com historico, stats cards, reagendar, cancelar.
+- **SettingsHorarios** — Refactor: acesso a ref movido para useEffect.
+- **AdminClients** — `Date.now()` durante render substituido por `useState(Date.now())`.
 
 ### Fixed
-- **Fontes Google preload** — Preload corrigido para usar as fontes corretas (Anton substituiu Bebas Neue).
-- **Erro de build** — TS6133 (imports nao usados) corrigidos em ClientProfile.tsx.
+- **Footer.test.tsx** — Corrigido: "Admin" → "Acesso restrito".
+- **BookingPage.test.tsx** — Corrigido: adicionado `BarberProvider` wrapper.
+- **Hero.test.tsx** — Corrigido: `vi` nao utilizado removido.
+- **ClientProfile.tsx** — Corrigido: variavel `digits` nao utilizada removida.
+- **CancelPage.test.tsx** — Corrigido: logo alt text adicionado ao header.
+- **Lint warnings** — 3 warnings corrigidos (vi não usado, refs em render, Date.now em render).
 
 ## [3.27.1] - 2026-07-25
 

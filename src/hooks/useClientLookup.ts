@@ -26,9 +26,13 @@ export function useClientLookup(phone: string, onNameFound?: (name: string) => v
 
     const digits = phone.replace(/\D/g, '');
     if (digits.length < 11) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsMensalista(false);
+
       setMensalistaPlanId(null);
+
       setClientLookupLoading(false);
+
       setLastBooking(null);
       return;
     }

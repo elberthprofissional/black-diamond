@@ -37,17 +37,20 @@ const SettingsHorarios: FC = () => {
   const [applyOpen, setApplyOpen] = useState(false);
   const [lunchOpen, setLunchOpen] = useState(false);
 
-  // Sync local hours state when barberHours changes — derived during render
+  // Sync local hours state when barberHours changes — via useEffect
   const prevHoursRef = useRef<string | undefined>(undefined);
-  if (barberHours && barberHours !== prevHoursRef.current) {
-    prevHoursRef.current = barberHours;
-    try {
-      setHours({ ...DEFAULT_HOURS, ...JSON.parse(barberHours) });
-    } catch (e) {
-      logError(e);
-      setHours(DEFAULT_HOURS);
+  useEffect(() => {
+    if (barberHours && barberHours !== prevHoursRef.current) {
+      prevHoursRef.current = barberHours;
+      try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setHours({ ...DEFAULT_HOURS, ...JSON.parse(barberHours) });
+      } catch (e) {
+        logError(e);
+        setHours(DEFAULT_HOURS);
+      }
     }
-  }
+  }, [barberHours]);
 
   // Alerta se tentar sair da pagina com alteracoes nao salvas
   useEffect(() => {

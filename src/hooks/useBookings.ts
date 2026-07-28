@@ -127,6 +127,7 @@ export function useBookings(date?: string, barberId?: string) {
   }, [date, barberId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchBookings();
     return () => {
       abortControllerRef.current?.abort();

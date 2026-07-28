@@ -42,6 +42,6 @@ describe('Footer', () => {
 
   it('renderiza o link de admin', () => {
     renderWithRouter(<Footer />);
-    expect(screen.getByText('Admin')).toBeInTheDocument();
+    expect(screen.getByText('Acesso restrito')).toBeInTheDocument();
   });
 });

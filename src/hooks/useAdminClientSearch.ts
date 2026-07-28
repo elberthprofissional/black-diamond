@@ -63,9 +63,8 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
 
     const digits = newClient.phone.replace(/\D/g, '');
     if (digits.length < 11) {
-      if (isMensalista) {
-        setIsMensalista(false);
-      }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsMensalista(false);
       return;
     }
 

@@ -73,7 +73,8 @@ export function useConnectionStatus() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       // Não remove o canal no cleanup — é singleton global
-      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+      const timer = retryTimerRef.current;
+      if (timer) clearTimeout(timer);
     };
   }, [checkConnection]);
 

@@ -9,7 +9,8 @@ const VALID_HEX = /^#[0-9A-Fa-f]{6}$/;
 
 const Hero: FC = () => {
   const { brandName, brandColor, barberHours } = useBarberSettings();
-  const { isClosed } = useDayStatus(barberHours);
+  const { isClosed, isPastClosing, isBeforeOpening } = useDayStatus(barberHours);
+  const isFechado = isClosed || isPastClosing || isBeforeOpening;
   const displayName = brandName || 'BLACK DIAMOND';
   const color = VALID_HEX.test(brandColor) ? brandColor : '#d4af37';
 
@@ -53,6 +54,7 @@ const Hero: FC = () => {
         <img
           src="/assets/fundo-desktop.webp"
           alt=""
+          fetchPriority="high"
           className="w-full h-full object-cover"
           aria-hidden="true"
         />
@@ -100,17 +102,17 @@ const Hero: FC = () => {
             <div
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-[11px] uppercase tracking-[0.15em] font-sans font-medium transition-all duration-300"
               style={{
-                borderColor: isClosed ? 'rgba(239,68,68,0.3)' : 'rgba(34,197,94,0.3)',
-                backgroundColor: isClosed ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)',
-                color: isClosed ? '#ef4444' : '#22c55e',
+                borderColor: isFechado ? 'rgba(239,68,68,0.3)' : 'rgba(34,197,94,0.3)',
+                backgroundColor: isFechado ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)',
+                color: isFechado ? '#ef4444' : '#22c55e',
               }}
-              aria-label={isClosed ? 'Barbearia fechada' : 'Barbearia aberta'}
+              aria-label={isFechado ? 'Barbearia fechada' : 'Barbearia aberta'}
             >
               <span
-                className={`w-1.5 h-1.5 rounded-full ${isClosed ? 'bg-red-500' : 'bg-green-500'}`}
+                className={`w-1.5 h-1.5 rounded-full ${isFechado ? 'bg-red-500' : 'bg-green-500'}`}
                 aria-hidden="true"
               />
-              <span>{isClosed ? 'Fechado' : 'Aberto'}</span>
+              <span>{isFechado ? 'Fechado' : 'Aberto'}</span>
             </div>
           </div>
 

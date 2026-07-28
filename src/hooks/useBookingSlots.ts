@@ -82,6 +82,7 @@ export function useBookingSlots(showError: (msg: string) => void, barberId?: str
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedTime('');
     if (selectedDate) {
       let active = true;

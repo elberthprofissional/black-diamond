@@ -32,8 +32,8 @@ export default defineConfig([
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'prefer-const': 'error',
       'no-var': 'error',
-      'eqeqeq': ['error', 'always'],
-      'curly': ['error', 'multi-line'],
+      eqeqeq: ['error', 'always'],
+      curly: ['error', 'multi-line'],
       'no-duplicate-imports': 'error',
       // Desligado intencionalmente porque o projeto usa TypeScript estrito
       // com `noUncheckedIndexedAccess` e patterns seguros de acesso a objetos.

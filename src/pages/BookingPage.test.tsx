@@ -67,12 +67,15 @@ vi.mock('framer-motion', () => {
 });
 
 import BookingPage from './BookingPage';
+import { BarberProvider } from '../contexts/BarberContext';
 
 describe('BookingPage', () => {
   it('renderiza o componente sem erros', () => {
     render(
       <MemoryRouter>
-        <BookingPage />
+        <BarberProvider>
+          <BookingPage />
+        </BarberProvider>
       </MemoryRouter>
     );
     // O provider renderiza sem erros — verifica que há elementos no DOM

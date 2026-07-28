@@ -30,7 +30,7 @@ const About: FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-8 sm:gap-10 lg:gap-14 items-center">
             {/* Barber Photo with Polaroid Frame & Tape Effect */}
             <div className="sm:col-span-5 flex justify-center">
-              <div className="relative w-full max-w-[180px] sm:max-w-[260px] md:max-w-[320px] bg-white p-2 sm:p-3 pt-2 sm:pt-3 pb-5 sm:pb-8 shadow-2xl transform -rotate-2 transition-transform duration-500 hover:rotate-0">
+              <div className="relative w-full max-w-[180px] sm:max-w-[260px] md:max-w-[320px] bg-white p-2 sm:p-3 pt-2 sm:pt-3 pb-5 sm:pb-8 shadow-2xl transform -rotate-2">
                 {/* Tape accent */}
                 <div className="tape-effect" />
 
