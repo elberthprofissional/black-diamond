@@ -1,8 +1,8 @@
-import { type FC, useState } from 'react';
+import { type FC } from 'react';
 import { useBookingManagement } from '../hooks/useBookingManagement';
 import { useDashboardData } from '../hooks/useDashboardData';
+import { useBarberScope } from '../hooks/useBarberScope';
 import { useBarberSettings } from '../hooks/useBarberSettings';
-import { useBarberContext } from '../contexts/BarberContext';
 import { useDayStatus } from '../hooks/useDayStatus';
 import { useBookingStatusCounts } from '../hooks/useBookingStatusCounts';
 import AdminLayout from '../components/Admin/AdminLayout';
@@ -15,23 +15,15 @@ import BlockedPanel from '../components/Admin/shared/BlockedPanel';
 import AdminBookingShell from '../components/Admin/shared/AdminBookingShell';
 import ClosedDayView from '../components/Admin/shared/ClosedDayView';
 import EndOfDayView from '../components/Admin/shared/EndOfDayView';
-import BarberFilter from '../components/Admin/dashboard/BarberFilter';
 import DaySummary from '../components/Admin/dashboard/DaySummary';
 import DayOffButton from '../components/Admin/shared/DayOffButton';
 import { SkeletonDashboard } from '../components/Skeleton';
 
 const AdminDashboard: FC = () => {
-  const { currentBarber, isOwner, barbers } = useBarberContext();
   const { barberHours } = useBarberSettings();
-  const [selectedBarberFilter, setSelectedBarberFilter] = useState<string>('all');
+  const { scopedBarberId } = useBarberScope();
 
-  const barberFilter = isOwner
-    ? selectedBarberFilter === 'all'
-      ? undefined
-      : selectedBarberFilter
-    : currentBarber?.id;
-
-  const data = useDashboardData(barberFilter);
+  const data = useDashboardData(scopedBarberId || undefined);
   const mgmt = useBookingManagement(data.loadData);
   const dayStatus = useDayStatus(barberHours);
   const statusCounts = useBookingStatusCounts(data.bookings);
@@ -42,14 +34,6 @@ const AdminDashboard: FC = () => {
     <AdminLayout>
       <div className="space-y-5">
         <OfflineBanner isCached={data.isCached} onRetry={data.loadData} />
-
-        {isOwner && barbers.length > 1 && (
-          <BarberFilter
-            selectedBarberId={selectedBarberFilter}
-            onSelect={setSelectedBarberFilter}
-            barbers={barbers}
-          />
-        )}
 
         <div className="flex items-center justify-between gap-3 pb-4 border-b border-white/[0.06]">
           <h1 className="text-lg lg:text-2xl font-bold tracking-tight text-white uppercase shrink-0">

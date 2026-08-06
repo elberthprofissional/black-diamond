@@ -67,11 +67,11 @@ const BookingSearchModal: FC<BookingSearchModalProps> = ({
           {/* Header — Igual ao ReminderModal */}
           <div className="px-6 py-5 flex items-center justify-between border-b border-white/[0.04] shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#D4AF37]/10 flex items-center justify-center">
-                <Search size={14} className="text-[#D4AF37]" />
+              <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center">
+                <Search size={14} className="text-gold" />
               </div>
               <div>
-                <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.25em] block">
+                <span className="text-[10px] font-black text-gold uppercase tracking-[0.25em] block">
                   Buscar Cliente
                 </span>
                 <p className="text-[12px] font-medium text-zinc-400 mt-0.5">
@@ -101,7 +101,7 @@ const BookingSearchModal: FC<BookingSearchModalProps> = ({
                 placeholder="Digite o nome ou número..."
                 aria-label="Buscar cliente por nome ou WhatsApp"
                 autoFocus
-                className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[14px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#D4AF37]/50 focus:bg-white/[0.05]"
+                className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[14px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-gold/50 focus:bg-white/[0.05]"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />

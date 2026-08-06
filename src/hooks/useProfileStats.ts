@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
+import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { getBookings, getServices } from '../lib/api';
 import type { Booking, Service } from '../types';
-import { logError } from '../lib/logger';
 
 interface TopService {
   name: string;
@@ -19,24 +19,22 @@ export interface ProfileStats {
   topServices: TopService[];
 }
 
+const bookingsQueryKey = ['profile', 'bookings'] as const;
+const servicesQueryKey = ['profile', 'services'] as const;
+
 function computeStats(bookings: Booking[], services: Service[]): ProfileStats {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  // Business week: Sunday 00:00 to Saturday 20:00 (closing time)
-  // After Saturday 20:00, the week has ended and next week starts
   const startOfWeek = new Date(now);
-  const dayOfWeek = now.getDay(); // 0=Sun, 6=Sat
+  const dayOfWeek = now.getDay();
 
   if (dayOfWeek === 0) {
-    // Sunday: week just started, use today
     startOfWeek.setHours(0, 0, 0, 0);
   } else if (dayOfWeek === 6 && now.getHours() >= 20) {
-    // Saturday after 20:00: shop closed, next week starts
-    startOfWeek.setDate(now.getDate() + 1); // jump to Sunday
+    startOfWeek.setDate(now.getDate() + 1);
     startOfWeek.setHours(0, 0, 0, 0);
   } else {
-    // Mon-Sat before 20:00: go back to last Sunday
     startOfWeek.setDate(now.getDate() - dayOfWeek);
     startOfWeek.setHours(0, 0, 0, 0);
   }
@@ -111,39 +109,41 @@ function computeStats(bookings: Booking[], services: Service[]): ProfileStats {
   };
 }
 
+/**
+ * Hook para carregar estatísticas do perfil via React Query.
+ *
+ * - Busca bookings + services em paralelo com useQueries
+ * - Calcula stats com useMemo
+ * - Refetch automático a cada 3 min (via refetchInterval)
+ * - Refetch ao focar a janela
+ */
 export function useProfileStats() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const loadData = useCallback(async () => {
-    try {
-      const [bookingsResult, servicesData] = await Promise.all([getBookings(), getServices()]);
-      setBookings(bookingsResult.data || []);
-      setServices(servicesData || []);
-    } catch (e) {
-      logError(e);
-      // ignored
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadData();
-  }, [loadData]);
-
-  // Auto-refresh every 3 minutes to keep stats current
-  useEffect(() => {
-    const interval = setInterval(
-      () => {
-        loadData();
+  const results = useQueries({
+    queries: [
+      {
+        queryKey: bookingsQueryKey,
+        queryFn: async () => {
+          const result = await getBookings();
+          return (result.data || []) as Booking[];
+        },
+        staleTime: 3 * 60 * 1000,
+        refetchInterval: 3 * 60 * 1000,
       },
-      3 * 60 * 1000
-    );
-    return () => clearInterval(interval);
-  }, [loadData]);
+      {
+        queryKey: servicesQueryKey,
+        queryFn: getServices,
+        staleTime: 5 * 60 * 1000,
+      },
+    ],
+  });
+
+  const [bookingsQuery, servicesQuery] = results;
+
+  const bookings = useMemo(() => bookingsQuery.data ?? [], [bookingsQuery.data]);
+  const services = useMemo(() => servicesQuery.data ?? [], [servicesQuery.data]);
+  const loading = bookingsQuery.isLoading || servicesQuery.isLoading;
 
   const stats = useMemo(() => computeStats(bookings, services), [bookings, services]);
 
@@ -152,6 +152,9 @@ export function useProfileStats() {
     services,
     loading,
     stats,
-    loadData,
+    loadData: () => {
+      queryClient.invalidateQueries({ queryKey: bookingsQueryKey });
+      queryClient.invalidateQueries({ queryKey: servicesQueryKey });
+    },
   };
 }

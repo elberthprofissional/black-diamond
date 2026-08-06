@@ -60,7 +60,7 @@ export default function LoginForm({
             placeholder="seu@email.com"
             data-testid="input-email"
             maxLength={120}
-            className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl px-5 text-sm font-medium text-zinc-100 outline-none transition-all lg:h-14 lg:text-base focus:border-[#D4AF37]"
+            className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl px-5 text-sm font-medium text-zinc-100 outline-none transition-all lg:h-14 lg:text-base focus:border-gold"
             required
           />
         </div>
@@ -83,7 +83,7 @@ export default function LoginForm({
               placeholder="Sua senha"
               data-testid="input-password"
               maxLength={128}
-              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl px-5 pr-12 text-sm font-medium text-zinc-100 outline-none transition-all lg:h-14 lg:text-base focus:border-[#D4AF37]"
+              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl px-5 pr-12 text-sm font-medium text-zinc-100 outline-none transition-all lg:h-14 lg:text-base focus:border-gold"
               required
             />
             <button

@@ -1,8 +1,8 @@
 {
   "projectId": "fd821351-8286-45a2-bd1d-df63cea0db27",
   "type": "frontend",
-  "name": "Admin barbeiros - listagem e edição",
-  "description": "Admin logado acessa as configurações de barbeiros e verifica a lista de profissionais cadastrados",
+  "name": "Admin serviços - listagem e edição",
+  "description": "Admin logado acessa as configurações de serviços e verifica a lista de serviços cadastrados",
   "priority": "p1",
   "planSteps": [
     {
@@ -13,11 +13,14 @@
     { "type": "action", "description": "Type mayan123 in the password field" },
     { "type": "action", "description": "Click the login/submit button" },
     { "type": "action", "description": "Navigate to the profile/settings page" },
-    { "type": "action", "description": "Click on 'Barbeiros' in the settings list" },
+    { "type": "action", "description": "Click on 'Serviços' in the settings list" },
     {
       "type": "assertion",
-      "description": "Verify the barbeiros page shows a list of registered barbers with their names"
+      "description": "Verify the serviços page shows a list of services with names and prices"
     },
-    { "type": "assertion", "description": "Verify there is an option to add a new barber" }
+    {
+      "type": "assertion",
+      "description": "Verify there is a button or option to add a new service"
+    }
   ]
 }

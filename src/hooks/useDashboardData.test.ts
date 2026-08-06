@@ -208,7 +208,7 @@ describe('useDashboardData', () => {
       await result.current.handleBlockSlot('10:00');
     });
 
-    expect(mockBlockSlot).toHaveBeenCalledWith('2026-07-15', '10:00', mockLoadData);
+    expect(mockBlockSlot).toHaveBeenCalledWith('2026-07-15', '10:00', expect.any(Function));
   });
 
   it('exposes slot blocking state', () => {

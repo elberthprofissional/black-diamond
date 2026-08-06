@@ -6,6 +6,7 @@ import { useBookings } from './useBookings';
 import { useSlotBlocking } from './useSlotBlocking';
 import type { BookingWithClient } from '../types';
 import { logError } from '../lib/logger';
+import { fireAndForget } from '../lib/fire-and-forget';
 
 /**
  * Hook principal do Dashboard do Admin.
@@ -21,7 +22,15 @@ import { logError } from '../lib/logger';
  */
 export function useDashboardData(barberId?: string) {
   const selectedDate = getLocalDateString();
-  const { bookings, loading, isCached, refetch: loadData } = useBookings(selectedDate, barberId);
+  const {
+    bookings,
+    loading,
+    isCached,
+    refetch: refetchBookings,
+  } = useBookings(selectedDate, barberId);
+  const loadData: () => Promise<void> = useCallback(async () => {
+    await refetchBookings().catch(() => {});
+  }, [refetchBookings]);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
 
   const {
@@ -131,7 +140,9 @@ export function useDashboardData(barberId?: string) {
       mounted = false;
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current).catch(() => {});
+        fireAndForget(supabase.removeChannel(channelRef.current), {
+          context: 'useDashboardData/cleanupChannel',
+        });
         channelRef.current = null;
       }
     };

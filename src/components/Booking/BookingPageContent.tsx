@@ -1,6 +1,7 @@
 import { memo, useRef, useEffect, type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DataStep from './DataStep';
+import BarberStep from './BarberStep';
 import ServiceStep from './ServiceStep';
 import DateTimeStep from './DateTimeStep';
 import ReviewStep from './ReviewStep';
@@ -56,6 +57,14 @@ const BookingPageContent: FC = memo(() => {
         );
       case 2:
         return (
+          <BarberStep
+            barbers={ctx.barbers}
+            selectedBarber={ctx.selectedBarber}
+            onSelectBarber={ctx.onSelectBarber}
+          />
+        );
+      case 3:
+        return (
           <ServiceStep
             services={ctx.services}
             selectedServices={ctx.selectedServices}
@@ -68,7 +77,7 @@ const BookingPageContent: FC = memo(() => {
             originalPrice={ctx.originalPrice}
           />
         );
-      case 3:
+      case 4:
         return (
           <DateTimeStep
             nextDays={ctx.nextDays}
@@ -86,11 +95,12 @@ const BookingPageContent: FC = memo(() => {
             onMouseMove={isDesktop ? undefined : ctx.handleMouseMove}
           />
         );
-      case 4:
+      case 5:
         return (
           <ReviewStep
             userName={ctx.userInfo.name}
             userPhone={ctx.userInfo.phone}
+            barberName={ctx.selectedBarber?.name}
             selectedDate={ctx.selectedDate}
             selectedTime={ctx.selectedTime}
             selectedServices={ctx.selectedServices}
@@ -111,7 +121,7 @@ const BookingPageContent: FC = memo(() => {
 
   if (isDesktop) {
     return (
-      <div className="min-h-screen bg-[#0E0E0E] text-white flex flex-row">
+      <div className="min-h-screen bg-dark-pure text-white flex flex-row">
         <BookingDesktopSidebar
           isMensalista={ctx.isMensalista}
           selectedServices={ctx.selectedServices}
@@ -135,44 +145,44 @@ const BookingPageContent: FC = memo(() => {
                   exit={{ opacity: 0 }}
                   className="flex-1"
                 >
-                  <SkeletonBooking layout="desktop" />
+                  <SkeletonBooking layout="desktop" submitting={ctx.isSubmitting} />
                 </motion.div>
               )}
 
-              {!ctx.servicesLoading && ctx.step <= 4 && (
+              {!ctx.servicesLoading && ctx.step <= 5 && (
                 <motion.div key={`d${ctx.step}`} {...stepAnimation} className="flex-1">
                   {renderStepContent(ctx.step)}
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {ctx.step < 5 && (
-              <div className={`flex justify-end ${ctx.step === 4 ? 'pt-2' : 'pt-6'}`}>
+            {ctx.step < 6 && (
+              <div className={`flex justify-end ${ctx.step === 5 ? 'pt-2' : 'pt-6'}`}>
                 <button
                   onClick={ctx.goNext}
                   disabled={ctx.isStepDisabled}
-                  data-testid={ctx.step === 4 ? 'confirm-booking' : 'next-step'}
+                  data-testid={ctx.step === 5 ? 'confirm-booking' : 'next-step'}
                   aria-label={
-                    ctx.step === 4
+                    ctx.step === 5
                       ? 'Confirmar e concluir agendamento'
                       : 'Continuar para a próxima etapa'
                   }
                   className={`h-11 px-8 rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] transition-all duration-300 ${
                     !ctx.isStepDisabled
-                      ? 'bg-[#D4AF37] text-black hover:bg-[#b8962e] active:scale-95'
+                      ? 'bg-gold text-black hover:bg-[#b8962e] active:scale-95'
                       : 'bg-white/[0.04] text-zinc-600 cursor-not-allowed'
                   }`}
                 >
                   {ctx.isSubmitting
                     ? 'CONFIRMANDO...'
-                    : ctx.step === 4
+                    : ctx.step === 5
                       ? 'Confirmar Agendamento'
                       : 'Continuar'}
                 </button>
               </div>
             )}
 
-            {ctx.step === 5 && (
+            {ctx.step === 6 && (
               <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -184,6 +194,7 @@ const BookingPageContent: FC = memo(() => {
                   layout="desktop"
                   isOffline={ctx.isOfflineBooking}
                   nextMilestone={ctx.nextMilestone}
+                  manageUrl={ctx.bookingResult?.manageUrl}
                 />
               </motion.div>
             )}
@@ -191,7 +202,7 @@ const BookingPageContent: FC = memo(() => {
 
           <div className="px-6 lg:px-10 xl:px-14 py-4 border-t border-white/[0.06] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black tracking-[0.4em] text-[#D4AF37] uppercase">
+              <span className="text-[10px] font-black tracking-[0.4em] text-gold uppercase">
                 BLACK DIAMOND
               </span>
               <span className="text-[10px] text-zinc-600">Barbearia</span>
@@ -207,7 +218,7 @@ const BookingPageContent: FC = memo(() => {
 
   // Mobile layout
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col text-white font-sans relative pb-28 overflow-x-hidden">
+    <div className="min-h-screen bg-dark-surface flex flex-col text-white font-sans relative pb-28 overflow-x-hidden">
       <BookingMobileProgress
         step={ctx.step}
         stepTitle={ctx.stepTitle}
@@ -217,13 +228,13 @@ const BookingPageContent: FC = memo(() => {
       <div className="flex-1 px-4 pt-4 pb-8 flex flex-col justify-start">
         {ctx.servicesLoading && (
           <div className="w-full">
-            <SkeletonBooking layout="mobile" />
+            <SkeletonBooking layout="mobile" submitting={ctx.isSubmitting} />
           </div>
         )}
 
         {!ctx.servicesLoading && (
           <AnimatePresence mode="popLayout">
-            {ctx.step <= 4 && (
+            {ctx.step <= 5 && (
               <motion.div
                 key={`m${ctx.step}`}
                 {...stepAnimation}
@@ -240,39 +251,39 @@ const BookingPageContent: FC = memo(() => {
         )}
       </div>
 
-      {ctx.step < 5 && (
+      {ctx.step < 6 && (
         <div
-          className="fixed bottom-0 left-0 right-0 px-4 pb-6 pt-3 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent z-[100] border-t border-white/[0.03] backdrop-blur-md"
+          className="fixed bottom-0 left-0 right-0 px-4 pb-6 pt-3 bg-gradient-to-t from-dark-surface via-dark-surface to-transparent z-[100] border-t border-white/[0.03] backdrop-blur-md"
           style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
         >
           <button
             onClick={ctx.goNext}
             disabled={ctx.isStepDisabled}
-            data-testid={ctx.step < 4 ? 'next-step' : 'confirm-booking'}
+            data-testid={ctx.step < 5 ? 'next-step' : 'confirm-booking'}
             aria-label={
-              ctx.step < 4 ? 'Continuar para a próxima etapa' : 'Confirmar e concluir agendamento'
+              ctx.step < 5 ? 'Continuar para a próxima etapa' : 'Confirmar e concluir agendamento'
             }
             className={`w-full h-11 rounded-xl font-bold text-[11px] uppercase tracking-widest transition-all duration-300 cursor-pointer ${
               ctx.isStepDisabled
                 ? 'bg-[#0a0a0a] border border-white/[0.04] text-zinc-700 cursor-not-allowed'
-                : 'bg-gradient-to-r from-[#D4AF37] to-[#b8923f] text-black hover:brightness-110 active:scale-[0.98] shadow-lg shadow-[#D4AF37]/20 hover:shadow-xl hover:shadow-[#D4AF37]/30'
+                : 'bg-gradient-to-r from-gold to-[#b8923f] text-black hover:brightness-110 active:scale-[0.98] shadow-lg shadow-gold/20 hover:shadow-xl hover:shadow-gold/30'
             }`}
           >
             {ctx.isSubmitting
               ? 'CONFIRMANDO...'
-              : ctx.step < 4
+              : ctx.step < 5
                 ? 'Continuar'
                 : 'Confirmar Agendamento'}
           </button>
         </div>
       )}
-
-      {ctx.step === 5 && (
+      {ctx.step === 6 && (
         <SuccessStep
           clientName={ctx.userInfo.name}
           layout="mobile"
           isOffline={ctx.isOfflineBooking}
           nextMilestone={ctx.nextMilestone}
+          manageUrl={ctx.bookingResult?.manageUrl}
         />
       )}
     </div>

@@ -1,4 +1,15 @@
 -- =========================================================================
+-- BLACK DIAMOND - 001 - SCHEMA + RLS + STORAGE
+-- =========================================================================
+-- Consolidado de: 001_schema_rls.sql
+-- Tabelas, extensões, índices, constraints, is_admin(), políticas RLS e storage.
+-- =========================================================================
+
+
+-- ──────────────────────────────────────────────────────────────
+-- >>> SEÇÃO: 001_schema_rls.sql <<<
+-- ──────────────────────────────────────────────────────────────
+-- =========================================================================
 -- BLACK DIAMOND - 001 - SCHEMA + RLS
 -- =========================================================================
 -- Consolidado de: 001_schema.sql, 002_rls.sql
@@ -486,3 +497,4 @@ CREATE POLICY "Avatars: admin all"
 ON storage.objects FOR ALL TO authenticated
 USING (bucket_id = 'avatars' AND is_admin())
 WITH CHECK (bucket_id = 'avatars' AND is_admin());
+

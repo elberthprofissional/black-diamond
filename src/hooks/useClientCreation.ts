@@ -1,9 +1,11 @@
 import { useState, useCallback } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { createClient } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { useToast } from './useToast';
 import { useAuditLog } from './useAuditLog';
+import { logError } from '../lib/logger';
 
 export function useClientCreation(loadData: () => Promise<void>) {
   const { showSuccess } = useToast();
@@ -24,14 +26,17 @@ export function useClientCreation(loadData: () => Promise<void>) {
     setNewClientError('');
   }, []);
 
-  const handleCreateClient = useCallback(async () => {
-    if (!newClientName.trim() || !newClientPhone.trim()) return;
-    setNewClientError('');
-    setIsSavingClient(true);
-    try {
-      const phone = newClientPhone.replace(/\D/g, '');
+  // Mutation para criar cliente
+  const createMutation = useMutation({
+    mutationFn: async () => {
       const name = newClientName.trim();
+      const phone = newClientPhone.replace(/\D/g, '');
 
+      if (!name || !phone) {
+        throw new Error('Preencha nome e telefone.');
+      }
+
+      // Verifica telefone duplicado
       const { data: existingPhone } = await supabase
         .from('clients')
         .select('id, name, manually_added')
@@ -41,27 +46,18 @@ export function useClientCreation(loadData: () => Promise<void>) {
 
       if (existingPhone) {
         if (existingPhone.manually_added) {
-          setNewClientError(`Este telefone já está cadastrado para "${existingPhone.name}".`);
-          setIsSavingClient(false);
-          return;
+          throw new Error(`Este telefone já está cadastrado para "${existingPhone.name}".`);
         }
+        // Marca como manually_added se veio de booking online
         const { error: updateErr } = await supabase
           .from('clients')
           .update({ manually_added: true })
           .eq('id', existingPhone.id);
-        if (updateErr) {
-          setNewClientError(getErrorMessage(updateErr));
-          setIsSavingClient(false);
-          return;
-        }
-        setIsCreatingClient(false);
-        resetNewClientForm();
-        showSuccess(`${existingPhone.name} adicionado com sucesso!`);
-        await loadData();
-        setIsSavingClient(false);
-        return;
+        if (updateErr) throw updateErr;
+        return { type: 'updated', name: existingPhone.name } as const;
       }
 
+      // Verifica nome duplicado
       const { data: existingName } = await supabase
         .from('clients')
         .select('id')
@@ -69,12 +65,12 @@ export function useClientCreation(loadData: () => Promise<void>) {
         .is('deleted_at', null)
         .limit(1)
         .maybeSingle();
+
       if (existingName) {
-        setNewClientError('Este nome já está sendo usado por outro cliente.');
-        setIsSavingClient(false);
-        return;
+        throw new Error('Este nome já está sendo usado por outro cliente.');
       }
 
+      // Cria novo cliente
       await createClient({
         name,
         phone,
@@ -82,29 +78,38 @@ export function useClientCreation(loadData: () => Promise<void>) {
         notes: newClientNotes.trim() || undefined,
         manually_added: true,
       });
+
       await auditLog({
         action: 'client_created',
         details: { name, phone },
       });
+
+      return { type: 'created', name } as const;
+    },
+    onSuccess: (result) => {
+      if (result.type === 'updated') {
+        showSuccess(`${result.name} adicionado com sucesso!`);
+      } else {
+        showSuccess('Cliente criado com sucesso!');
+      }
       setIsCreatingClient(false);
       resetNewClientForm();
-      showSuccess('Cliente criado com sucesso!');
-      await loadData();
-    } catch (error) {
+      loadData().catch((e) => logError(e, 'useClientCreation/loadData'));
+    },
+    onError: (error) => {
       setNewClientError(getErrorMessage(error));
-    } finally {
+    },
+    onSettled: () => {
       setIsSavingClient(false);
-    }
-  }, [
-    newClientName,
-    newClientPhone,
-    newClientEmail,
-    newClientNotes,
-    showSuccess,
-    loadData,
-    resetNewClientForm,
-    auditLog,
-  ]);
+    },
+  });
+
+  const handleCreateClient = useCallback(async () => {
+    if (!newClientName.trim() || !newClientPhone.trim()) return;
+    setNewClientError('');
+    setIsSavingClient(true);
+    await createMutation.mutateAsync();
+  }, [newClientName, newClientPhone, createMutation]);
 
   return {
     isCreatingClient,

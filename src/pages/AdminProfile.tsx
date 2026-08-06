@@ -151,9 +151,9 @@ const AdminProfile: FC = () => {
               className="w-full flex items-center gap-4 bg-[#111111] border border-white/5 rounded-xl px-5 py-4 transition-all cursor-pointer hover:bg-white/[0.02]"
             >
               <div
-                className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${p.isSubscribed ? 'bg-[#D4AF37]/10' : 'bg-white/[0.04]'}`}
+                className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${p.isSubscribed ? 'bg-gold/10' : 'bg-white/[0.04]'}`}
               >
-                <Bell size={16} className={p.isSubscribed ? 'text-[#D4AF37]' : 'text-zinc-400'} />
+                <Bell size={16} className={p.isSubscribed ? 'text-gold' : 'text-zinc-400'} />
               </div>
               <span className="flex-1 text-left text-[14px] font-medium text-white">
                 Notificações
@@ -174,8 +174,8 @@ const AdminProfile: FC = () => {
                 onClick={handleInstall}
                 className="w-full flex items-center gap-4 bg-[#111111] border border-white/5 rounded-xl px-5 py-4 transition-all cursor-pointer hover:bg-white/[0.02]"
               >
-                <div className="w-9 h-9 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
-                  <Download size={16} className="text-[#D4AF37]" />
+                <div className="w-9 h-9 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
+                  <Download size={16} className="text-gold" />
                 </div>
                 <span className="flex-1 text-left text-[14px] font-medium text-white">
                   Instalar aplicativo

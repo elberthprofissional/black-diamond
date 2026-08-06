@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import type { ReactNode } from 'react';
 
 // Mock hooks
 vi.mock('../hooks/useProfileStats', () => ({
@@ -34,12 +34,51 @@ vi.mock('../hooks/useWeeklyRevenue', () => ({
 
 // Mock AdminLayout since it's a complex component
 vi.mock('../components/Admin/AdminLayout', () => ({
-  default: ({ children }: { children: React.ReactNode }) => (
+  default: ({ children }: { children: ReactNode }) => (
     <div data-testid="admin-layout">{children}</div>
   ),
 }));
 
+// BarberProvider (usado por useBarberScope) precisa de supabase + barbers mockados
+vi.mock('../lib/supabase', () => ({
+  supabase: {
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+      onAuthStateChange: vi
+        .fn()
+        .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+    },
+    from: vi.fn(),
+    rpc: vi.fn(),
+  },
+}));
+
+vi.mock('../lib/api/barbers', () => ({
+  getBarbers: vi.fn().mockResolvedValue([]),
+  getBarberByUserId: vi.fn().mockResolvedValue(null),
+}));
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
+import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
+import { BarberProvider } from '../contexts/BarberContext';
 import AdminReports from './AdminReports';
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+});
+
+function Wrapper({ children }: { children: ReactNode }) {
+  return (
+    <MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <BarberSettingsProvider>
+          <BarberProvider>{children}</BarberProvider>
+        </BarberSettingsProvider>
+      </QueryClientProvider>
+    </MemoryRouter>
+  );
+}
 
 describe('AdminReports', () => {
   beforeEach(() => {
@@ -48,18 +87,18 @@ describe('AdminReports', () => {
 
   it('renderiza titulo da pagina', () => {
     render(
-      <BrowserRouter>
+      <Wrapper>
         <AdminReports />
-      </BrowserRouter>
+      </Wrapper>
     );
     expect(screen.getByText('Painel')).toBeDefined();
   });
 
   it('renderiza ganhos da semana e total', () => {
     render(
-      <BrowserRouter>
+      <Wrapper>
         <AdminReports />
-      </BrowserRouter>
+      </Wrapper>
     );
     // Check for revenue sections
     expect(screen.getByText(/Ganhos Semana/)).toBeDefined();
@@ -71,9 +110,9 @@ describe('AdminReports', () => {
 
   it('renderiza comparacao semanal', () => {
     render(
-      <BrowserRouter>
+      <Wrapper>
         <AdminReports />
-      </BrowserRouter>
+      </Wrapper>
     );
     expect(screen.getByText(/Comparação Semanal/)).toBeDefined();
     expect(screen.getByText('+25%')).toBeDefined();
@@ -81,9 +120,9 @@ describe('AdminReports', () => {
 
   it('renderiza servicos populares', () => {
     render(
-      <BrowserRouter>
+      <Wrapper>
         <AdminReports />
-      </BrowserRouter>
+      </Wrapper>
     );
     expect(screen.getByText('Serviços Populares')).toBeDefined();
     expect(screen.getByText('Corte de Cabelo')).toBeDefined();
@@ -92,9 +131,9 @@ describe('AdminReports', () => {
 
   it('alterna entre semana e mes', () => {
     render(
-      <BrowserRouter>
+      <Wrapper>
         <AdminReports />
-      </BrowserRouter>
+      </Wrapper>
     );
     expect(screen.getByText('Semana')).toBeDefined();
     expect(screen.getByText('Mês')).toBeDefined();

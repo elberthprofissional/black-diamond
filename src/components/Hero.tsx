@@ -43,10 +43,16 @@ const Hero: FC = () => {
   return (
     <section
       id="home"
-      className="relative min-h-[80vh] md:min-h-[92vh] pt-20 md:pt-28 pb-8 md:pb-16 flex items-center justify-center bg-[#121212] overflow-hidden text-white"
+      className="relative min-h-[80vh] md:min-h-[92vh] pt-20 md:pt-28 pb-8 md:pb-16 flex items-center justify-center bg-dark-elevated overflow-hidden text-white"
     >
       {/* Hidden image for accessibility & test compatibility */}
-      <img src="/assets/hero-bg.webp" alt={displayName} className="hidden" />
+      <img
+        src="/assets/hero-bg.webp"
+        alt={displayName}
+        className="hidden"
+        loading="lazy"
+        decoding="async"
+      />
 
       {/* Background image: fundo-mobile (mobile) / fundo-desktop (desktop) */}
       <picture className="absolute inset-0 z-0">
@@ -55,12 +61,14 @@ const Hero: FC = () => {
           src="/assets/fundo-desktop.webp"
           alt=""
           fetchPriority="high"
+          loading="eager"
+          decoding="async"
           className="w-full h-full object-cover"
           aria-hidden="true"
         />
       </picture>
       {/* Dark overlays — suaves pra imagem de fundo aparecer mas sem gritar */}
-      <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-black/40 to-[#121212]/80" />
+      <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-black/40 to-dark-elevated/80" />
       <div className="absolute inset-0 z-[1] bg-[#0a0a0a]/20 mix-blend-multiply" />
 
       {/* Subtle background radial glow */}

@@ -28,7 +28,7 @@ const BackToTop: FC = () => {
     <button
       onClick={scrollToTop}
       aria-label="Voltar ao topo"
-      className={`fixed bottom-24 right-5 z-[150] w-11 h-11 rounded-full bg-[#D4AF37] text-black flex items-center justify-center shadow-lg shadow-[#D4AF37]/20 transition-all duration-300 hover:bg-[#b8962e] hover:scale-110 active:scale-95 ${
+      className={`fixed bottom-24 right-5 z-[150] w-11 h-11 rounded-full bg-gold text-black flex items-center justify-center shadow-lg shadow-gold/20 transition-all duration-300 hover:bg-[#b8962e] hover:scale-110 active:scale-95 ${
         visible
           ? 'opacity-100 translate-y-0 pointer-events-auto'
           : 'opacity-0 translate-y-4 pointer-events-none'

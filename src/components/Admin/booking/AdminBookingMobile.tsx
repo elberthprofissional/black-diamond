@@ -20,7 +20,7 @@ const AdminBookingMobile: FC<Props> = ({ booking }) => {
   const b = booking;
 
   return (
-    <div className="h-screen lg:min-h-screen bg-[#121212] text-white font-sans selection:bg-[#D4AF37]/30 flex flex-col relative overflow-hidden">
+    <div className="h-screen lg:min-h-screen bg-[#121212] text-white font-sans selection:bg-gold/30 flex flex-col relative overflow-hidden">
       <div className="lg:hidden flex-1 flex flex-col relative z-10 overflow-hidden h-[calc(100dvh-60px)] bg-[#050505]">
         <header className="sticky top-0 z-30 bg-[#050505] border-b border-white/[0.06]">
           <div className="px-5 py-4 flex items-center gap-3">
@@ -83,28 +83,6 @@ const AdminBookingMobile: FC<Props> = ({ booking }) => {
                 transition={{ duration: 0.25 }}
                 className="space-y-4 h-full flex flex-col"
               >
-                {b.barbers.length > 1 && (
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                      Barbeiro
-                    </label>
-                    <div className="flex gap-2 overflow-x-auto pb-1">
-                      {b.barbers.map((barber) => (
-                        <button
-                          key={barber.id}
-                          onClick={() => b.setSelectedBarber(barber)}
-                          className={`shrink-0 px-4 py-2 rounded-lg text-[12px] font-bold border transition-all cursor-pointer ${
-                            b.selectedBarber?.id === barber.id
-                              ? 'bg-[#D4AF37]/10 border-[#D4AF37]/40 text-[#D4AF37]'
-                              : 'bg-white/[0.02] border-white/[0.06] text-zinc-400 hover:border-white/[0.12]'
-                          }`}
-                        >
-                          {barber.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
                 <ResponsiveServicesStep
                   services={b.services}
                   selectedServices={b.selectedServices}
@@ -112,6 +90,9 @@ const AdminBookingMobile: FC<Props> = ({ booking }) => {
                   planName={b.currentPlan?.name}
                   onToggleService={b.toggleService}
                   onNextStep={b.handleNextStep}
+                  barbers={b.barbers}
+                  selectedBarber={b.selectedBarber}
+                  onSelectBarber={b.setSelectedBarber}
                 />
               </motion.div>
             )}
@@ -157,7 +138,7 @@ const AdminBookingMobile: FC<Props> = ({ booking }) => {
               className={`w-full h-12 rounded-xl font-bold uppercase tracking-[0.2em] text-[12px] transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
                 !b.isStepValid(b.currentStep)
                   ? 'bg-white/[0.04] border border-white/[0.04] text-zinc-700 cursor-not-allowed'
-                  : 'bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90 shadow-lg shadow-[#D4AF37]/20'
+                  : 'bg-gold text-black hover:bg-gold/90 shadow-lg shadow-gold/20'
               }`}
             >
               <span>

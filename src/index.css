@@ -9,8 +9,12 @@
   --color-dark-pure: #0f0f0f;
   --color-dark-card: #1a1a1a;
   --color-dark-card-light: #1f1f1f;
+  --color-dark-card-hover: #252525;
   --color-dark-border: rgba(255, 255, 255, 0.05);
+  --color-dark-border-light: rgba(255, 255, 255, 0.08);
   --color-dark-muted: #737373;
+  --color-dark-surface: #0a0a0a;
+  --color-dark-elevated: #121212;
 
   --z-dropdown: 30;
   --z-sticky: 50;
@@ -119,161 +123,6 @@
   }
 }
 
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 0.3;
-  }
-  50% {
-    transform: translateY(-20px) rotate(180deg);
-    opacity: 0.6;
-  }
-}
-
-@keyframes slow-zoom {
-  0% {
-    transform: scale(1);
-  }
-  100% {
-    transform: scale(1.1);
-  }
-}
-
-.animate-slow-zoom {
-  animation: slow-zoom 20s ease-in-out infinite alternate;
-}
-
-@keyframes marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(calc(-50% - 1rem));
-  }
-}
-
-.animate-marquee {
-  animation: marquee 14s linear infinite;
-}
-
-@media (min-width: 768px) {
-  @keyframes marquee {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(calc(-50% - 2rem));
-    }
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-marquee {
-    animation: none;
-  }
-}
-
-.bg-gold-gradient {
-  background: linear-gradient(135deg, #c5a05a 0%, #e8d5a0 50%, #c5a05a 100%);
-}
-
-.text-gold-gradient {
-  background: linear-gradient(135deg, #c5a05a 0%, #e8d5a0 50%, #c5a05a 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* ========================================================================= */
-/* REMAKE 2026 —Animations & utilities                                       */
-/* ========================================================================= */
-
-/* Scroll-reveal: elements .reveal start hidden and fade/translate up when .is-visible */
-.reveal {
-  opacity: 0;
-  transform: translateY(28px);
-  transition:
-    opacity 0.7s ease-out,
-    transform 0.7s ease-out;
-  will-change: opacity, transform;
-}
-.reveal.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-.reveal-delay-1 {
-  transition-delay: 0.08s;
-}
-.reveal-delay-2 {
-  transition-delay: 0.16s;
-}
-.reveal-delay-3 {
-  transition-delay: 0.24s;
-}
-.reveal-delay-4 {
-  transition-delay: 0.32s;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-}
-
-/* Horizontal marquee text strip — infinite scroll */
-@keyframes text-marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-.animate-text-marquee {
-  animation: text-marquee 24s linear infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .animate-text-marquee {
-    animation: none;
-  }
-}
-
-/* Hairline corner ticks — premium editorial detail */
-.corner-ticks::before,
-.corner-ticks::after {
-  content: '';
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  border: 1px solid var(--color-gold);
-  opacity: 0.35;
-  pointer-events: none;
-}
-.corner-ticks::before {
-  top: 10px;
-  left: 10px;
-  border-right: 0;
-  border-bottom: 0;
-}
-.corner-ticks::after {
-  bottom: 10px;
-  right: 10px;
-  border-left: 0;
-  border-top: 0;
-}
-
-/* Editorial mega-outline number (for stats/section numerals) */
-.mega-number {
-  font-family: var(--font-bebas);
-  font-size: clamp(5rem, 14vw, 11rem);
-  line-height: 0.9;
-  letter-spacing: -0.02em;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(212, 175, 55, 0.35);
-}
-
 /* Gold underline link hover (nav) */
 .nav-underline {
   position: relative;
@@ -290,17 +139,6 @@
 }
 .nav-underline:hover::after {
   width: 100%;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #000;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--color-gold-bright);
-  border-radius: 10px;
 }
 
 /* Global scrollbar - gold accent (desktop only) */
@@ -327,7 +165,7 @@
   }
 }
 
-/* Notifications panel slide-in animation (replaces framer-motion) */
+/* Notifications panel slide-in animation */
 @keyframes slide-in {
   from {
     transform: translateX(-100%);
@@ -356,15 +194,6 @@
 .scrollbar-hide {
   scrollbar-width: none !important;
   scrollbar-color: transparent transparent !important;
-}
-
-/* Notifications tabs - force hide scrollbar */
-.notifications-tabs::-webkit-scrollbar {
-  display: none !important;
-  height: 0 !important;
-}
-.notifications-tabs {
-  scrollbar-width: none !important;
 }
 
 /* Custom tuning for installed PWA standalone mode — reduce vertical rhythm on compact screens */
@@ -403,8 +232,7 @@
 }
 
 /* WCAG AA: gold text gets subtle shadow on small sizes for legibility */
-.text-gold,
-.text-gold-bright {
+.text-gold {
   text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
 }
 
@@ -423,15 +251,6 @@ button,
 a,
 [role='button'] {
   touch-action: manipulation;
-}
-
-/* iOS notch safe areas */
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.pt-safe {
-  padding-top: env(safe-area-inset-top);
 }
 
 /* Prevent Safari automatic zoom when touching form inputs on mobile */
@@ -475,12 +294,6 @@ code {
   word-break: break-word;
 }
 
-/* Ensure tables scroll horizontally instead of breaking layout */
-.table-container {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
 /* ========================================================================= */
 /* 6. REUSABLE COMPONENT CLASSES (replace long Tailwind inline strings)    */
 /* ========================================================================= */
@@ -511,21 +324,6 @@ code {
     @apply scale-[0.97];
   }
 
-  /* Dark card container */
-  .card-dark {
-    @apply bg-dark-card/80 border border-dark-border rounded-2xl backdrop-blur-xl;
-  }
-
-  /* Form input (dark theme) */
-  .input-dark {
-    @apply w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-white text-[14px] font-light placeholder:text-zinc-500 focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/30 transition-all;
-  }
-
-  /* Gold divider */
-  .divider-gold {
-    @apply h-px bg-gradient-to-r from-gold/40 via-gold/10 to-transparent;
-  }
-
   /* Section label (small gold uppercase) */
   .label-gold {
     @apply text-[10px] font-bold text-zinc-500 uppercase tracking-[0.15em];
@@ -536,9 +334,180 @@ code {
     @apply bg-white/[0.04] rounded-xl animate-pulse;
   }
 
-  /* Polaroid Frame Style */
-  .polaroid-card {
-    @apply bg-white p-3 pt-3 pb-8 shadow-2xl transition-all duration-500 text-black relative;
+  /* ========================================================================= */
+  /* 7. BOOKING PRE-SCREEN — AMBIENTE PREMIUM (v3.35)                        */
+  /* ========================================================================= */
+
+  /* Brasas douradas subindo pelo fundo */
+  @keyframes ember-rise {
+    0% {
+      transform: translateY(0) translateX(0) scale(1);
+      opacity: 0;
+    }
+    12% {
+      opacity: var(--ember-opacity, 0.5);
+    }
+    88% {
+      opacity: var(--ember-opacity, 0.5);
+    }
+    100% {
+      transform: translateY(-105vh) translateX(var(--ember-drift, 30px)) scale(0.35);
+      opacity: 0;
+    }
+  }
+
+  /* Brilho dourado no título (shimmer) */
+  @keyframes gold-shimmer {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* Anel giratório lento (logo) */
+  @keyframes spin-slow {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Spotlight que deriva suavemente pelo fundo */
+  @keyframes spotlight-drift {
+    0%,
+    100% {
+      transform: translate(-50%, -30%) scale(1);
+    }
+    50% {
+      transform: translate(-46%, -36%) scale(1.18);
+    }
+  }
+
+  .gold-shimmer-text {
+    background: linear-gradient(
+      110deg,
+      #8b6b1f 0%,
+      #d4af37 25%,
+      #f5e08a 50%,
+      #d4af37 75%,
+      #8b6b1f 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gold-shimmer 6s linear infinite;
+  }
+
+  /* Partículas de brasa subindo pelo fundo */
+  .ember {
+    position: absolute;
+    bottom: -14px;
+    border-radius: 9999px;
+    background: radial-gradient(circle, #f7e7a8 0%, #d4af37 45%, rgba(212, 175, 55, 0) 72%);
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation-name: ember-rise;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  /* Anel giratório ao redor do logo */
+  .logo-ring {
+    position: absolute;
+    inset: -24px;
+    border-radius: 9999px;
+    border: 1px dashed rgba(212, 175, 55, 0.3);
+    animation: spin-slow 26s linear infinite;
+  }
+  .logo-ring::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: 50%;
+    width: 7px;
+    height: 7px;
+    margin-left: -3px;
+    border-radius: 9999px;
+    background: #f5e08a;
+    box-shadow: 0 0 14px 3px rgba(212, 175, 55, 0.65);
+  }
+
+  /* Brilho que varre os cards no hover (shine sweep) */
+  .menu-card-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .menu-card-shine::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -85%;
+    width: 55%;
+    height: 100%;
+    background: linear-gradient(
+      105deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.08) 45%,
+      rgba(255, 255, 255, 0.18) 50%,
+      rgba(255, 255, 255, 0.08) 55%,
+      transparent 100%
+    );
+    transform: skewX(-20deg);
+    transition: left 0.75s ease;
+    pointer-events: none;
+  }
+  .menu-card-shine:hover::before {
+    left: 130%;
+  }
+
+  /* Card escuro com borda dourada em degradê */
+  .gold-border-card {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(rgba(13, 13, 13, 0.92), rgba(13, 13, 13, 0.92)) padding-box,
+      linear-gradient(
+          135deg,
+          rgba(212, 175, 55, 0.65),
+          rgba(212, 175, 55, 0.12) 55%,
+          rgba(212, 175, 55, 0.4)
+        )
+        border-box;
+  }
+
+  /* Bolinha pulsante (status online) */
+  .pulse-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: #f5e08a;
+    animation: pulse-dot 2.2s ease-out infinite;
+  }
+
+  /* Sem movimento: brasas e anel param de animar e somem (nada de pontos
+   opacos parados na base da tela) */
+  @media (prefers-reduced-motion: reduce) {
+    .ember {
+      display: none;
+    }
+    .logo-ring {
+      display: none;
+    }
+  }
+  @keyframes pulse-dot {
+    0% {
+      box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.55);
+    }
+    70% {
+      box-shadow: 0 0 0 7px rgba(212, 175, 55, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+    }
   }
 
   /* Adhesive Tape effect */
@@ -554,13 +523,5 @@ code {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
     backdrop-filter: blur(2px);
     z-index: 20;
-  }
-
-  /* Dark grunge backdrop texture */
-  .bg-dark-texture {
-    background-color: #111111;
-    background-image:
-      radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.03) 0%, transparent 70%),
-      radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.04) 0%, transparent 60%);
   }
 }

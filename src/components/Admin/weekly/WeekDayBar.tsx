@@ -13,14 +13,14 @@ interface WeekDayBarProps {
 }
 
 const WeekDayBar: FC<WeekDayBarProps> = ({ days, onSelect }) => (
-  <div className="flex gap-2">
+  <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory -mx-4 px-4 lg:mx-0 lg:px-0">
     {days.map((day, idx) => (
       <button
         key={idx}
         onClick={() => !day.isPast && onSelect(idx)}
         disabled={day.isPast}
         title={day.isPast ? 'Dia ja encerrado' : ''}
-        className={`flex-1 py-4 rounded-xl transition-all duration-200 flex flex-col items-center gap-1 relative ${
+        className={`snap-start shrink-0 min-w-[72px] flex-1 lg:flex-1 py-4 rounded-xl transition-all duration-200 flex flex-col items-center gap-1 relative ${
           day.isPast
             ? 'bg-white/[0.01] text-zinc-800 cursor-not-allowed opacity-30'
             : day.isSelected

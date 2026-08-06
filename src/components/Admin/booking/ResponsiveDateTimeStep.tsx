@@ -103,7 +103,7 @@ export default function ResponsiveDateTimeStep({
           </div>
           <div className="flex justify-between items-center py-2 border-b border-white/[0.04]">
             <span className="text-[12px] text-zinc-500 uppercase tracking-wider">Horário</span>
-            <span className="text-[14px] font-semibold text-[#D4AF37]">{selectedTime}</span>
+            <span className="text-[14px] font-semibold text-gold">{selectedTime}</span>
           </div>
           <div className="pt-2 space-y-2">
             <span className="text-[12px] text-zinc-500 uppercase tracking-wider">Serviços</span>
@@ -120,7 +120,7 @@ export default function ResponsiveDateTimeStep({
             <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">
               Total
             </span>
-            <span className={`font-bold text-[#D4AF37] ${isDesktop ? 'text-xl' : 'text-lg'}`}>
+            <span className={`font-bold text-gold ${isDesktop ? 'text-xl' : 'text-lg'}`}>
               {formatPricePublic(totalPrice)}
             </span>
           </div>
@@ -131,7 +131,7 @@ export default function ResponsiveDateTimeStep({
             type="button"
             onClick={onFinish}
             disabled={isSubmitting || !isStepValid?.(1) || !isStepValid?.(2)}
-            className="w-full py-4 bg-[#D4AF37] text-black text-[12px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#b8962e] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-[#D4AF37]/20"
+            className="w-full py-4 bg-gold text-black text-[12px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#b8962e] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-gold/20"
           >
             {isSubmitting ? 'Confirmando...' : 'Confirmar Agendamento'}
           </button>
@@ -160,7 +160,7 @@ export default function ResponsiveDateTimeStep({
                 isDesktop ? 'px-4' : 'min-w-[64px]'
               } ${
                 isSel
-                  ? 'bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37]'
+                  ? 'bg-gold/10 border border-gold/30 text-gold'
                   : 'bg-transparent border border-white/[0.06] text-zinc-500 hover:text-white hover:border-white/[0.12]'
               }`}
             >
@@ -203,7 +203,7 @@ export default function ResponsiveDateTimeStep({
                   occupied
                     ? 'text-zinc-700 cursor-not-allowed line-through opacity-30'
                     : isSel
-                      ? 'bg-[#D4AF37]/10 border-[#D4AF37]/30 text-[#D4AF37]'
+                      ? 'bg-gold/10 border-gold/30 text-gold'
                       : 'bg-transparent border-white/[0.06] text-zinc-400 hover:text-white hover:border-white/[0.12]'
                 }`}
               >
@@ -227,8 +227,8 @@ export default function ResponsiveDateTimeStep({
     return (
       <div className="space-y-4 h-full flex flex-col">
         {rescheduleBooking ? (
-          <div className="p-4 bg-[#111111] border border-[#D4AF37]/20 rounded-2xl flex flex-col gap-1.5 shrink-0">
-            <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.25em]">
+          <div className="p-4 bg-[#111111] border border-gold/20 rounded-2xl flex flex-col gap-1.5 shrink-0">
+            <span className="text-[10px] font-bold text-gold uppercase tracking-[0.25em]">
               REAGENDANDO ATENDIMENTO
             </span>
             <h3 className="text-sm font-bold text-white uppercase tracking-wide leading-none">
@@ -280,7 +280,7 @@ export default function ResponsiveDateTimeStep({
             !isStepValid?.(2) ||
             !isStepValid?.(3)
           }
-          className="py-4 px-10 bg-[#D4AF37] text-black text-[12px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#b8962e] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-[#D4AF37]/20"
+          className="py-4 px-10 bg-gold text-black text-[12px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#b8962e] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-gold/20"
         >
           {isSubmitting ? 'Confirmando...' : 'Confirmar Agendamento'}
         </button>

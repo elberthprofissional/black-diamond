@@ -93,7 +93,7 @@ const NotificationsPage: FC = () => {
               {displayed.length > 0 && (
                 <button
                   onClick={toggleSelectAll}
-                  className="text-[10px] font-bold text-[#D4AF37] hover:text-[#d4b06a] transition-colors cursor-pointer"
+                  className="text-[10px] font-bold text-gold hover:text-[#d4b06a] transition-colors cursor-pointer"
                 >
                   {selectedIds.size === displayed.length ? 'Desmarcar' : 'Marcar todas'}
                 </button>
@@ -103,7 +103,7 @@ const NotificationsPage: FC = () => {
             <>
               <span className="text-[16px] font-bold text-white">Notificações</span>
               {unreadCount > 0 && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#D4AF37]/15 text-[#D4AF37] font-bold">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold/15 text-gold font-bold">
                   {unreadCount}
                 </span>
               )}
@@ -153,7 +153,7 @@ const NotificationsPage: FC = () => {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="px-4 py-2.5 bg-[#D4AF37]/[0.04] border-b border-[#D4AF37]/10 flex items-center justify-between">
+            <div className="px-4 py-2.5 bg-gold/[0.04] border-b border-gold/10 flex items-center justify-between">
               <span className="text-[12px] text-zinc-400">
                 {selectedIds.size} de {displayed.length} selecionada
                 {displayed.length !== 1 ? 's' : ''}

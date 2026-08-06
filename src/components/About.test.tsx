@@ -62,10 +62,26 @@ describe('About', () => {
     expect(screen.getByText(/Acredito que a barbearia/)).toBeInTheDocument();
   });
 
-  it('renderiza a frase de efeito padrao', () => {
+  it('nao renderiza frase de efeito quando nao configurada', () => {
     render(<About />);
-    const quote = screen.getByText(/Não sou o melhor, mas sou o melhor para você/);
-    expect(quote).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Não sou o melhor, mas sou o melhor para você/)
+    ).not.toBeInTheDocument();
+  });
+
+  it('renderiza a frase de efeito personalizada quando configurada', () => {
+    mockUseBarberSettings.mockReturnValueOnce({
+      barberName: 'Tato',
+      barberPhone: '',
+      barberPhoto: '',
+      barberBio: '',
+      barberQuote: 'Cada corte conta uma história',
+      barberInstagram: '',
+      onboardingCompleted: false,
+      loading: false,
+    });
+    render(<About />);
+    expect(screen.getByText(/Cada corte conta uma história/)).toBeInTheDocument();
   });
 
   it('renderiza placeholder quando nao tem foto', () => {

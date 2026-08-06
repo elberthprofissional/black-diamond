@@ -148,9 +148,14 @@ vi.mock('../hooks/useSubscription', () => ({
   }),
 }));
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 import { BarberProvider } from '../contexts/BarberContext';
 import AdminBooking from './AdminBooking';
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+});
 
 describe('AdminBooking', () => {
   beforeEach(() => {
@@ -159,11 +164,13 @@ describe('AdminBooking', () => {
 
   it('renderiza titulo do agendamento', async () => {
     render(
-      <BarberSettingsProvider>
-        <BarberProvider>
-          <AdminBooking />
-        </BarberProvider>
-      </BarberSettingsProvider>
+      <QueryClientProvider client={queryClient}>
+        <BarberSettingsProvider>
+          <BarberProvider>
+            <AdminBooking />
+          </BarberProvider>
+        </BarberSettingsProvider>
+      </QueryClientProvider>
     );
     await waitFor(() => {
       expect(screen.getAllByText(/Novo Agendamento/i).length).toBeGreaterThan(0);
@@ -172,11 +179,13 @@ describe('AdminBooking', () => {
 
   it('renderiza secao de cliente', async () => {
     render(
-      <BarberSettingsProvider>
-        <BarberProvider>
-          <AdminBooking />
-        </BarberProvider>
-      </BarberSettingsProvider>
+      <QueryClientProvider client={queryClient}>
+        <BarberSettingsProvider>
+          <BarberProvider>
+            <AdminBooking />
+          </BarberProvider>
+        </BarberSettingsProvider>
+      </QueryClientProvider>
     );
     await waitFor(() => {
       expect(screen.getAllByText(/CLIENTE/i).length).toBeGreaterThan(0);
@@ -185,11 +194,13 @@ describe('AdminBooking', () => {
 
   it('renderiza campo de nome', async () => {
     render(
-      <BarberSettingsProvider>
-        <BarberProvider>
-          <AdminBooking />
-        </BarberProvider>
-      </BarberSettingsProvider>
+      <QueryClientProvider client={queryClient}>
+        <BarberSettingsProvider>
+          <BarberProvider>
+            <AdminBooking />
+          </BarberProvider>
+        </BarberSettingsProvider>
+      </QueryClientProvider>
     );
     await waitFor(() => {
       expect(screen.getByPlaceholderText(/nome/i)).toBeInTheDocument();
@@ -198,11 +209,13 @@ describe('AdminBooking', () => {
 
   it('renderiza campo de telefone', async () => {
     render(
-      <BarberSettingsProvider>
-        <BarberProvider>
-          <AdminBooking />
-        </BarberProvider>
-      </BarberSettingsProvider>
+      <QueryClientProvider client={queryClient}>
+        <BarberSettingsProvider>
+          <BarberProvider>
+            <AdminBooking />
+          </BarberProvider>
+        </BarberSettingsProvider>
+      </QueryClientProvider>
     );
     await waitFor(() => {
       expect(screen.getByPlaceholderText(/00000/i)).toBeInTheDocument();
@@ -211,11 +224,13 @@ describe('AdminBooking', () => {
 
   it('renderiza secao de servicos', async () => {
     render(
-      <BarberSettingsProvider>
-        <BarberProvider>
-          <AdminBooking />
-        </BarberProvider>
-      </BarberSettingsProvider>
+      <QueryClientProvider client={queryClient}>
+        <BarberSettingsProvider>
+          <BarberProvider>
+            <AdminBooking />
+          </BarberProvider>
+        </BarberSettingsProvider>
+      </QueryClientProvider>
     );
     await waitFor(() => {
       expect(screen.getAllByText(/SERVIÇOS/i).length).toBeGreaterThan(0);
@@ -224,11 +239,13 @@ describe('AdminBooking', () => {
 
   it('renderiza secao de agenda', async () => {
     render(
-      <BarberSettingsProvider>
-        <BarberProvider>
-          <AdminBooking />
-        </BarberProvider>
-      </BarberSettingsProvider>
+      <QueryClientProvider client={queryClient}>
+        <BarberSettingsProvider>
+          <BarberProvider>
+            <AdminBooking />
+          </BarberProvider>
+        </BarberSettingsProvider>
+      </QueryClientProvider>
     );
     await waitFor(() => {
       expect(screen.getAllByText(/AGENDA/i).length).toBeGreaterThan(0);
@@ -237,11 +254,13 @@ describe('AdminBooking', () => {
 
   it('renderiza botao de buscar cliente', async () => {
     render(
-      <BarberSettingsProvider>
-        <BarberProvider>
-          <AdminBooking />
-        </BarberProvider>
-      </BarberSettingsProvider>
+      <QueryClientProvider client={queryClient}>
+        <BarberSettingsProvider>
+          <BarberProvider>
+            <AdminBooking />
+          </BarberProvider>
+        </BarberSettingsProvider>
+      </QueryClientProvider>
     );
     await waitFor(() => {
       expect(screen.getAllByText(/Buscar|Dados|Cliente/i).length).toBeGreaterThan(0);
@@ -250,11 +269,13 @@ describe('AdminBooking', () => {
 
   it('renderiza botao de avancar', async () => {
     render(
-      <BarberSettingsProvider>
-        <BarberProvider>
-          <AdminBooking />
-        </BarberProvider>
-      </BarberSettingsProvider>
+      <QueryClientProvider client={queryClient}>
+        <BarberSettingsProvider>
+          <BarberProvider>
+            <AdminBooking />
+          </BarberProvider>
+        </BarberSettingsProvider>
+      </QueryClientProvider>
     );
     await waitFor(() => {
       expect(screen.getAllByText(/Continuar/i).length).toBeGreaterThan(0);

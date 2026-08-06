@@ -16,28 +16,41 @@ export async function getBarberByUserId(userId: string): Promise<Barber | null> 
   return data[0] as Barber;
 }
 
-export async function upsertBarber(barber: Partial<Barber>): Promise<string> {
+interface UpsertBarberInput {
+  id?: string;
+  name: string;
+  phone?: string;
+  photo_url?: string;
+  bio?: string;
+  quote?: string;
+  is_active?: boolean;
+  is_owner?: boolean;
+  sort_order?: number;
+}
+
+/** Cria ou atualiza um barbeiro (somente admin — RPC upsert_barber). */
+export async function upsertBarber(input: UpsertBarberInput): Promise<string> {
   const { data, error } = await supabase.rpc('upsert_barber', {
-    p_id: barber.id || null,
-    p_user_id: barber.user_id || null,
-    p_name: barber.name || null,
-    p_phone: barber.phone || null,
-    p_photo_url: barber.photo_url || null,
-    p_bio: barber.bio || null,
-    p_quote: barber.quote || null,
-    p_is_active: barber.is_active ?? true,
-    p_is_owner: barber.is_owner ?? false,
-    p_sort_order: barber.sort_order ?? 0,
+    p_id: input.id ?? null,
+    p_user_id: null,
+    p_name: input.name,
+    p_phone: input.phone ?? null,
+    p_photo_url: input.photo_url ?? null,
+    p_bio: input.bio ?? null,
+    p_quote: input.quote ?? null,
+    p_is_active: input.is_active ?? true,
+    p_is_owner: input.is_owner ?? false,
+    p_sort_order: input.sort_order ?? 0,
   });
   if (error) throw error;
   return data as string;
 }
 
-export async function deleteBarber(barberId: string, hard = false): Promise<boolean> {
-  const { data, error } = await supabase.rpc('delete_barber', {
+/** Desativa (soft delete) ou remove definitivamente um barbeiro (somente admin). */
+export async function deleteBarber(barberId: string, hard = false): Promise<void> {
+  const { error } = await supabase.rpc('delete_barber', {
     p_barber_id: barberId,
     p_hard: hard,
   });
   if (error) throw error;
-  return data as boolean;
 }

@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
 import { useToast } from './useToast';
 import { useGalleryData } from './useGalleryData';
+import { deleteGalleryImage, updateGalleryPosition } from '../lib/api/gallery';
 import type { GalleryImage } from '../types';
 import { logError } from '../lib/logger';
 
@@ -92,8 +92,13 @@ export function useGallery() {
     const deletedIds: string[] = [];
     try {
       for (const id of selectedImages) {
-        const { error } = await supabase.from('gallery_images').delete().eq('id', id);
-        if (!error) deletedIds.push(id);
+        try {
+          const img = images.find((i) => i.id === id);
+          await deleteGalleryImage(id, img?.image_url || '');
+          deletedIds.push(id);
+        } catch {
+          // falha silenciosa — continua com as próximas
+        }
       }
       if (deletedIds.length > 0) {
         showSuccess(`${deletedIds.length} foto(s) removida(s)!`);
@@ -110,17 +115,14 @@ export function useGallery() {
     } finally {
       setConfirmBulkDelete(false);
     }
-  }, [selectedImages, showSuccess, showError, setImages]);
+  }, [selectedImages, images, showSuccess, showError, setImages]);
 
   const handleDelete = useCallback(
     async (id: string) => {
       setDeleting(id);
       try {
-        const { error } = await supabase.from('gallery_images').delete().eq('id', id);
-        if (error) {
-          showError('Erro ao deletar');
-          return;
-        }
+        const img = images.find((i) => i.id === id);
+        await deleteGalleryImage(id, img?.image_url || '');
         showSuccess('Foto removida!');
         setImages((prev) => prev.filter((i) => i.id !== id));
       } catch (e) {
@@ -130,7 +132,7 @@ export function useGallery() {
         setDeleting(null);
       }
     },
-    [showSuccess, showError, setImages]
+    [showSuccess, showError, setImages, images]
   );
 
   // === Move state ===
@@ -158,17 +160,11 @@ export function useGallery() {
       setImages(newImages);
 
       const results = await Promise.all([
-        supabase
-          .from('gallery_images')
-          .update({ position: newImages[idx].position })
-          .eq('id', newImages[idx].id),
-        supabase
-          .from('gallery_images')
-          .update({ position: newImages[swapIdx].position })
-          .eq('id', newImages[swapIdx].id),
+        updateGalleryPosition(newImages[idx].id, newImages[idx].position),
+        updateGalleryPosition(newImages[swapIdx].id, newImages[swapIdx].position),
       ]);
 
-      if (results.some((r) => r.error)) {
+      if (results.some((r) => !r)) {
         setImages(snapshot);
         showError('Erro ao reordenar foto');
       }
@@ -195,12 +191,8 @@ export function useGallery() {
       const moved = movedItems[0] as GalleryImage | undefined;
       if (!moved) return;
       updated.splice(newIdx, 0, moved);
-      const results = await Promise.all(
-        updated.map((img, i) =>
-          supabase.from('gallery_images').update({ position: i }).eq('id', img.id)
-        )
-      );
-      if (results.some((r) => r.error)) {
+      const results = await Promise.all(updated.map((img, i) => updateGalleryPosition(img.id, i)));
+      if (results.some((r) => !r)) {
         setImages(snapshot);
         showError('Erro ao salvar posicao no servidor.');
       } else {

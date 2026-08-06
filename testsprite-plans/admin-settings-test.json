@@ -17,7 +17,7 @@
     { "type": "action", "description": "Navigate to the profile/settings page" },
     {
       "type": "assertion",
-      "description": "Verify the settings page shows categories like Conta, Horários, Serviços, Barbeiros"
+      "description": "Verify the settings page shows categories like Conta, Horários, Serviços, Galeria"
     },
     { "type": "action", "description": "Click on the 'Horários' settings option" },
     {
@@ -35,7 +35,7 @@
     },
     {
       "type": "assertion",
-      "description": "Verify the subscription management page with PIX key and barber list is visible"
+      "description": "Verify the subscription management page with PIX key information is visible"
     }
   ]
 }

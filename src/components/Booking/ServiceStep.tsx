@@ -64,8 +64,8 @@ const ServiceStep: FC<ServiceStepProps> = memo(
       return (
         <div className="space-y-6">
           {isMensalista && (
-            <div className="px-4 py-3 bg-[#D4AF37]/[0.06] border border-[#D4AF37]/20 rounded-xl">
-              <p className="text-[14px] text-[#D4AF37] font-medium">
+            <div className="px-4 py-3 bg-gold/[0.06] border border-gold/20 rounded-xl">
+              <p className="text-[14px] text-gold font-medium">
                 {planName || 'Corte de Cabelo incluso no plano mensal'}
               </p>
             </div>
@@ -111,7 +111,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
 
                   <div
                     className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all shrink-0 ${
-                      selected ? 'border-[#D4AF37] bg-[#D4AF37]' : 'border-white/20'
+                      selected ? 'border-gold bg-gold' : 'border-white/20'
                     }`}
                   >
                     {selected && <Check size={11} className="text-white stroke-[3px]" />}
@@ -158,8 +158,8 @@ const ServiceStep: FC<ServiceStepProps> = memo(
     return (
       <div className="space-y-4">
         {isMensalista && (
-          <div className="px-4 py-3 bg-[#D4AF37]/[0.06] border border-[#D4AF37]/20 rounded-xl">
-            <p className="text-[12px] text-[#D4AF37] font-medium">
+          <div className="px-4 py-3 bg-gold/[0.06] border border-gold/20 rounded-xl">
+            <p className="text-[12px] text-gold font-medium">
               {planName || 'Corte de Cabelo incluso no plano mensal'}
             </p>
           </div>
@@ -225,7 +225,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                   </div>{' '}
                   <div
                     className={`w-10 h-5 rounded-full transition-all relative ${
-                      selected ? 'bg-[#D4AF37]' : 'bg-zinc-700'
+                      selected ? 'bg-gold' : 'bg-zinc-700'
                     }`}
                   >
                     <div

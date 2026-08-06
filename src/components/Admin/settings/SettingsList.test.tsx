@@ -8,7 +8,6 @@ describe('SettingsList', () => {
     render(<SettingsList onSelect={onSelect} />);
 
     expect(screen.getByText('Serviços')).toBeInTheDocument();
-    expect(screen.getByText('Barbeiros')).toBeInTheDocument();
     expect(screen.getByText('Horários')).toBeInTheDocument();
     expect(screen.getByText('Controle de Faltas')).toBeInTheDocument();
     expect(screen.getByText('Fidelidade')).toBeInTheDocument();
@@ -31,7 +30,6 @@ describe('SettingsList', () => {
 
     const categories = [
       'servicos',
-      'barbeiros',
       'horarios',
       'faltas',
       'fidelidade',
@@ -41,7 +39,6 @@ describe('SettingsList', () => {
     ];
     const labels: Record<string, string> = {
       servicos: 'Serviços',
-      barbeiros: 'Barbeiros',
       horarios: 'Horários',
       faltas: 'Controle de Faltas',
       fidelidade: 'Fidelidade',

@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { getBookings, deleteBooking, createBooking } from '../lib/api';
-import { supabase } from '../lib/supabase';
 import { useAuditLog } from './useAuditLog';
+import { fireAndForget } from '../lib/fire-and-forget';
+import { createNotification } from '../lib/api/notifications';
 import type { Booking, BookingWithClient, Service } from '../types';
 import { logError } from '../lib/logger';
 
@@ -18,10 +20,10 @@ export function useReschedule(
   const [rescheduleTime, setRescheduleTime] = useState('');
   const [existingBookings, setExistingBookings] = useState<Booking[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [rescheduleStep, setRescheduleStep] = useState(1);
   const { logBooking } = useAuditLog();
 
+  // Carrega bookings existentes quando a data muda
   useEffect(() => {
     if (!isRescheduling || !rescheduleDate) return;
     let active = true;
@@ -42,28 +44,22 @@ export function useReschedule(
     };
   }, [rescheduleDate, isRescheduling, showError]);
 
-  const startReschedule = () => {
-    if (!selectedBooking) return;
-    const initialServices = services.filter((s) => selectedBooking.service_ids?.includes(s.id));
-    setRescheduleServices(initialServices);
-    setRescheduleDate(selectedBooking.booking_date);
-    setRescheduleTime(selectedBooking.booking_time.slice(0, 5));
-    setRescheduleStep(1);
-    setLoadingSlots(true);
-    setIsRescheduling(true);
-  };
+  // Mutation para confirmar o reagendamento
+  const confirmMutation = useMutation({
+    mutationFn: async () => {
+      if (
+        !selectedBooking ||
+        rescheduleServices.length === 0 ||
+        !rescheduleDate ||
+        !rescheduleTime
+      ) {
+        throw new Error('Dados incompletos para reagendamento.');
+      }
 
-  const confirmReschedule = async () => {
-    if (!selectedBooking || rescheduleServices.length === 0 || !rescheduleDate || !rescheduleTime) {
-      return;
-    }
-    setIsSaving(true);
-    try {
       const totalPrice = rescheduleServices.reduce((sum, s) => sum + Number(s.price || 0), 0);
       const totalDuration = rescheduleServices.reduce((sum, s) => sum + (s.duration || 0), 0);
 
-      // Create new booking FIRST, then cancel old one
-      // If creation fails, old booking still exists (no data loss)
+      // Cria novo booking PRIMEIRO (se falhar, o antigo ainda existe)
       await createBooking(
         {
           service_ids: rescheduleServices.map((s) => s.id),
@@ -77,45 +73,64 @@ export function useReschedule(
           phone: selectedBooking.clients?.phone || '',
         }
       );
+
+      // Cancela o booking antigo
       await deleteBooking(selectedBooking.id);
-      supabase.auth
-        .getUser()
-        .then(({ data: { user } }) => {
-          if (!user) return;
-          supabase
-            .from('notifications')
-            .insert({
-              user_id: user.id,
-              title: 'Agendamento Reagendado',
-              body: `${selectedBooking.clients?.name || 'Cliente'} — agora em ${rescheduleDate} às ${rescheduleTime?.slice(0, 5)}`,
-              tag: `booking-rescheduled-${selectedBooking.id}`,
-              url: '/admin',
-            })
-            .then(
-              () => {},
-              () => {}
-            );
-        })
-        .then(
-          () => {},
-          () => {}
-        );
-      logBooking('booking_rescheduled', selectedBooking.id, {
-        client_name: selectedBooking.clients?.name,
-        old_date: selectedBooking.booking_date,
-        old_time: selectedBooking.booking_time,
-        new_date: rescheduleDate,
-        new_time: rescheduleTime,
+
+      // Retorna dados para o onSuccess
+      return {
+        clientName: selectedBooking.clients?.name || 'Cliente',
+        bookingId: selectedBooking.id,
+        oldDate: selectedBooking.booking_date,
+        oldTime: selectedBooking.booking_time,
+        newDate: rescheduleDate,
+        newTime: rescheduleTime,
+      };
+    },
+    onSuccess: (result) => {
+      // Cria notificação de reagendamento (fire-and-forget)
+      fireAndForget(
+        createNotification({
+          title: 'Agendamento Reagendado',
+          body: `${result.clientName} — agora em ${result.newDate} às ${result.newTime?.slice(0, 5)}`,
+          tag: `booking-rescheduled-${result.bookingId}`,
+          url: '/admin',
+        }),
+        { context: 'useReschedule/createNotification' }
+      );
+
+      // Audit log
+      logBooking('booking_rescheduled', result.bookingId, {
+        client_name: result.clientName,
+        old_date: result.oldDate,
+        old_time: result.oldTime,
+        new_date: result.newDate,
+        new_time: result.newTime,
       });
+
       setIsRescheduling(false);
       onDone();
       onSuccess();
-    } catch (e) {
+    },
+    onError: (e) => {
       logError(e);
       showError('Erro ao reagendar.');
-    } finally {
-      setIsSaving(false);
-    }
+    },
+  });
+
+  const startReschedule = () => {
+    if (!selectedBooking) return;
+    const initialServices = services.filter((s) => selectedBooking.service_ids?.includes(s.id));
+    setRescheduleServices(initialServices);
+    setRescheduleDate(selectedBooking.booking_date);
+    setRescheduleTime(selectedBooking.booking_time.slice(0, 5));
+    setRescheduleStep(1);
+    setLoadingSlots(true);
+    setIsRescheduling(true);
+  };
+
+  const confirmReschedule = async () => {
+    await confirmMutation.mutateAsync();
   };
 
   const cancelReschedule = () => {
@@ -136,7 +151,7 @@ export function useReschedule(
     setRescheduleTime,
     existingBookings,
     loadingSlots,
-    isSaving,
+    isSaving: confirmMutation.isPending,
     rescheduleStep,
     setRescheduleStep,
     startReschedule,

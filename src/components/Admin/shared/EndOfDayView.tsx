@@ -16,8 +16,8 @@ const EndOfDayView: FC<EndOfDayViewProps> = ({ completedCount, dailyRevenue }) =
       transition={{ duration: 0.4 }}
       className="flex flex-col items-center justify-center py-24 px-6 text-center"
     >
-      <div className="w-16 h-16 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center mb-6">
-        <CheckCircle size={28} className="text-[#D4AF37]" />
+      <div className="w-16 h-16 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mb-6">
+        <CheckCircle size={28} className="text-gold" />
       </div>
       <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-2">
         Parabéns, você concluiu seu dia!
@@ -32,7 +32,7 @@ const EndOfDayView: FC<EndOfDayViewProps> = ({ completedCount, dailyRevenue }) =
           </div>
           <div className="w-px h-8 bg-white/[0.06]" />
           <div className="text-center">
-            <p className="text-xl font-black text-[#D4AF37]">{formatPrice(dailyRevenue)}</p>
+            <p className="text-xl font-black text-gold">{formatPrice(dailyRevenue)}</p>
             <p className="text-[10px] text-zinc-500 uppercase tracking-wider mt-0.5">faturados</p>
           </div>
         </div>

@@ -49,6 +49,9 @@ test-results/
 playwright-report/
 e2e/.auth/
 
+# Visual regression snapshots (gerados por ambiente, não versionar)
+e2e/__snapshots__/
+
 # Python
 __pycache__/
 *.pyc

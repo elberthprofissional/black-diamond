@@ -2,9 +2,25 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './index.css';
 import App from './App.tsx';
 import { BarberSettingsProvider } from './contexts/BarberSettingsContext';
+
+// ─── React Query Client ──────────────────────────────────────────────────
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutos antes de considerar dados "stale"
+      retry: 2, // Tenta 2 vezes antes de mostrar erro
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
+    },
+    mutations: {
+      retry: 0, // Não retenta mutations automaticamente
+    },
+  },
+});
 
 // Load fonts dynamically (CSP-compliant, no inline handlers)
 const loadFonts = () => {
@@ -79,12 +95,14 @@ window.requestIdleCallback(() => {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <HelmetProvider>
-      <BarberSettingsProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </BarberSettingsProvider>
-    </HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <HelmetProvider>
+        <BarberSettingsProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </BarberSettingsProvider>
+      </HelmetProvider>
+    </QueryClientProvider>
   </StrictMode>
 );

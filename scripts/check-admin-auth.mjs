@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
+import { getServiceRoleKey, getAnonKey, getSupabaseUrl } from './lib/env-keys.mjs';
 
 const URL = 'https://dbukdhycfaibdshxnatt.supabase.co';
-const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRidWtkaHljZmFpYmRzaHhuYXR0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTI5MzM0NCwiZXhwIjoyMDk2ODY5MzQ0fQ.-PsylDGBzJN3W1acv6mk80V0Yj_nHScr6hgamTw1LIQ';
+const KEY = getServiceRoleKey();
 
 const supabase = createClient(URL, KEY);
 
@@ -29,7 +30,7 @@ async function main() {
   // 2. Testar como se fosse um admin autenticado
   // Simula o que o RLS faz: verifica se auth.uid() está em admin_users
   console.log('\n🔑 Testando RLS com chave anon (simula admin não logado):');
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRidWtkaHljZmFpYmRzaHhuYXR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTMzNDQsImV4cCI6MjA5Njg2OTM0NH0.dhF4GyQ0JzqLM-BSdD8tdmtr0zstiWJf8gu8Uq4gb9s';
+  const anonKey = getAnonKey();
   const anon = createClient(URL, anonKey);
   
   const { data: c2, error: e2 } = await anon.from('clients').select('id', { count: 'exact', head: true });

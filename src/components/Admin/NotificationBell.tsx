@@ -39,7 +39,7 @@ const NotificationBell: FC<{ variant: 'mobile' | 'desktop' }> = ({ variant }) =>
           <div className="relative shrink-0">
             <Bell size={16} className="text-zinc-600" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-[#D4AF37] text-black text-[10px] font-bold flex items-center justify-center leading-none">
+              <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-gold text-black text-[10px] font-bold flex items-center justify-center leading-none">
                 {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}
@@ -79,7 +79,7 @@ const NotificationBell: FC<{ variant: 'mobile' | 'desktop' }> = ({ variant }) =>
     >
       <Bell size={20} className="text-zinc-400" />
       {unreadCount > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#D4AF37] text-black text-[10px] font-bold flex items-center justify-center leading-none">
+        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-gold text-black text-[10px] font-bold flex items-center justify-center leading-none">
           {unreadCount > 99 ? '99+' : unreadCount}
         </span>
       )}

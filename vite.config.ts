@@ -97,11 +97,14 @@ export default defineConfig({
             if (id.includes('@supabase/supabase-js')) {
               return 'vendor-supabase';
             }
-            if (id.includes('lucide-react')) {
+            if (id.includes('lucide-react') || id.includes('lucide')) {
               return 'vendor-icons';
             }
             if (id.includes('@sentry')) {
               return 'vendor-sentry';
+            }
+            if (id.includes('@tanstack/react-query')) {
+              return 'vendor-query';
             }
             if (
               id.includes('jspdf') ||

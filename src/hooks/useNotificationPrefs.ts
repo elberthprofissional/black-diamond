@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '../lib/supabase';
 import { logError } from '../lib/logger';
+import { getSetting, upsertSetting } from '../lib/api/settings';
 
 export interface NotificationPrefs {
   inApp: boolean;
@@ -22,37 +22,23 @@ export function useNotificationPrefs() {
   const [loading, setLoading] = useState(true);
   const prefsRef = useRef<NotificationPrefs>(DEFAULTS);
 
-  // Keep ref in sync via useEffect (not during render)
   useEffect(() => {
     prefsRef.current = prefs;
   }, [prefs]);
 
   const fetchPrefs = useCallback(async () => {
     try {
-      if (!supabase?.auth?.getUser) return;
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data } = await supabase
-        .from('settings')
-        .select('value')
-        .eq('key', STORAGE_KEY)
-        .maybeSingle();
-
-      if (data?.value) {
+      const val = await getSetting(STORAGE_KEY);
+      if (val) {
         try {
-          const parsed = JSON.parse(data.value);
+          const parsed = JSON.parse(val);
           setPrefs({ ...DEFAULTS, ...parsed });
         } catch (e) {
           logError(e);
-          // Invalid JSON — keep defaults
         }
       }
     } catch (e) {
       logError(e);
-      // keep defaults
     } finally {
       setLoading(false);
     }
@@ -64,30 +50,28 @@ export function useNotificationPrefs() {
   }, [fetchPrefs]);
 
   const updatePref = useCallback(async (key: keyof NotificationPrefs, value: boolean) => {
-    // Optimistic update
     const snapshot = prefsRef.current;
     const updated = { ...snapshot, [key]: value };
     setPrefs(updated);
 
-    const { error } = await supabase
-      .from('settings')
-      .upsert({ key: STORAGE_KEY, value: JSON.stringify(updated) }, { onConflict: 'key' });
-
-    if (error) {
-      // Rollback on error
+    try {
+      await upsertSetting(STORAGE_KEY, JSON.stringify(updated));
+      return true;
+    } catch {
       setPrefs(snapshot);
       return false;
     }
-    return true;
   }, []);
 
   const resetPrefs = useCallback(async () => {
     setPrefs(DEFAULTS);
     prefsRef.current = DEFAULTS;
-    const { error } = await supabase
-      .from('settings')
-      .upsert({ key: STORAGE_KEY, value: JSON.stringify(DEFAULTS) }, { onConflict: 'key' });
-    return !error;
+    try {
+      await upsertSetting(STORAGE_KEY, JSON.stringify(DEFAULTS));
+      return true;
+    } catch {
+      return false;
+    }
   }, []);
 
   return {

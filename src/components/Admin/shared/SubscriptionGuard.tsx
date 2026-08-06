@@ -93,7 +93,7 @@ const SubscriptionGuard: FC<SubscriptionGuardProps> = ({ children }) => {
 
   // Assinatura expirada ou bloqueada - mostra tela de pagamento
   return (
-    <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[var(--color-dark-pure)] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-[#1a1a1a] border border-white/[0.06] rounded-2xl overflow-hidden">
           {/* Header */}

@@ -10,7 +10,7 @@ const Services: FC = memo(() => {
     <section id="servicos" className="py-20 md:py-32 bg-[#0a0a0a] relative overflow-hidden">
       {/* Background glow */}
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#D4AF37]/[0.03] blur-[120px] pointer-events-none"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-gold/[0.03] blur-[120px] pointer-events-none"
         aria-hidden="true"
       />
 
@@ -27,7 +27,7 @@ const Services: FC = memo(() => {
                 serviços
               </span>
             </h2>
-            <div className="w-12 md:w-16 h-[1px] bg-[#D4AF37]/50 mx-auto mt-4 md:mt-5" />
+            <div className="w-12 md:w-16 h-[1px] bg-gold/50 mx-auto mt-4 md:mt-5" />
           </div>
 
           {/* Offline warning */}
@@ -56,11 +56,7 @@ const Services: FC = memo(() => {
               ))}
             </div>
           ) : (
-            <div
-              className="border-t border-[#D4AF37]/20"
-              role="list"
-              aria-label="Lista de serviços"
-            >
+            <div className="border-t border-gold/20" role="list" aria-label="Lista de serviços">
               {services.map((service, idx) => (
                 <motion.div
                   key={service.id}
@@ -69,7 +65,7 @@ const Services: FC = memo(() => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: '-50px' }}
                   transition={{ duration: 0.4, delay: idx * 0.08, ease: 'easeOut' }}
-                  className="group flex items-center justify-between py-4 md:py-6 border-b border-white/[0.04] hover:border-[#D4AF37]/20 transition-colors duration-300"
+                  className="group flex items-center justify-between py-4 md:py-6 border-b border-white/[0.04] hover:border-gold/20 transition-colors duration-300"
                 >
                   {/* Left: Number + Name */}
                   <div className="flex items-center gap-2 sm:gap-3 md:gap-6 min-w-0 flex-1">
@@ -80,7 +76,7 @@ const Services: FC = memo(() => {
 
                     {/* Service name - truncates on small screens */}
                     <div className="min-w-0 flex-1">
-                      <h4 className="text-xs sm:text-sm md:text-lg font-sans font-bold text-white uppercase tracking-[0.02em] md:tracking-[0.04em] truncate group-hover:text-[#D4AF37] transition-colors duration-300">
+                      <h4 className="text-xs sm:text-sm md:text-lg font-sans font-bold text-white uppercase tracking-[0.02em] md:tracking-[0.04em] truncate group-hover:text-gold transition-colors duration-300">
                         {service.name}
                       </h4>
                     </div>
@@ -88,7 +84,7 @@ const Services: FC = memo(() => {
 
                   {/* Right: Price */}
                   <div className="flex items-center gap-2 md:gap-4 shrink-0 ml-2 sm:ml-0">
-                    <span className="text-sm sm:text-base md:text-xl font-sans font-bold text-[#D4AF37] tracking-wide tabular-nums whitespace-nowrap">
+                    <span className="text-sm sm:text-base md:text-xl font-sans font-bold text-gold tracking-wide tabular-nums whitespace-nowrap">
                       {formatPricePublic(service.price)}
                     </span>
                   </div>

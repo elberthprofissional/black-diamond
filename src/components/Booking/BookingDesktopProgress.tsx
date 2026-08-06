@@ -55,17 +55,13 @@ const BookingDesktopProgress: FC<BookingDesktopProgressProps> = ({ step, stepTit
                 aria-current={step === s ? 'step' : undefined}
                 aria-label={`Passo ${s}${step === s ? ' (atual)' : step > s ? ' (concluído)' : ''}`}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
-                  step === s
-                    ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
-                    : step > s
-                      ? 'text-zinc-400'
-                      : 'text-zinc-600'
+                  step === s ? 'bg-gold/10 text-gold' : step > s ? 'text-zinc-400' : 'text-zinc-600'
                 }`}
               >
                 <span
                   className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
                     step === s
-                      ? 'bg-[#D4AF37] text-black'
+                      ? 'bg-gold text-black'
                       : step > s
                         ? 'bg-white/10 text-white'
                         : 'bg-white/[0.04] text-zinc-500'
@@ -76,7 +72,7 @@ const BookingDesktopProgress: FC<BookingDesktopProgressProps> = ({ step, stepTit
                 <span className="hidden xl:inline text-zinc-400">{STEP_LABELS[s]}</span>
               </div>
               {i < 2 && (
-                <div className={`w-6 h-px ${step > s ? 'bg-[#D4AF37]/30' : 'bg-white/[0.06]'}`} />
+                <div className={`w-6 h-px ${step > s ? 'bg-gold/30' : 'bg-white/[0.06]'}`} />
               )}
             </Fragment>
           ))}

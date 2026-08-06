@@ -36,8 +36,9 @@ $$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
 |------|----------|-----------|
 | `/`, `/agendar`, `/cancelar`, `/gerenciar`, `/cliente` | Publica | Acesso livre ao cliente |
 | `/admin/*` | `AuthGuard` | Requer sessao Supabase ativa |
-| `/barber` | `BarberGuard` | Apenas barbeiros (nao owner) |
 | `/admin/login` | `StandaloneGuard` | Bloqueado no PWA (admin so acessa via PWA) |
+
+> **Nota (v3.33.0):** O sistema e de **barbeiro unico** — a rota `/barber` (painel de funcionario) foi removida. Todos os admins logados usam `/admin/*`.
 
 ### PWA como ferramenta admin
 Quando o app e instalado como PWA, o `StandaloneGuard` bloqueia todas as rotas publicas e redireciona para `/admin/login`. Isso garante que o app instalado seja exclusivamente para o admin.
@@ -145,7 +146,8 @@ if (!adminCheck) {
 
 **Edge functions protegidas:**
 - `send-push` — envio de notificacoes push
-- `sync-google-reviews` — sincronizacao de reviews do Google
+
+> **Historico:** Edge Functions `create-asaas-payment` e `asaas-webhook` foram removidas em v3.31.0 (integracao com Asaas descontinuada em favor de PIX manual).
 
 ## 8. Banco de Dados — Constraints
 
@@ -177,20 +179,15 @@ WHERE (status != 'cancelled' AND is_blocked = FALSE);
 
 ## 10. Audit Logging
 
-Todas as acoes administrativas sao registradas em `audit_logs`:
+> **Status v3.31.0:** O sistema de `audit_logs` foi **desativado** porque crescia rapido e nao era consultado. As acoes criticas (login, booking) continuam sendo registradas em suas proprias tabelas (`notifications`, `subscriptions`, etc.).
 
-| Acao | Descricao |
-|------|-----------|
-| `login_success` | Login bem-sucedido |
-| `login_failed` | Tentativa de login com falha |
-| `logout` | Logout do admin |
-| `booking_created` | Agendamento criado |
-| `booking_completed` | Agendamento concluido |
-| `booking_cancelled` | Agendamento cancelado |
-| `booking_deleted` | Agendamento removido |
-| `client_created` | Cliente criado |
-| `client_deleted` | Cliente removido |
-| `client_updated` | Cliente atualizado |
+**Acoes definidas (tipo) — implementadas como no-op em `src/lib/api/audit.ts`:**
+- `login_success`, `login_failed`
+- `booking_created`, `booking_completed`, `booking_cancelled`, `booking_rescheduled`
+- `booking_no_show`, `booking_no_show_undone`
+- `client_created`, `thank_you_sent`
+
+Para reativar, basta implementar a logica em `insertAuditLog()` (`src/lib/api/audit.ts:31`).
 
 ## 11. Sentry (Error Reporting)
 
@@ -215,3 +212,23 @@ Todas as acoes administrativas sao registradas em `audit_logs`:
 4. **React XSS** — React escapa inputs automaticamente
 5. **CSP** — Previne carregamento de scripts externos nao autorizados
 6. **HSTS** — Forca HTTPS por 2 anos com preload
+
+## 14. Gestao de Chaves (v3.31.0+)
+
+### Rotacao periodica
+- **VAPID_PUBLIC_KEY** / **VAPID_PRIVATE_KEY**: rotacionar anualmente
+- **service_role key do Supabase**: rotacionar **imediatamente** se houver suspeita de vazamento
+- **anon key**: pode ser regenerada sem impacto (usuarios terao que refazer login)
+
+### Checklist de rotacao da service_role key
+1. Gerar nova chave no Supabase (`Settings > API > Roll new service_role JWT`)
+2. Atualizar nos Edge Function secrets do Supabase
+3. Atualizar em qualquer script de manutencao (`scripts/`) que use a chave diretamente
+4. Verificar que `.env` no disco local NAO contem `service_role` key (so `anon`)
+5. Fazer logout/login para invalidar sessoes
+
+### Armazenamento seguro
+- **Frontend:** apenas `anon` key (publica por design)
+- **Backend (Edge Functions):** `service_role` key + secrets via `supabase secrets set`
+- **Local:** `.env` no disco (coberto por `.gitignore`, **nunca** commitado)
+- **VAPID:** chave publica no `.env`, chave privada em Edge Function secret

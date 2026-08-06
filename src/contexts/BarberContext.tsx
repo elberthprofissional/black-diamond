@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { getBarbers, getBarberByUserId } from '../lib/api/barbers';
 import { logError } from '../lib/logger';
@@ -6,6 +6,8 @@ import type { Barber } from '../types';
 
 interface BarberContextValue {
   barbers: Barber[];
+  /** Barbeiros que o cliente pode agendar (ativos E com WhatsApp configurado). */
+  bookableBarbers: Barber[];
   currentBarber: Barber | null;
   isOwner: boolean;
   loading: boolean;
@@ -18,6 +20,10 @@ export function BarberProvider({ children }: { children: ReactNode }) {
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [currentBarber, setCurrentBarber] = useState<Barber | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Barbeiros disponíveis para agendamento público:
+  // ativos E com telefone/WhatsApp configurado (exclui o perfil de suporte/dev).
+  const bookableBarbers = useMemo(() => barbers.filter((b) => b.is_active && !!b.phone), [barbers]);
 
   const loadBarbers = async () => {
     try {
@@ -62,6 +68,7 @@ export function BarberProvider({ children }: { children: ReactNode }) {
     <BarberContext.Provider
       value={{
         barbers,
+        bookableBarbers,
         currentBarber,
         isOwner: currentBarber?.is_owner ?? false,
         loading,

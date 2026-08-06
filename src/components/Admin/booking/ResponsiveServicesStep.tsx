@@ -1,7 +1,7 @@
-import { Check, ChevronRight } from 'lucide-react';
+import { Check, ChevronRight, Scissors } from 'lucide-react';
 import { useIsDesktop } from '../../../hooks/useIsDesktop';
 import { formatPricePublic } from '../../../lib/utils';
-import type { Service } from '../../../types';
+import type { Service, Barber } from '../../../types';
 
 interface ResponsiveServicesStepProps {
   services: Service[];
@@ -10,6 +10,10 @@ interface ResponsiveServicesStepProps {
   planName?: string;
   onToggleService: (service: Service) => void;
   onNextStep?: () => void;
+  /** Multi-barbeiro: barbeiros disponíveis para escolha. */
+  barbers?: Barber[];
+  selectedBarber?: Barber | null;
+  onSelectBarber?: (barber: Barber) => void;
 }
 
 export default function ResponsiveServicesStep({
@@ -19,13 +23,60 @@ export default function ResponsiveServicesStep({
   planName,
   onToggleService,
   onNextStep,
+  barbers,
+  selectedBarber,
+  onSelectBarber,
 }: ResponsiveServicesStepProps) {
+  const bookableBarbers = (barbers || []).filter((b) => b.is_active);
+  const showBarberSelector = bookableBarbers.length > 1 && !!onSelectBarber;
+
+  const renderBarberSelector = () => {
+    if (!showBarberSelector) return null;
+    return (
+      <div className="space-y-2.5">
+        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+          Atendimento com
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {bookableBarbers.map((barber) => {
+            const isSelected = selectedBarber?.id === barber.id;
+            return (
+              <button
+                key={barber.id}
+                type="button"
+                onClick={() => onSelectBarber?.(barber)}
+                aria-pressed={isSelected}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-[12px] font-bold transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-gold/15 border-gold/50 text-gold'
+                    : 'border-white/[0.08] text-zinc-400 hover:border-white/20 hover:text-white'
+                }`}
+              >
+                {barber.photo_url ? (
+                  <img
+                    src={barber.photo_url}
+                    alt=""
+                    className="w-5 h-5 rounded-full object-cover"
+                  />
+                ) : (
+                  <Scissors size={12} />
+                )}
+                {barber.name}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
   const isDesktop = useIsDesktop();
   const totalPrice = selectedServices.reduce((sum, s) => sum + Number(s.price), 0);
 
   if (isDesktop) {
     return (
       <div className="space-y-6 h-full flex flex-col">
+        {renderBarberSelector()}
+
         <div className="space-y-2">
           <h2 className="text-2xl font-bold tracking-tight text-white">Serviços</h2>
           <p className="text-[14px] text-zinc-500">
@@ -36,8 +87,8 @@ export default function ResponsiveServicesStep({
         </div>
 
         {isMensalista && (
-          <div className="p-4 bg-[#D4AF37]/[0.06] border border-[#D4AF37]/20 rounded-xl">
-            <p className="text-[14px] text-[#D4AF37] font-medium">
+          <div className="p-4 bg-gold/[0.06] border border-gold/20 rounded-xl">
+            <p className="text-[14px] text-gold font-medium">
               {planName
                 ? `Serviços inclusos no ${planName}`
                 : 'Corte de Cabelo incluso no plano mensal'}
@@ -63,7 +114,7 @@ export default function ResponsiveServicesStep({
                   <div
                     className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
                       isSelected
-                        ? 'bg-[#D4AF37] border-[#D4AF37]'
+                        ? 'bg-gold border-gold'
                         : 'border-white/20 group-hover:border-white/40'
                     }`}
                   >
@@ -79,7 +130,7 @@ export default function ResponsiveServicesStep({
                 </div>
                 <span
                   className={`text-[16px] font-medium tabular-nums ${
-                    isSelected ? 'text-[#D4AF37]' : 'text-zinc-500'
+                    isSelected ? 'text-gold' : 'text-zinc-500'
                   }`}
                 >
                   {formatPricePublic(service.price)}
@@ -96,9 +147,7 @@ export default function ResponsiveServicesStep({
                 <span className="text-[12px] font-medium text-zinc-500 uppercase tracking-wider">
                   Total
                 </span>
-                <span className="text-xl font-bold text-[#D4AF37]">
-                  {formatPricePublic(totalPrice)}
-                </span>
+                <span className="text-xl font-bold text-gold">{formatPricePublic(totalPrice)}</span>
               </div>
             )}
             <div className="flex gap-3">
@@ -129,6 +178,8 @@ export default function ResponsiveServicesStep({
   // Mobile layout
   return (
     <div className="space-y-4 h-full flex flex-col">
+      {renderBarberSelector()}
+
       <div className="space-y-2 shrink-0">
         <h2 className="text-lg font-bold text-white uppercase tracking-tight">Serviços</h2>
         <p className="text-xs text-zinc-500">
@@ -139,8 +190,8 @@ export default function ResponsiveServicesStep({
       </div>
 
       {isMensalista && (
-        <div className="p-3 bg-[#D4AF37]/[0.06] border border-[#D4AF37]/20 rounded-xl shrink-0">
-          <p className="text-[12px] text-[#D4AF37] font-medium">
+        <div className="p-3 bg-gold/[0.06] border border-gold/20 rounded-xl shrink-0">
+          <p className="text-[12px] text-gold font-medium">
             {planName ? `Serviços inclusos no ${planName}` : 'Corte incluso no plano mensal'}
           </p>
           <p className="text-[12px] text-zinc-500 mt-0.5">Selecione adicionais ou pule.</p>
@@ -159,21 +210,21 @@ export default function ResponsiveServicesStep({
               <div className="flex items-center gap-3.5 min-w-0 flex-1">
                 <div className="w-5 h-5 flex items-center justify-center shrink-0">
                   {isSelected ? (
-                    <Check size={16} className="text-[#D4AF37]" strokeWidth={3} />
+                    <Check size={16} className="text-gold" strokeWidth={3} />
                   ) : (
                     <div className="w-4 h-4 rounded-full border border-white/20" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p
-                    className={`text-[14px] font-bold tracking-wide uppercase ${isSelected ? 'text-[#D4AF37]' : 'text-zinc-200'}`}
+                    className={`text-[14px] font-bold tracking-wide uppercase ${isSelected ? 'text-gold' : 'text-zinc-200'}`}
                   >
                     {service.name}
                   </p>
                 </div>
               </div>
               <span
-                className={`font-black text-sm shrink-0 ${isSelected ? 'text-[#D4AF37]' : 'text-zinc-400'}`}
+                className={`font-black text-sm shrink-0 ${isSelected ? 'text-gold' : 'text-zinc-400'}`}
               >
                 {formatPricePublic(service.price)}
               </span>

@@ -1,9 +1,15 @@
 import { motion } from 'framer-motion';
 import { useBarberSettings } from '../../hooks/useBarberSettings';
 
-export default function LoginBackground() {
+interface LoginBackgroundProps {
+  /** Texto de apoio exibido ao lado da marca (default: focado em gestão). */
+  subtitle?: string;
+}
+
+export default function LoginBackground({ subtitle }: LoginBackgroundProps) {
   const { brandName, brandColor } = useBarberSettings();
   const displayName = brandName || 'Black Diamond';
+  const tagline = subtitle ?? 'Acompanhe agenda, clientes e faturamento em um só lugar.';
 
   return (
     <div className="hidden lg:flex lg:w-[55%] h-full relative overflow-hidden bg-[#0A0A0A] border-r border-white/5">
@@ -47,7 +53,7 @@ export default function LoginBackground() {
             </span>
           </h2>
           <p className="text-sm font-medium tracking-[0.05em] text-zinc-500 leading-relaxed max-w-md">
-            Acompanhe agenda, clientes e faturamento em um só lugar.
+            {tagline}
           </p>
         </motion.div>
       </div>

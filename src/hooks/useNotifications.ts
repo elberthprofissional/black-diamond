@@ -1,121 +1,122 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-import { useNotificationPrefs, type NotificationPrefs } from './useNotificationPrefs';
 import { logError } from '../lib/logger';
+import { fireAndForget } from '../lib/fire-and-forget';
+import { useNotificationPrefs } from './useNotificationPrefs';
 import { playNotificationSound } from '../lib/notification-sound';
 import type { Notification } from '../types';
 
 export type { Notification } from '../types';
 
-// Singleton para subscription realtime — evita duplicação entre desktop/mobile
+// ─── Query Key ────────────────────────────────────────────────────────────
+
+export const notificationsQueryKey = ['notifications'] as const;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+
+function updateTitleBadge(count: number) {
+  const baseTitle = 'Black Diamond';
+  document.title = count > 0 ? `(${count}) ${baseTitle}` : baseTitle;
+}
+
+// ─── Singleton: Realtime Channel ─────────────────────────────────────────
+
 let activeChannel: ReturnType<typeof supabase.channel> | null = null;
 let activeUserId: string | null = null;
 let isSettingUp = false;
 const MAX_RETRIES = 15;
 
-// Update document title with unread count badge
-function updateTitleBadge(count: number) {
-  const baseTitle = 'Black Diamond';
-  if (count > 0) {
-    document.title = `(${count}) ${baseTitle}`;
-  } else {
-    document.title = baseTitle;
-  }
+// ─── Fetch ────────────────────────────────────────────────────────────────
+
+async function fetchNotifications(): Promise<Notification[]> {
+  if (!supabase?.auth?.getUser) return [];
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data } = await supabase
+    .from('notifications')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  return data || [];
 }
 
+// ─── Hook Unificado ───────────────────────────────────────────────────────
+
+/**
+ * Hook único de notificações — unifica fetch, realtime e CRUD.
+ *
+ * Composição interna:
+ * - {@link useQuery} para fetch inicial + stale-while-revalidate
+ * - Realtime subscription (singleton) para inserts/updates/deletes
+ * - {@link useMutation} para markAsRead / markAllAsRead / clear / bulkDelete
+ * - Preferências via {@link useNotificationPrefs}
+ */
 export function useNotifications() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [showPreview, setShowPreview] = useState<Notification | null>(null);
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryCountRef = useRef(0);
-  const notificationsRef = useRef<Notification[]>([]);
-  const prefsRef = useRef<NotificationPrefs>({
-    inApp: true,
-    sound: true,
-    preview: true,
-    badge: true,
+
+  // Preferências do usuário
+  const { prefs } = useNotificationPrefs();
+  const prefsRef = useRef(prefs);
+
+  // Mantém ref sincronizado
+  useEffect(() => {
+    prefsRef.current = prefs;
+  }, [prefs]);
+
+  // ── Fetch via useQuery ──────────────────────────────────────────────
+  const query = useQuery({
+    queryKey: notificationsQueryKey,
+    queryFn: fetchNotifications,
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Load notification preferences
-  const { prefs: notificationPrefs } = useNotificationPrefs();
+  const notifications = useMemo(() => query.data ?? [], [query.data]);
 
-  // Keep prefs ref in sync (via useEffect to avoid updating refs during render)
-  useEffect(() => {
-    prefsRef.current = notificationPrefs;
-  }, [notificationPrefs]);
+  // Atualiza o cache de notificações (usado pelo Realtime)
+  const setNotifications = useCallback(
+    (updater: Notification[] | ((prev: Notification[]) => Notification[])) => {
+      queryClient.setQueryData<Notification[]>(notificationsQueryKey, (prev) => {
+        const current = prev ?? [];
+        return typeof updater === 'function' ? updater(current) : updater;
+      });
+    },
+    [queryClient]
+  );
 
-  // Keep ref in sync with state (via useEffect to avoid updating refs during render)
-  useEffect(() => {
-    notificationsRef.current = notifications;
-  }, [notifications]);
-
-  const fetchNotifications = useCallback(async () => {
-    try {
-      if (!supabase?.auth?.getUser) return;
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      setNotifications(data || []);
-    } catch (e) {
-      logError(e);
-      setNotifications([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchNotifications();
-  }, [fetchNotifications]);
-
-  // Update document title badge when unread count changes (respecting badge pref)
-  useEffect(() => {
-    const count = notifications.filter((n) => !n.read).length;
-    if (prefsRef.current.badge) {
-      updateTitleBadge(count);
-    } else {
-      document.title = 'Black Diamond';
-    }
-  }, [notifications]);
-
-  // Realtime subscription with auto-reconnect (singleton)
+  // ── Realtime Subscription (singleton) ───────────────────────────────
   useEffect(() => {
     let mounted = true;
     let localChannelId = 0;
 
     const setupRealtime = async () => {
       try {
-        if (!mounted) return;
-        if (!supabase?.auth?.getUser) return;
-        if (isSettingUp) return;
+        if (!mounted || !supabase?.auth?.getUser || isSettingUp) return;
         isSettingUp = true;
 
-        // Clear stale channel before async gap so retries can proceed
+        // Limpa channel stale antes do async gap
         if (activeChannel && activeUserId) {
           const stale = activeChannel;
           activeChannel = null;
           activeUserId = null;
-          supabase.removeChannel(stale).catch(() => {});
+          fireAndForget(supabase.removeChannel(stale), {
+            context: 'useNotifications/cleanupStale',
+          });
         }
 
         const {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user || !mounted) return;
-
-        // Se já existe uma subscription para este usuário, não cria outra
         if (activeChannel && activeUserId === user.id) return;
 
         activeUserId = user.id;
@@ -136,20 +137,13 @@ export function useNotifications() {
               if (payload.eventType === 'INSERT') {
                 const newNotif = payload.new as Notification;
                 setNotifications((prev) => {
-                  // Evita duplicatas
                   if (prev.some((n) => n.id === newNotif.id)) return prev;
                   return [newNotif, ...prev].slice(0, 50);
                 });
 
-                const prefs = prefsRef.current;
-
-                // Toca som (only if in-app + sound enabled)
-                if (prefs.inApp && prefs.sound) {
-                  playNotificationSound();
-                }
-
-                // Preview toast (only if in-app + preview enabled)
-                if (prefs.inApp && prefs.preview) {
+                const p = prefsRef.current;
+                if (p.inApp && p.sound) playNotificationSound();
+                if (p.inApp && p.preview) {
                   setShowPreview(newNotif);
                   if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
                   previewTimerRef.current = setTimeout(() => setShowPreview(null), 5000);
@@ -165,7 +159,6 @@ export function useNotifications() {
           )
           .subscribe((status) => {
             if (!mounted) return;
-
             if (status === 'SUBSCRIBED') {
               retryCountRef.current = 0;
             } else if (
@@ -176,7 +169,6 @@ export function useNotifications() {
               if (retryCountRef.current < MAX_RETRIES) {
                 const delay = Math.min(1000 * Math.pow(1.5, retryCountRef.current), 15000);
                 retryCountRef.current++;
-
                 if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
                 retryTimerRef.current = setTimeout(() => {
                   if (mounted) setupRealtime();
@@ -202,81 +194,140 @@ export function useNotifications() {
         const ch = activeChannel;
         activeChannel = null;
         activeUserId = null;
-        supabase.removeChannel(ch).catch(() => {});
+        fireAndForget(supabase.removeChannel(ch), {
+          context: 'useNotifications/cleanupChannel',
+        });
       }
       if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── CRUD Mutations ──────────────────────────────────────────────────
+
+  const markAsReadMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('notifications').update({ read: true }).eq('id', id);
+      if (error) throw error;
+    },
+    onMutate: async (id: string) => {
+      const previous = queryClient.getQueryData<Notification[]>(notificationsQueryKey);
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) setNotifications(context.previous);
+    },
+  });
+
+  const markAllAsReadMutation = useMutation({
+    mutationFn: async () => {
+      if (!supabase?.auth?.getUser) return;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', user.id)
+        .eq('read', false);
+      if (error) throw error;
+    },
+    onMutate: async () => {
+      const previous = queryClient.getQueryData<Notification[]>(notificationsQueryKey);
+      setNotifications((current) => current.map((n) => ({ ...n, read: true })));
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) setNotifications(context.previous);
+    },
+  });
+
+  const clearNotificationMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('notifications').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onMutate: async (id: string) => {
+      const previous = queryClient.getQueryData<Notification[]>(notificationsQueryKey);
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) setNotifications(context.previous);
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      if (ids.length === 0) return;
+      const { error } = await supabase.from('notifications').delete().in('id', ids);
+      if (error) throw error;
+    },
+    onMutate: async (ids: string[]) => {
+      if (ids.length === 0) return {};
+      const previous = queryClient.getQueryData<Notification[]>(notificationsQueryKey);
+      setNotifications((prev) => prev.filter((n) => !ids.includes(n.id)));
+      return { previous };
+    },
+    onError: (_err, _ids, context) => {
+      if (context?.previous) setNotifications(context.previous);
+    },
+  });
+
+  const markAsRead = useCallback(
+    async (id: string) => {
+      await markAsReadMutation.mutateAsync(id);
+    },
+    [markAsReadMutation]
+  );
+
+  const markAllAsRead = useCallback(async () => {
+    await markAllAsReadMutation.mutateAsync();
+  }, [markAllAsReadMutation]);
+
+  const clearNotification = useCallback(
+    async (id: string) => {
+      await clearNotificationMutation.mutateAsync(id);
+    },
+    [clearNotificationMutation]
+  );
+
+  const bulkDelete = useCallback(
+    async (ids: string[]) => {
+      if (ids.length === 0) return;
+      await bulkDeleteMutation.mutateAsync(ids);
+    },
+    [bulkDeleteMutation]
+  );
 
   const dismissPreview = useCallback(() => {
     setShowPreview(null);
     if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
   }, []);
 
+  // ── Badge no título ─────────────────────────────────────────────────
+  useEffect(() => {
+    const count = notifications.filter((n) => !n.read).length;
+    if (prefs.badge) {
+      updateTitleBadge(count);
+    } else {
+      document.title = 'Black Diamond';
+    }
+  }, [notifications, prefs.badge]);
+
   const unreadCount = notifications.filter((n) => !n.read).length;
-
-  const markAsRead = useCallback(async (id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
-    const { error } = await supabase.from('notifications').update({ read: true }).eq('id', id);
-    if (error) {
-      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: false } : n)));
-    }
-  }, []);
-
-  const markAllAsRead = useCallback(async () => {
-    const snapshot = notificationsRef.current;
-    setNotifications((current) => current.map((n) => ({ ...n, read: true })));
-    if (!supabase?.auth?.getUser) return;
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-    const { error } = await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('user_id', user.id)
-      .eq('read', false);
-    if (error) {
-      setNotifications(snapshot);
-    }
-  }, []);
-
-  const clearNotification = useCallback(async (id: string) => {
-    const removed = notificationsRef.current.find((n) => n.id === id);
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-    const { error } = await supabase.from('notifications').delete().eq('id', id);
-    if (error && removed) {
-      setNotifications((prev) =>
-        [...prev, removed].sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )
-      );
-    }
-  }, []);
-
-  const bulkDelete = useCallback(async (ids: string[]) => {
-    if (ids.length === 0) return;
-    const removed = notificationsRef.current.filter((n) => ids.includes(n.id));
-    setNotifications((prev) => prev.filter((n) => !ids.includes(n.id)));
-    const { error } = await supabase.from('notifications').delete().in('id', ids);
-    if (error && removed.length > 0) {
-      setNotifications((prev) =>
-        [...prev, ...removed].sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )
-      );
-    }
-  }, []);
 
   return {
     notifications,
-    loading,
+    loading: query.isLoading,
     unreadCount,
     markAsRead,
     markAllAsRead,
     clearNotification,
     bulkDelete,
-    refetch: fetchNotifications,
+    refetch: () => query.refetch(),
     showPreview,
     dismissPreview,
   };

@@ -100,7 +100,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
               </svg>
             </button>
             <div>
-              <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.25em] block">
+              <span className="text-[10px] font-black text-gold uppercase tracking-[0.25em] block">
                 Reagendamento
               </span>
               <h3 className="text-sm font-bold text-white uppercase tracking-wider mt-0.5 truncate max-w-[180px]">
@@ -130,7 +130,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
           {[1, 2, 3].map((s) => (
             <div
               key={s}
-              className={`flex-1 h-[2px] rounded-full transition-all duration-300 ${s <= step ? 'bg-[#D4AF37]' : 'bg-white/[0.06]'}`}
+              className={`flex-1 h-[2px] rounded-full transition-all duration-300 ${s <= step ? 'bg-gold' : 'bg-white/[0.06]'}`}
             />
           ))}
         </div>
@@ -149,7 +149,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
               className="px-6 py-6 space-y-4"
             >
               <div className="space-y-2">
-                <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.25em] block">
+                <span className="text-[10px] font-bold text-gold uppercase tracking-[0.25em] block">
                   Serviços
                 </span>
                 <p className="text-[10px] text-zinc-600">
@@ -169,11 +169,11 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                             : [...rescheduleServices, srv]
                         );
                       }}
-                      className={`flex items-center p-3.5 rounded-xl border cursor-pointer transition-all duration-200 ${isSelected ? 'border-[#D4AF37]/40 bg-[#D4AF37]/[0.06] shadow-[0_0_20px_rgba(197,160,89,0.05)]' : 'border-white/[0.04] bg-[#111111] hover:border-white/[0.08]'}`}
+                      className={`flex items-center p-3.5 rounded-xl border cursor-pointer transition-all duration-200 ${isSelected ? 'border-gold/40 bg-gold/[0.06] shadow-[0_0_20px_rgba(197,160,89,0.05)]' : 'border-white/[0.04] bg-[#111111] hover:border-white/[0.08]'}`}
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <span
-                          className={`w-5 h-5 rounded-md flex items-center justify-center border-2 transition-all duration-200 shrink-0 ${isSelected ? 'border-[#D4AF37] bg-[#D4AF37]' : 'border-white/10 bg-transparent'}`}
+                          className={`w-5 h-5 rounded-md flex items-center justify-center border-2 transition-all duration-200 shrink-0 ${isSelected ? 'border-gold bg-gold' : 'border-white/10 bg-transparent'}`}
                         >
                           {isSelected && (
                             <svg
@@ -199,7 +199,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                         </div>
                       </div>
                       <span
-                        className={`text-xs font-black tabular-nums shrink-0 ${isSelected ? 'text-[#D4AF37]' : 'text-zinc-500'}`}
+                        className={`text-xs font-black tabular-nums shrink-0 ${isSelected ? 'text-gold' : 'text-zinc-500'}`}
                       >
                         {formatPricePublic(srv.price || 0)}
                       </span>
@@ -210,7 +210,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
               <button
                 disabled={rescheduleServices.length === 0}
                 onClick={() => setStep(2)}
-                className="w-full py-3.5 bg-[#D4AF37] hover:bg-white text-black font-black text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                className="w-full py-3.5 bg-gold hover:bg-white text-black font-black text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
               >
                 Continuar
                 <svg
@@ -240,7 +240,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
               className="px-6 py-6 space-y-6"
             >
               <div className="space-y-2">
-                <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.25em] block">
+                <span className="text-[10px] font-bold text-gold uppercase tracking-[0.25em] block">
                   Data e Horário
                 </span>
                 <p className="text-[10px] text-zinc-600">Escolha a nova data e horário</p>
@@ -259,13 +259,13 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                         key={day.dateStr}
                         type="button"
                         onClick={() => setRescheduleDate(day.dateStr)}
-                        className={`flex flex-col items-center justify-center shrink-0 w-[52px] py-3 rounded-xl border transition-all cursor-pointer snap-start ${isSelected ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-white shadow-[0_0_15px_rgba(197,160,89,0.15)]' : 'border-white/[0.04] bg-white/[0.01] text-zinc-500 hover:text-zinc-200 hover:border-white/[0.08]'}`}
+                        className={`flex flex-col items-center justify-center shrink-0 w-[52px] py-3 rounded-xl border transition-all cursor-pointer snap-start ${isSelected ? 'border-gold bg-gold/10 text-white shadow-[0_0_15px_rgba(197,160,89,0.15)]' : 'border-white/[0.04] bg-white/[0.01] text-zinc-500 hover:text-zinc-200 hover:border-white/[0.08]'}`}
                       >
                         <span className="text-[10px] font-extrabold uppercase tracking-wider opacity-60 mb-1 leading-none">
                           {day.dayName}
                         </span>
                         <span
-                          className={`text-sm font-black leading-none ${isSelected ? 'text-[#D4AF37]' : 'text-zinc-300'}`}
+                          className={`text-sm font-black leading-none ${isSelected ? 'text-gold' : 'text-zinc-300'}`}
                         >
                           {day.dayNum}
                         </span>
@@ -284,7 +284,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     />
                     <div
-                      className={`flex flex-col items-center justify-center w-full py-3 rounded-xl border transition-all pointer-events-none ${!next14Days.some((d) => d.dateStr === rescheduleDate) && rescheduleDate ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]' : 'border-white/[0.04] bg-white/[0.01] text-zinc-500'}`}
+                      className={`flex flex-col items-center justify-center w-full py-3 rounded-xl border transition-all pointer-events-none ${!next14Days.some((d) => d.dateStr === rescheduleDate) && rescheduleDate ? 'border-gold bg-gold/10 text-gold' : 'border-white/[0.04] bg-white/[0.01] text-zinc-500'}`}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -316,7 +316,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                     Novo Horário
                   </span>
                   {!loadingSlots && (
-                    <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider">
+                    <span className="text-[10px] font-bold text-gold uppercase tracking-wider">
                       {
                         rescheduleSlots.filter((slot: string) => {
                           const occupied =
@@ -358,7 +358,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                           type="button"
                           disabled={occupied}
                           onClick={() => setRescheduleTime(slot)}
-                          className={`py-2.5 text-[10px] font-black rounded-lg border text-center transition-all cursor-pointer disabled:opacity-15 disabled:cursor-not-allowed ${isSelected ? 'border-[#D4AF37] bg-[#D4AF37]/15 text-[#D4AF37] shadow-[0_0_10px_rgba(197,160,89,0.1)]' : 'border-white/[0.03] bg-white/[0.01] text-zinc-400 hover:text-white hover:border-white/[0.08]'}`}
+                          className={`py-2.5 text-[10px] font-black rounded-lg border text-center transition-all cursor-pointer disabled:opacity-15 disabled:cursor-not-allowed ${isSelected ? 'border-gold bg-gold/15 text-gold shadow-[0_0_10px_rgba(197,160,89,0.1)]' : 'border-white/[0.03] bg-white/[0.01] text-zinc-400 hover:text-white hover:border-white/[0.08]'}`}
                         >
                           {slot}
                         </button>
@@ -371,7 +371,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
               <button
                 disabled={!rescheduleDate || !rescheduleTime}
                 onClick={() => setStep(3)}
-                className="w-full py-3.5 bg-[#D4AF37] hover:bg-white text-black font-black text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                className="w-full py-3.5 bg-gold hover:bg-white text-black font-black text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
               >
                 Continuar
                 <svg
@@ -401,7 +401,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
               className="px-6 py-6 space-y-4"
             >
               <div className="space-y-2">
-                <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.25em] block">
+                <span className="text-[10px] font-bold text-gold uppercase tracking-[0.25em] block">
                   Revisar
                 </span>
                 <p className="text-[10px] text-zinc-600">Confirme as alterações antes de salvar</p>
@@ -440,7 +440,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center justify-center py-2 bg-[#D4AF37]/[0.03]">
+                <div className="flex items-center justify-center py-2 bg-gold/[0.03]">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="14"
@@ -455,7 +455,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                   </svg>
                 </div>
                 <div className="px-5 py-4">
-                  <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-widest block mb-2">
+                  <span className="text-[10px] font-black text-gold uppercase tracking-widest block mb-2">
                     Novo Agendamento
                   </span>
                   <div className="flex items-start gap-4">
@@ -471,7 +471,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                               .replace('.', '')
                           : '---'}
                       </span>
-                      <span className="text-sm font-black text-[#D4AF37] mt-1">
+                      <span className="text-sm font-black text-gold mt-1">
                         {rescheduleTime || '---'}
                       </span>
                     </div>
@@ -494,7 +494,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                 <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                   Investimento Total
                 </span>
-                <span className="text-lg font-black text-[#D4AF37]">
+                <span className="text-lg font-black text-gold">
                   {formatPricePublic(
                     rescheduleServices.reduce((sum, s) => sum + Number(s.price || 0), 0)
                   )}
@@ -504,7 +504,7 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
               <button
                 disabled={isSaving}
                 onClick={onConfirm}
-                className="w-full py-3.5 bg-[#D4AF37] hover:bg-white text-black font-black text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-30"
+                className="w-full py-3.5 bg-gold hover:bg-white text-black font-black text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-30"
               >
                 {isSaving ? (
                   <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />

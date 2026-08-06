@@ -1,6 +1,5 @@
 import { type FC } from 'react';
 import {
-  Users,
   ChevronRight,
   Image as ImageIcon,
   Clock,
@@ -10,6 +9,7 @@ import {
   Tag,
   MessageSquare,
   Crown,
+  Users,
 } from 'lucide-react';
 
 interface SettingsListProps {
@@ -21,8 +21,8 @@ const groups = [
     title: 'Barbearia',
     items: [
       { id: 'servicos', label: 'Serviços', icon: Scissors, danger: false },
-      { id: 'barbeiros', label: 'Barbeiros', icon: Users, danger: false },
       { id: 'horarios', label: 'Horários', icon: Clock, danger: false },
+      { id: 'barbeiros', label: 'Barbeiros', icon: Users, danger: false },
       { id: 'faltas', label: 'Controle de Faltas', icon: UserX, danger: false },
       { id: 'fidelidade', label: 'Fidelidade', icon: Gift, danger: false },
       { id: 'cupons', label: 'Cupons', icon: Tag, danger: false },

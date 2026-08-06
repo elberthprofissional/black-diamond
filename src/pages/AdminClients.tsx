@@ -7,12 +7,15 @@ import { useReminders } from '../hooks/useReminders';
 import { useToast } from '../hooks/useToast';
 import AdminLayout from '../components/Admin/AdminLayout';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
-import ClientPanel from '../components/Admin/shared/ClientPanel';
 import DeleteClientModal from '../components/Admin/shared/DeleteClientModal';
 import EditClientModal from '../components/Admin/shared/EditClientModal';
 import ClientListHeader from '../components/Admin/clients/ClientListHeader';
 import MobileClientList from '../components/Admin/clients/MobileClientList';
 import DesktopClientGrid from '../components/Admin/clients/DesktopClientGrid';
+
+// Lazy: ClientPanel é grande e só carrega quando o usuário clica num cliente.
+// Reduz o bundle inicial de AdminClients em ~30KB.
+const ClientPanel = lazy(() => import('../components/Admin/shared/ClientPanel'));
 import BulkReminderModal from '../components/Admin/clients/BulkReminderModal';
 import { SkeletonClients } from '../components/Skeleton';
 import type { Client } from '../types';
@@ -155,44 +158,46 @@ const AdminClients: FC = () => {
         )}
       </div>
 
-      {/* Client Panel */}
+      {/* Client Panel — carregado on-demand */}
       <AnimatePresence>
         {c.selectedClient && (
-          <ClientPanel
-            client={c.selectedClient}
-            panelBookings={c.panelBookings}
-            panelTotal={c.panelTotal}
-            panelLast={c.panelLast}
-            notesText={c.notesText}
-            isEditingNotes={c.isEditingNotes}
-            savingNotes={c.savingNotes}
-            plans={c.plans}
-            planName={c.planName}
-            onNotesChange={c.setNotesText}
-            onToggleEditNotes={() => {
-              if (c.isEditingNotes) {
-                c.setIsEditingNotes(false);
-                c.setNotesText(c.selectedClient?.notes || '');
-              } else {
-                c.setIsEditingNotes(true);
-              }
-            }}
-            onSaveNotes={c.handleSaveNotes}
-            onEdit={() => {
-              if (c.selectedClient) {
-                c.setEditName(c.selectedClient.name);
-                c.setEditPhone(c.selectedClient.phone);
-                c.setIsEditing(true);
-              }
-            }}
-            onDelete={() => c.setIsDeleteOpen(true)}
-            onReminder={() => setIsReminderOpen(true)}
-            onClose={c.closePanel}
-            onToggleMensalista={c.handleToggleMensalista}
-            expiresAt={c.expiresAt}
-            onRenewMensalidade={c.handleRenewMensalidade}
-            milestoneProgress={c.milestoneProgress}
-          />
+          <Suspense fallback={null}>
+            <ClientPanel
+              client={c.selectedClient}
+              panelBookings={c.panelBookings}
+              panelTotal={c.panelTotal}
+              panelLast={c.panelLast}
+              notesText={c.notesText}
+              isEditingNotes={c.isEditingNotes}
+              savingNotes={c.savingNotes}
+              plans={c.plans}
+              planName={c.planName}
+              onNotesChange={c.setNotesText}
+              onToggleEditNotes={() => {
+                if (c.isEditingNotes) {
+                  c.setIsEditingNotes(false);
+                  c.setNotesText(c.selectedClient?.notes || '');
+                } else {
+                  c.setIsEditingNotes(true);
+                }
+              }}
+              onSaveNotes={c.handleSaveNotes}
+              onEdit={() => {
+                if (c.selectedClient) {
+                  c.setEditName(c.selectedClient.name);
+                  c.setEditPhone(c.selectedClient.phone);
+                  c.setIsEditing(true);
+                }
+              }}
+              onDelete={() => c.setIsDeleteOpen(true)}
+              onReminder={() => setIsReminderOpen(true)}
+              onClose={c.closePanel}
+              onToggleMensalista={c.handleToggleMensalista}
+              expiresAt={c.expiresAt}
+              onRenewMensalidade={c.handleRenewMensalidade}
+              milestoneProgress={c.milestoneProgress}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
 

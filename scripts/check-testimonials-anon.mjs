@@ -1,9 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
+import { getServiceRoleKey, getAnonKey, getSupabaseUrl } from './lib/env-keys.mjs';
 
 const SUPABASE_URL = 'https://dbukdhycfaibdshxnatt.supabase.co';
 
 // Chave anon REAL (do .env) — role=anon
-const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRidWtkaHljZmFpYmRzaHhuYXR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTMzNDQsImV4cCI6MjA5Njg2OTM0NH0.dhF4GyQ0JzqLM-BSdD8tdmtr0zstiWJf8gu8Uq4gb9s';
+const ANON_KEY = getAnonKey();
 
 const supabaseAnon = createClient(SUPABASE_URL, ANON_KEY);
 

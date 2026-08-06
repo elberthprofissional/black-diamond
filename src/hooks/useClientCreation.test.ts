@@ -66,6 +66,7 @@ vi.mock('./useAuditLog', () => ({
 }));
 
 import { useClientCreation } from './useClientCreation';
+import { queryClientWrapper } from '../test/query-client-wrapper';
 
 describe('useClientCreation', () => {
   beforeEach(() => {
@@ -77,7 +78,9 @@ describe('useClientCreation', () => {
   });
 
   it('returns initial state', () => {
-    const { result } = renderHook(() => useClientCreation(mockLoadData));
+    const { result } = renderHook(() => useClientCreation(mockLoadData), {
+      wrapper: queryClientWrapper(),
+    });
     expect(result.current.isSavingClient).toBe(false);
     expect(result.current.newClientError).toBe('');
     expect(result.current.newClientName).toBe('');
@@ -85,7 +88,9 @@ describe('useClientCreation', () => {
   });
 
   it('does nothing when name is empty', async () => {
-    const { result } = renderHook(() => useClientCreation(mockLoadData));
+    const { result } = renderHook(() => useClientCreation(mockLoadData), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setNewClientName('');
       result.current.setNewClientPhone('11999999999');
@@ -97,7 +102,9 @@ describe('useClientCreation', () => {
   });
 
   it('does nothing when phone is empty', async () => {
-    const { result } = renderHook(() => useClientCreation(mockLoadData));
+    const { result } = renderHook(() => useClientCreation(mockLoadData), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setNewClientName('João');
       result.current.setNewClientPhone('');
@@ -110,7 +117,9 @@ describe('useClientCreation', () => {
 
   it('creates client successfully', async () => {
     mockCreateClient.mockResolvedValue({ id: 'new-1' });
-    const { result } = renderHook(() => useClientCreation(mockLoadData));
+    const { result } = renderHook(() => useClientCreation(mockLoadData), {
+      wrapper: queryClientWrapper(),
+    });
 
     act(() => {
       result.current.setNewClientName('João');
@@ -146,7 +155,9 @@ describe('useClientCreation', () => {
     ];
     mockFrom.mockImplementation(() => buildChain(_fromCalls.shift()!));
 
-    const { result } = renderHook(() => useClientCreation(mockLoadData));
+    const { result } = renderHook(() => useClientCreation(mockLoadData), {
+      wrapper: queryClientWrapper(),
+    });
 
     act(() => {
       result.current.setNewClientName('Maria');
@@ -154,7 +165,11 @@ describe('useClientCreation', () => {
     });
 
     await act(async () => {
-      await result.current.handleCreateClient();
+      try {
+        await result.current.handleCreateClient();
+      } catch {
+        // Erro esperado — mutateAsync propaga mesmo com onError
+      }
     });
 
     expect(result.current.newClientError).toBe('Este telefone já está cadastrado para "Maria".');
@@ -175,7 +190,9 @@ describe('useClientCreation', () => {
     ];
     mockFrom.mockImplementation(() => buildChain(_fromCalls.shift()!));
 
-    const { result } = renderHook(() => useClientCreation(mockLoadData));
+    const { result } = renderHook(() => useClientCreation(mockLoadData), {
+      wrapper: queryClientWrapper(),
+    });
 
     act(() => {
       result.current.setNewClientName('Carlos');
@@ -205,7 +222,9 @@ describe('useClientCreation', () => {
     ];
     mockFrom.mockImplementation(() => buildChain(_fromCalls.shift()!));
 
-    const { result } = renderHook(() => useClientCreation(mockLoadData));
+    const { result } = renderHook(() => useClientCreation(mockLoadData), {
+      wrapper: queryClientWrapper(),
+    });
 
     act(() => {
       result.current.setNewClientName('Ana');
@@ -213,7 +232,11 @@ describe('useClientCreation', () => {
     });
 
     await act(async () => {
-      await result.current.handleCreateClient();
+      try {
+        await result.current.handleCreateClient();
+      } catch {
+        // Erro esperado — mutateAsync propaga mesmo com onError
+      }
     });
 
     expect(result.current.newClientError).toBe('Update failed');
@@ -229,7 +252,9 @@ describe('useClientCreation', () => {
     ];
     mockFrom.mockImplementation(() => buildChain(_fromCalls.shift()!));
 
-    const { result } = renderHook(() => useClientCreation(mockLoadData));
+    const { result } = renderHook(() => useClientCreation(mockLoadData), {
+      wrapper: queryClientWrapper(),
+    });
 
     act(() => {
       result.current.setNewClientName('Pedro');
@@ -237,7 +262,11 @@ describe('useClientCreation', () => {
     });
 
     await act(async () => {
-      await result.current.handleCreateClient();
+      try {
+        await result.current.handleCreateClient();
+      } catch {
+        // Erro esperado — mutateAsync propaga mesmo com onError
+      }
     });
 
     expect(result.current.newClientError).toBe('Este nome já está sendo usado por outro cliente.');
@@ -246,7 +275,9 @@ describe('useClientCreation', () => {
 
   it('handles general error in try/catch', async () => {
     mockCreateClient.mockRejectedValue(new Error('Network error'));
-    const { result } = renderHook(() => useClientCreation(mockLoadData));
+    const { result } = renderHook(() => useClientCreation(mockLoadData), {
+      wrapper: queryClientWrapper(),
+    });
 
     act(() => {
       result.current.setNewClientName('Test');
@@ -254,14 +285,20 @@ describe('useClientCreation', () => {
     });
 
     await act(async () => {
-      await result.current.handleCreateClient();
+      try {
+        await result.current.handleCreateClient();
+      } catch {
+        // Erro esperado — mutateAsync propaga mesmo com onError
+      }
     });
 
     expect(result.current.newClientError).toBe('Network error');
   });
 
   it('resetNewClientForm clears all fields', () => {
-    const { result } = renderHook(() => useClientCreation(mockLoadData));
+    const { result } = renderHook(() => useClientCreation(mockLoadData), {
+      wrapper: queryClientWrapper(),
+    });
 
     act(() => {
       result.current.setNewClientName('Test');
@@ -282,7 +319,9 @@ describe('useClientCreation', () => {
 
   it('creates client with empty optional fields', async () => {
     mockCreateClient.mockResolvedValue({ id: 'new-2' });
-    const { result } = renderHook(() => useClientCreation(mockLoadData));
+    const { result } = renderHook(() => useClientCreation(mockLoadData), {
+      wrapper: queryClientWrapper(),
+    });
 
     act(() => {
       result.current.setNewClientName('  Ana  ');

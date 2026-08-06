@@ -252,8 +252,8 @@ const SettingsCupons: FC = () => {
                 className={`flex items-center justify-between py-4 border-b border-white/[0.04] hover:bg-white/[0.02] transition-all duration-200 px-2 -mx-2 rounded-lg ${inactive ? 'opacity-50' : ''}`}
               >
                 <div className="flex items-center gap-4 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
-                    <Tag size={16} className="text-[#D4AF37]" />
+                  <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center shrink-0">
+                    <Tag size={16} className="text-gold" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -270,7 +270,7 @@ const SettingsCupons: FC = () => {
                       {statusBadge(coupon)}
                     </div>
                     <div className="flex items-center gap-3 mt-1">
-                      <span className="text-[14px] text-[#D4AF37] font-bold">
+                      <span className="text-[14px] text-gold font-bold">
                         {formatDiscountLabel(coupon)}
                       </span>
                       {coupon.description && (
@@ -316,8 +316,8 @@ const SettingsCupons: FC = () => {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
-                      <Tag size={14} className="text-[#D4AF37]" />
+                    <div className="w-9 h-9 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
+                      <Tag size={14} className="text-gold" />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
@@ -326,7 +326,7 @@ const SettingsCupons: FC = () => {
                         </span>
                         {statusBadge(coupon)}
                       </div>
-                      <span className="text-[12px] text-[#D4AF37] font-bold">
+                      <span className="text-[12px] text-gold font-bold">
                         {formatDiscountLabel(coupon)}
                       </span>
                     </div>
@@ -494,10 +494,7 @@ const CouponFormModal: FC<
             <span className="text-[16px] font-bold text-white">
               {screen === 'add' ? 'Novo Cupom' : 'Editar Cupom'}
             </span>
-            <button
-              onClick={onSave}
-              className="text-[#D4AF37] font-bold text-[16px] cursor-pointer"
-            >
+            <button onClick={onSave} className="text-gold font-bold text-[16px] cursor-pointer">
               <Check size={22} />
             </button>
           </div>
@@ -537,7 +534,7 @@ const CouponFormModal: FC<
               </span>
               <button
                 onClick={onSave}
-                className="text-[#D4AF37] font-semibold text-[14px] cursor-pointer"
+                className="text-gold font-semibold text-[14px] cursor-pointer"
               >
                 Salvar
               </button>

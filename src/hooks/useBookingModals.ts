@@ -4,7 +4,8 @@ import { incrementVisit } from '../lib/api/loyalty';
 import { useToast } from './useToast';
 import { useAuditLog } from './useAuditLog';
 import { getErrorMessage } from '../lib/utils';
-import { supabase } from '../lib/supabase';
+import { createNotification } from '../lib/api/notifications';
+import { fireAndForget } from '../lib/fire-and-forget';
 import type { BookingWithClient, Service } from '../types';
 
 export function useBookingModals(loadData: () => Promise<void>, services: Service[] = []) {
@@ -24,10 +25,10 @@ export function useBookingModals(loadData: () => Promise<void>, services: Servic
         services: completingBooking.service_ids,
       });
 
-      // Incrementa fidelidade (visitas acumulativas, checa milestones)
+      // Incrementa fidelidade (visitas acumulativas — não crítica)
       if (completingBooking.client_id) {
-        incrementVisit(completingBooking.client_id).catch(() => {
-          // Falha ao incrementar fidelidade — não crítica, o booking já foi concluído
+        fireAndForget(incrementVisit(completingBooking.client_id), {
+          context: 'useBookingModals/incrementVisit',
         });
       }
 
@@ -103,25 +104,15 @@ export function useBookingModals(loadData: () => Promise<void>, services: Servic
       setBookingToDelete(null);
       setSelectedBooking(null);
 
-      // Fire-and-forget: create notification (don't block UI)
-      supabase.auth.getUser().then(
-        ({ data: { user } }) => {
-          if (!user) return;
-          supabase
-            .from('notifications')
-            .insert({
-              user_id: user.id,
-              title: 'Agendamento Cancelado',
-              body: `${clientName || 'Cliente'} — ${bookingDate} às ${bookingTime?.slice(0, 5)}`,
-              tag: `booking-cancelled-${id}`,
-              url: '/admin',
-            })
-            .then(
-              () => {},
-              () => {}
-            );
-        },
-        () => {}
+      // Fire-and-forget: create cancel notification (don't block UI)
+      fireAndForget(
+        createNotification({
+          title: 'Agendamento Cancelado',
+          body: `${clientName || 'Cliente'} — ${bookingDate} às ${bookingTime?.slice(0, 5)}`,
+          tag: `booking-cancelled-${id}`,
+          url: '/admin',
+        }),
+        { context: 'useBookingModals/createCancelNotification' }
       );
 
       showSuccess('Agendamento cancelado!');

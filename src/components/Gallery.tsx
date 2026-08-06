@@ -52,7 +52,7 @@ const Gallery: FC = memo(() => {
   return (
     <section
       id="galeria"
-      className="py-24 md:py-32 bg-[#0a0a0a] border-t border-white/[0.06] text-white relative overflow-x-clip"
+      className="py-24 md:py-32 bg-dark-surface border-t border-white/[0.06] text-white relative overflow-x-clip"
     >
       <div className="container mx-auto px-6 max-w-6xl text-center">
         {/* Header */}
@@ -89,6 +89,7 @@ const Gallery: FC = memo(() => {
                     src={(item as { url: string }).url}
                     alt={(item as { title: string }).title || 'Foto de corte'}
                     loading="lazy"
+                    decoding="async"
                     sizes="(max-width: 640px) 130px, (max-width: 768px) 240px, 310px"
                     className="w-full h-full object-cover"
                   />

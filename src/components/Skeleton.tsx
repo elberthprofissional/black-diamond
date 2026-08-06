@@ -7,9 +7,13 @@ interface SkeletonProps {
   height?: string | number;
 }
 
+/**
+ * Base Skeleton component with shimmer animation.
+ * Uses a gold-tinted shimmer for a premium feel.
+ */
 const Skeleton: FC<SkeletonProps> = ({ className = '', variant = 'text', width, height }) => {
   const baseClass =
-    'animate-pulse bg-gradient-to-r from-white/[0.04] via-white/[0.08] to-white/[0.04] bg-[length:200%_100%] rounded';
+    'animate-pulse bg-gradient-to-r from-white/[0.03] via-gold/20 to-white/[0.03] bg-[length:200%_100%] rounded';
 
   const variantClass = {
     text: 'h-4 rounded',
@@ -37,9 +41,10 @@ export const SkeletonCard: FC<{ className?: string }> = ({ className = '' }) => 
     aria-busy="true"
     aria-label="Carregando conteúdo"
   >
+    <Skeleton variant="rect" width="100%" height={100} className="mb-2" />
     <Skeleton variant="text" width="40%" height={20} />
-    <Skeleton variant="text" width="100%" height={16} />
-    <Skeleton variant="text" width="60%" height={16} />
+    <Skeleton variant="text" width="100%" height={14} />
+    <Skeleton variant="text" width="60%" height={14} />
   </div>
 );
 
@@ -47,14 +52,18 @@ export const SkeletonList: FC<{ count?: number; className?: string }> = ({
   count = 5,
   className = '',
 }) => (
-  <div className={`space-y-4 ${className}`} aria-busy="true" aria-label="Carregando lista">
+  <div className={`space-y-3 ${className}`} aria-busy="true" aria-label="Carregando lista">
     {Array.from({ length: count }).map((_, i) => (
-      <div key={i} className="flex items-center gap-4 py-3">
-        <Skeleton variant="circle" width={40} height={40} />
+      <div
+        key={i}
+        className="flex items-center gap-4 p-4 bg-white/[0.02] rounded-xl border border-white/[0.04]"
+      >
+        <Skeleton variant="circle" width={44} height={44} />
         <div className="flex-1 space-y-2">
-          <Skeleton variant="text" width="60%" height={14} />
-          <Skeleton variant="text" width="40%" height={12} />
+          <Skeleton variant="text" width="55%" height={15} />
+          <Skeleton variant="text" width="35%" height={12} />
         </div>
+        <Skeleton variant="rect" width={64} height={28} className="rounded-lg" />
       </div>
     ))}
   </div>
@@ -64,14 +73,19 @@ export const SkeletonDashboard: FC = () => (
   <div className="space-y-6" aria-busy="true" aria-label="Carregando painel">
     <div className="flex items-center justify-between">
       <Skeleton variant="text" width={200} height={28} />
-      <Skeleton variant="rect" width={100} height={36} />
+      <Skeleton variant="rect" width={100} height={36} className="rounded-lg" />
     </div>
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <SkeletonCard />
       <SkeletonCard />
       <SkeletonCard />
     </div>
-    <SkeletonList count={8} />
+    <div className="flex gap-2 mb-4">
+      <Skeleton variant="rect" width={80} height={32} className="rounded-lg" />
+      <Skeleton variant="rect" width={80} height={32} className="rounded-lg" />
+      <Skeleton variant="rect" width={80} height={32} className="rounded-lg" />
+    </div>
+    <SkeletonList count={5} />
   </div>
 );
 
@@ -79,10 +93,40 @@ export const SkeletonClients: FC = () => (
   <div className="space-y-6" aria-busy="true" aria-label="Carregando clientes">
     <div className="flex items-center justify-between">
       <Skeleton variant="text" width={160} height={28} />
-      <Skeleton variant="rect" width={120} height={40} />
+      <Skeleton variant="rect" width={120} height={40} className="rounded-xl" />
     </div>
-    <Skeleton variant="rect" width="100%" height={48} />
-    <SkeletonList count={10} />
+    <Skeleton variant="rect" width="100%" height={48} className="rounded-xl" />
+    <SkeletonList count={8} />
+  </div>
+);
+
+/**
+ * Skeleton específico para listas de agendamentos do admin.
+ * Mostra slots de horário com formato de booking card.
+ */
+export const SkeletonBookingList: FC<{ count?: number; className?: string }> = ({
+  count = 6,
+  className = '',
+}) => (
+  <div className={`space-y-2 ${className}`} aria-busy="true" aria-label="Carregando agendamentos">
+    {Array.from({ length: count }).map((_, i) => (
+      <div
+        key={i}
+        className="flex items-center gap-3 p-3 bg-white/[0.02] rounded-xl border border-white/[0.04]"
+      >
+        {/* Hora */}
+        <Skeleton variant="rect" width={48} height={20} className="rounded-md shrink-0" />
+        {/* Avatar */}
+        <Skeleton variant="circle" width={36} height={36} className="shrink-0" />
+        {/* Info */}
+        <div className="flex-1 space-y-1.5">
+          <Skeleton variant="text" width="50%" height={14} />
+          <Skeleton variant="text" width="35%" height={11} />
+        </div>
+        {/* Badge */}
+        <Skeleton variant="rect" width={56} height={22} className="rounded-md shrink-0" />
+      </div>
+    ))}
   </div>
 );
 

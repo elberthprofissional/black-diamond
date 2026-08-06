@@ -125,9 +125,9 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Static assets: stale-while-revalidate
+  // Static assets: stale-while-revalidate (inclui JS do build)
   if (
-    (url.pathname.startsWith('/assets/') && !url.pathname.endsWith('.js')) ||
+    url.pathname.startsWith('/assets/') ||
     url.pathname.endsWith('.webp') ||
     url.pathname.endsWith('.woff2') ||
     url.pathname.endsWith('.css')

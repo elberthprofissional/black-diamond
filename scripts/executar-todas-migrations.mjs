@@ -3,13 +3,15 @@
 /**
  * BLACK DIAMOND — EXECUTAR TODAS AS MIGRATIONS
  * 
- * Lê e executa TODAS as 8 migrations SQL em ordem sequencial.
+ * Lê e executa TODAS as 5 migrations SQL consolidadas em ordem.
  * Tenta múltiplos métodos de execução:
  *   1. RPCs de SQL (exec_sql, execute_sql, pgexecute, etc.)
  *   2. Supabase Management API (precisa de PAT)
  *   3. pg direto (precisa de DATABASE_URL)
  * 
  * Se tudo falhar, salva arquivo consolidado para colar no SQL Editor.
+ *
+ * ⚠️ Defina SUPABASE_SERVICE_KEY no ambiente (não use chave hardcoded).
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -22,9 +24,12 @@ const ROOT = resolve(__dirname, '..');
 const SUPABASE_URL = 'https://dbukdhycfaibdshxnatt.supabase.co';
 const PROJECT_REF = 'dbukdhycfaibdshxnatt';
 
-// Service role key fornecida pelo usuário
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || 
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRidWtkaHljZmFpYmRzaHhuYXR0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTI5MzM0NCwiZXhwIjoyMDk2ODY5MzQ0fQ.-PsylDGBzJN3W1acv6mk80V0Yj_nHScr6hgamTw1LIQ';
+// Service role key — OBRIGATÓRIA via ambiente (nunca hardcoded)
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+if (!SERVICE_KEY) {
+  console.error('\x1b[31m✗\x1b[0m Defina SUPABASE_SERVICE_KEY no ambiente antes de rodar este script.');
+  process.exit(1);
+}
 
 const HEADERS = {
   'Content-Type': 'application/json',
@@ -35,14 +40,11 @@ const HEADERS = {
 // ─── MIGRATIONS EM ORDEM ─────────────────────────────────────────────────────
 
 const MIGRATIONS = [
-  { file: '001_schema_rls.sql',     desc: 'Schema + RLS' },
-  { file: '002_functions_triggers.sql', desc: 'Funções + Triggers' },
-  { file: '003_seed_cron.sql',      desc: 'Seed + Cron' },
-  { file: '004_features.sql',       desc: 'Features (barbers, mensalista)' },
-  { file: '005_fixes.sql',          desc: 'Fixes (no-show, milestones)' },
-  { file: '006_subscriptions.sql',  desc: 'Assinaturas (base)' },
-  { file: '007_monthly_subscriptions.sql', desc: 'Assinatura mensal' },
-  { file: '008_pix_setup.sql',      desc: 'Config PIX' },
+  { file: '001_schema_rls.sql',            desc: 'Schema + RLS + Storage' },
+  { file: '002_functions_triggers.sql',    desc: 'Funções + Triggers + Seed + Cron' },
+  { file: '003_features_fixes.sql',        desc: 'Features (barbers, mensalista) + Fixes' },
+  { file: '004_subscriptions_pix.sql',     desc: 'Assinaturas PIX + Bloqueio + Fix agendamento' },
+  { file: '005_performance_auditoria.sql', desc: 'Índices + View dashboard + Auditoria' },
 ];
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────

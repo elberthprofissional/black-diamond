@@ -22,7 +22,7 @@
     },
     {
       "type": "assertion",
-      "description": "Verify the About/Sobre section with barber photo and bio is visible"
+      "description": "Verify the About/Sobre section with the barbershop photo and bio is visible"
     },
     {
       "type": "assertion",

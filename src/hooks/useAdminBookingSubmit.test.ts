@@ -1,7 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import { createElement, type ReactNode } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAdminBookingSubmit } from './useAdminBookingSubmit';
 import type { Service } from '../types';
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+});
+
+function Wrapper({ children }: { children: ReactNode }) {
+  return createElement(QueryClientProvider, { client: queryClient }, children);
+}
 
 const mockNavigate = vi.fn();
 const mockShowSuccess = vi.fn();
@@ -30,6 +40,10 @@ vi.mock('./useAuditLog', () => ({
   useAuditLog: () => ({ logBooking: mockLogBooking }),
 }));
 
+vi.mock('../contexts/BarberContext', () => ({
+  useBarberContext: () => ({ barbers: [] }),
+}));
+
 vi.mock('./useToast', () => ({
   useToast: () => ({
     showSuccess: mockShowSuccess,
@@ -37,11 +51,18 @@ vi.mock('./useToast', () => ({
   }),
 }));
 
+vi.mock('../lib/api/notifications', () => ({
+  createNotification: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('../lib/fire-and-forget', () => ({
+  fireAndForget: vi.fn(),
+}));
+
 const selectedServices: Service[] = [
   { id: 's1', name: 'Corte de Cabelo', price: 50, duration: 30 },
 ];
 
-// Using a future date (must be after today)
 const FUTURE_DATE = '2027-07-20';
 
 const baseParams = {
@@ -64,12 +85,12 @@ describe('useAdminBookingSubmit', () => {
   });
 
   it('initializes with isSubmitting false', () => {
-    const { result } = renderHook(() => useAdminBookingSubmit(baseParams));
+    const { result } = renderHook(() => useAdminBookingSubmit(baseParams), { wrapper: Wrapper });
     expect(result.current.isSubmitting).toBe(false);
   });
 
   it('creates booking successfully and navigates to admin', async () => {
-    const { result } = renderHook(() => useAdminBookingSubmit(baseParams));
+    const { result } = renderHook(() => useAdminBookingSubmit(baseParams), { wrapper: Wrapper });
     await act(async () => {
       await result.current.handleFinish();
     });
@@ -84,9 +105,9 @@ describe('useAdminBookingSubmit', () => {
       selectedClient: null,
       newClient: { name: '', phone: '' },
     };
-    const { result } = renderHook(() => useAdminBookingSubmit(params));
+    const { result } = renderHook(() => useAdminBookingSubmit(params), { wrapper: Wrapper });
     await act(async () => {
-      await result.current.handleFinish();
+      await result.current.handleFinish().catch(() => {});
     });
     expect(mockShowError).toHaveBeenCalledWith('Preencha todos os campos.');
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -94,9 +115,9 @@ describe('useAdminBookingSubmit', () => {
 
   it('shows error when offline', async () => {
     Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
-    const { result } = renderHook(() => useAdminBookingSubmit(baseParams));
+    const { result } = renderHook(() => useAdminBookingSubmit(baseParams), { wrapper: Wrapper });
     await act(async () => {
-      await result.current.handleFinish();
+      await result.current.handleFinish().catch(() => {});
     });
     expect(mockShowError).toHaveBeenCalledWith(expect.stringContaining('sem conexão'));
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -107,16 +128,16 @@ describe('useAdminBookingSubmit', () => {
       ...baseParams,
       selectedDate: '2020-01-01',
     };
-    const { result } = renderHook(() => useAdminBookingSubmit(params));
+    const { result } = renderHook(() => useAdminBookingSubmit(params), { wrapper: Wrapper });
     await act(async () => {
-      await result.current.handleFinish();
+      await result.current.handleFinish().catch(() => {});
     });
     expect(mockShowError).toHaveBeenCalledWith(expect.stringContaining('data passada'));
     expect(mockCreateBooking).not.toHaveBeenCalled();
   });
 
   it('opens WhatsApp for client after booking', async () => {
-    const { result } = renderHook(() => useAdminBookingSubmit(baseParams));
+    const { result } = renderHook(() => useAdminBookingSubmit(baseParams), { wrapper: Wrapper });
     await act(async () => {
       await result.current.handleFinish();
     });
@@ -127,7 +148,7 @@ describe('useAdminBookingSubmit', () => {
   });
 
   it('opens WhatsApp for barber after booking', async () => {
-    const { result } = renderHook(() => useAdminBookingSubmit(baseParams));
+    const { result } = renderHook(() => useAdminBookingSubmit(baseParams), { wrapper: Wrapper });
     await act(async () => {
       await result.current.handleFinish();
     });
@@ -139,9 +160,9 @@ describe('useAdminBookingSubmit', () => {
 
   it('handles booking creation error', async () => {
     mockCreateBooking.mockRejectedValue(new Error('Erro no banco'));
-    const { result } = renderHook(() => useAdminBookingSubmit(baseParams));
+    const { result } = renderHook(() => useAdminBookingSubmit(baseParams), { wrapper: Wrapper });
     await act(async () => {
-      await result.current.handleFinish();
+      await result.current.handleFinish().catch(() => {});
     });
     expect(mockShowError).toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -164,7 +185,7 @@ describe('useAdminBookingSubmit', () => {
     };
 
     const params = { ...baseParams, rescheduleBooking };
-    const { result } = renderHook(() => useAdminBookingSubmit(params));
+    const { result } = renderHook(() => useAdminBookingSubmit(params), { wrapper: Wrapper });
     await act(async () => {
       await result.current.handleFinish();
     });
@@ -178,7 +199,7 @@ describe('useAdminBookingSubmit', () => {
       selectedClient: null,
       newClient: { name: 'Novo Cliente', phone: '31980159559' },
     };
-    const { result } = renderHook(() => useAdminBookingSubmit(params));
+    const { result } = renderHook(() => useAdminBookingSubmit(params), { wrapper: Wrapper });
     await act(async () => {
       await result.current.handleFinish();
     });
@@ -186,7 +207,7 @@ describe('useAdminBookingSubmit', () => {
   });
 
   it('logs booking creation to audit log', async () => {
-    const { result } = renderHook(() => useAdminBookingSubmit(baseParams));
+    const { result } = renderHook(() => useAdminBookingSubmit(baseParams), { wrapper: Wrapper });
     await act(async () => {
       await result.current.handleFinish();
     });

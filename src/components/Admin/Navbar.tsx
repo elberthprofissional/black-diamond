@@ -58,7 +58,7 @@ const AdminNavbar: FC = () => {
                 aria-haspopup="true"
                 className="flex items-center gap-2 group"
               >
-                <div className="w-8 h-8 rounded-full border border-white/[0.08] group-hover:border-[#D4AF37]/30 transition-all overflow-hidden bg-white/[0.03]">
+                <div className="w-8 h-8 rounded-full border border-white/[0.08] group-hover:border-gold/30 transition-all overflow-hidden bg-white/[0.03]">
                   {barberPhoto ? (
                     <img
                       src={barberPhoto}

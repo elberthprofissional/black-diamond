@@ -2,10 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   checkSubscriptionStatus,
   getPaymentHistory,
-  createAsaasPayment,
   type SubscriptionStatus,
   type PaymentInfo,
-  type PaymentResult,
 } from '../lib/api/subscriptions';
 import { logError } from '../lib/logger';
 
@@ -14,11 +12,7 @@ interface UseSubscriptionReturn {
   loading: boolean;
   error: string | null;
   payments: PaymentInfo[];
-  generatingPayment: boolean;
-  paymentResult: PaymentResult | null;
-  paymentError: string | null;
   refresh: () => Promise<void>;
-  generatePayment: () => Promise<void>;
 }
 
 export function useSubscription(barberId: string | undefined): UseSubscriptionReturn {
@@ -26,9 +20,6 @@ export function useSubscription(barberId: string | undefined): UseSubscriptionRe
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [payments, setPayments] = useState<PaymentInfo[]>([]);
-  const [generatingPayment, setGeneratingPayment] = useState(false);
-  const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
-  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     if (!barberId) return;
@@ -52,26 +43,6 @@ export function useSubscription(barberId: string | undefined): UseSubscriptionRe
     }
   }, [barberId]);
 
-  const generatePayment = useCallback(async () => {
-    if (!barberId) return;
-
-    setGeneratingPayment(true);
-    setPaymentError(null);
-    setPaymentResult(null);
-
-    try {
-      const result = await createAsaasPayment(barberId);
-      setPaymentResult(result);
-      // Atualiza status depois de gerar
-      await refresh();
-    } catch (e) {
-      logError(e, 'useSubscription/generatePayment');
-      setPaymentError(e instanceof Error ? e.message : 'Erro ao gerar pagamento');
-    } finally {
-      setGeneratingPayment(false);
-    }
-  }, [barberId, refresh]);
-
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
@@ -82,10 +53,6 @@ export function useSubscription(barberId: string | undefined): UseSubscriptionRe
     loading,
     error,
     payments,
-    generatingPayment,
-    paymentResult,
-    paymentError,
     refresh,
-    generatePayment,
   };
 }

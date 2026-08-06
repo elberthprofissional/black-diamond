@@ -17,12 +17,12 @@ const CouponBadge: FC<CouponBadgeProps> = ({
 }) => {
   if (variant === 'compact') {
     return (
-      <div className="flex items-center justify-between bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-xl px-3 py-2">
+      <div className="flex items-center justify-between bg-gold/10 border border-gold/20 rounded-xl px-3 py-2">
         <div className="flex items-center gap-2">
-          <Tag size={13} className="text-[#D4AF37]" />
-          <span className="text-[12px] font-bold text-[#D4AF37] tracking-wider">{code}</span>
+          <Tag size={13} className="text-gold" />
+          <span className="text-[12px] font-bold text-gold tracking-wider">{code}</span>
           {discountAmount > 0 && (
-            <span className="text-[10px] text-[#D4AF37]/70">
+            <span className="text-[10px] text-gold/70">
               {formatDiscount(discountAmount, { decimals: true })}
             </span>
           )}
@@ -39,10 +39,10 @@ const CouponBadge: FC<CouponBadgeProps> = ({
   }
 
   return (
-    <div className="flex items-center justify-between bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-xl px-4 py-3">
+    <div className="flex items-center justify-between bg-gold/10 border border-gold/20 rounded-xl px-4 py-3">
       <div className="flex items-center gap-2">
-        <Tag size={14} className="text-[#D4AF37]" />
-        <span className="text-[12px] font-semibold text-[#D4AF37]">{code}</span>
+        <Tag size={14} className="text-gold" />
+        <span className="text-[12px] font-semibold text-gold">{code}</span>
         <span className="text-[12px] text-zinc-400">
           {formatDiscount(discountAmount, { decimals: true })}
         </span>

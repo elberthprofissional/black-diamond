@@ -89,18 +89,16 @@ export default function ResponsiveClientStep({
           /* Selected Client Card */
           <div className="p-5 bg-white/[0.02] border border-white/[0.06] rounded-2xl flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] font-bold text-lg">
+              <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center text-gold font-bold text-lg">
                 {selectedClient.name.charAt(0)}
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <p className="text-[16px] font-semibold text-white">{selectedClient.name}</p>
                   {selectedClient.is_mensalista && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-full">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
-                      <span className="text-[10px] font-bold text-[#D4AF37] uppercase">
-                        Mensalista
-                      </span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gold/10 border border-gold/20 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gold" />
+                      <span className="text-[10px] font-bold text-gold uppercase">Mensalista</span>
                     </span>
                   )}
                 </div>
@@ -114,7 +112,7 @@ export default function ResponsiveClientStep({
                 onSetSearchQuery('');
                 onSetIsManualEntry(true);
               }}
-              className="text-[12px] text-[#D4AF37] hover:text-white transition-colors cursor-pointer"
+              className="text-[12px] text-gold hover:text-white transition-colors cursor-pointer"
             >
               Alterar
             </button>
@@ -143,7 +141,7 @@ export default function ResponsiveClientStep({
                     </div>
                     <ChevronRight
                       size={14}
-                      className="text-zinc-600 group-hover:text-[#D4AF37] transition-colors"
+                      className="text-zinc-600 group-hover:text-gold transition-colors"
                     />
                   </button>
                 ))}
@@ -154,7 +152,7 @@ export default function ResponsiveClientStep({
                   onSetMultipleMatches([]);
                   onSetSearchQuery('');
                 }}
-                className="text-[12px] text-[#D4AF37] hover:text-white transition-colors cursor-pointer"
+                className="text-[12px] text-gold hover:text-white transition-colors cursor-pointer"
               >
                 Nova busca
               </button>
@@ -168,7 +166,7 @@ export default function ResponsiveClientStep({
                 <button
                   type="button"
                   onClick={onOpenSearch}
-                  className="flex items-center gap-1.5 text-[12px] text-[#D4AF37] hover:text-white transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 text-[12px] text-gold hover:text-white transition-colors cursor-pointer"
                 >
                   <Search size={12} /> Ver meus clientes
                 </button>
@@ -182,7 +180,7 @@ export default function ResponsiveClientStep({
                   <input
                     type="text"
                     placeholder="Digite o número ou nome..."
-                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#D4AF37]/50 focus:bg-white/[0.05]"
+                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-gold/50 focus:bg-white/[0.05]"
                     value={searchQuery}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     onKeyDown={(e) => {
@@ -197,7 +195,7 @@ export default function ResponsiveClientStep({
                   type="button"
                   onClick={onSearch}
                   disabled={!searchQuery.trim() || isSearchingClient}
-                  className="px-6 py-3.5 bg-[#D4AF37] text-black text-[12px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#b8962e] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-[#D4AF37]/20"
+                  className="px-6 py-3.5 bg-gold text-black text-[12px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#b8962e] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-gold/20"
                 >
                   {isSearchingClient ? <Loader2 size={14} className="animate-spin" /> : 'Buscar'}
                 </button>
@@ -205,7 +203,7 @@ export default function ResponsiveClientStep({
               <button
                 type="button"
                 onClick={() => onSetIsManualEntry(true)}
-                className="flex items-center gap-2 text-[12px] text-zinc-500 hover:text-[#D4AF37] transition-colors cursor-pointer"
+                className="flex items-center gap-2 text-[12px] text-zinc-500 hover:text-gold transition-colors cursor-pointer"
               >
                 <UserPlus size={14} /> Cadastrar novo cliente
               </button>
@@ -215,13 +213,13 @@ export default function ResponsiveClientStep({
           /* Manual Entry */
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <label className="text-[12px] font-bold text-[#D4AF37]/70 uppercase tracking-wider">
+              <label className="text-[12px] font-bold text-gold/70 uppercase tracking-wider">
                 Dados do Cliente
               </label>
               <button
                 type="button"
                 onClick={onOpenSearch}
-                className="flex items-center gap-1.5 text-[12px] text-[#D4AF37] hover:text-white transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 text-[12px] text-gold hover:text-white transition-colors cursor-pointer"
               >
                 <Search size={12} /> Ver meus clientes
               </button>
@@ -235,7 +233,7 @@ export default function ResponsiveClientStep({
                 <input
                   type="text"
                   placeholder="Nome completo"
-                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#D4AF37]/50 focus:bg-white/[0.05]"
+                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-gold/50 focus:bg-white/[0.05]"
                   value={newClient.name}
                   onChange={(e) =>
                     onSetNewClient({ ...newClient, name: e.target.value.toUpperCase() })
@@ -248,11 +246,9 @@ export default function ResponsiveClientStep({
                     WhatsApp
                   </label>
                   {isMensalista && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-full">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
-                      <span className="text-[10px] font-bold text-[#D4AF37] uppercase">
-                        Mensalista
-                      </span>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gold/10 border border-gold/20 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gold" />
+                      <span className="text-[10px] font-bold text-gold uppercase">Mensalista</span>
                     </span>
                   )}
                 </div>
@@ -264,7 +260,7 @@ export default function ResponsiveClientStep({
                   <input
                     type="tel"
                     placeholder="(00) 00000-0000"
-                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#D4AF37]/50 focus:bg-white/[0.05]"
+                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl py-3.5 pl-11 pr-4 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-gold/50 focus:bg-white/[0.05]"
                     value={newClient.phone}
                     onChange={(e) =>
                       onSetNewClient({ ...newClient, phone: formatPhone(e.target.value) })
@@ -282,7 +278,7 @@ export default function ResponsiveClientStep({
             type="button"
             onClick={onNextStep}
             disabled={!isStepValid(1)}
-            className="w-full py-4 bg-[#D4AF37] text-black text-[14px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#b8962e] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#D4AF37]/20"
+            className="w-full py-4 bg-gold text-black text-[14px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#b8962e] transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-gold/20"
           >
             Continuar <ChevronRight size={16} />
           </button>
@@ -328,7 +324,7 @@ export default function ResponsiveClientStep({
               type="button"
               onClick={() => onSearch()}
               disabled={!searchQuery.trim() || isSearchingClient}
-              className="text-[#D4AF37] text-[14px] font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="text-gold text-[14px] font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {isSearchingClient ? '...' : 'Buscar'}
             </button>
@@ -391,22 +387,20 @@ export default function ResponsiveClientStep({
       </div>
 
       {selectedClient ? (
-        <div className="p-3.5 sm:p-4 bg-[#111111] border border-[#D4AF37]/30 rounded-2xl flex items-center justify-between gap-3 min-w-0">
+        <div className="p-3.5 sm:p-4 bg-[#111111] border border-gold/30 rounded-2xl flex items-center justify-between gap-3 min-w-0">
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <div className="w-11 h-11 bg-[#050505] border border-white/[0.08] rounded-xl flex items-center justify-center text-[#D4AF37] text-base font-bold shrink-0">
+            <div className="w-11 h-11 bg-[#050505] border border-white/[0.08] rounded-xl flex items-center justify-center text-gold text-base font-bold shrink-0">
               {selectedClient.name.charAt(0)}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-bold text-[#D4AF37] tracking-widest uppercase block mb-0.5">
+                <span className="text-[10px] font-bold text-gold tracking-widest uppercase block mb-0.5">
                   CADASTRADO
                 </span>
                 {selectedClient.is_mensalista && (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-full">
-                    <span className="w-1 h-1 rounded-full bg-[#D4AF37]" />
-                    <span className="text-[10px] font-bold text-[#D4AF37] uppercase">
-                      Mensalista
-                    </span>
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gold/10 border border-gold/20 rounded-full">
+                    <span className="w-1 h-1 rounded-full bg-gold" />
+                    <span className="text-[10px] font-bold text-gold uppercase">Mensalista</span>
                   </span>
                 )}
               </div>
@@ -423,7 +417,7 @@ export default function ResponsiveClientStep({
               onSetSearchQuery('');
               onSetIsManualEntry(true);
             }}
-            className="text-[10px] font-bold uppercase tracking-widest text-[#D4AF37] cursor-pointer px-3 py-1.5 shrink-0 bg-white/[0.03] border border-[#D4AF37]/20 rounded-xl hover:bg-white/[0.08] hover:border-[#D4AF37]/40 hover:text-white transition-all duration-200 active:scale-95"
+            className="text-[10px] font-bold uppercase tracking-widest text-gold cursor-pointer px-3 py-1.5 shrink-0 bg-white/[0.03] border border-gold/20 rounded-xl hover:bg-white/[0.08] hover:border-gold/40 hover:text-white transition-all duration-200 active:scale-95"
           >
             Alterar
           </button>
@@ -438,7 +432,7 @@ export default function ResponsiveClientStep({
               <input
                 type="text"
                 placeholder="Insira um nome"
-                className="w-full bg-transparent border border-white/[0.06] focus:border-[#D4AF37]/60 rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-zinc-700"
+                className="w-full bg-transparent border border-white/[0.06] focus:border-gold/60 rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-zinc-700"
                 value={newClient.name}
                 onChange={(e) =>
                   onSetNewClient({ ...newClient, name: e.target.value.toUpperCase() })
@@ -454,18 +448,16 @@ export default function ResponsiveClientStep({
                   WHATSAPP
                 </label>
                 {isMensalista && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-full">
-                    <span className="w-1 h-1 rounded-full bg-[#D4AF37]" />
-                    <span className="text-[10px] font-bold text-[#D4AF37] uppercase">
-                      Mensalista
-                    </span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gold/10 border border-gold/20 rounded-full">
+                    <span className="w-1 h-1 rounded-full bg-gold" />
+                    <span className="text-[10px] font-bold text-gold uppercase">Mensalista</span>
                   </span>
                 )}
               </div>
               <input
                 type="tel"
                 placeholder="(00) 00000-0000"
-                className="w-full bg-transparent border border-white/[0.06] focus:border-[#D4AF37]/60 rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-zinc-700"
+                className="w-full bg-transparent border border-white/[0.06] focus:border-gold/60 rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-zinc-700"
                 value={newClient.phone}
                 onChange={(e) =>
                   onSetNewClient({ ...newClient, phone: formatPhone(e.target.value) })
@@ -482,7 +474,7 @@ export default function ResponsiveClientStep({
               <button
                 type="button"
                 onClick={() => onSetIsManualEntry(false)}
-                className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 hover:text-[#D4AF37] transition-colors cursor-pointer whitespace-nowrap"
+                className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 hover:text-gold transition-colors cursor-pointer whitespace-nowrap"
               >
                 ou buscar cliente existente
               </button>
@@ -493,7 +485,7 @@ export default function ResponsiveClientStep({
               <button
                 type="button"
                 onClick={() => setShowFullSearch(true)}
-                className="w-full flex items-center justify-center gap-2 py-3 text-[12px] font-bold text-[#D4AF37] uppercase tracking-wider hover:bg-white/[0.02] rounded-xl transition-all cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-3 text-[12px] font-bold text-gold uppercase tracking-wider hover:bg-white/[0.02] rounded-xl transition-all cursor-pointer"
               >
                 <Search size={14} /> Ver meus clientes
               </button>

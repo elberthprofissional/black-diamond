@@ -5,7 +5,11 @@ import { useClientCreation } from './useClientCreation';
 export function useClients() {
   const data = useClientsData();
   const panel = useClientPanel(data.setClients, data.plans);
-  const creation = useClientCreation(data.loadData);
+  const loadDataAsync: () => Promise<void> = () => {
+    data.loadData();
+    return Promise.resolve();
+  };
+  const creation = useClientCreation(loadDataAsync);
 
   return {
     // Data

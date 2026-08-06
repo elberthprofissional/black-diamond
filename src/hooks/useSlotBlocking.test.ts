@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useSlotBlocking } from './useSlotBlocking';
+import { queryClientWrapper } from '../test/query-client-wrapper';
 
 const mockToggleSlotBlock = vi.fn();
 const mockUnblockDay = vi.fn();
@@ -29,7 +30,7 @@ describe('useSlotBlocking', () => {
   });
 
   it('inicializa com estados nulos', () => {
-    const { result } = renderHook(() => useSlotBlocking());
+    const { result } = renderHook(() => useSlotBlocking(), { wrapper: queryClientWrapper() });
     expect(result.current.blockingSlot).toBeNull();
     expect(result.current.unblockingBooking).toBeNull();
     expect(result.current.blockingDay).toBe(false);
@@ -37,7 +38,7 @@ describe('useSlotBlocking', () => {
 
   it('blockSlot bloqueia horário com sucesso', async () => {
     mockToggleSlotBlock.mockResolvedValue(undefined);
-    const { result } = renderHook(() => useSlotBlocking());
+    const { result } = renderHook(() => useSlotBlocking(), { wrapper: queryClientWrapper() });
     const onComplete = vi.fn().mockResolvedValue(undefined);
 
     await act(async () => {
@@ -51,10 +52,14 @@ describe('useSlotBlocking', () => {
 
   it('blockSlot trata erro', async () => {
     mockToggleSlotBlock.mockRejectedValue(new Error('Erro'));
-    const { result } = renderHook(() => useSlotBlocking());
+    const { result } = renderHook(() => useSlotBlocking(), { wrapper: queryClientWrapper() });
 
     await act(async () => {
-      await result.current.blockSlot('2026-07-15', '10:00');
+      try {
+        await result.current.blockSlot('2026-07-15', '10:00');
+      } catch {
+        // Erro esperado — mutateAsync propaga mesmo com onError
+      }
     });
 
     expect(result.current.blockingSlot).toBeNull();
@@ -62,7 +67,7 @@ describe('useSlotBlocking', () => {
 
   it('unblockSlot desbloqueia booking com sucesso', async () => {
     mockToggleSlotBlock.mockResolvedValue(undefined);
-    const { result } = renderHook(() => useSlotBlocking());
+    const { result } = renderHook(() => useSlotBlocking(), { wrapper: queryClientWrapper() });
 
     await act(async () => {
       result.current.setUnblockingBooking({
@@ -84,7 +89,7 @@ describe('useSlotBlocking', () => {
 
   it('blockEntireDay bloqueia todos os slots', async () => {
     mockToggleSlotBlock.mockResolvedValue(undefined);
-    const { result } = renderHook(() => useSlotBlocking());
+    const { result } = renderHook(() => useSlotBlocking(), { wrapper: queryClientWrapper() });
     const onComplete = vi.fn().mockResolvedValue(undefined);
 
     await act(async () => {
@@ -96,7 +101,7 @@ describe('useSlotBlocking', () => {
   });
 
   it('blockEntireDay não faz nada com slots vazios', async () => {
-    const { result } = renderHook(() => useSlotBlocking());
+    const { result } = renderHook(() => useSlotBlocking(), { wrapper: queryClientWrapper() });
 
     await act(async () => {
       await result.current.blockEntireDay('2026-07-15', []);
@@ -107,7 +112,7 @@ describe('useSlotBlocking', () => {
 
   it('unblockEntireDay chama unblockDay', async () => {
     mockUnblockDay.mockResolvedValue(undefined);
-    const { result } = renderHook(() => useSlotBlocking());
+    const { result } = renderHook(() => useSlotBlocking(), { wrapper: queryClientWrapper() });
     const onComplete = vi.fn().mockResolvedValue(undefined);
 
     await act(async () => {
@@ -125,7 +130,7 @@ describe('useSlotBlocking', () => {
   });
 
   it('unblockEntireDay não faz nada com array vazio', async () => {
-    const { result } = renderHook(() => useSlotBlocking());
+    const { result } = renderHook(() => useSlotBlocking(), { wrapper: queryClientWrapper() });
 
     await act(async () => {
       await result.current.unblockEntireDay([]);
@@ -136,7 +141,7 @@ describe('useSlotBlocking', () => {
 
   it('blockSlot usa customKey quando fornecido', async () => {
     mockToggleSlotBlock.mockResolvedValue(undefined);
-    const { result } = renderHook(() => useSlotBlocking());
+    const { result } = renderHook(() => useSlotBlocking(), { wrapper: queryClientWrapper() });
 
     await act(async () => {
       await result.current.blockSlot('2026-07-15', '10:00', undefined, 'custom-key');

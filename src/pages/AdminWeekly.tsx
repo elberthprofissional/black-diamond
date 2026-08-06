@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef, type FC } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, memo, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { getLocalDateString, getTimeSlotsForDate } from '../lib/utils';
@@ -8,7 +8,7 @@ import { useBookings } from '../hooks/useBookings';
 import { useSlotBlocking } from '../hooks/useSlotBlocking';
 import { useBookingManagement } from '../hooks/useBookingManagement';
 import { useBarberSettings } from '../hooks/useBarberSettings';
-import { useBarberContext } from '../contexts/BarberContext';
+import { useBarberScope } from '../hooks/useBarberScope';
 import AdminLayout from '../components/Admin/AdminLayout';
 import FilterTabs from '../components/Admin/shared/FilterTabs';
 import OfflineBanner from '../components/Admin/shared/OfflineBanner';
@@ -17,6 +17,7 @@ import { SkeletonDashboard } from '../components/Skeleton';
 import WeekDayBar from '../components/Admin/weekly/WeekDayBar';
 import OccupiedBookingRow from '../components/Admin/weekly/OccupiedBookingRow';
 import { logError } from '../lib/logger';
+import { fireAndForget } from '../lib/fire-and-forget';
 
 /**
  * Calcula segunda-feira da semana, resetando智能mente:
@@ -72,9 +73,16 @@ function getMondayFromDate(d: Date, barberHoursJson?: string): Date {
 }
 
 const AdminWeekly: FC = () => {
-  const { currentBarber, isOwner } = useBarberContext();
-  const barberFilter = isOwner ? undefined : currentBarber?.id;
-  const { bookings, loading, isCached, refetch: loadData } = useBookings(undefined, barberFilter);
+  const { scopedBarberId } = useBarberScope();
+  const {
+    bookings,
+    loading,
+    isCached,
+    refetch: refetchBookings,
+  } = useBookings(undefined, scopedBarberId || undefined);
+  const loadData: () => Promise<void> = useCallback(async () => {
+    await refetchBookings().catch(() => {});
+  }, [refetchBookings]);
   const mgmt = useBookingManagement(loadData);
   const navigate = useNavigate();
   const today = useMemo(() => new Date(), []);
@@ -165,8 +173,8 @@ const AdminWeekly: FC = () => {
     let mounted = true;
 
     const loadAll = () => {
-      loadData().catch(() => {});
-      getAvailableSlots(selectedDateStr)
+      fireAndForget(loadData(), { context: 'AdminWeekly/loadData' });
+      getAvailableSlots(selectedDateStr, scopedBarberId || undefined)
         .then((slots) => {
           if (mounted) setAllSlots(slots);
         })
@@ -217,7 +225,7 @@ const AdminWeekly: FC = () => {
         channelRef.current = null;
       }
     };
-  }, [selectedDateStr, loadData]);
+  }, [selectedDateStr, loadData, scopedBarberId]);
 
   const handleBlockSlot = async (date: string, slot: string) => {
     await blockSlot(date, slot, loadData, `${date}-${slot}`);
@@ -385,7 +393,7 @@ const AdminWeekly: FC = () => {
                               state: { date: selectedDateStr, time: slot },
                             })
                           }
-                          className="text-[10px] font-bold text-zinc-500 hover:text-[#D4AF37] uppercase tracking-wider transition-colors cursor-pointer"
+                          className="text-[10px] font-bold text-zinc-500 hover:text-gold uppercase tracking-wider transition-colors cursor-pointer"
                         >
                           Agendar
                         </button>
@@ -401,7 +409,7 @@ const AdminWeekly: FC = () => {
                   <button
                     onClick={() => unblockEntireDay(blockedBookings, loadData)}
                     disabled={blockingDay}
-                    className="group w-full mb-4 py-3.5 px-4 bg-zinc-900/30 hover:bg-emerald-500/[0.04] border border-white/[0.04] hover:border-emerald-500/20 text-zinc-400 hover:text-[#D4AF37] rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="group w-full mb-4 py-3.5 px-4 bg-zinc-900/30 hover:bg-emerald-500/[0.04] border border-white/[0.04] hover:border-emerald-500/20 text-zinc-400 hover:text-gold rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {blockingDay ? (
                       <div className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
@@ -492,4 +500,4 @@ const AdminWeekly: FC = () => {
   );
 };
 
-export default AdminWeekly;
+export default memo(AdminWeekly);

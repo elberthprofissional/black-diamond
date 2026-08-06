@@ -48,7 +48,7 @@ const CompleteModal: FC<CompleteModalProps> = ({ booking, onConfirm, onCancel })
               <div className="w-px bg-white/[0.04]" />
               <button
                 onClick={onConfirm}
-                className="flex-1 py-3 text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider hover:bg-[#D4AF37]/10 transition-colors cursor-pointer"
+                className="flex-1 py-3 text-[10px] font-bold text-gold uppercase tracking-wider hover:bg-gold/10 transition-colors cursor-pointer"
               >
                 Concluir
               </button>

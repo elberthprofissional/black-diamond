@@ -23,20 +23,6 @@ export interface PaymentInfo {
   created_at: string;
 }
 
-export interface PaymentResult {
-  success: boolean;
-  payment_id: string;
-  payment_link: string;
-  pix_qrcode: {
-    payload: string;
-    encodedImage: string;
-    expirationDate: string;
-  } | null;
-  status: string;
-  due_date: string;
-  value: number;
-}
-
 /**
  * Verifica o status da assinatura de um barbeiro.
  */
@@ -75,40 +61,6 @@ export async function getPaymentHistory(barberId: string): Promise<PaymentInfo[]
     logError(e, 'getPaymentHistory');
     return [];
   }
-}
-
-/**
- * Cria uma cobrança no Asaas e retorna PIX/link de pagamento.
- * Chama a Supabase Edge Function.
- */
-export async function createAsaasPayment(barberId: string): Promise<PaymentResult> {
-  const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-asaas-payment`;
-
-  const { data: barber } = await supabase
-    .from('barbers')
-    .select('name, phone')
-    .eq('id', barberId)
-    .single();
-
-  const response = await fetch(functionUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify({
-      barber_id: barberId,
-      barber_name: barber?.name || undefined,
-      barber_phone: barber?.phone || undefined,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Erro ao criar pagamento' }));
-    throw new Error(errorData.error || 'Erro ao criar pagamento no Asaas');
-  }
-
-  return response.json();
 }
 
 /**

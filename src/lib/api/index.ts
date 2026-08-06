@@ -29,6 +29,8 @@ export {
   updateClientNotes,
   toggleClientMensalista,
   getClientByPhone,
+  registerPublicClient,
+  getClientDashboard,
 } from './clients';
 
 export { getTemplates, createTemplate, deleteTemplate } from './templates';

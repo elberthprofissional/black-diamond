@@ -59,7 +59,7 @@ const EditClientModal: FC<EditClientModalProps> = ({
                   value={name}
                   onChange={(e) => onNameChange(e.target.value)}
                   aria-label="Nome do cliente"
-                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#D4AF37]/35 transition-colors"
+                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-gold/35 transition-colors"
                 />
               </div>
               <div>
@@ -72,7 +72,7 @@ const EditClientModal: FC<EditClientModalProps> = ({
                   value={formatPhone(phone)}
                   onChange={(e) => onPhoneChange(formatPhone(e.target.value))}
                   aria-label="WhatsApp do cliente"
-                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#D4AF37]/35 transition-colors tabular-nums"
+                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-gold/35 transition-colors tabular-nums"
                 />
               </div>
             </div>

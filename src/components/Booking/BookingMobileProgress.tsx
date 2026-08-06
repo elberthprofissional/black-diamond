@@ -1,5 +1,5 @@
 import { type FC } from 'react';
-import { User, Scissors, Clock } from 'lucide-react';
+import { User, Scissors, Calendar, FileText } from 'lucide-react';
 
 interface BookingMobileProgressProps {
   step: number;
@@ -7,8 +7,13 @@ interface BookingMobileProgressProps {
   onBack: () => void;
 }
 
-const STEP_ICONS: FC<{ size?: number; className?: string }>[] = [User, Scissors, Clock];
-const STEP_LABELS = ['Dados', 'Serviços', 'Agenda'];
+const STEP_ICONS: FC<{ size?: number; className?: string }>[] = [
+  User,
+  Scissors,
+  Calendar,
+  FileText,
+];
+const STEP_LABELS = ['Dados', 'Serviços', 'Data/Hora', 'Revisar'];
 
 const BookingMobileProgress: FC<BookingMobileProgressProps> = ({ step, stepTitle, onBack }) => {
   return (
@@ -36,20 +41,14 @@ const BookingMobileProgress: FC<BookingMobileProgressProps> = ({ step, stepTitle
       </div>
       <div className="relative flex justify-between items-center w-full mt-3 px-4 pb-0.5 select-none">
         <div className="absolute left-0 right-0 -mx-9 top-[28px] h-[1px] bg-white/10 z-0" />
+        <div className="absolute left-0 -ml-9 top-[28px] h-[1px] bg-white/10 z-0" />
         <div
-          className="absolute left-0 -ml-9 top-[28px] h-[1px] bg-[#D4AF37] transition-all duration-500 z-0"
+          className="absolute left-0 -ml-9 top-[28px] h-[1px] bg-gold transition-all duration-500 z-0"
           style={{
-            width:
-              step === 1
-                ? '40px'
-                : step === 2
-                  ? 'calc(33.33% + 13.33px)'
-                  : step === 3
-                    ? 'calc(66.66% - 13.33px)'
-                    : 'calc(100% + 72px)',
+            width: `${Math.max(10, ((step - 1) / 3) * 100)}%`,
           }}
         />
-        {[1, 2, 3].map((s) => {
+        {[1, 2, 3, 4].map((s) => {
           const Icon = STEP_ICONS[s - 1];
           if (!Icon) return null;
           const isCompleted = step > s;
@@ -57,33 +56,29 @@ const BookingMobileProgress: FC<BookingMobileProgressProps> = ({ step, stepTitle
           return (
             <div
               key={`m-step-${s}`}
-              className="flex flex-col items-center relative z-10 w-12"
+              className="flex flex-col items-center relative z-10"
               aria-current={isActive ? 'step' : undefined}
             >
               <div className="h-5 flex items-center justify-center mb-1">
                 <Icon
-                  size={13}
+                  size={12}
                   className={
-                    isActive
-                      ? 'text-[#D4AF37]'
-                      : isCompleted
-                        ? 'text-[#D4AF37]/80'
-                        : 'text-zinc-600'
+                    isActive ? 'text-gold' : isCompleted ? 'text-gold/80' : 'text-zinc-600'
                   }
                 />
               </div>
               <div
-                className={`w-2 h-2 rounded-full border transition-all duration-500 ${
+                className={`w-1.5 h-1.5 rounded-full border transition-all duration-500 ${
                   isActive
-                    ? 'bg-[#D4AF37] border-[#D4AF37] shadow-[0_0_8px_rgba(197,160,89,0.5)]'
+                    ? 'bg-gold border-gold shadow-[0_0_8px_rgba(197,160,89,0.5)]'
                     : isCompleted
-                      ? 'bg-[#D4AF37] border-[#D4AF37]'
+                      ? 'bg-gold border-gold'
                       : 'bg-[#050505] border-white/20'
                 }`}
               />
               <span
-                className={`text-[10px] font-bold mt-1.5 transition-colors duration-500 tracking-wider text-center ${
-                  isActive ? 'text-[#D4AF37]' : isCompleted ? 'text-zinc-400' : 'text-zinc-600'
+                className={`text-[8px] font-bold mt-1 transition-colors duration-500 tracking-wider text-center ${
+                  isActive ? 'text-gold' : isCompleted ? 'text-zinc-400' : 'text-zinc-600'
                 }`}
               >
                 {STEP_LABELS[s - 1]}

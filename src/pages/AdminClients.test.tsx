@@ -142,17 +142,24 @@ vi.mock('../hooks/useSubscription', () => ({
   }),
 }));
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 import { BarberProvider } from '../contexts/BarberContext';
 import AdminClients from './AdminClients';
 
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+});
+
 const renderWithRouter = (ui: React.ReactElement) =>
   render(
-    <BrowserRouter>
-      <BarberSettingsProvider>
-        <BarberProvider>{ui}</BarberProvider>
-      </BarberSettingsProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <BarberSettingsProvider>
+          <BarberProvider>{ui}</BarberProvider>
+        </BarberSettingsProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 
 describe('AdminClients', () => {

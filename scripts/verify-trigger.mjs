@@ -1,8 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
+import { getServiceRoleKey, getAnonKey, getSupabaseUrl } from './lib/env-keys.mjs';
 
 const supabase = createClient(
   'https://dbukdhycfaibdshxnatt.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRidWtkaHljZmFpYmRzaHhuYXR0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTI5MzM0NCwiZXhwIjoyMDk2ODY5MzQ0fQ.-PsylDGBzJN3W1acv6mk80V0Yj_nHScr6hgamTw1LIQ'
+  getServiceRoleKey()
 );
 
 async function main() {

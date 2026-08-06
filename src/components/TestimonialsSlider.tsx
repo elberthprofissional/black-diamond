@@ -1,7 +1,6 @@
 import { useRef, useCallback, useState, useEffect, type FC, type MouseEvent } from 'react';
 import { User, Star } from 'lucide-react';
 import { getActiveTestimonials } from '../lib/api/testimonials';
-import { GoogleIcon } from './GoogleReviewBadge';
 import type { Testimonial } from '../types';
 
 const Testimonials: FC = () => {
@@ -118,7 +117,7 @@ const Testimonials: FC = () => {
       className="relative py-24 md:py-32 bg-[#0A0A0A] text-white overflow-hidden"
     >
       {/* Background decoration */}
-      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent" />
+      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
 
       <div className="container mx-auto px-6 relative z-10">
         {/* Header */}
@@ -140,16 +139,11 @@ const Testimonials: FC = () => {
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}
             >
-              <GoogleIcon className="w-4 h-4" />
               <div className="flex items-center gap-0.5">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={11} className="fill-[#D4AF37] text-[#D4AF37]" />
+                  <Star key={i} size={11} className="fill-gold text-gold" />
                 ))}
               </div>
-              <div className="w-px h-3 bg-white/10" />
-              <span className="text-[11px] text-zinc-400 font-sans whitespace-nowrap">
-                Avaliações retiradas do Google
-              </span>
             </div>
           )}
         </div>
@@ -166,7 +160,7 @@ const Testimonials: FC = () => {
             setIsHovered(false);
             handleMouseUp();
           }}
-          className={`flex gap-4 md:gap-6 mb-6 md:mb-8 items-stretch overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 scroll-smooth cursor-grab outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/50 rounded-lg transition-[opacity,transform] duration-500 delay-75 ${
+          className={`flex gap-4 md:gap-6 mb-6 md:mb-8 items-stretch overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 scroll-smooth cursor-grab outline-none focus-visible:ring-2 focus-visible:ring-gold/50 rounded-lg transition-[opacity,transform] duration-500 delay-75 ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
           onScroll={handleScroll}
@@ -185,7 +179,7 @@ const Testimonials: FC = () => {
                 role="group"
                 aria-roledescription="slide"
                 aria-label={`Depoimento ${index + 1} de ${count}`}
-                className="group relative bg-[#111111] border border-white/[0.04] hover:border-[#D4AF37]/25 p-5 md:p-8 rounded-2xl flex flex-col justify-between gap-4 md:gap-5 h-auto w-[85vw] sm:w-[75vw] md:w-[360px] snap-center shrink-0 transition-[border-color,box-shadow] duration-500 hover:shadow-lg hover:shadow-[#D4AF37]/5"
+                className="group relative bg-[#111111] border border-white/[0.04] hover:border-gold/25 p-5 md:p-8 rounded-2xl flex flex-col justify-between gap-4 md:gap-5 h-auto w-[85vw] sm:w-[75vw] md:w-[360px] snap-center shrink-0 transition-[border-color,box-shadow] duration-500 hover:shadow-lg hover:shadow-gold/5"
               >
                 {/* Author - top */}
                 <div className="flex items-center gap-3">
@@ -215,7 +209,7 @@ const Testimonials: FC = () => {
                       size={14}
                       className={`transition-[fill,color,filter] duration-300 ${
                         i < safeRating
-                          ? 'fill-[#D4AF37] text-[#D4AF37] drop-shadow-[0_0_4px_rgba(212,175,55,0.3)]'
+                          ? 'fill-gold text-gold drop-shadow-[0_0_4px_rgba(212,175,55,0.3)]'
                           : 'text-zinc-700'
                       }`}
                     />
@@ -252,9 +246,7 @@ const Testimonials: FC = () => {
                   aria-label={`Ir para depoimento ${index + 1}`}
                   onClick={() => scrollToIndex(index)}
                   className={`h-1.5 rounded-full transition-[width,background-color] duration-500 cursor-pointer ${
-                    activeIndex === index
-                      ? 'bg-[#D4AF37] w-8'
-                      : 'bg-zinc-700 w-1.5 hover:bg-zinc-500'
+                    activeIndex === index ? 'bg-gold w-8' : 'bg-zinc-700 w-1.5 hover:bg-zinc-500'
                   }`}
                 />
               ))}

@@ -1,6 +1,6 @@
 import { memo, type FC } from 'react';
 import { formatPhone, formatPricePublic, formatPriceAdmin, formatDiscount } from '../../lib/utils';
-import { Tag } from 'lucide-react';
+import { Scissors, Tag } from 'lucide-react';
 import type { Service } from '../../types';
 import CouponBadge from './CouponBadge';
 
@@ -27,6 +27,7 @@ function formatarDataBR(dataStr: string): string {
 interface ReviewStepProps {
   userName: string;
   userPhone: string;
+  barberName?: string;
   selectedDate: string;
   selectedTime: string;
   selectedServices: Service[];
@@ -50,6 +51,7 @@ const ReviewStep: FC<ReviewStepProps> = memo(
   ({
     userName,
     userPhone,
+    barberName,
     selectedDate,
     selectedTime,
     selectedServices,
@@ -87,6 +89,11 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                   <div className="min-w-0 flex-1">
                     <p className="text-[16px] font-bold text-white truncate">{userName}</p>
                     <p className="text-[14px] text-zinc-500">{formatPhone(userPhone)}</p>
+                    {barberName && (
+                      <p className="text-[12px] text-gold/80 mt-0.5 flex items-center gap-1.5">
+                        <Scissors size={11} /> Com {barberName}
+                      </p>
+                    )}
                   </div>
                   <div className="text-right shrink-0">
                     <div className="flex items-center gap-1.5 text-zinc-400">
@@ -221,6 +228,17 @@ const ReviewStep: FC<ReviewStepProps> = memo(
                 <p className="text-[14px] font-semibold text-white">{formatPhone(userPhone)}</p>
               </div>
             </div>
+
+            {/* Barbeiro */}
+            {barberName && (
+              <div className="flex items-center gap-4 py-3.5 border-b border-white/[0.03]">
+                <Scissors size={19} className="text-[#D4AF37] shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] text-zinc-500 font-medium">Barbeiro</p>
+                  <p className="text-[14px] font-semibold text-white">{barberName}</p>
+                </div>
+              </div>
+            )}
 
             {/* Serviço */}
             <div className="flex items-center gap-4 py-3.5 border-b border-white/[0.03]">

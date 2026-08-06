@@ -53,16 +53,19 @@ const AdminSidebar: FC = memo(() => {
     <aside className="hidden lg:flex flex-col w-[260px] h-screen fixed left-0 top-0 bg-[#0A0A0A] border-r border-white/5 z-[100] font-sans">
       {/* Branding */}
       <div className="h-28 flex items-center px-6">
-        <div
-          className="flex items-center gap-3 cursor-pointer"
-          onClick={() => navigate(isOwner ? '/admin' : '/barber')}
-        >
-          <img src="/assets/logo.webp" alt="Black Diamond" className="w-10 h-10 object-contain" />
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/admin')}>
+          <img
+            src="/assets/logo.webp"
+            alt="Black Diamond"
+            loading="lazy"
+            decoding="async"
+            className="w-10 h-10 object-contain"
+          />
           <div className="flex items-baseline gap-1">
             <span className="text-[14px] font-bebas tracking-[0.06em] text-white uppercase leading-none">
               {(brandName || 'BLACK DIAMOND').split(' ')[0]}
             </span>
-            <span className="text-[14px] font-bebas tracking-[0.05em] leading-none uppercase text-[#D4AF37]">
+            <span className="text-[14px] font-bebas tracking-[0.05em] leading-none uppercase text-gold">
               {(brandName || 'BLACK DIAMOND').split(' ').slice(1).join(' ') || 'DIAMOND'}
             </span>
           </div>
@@ -91,13 +94,13 @@ const AdminSidebar: FC = memo(() => {
                   {active && (
                     <motion.div
                       layoutId="activeIndicator"
-                      className="absolute left-0 w-1 h-4 bg-[#D4AF37] rounded-r-full"
+                      className="absolute left-0 w-1 h-4 bg-gold rounded-r-full"
                     />
                   )}
 
                   <Icon
                     size={16}
-                    className={`transition-colors ${active ? 'text-[#D4AF37]' : 'text-zinc-600 group-hover:text-zinc-400'}`}
+                    className={`transition-colors ${active ? 'text-gold' : 'text-zinc-600 group-hover:text-zinc-400'}`}
                   />
 
                   <span
@@ -129,7 +132,13 @@ const AdminSidebar: FC = memo(() => {
             <div className="relative shrink-0">
               <div className="w-9 h-9 rounded-full border border-white/[0.08] overflow-hidden">
                 {barberPhoto ? (
-                  <img src={barberPhoto} alt={barberName} className="w-full h-full object-cover" />
+                  <img
+                    src={barberPhoto}
+                    alt={barberName}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-white/[0.03]">
                     <User size={14} className="text-zinc-600" />

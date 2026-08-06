@@ -19,9 +19,9 @@ const ClosedDayView: FC = () => {
 
       {/* Decorative dots */}
       <div className="flex items-center gap-1.5 mt-8">
-        <div className="w-1 h-1 rounded-full bg-[#D4AF37]/30" />
-        <div className="w-1 h-1 rounded-full bg-[#D4AF37]/20" />
-        <div className="w-1 h-1 rounded-full bg-[#D4AF37]/10" />
+        <div className="w-1 h-1 rounded-full bg-gold/30" />
+        <div className="w-1 h-1 rounded-full bg-gold/20" />
+        <div className="w-1 h-1 rounded-full bg-gold/10" />
       </div>
     </motion.div>
   );

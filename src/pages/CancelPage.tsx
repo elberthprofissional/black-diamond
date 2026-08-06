@@ -287,10 +287,10 @@ export default function CancelPage() {
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
-            <div className="w-12 h-12 rounded-full border-2 border-[#D4AF37]/20 border-t-[#D4AF37] animate-spin" />
+            <div className="w-12 h-12 rounded-full border-2 border-gold/20 border-t-[#D4AF37] animate-spin" />
             <Sparkles
               size={14}
-              className="text-[#D4AF37] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+              className="text-gold absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
             />
           </div>
           <p className="text-[12px] text-zinc-500 tracking-wide">Carregando agendamentos...</p>
@@ -329,13 +329,15 @@ export default function CancelPage() {
   return (
     <div className="min-h-screen bg-[#050505] relative overflow-hidden">
       {/* Subtle background texture */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#D4AF37]/[0.03] via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gold/[0.03] via-transparent to-transparent pointer-events-none" />
 
       <div className="relative px-4 py-8 pb-12">
         <div className="max-w-lg mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center gap-4">
             <button
+              type="button"
+              aria-label="Voltar"
               onClick={() => {
                 if (view === 'list' || view === 'success') {
                   setView(initialToken ? 'list' : 'search');
@@ -346,9 +348,15 @@ export default function CancelPage() {
               }}
               className="w-11 h-11 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.15] transition-all cursor-pointer"
             >
-              <ArrowLeft size={16} />
+              <ArrowLeft size={16} aria-hidden="true" />
             </button>
-            <img src="/assets/logo.webp" alt="Black Diamond" className="w-8 h-8" />
+            <img
+              src="/assets/logo.webp"
+              alt="Black Diamond"
+              loading="lazy"
+              decoding="async"
+              className="w-8 h-8"
+            />
             <div>
               <h1 className="text-lg font-bold text-white tracking-tight">
                 {view === 'reschedule'
@@ -357,7 +365,7 @@ export default function CancelPage() {
                     ? 'Meus Agendamentos'
                     : 'Cancelar ou Reagendar'}
               </h1>
-              <p className="text-[10px] text-[#D4AF37]/60 uppercase tracking-[0.2em] font-medium">
+              <p className="text-[10px] text-gold/60 uppercase tracking-[0.2em] font-medium">
                 Black Diamond
               </p>
             </div>
@@ -379,7 +387,7 @@ export default function CancelPage() {
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                     placeholder="(00) 00000-0000"
                     maxLength={11}
-                    className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[16px] text-white outline-none focus:border-[#D4AF37] transition-all placeholder:text-zinc-600"
+                    className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[16px] text-white outline-none focus:border-gold transition-all placeholder:text-zinc-600"
                     required
                   />
                   <button
@@ -415,10 +423,12 @@ export default function CancelPage() {
                   <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-center gap-3 backdrop-blur-sm">
                     <span className="text-[12px] text-red-400">{error}</span>
                     <button
+                      type="button"
+                      aria-label="Fechar aviso"
                       onClick={() => setError('')}
                       className="ml-auto text-red-400 hover:text-red-300 cursor-pointer"
                     >
-                      <X size={14} />
+                      <X size={14} aria-hidden="true" />
                     </button>
                   </div>
                 )}
@@ -427,11 +437,11 @@ export default function CancelPage() {
                 {activeBookings.length > 0 && (
                   <div className="space-y-4">
                     <div className="flex items-center gap-3 mb-5">
-                      <div className="h-px flex-1 bg-gradient-to-r from-[#D4AF37]/20 to-transparent" />
-                      <p className="text-[10px] font-bold text-[#D4AF37]/50 uppercase tracking-[0.25em]">
+                      <div className="h-px flex-1 bg-gradient-to-r from-gold/20 to-transparent" />
+                      <p className="text-[10px] font-bold text-gold/50 uppercase tracking-[0.25em]">
                         {initialToken ? 'Agendamentos ativos' : 'Seus agendamentos'}
                       </p>
-                      <div className="h-px flex-1 bg-gradient-to-l from-[#D4AF37]/20 to-transparent" />
+                      <div className="h-px flex-1 bg-gradient-to-l from-gold/20 to-transparent" />
                     </div>
 
                     {(initialToken ? activeBookings : activeBookings).map((b, index) => (
@@ -444,25 +454,25 @@ export default function CancelPage() {
                         className="group relative"
                       >
                         {/* Glow effect on hover */}
-                        <div className="absolute -inset-px bg-gradient-to-b from-[#D4AF37]/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <div className="absolute -inset-px bg-gradient-to-b from-gold/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                         <div className="relative bg-[#0c0c0c] border border-white/[0.06] rounded-2xl overflow-hidden">
                           {/* Gold accent line */}
-                          <div className="h-[2px] bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
+                          <div className="h-[2px] bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
 
                           <div className="p-5 space-y-4">
                             {/* Date + Time Header */}
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center">
-                                  <Calendar size={16} className="text-[#D4AF37]" />
+                                <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center">
+                                  <Calendar size={16} className="text-gold" />
                                 </div>
                                 <div>
                                   <p className="text-[16px] font-bold text-white tracking-tight">
                                     {formatDate(b.booking_date)}
                                   </p>
                                   <div className="flex items-center gap-1.5 mt-0.5">
-                                    <span className="text-[12px] font-black text-[#D4AF37] tabular-nums">
+                                    <span className="text-[12px] font-black text-gold tabular-nums">
                                       {String(b.booking_time).slice(0, 5)}
                                     </span>
                                   </div>
@@ -492,7 +502,7 @@ export default function CancelPage() {
                             <div className="flex items-center gap-2.5 pl-[52px]">
                               <button
                                 onClick={() => startReschedule(b)}
-                                className="flex-1 h-11 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#b8944d] text-black font-bold text-[10px] uppercase tracking-[0.15em] hover:from-[#d4b06a] hover:to-[#D4AF37] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-[#D4AF37]/20"
+                                className="flex-1 h-11 rounded-xl bg-gradient-to-r from-gold to-[#b8944d] text-black font-bold text-[10px] uppercase tracking-[0.15em] hover:from-[#d4b06a] hover:to-gold active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-gold/20"
                               >
                                 Reagendar
                                 <ChevronRight size={12} />
@@ -615,7 +625,7 @@ export default function CancelPage() {
                         onClick={() => setSelectedDate(day.fullDate)}
                         className={`flex-shrink-0 w-16 py-3 rounded-xl border text-center transition-all cursor-pointer ${
                           selectedDate === day.fullDate
-                            ? 'bg-[#D4AF37]/10 border-[#D4AF37]/30 text-[#D4AF37]'
+                            ? 'bg-gold/10 border-gold/30 text-gold'
                             : 'border-white/[0.06] text-zinc-400 hover:border-white/[0.12]'
                         }`}
                       >
@@ -646,7 +656,7 @@ export default function CancelPage() {
                             onClick={() => setSelectedTime(slot)}
                             className={`py-2.5 rounded-xl border text-[12px] font-bold transition-all cursor-pointer ${
                               selectedTime === slot
-                                ? 'bg-[#D4AF37] border-[#D4AF37] text-black'
+                                ? 'bg-gold border-gold text-black'
                                 : 'border-white/[0.06] text-zinc-400 hover:border-white/[0.12]'
                             }`}
                           >
@@ -673,7 +683,7 @@ export default function CancelPage() {
                       value={rescheduleName}
                       onChange={(e) => setRescheduleName(e.target.value)}
                       placeholder="Seu nome"
-                      className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[16px] text-white outline-none focus:border-[#D4AF37] transition-all placeholder:text-zinc-600"
+                      className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[16px] text-white outline-none focus:border-gold transition-all placeholder:text-zinc-600"
                     />
                   </div>
                   <div>
@@ -686,7 +696,7 @@ export default function CancelPage() {
                       onChange={(e) => setReschedulePhone(e.target.value.replace(/\D/g, ''))}
                       placeholder="(00) 00000-0000"
                       maxLength={11}
-                      className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[16px] text-white outline-none focus:border-[#D4AF37] transition-all placeholder:text-zinc-600"
+                      className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[16px] text-white outline-none focus:border-gold transition-all placeholder:text-zinc-600"
                     />
                   </div>
                 </div>
@@ -751,6 +761,13 @@ export default function CancelPage() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-5"
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    setShowTokenModal(false);
+                    setTokenInput('');
+                    setPendingCancelId(null);
+                  }
+                }}
                 onClick={() => {
                   setShowTokenModal(false);
                   setTokenInput('');
@@ -758,13 +775,18 @@ export default function CancelPage() {
                 }}
               >
                 <motion.div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="token-modal-title"
                   initial={{ scale: 0.95 }}
                   animate={{ scale: 1 }}
                   className="bg-[#111] border border-white/[0.08] rounded-2xl p-5 w-full max-w-sm space-y-4"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="text-center space-y-2">
-                    <p className="text-[14px] font-bold text-white">Token de gerenciamento</p>
+                    <p id="token-modal-title" className="text-[14px] font-bold text-white">
+                      Token de gerenciamento
+                    </p>
                     <p className="text-[12px] text-zinc-500">
                       Informe o token enviado no link de gerenciamento do agendamento.
                     </p>
@@ -775,7 +797,7 @@ export default function CancelPage() {
                     onChange={(e) => setTokenInput(e.target.value)}
                     placeholder="Cole o token aqui"
                     maxLength={255}
-                    className="w-full h-10 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 text-[14px] text-white outline-none focus:border-[#D4AF37] transition-all placeholder:text-zinc-600"
+                    className="w-full h-10 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 text-[14px] text-white outline-none focus:border-gold transition-all placeholder:text-zinc-600"
                     autoFocus
                   />
                   {error && showTokenModal && (

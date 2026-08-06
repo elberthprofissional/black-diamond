@@ -2,7 +2,7 @@
   "projectId": "fd821351-8286-45a2-bd1d-df63cea0db27",
   "type": "frontend",
   "name": "Agendamento público - fluxo completo",
-  "description": "Visitante acessa a página de agendamento, preenche dados, seleciona barbeiro, serviço, data/hora e confirma",
+  "description": "Visitante acessa a página de agendamento, preenche dados, seleciona serviço, data/hora e confirma",
   "priority": "p0",
   "planSteps": [
     {
@@ -27,11 +27,7 @@
     },
     {
       "type": "action",
-      "description": "If a barber selection screen appears with the heading 'Quem vai te atender?', click on the barber named 'Tato' to select them before proceeding"
-    },
-    {
-      "type": "action",
-      "description": "Click the 'Continuar' button (data-testid='next-step') to proceed past the barber step to service selection"
+      "description": "Click the 'Continuar' button (data-testid='next-step') to proceed to service selection"
     },
     {
       "type": "assertion",

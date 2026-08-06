@@ -66,7 +66,7 @@ const ReminderModal: FC<ReminderModalProps> = ({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: '100%', opacity: 0 }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="relative w-full sm:w-[480px] sm:max-h-[80vh] h-[100dvh] sm:h-auto sm:rounded-2xl mt-auto sm:mt-0 bg-[#0E0E0E] border-t sm:border border-[#D4AF37]/20 shadow-2xl overflow-y-auto scrollbar-hide flex flex-col text-white"
+            className="relative w-full sm:w-[480px] sm:max-h-[80vh] h-[100dvh] sm:h-auto sm:rounded-2xl mt-auto sm:mt-0 bg-[#0E0E0E] border-t sm:border border-gold/20 shadow-2xl overflow-y-auto scrollbar-hide flex flex-col text-white"
           >
             <div className="sticky top-0 bg-[#0E0E0E]/95 backdrop-blur-md z-10 px-6 py-5 flex items-center justify-between border-b border-white/[0.04] shrink-0">
               <div className="flex items-center gap-3">
@@ -80,7 +80,7 @@ const ReminderModal: FC<ReminderModalProps> = ({
                   </button>
                 )}
                 <div className="text-left">
-                  <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.25em] block">
+                  <span className="text-[10px] font-black text-gold uppercase tracking-[0.25em] block">
                     {mode === 'create' ? 'Mensagem Personalizada' : 'Enviar Lembrete'}
                   </span>
                   <p className="text-sm font-semibold text-zinc-100 mt-1">{clientName}</p>
@@ -116,7 +116,7 @@ const ReminderModal: FC<ReminderModalProps> = ({
                             tabIndex={0}
                             aria-expanded={isExpanded}
                             aria-label={`Modelo ${index + 1}`}
-                            className={`p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/50 ${
+                            className={`p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border transition-all cursor-pointer text-left outline-none focus-visible:ring-2 focus-visible:ring-gold/50 ${
                               isExpanded
                                 ? 'bg-white/[0.04] border-white/20 shadow-lg'
                                 : 'bg-white/[0.01] border-white/[0.04] hover:border-white/10 hover:bg-white/[0.02]'
@@ -180,7 +180,7 @@ const ReminderModal: FC<ReminderModalProps> = ({
                         setCustomText('');
                         setMode('create');
                       }}
-                      className="w-full py-4 border border-[#D4AF37]/20 hover:border-[#D4AF37]/40 bg-[#D4AF37]/[0.02] text-[#D4AF37] font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-[#D4AF37]/[0.05] active:scale-[0.98] transition-all cursor-pointer text-center"
+                      className="w-full py-4 border border-gold/20 hover:border-gold/40 bg-gold/[0.02] text-gold font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-gold/[0.05] active:scale-[0.98] transition-all cursor-pointer text-center"
                     >
                       + Criar Lembrete
                     </button>
@@ -196,7 +196,7 @@ const ReminderModal: FC<ReminderModalProps> = ({
                         onChange={(e) => setCustomText(e.target.value)}
                         placeholder="Escreva a mensagem de lembrete..."
                         aria-label="Mensagem personalizada de lembrete"
-                        className="w-full bg-black/40 border border-white/[0.06] rounded-2xl px-5 py-4 text-sm text-zinc-200 outline-none focus:border-[#D4AF37]/30 resize-none h-48 placeholder:text-zinc-700 leading-relaxed focus:bg-white/[0.01] transition-all"
+                        className="w-full bg-black/40 border border-white/[0.06] rounded-2xl px-5 py-4 text-sm text-zinc-200 outline-none focus:border-gold/30 resize-none h-48 placeholder:text-zinc-700 leading-relaxed focus:bg-white/[0.01] transition-all"
                       />
                       <button
                         onClick={() => {
@@ -236,7 +236,7 @@ const ReminderModal: FC<ReminderModalProps> = ({
                       <button
                         onClick={handleSendCustom}
                         disabled={!customText.trim()}
-                        className="w-full sm:flex-1 py-3 bg-[#D4AF37] disabled:opacity-30 hover:bg-[#b8962e] text-black font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer text-center flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                        className="w-full sm:flex-1 py-3 bg-gold disabled:opacity-30 hover:bg-[#b8962e] text-black font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer text-center flex items-center justify-center gap-1.5 active:scale-[0.98]"
                       >
                         <svg
                           className="w-3.5 h-3.5 shrink-0"

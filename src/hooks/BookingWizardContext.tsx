@@ -5,6 +5,7 @@ import {
   useMemo,
   useCallback,
   useEffect,
+  useRef,
   type ReactNode,
   type RefObject,
   type MouseEvent,
@@ -18,6 +19,7 @@ import { useBookingPayment } from './useBookingPayment';
 import { useBookingLoyalty } from './useBookingLoyalty';
 import { useServices } from './useServices';
 import { applyCoupon } from '../lib/api';
+import { saveClientSession } from '../lib/clientSession';
 import type { Service, Barber } from '../types';
 
 interface BookingWizardValue {
@@ -28,6 +30,7 @@ interface BookingWizardValue {
   selectedDate: string;
   selectedTime: string;
   userInfo: { name: string; phone: string };
+  barbers: Barber[];
   selectedBarber: Barber | null;
   onSelectBarber: (barber: Barber) => void;
   totalPrice: number;
@@ -77,6 +80,8 @@ interface BookingWizardValue {
   originalPrice?: number;
   onCouponValidate?: (code: string) => Promise<void>;
   onCouponRemove?: () => void;
+  /** Resultado da confirmação: token + link de gerenciamento (link mágico). */
+  bookingResult?: { token: string; manageUrl: string } | null;
 }
 
 /* eslint-disable react-refresh/only-export-components */
@@ -91,7 +96,7 @@ export function BookingWizardProvider({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { barbers } = useBarberContext();
+  const { bookableBarbers } = useBarberContext();
 
   // ── Step control ──
   const {
@@ -116,13 +121,13 @@ export function BookingWizardProvider({
     };
   });
 
-  // ── Auto-select first barber ──
+  // ── Auto-select quando há apenas UM barbeiro disponível ──
   useEffect(() => {
-    if (barbers.length > 0 && !selectedBarber) {
+    if (bookableBarbers.length === 1 && !selectedBarber) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSelectedBarber(barbers[0] ?? null);
+      setSelectedBarber(bookableBarbers[0] ?? null);
     }
-  }, [barbers, selectedBarber]);
+  }, [bookableBarbers, selectedBarber]);
 
   // ── Client lookup ──
   const handleNameFound = useCallback((name: string) => {
@@ -150,7 +155,20 @@ export function BookingWizardProvider({
   }, [lastBooking, allServices, wizardGoNext]);
 
   // ── Slots ──
+  // Multi-barbeiro: os horários disponíveis são filtrados pelo barbeiro escolhido
   const slots = useBookingSlots(showError, selectedBarber?.id);
+
+  // ── Trocar de barbeiro reseta a data/horário escolhidos ──
+  const prevBarberIdRef = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    const currentId = selectedBarber?.id;
+    if (prevBarberIdRef.current !== undefined && prevBarberIdRef.current !== currentId) {
+      slots.setSelectedDate('');
+      slots.setSelectedTime('');
+    }
+    prevBarberIdRef.current = currentId;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBarber?.id]);
 
   // ── Payment ──
   const {
@@ -176,6 +194,9 @@ export function BookingWizardProvider({
 
   // ── Confirm booking ──
   const [isOfflineBooking, setIsOfflineBooking] = useState(false);
+  const [bookingResult, setBookingResult] = useState<{ token: string; manageUrl: string } | null>(
+    null
+  );
 
   const handleConfirm = useCallback(async () => {
     if (isSubmitting) return null;
@@ -189,10 +210,20 @@ export function BookingWizardProvider({
       couponId: coupon?.coupon_id,
       discountAmount: coupon?.discount_amount,
       barberId: selectedBarber?.id,
+      barberUserId: selectedBarber?.user_id,
       barberPhone: selectedBarber?.phone,
     });
     if (result) {
-      if (result.queued) setIsOfflineBooking(true);
+      if (result.queued) {
+        setIsOfflineBooking(true);
+      } else {
+        // Link mágico: guarda o token para a tela de sucesso e salva a sessão
+        // do cliente no dispositivo (volta direto ao dashboard na próxima visita).
+        if (result.token && result.manageUrl) {
+          setBookingResult({ token: result.token, manageUrl: result.manageUrl });
+          saveClientSession(userInfo.phone.replace(/\D/g, ''), userInfo.name.trim());
+        }
+      }
       if (coupon?.coupon_id && !result.queued) {
         applyCoupon(coupon.coupon_id).catch(() => {
           /* não crítica */
@@ -211,6 +242,7 @@ export function BookingWizardProvider({
     isMensalista,
     coupon,
     selectedBarber?.id,
+    selectedBarber?.user_id,
     selectedBarber?.phone,
   ]);
 
@@ -264,6 +296,7 @@ export function BookingWizardProvider({
       setSelectedTime: slots.setSelectedTime,
       userInfo,
       setUserInfo,
+      barbers: bookableBarbers,
       selectedBarber,
       onSelectBarber: setSelectedBarber,
       isSubmitting,
@@ -296,6 +329,7 @@ export function BookingWizardProvider({
       servicesLoading,
       originalPrice: calculatedTotalPrice,
       nextMilestone,
+      bookingResult,
     }),
     [
       step,
@@ -309,6 +343,7 @@ export function BookingWizardProvider({
       slots.setSelectedTime,
       userInfo,
       setUserInfo,
+      bookableBarbers,
       selectedBarber,
       isSubmitting,
       slots.existingBookings,
@@ -339,6 +374,7 @@ export function BookingWizardProvider({
       handleCouponRemove,
       servicesLoading,
       nextMilestone,
+      bookingResult,
     ]
   );
 

@@ -63,9 +63,9 @@ const SettingsFaltas: FC = () => {
     },
     medio: {
       label: 'Equilibrado',
-      color: 'text-[#D4AF37]',
-      bg: 'bg-[#D4AF37]/10',
-      border: 'border-[#D4AF37]/20',
+      color: 'text-gold',
+      bg: 'bg-gold/10',
+      border: 'border-gold/20',
       desc: 'Equilíbrio entre confiança e atenção.',
     },
     baixo: {
@@ -117,7 +117,7 @@ const SettingsFaltas: FC = () => {
             <span className={`text-[10px] font-bold uppercase tracking-wider ${sev.color}`}>
               {sev.label}
             </span>
-            <span className="text-xl font-black text-[#D4AF37] tabular-nums">{maxNoShows}x</span>
+            <span className="text-xl font-black text-gold tabular-nums">{maxNoShows}x</span>
           </div>
         </div>
 
@@ -129,12 +129,12 @@ const SettingsFaltas: FC = () => {
           onChange={(e) => setMaxNoShows(e.target.value)}
           className="w-full h-1.5 bg-white/[0.06] rounded-full appearance-none cursor-pointer
             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5
-            [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#D4AF37]
-            [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:shadow-[#D4AF37]/30
+            [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gold
+            [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:shadow-gold/30
             [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2
             [&::-webkit-slider-thumb]:border-[#111111]
             [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full
-            [&::-moz-range-thumb]:bg-[#D4AF37] [&::-moz-range-thumb]:border-2
+            [&::-moz-range-thumb]:bg-gold [&::-moz-range-thumb]:border-2
             [&::-moz-range-thumb]:border-[#111111] [&::-moz-range-thumb]:cursor-pointer"
         />
 

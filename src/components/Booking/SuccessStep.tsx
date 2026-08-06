@@ -1,8 +1,7 @@
-import { useState, useEffect, type FC } from 'react';
-import { Check, ArrowLeft } from 'lucide-react';
+import { useState, type FC } from 'react';
+import { Check, ArrowLeft, Link2, CalendarClock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useBarberSettings } from '../../hooks/useBarberSettings';
-import ReviewRequestModal from '../ReviewRequestModal';
 
 interface SuccessStepProps {
   clientName: string;
@@ -13,6 +12,8 @@ interface SuccessStepProps {
     progress: number;
     already_claimed: boolean;
   } | null;
+  /** Link mágico de gerenciamento (token) — aparece após agendar online. */
+  manageUrl?: string;
 }
 
 const SuccessStep: FC<SuccessStepProps> = ({
@@ -20,17 +21,12 @@ const SuccessStep: FC<SuccessStepProps> = ({
   layout,
   isOffline = false,
   nextMilestone,
+  manageUrl,
 }) => {
   const navigate = useNavigate();
   const { barberPhone } = useBarberSettings();
-  const [showReviewModal, setShowReviewModal] = useState(false);
-
-  // Auto-show review request after 3 seconds (only for successful bookings, not offline)
-  useEffect(() => {
-    if (isOffline) return;
-    const timer = setTimeout(() => setShowReviewModal(true), 3000);
-    return () => clearTimeout(timer);
-  }, [isOffline]);
+  const [copied, setCopied] = useState(false);
+  // Review request modal removido (Google Reviews foi desativado)
 
   // Calcular progresso pra fidelidade
   const MAX_VISUAL_BARS = 10;
@@ -61,17 +57,67 @@ const SuccessStep: FC<SuccessStepProps> = ({
 
   const icon = isOffline ? '📡' : '💈';
 
+  const handleCopy = async () => {
+    if (!manageUrl) return;
+    try {
+      await navigator.clipboard.writeText(manageUrl);
+    } catch {
+      // Fallback para browsers antigos / contexto sem permissão
+      const textarea = document.createElement('textarea');
+      textarea.value = manageUrl;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2500);
+  };
+
+  const shortUrl = manageUrl?.replace(/^https?:\/\//, '') ?? '';
+
+  const manageLinkCard = (compact: boolean) => (
+    <div
+      className={`w-full ${compact ? '' : 'mb-8'} bg-[#0c0c0c] border border-gold/15 rounded-2xl p-4 text-left`}
+    >
+      <div className="flex items-center gap-2 mb-1.5">
+        <Link2 size={14} className="text-gold shrink-0" />
+        <p className="text-[13px] font-bold text-white">Seu link de gerenciamento</p>
+      </div>
+      <p className="text-[11px] text-zinc-500 mb-3 leading-relaxed">
+        Guarde este link para cancelar ou reagendar seu horário sem precisar de login.
+      </p>
+      <div className="flex items-center gap-2">
+        <div className="flex-1 min-w-0 truncate text-[11px] text-gold/80 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2.5">
+          {shortUrl}
+        </div>
+        <button
+          onClick={handleCopy}
+          className={`shrink-0 h-10 px-4 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+            copied
+              ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
+              : 'bg-gold text-black hover:brightness-110 active:scale-95'
+          }`}
+        >
+          {copied ? 'Copiado!' : 'Copiar'}
+        </button>
+      </div>
+    </div>
+  );
+
   if (layout === 'desktop') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-center max-w-lg mx-auto relative">
         {/* Decorative gold glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-[#D4AF37]/[0.03] rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-gold/[0.03] rounded-full blur-3xl pointer-events-none" />
 
         {/* Animated checkmark */}
         <div className="relative mb-10">
-          <div className="w-24 h-24 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center mx-auto animate-[scaleIn_0.5s_ease-out]">
+          <div className="w-24 h-24 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto animate-[scaleIn_0.5s_ease-out]">
             <svg
-              className="w-10 h-10 text-[#D4AF37]"
+              className="w-10 h-10 text-gold"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -87,16 +133,19 @@ const SuccessStep: FC<SuccessStepProps> = ({
             </svg>
           </div>
           {/* Pulse rings */}
-          <div className="absolute inset-0 rounded-full border border-[#D4AF37]/10 animate-[ping_2s_ease-out_infinite]" />
-          <div className="absolute inset-0 rounded-full border border-[#D4AF37]/5 animate-[ping_2s_ease-out_0.5s_infinite]" />
+          <div className="absolute inset-0 rounded-full border border-gold/10 animate-[ping_2s_ease-out_infinite]" />
+          <div className="absolute inset-0 rounded-full border border-gold/5 animate-[ping_2s_ease-out_0.5s_infinite]" />
         </div>
 
         <h2 className="text-3xl font-bold text-white mb-3 tracking-tight">{title}</h2>
         <p className="text-base text-zinc-500 mb-10 leading-relaxed">{subtitle}</p>
 
+        {/* Magic manage link (somente online — booking offline ainda não tem token) */}
+        {manageUrl && !isOffline && manageLinkCard(false)}
+
         {/* Loyalty banner */}
         {loyaltyBanner && (
-          <div className="mb-8 w-full bg-gradient-to-r from-[#D4AF37]/[0.08] to-transparent border border-[#D4AF37]/15 rounded-xl p-4">
+          <div className="mb-8 w-full bg-gradient-to-r from-gold/[0.08] to-transparent border border-gold/15 rounded-xl p-4">
             <div className="flex items-center gap-3 mb-2">
               <svg
                 width="16"
@@ -118,7 +167,7 @@ const SuccessStep: FC<SuccessStepProps> = ({
                   className={`flex-1 h-1.5 rounded-full transition-all ${
                     i <
                     Math.round((loyaltyBanner.progress / loyaltyBanner.total) * loyaltyBanner.bars)
-                      ? 'bg-[#D4AF37] shadow-[0_0_6px_rgba(197,160,89,0.4)]'
+                      ? 'bg-gold shadow-[0_0_6px_rgba(197,160,89,0.4)]'
                       : 'bg-white/[0.06]'
                   }`}
                 />
@@ -133,11 +182,15 @@ const SuccessStep: FC<SuccessStepProps> = ({
         )}
 
         {/* Gold divider */}
-        <div className="w-12 h-[2px] bg-[#D4AF37]/30 rounded-full mb-10" />
+        <div className="w-12 h-[2px] bg-gold/30 rounded-full mb-10" />
 
         <div className="flex flex-col sm:flex-row gap-3">
-          <button onClick={() => navigate('/')} className="btn-gold px-8 py-3.5">
-            Voltar ao início
+          <button
+            onClick={() => navigate('/cliente')}
+            className="btn-gold px-8 py-3.5 flex items-center justify-center gap-2"
+          >
+            <CalendarClock size={16} />
+            Meus agendamentos
           </button>
           <button
             onClick={() =>
@@ -151,6 +204,12 @@ const SuccessStep: FC<SuccessStepProps> = ({
             Falar no WhatsApp
           </button>
         </div>
+        <button
+          onClick={() => navigate('/')}
+          className="mt-3 text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors cursor-pointer"
+        >
+          Voltar ao início
+        </button>
 
         {/* Subtle confetti dots */}
         {[
@@ -165,7 +224,7 @@ const SuccessStep: FC<SuccessStepProps> = ({
         ].map((dot, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 rounded-full bg-[#D4AF37]/20 animate-[float_3s_ease-in-out_infinite]"
+            className="absolute w-1 h-1 rounded-full bg-gold/20 animate-[float_3s_ease-in-out_infinite]"
             style={{
               left: `${dot.left}%`,
               top: `${dot.top}%`,
@@ -192,17 +251,17 @@ const SuccessStep: FC<SuccessStepProps> = ({
 
       <div className="flex-1 flex flex-col items-center justify-center w-full space-y-6">
         <div
-          className={`w-20 h-20 rounded-full ${isOffline ? 'bg-amber-500/10 border-amber-500/20' : 'bg-[#D4AF37]/10 border-[#D4AF37]/20'} border flex items-center justify-center mx-auto`}
+          className={`w-20 h-20 rounded-full ${isOffline ? 'bg-amber-500/10 border-amber-500/20' : 'bg-gold/10 border-gold/20'} border flex items-center justify-center mx-auto`}
         >
           {isOffline ? (
             <span className="text-3xl">{icon}</span>
           ) : (
-            <Check size={32} className="text-[#D4AF37]" />
+            <Check size={32} className="text-gold" />
           )}
         </div>{' '}
         {/* Loyalty banner - Mobile */}
         {loyaltyBanner && (
-          <div className="w-full bg-gradient-to-r from-[#D4AF37]/[0.08] to-transparent border border-[#D4AF37]/15 rounded-xl p-3">
+          <div className="w-full bg-gradient-to-r from-gold/[0.08] to-transparent border border-gold/15 rounded-xl p-3">
             <div className="flex items-center gap-2 mb-1.5">
               <svg
                 width="14"
@@ -223,7 +282,7 @@ const SuccessStep: FC<SuccessStepProps> = ({
                   className={`flex-1 h-1.5 rounded-full transition-all ${
                     i <
                     Math.round((loyaltyBanner.progress / loyaltyBanner.total) * loyaltyBanner.bars)
-                      ? 'bg-[#D4AF37] shadow-[0_0_6px_rgba(197,160,89,0.4)]'
+                      ? 'bg-gold shadow-[0_0_6px_rgba(197,160,89,0.4)]'
                       : 'bg-white/[0.06]'
                   }`}
                 />
@@ -240,16 +299,15 @@ const SuccessStep: FC<SuccessStepProps> = ({
           <h2 className="text-2xl font-bold text-white">{title}</h2>
           <p className="text-sm text-zinc-500">{subtitle}</p>
         </div>
-        <button onClick={() => navigate('/')} className="btn-ghost px-6 py-3 mt-4">
+        {/* Magic manage link - Mobile */}
+        {manageUrl && !isOffline && manageLinkCard(true)}
+        <button onClick={() => navigate('/cliente')} className="btn-gold px-6 py-3 mt-4 w-full">
+          Meus agendamentos
+        </button>
+        <button onClick={() => navigate('/')} className="btn-ghost px-6 py-3">
           Voltar ao início
         </button>
       </div>
-
-      <ReviewRequestModal
-        open={showReviewModal}
-        onClose={() => setShowReviewModal(false)}
-        clientName={clientName}
-      />
     </div>
   );
 };

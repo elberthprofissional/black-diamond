@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor, act } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { useBookings } from './useBookings';
+import { queryClientWrapper as createWrapper } from '../test/query-client-wrapper';
 
 const mockGetBookings = vi.fn();
 
@@ -23,7 +24,7 @@ describe('useBookings', () => {
       pageSize: 200,
     });
 
-    const { result } = renderHook(() => useBookings('2026-07-05'));
+    const { result } = renderHook(() => useBookings('2026-07-05'), { wrapper: createWrapper() });
 
     expect(result.current.loading).toBe(true);
 
@@ -32,23 +33,26 @@ describe('useBookings', () => {
     });
 
     expect(result.current.bookings).toHaveLength(1);
-    expect(result.current.bookings[0].id).toBe('b1');
+    expect(result.current.bookings[0]?.id).toBe('b1');
     expect(result.current.isCached).toBe(false);
   });
 
   it('chama getBookings com a data correta', async () => {
-    renderHook(() => useBookings('2026-07-05'));
+    renderHook(() => useBookings('2026-07-05'), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(mockGetBookings).toHaveBeenCalledWith('2026-07-05', expect.objectContaining({}));
+      expect(mockGetBookings).toHaveBeenCalled();
     });
+
+    const callArgs = mockGetBookings.mock.calls[0];
+    expect(callArgs).toBeDefined();
+    expect(callArgs[0]).toBe('2026-07-05');
   });
 
   it('trata erro na busca sem cache', async () => {
-    // Sem cache no localStorage
     mockGetBookings.mockRejectedValue(new Error('Network error'));
 
-    const { result } = renderHook(() => useBookings('2026-07-05'));
+    const { result } = renderHook(() => useBookings('2026-07-05'), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(result.current.error).toBeTruthy();
@@ -58,20 +62,22 @@ describe('useBookings', () => {
   });
 
   it('refetch recarrega os dados', async () => {
-    mockGetBookings.mockResolvedValueOnce({
+    mockGetBookings.mockResolvedValue({
       data: [{ id: 'b1', status: 'confirmed' }],
       total: 1,
       page: 1,
       pageSize: 200,
     });
 
-    const { result } = renderHook(() => useBookings('2026-07-05'));
+    const { result } = renderHook(() => useBookings('2026-07-05'), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
 
-    mockGetBookings.mockResolvedValueOnce({
+    expect(result.current.bookings).toHaveLength(1);
+
+    mockGetBookings.mockResolvedValue({
       data: [
         { id: 'b1', status: 'confirmed' },
         { id: 'b2', status: 'pending' },
@@ -81,9 +87,7 @@ describe('useBookings', () => {
       pageSize: 200,
     });
 
-    await act(async () => {
-      await result.current.refetch();
-    });
+    await result.current.refetch();
 
     await waitFor(() => {
       expect(result.current.bookings).toHaveLength(2);
@@ -91,7 +95,7 @@ describe('useBookings', () => {
   });
 
   it('não chama autoComplete sem data', async () => {
-    renderHook(() => useBookings());
+    renderHook(() => useBookings(), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(mockGetBookings).toHaveBeenCalled();

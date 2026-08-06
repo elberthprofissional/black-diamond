@@ -1,6 +1,7 @@
 import { type FC, useMemo, useState } from 'react';
 import { useProfileStats } from '../hooks/useProfileStats';
 import { useWeeklyRevenue } from '../hooks/useWeeklyRevenue';
+import { useBarberScope } from '../hooks/useBarberScope';
 import AdminLayout from '../components/Admin/AdminLayout';
 import { SkeletonDashboard } from '../components/Skeleton';
 
@@ -8,7 +9,13 @@ const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 const AdminReports: FC = () => {
   const { stats, loading } = useProfileStats();
-  const { currentWeek, lastWeek, changePercent, loading: weeklyLoading } = useWeeklyRevenue();
+  const { scopedBarberId } = useBarberScope();
+  const {
+    currentWeek,
+    lastWeek,
+    changePercent,
+    loading: weeklyLoading,
+  } = useWeeklyRevenue(scopedBarberId || undefined);
   const [period, setPeriod] = useState<'week' | 'month'>('week');
 
   const weeklyData = useMemo(() => {
@@ -53,7 +60,7 @@ const AdminReports: FC = () => {
               onClick={() => setPeriod('week')}
               className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg lg:rounded-xl text-[10px] lg:text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 period === 'week'
-                  ? 'bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37]'
+                  ? 'bg-gold/10 border border-gold/30 text-gold'
                   : 'bg-white/[0.02] border border-white/[0.06] text-zinc-500'
               }`}
             >
@@ -63,7 +70,7 @@ const AdminReports: FC = () => {
               onClick={() => setPeriod('month')}
               className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg lg:rounded-xl text-[10px] lg:text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 period === 'month'
-                  ? 'bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37]'
+                  ? 'bg-gold/10 border border-gold/30 text-gold'
                   : 'bg-white/[0.02] border border-white/[0.06] text-zinc-500'
               }`}
             >
