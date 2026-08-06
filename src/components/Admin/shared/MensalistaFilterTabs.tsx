@@ -34,7 +34,7 @@ const MensalistaFilterTabs: FC<MensalistaFilterTabsProps> = ({
             onClick={() => onFilterChange(f.key)}
             className={`relative px-3 py-2 rounded-full lg:rounded-none lg:px-0 lg:pb-2 text-[10px] lg:text-[11px] font-bold transition-all duration-200 cursor-pointer uppercase tracking-[0.1em] whitespace-nowrap flex items-center gap-1.5 ${
               active
-                ? 'bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] lg:bg-transparent lg:border-none'
+                ? 'bg-gold/10 border border-gold/30 text-gold lg:bg-transparent lg:border-none'
                 : 'bg-white/[0.02] border border-white/[0.04] text-zinc-500 hover:text-zinc-300 lg:bg-transparent lg:border-none'
             } ${f.key === 'vencendo' && active ? 'text-amber-400' : ''}`}
           >
@@ -50,7 +50,7 @@ const MensalistaFilterTabs: FC<MensalistaFilterTabsProps> = ({
               </span>
             </span>
             {active && (
-              <div className="hidden lg:block absolute bottom-0 left-0 right-0 h-[2px] bg-[#D4AF37] rounded-full" />
+              <div className="hidden lg:block absolute bottom-0 left-0 right-0 h-[2px] bg-gold rounded-full" />
             )}
           </button>
         );

@@ -1,0 +1,24 @@
+{
+  "projectId": "fd821351-8286-45a2-bd1d-df63cea0db27",
+  "type": "frontend",
+  "name": "Admin login com credenciais válidas",
+  "description": "Admin faz login com email e senha corretos e acessa o dashboard",
+  "priority": "p0",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Navigate to https://black-diamond-wheat.vercel.app/admin/login"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the login form is visible with email and password input fields"
+    },
+    { "type": "action", "description": "Type elberthmayan2007@gmail.com in the email field" },
+    { "type": "action", "description": "Type mayan123 in the password field" },
+    { "type": "action", "description": "Click the login/submit button" },
+    {
+      "type": "assertion",
+      "description": "Verify the dashboard page loads showing the admin panel with navigation options"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useReminders } from './useReminders';
+import { queryClientWrapper } from '../test/query-client-wrapper';
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
@@ -42,12 +43,12 @@ describe('useReminders', () => {
   });
 
   it('initializes with empty reminders sent', () => {
-    const { result } = renderHook(() => useReminders());
+    const { result } = renderHook(() => useReminders(), { wrapper: queryClientWrapper() });
     expect(result.current.remindersSent).toEqual({});
   });
 
   it('loads seasonal templates on initialization', async () => {
-    const { result } = renderHook(() => useReminders());
+    const { result } = renderHook(() => useReminders(), { wrapper: queryClientWrapper() });
     await waitFor(() => {
       expect(result.current.templates.length).toBeGreaterThanOrEqual(1);
     });
@@ -58,7 +59,7 @@ describe('useReminders', () => {
   });
 
   it('persists templates to localStorage', async () => {
-    const { result } = renderHook(() => useReminders());
+    const { result } = renderHook(() => useReminders(), { wrapper: queryClientWrapper() });
     await waitFor(() => {
       const saved = localStorage.getItem('barber_templates');
       expect(saved).not.toBeNull();
@@ -81,13 +82,13 @@ describe('useReminders', () => {
     ];
     localStorage.setItem('barber_templates', JSON.stringify(existingTemplates));
 
-    const { result } = renderHook(() => useReminders());
+    const { result } = renderHook(() => useReminders(), { wrapper: queryClientWrapper() });
     expect(result.current.templates).toHaveLength(1);
     expect(result.current.templates[0].name).toBe('Test Template');
   });
 
   it('marks reminder as sent', () => {
-    const { result } = renderHook(() => useReminders());
+    const { result } = renderHook(() => useReminders(), { wrapper: queryClientWrapper() });
     act(() => {
       result.current.markReminderSent('client-1');
     });
@@ -98,7 +99,7 @@ describe('useReminders', () => {
   });
 
   it('checks if reminder was recently sent', () => {
-    const { result } = renderHook(() => useReminders());
+    const { result } = renderHook(() => useReminders(), { wrapper: queryClientWrapper() });
     act(() => {
       result.current.markReminderSent('client-1');
     });
@@ -106,7 +107,7 @@ describe('useReminders', () => {
   });
 
   it('returns false for clients with no reminder', () => {
-    const { result } = renderHook(() => useReminders());
+    const { result } = renderHook(() => useReminders(), { wrapper: queryClientWrapper() });
     expect(result.current.isReminderRecent('nonexistent')).toBe(false);
   });
 
@@ -114,13 +115,13 @@ describe('useReminders', () => {
     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     localStorage.setItem('barber_reminders_sent', JSON.stringify({ 'client-1': yesterday }));
 
-    const { result } = renderHook(() => useReminders());
+    const { result } = renderHook(() => useReminders(), { wrapper: queryClientWrapper() });
     expect(result.current.remindersSent['client-1']).toBe(yesterday);
     expect(result.current.isReminderRecent('client-1')).toBe(true);
   });
 
   it('sends WhatsApp message with template', () => {
-    const { result } = renderHook(() => useReminders());
+    const { result } = renderHook(() => useReminders(), { wrapper: queryClientWrapper() });
     const template = 'Olá {{nome}}, lembrete do seu horário!';
 
     act(() => {
@@ -134,7 +135,7 @@ describe('useReminders', () => {
   });
 
   it('shows error if phone is empty', () => {
-    const { result } = renderHook(() => useReminders());
+    const { result } = renderHook(() => useReminders(), { wrapper: queryClientWrapper() });
 
     act(() => {
       result.current.sendWithTemplate('', 'template', 'client-1');
@@ -146,7 +147,7 @@ describe('useReminders', () => {
 
   it('handles popup blocker', () => {
     mockWindowOpen.mockReturnValue(null);
-    const { result } = renderHook(() => useReminders());
+    const { result } = renderHook(() => useReminders(), { wrapper: queryClientWrapper() });
 
     act(() => {
       result.current.sendWithTemplate('31980159559', 'test', 'client-1');
@@ -156,7 +157,7 @@ describe('useReminders', () => {
   });
 
   it('saves custom template', async () => {
-    const { result } = renderHook(() => useReminders());
+    const { result } = renderHook(() => useReminders(), { wrapper: queryClientWrapper() });
 
     // Aguarda templates sazonais carregarem antes de adicionar um custom
     await waitFor(() => {
@@ -173,7 +174,7 @@ describe('useReminders', () => {
   });
 
   it('deletes a template', async () => {
-    const { result } = renderHook(() => useReminders());
+    const { result } = renderHook(() => useReminders(), { wrapper: queryClientWrapper() });
     await waitFor(() => {
       expect(result.current.templates.length).toBeGreaterThanOrEqual(1);
     });

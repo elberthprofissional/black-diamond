@@ -13,10 +13,10 @@ const renderWithRouter = (ui: React.ReactElement) => {
 };
 
 describe('Footer', () => {
-  it('renderiza o logo da marca', () => {
+  it('renderiza o nome da marca', () => {
     renderWithRouter(<Footer />);
-    const logos = screen.getAllByAltText('Black Diamond');
-    expect(logos.length).toBeGreaterThanOrEqual(1);
+    const names = screen.getAllByText(/black diamond/i);
+    expect(names.length).toBeGreaterThanOrEqual(1);
   });
 
   it('renderiza o copyright', () => {
@@ -34,14 +34,14 @@ describe('Footer', () => {
     expect(screen.queryByLabelText(/whatsapp/i)).not.toBeInTheDocument();
   });
 
-  it('renderiza a secao de localizacao', () => {
-    renderWithRouter(<Footer />);
-    expect(screen.getAllByText('Localização').length).toBeGreaterThanOrEqual(1);
-  });
-
   it('renderiza endereco', () => {
     renderWithRouter(<Footer />);
     const addresses = screen.getAllByText(/Av. Brasílio da Gama/);
     expect(addresses.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('renderiza o link de admin', () => {
+    renderWithRouter(<Footer />);
+    expect(screen.getByText('Acesso restrito')).toBeInTheDocument();
   });
 });

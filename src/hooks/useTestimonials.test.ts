@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useTestimonials } from './useTestimonials';
+import { queryClientWrapper as createWrapper } from '../test/query-client-wrapper';
 import type { Testimonial } from '../types';
 
 vi.mock('../lib/api/testimonials', () => ({
@@ -49,7 +50,7 @@ describe('useTestimonials', () => {
     const { getAllTestimonials } = await import('../lib/api/testimonials');
     vi.mocked(getAllTestimonials).mockResolvedValue(mockTestimonials);
 
-    const { result } = renderHook(() => useTestimonials());
+    const { result } = renderHook(() => useTestimonials(), { wrapper: createWrapper() });
 
     expect(result.current.loading).toBe(true);
 
@@ -58,6 +59,7 @@ describe('useTestimonials', () => {
     });
 
     expect(result.current.testimonials).toHaveLength(3);
+    // O error pode ser string (mensagem) ou null - verificamos se não é uma string de erro
     expect(result.current.error).toBeNull();
     expect(getAllTestimonials).toHaveBeenCalledTimes(1);
   });
@@ -66,53 +68,63 @@ describe('useTestimonials', () => {
     const { getAllTestimonials } = await import('../lib/api/testimonials');
     vi.mocked(getAllTestimonials).mockRejectedValue(new Error('Erro ao carregar'));
 
-    const { result } = renderHook(() => useTestimonials());
+    const { result } = renderHook(() => useTestimonials(), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.error).toBe('Erro ao carregar depoimentos');
+    // React Query retorna o erro como Error object, não string
+    expect(result.current.error).toBeTruthy();
     expect(result.current.testimonials).toEqual([]);
   });
 
   it('toggleActive alterna is_active do depoimento', async () => {
     const { getAllTestimonials, updateTestimonial } = await import('../lib/api/testimonials');
     vi.mocked(getAllTestimonials).mockResolvedValue(mockTestimonials);
-    vi.mocked(updateTestimonial).mockResolvedValue();
+    vi.mocked(updateTestimonial).mockResolvedValue(undefined);
 
-    const { result } = renderHook(() => useTestimonials());
+    const { result } = renderHook(() => useTestimonials(), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
 
     await act(async () => {
-      await result.current.toggleActive('t1', true);
+      result.current.toggleActive('t1', true);
+      // Aguarda microtasks do React Query (onMutate síncrono + cache update)
+      await new Promise((r) => setTimeout(r, 50));
     });
 
-    // is_active deve ter sido alternado para false no state local
+    // is_active deve ter sido alternado para false no state local (update otimista)
     const updated = result.current.testimonials.find((t) => t.id === 't1');
     expect(updated?.is_active).toBe(false);
     expect(updateTestimonial).toHaveBeenCalledWith('t1', { is_active: false });
   });
 
-  it('toggleActive lida com erro na API', async () => {
+  it('toggleActive lida com erro na API (rollback)', async () => {
     const { getAllTestimonials, updateTestimonial } = await import('../lib/api/testimonials');
     vi.mocked(getAllTestimonials).mockResolvedValue(mockTestimonials);
     vi.mocked(updateTestimonial).mockRejectedValue(new Error('API error'));
 
-    const { result } = renderHook(() => useTestimonials());
+    const { result } = renderHook(() => useTestimonials(), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
 
     await act(async () => {
-      await result.current.toggleActive('t1', true);
+      try {
+        await result.current.toggleActive('t1', true);
+      } catch {
+        // mutateAsync propaga erro, mas onError faz rollback
+      }
+      await new Promise((r) => setTimeout(r, 50));
     });
 
-    expect(result.current.error).toBe('Erro ao atualizar depoimento');
+    // Com rollback otimista, o estado volta ao original
+    const updated = result.current.testimonials.find((t) => t.id === 't1');
+    expect(updated?.is_active).toBe(true);
   });
 
   it('addTestimonial adiciona novo depoimento à lista', async () => {
@@ -129,7 +141,7 @@ describe('useTestimonials', () => {
     };
     vi.mocked(createTestimonial).mockResolvedValue(newTestimonial);
 
-    const { result } = renderHook(() => useTestimonials());
+    const { result } = renderHook(() => useTestimonials(), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -137,18 +149,19 @@ describe('useTestimonials', () => {
 
     await act(async () => {
       await result.current.addTestimonial({ name: 'Ana', rating: 5, text: 'Adorei!' });
+      await new Promise((r) => setTimeout(r, 50));
     });
 
     expect(result.current.testimonials).toHaveLength(4);
-    expect(result.current.testimonials[3].name).toBe('Ana');
+    expect(result.current.testimonials.some((t) => t.name === 'Ana')).toBe(true);
   });
 
   it('deleteTestimonial remove depoimento da lista', async () => {
     const { getAllTestimonials, deleteTestimonial } = await import('../lib/api/testimonials');
     vi.mocked(getAllTestimonials).mockResolvedValue(mockTestimonials);
-    vi.mocked(deleteTestimonial).mockResolvedValue();
+    vi.mocked(deleteTestimonial).mockResolvedValue(undefined);
 
-    const { result } = renderHook(() => useTestimonials());
+    const { result } = renderHook(() => useTestimonials(), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -156,6 +169,7 @@ describe('useTestimonials', () => {
 
     await act(async () => {
       await result.current.deleteTestimonial('t1');
+      await new Promise((r) => setTimeout(r, 50));
     });
 
     expect(result.current.testimonials).toHaveLength(2);
@@ -163,29 +177,36 @@ describe('useTestimonials', () => {
     expect(deleteTestimonial).toHaveBeenCalledWith('t1');
   });
 
-  it('deleteTestimonial lida com erro na API', async () => {
+  it('deleteTestimonial lida com erro na API (rollback)', async () => {
     const { getAllTestimonials, deleteTestimonial } = await import('../lib/api/testimonials');
     vi.mocked(getAllTestimonials).mockResolvedValue(mockTestimonials);
     vi.mocked(deleteTestimonial).mockRejectedValue(new Error('API error'));
 
-    const { result } = renderHook(() => useTestimonials());
+    const { result } = renderHook(() => useTestimonials(), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
 
     await act(async () => {
-      await result.current.deleteTestimonial('t1');
+      try {
+        await result.current.deleteTestimonial('t1');
+      } catch {
+        // mutateAsync propaga erro
+      }
+      await new Promise((r) => setTimeout(r, 50));
     });
 
-    expect(result.current.error).toBe('Erro ao deletar depoimento');
+    // Com rollback otimista, o item retorna ao cache
+    const updated = result.current.testimonials.find((t) => t.id === 't1');
+    expect(updated).toBeDefined();
   });
 
   it('refresh recarrega depoimentos', async () => {
     const { getAllTestimonials } = await import('../lib/api/testimonials');
     vi.mocked(getAllTestimonials).mockResolvedValue(mockTestimonials);
 
-    const { result } = renderHook(() => useTestimonials());
+    const { result } = renderHook(() => useTestimonials(), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -194,9 +215,11 @@ describe('useTestimonials', () => {
     expect(getAllTestimonials).toHaveBeenCalledTimes(1);
 
     await act(async () => {
-      await result.current.refresh();
+      result.current.refresh();
+      // Aguarda a invalidação do cache
+      await vi.waitFor(() => {
+        expect(getAllTestimonials).toHaveBeenCalledTimes(2);
+      });
     });
-
-    expect(getAllTestimonials).toHaveBeenCalledTimes(2);
   });
 });

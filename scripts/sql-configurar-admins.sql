@@ -81,7 +81,7 @@ BEGIN
         INSERT INTO barbers (user_id, name, phone, bio, quote, is_active, is_owner, sort_order, is_hidden)
         VALUES (v_tato_id, 'Tato', '4399553590', 
                 'Dono da Black Diamond - Profissional apaixonado pelo que faz!',
-                '"Não sou o melhor, mas sou o melhor para você."',
+                '',
                 TRUE, TRUE, 0, FALSE);
         RAISE NOTICE 'Barber Tato criado como DONO.';
     ELSE

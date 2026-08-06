@@ -48,9 +48,6 @@ const AdminNavbar: FC = () => {
             onClick={() => navigate('/admin')}
           >
             <img src="/assets/logo.webp" alt="Logo" className="w-10 h-10 object-contain" />
-            <span className="text-[12px] font-black uppercase tracking-[0.3em] text-white">
-              Black Diamond
-            </span>
           </div>
           <div className="flex items-center gap-3">
             <NotificationBell variant="mobile" />
@@ -61,7 +58,7 @@ const AdminNavbar: FC = () => {
                 aria-haspopup="true"
                 className="flex items-center gap-2 group"
               >
-                <div className="w-8 h-8 rounded-full border border-white/[0.08] group-hover:border-[#D4AF37]/30 transition-all overflow-hidden bg-white/[0.03]">
+                <div className="w-8 h-8 rounded-full border border-white/[0.08] group-hover:border-gold/30 transition-all overflow-hidden bg-white/[0.03]">
                   {barberPhoto ? (
                     <img
                       src={barberPhoto}

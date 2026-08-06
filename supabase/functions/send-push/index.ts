@@ -41,7 +41,7 @@ function isOriginAllowed(origin: string | null): boolean {
 }
 
 function getCorsHeaders(origin: string | null) {
-  const allowed = isOriginAllowed(origin) ? origin : 'https://black-diamond.vercel.app';
+  const allowed = isOriginAllowed(origin) ? origin : null;
   return {
     'Access-Control-Allow-Origin': allowed,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',

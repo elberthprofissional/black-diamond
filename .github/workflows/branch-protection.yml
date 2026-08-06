@@ -1,0 +1,71 @@
+name: Branch Protection Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+    branches: [main]
+
+jobs:
+  validate-pr:
+    name: Validate PR Requirements
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check PR source branch
+        run: |
+          if [[ "${{ github.head_ref }}" == "main" ]]; then
+            echo "❌ PRs from main to main are not allowed."
+            exit 1
+          fi
+          echo "✅ PR branch: ${{ github.head_ref }}"
+
+      - name: Check PR description
+        run: |
+          if [ -z "${{ github.event.pull_request.body }}" ]; then
+            echo "❌ PR description is required. Please describe what changes you made."
+            exit 1
+          fi
+          echo "✅ PR description provided"
+
+      - name: Validate conventional commit title
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          if echo "$PR_TITLE" | grep -qE '^(feat|fix|chore|docs|refactor|test|style|perf|ci|build)(\(.+\))?: .+'; then
+            echo "✅ Conventional commit format: $PR_TITLE"
+          else
+            echo "⚠️ Tip: Consider using conventional commit format: feat|fix|chore|docs|etc(scope): message"
+            echo "   Example: 'fix(auth): resolve login redirect loop'"
+          fi
+
+      - name: Require labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            const labels = pr.labels.map(l => l.name);
+            if (labels.length === 0) {
+              core.warning('⚠️ No labels found. Consider adding a label (e.g., bug, enhancement, documentation).');
+            } else {
+              console.log(`✅ Labels: ${labels.join(', ')}`);
+            }
+
+  branch-naming:
+    name: Branch Naming Convention
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          if echo "$BRANCH" | grep -qE '^(feat|fix|chore|docs|refactor|test|staging)/.+'; then
+            echo "✅ Branch name follows convention: $BRANCH"
+          elif [[ "$BRANCH" == "staging" ]] || [[ "$BRANCH" == "develop" ]]; then
+            echo "✅ Standard branch: $BRANCH"
+          else
+            echo "⚠️ Tip: Branch name should follow pattern: type/description"
+            echo "   Example: 'feat/new-dashboard', 'fix/login-bug'"
+          fi

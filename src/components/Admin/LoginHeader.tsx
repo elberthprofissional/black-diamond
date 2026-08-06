@@ -34,8 +34,10 @@ export default function LoginHeader({ isPWA }: LoginHeaderProps) {
 
       {/* Header Desktop */}
       <div className="hidden lg:block mb-16 space-y-4 w-full text-left">
-        <h1 className="text-5xl font-bebas tracking-widest text-white">BEM-VINDO</h1>
-        <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-zinc-500">
+        <h1 className="text-4xl lg:text-5xl font-bebas tracking-[0.05em] text-white leading-none">
+          Bem-vindo
+        </h1>
+        <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-zinc-500">
           Insira seus dados para continuar
         </p>
       </div>

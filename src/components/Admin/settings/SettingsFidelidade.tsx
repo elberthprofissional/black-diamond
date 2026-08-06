@@ -171,7 +171,7 @@ const SettingsFidelidade: FC = () => {
             role="switch"
             aria-checked={enabled}
             className={`relative w-12 h-7 rounded-full transition-colors cursor-pointer ${
-              enabled ? 'bg-[#D4AF37]' : 'bg-zinc-700'
+              enabled ? 'bg-gold' : 'bg-zinc-700'
             } disabled:opacity-50`}
           >
             <motion.div
@@ -194,7 +194,7 @@ const SettingsFidelidade: FC = () => {
           role="switch"
           aria-checked={enabled}
           className={`relative w-12 h-7 rounded-full transition-colors cursor-pointer ${
-            enabled ? 'bg-[#D4AF37]' : 'bg-zinc-700'
+            enabled ? 'bg-gold' : 'bg-zinc-700'
           } disabled:opacity-50`}
         >
           <motion.div
@@ -208,8 +208,8 @@ const SettingsFidelidade: FC = () => {
       {enabled && (
         <>
           {/* How it works banner */}
-          <div className="bg-[#D4AF37]/[0.04] border border-[#D4AF37]/10 rounded-xl p-4 flex items-start gap-3">
-            <Sparkles size={16} className="text-[#D4AF37] shrink-0 mt-0.5" />
+          <div className="bg-gold/[0.04] border border-gold/10 rounded-xl p-4 flex items-start gap-3">
+            <Sparkles size={16} className="text-gold shrink-0 mt-0.5" />
             <p className="text-[12px] text-zinc-400 leading-relaxed">
               O cliente <strong className="text-zinc-200">acumula visitas pra sempre</strong> (nunca
               reseta). Cada meta é uma recompensa diferente. Ex: 5 visitas → sobrancelha grátis, 10
@@ -227,8 +227,8 @@ const SettingsFidelidade: FC = () => {
                     key={m.id}
                     className="flex items-center gap-4 bg-[#111111] border border-white/5 rounded-xl px-4 py-3"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
-                      <Star size={14} className="text-[#D4AF37]" />
+                    <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
+                      <Star size={14} className="text-gold" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[14px] font-bold text-white">
@@ -251,7 +251,7 @@ const SettingsFidelidade: FC = () => {
 
           {/* Add milestone form */}
           {showNewForm ? (
-            <div className="bg-[#111111] border border-[#D4AF37]/20 rounded-xl p-4 space-y-4">
+            <div className="bg-[#111111] border border-gold/20 rounded-xl p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-[12px] font-bold text-zinc-400 uppercase tracking-wider">
                   Nova meta
@@ -278,7 +278,7 @@ const SettingsFidelidade: FC = () => {
                     value={newVisits}
                     onChange={(e) => setNewVisits(e.target.value)}
                     placeholder="Ex: 10"
-                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[14px] text-white font-bold outline-none focus:border-[#D4AF37]/50 transition-all placeholder:text-zinc-600"
+                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[14px] text-white font-bold outline-none focus:border-gold/50 transition-all placeholder:text-zinc-600"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -287,7 +287,7 @@ const SettingsFidelidade: FC = () => {
                     <select
                       value={newServiceId}
                       onChange={(e) => setNewServiceId(e.target.value)}
-                      className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[14px] text-white outline-none focus:border-[#D4AF37]/40 transition-all appearance-none cursor-pointer"
+                      className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[14px] text-white outline-none focus:border-gold/40 transition-all appearance-none cursor-pointer"
                     >
                       <option value="" className="bg-[#1A1A1A]">
                         Selecione
@@ -317,7 +317,7 @@ const SettingsFidelidade: FC = () => {
           ) : (
             <button
               onClick={() => setShowNewForm(true)}
-              className="w-full h-10 border border-dashed border-white/[0.12] text-zinc-400 hover:text-white hover:border-[#D4AF37]/30 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 text-[12px] font-bold"
+              className="w-full h-10 border border-dashed border-white/[0.12] text-zinc-400 hover:text-white hover:border-gold/30 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 text-[12px] font-bold"
             >
               <Plus size={14} />
               Adicionar Meta

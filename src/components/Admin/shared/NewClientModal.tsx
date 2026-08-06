@@ -53,7 +53,7 @@ const NewClientModal: FC<NewClientModalProps> = ({
           >
             <div className="px-6 pt-6 pb-5 text-left">
               <div className="flex items-center justify-between mb-5">
-                <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.2em]">
+                <span className="text-[10px] font-black text-gold uppercase tracking-[0.2em]">
                   Novo cliente
                 </span>
                 <button
@@ -77,7 +77,7 @@ const NewClientModal: FC<NewClientModalProps> = ({
                     placeholder="Nome do cliente"
                     maxLength={100}
                     aria-label="Nome do cliente"
-                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#D4AF37]/35 transition-colors placeholder:text-zinc-700 text-left"
+                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-gold/35 transition-colors placeholder:text-zinc-700 text-left"
                     autoFocus
                   />
                 </div>
@@ -92,7 +92,7 @@ const NewClientModal: FC<NewClientModalProps> = ({
                     onChange={(e) => onPhoneChange(formatPhone(e.target.value))}
                     placeholder="(00) 00000-0000"
                     aria-label="WhatsApp do cliente"
-                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#D4AF37]/35 transition-colors placeholder:text-zinc-700 tabular-nums text-left"
+                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-gold/35 transition-colors placeholder:text-zinc-700 tabular-nums text-left"
                   />
                 </div>
                 {error && (
@@ -114,7 +114,7 @@ const NewClientModal: FC<NewClientModalProps> = ({
                     placeholder="Ex: Prefere degradê baixo..."
                     maxLength={500}
                     aria-label="Anotações do cliente"
-                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#D4AF37]/35 transition-colors placeholder:text-zinc-600 resize-none h-16 text-left"
+                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-gold/35 transition-colors placeholder:text-zinc-600 resize-none h-16 text-left"
                   />
                 </div>
               </div>
@@ -130,7 +130,7 @@ const NewClientModal: FC<NewClientModalProps> = ({
               <button
                 onClick={onSave}
                 disabled={saving || !name.trim() || !phone.trim()}
-                className="flex-1 py-3.5 text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider hover:bg-[#D4AF37]/10 transition-all cursor-pointer disabled:opacity-30"
+                className="flex-1 py-3.5 text-[10px] font-bold text-gold uppercase tracking-wider hover:bg-gold/10 transition-all cursor-pointer disabled:opacity-30"
               >
                 {saving ? '...' : 'Salvar'}
               </button>

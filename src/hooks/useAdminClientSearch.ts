@@ -5,6 +5,7 @@ import { useToast } from './useToast';
 import { BLOCKED_NAME } from '../lib/constants';
 import type { Client, MensalistaPlan } from '../types';
 import { logError } from '../lib/logger';
+import { fireAndForget } from '../lib/fire-and-forget';
 
 /** Client enriched for modal display */
 type ClientWithEnriched = Client;
@@ -47,12 +48,13 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
   const [currentPlan, setCurrentPlan] = useState<MensalistaPlan | null>(null);
   const [allPlans, setAllPlans] = useState<MensalistaPlan[]>([]);
 
-  // Load plans on mount
+  // Load plans on mount — fire-and-forget com logging
   useEffect(() => {
-    getMensalistaPlans()
-      .then(setAllPlans)
-      .catch(() => {});
+    fireAndForget(getMensalistaPlans().then(setAllPlans), {
+      context: 'useAdminClientSearch/loadPlans',
+    });
   }, []);
+
   const [filteredClientsForModal, setFilteredClientsForModal] = useState<ClientWithEnriched[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -63,9 +65,8 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
 
     const digits = newClient.phone.replace(/\D/g, '');
     if (digits.length < 11) {
-      if (isMensalista) {
-        setIsMensalista(false);
-      }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsMensalista(false);
       return;
     }
 
@@ -86,8 +87,9 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
             setIsMensalista(false);
           }
         })
-        .catch(() => {
+        .catch((e) => {
           if (!cancelled) {
+            logError(e, 'useAdminClientSearch/mensalistaLookup');
             setIsMensalista(false);
           }
         });
@@ -97,7 +99,7 @@ export function useAdminClientSearch(): UseAdminClientSearchReturn {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [newClient.phone, isManualEntry, isMensalista]);
+  }, [newClient.phone, isManualEntry]);
 
   // Load clients for modal
   const loadClients = useCallback(async () => {

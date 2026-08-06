@@ -30,8 +30,8 @@ interface AdminLayoutProps {
 
 const AdminLayout: FC<AdminLayoutProps> = ({
   children,
-  wrapperClassName = 'min-h-screen bg-[#0A0A0A] text-white font-sans flex selection:bg-[#D4AF37]/30',
-  innerClassName = 'flex-1 lg:ml-[260px] flex flex-col min-h-screen bg-[#0A0A0A] overflow-x-hidden',
+  wrapperClassName = 'min-h-screen bg-[#0A0A0A] text-white font-sans flex selection:bg-gold/30',
+  innerClassName = 'flex-1 lg:ml-[260px] flex flex-col min-h-screen bg-[#0A0A0A] overflow-x-auto',
   // Default padding/max-width consistent across all admin pages.
   // Pages can override via mainClassName prop when they need special treatment.
   mainClassName = 'w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-20 lg:pt-8 pb-40 max-w-[1440px]',
@@ -73,9 +73,9 @@ const AdminLayout: FC<AdminLayoutProps> = ({
                             }`}
                           >
                             {isActive && (
-                              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-[#D4AF37] rounded-r-full" />
+                              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-gold rounded-r-full" />
                             )}
-                            <span className={isActive ? 'text-[#D4AF37]' : ''}>{item.icon}</span>
+                            <span className={isActive ? 'text-gold' : ''}>{item.icon}</span>
                             {item.label}
                           </button>
                         );

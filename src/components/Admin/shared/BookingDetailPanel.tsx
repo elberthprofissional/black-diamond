@@ -1,10 +1,10 @@
 import { memo, useState, type FC } from 'react';
+import { Bell, Check, Calendar, Trash2 } from 'lucide-react';
 import type { BookingWithClient, Service } from '../../../types';
 import { formatPhone, formatDisplayName, formatPricePublic } from '../../../lib/utils';
 import { openWhatsApp, formatWaDate } from '../../../lib/whatsapp';
 import { BLOCKED_NAME } from '../../../lib/constants';
 import { useNoShow } from '../../../hooks/useNoShow';
-import { BellIcon, CheckIcon, CalendarIcon, TrashIcon } from './PanelIcons';
 import BlockedSlotView from './BlockedSlotView';
 
 interface BookingDetailPanelProps {
@@ -63,7 +63,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
     return (
       <>
         <div className="sticky top-0 bg-[#0E0E0E]/95 backdrop-blur-md z-10 px-5 lg:px-6 py-3.5 lg:py-4 border-b border-white/[0.04] flex items-center justify-between">
-          <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.25em]">
+          <span className="text-[10px] font-black text-gold uppercase tracking-[0.25em]">
             Dados do Agendamento
           </span>
         </div>
@@ -86,7 +86,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
 
           <div className="flex items-center gap-4 text-[14px]">
             <span className="text-zinc-400">{dateStr}</span>
-            <span className="text-[#D4AF37] font-bold">{timeStr}</span>
+            <span className="text-gold font-bold">{timeStr}</span>
           </div>
 
           <div className="h-px bg-white/[0.04]" />
@@ -108,7 +108,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                 <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">
                   Total
                 </span>
-                <span className="text-[16px] font-black text-[#D4AF37]">
+                <span className="text-[16px] font-black text-gold">
                   {formatPricePublic(booking.total_price || 0)}
                 </span>
               </div>
@@ -122,31 +122,31 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                   onComplete();
                   onClose();
                 }}
-                className="w-full h-11 bg-[#D4AF37] text-[#0A0A0A] font-black text-[10px] uppercase tracking-[0.2em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
+                className="w-full h-11 bg-gold text-[#0A0A0A] font-black text-[10px] uppercase tracking-[0.2em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
               >
-                <CheckIcon />
+                <Check size={11} strokeWidth={3} />
                 Finalizar Atendimento
               </button>
             )}
             <button
               onClick={handleReminder}
-              className="w-full h-9 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5 rounded-lg transition-all"
+              className="w-full h-9 bg-gold/10 hover:bg-gold/20 text-gold text-[10px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5 rounded-lg transition-all"
             >
-              <BellIcon />
+              <Bell size={11} strokeWidth={2.5} />
               Enviar Lembrete
             </button>
             <button
               onClick={onReschedule}
               className="w-full h-9 bg-transparent text-zinc-400 hover:text-white transition-all text-[10px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <CalendarIcon />
+              <Calendar size={11} strokeWidth={2.5} />
               Reagendar
             </button>
             <button
               onClick={() => setShowCancelConfirm(true)}
               className="w-full h-9 bg-transparent text-red-400/40 hover:text-red-400/70 transition-all text-[10px] font-bold uppercase tracking-[0.15em] cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <TrashIcon />
+              <Trash2 size={11} strokeWidth={2.5} />
               Cancelar Agendamento
             </button>
             {booking.status !== 'completed' && (
@@ -210,7 +210,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                 Horário
               </span>
-              <span className="text-xs font-bold text-[#D4AF37]">{timeStr}</span>
+              <span className="text-xs font-bold text-gold">{timeStr}</span>
             </div>
           </div>
 
@@ -237,7 +237,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
                   Total
                 </span>
-                <span className="text-base font-black text-[#D4AF37]">
+                <span className="text-base font-black text-gold">
                   {formatPricePublic(booking.total_price || 0)}
                 </span>
               </div>
@@ -251,7 +251,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
                   onComplete();
                   onClose();
                 }}
-                className="w-full h-11 bg-[#D4AF37] hover:bg-white text-[#0A0A0A] font-black text-[10px] uppercase tracking-[0.25em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
+                className="w-full h-11 bg-gold hover:bg-white text-[#0A0A0A] font-black text-[10px] uppercase tracking-[0.25em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
               >
                 <svg
                   width="12"
@@ -269,7 +269,7 @@ const BookingDetailPanel: FC<BookingDetailPanelProps> = memo(
             )}
             <button
               onClick={handleReminder}
-              className="w-full h-11 bg-[#D4AF37]/10 border border-[#D4AF37]/20 hover:bg-[#D4AF37]/20 text-[#D4AF37] rounded-xl transition-all active:scale-[0.99] text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full h-11 bg-gold/10 border border-gold/20 hover:bg-gold/20 text-gold rounded-xl transition-all active:scale-[0.99] text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer flex items-center justify-center gap-1.5"
             >
               <svg
                 width="12"

@@ -42,21 +42,53 @@ describe('About', () => {
     expect(screen.getByText('Barbeiro')).toBeInTheDocument();
   });
 
+  it('renderiza o nome personalizado quando configurado', () => {
+    mockUseBarberSettings.mockReturnValueOnce({
+      barberName: 'Tato',
+      barberPhone: '',
+      barberPhoto: '',
+      barberBio: '',
+      barberQuote: '',
+      barberInstagram: '',
+      onboardingCompleted: false,
+      loading: false,
+    });
+    render(<About />);
+    expect(screen.getByText('Tato')).toBeInTheDocument();
+  });
+
   it('renderiza a descricao', () => {
     render(<About />);
     expect(screen.getByText(/Acredito que a barbearia/)).toBeInTheDocument();
   });
 
-  it('renderiza a frase de efeito', () => {
+  it('nao renderiza frase de efeito quando nao configurada', () => {
     render(<About />);
-    expect(screen.getByText(/Não sou o melhor, mas sou o melhor para você/)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Não sou o melhor, mas sou o melhor para você/)
+    ).not.toBeInTheDocument();
+  });
+
+  it('renderiza a frase de efeito personalizada quando configurada', () => {
+    mockUseBarberSettings.mockReturnValueOnce({
+      barberName: 'Tato',
+      barberPhone: '',
+      barberPhoto: '',
+      barberBio: '',
+      barberQuote: 'Cada corte conta uma história',
+      barberInstagram: '',
+      onboardingCompleted: false,
+      loading: false,
+    });
+    render(<About />);
+    expect(screen.getByText(/Cada corte conta uma história/)).toBeInTheDocument();
   });
 
   it('renderiza placeholder quando nao tem foto', () => {
     render(<About />);
     // Quando nao ha foto, exibe o icone User do Lucide como placeholder
     const icons = document.querySelectorAll('.lucide-user');
-    expect(icons.length).toBe(2); // mobile + desktop
+    expect(icons.length).toBe(1);
   });
 
   it('renderiza a imagem do barbeiro quando tem foto', () => {
@@ -71,7 +103,7 @@ describe('About', () => {
     });
     render(<About />);
     const images = screen.getAllByRole('img');
-    expect(images.length).toBe(2); // mobile + desktop
+    expect(images.length).toBe(1);
   });
 
   it('tem secao com id=sobre para navegacao', () => {

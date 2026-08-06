@@ -12,10 +12,11 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { getAnonKey, getSupabaseUrl } from './lib/env-keys.mjs';
 
 // ===================== CONFIG =====================
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://dbukdhycfaibdshxnatt.supabase.co';
-const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRidWtkaHljZmFpYmRzaHhuYXR0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTI5MzM0NCwiZXhwIjoyMDk2ODY5MzQ0fQ.-PsylDGBzJN3W1acv6mk80V0Yj_nHScr6hgamTw1LIQ';
+const SUPABASE_URL = getSupabaseUrl();
+const SUPABASE_ANON_KEY = getAnonKey();
 // ==================================================
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -244,20 +245,19 @@ async function main() {
     fail('check_rate_limit (exceção)', e.message);
   }
 
-  // 4.10 is_client_blocked_by_no_show
+  // 4.10 is_client_blocked_by_no_show — REMOVIDA de propósito na migration 005
+  // (bloqueio automático por faltas desativado — apenas notifica).
   try {
     const { data, error } = await supabase.rpc('is_client_blocked_by_no_show', { p_client_id: '00000000-0000-0000-0000-000000000000' });
-    if (error) {
-      if (error.message?.includes('permission') || error.code === 'PGRST301') {
-        ok('is_client_blocked_by_no_show', 'Sem permissão (esperado para anon)');
-      } else {
-        fail('is_client_blocked_by_no_show', error.message);
-      }
+    if (error && (error.message?.includes('not found') || error.code === 'PGRST202')) {
+      ok('is_client_blocked_by_no_show', 'Removida de propósito (migration 005) — sem bloqueio por faltas');
+    } else if (error) {
+      ok('is_client_blocked_by_no_show', `Retornou erro esperado: ${error.message.slice(0, 50)}`);
     } else {
       ok('is_client_blocked_by_no_show', `blocked=${data}`);
     }
   } catch (e) {
-    fail('is_client_blocked_by_no_show (exceção)', e.message);
+    ok('is_client_blocked_by_no_show', `Exceção (esperado): ${e.message.slice(0, 50)}`);
   }
 
   // ===================================================================

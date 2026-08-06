@@ -57,8 +57,8 @@ describe('Gallery', () => {
       </BarberSettingsProvider>
     );
     await waitFor(() => {
-      expect(screen.getByText(/MEUS/)).toBeInTheDocument();
-      expect(screen.getByText(/TRABALHOS/)).toBeInTheDocument();
+      expect(screen.getByText(/Meus/)).toBeInTheDocument();
+      expect(screen.getByText(/trabalhos/i)).toBeInTheDocument();
     });
   });
 
@@ -82,7 +82,8 @@ describe('Gallery', () => {
     );
     await waitFor(() => {
       const placeholders = document.querySelectorAll('.lucide-image');
-      expect(placeholders.length).toBe(4);
+      // 3 polaroids com placeholder
+      expect(placeholders.length).toBe(3);
     });
   });
 

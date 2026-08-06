@@ -45,7 +45,7 @@ const CouponModal: FC<CouponModalProps> = ({ open, onClose, onApply, loading }) 
             <div className="px-5 pt-5 pb-4">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Tag size={14} className="text-[#D4AF37]" />
+                  <Tag size={14} className="text-gold" />
                   <h3 className="text-sm font-bold text-white">Cupom de desconto</h3>
                 </div>
                 <button
@@ -69,7 +69,7 @@ const CouponModal: FC<CouponModalProps> = ({ open, onClose, onApply, loading }) 
                     handleApply();
                   }
                 }}
-                className="w-full bg-transparent border border-white/[0.06] focus:border-[#D4AF37] rounded-xl px-4 py-3 text-[14px] text-white outline-none transition-all placeholder:text-zinc-600"
+                className="w-full bg-transparent border border-white/[0.06] focus:border-gold rounded-xl px-4 py-3 text-[14px] text-white outline-none transition-all placeholder:text-zinc-600"
               />
             </div>
 
@@ -84,7 +84,7 @@ const CouponModal: FC<CouponModalProps> = ({ open, onClose, onApply, loading }) 
               <button
                 onClick={handleApply}
                 disabled={loading || !code.trim()}
-                className="flex-1 py-3 text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider hover:bg-[#D4AF37]/10 transition-all cursor-pointer disabled:opacity-30 flex items-center justify-center gap-1.5"
+                className="flex-1 py-3 text-[10px] font-bold text-gold uppercase tracking-wider hover:bg-gold/10 transition-all cursor-pointer disabled:opacity-30 flex items-center justify-center gap-1.5"
               >
                 {loading ? <Loader2 size={12} className="animate-spin" /> : 'Aplicar'}
               </button>

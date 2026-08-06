@@ -44,6 +44,9 @@ export function useConnectionStatus() {
 
   useEffect(() => {
     mountedRef.current = true;
+    // Captura o ref no início do effect — o cleanup vai usar essa cópia,
+    // não o valor atual (que pode ter mudado após re-renders).
+    const retryTimer = retryTimerRef;
 
     const handleOnline = () => checkConnection();
     const handleOffline = () => notifyListeners('disconnected');
@@ -73,7 +76,7 @@ export function useConnectionStatus() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       // Não remove o canal no cleanup — é singleton global
-      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+      if (retryTimer.current) clearTimeout(retryTimer.current);
     };
   }, [checkConnection]);
 

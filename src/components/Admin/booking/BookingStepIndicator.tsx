@@ -35,9 +35,9 @@ export default function BookingStepIndicator({
               <div
                 className={`w-5 h-5 flex items-center justify-center text-[10px] font-bold rounded-full transition-all shrink-0 ${
                   isActive
-                    ? 'bg-[#D4AF37] text-black'
+                    ? 'bg-gold text-black'
                     : isPassed
-                      ? 'bg-[#D4AF37]/20 text-[#D4AF37]'
+                      ? 'bg-gold/20 text-gold'
                       : 'bg-white/[0.06] text-zinc-600'
                 }`}
               >
@@ -45,7 +45,7 @@ export default function BookingStepIndicator({
               </div>
               <span
                 className={`text-[10px] font-bold uppercase tracking-wider truncate transition-all ${
-                  isActive ? 'text-[#D4AF37]' : isPassed ? 'text-white/50' : 'text-zinc-600'
+                  isActive ? 'text-gold' : isPassed ? 'text-white/50' : 'text-zinc-600'
                 }`}
               >
                 {s.label}
@@ -53,7 +53,7 @@ export default function BookingStepIndicator({
               {idx < steps.length - 1 && (
                 <div
                   className={`h-[2px] flex-1 rounded-full transition-all duration-500 ${
-                    isPassed ? 'bg-[#D4AF37]/30' : 'bg-white/[0.06]'
+                    isPassed ? 'bg-gold/30' : 'bg-white/[0.06]'
                   }`}
                 />
               )}
@@ -80,9 +80,9 @@ export default function BookingStepIndicator({
               <div
                 className={`w-8 h-8 flex items-center justify-center text-[10px] font-black transition-all rounded-xl ${
                   isActive
-                    ? 'bg-[#D4AF37] text-black'
+                    ? 'bg-gold text-black'
                     : isPassed
-                      ? 'bg-[#D4AF37]/15 text-[#D4AF37]'
+                      ? 'bg-gold/15 text-gold'
                       : 'bg-white/[0.04] text-zinc-600 border border-white/[0.04] group-hover:border-white/[0.1]'
                 }`}
               >
@@ -91,7 +91,7 @@ export default function BookingStepIndicator({
               <span
                 className={`text-[10px] font-bold uppercase tracking-[0.12em] transition-all ${
                   isActive
-                    ? 'text-[#D4AF37]'
+                    ? 'text-gold'
                     : isPassed
                       ? 'text-white/50'
                       : 'text-zinc-600 group-hover:text-zinc-400'
@@ -103,7 +103,7 @@ export default function BookingStepIndicator({
             {idx < steps.length - 1 && (
               <div
                 className={`flex-1 h-[1px] mx-4 transition-all ${
-                  isPassed ? 'bg-[#D4AF37]/30' : 'bg-white/[0.04]'
+                  isPassed ? 'bg-gold/30' : 'bg-white/[0.04]'
                 }`}
               />
             )}

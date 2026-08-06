@@ -1,0 +1,77 @@
+{
+  "projectId": "fd821351-8286-45a2-bd1d-df63cea0db27",
+  "type": "frontend",
+  "name": "Agendamento público - fluxo completo",
+  "description": "Visitante acessa a página de agendamento, preenche dados, seleciona serviço, data/hora e confirma",
+  "priority": "p0",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Navigate to https://black-diamond-wheat.vercel.app/agendar"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the page displays a heading 'Preencha seus dados' or 'Seus dados' and a phone input field"
+    },
+    {
+      "type": "action",
+      "description": "Type '11987654321' in the phone input field (data-testid='input-phone')"
+    },
+    {
+      "type": "action",
+      "description": "Type 'Teste TestSprite' in the name input field (data-testid='input-name')"
+    },
+    {
+      "type": "action",
+      "description": "Click the 'Continuar' button (data-testid='next-step') to proceed past the data step"
+    },
+    {
+      "type": "action",
+      "description": "Click the 'Continuar' button (data-testid='next-step') to proceed to service selection"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify service cards are visible on the page (look for buttons with data-testid='service-card')"
+    },
+    {
+      "type": "action",
+      "description": "Click on one of the available service cards (data-testid='service-card') to select it"
+    },
+    {
+      "type": "action",
+      "description": "Click the 'Continuar' button (data-testid='next-step') to proceed to date/time selection"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify date picker buttons are visible on the page (look for buttons with data-testid='date-picker')"
+    },
+    {
+      "type": "action",
+      "description": "Click on one of the available date buttons (data-testid='date-picker') that is not disabled"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify time slot buttons are displayed (look for buttons with data-testid='time-slot')"
+    },
+    {
+      "type": "action",
+      "description": "Click on one of the available time slot buttons (data-testid='time-slot' that is not disabled)"
+    },
+    {
+      "type": "action",
+      "description": "Click the 'Continuar' button (data-testid='next-step') to proceed to the review step"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the review page shows the client name and the selected service information"
+    },
+    {
+      "type": "action",
+      "description": "Click the 'Confirmar Agendamento' button (data-testid='confirm-booking') to finalize the booking"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify a success or confirmation screen is displayed after booking completion"
+    }
+  ]
+}

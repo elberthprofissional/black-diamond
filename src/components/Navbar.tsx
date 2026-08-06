@@ -2,25 +2,30 @@ import { useState, useEffect, memo, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 
-interface NavbarProps {
-  onBookingClick: () => void;
-}
-
-const Navbar: FC<NavbarProps> = memo(({ onBookingClick }) => {
+const Navbar: FC = memo(() => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const { brandName, brandColor, brandLogo } = useBarberSettings();
   const displayName = brandName || 'BLACK DIAMOND';
-  const displayNameParts = displayName.split(' ');
-  const firstName = displayNameParts[0] || 'BLACK';
-  const restName = displayNameParts.slice(1).join(' ') || 'DIAMOND';
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 40);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Save scroll pos on mount to avoid flash
+  useEffect(() => {
+    setScrolled(window.scrollY > 40);
   }, []);
 
   const handleNavClick = (id: string) => {
@@ -43,75 +48,62 @@ const Navbar: FC<NavbarProps> = memo(({ onBookingClick }) => {
     { label: 'SOBRE MIM', id: 'sobre' },
     { label: 'SERVIÇOS', id: 'servicos' },
     { label: 'GALERIA', id: 'galeria' },
-    { label: 'ONDE ESTAMOS', id: 'localização' },
+    { label: 'ONDE ESTAMOS', id: 'localizacao' },
   ];
+
+  const isValidColor = /^#[0-9A-Fa-f]{6}$/.test(brandColor);
+  const accent = isValidColor ? brandColor : '#d4af37';
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
-        scrolled ? 'bg-black/20 backdrop-blur-lg h-20' : 'bg-transparent h-24 md:h-32'
+      className={`fixed top-0 left-0 right-0 z-[100] transition-[background,backdrop-filter,height] duration-500 overflow-hidden ${
+        scrolled
+          ? 'bg-black/70 backdrop-blur-xl h-16 md:h-20 border-b border-white/[0.04]'
+          : 'bg-gradient-to-b from-black/40 to-transparent h-20 md:h-28'
       }`}
+      style={{ '--accent': accent } as React.CSSProperties}
     >
-      <div className="container mx-auto h-full px-4 md:px-8 flex justify-between items-center max-w-[1920px]">
+      <div className="container mx-auto h-full px-4 md:px-8 flex justify-between items-center max-w-[1600px] gap-4">
+        {/* Logo */}
         <button
-          className="flex items-center gap-2 md:gap-6 cursor-pointer group bg-transparent border-none p-0"
+          className="flex items-center cursor-pointer bg-transparent border-none p-0 group transition-opacity duration-300 hover:opacity-80"
           onClick={() => navigate('/')}
-          aria-label="Página Inicial - Black Diamond"
+          aria-label={`Página Inicial - ${displayName}`}
           type="button"
         >
           <img
             src={brandLogo || '/assets/logo.webp'}
             alt={displayName}
-            width={80}
-            height={80}
+            width={120}
+            height={120}
+            loading="lazy"
             decoding="async"
-            className={`transition-all duration-500 object-contain -ml-2 md:-ml-6 ${
-              scrolled ? 'w-16 h-16 md:w-24 md:h-24' : 'w-20 h-20 md:w-36 md:h-36'
+            className={`transition-[width,height] duration-500 object-contain ${
+              scrolled ? 'w-16 h-16 md:w-20 md:h-20' : 'w-20 h-20 md:w-32 md:h-32'
             }`}
           />
-          <div className="flex items-baseline gap-1.5 md:gap-4">
-            <span className="text-[16px] md:text-[24px] font-bebas font-normal tracking-[0.15em] md:tracking-[0.3em] text-white uppercase leading-none">
-              {firstName}
-            </span>
-            <span
-              className="text-[16px] md:text-[24px] font-bebas font-normal tracking-[0.1em] md:tracking-[0.2em] leading-none uppercase"
-              style={{ color: brandColor }}
-            >
-              {restName}
-            </span>
-          </div>{' '}
         </button>
 
         {/* Desktop Links */}
-        <nav className="hidden lg:flex items-center space-x-12" aria-label="Menu de navegação">
+        <nav className="hidden lg:flex items-center gap-8 xl:gap-10" aria-label="Menu de navegação">
           {navLinks.map((item) => (
             <button
               key={item.id}
               onClick={() => handleNavClick(item.id)}
-              aria-label={`Ir para a seção ${item.label.toLowerCase()}`}
-              className="text-[14px] uppercase tracking-[0.3em] text-zinc-400 font-bebas transition-all cursor-pointer"
-              style={{ ['--hover-color' as string]: brandColor }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = brandColor)}
-              onMouseLeave={(e) => (e.currentTarget.style.color = '')}
+              aria-label={`Ir para a seção ${item.label}`}
+              className="nav-underline text-[11px] uppercase tracking-[0.18em] text-zinc-400 font-sans transition-colors duration-300 cursor-pointer hover:text-white"
             >
               {item.label}
             </button>
           ))}
         </nav>
 
+        {/* CTA */}
         <button
-          onClick={onBookingClick}
-          aria-label="Abrir formulário de agendamento online"
-          className="px-6 sm:px-12 py-3 md:py-4 border rounded-full text-[12px] sm:text-[14px] md:text-[16px] font-bebas uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white transition-all duration-500 cursor-pointer hover:text-black"
-          style={{ borderColor: `${brandColor}4D` }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = brandColor;
-            e.currentTarget.style.color = 'black';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = 'white';
-          }}
+          onClick={() => navigate('/agendar/entrada')}
+          aria-label="Agendar um horário"
+          className="px-5 sm:px-7 py-2.5 md:py-3 rounded-full text-[11px] sm:text-[12px] font-sans uppercase tracking-[0.18em] font-bold text-black transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-gold/20 hover:-translate-y-0.5"
+          style={{ backgroundColor: accent }}
         >
           Agendar
         </button>

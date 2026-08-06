@@ -129,7 +129,7 @@ const SettingsGaleria: FC = () => {
               <button
                 onClick={openFilePicker}
                 disabled={uploading}
-                className="h-8 px-3 flex items-center gap-1.5 rounded-full text-[12px] font-bold bg-[#D4AF37] hover:bg-[#b8962e] text-black transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-8 px-3 flex items-center gap-1.5 rounded-full text-[12px] font-bold bg-gold hover:bg-[#b8962e] text-black transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {uploading ? 'Enviando...' : 'Adicionar'}
               </button>
@@ -147,14 +147,14 @@ const SettingsGaleria: FC = () => {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-[#1a1a1a] rounded-xl p-3 border border-[#D4AF37]/10">
+            <div className="bg-[#1a1a1a] rounded-xl p-3 border border-gold/10">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-4 h-4 border-2 border-[#D4AF37]/30 border-t-[#D4AF37] rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-gold/30 border-t-[#D4AF37] rounded-full animate-spin" />
                 <span className="text-xs text-zinc-400">Enviando a foto...</span>
               </div>
               <div className="h-1 bg-white/[0.05] rounded-full overflow-hidden">
                 <motion.div
-                  className="h-full bg-gradient-to-r from-[#D4AF37] to-[#b8962e] rounded-full"
+                  className="h-full bg-gradient-to-r from-gold to-[#b8962e] rounded-full"
                   initial={{ width: '0%' }}
                   animate={{ width: '100%' }}
                   transition={{ duration: 2, ease: 'easeInOut' }}
@@ -185,7 +185,7 @@ const SettingsGaleria: FC = () => {
               <div
                 key={image.id}
                 className={`relative group aspect-square bg-[#1a1a1a] rounded-lg overflow-hidden transition-all duration-150 ${
-                  isSelected ? 'ring-2 ring-[#D4AF37]' : ''
+                  isSelected ? 'ring-2 ring-gold' : ''
                 }`}
               >
                 <img

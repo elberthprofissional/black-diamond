@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useClientPanel } from './useClientPanel';
+import { queryClientWrapper } from '../test/query-client-wrapper';
 import type { ClientWithStats, MensalistaPlan } from '../types';
 
 const mockShowSuccess = vi.fn();
@@ -106,7 +107,9 @@ describe('useClientPanel', () => {
   });
 
   it('initializes with no selected client', () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     expect(result.current.selectedClient).toBeNull();
     expect(result.current.isEditing).toBe(false);
     expect(result.current.isDeleteOpen).toBe(false);
@@ -128,7 +131,9 @@ describe('useClientPanel', () => {
       ])
     );
 
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     await act(async () => {
       await result.current.openPanel(mockClient);
     });
@@ -142,7 +147,9 @@ describe('useClientPanel', () => {
       { milestone_id: 'm1', visits_required: 5, current_visits: 3, reward_service_name: 'Corte' },
     ]);
 
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     await act(async () => {
       await result.current.openPanel(mockClient);
     });
@@ -154,7 +161,9 @@ describe('useClientPanel', () => {
       throw new Error('network');
     });
 
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     await act(async () => {
       await result.current.openPanel(mockClient);
     });
@@ -167,7 +176,9 @@ describe('useClientPanel', () => {
     mockGetClientMilestones.mockRejectedValue(new Error('timeout'));
     mockSupabaseFrom.mockReturnValue(createChain([{ id: 'b1', total_price: 50 }]));
 
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     await act(async () => {
       await result.current.openPanel(mockClient);
     });
@@ -177,7 +188,9 @@ describe('useClientPanel', () => {
   });
 
   it('starts editing mode', () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mockClient);
       result.current.setEditName('Joao Updated');
@@ -190,7 +203,9 @@ describe('useClientPanel', () => {
   });
 
   it('saves client edit successfully', async () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mockClient);
       result.current.setEditName('Joao Updated');
@@ -209,7 +224,9 @@ describe('useClientPanel', () => {
   });
 
   it('does not save edit with empty name', async () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mockClient);
       result.current.setEditName('');
@@ -223,7 +240,9 @@ describe('useClientPanel', () => {
   });
 
   it('does not save edit with empty phone', async () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mockClient);
       result.current.setEditName('Joao');
@@ -237,7 +256,9 @@ describe('useClientPanel', () => {
   });
 
   it('does not save edit with no selected client', async () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setEditName('Joao');
       result.current.setEditPhone('31988887777');
@@ -251,7 +272,9 @@ describe('useClientPanel', () => {
 
   it('handles save edit error', async () => {
     mockUpdateClient.mockRejectedValue(new Error('save failed'));
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mockClient);
       result.current.setEditName('Joao Updated');
@@ -259,14 +282,20 @@ describe('useClientPanel', () => {
     });
 
     await act(async () => {
-      await result.current.handleSaveEdit();
+      try {
+        await result.current.handleSaveEdit();
+      } catch {
+        // Erro esperado — mutateAsync propaga mesmo com onError
+      }
     });
 
     expect(mockShowError).toHaveBeenCalled();
   });
 
   it('saves notes successfully', async () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mockClient);
       result.current.setNotesText('Updated notes');
@@ -280,7 +309,9 @@ describe('useClientPanel', () => {
   });
 
   it('does not save notes with no selected client', async () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     await act(async () => {
       await result.current.handleSaveNotes();
     });
@@ -289,21 +320,29 @@ describe('useClientPanel', () => {
 
   it('handles save notes error', async () => {
     mockUpdateClientNotes.mockRejectedValue(new Error('notes failed'));
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mockClient);
       result.current.setNotesText('Notes');
     });
 
     await act(async () => {
-      await result.current.handleSaveNotes();
+      try {
+        await result.current.handleSaveNotes();
+      } catch {
+        // Erro esperado — mutateAsync propaga mesmo com onError
+      }
     });
 
     expect(mockShowError).toHaveBeenCalled();
   });
 
   it('deletes client successfully', async () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mockClient);
     });
@@ -317,7 +356,9 @@ describe('useClientPanel', () => {
   });
 
   it('does not delete with no selected client', async () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     await act(async () => {
       await result.current.confirmDelete();
     });
@@ -326,20 +367,28 @@ describe('useClientPanel', () => {
 
   it('handles delete error', async () => {
     mockDeleteClient.mockRejectedValue(new Error('Erro ao deletar'));
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mockClient);
     });
 
     await act(async () => {
-      await result.current.confirmDelete();
+      try {
+        await result.current.confirmDelete();
+      } catch {
+        // Erro esperado — mutateAsync propaga mesmo com onError
+      }
     });
 
     expect(mockShowError).toHaveBeenCalled();
   });
 
   it('toggles mensalista ON', async () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mockClient);
       result.current.setExpiresAt('2026-08-15');
@@ -362,7 +411,9 @@ describe('useClientPanel', () => {
 
   it('toggles mensalista OFF', async () => {
     const mensalistaClient = { ...mockClient, is_mensalista: true, mensalista_plan_id: 'plan-1' };
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mensalistaClient);
     });
@@ -378,7 +429,9 @@ describe('useClientPanel', () => {
   });
 
   it('handleToggleMensalista: no selected client → returns false', async () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     let success: boolean | undefined;
     await act(async () => {
       success = await result.current.handleToggleMensalista('plan-1');
@@ -388,7 +441,9 @@ describe('useClientPanel', () => {
 
   it('handleToggleMensalista: error → returns false', async () => {
     mockToggleClientMensalista.mockRejectedValue(new Error('toggle failed'));
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mockClient);
     });
@@ -403,7 +458,9 @@ describe('useClientPanel', () => {
   });
 
   it('toggles mensalista with empty expiresAt', async () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mockClient);
       result.current.setExpiresAt('');
@@ -419,7 +476,9 @@ describe('useClientPanel', () => {
   });
 
   it('closes the panel', () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mockClient);
       result.current.setIsEditing(true);
@@ -445,7 +504,9 @@ describe('useClientPanel', () => {
       ])
     );
 
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     await act(async () => {
       await result.current.openPanel(mockClient);
     });
@@ -458,7 +519,9 @@ describe('useClientPanel', () => {
       createChain([{ id: 'b1', booking_date: '2026-07-15', total_price: 50 }])
     );
 
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     await act(async () => {
       await result.current.openPanel(mockClient);
     });
@@ -468,7 +531,9 @@ describe('useClientPanel', () => {
 
   it('panelLast is null when no bookings', async () => {
     mockSupabaseFrom.mockReturnValue(createChain([]));
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     await act(async () => {
       await result.current.openPanel(mockClient);
     });
@@ -481,7 +546,9 @@ describe('useClientPanel', () => {
       is_mensalista: true,
       mensalista_plan_id: 'plan-1',
     };
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mensalistaClient);
     });
@@ -489,7 +556,9 @@ describe('useClientPanel', () => {
   });
 
   it('planName is undefined for non-mensalista', () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mockClient);
     });
@@ -497,7 +566,9 @@ describe('useClientPanel', () => {
   });
 
   it('planName is undefined for mensalista without plan id', () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient({ ...mockClient, is_mensalista: true });
     });
@@ -508,7 +579,9 @@ describe('useClientPanel', () => {
     mockSupabaseFrom.mockReturnValue(createChain([]));
     const client = { ...mockClient, mensalista_expires_at: '2026-08-15' };
 
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     await act(async () => {
       await result.current.openPanelWithExpiry(client);
     });
@@ -521,7 +594,9 @@ describe('useClientPanel', () => {
     mockSupabaseFrom.mockReturnValue(createChain([]));
     mockGetLocalDateString.mockReturnValue('2026-08-14');
 
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     await act(async () => {
       await result.current.openPanelWithExpiry(mockClient);
     });
@@ -531,7 +606,9 @@ describe('useClientPanel', () => {
   });
 
   it('handleRenewMensalidade: not mensalista → returns early', async () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mockClient);
     });
@@ -544,7 +621,9 @@ describe('useClientPanel', () => {
   });
 
   it('handleRenewMensalidade: no selected client → returns early', async () => {
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     await act(async () => {
       await result.current.handleRenewMensalidade(30);
     });
@@ -559,7 +638,9 @@ describe('useClientPanel', () => {
       mensalista_plan_id: 'plan-1',
     };
 
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mensalistaClient);
     });
@@ -586,7 +667,9 @@ describe('useClientPanel', () => {
       mensalista_plan_id: 'plan-1',
     };
 
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mensalistaClient);
     });
@@ -606,13 +689,19 @@ describe('useClientPanel', () => {
       mensalista_plan_id: 'plan-1',
     };
 
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     act(() => {
       result.current.setSelectedClient(mensalistaClient);
     });
 
     await act(async () => {
-      await result.current.handleRenewMensalidade(30);
+      try {
+        await result.current.handleRenewMensalidade(30);
+      } catch {
+        // Erro esperado — mutateAsync propaga mesmo com onError
+      }
     });
 
     expect(mockShowError).toHaveBeenCalled();
@@ -620,7 +709,9 @@ describe('useClientPanel', () => {
 
   it('openPanel resets editing states', async () => {
     mockSupabaseFrom.mockReturnValue(createChain([]));
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
 
     act(() => {
       result.current.setIsEditing(true);
@@ -637,7 +728,9 @@ describe('useClientPanel', () => {
 
   it('openPanel sets notesText from client', async () => {
     mockSupabaseFrom.mockReturnValue(createChain([]));
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     await act(async () => {
       await result.current.openPanel(mockClient);
     });
@@ -647,7 +740,9 @@ describe('useClientPanel', () => {
   it('openPanel: notes default to empty string', async () => {
     mockSupabaseFrom.mockReturnValue(createChain([]));
     const clientNoNotes = { ...mockClient, notes: undefined };
-    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans));
+    const { result } = renderHook(() => useClientPanel(mockSetClients, mockPlans), {
+      wrapper: queryClientWrapper(),
+    });
     await act(async () => {
       await result.current.openPanel(clientNoNotes);
     });

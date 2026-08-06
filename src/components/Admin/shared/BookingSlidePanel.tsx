@@ -39,7 +39,7 @@ const BookingSlidePanel: FC<BookingSlidePanelProps> = ({
           animate={isDesktop ? { x: 0 } : { y: 0 }}
           exit={isDesktop ? { x: '100%' } : { y: '100%' }}
           transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-          className={`relative bg-[#0f0f0f] z-10 flex flex-col overflow-hidden ${
+          className={`relative bg-[var(--color-dark-pure)] z-10 flex flex-col overflow-hidden ${
             isDesktop
               ? 'w-[400px] h-full bg-[#0E0E0E] border-l border-white/[0.06] shadow-2xl'
               : 'w-full h-[100dvh] text-left'

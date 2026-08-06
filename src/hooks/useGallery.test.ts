@@ -28,7 +28,7 @@ vi.mock('./useGalleryData', () => ({
     fileInputRef: { current: null },
     openFilePicker: vi.fn(),
     handleUpload: vi.fn(),
-    MAX_PHOTOS: 20,
+    MAX_PHOTOS: 5,
   }),
 }));
 
@@ -68,7 +68,7 @@ describe('useGallery', () => {
     const { result } = renderHook(() => useGallery());
 
     expect(result.current.images).toEqual(mockImages);
-    expect(result.current.MAX_PHOTOS).toBe(20);
+    expect(result.current.MAX_PHOTOS).toBe(5);
     expect(result.current.uploading).toBe(false);
     expect(result.current.selectedImages).toEqual([]);
     expect(result.current.selectionMode).toBe(false);

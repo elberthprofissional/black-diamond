@@ -43,11 +43,15 @@ describe('DataStep', () => {
 
   it('mostra erro quando nome tem menos de 3 caracteres', () => {
     render(<DataStep {...defaultProps} name="Ab" />);
+    const input = screen.getByPlaceholderText('Digite seu nome completo');
+    fireEvent.blur(input);
     expect(screen.getByText('Mínimo 3 caracteres')).toBeInTheDocument();
   });
 
   it('mostra erro quando telefone invalido', () => {
     render(<DataStep {...defaultProps} phone="123" />);
+    const input = screen.getByPlaceholderText('(00) 00000-0000');
+    fireEvent.blur(input);
     expect(screen.getByText('Informe DDD + número (mín. 10 dígitos)')).toBeInTheDocument();
   });
 

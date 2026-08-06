@@ -22,7 +22,7 @@ const BookingDesktopSidebar: FC<BookingDesktopSidebarProps> = ({
   planName,
 }) => {
   return (
-    <div className="w-[420px] shrink-0 bg-[#0A0A0A] flex flex-col justify-between p-12 text-white relative overflow-hidden">
+    <div className="w-[300px] xl:w-[380px] 2xl:w-[420px] shrink-0 bg-[#0A0A0A] flex flex-col justify-between p-6 lg:p-8 xl:p-12 text-white relative overflow-hidden">
       <img
         src="/assets/agendamento.webp"
         alt=""
@@ -30,21 +30,21 @@ const BookingDesktopSidebar: FC<BookingDesktopSidebarProps> = ({
         aria-hidden="true"
       />
       <div>
-        <span className="text-[10px] font-black tracking-[0.5em] text-[#D4AF37] uppercase">
+        <span className="text-[10px] font-black tracking-[0.5em] text-gold uppercase">
           BLACK DIAMOND
         </span>
-        <h1 className="text-3xl font-bold mt-6 leading-tight">
+        <h1 className="text-2xl xl:text-3xl font-bold mt-4 xl:mt-6 leading-tight">
           Agendamento
           <br />
           Online
         </h1>
-        <p className="text-sm text-zinc-500 mt-3 leading-relaxed">
+        <p className="text-xs xl:text-sm text-zinc-500 mt-2 xl:mt-3 leading-relaxed">
           Escolha seus serviços, horário e confirme. Rápido e fácil.
         </p>
         {isMensalista && (
-          <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-full">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
-            <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider">
+          <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 bg-gold/10 border border-gold/20 rounded-full">
+            <div className="w-1.5 h-1.5 rounded-full bg-gold" />
+            <span className="text-[10px] font-bold text-gold uppercase tracking-wider">
               {planName || 'Mensalista'}
             </span>
           </div>
@@ -57,7 +57,7 @@ const BookingDesktopSidebar: FC<BookingDesktopSidebarProps> = ({
             {selectedServices.map((s) => (
               <div key={`side-${s.id}`} className="flex justify-between items-center">
                 <span className="text-[14px] text-zinc-300">{s.name}</span>
-                <span className="text-[14px] font-bold text-[#D4AF37]">
+                <span className="text-[14px] font-bold text-gold">
                   {formatPrice(s.price, { locale: true })}
                 </span>
               </div>
@@ -71,7 +71,7 @@ const BookingDesktopSidebar: FC<BookingDesktopSidebarProps> = ({
                 {selectedTime && (
                   <div className="flex justify-between">
                     <span className="text-[10px] text-zinc-500">Horário</span>
-                    <span className="text-[14px] font-bold text-[#D4AF37]">{selectedTime}</span>
+                    <span className="text-[14px] font-bold text-gold">{selectedTime}</span>
                   </div>
                 )}
               </div>
@@ -84,7 +84,7 @@ const BookingDesktopSidebar: FC<BookingDesktopSidebarProps> = ({
         )}
         {step === 4 && (
           <div className="bg-white/[0.04] rounded-2xl p-5 space-y-4 border border-white/[0.06]">
-            <p className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest">
+            <p className="text-[10px] font-bold text-gold uppercase tracking-widest">
               Procedimento
             </p>
             <p className="text-[12px] text-zinc-400 leading-relaxed">

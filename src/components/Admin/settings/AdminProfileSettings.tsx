@@ -6,15 +6,14 @@ import {
   Shield,
   Clock,
   Image as ImageIcon,
-  HelpCircle,
   UserX,
   Gift,
   Tag,
   Bell,
   Scissors,
-  Users,
   Crown,
   CreditCard,
+  Users,
 } from 'lucide-react';
 import SettingsList from './SettingsList';
 
@@ -24,10 +23,10 @@ const SettingsNotificacoes = lazy(() => import('./SettingsNotificacoes'));
 const SettingsDados = lazy(() => import('./SettingsDados'));
 const SettingsServicos = lazy(() => import('./SettingsServicos'));
 const SettingsHorarios = lazy(() => import('./SettingsHorarios'));
+const SettingsBarbeiros = lazy(() => import('./SettingsBarbeiros'));
 const SettingsFaltas = lazy(() => import('./SettingsFaltas'));
 const SettingsFidelidade = lazy(() => import('./SettingsFidelidade'));
 const SettingsCupons = lazy(() => import('./SettingsCupons'));
-const SettingsBarbeiros = lazy(() => import('./SettingsBarbeiros'));
 const SettingsMensalista = lazy(() => import('./SettingsMensalista'));
 const SettingsAssinaturas = lazy(() => import('./SettingsAssinaturas'));
 
@@ -37,8 +36,8 @@ const sectionTitle = (section: string | null) => {
     galeria: 'Galeria',
     servicos: 'Serviços',
     horarios: 'Horários',
-    faltas: 'Controle de Faltas',
     barbeiros: 'Barbeiros',
+    faltas: 'Controle de Faltas',
     fidelidade: 'Fidelidade',
     cupons: 'Cupons',
     mensalista: 'Mensalista',
@@ -67,12 +66,11 @@ const NAV_ITEMS = [
 interface Props {
   settingsSection: string | null;
   setSettingsSection: (s: string | null) => void;
-  setShowHelp: (s: boolean) => void;
 }
 
 const Fallback = () => <div className="skeleton-pulse h-32" />;
 
-const AdminProfileSettings: FC<Props> = ({ settingsSection, setSettingsSection, setShowHelp }) => (
+const AdminProfileSettings: FC<Props> = ({ settingsSection, setSettingsSection }) => (
   <>
     {/* Mobile header */}
     <div className="lg:hidden flex items-center gap-3 px-4 -mt-1 mb-4">
@@ -91,13 +89,6 @@ const AdminProfileSettings: FC<Props> = ({ settingsSection, setSettingsSection, 
           {sectionTitle(settingsSection)}
         </h1>
       </div>
-      <button
-        onClick={() => setShowHelp(true)}
-        className="text-zinc-500 hover:text-[#D4AF37] transition-colors cursor-pointer"
-        aria-label="Ajuda"
-      >
-        <HelpCircle size={20} />
-      </button>
     </div>
 
     {/* Mobile: list or section */}
@@ -133,18 +124,11 @@ const AdminProfileSettings: FC<Props> = ({ settingsSection, setSettingsSection, 
                 onClick={() => setSettingsSection(item.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] transition-all cursor-pointer ${active ? 'bg-white/5 text-white font-medium' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03]'}`}
               >
-                <Icon size={15} className={active ? 'text-[#D4AF37]' : 'text-zinc-500'} />
+                <Icon size={15} className={active ? 'text-gold' : 'text-zinc-500'} />
                 {item.label}
               </button>
             );
           })}
-          <button
-            onClick={() => setShowHelp(true)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03] transition-all cursor-pointer mt-4"
-          >
-            <HelpCircle size={15} />
-            Ajuda
-          </button>
         </div>
       </div>
       <div className="flex-1 min-w-0 min-h-[600px]">

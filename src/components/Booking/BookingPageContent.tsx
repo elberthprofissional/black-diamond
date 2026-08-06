@@ -58,9 +58,9 @@ const BookingPageContent: FC = memo(() => {
       case 2:
         return (
           <BarberStep
+            barbers={ctx.barbers}
             selectedBarber={ctx.selectedBarber}
             onSelectBarber={ctx.onSelectBarber}
-            layout={layout}
           />
         );
       case 3:
@@ -100,6 +100,7 @@ const BookingPageContent: FC = memo(() => {
           <ReviewStep
             userName={ctx.userInfo.name}
             userPhone={ctx.userInfo.phone}
+            barberName={ctx.selectedBarber?.name}
             selectedDate={ctx.selectedDate}
             selectedTime={ctx.selectedTime}
             selectedServices={ctx.selectedServices}
@@ -120,7 +121,7 @@ const BookingPageContent: FC = memo(() => {
 
   if (isDesktop) {
     return (
-      <div className="min-h-screen bg-[#0E0E0E] text-white">
+      <div className="min-h-screen bg-dark-pure text-white flex flex-row">
         <BookingDesktopSidebar
           isMensalista={ctx.isMensalista}
           selectedServices={ctx.selectedServices}
@@ -134,7 +135,7 @@ const BookingPageContent: FC = memo(() => {
         <div className="flex-1 flex flex-col">
           <BookingDesktopProgress step={ctx.step} stepTitle={ctx.stepTitle} goBack={ctx.goBack} />
 
-          <div className="flex-1 overflow-y-auto px-14 pt-10 pb-6 flex flex-col">
+          <div className="flex-1 overflow-y-auto px-6 lg:px-10 xl:px-14 pt-8 lg:pt-10 pb-6 flex flex-col">
             <AnimatePresence mode="popLayout">
               {ctx.servicesLoading && (
                 <motion.div
@@ -144,7 +145,7 @@ const BookingPageContent: FC = memo(() => {
                   exit={{ opacity: 0 }}
                   className="flex-1"
                 >
-                  <SkeletonBooking layout="desktop" />
+                  <SkeletonBooking layout="desktop" submitting={ctx.isSubmitting} />
                 </motion.div>
               )}
 
@@ -156,9 +157,7 @@ const BookingPageContent: FC = memo(() => {
             </AnimatePresence>
 
             {ctx.step < 6 && (
-              <div
-                className={`flex justify-end ${ctx.step === 4 || ctx.step === 5 ? 'pt-2' : 'pt-6'}`}
-              >
+              <div className={`flex justify-end ${ctx.step === 5 ? 'pt-2' : 'pt-6'}`}>
                 <button
                   onClick={ctx.goNext}
                   disabled={ctx.isStepDisabled}
@@ -170,7 +169,7 @@ const BookingPageContent: FC = memo(() => {
                   }
                   className={`h-11 px-8 rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] transition-all duration-300 ${
                     !ctx.isStepDisabled
-                      ? 'bg-[#D4AF37] text-black hover:bg-[#b8962e] active:scale-95'
+                      ? 'bg-gold text-black hover:bg-[#b8962e] active:scale-95'
                       : 'bg-white/[0.04] text-zinc-600 cursor-not-allowed'
                   }`}
                 >
@@ -195,14 +194,15 @@ const BookingPageContent: FC = memo(() => {
                   layout="desktop"
                   isOffline={ctx.isOfflineBooking}
                   nextMilestone={ctx.nextMilestone}
+                  manageUrl={ctx.bookingResult?.manageUrl}
                 />
               </motion.div>
             )}
           </div>
 
-          <div className="px-14 py-5 border-t border-white/[0.06] flex items-center justify-between">
+          <div className="px-6 lg:px-10 xl:px-14 py-4 border-t border-white/[0.06] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black tracking-[0.4em] text-[#D4AF37] uppercase">
+              <span className="text-[10px] font-black tracking-[0.4em] text-gold uppercase">
                 BLACK DIAMOND
               </span>
               <span className="text-[10px] text-zinc-600">Barbearia</span>
@@ -218,17 +218,17 @@ const BookingPageContent: FC = memo(() => {
 
   // Mobile layout
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col text-white font-sans relative pb-28 overflow-x-hidden">
+    <div className="min-h-screen bg-dark-surface flex flex-col text-white font-sans relative pb-28 overflow-x-hidden">
       <BookingMobileProgress
         step={ctx.step}
         stepTitle={ctx.stepTitle}
         onBack={() => (ctx.step > 1 ? ctx.goBack() : ctx.navigate('/'))}
       />
 
-      <div className="flex-1 px-5 pt-5 pb-12 flex flex-col justify-start">
+      <div className="flex-1 px-4 pt-4 pb-8 flex flex-col justify-start">
         {ctx.servicesLoading && (
           <div className="w-full">
-            <SkeletonBooking layout="mobile" />
+            <SkeletonBooking layout="mobile" submitting={ctx.isSubmitting} />
           </div>
         )}
 
@@ -253,8 +253,8 @@ const BookingPageContent: FC = memo(() => {
 
       {ctx.step < 6 && (
         <div
-          className="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent z-[100] border-t border-white/[0.03] backdrop-blur-md"
-          style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
+          className="fixed bottom-0 left-0 right-0 px-4 pb-6 pt-3 bg-gradient-to-t from-dark-surface via-dark-surface to-transparent z-[100] border-t border-white/[0.03] backdrop-blur-md"
+          style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
         >
           <button
             onClick={ctx.goNext}
@@ -263,10 +263,10 @@ const BookingPageContent: FC = memo(() => {
             aria-label={
               ctx.step < 5 ? 'Continuar para a próxima etapa' : 'Confirmar e concluir agendamento'
             }
-            className={`w-full h-12 rounded-xl font-bold text-xs uppercase tracking-widest transition-all duration-300 cursor-pointer ${
+            className={`w-full h-11 rounded-xl font-bold text-[11px] uppercase tracking-widest transition-all duration-300 cursor-pointer ${
               ctx.isStepDisabled
                 ? 'bg-[#0a0a0a] border border-white/[0.04] text-zinc-700 cursor-not-allowed'
-                : 'bg-gradient-to-r from-[#D4AF37] to-[#b8923f] text-black hover:brightness-110 active:scale-[0.98] shadow-lg shadow-[#D4AF37]/20 hover:shadow-xl hover:shadow-[#D4AF37]/30'
+                : 'bg-gradient-to-r from-gold to-[#b8923f] text-black hover:brightness-110 active:scale-[0.98] shadow-lg shadow-gold/20 hover:shadow-xl hover:shadow-gold/30'
             }`}
           >
             {ctx.isSubmitting
@@ -277,13 +277,13 @@ const BookingPageContent: FC = memo(() => {
           </button>
         </div>
       )}
-
       {ctx.step === 6 && (
         <SuccessStep
           clientName={ctx.userInfo.name}
           layout="mobile"
           isOffline={ctx.isOfflineBooking}
           nextMilestone={ctx.nextMilestone}
+          manageUrl={ctx.bookingResult?.manageUrl}
         />
       )}
     </div>

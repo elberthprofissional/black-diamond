@@ -63,7 +63,7 @@ const ThankYouModal: FC<ThankYouModalProps> = ({ booking, services, onConfirm, o
                 <p className="text-sm font-bold text-white">Atendimento concluido!</p>
                 <p className="text-xs text-zinc-400 leading-relaxed">
                   Enviar agradecimento para{' '}
-                  <span className="text-[#D4AF37] font-semibold">{firstName}</span>?
+                  <span className="text-gold font-semibold">{firstName}</span>?
                 </p>
               </div>
 

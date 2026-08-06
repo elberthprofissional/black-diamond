@@ -6,8 +6,8 @@
 
 // Lazy-loaded deps: jsPDF (376 kB) stays out of the main bundle
 let _jsPdf: (typeof import('jspdf'))['default'] | null = null;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let _autoTable: any = null;
+type AutoTableFunction = (doc: import('jspdf').jsPDF, options: Record<string, unknown>) => void;
+let _autoTable: AutoTableFunction | null = null;
 
 async function loadPdfDeps() {
   if (!_jsPdf) {
@@ -16,7 +16,7 @@ async function loadPdfDeps() {
       import('jspdf-autotable'),
     ]);
     _jsPdf = jsPdfMod.default;
-    _autoTable = autoTableMod.default;
+    _autoTable = autoTableMod.default as AutoTableFunction;
   }
   return { jsPDF: _jsPdf!, autoTable: _autoTable };
 }
@@ -129,7 +129,7 @@ export async function downloadPdf(options: PdfReportOptions): Promise<void> {
     doc.setTextColor(100, 100, 100);
     doc.text('Nenhum registro encontrado.', pageWidth / 2, yStart + 20, { align: 'center' });
   } else {
-    autoTable(doc, {
+    autoTable!(doc, {
       startY: yStart,
       head: [tableColumns.map((c) => c.header)],
       body: tableRows.map((r) =>

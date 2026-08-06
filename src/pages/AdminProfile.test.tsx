@@ -166,8 +166,13 @@ vi.mock('../hooks/useSubscription', () => ({
   }),
 }));
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BarberProvider } from '../contexts/BarberContext';
 import AdminProfile from './AdminProfile';
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+});
 
 describe('AdminProfile', () => {
   beforeEach(() => {
@@ -176,18 +181,22 @@ describe('AdminProfile', () => {
 
   it('renderiza sem erros', async () => {
     const { container } = render(
-      <BarberProvider>
-        <AdminProfile />
-      </BarberProvider>
+      <QueryClientProvider client={queryClient}>
+        <BarberProvider>
+          <AdminProfile />
+        </BarberProvider>
+      </QueryClientProvider>
     );
     expect(container).toBeTruthy();
   });
 
   it('renderiza nome do barbeiro', async () => {
     render(
-      <BarberProvider>
-        <AdminProfile />
-      </BarberProvider>
+      <QueryClientProvider client={queryClient}>
+        <BarberProvider>
+          <AdminProfile />
+        </BarberProvider>
+      </QueryClientProvider>
     );
     await waitFor(() => {
       expect(screen.getAllByText(/Admin|Barbeiro/i).length).toBeGreaterThan(0);
@@ -196,9 +205,11 @@ describe('AdminProfile', () => {
 
   it('renderiza botoes de menu do perfil', async () => {
     render(
-      <BarberProvider>
-        <AdminProfile />
-      </BarberProvider>
+      <QueryClientProvider client={queryClient}>
+        <BarberProvider>
+          <AdminProfile />
+        </BarberProvider>
+      </QueryClientProvider>
     );
     await waitFor(() => {
       expect(screen.getByText(/Editar perfil/i)).toBeInTheDocument();
@@ -208,9 +219,11 @@ describe('AdminProfile', () => {
 
   it('renderiza acoes rapidas', async () => {
     render(
-      <BarberProvider>
-        <AdminProfile />
-      </BarberProvider>
+      <QueryClientProvider client={queryClient}>
+        <BarberProvider>
+          <AdminProfile />
+        </BarberProvider>
+      </QueryClientProvider>
     );
     await waitFor(() => {
       expect(screen.getAllByText(/Notificações/i).length).toBeGreaterThan(0);
@@ -220,9 +233,11 @@ describe('AdminProfile', () => {
 
   it('renderiza botao de limpar dados', async () => {
     render(
-      <BarberProvider>
-        <AdminProfile />
-      </BarberProvider>
+      <QueryClientProvider client={queryClient}>
+        <BarberProvider>
+          <AdminProfile />
+        </BarberProvider>
+      </QueryClientProvider>
     );
     await waitFor(() => {
       expect(screen.getAllByText(/Limpar Dados/i).length).toBeGreaterThan(0);

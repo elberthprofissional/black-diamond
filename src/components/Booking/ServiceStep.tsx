@@ -64,8 +64,8 @@ const ServiceStep: FC<ServiceStepProps> = memo(
       return (
         <div className="space-y-6">
           {isMensalista && (
-            <div className="px-4 py-3 bg-[#D4AF37]/[0.06] border border-[#D4AF37]/20 rounded-xl">
-              <p className="text-[14px] text-[#D4AF37] font-medium">
+            <div className="px-4 py-3 bg-gold/[0.06] border border-gold/20 rounded-xl">
+              <p className="text-[14px] text-gold font-medium">
                 {planName || 'Corte de Cabelo incluso no plano mensal'}
               </p>
             </div>
@@ -111,7 +111,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
 
                   <div
                     className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all shrink-0 ${
-                      selected ? 'border-[#D4AF37] bg-[#D4AF37]' : 'border-white/20'
+                      selected ? 'border-gold bg-gold' : 'border-white/20'
                     }`}
                   >
                     {selected && <Check size={11} className="text-white stroke-[3px]" />}
@@ -158,8 +158,8 @@ const ServiceStep: FC<ServiceStepProps> = memo(
     return (
       <div className="space-y-4">
         {isMensalista && (
-          <div className="px-4 py-3 bg-[#D4AF37]/[0.06] border border-[#D4AF37]/20 rounded-xl">
-            <p className="text-[12px] text-[#D4AF37] font-medium">
+          <div className="px-4 py-3 bg-gold/[0.06] border border-gold/20 rounded-xl">
+            <p className="text-[12px] text-gold font-medium">
               {planName || 'Corte de Cabelo incluso no plano mensal'}
             </p>
           </div>
@@ -177,7 +177,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
           </div>
         )}
 
-        <div className="space-y-4" role="group" aria-label="Serviços disponíveis">
+        <div className="space-y-3" role="group" aria-label="Serviços disponíveis">
           {services.map((service) => {
             const selected = isSelected(service.id);
             const discount = hasCoupon ? getServiceDiscount(service, coupon!, originalPrice) : 0;
@@ -189,7 +189,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                 data-testid="service-card"
                 data-selected={selected}
                 aria-pressed={selected}
-                className="w-full text-left transition-all cursor-pointer rounded-xl p-4 bg-white/[0.02] border border-white/[0.04] relative overflow-hidden"
+                className="w-full text-left transition-all cursor-pointer rounded-xl p-3.5 bg-white/[0.02] border border-white/[0.04] relative overflow-hidden"
               >
                 {/* Discount badge */}
                 {hasCoupon && discount > 0 && (
@@ -204,7 +204,7 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <p
-                        className="text-[16px] font-extrabold tracking-tight text-white"
+                        className="text-[14px] font-extrabold tracking-tight text-white"
                         style={{ fontFamily: 'var(--font-montserrat)' }}
                       >
                         {service.name}
@@ -222,15 +222,15 @@ const ServiceStep: FC<ServiceStepProps> = memo(
                         {formatPriceAdmin(discountedPrice)}
                       </span>
                     </div>
-                  </div>
+                  </div>{' '}
                   <div
-                    className={`w-11 h-6 rounded-full transition-all relative ${
-                      selected ? 'bg-[#D4AF37]' : 'bg-zinc-700'
+                    className={`w-10 h-5 rounded-full transition-all relative ${
+                      selected ? 'bg-gold' : 'bg-zinc-700'
                     }`}
                   >
                     <div
-                      className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${
-                        selected ? 'left-[22px]' : 'left-0.5'
+                      className={`absolute top-[2px] w-[18px] h-4 rounded-full bg-white shadow transition-all ${
+                        selected ? 'left-[20px]' : 'left-[2px]'
                       }`}
                     />
                   </div>

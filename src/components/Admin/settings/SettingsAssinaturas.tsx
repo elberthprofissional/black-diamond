@@ -203,7 +203,7 @@ const SettingsAssinaturas: FC = () => {
                 value={pixInput}
                 onChange={(e) => setPixInput(e.target.value)}
                 placeholder="CPF, CNPJ, email, Telefone ou chave aleatória"
-                className="flex-1 bg-black/40 border border-white/[0.06] rounded-xl px-4 py-3 text-[14px] text-white outline-none focus:border-[#D4AF37]/40 transition-all placeholder:text-zinc-600"
+                className="flex-1 bg-black/40 border border-white/[0.06] rounded-xl px-4 py-3 text-[14px] text-white outline-none focus:border-gold/40 transition-all placeholder:text-zinc-600"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleSavePix();

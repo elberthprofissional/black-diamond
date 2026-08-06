@@ -42,11 +42,15 @@ export const insertGalleryImage = async (image: {
   if (error) throw error;
 };
 
-/** Atualiza a posição de uma imagem. */
-export const updateGalleryPosition = async (id: string, position: number) => {
+/** Atualiza a posição de uma imagem. Retorna true se sucesso, false se erro. */
+export const updateGalleryPosition = async (id: string, position: number): Promise<boolean> => {
   const { error } = await supabase.from('gallery_images').update({ position }).eq('id', id);
 
-  if (error) logError(error);
+  if (error) {
+    logError(error);
+    return false;
+  }
+  return true;
 };
 
 /** Deleta uma imagem da galeria (banco + storage). */

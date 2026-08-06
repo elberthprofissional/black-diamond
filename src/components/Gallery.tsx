@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback, memo, type FC } from 'react';
-import { supabase } from '../lib/supabase';
+import { useState, useEffect, memo, type FC } from 'react';
 import { ImageIcon } from 'lucide-react';
-import Skeleton from './Skeleton';
+import { getGalleryImages } from '../lib/api/gallery';
 import { logError } from '../lib/logger';
 
 interface GalleryImage {
@@ -11,144 +10,101 @@ interface GalleryImage {
   position: number;
 }
 
+const PLACEHOLDER_POLAROIDS = [
+  {
+    transform: 'rotate-[-8deg] translate-y-2 z-10',
+  },
+  {
+    transform: 'rotate-[0deg] z-10',
+  },
+  {
+    transform: 'rotate-[16deg] z-20',
+  },
+];
+
 const Gallery: FC = memo(() => {
   const [images, setImages] = useState<GalleryImage[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [erroredImages, setErroredImages] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('gallery_images')
-          .select('id, image_url, alt, position')
-          .order('position', { ascending: true });
-        if (error) throw error;
-        if (data) setImages(data);
-      } catch (e) {
-        logError(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchImages();
+    getGalleryImages()
+      .then((data) => {
+        if (data) setImages(data as GalleryImage[]);
+      })
+      .catch((e) => logError(e));
   }, []);
 
-  const handleImageError = useCallback((id: string) => {
-    setErroredImages((prev) => new Set(prev).add(id));
-  }, []);
-
-  if (loading) {
-    return (
-      <section id="galeria" className="py-10 md:py-20 bg-[#0A0A0A]">
-        <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center mb-6 md:mb-10">
-            <Skeleton className="h-3 w-20 mx-auto mb-4" />
-            <Skeleton className="h-12 w-64 mx-auto mb-6" />
-            <Skeleton className="h-px w-12 mx-auto" />
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 px-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} variant="rect" className="w-full h-[250px] md:h-[350px]" />
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
+  // Pula as 2 primeiras fotos (usadas no Hero) e mostra as próximas 3
+  const galleryImages = images.slice(2, 5);
+  const displayItems = Array.from({ length: 3 }).map((_, idx) => {
+    const img = galleryImages[idx];
+    if (img) {
+      const transform =
+        idx === 0
+          ? 'rotate-[-8deg] translate-y-2 z-10'
+          : idx === 1
+            ? 'rotate-[0deg] z-10'
+            : 'rotate-[16deg] z-20';
+      return { type: 'image' as const, url: img.image_url, title: img.alt || '', transform };
+    }
+    return { type: 'placeholder' as const, transform: PLACEHOLDER_POLAROIDS[idx]!.transform };
+  });
 
   return (
-    <section id="galeria" className="py-10 md:py-20 bg-[#0A0A0A]">
-      <div className="container mx-auto px-6">
+    <section
+      id="galeria"
+      className="py-24 md:py-32 bg-dark-surface border-t border-white/[0.06] text-white relative overflow-x-clip"
+    >
+      <div className="container mx-auto px-6 max-w-6xl text-center">
         {/* Header */}
-        <div className="text-center mb-6 md:mb-10">
-          <h2 className="text-[#D4AF37] font-bebas text-[10px] md:text-xs tracking-[0.6em] uppercase mb-4">
+        <div className="mb-12 md:mb-16 space-y-2">
+          <span className="text-[11px] font-sans font-bold uppercase tracking-[0.35em] text-zinc-400 block">
             Galeria
+          </span>
+          <h2 className="text-4xl sm:text-6xl md:text-7xl font-bold uppercase tracking-tight font-sans">
+            <span>Meus</span>{' '}
+            <span className="font-serif italic font-normal text-white lowercase">trabalhos</span>
           </h2>
-          <h3 className="text-4xl sm:text-6xl md:text-8xl font-bebas text-white mb-6 tracking-tight uppercase leading-none">
-            MEUS <span className="text-[#D4AF37]">TRABALHOS</span>
-          </h3>
-          <div className="w-12 h-px bg-[#D4AF37]/30 mx-auto" />
         </div>
 
-        {/* Empty */}
-        {images.length === 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 max-w-2xl mx-auto">
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={`placeholder-${i}`}
-                className="aspect-[3/4] bg-[#1a1a1a] border border-dashed border-white/10 flex items-center justify-center"
-              >
-                <ImageIcon size={32} className="text-zinc-700" />
+        {/* Polaroid Showcase */}
+        <div className="flex flex-row items-center justify-center gap-0 max-w-5xl mx-auto py-6 px-4 sm:px-6 md:px-8">
+          {displayItems.map((item, index) => (
+            <div
+              key={index}
+              className={`shrink-0 relative w-[130px] sm:w-[240px] md:w-[310px] bg-white p-2 sm:p-3.5 pt-3 sm:pt-4 pb-5 sm:pb-8 shadow-[0_15px_30px_rgba(0,0,0,0.7)] ${item.transform} ${
+                index === 0
+                  ? '-mr-4 sm:-mr-12 md:-mr-16'
+                  : index === 2
+                    ? '-ml-4 sm:-ml-12 md:-ml-16'
+                    : ''
+              }`}
+            >
+              {/* Adhesive tape effect at top center */}
+              <div className="tape-effect !w-[60px] sm:!w-[90px] !h-[18px] sm:!h-[26px] !-top-2.5" />
+
+              {/* Photo Frame */}
+              <div className="aspect-[4/5] bg-zinc-900 overflow-hidden relative border border-zinc-200 shadow-inner flex items-center justify-center">
+                {item.type === 'image' ? (
+                  <img
+                    src={(item as { url: string }).url}
+                    alt={(item as { title: string }).title || 'Foto de corte'}
+                    loading="lazy"
+                    decoding="async"
+                    sizes="(max-width: 640px) 130px, (max-width: 768px) 240px, 310px"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-zinc-600">
+                    <ImageIcon size={28} className="sm:size-10" />
+                    <span className="text-[8px] sm:text-[10px] font-sans font-medium uppercase tracking-wider">
+                      Adicione fotos
+                    </span>
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
-        )}
-
-        {/* Grid: até 5 fotos */}
-        {images.length > 0 && images.length <= 5 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
-            {images.map((img, i) => {
-              const isLastOdd = i === images.length - 1 && images.length % 2 === 1;
-              return (
-                <div
-                  key={img.id}
-                  className={`relative bg-[#1a1a1a] overflow-hidden group aspect-[3/4] ${
-                    isLastOdd ? 'md:col-start-2' : ''
-                  }`}
-                >
-                  {erroredImages.has(img.id) ? (
-                    <div className="absolute inset-0 flex items-center justify-center bg-[#1a1a1a] border border-dashed border-white/10">
-                      <ImageIcon size={28} className="text-zinc-700" />
-                    </div>
-                  ) : (
-                    <>
-                      <img
-                        src={img.image_url}
-                        alt={img.alt || `Foto do trabalho ${i + 1}`}
-                        loading="lazy"
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        onError={() => handleImageError(img.id)}
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Carousel: 6+ fotos */}
-        {images.length >= 6 && (
-          <div className="overflow-hidden -mx-6 px-6">
-            <div className="flex animate-marquee gap-3 md:gap-4">
-              {[...images, ...images].map((img, i) => (
-                <div
-                  key={`${img.id}-${i}`}
-                  className="relative w-[200px] sm:w-[260px] md:w-[380px] aspect-[3/4] bg-[#1a1a1a] overflow-hidden flex-shrink-0 group"
-                >
-                  {erroredImages.has(img.id) ? (
-                    <div className="absolute inset-0 flex items-center justify-center bg-[#1a1a1a] border border-dashed border-white/10">
-                      <ImageIcon size={28} className="text-zinc-700" />
-                    </div>
-                  ) : (
-                    <>
-                      <img
-                        src={img.image_url}
-                        alt={img.alt || `Foto do trabalho ${(i % images.length) + 1}`}
-                        loading="lazy"
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        onError={() => handleImageError(img.id)}
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
-                    </>
-                  )}
-                </div>
-              ))}
             </div>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
     </section>
   );

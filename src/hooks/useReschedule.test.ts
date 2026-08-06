@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useReschedule } from './useReschedule';
+import { queryClientWrapper } from '../test/query-client-wrapper';
 import type { BookingWithClient, Service } from '../types';
 
 vi.mock('../lib/api', () => ({
@@ -37,8 +38,9 @@ describe('useReschedule', () => {
   });
 
   it('inicializa com estado correto', () => {
-    const { result } = renderHook(() =>
-      useReschedule(null, [], mockOnSuccess, mockOnDone, mockShowError)
+    const { result } = renderHook(
+      () => useReschedule(null, [], mockOnSuccess, mockOnDone, mockShowError),
+      { wrapper: queryClientWrapper() }
     );
     expect(result.current.isRescheduling).toBe(false);
     expect(result.current.rescheduleServices).toEqual([]);
@@ -46,8 +48,9 @@ describe('useReschedule', () => {
   });
 
   it('startReschedule configura valores corretamente', () => {
-    const { result } = renderHook(() =>
-      useReschedule(mockBooking, mockServices, mockOnSuccess, mockOnDone, mockShowError)
+    const { result } = renderHook(
+      () => useReschedule(mockBooking, mockServices, mockOnSuccess, mockOnDone, mockShowError),
+      { wrapper: queryClientWrapper() }
     );
 
     act(() => {
@@ -62,8 +65,9 @@ describe('useReschedule', () => {
   });
 
   it('cancelReschedule reseta estado', () => {
-    const { result } = renderHook(() =>
-      useReschedule(mockBooking, mockServices, mockOnSuccess, mockOnDone, mockShowError)
+    const { result } = renderHook(
+      () => useReschedule(mockBooking, mockServices, mockOnSuccess, mockOnDone, mockShowError),
+      { wrapper: queryClientWrapper() }
     );
 
     act(() => {
@@ -79,8 +83,9 @@ describe('useReschedule', () => {
   });
 
   it('confirmReschedule chama create + delete (na ordem correta)', async () => {
-    const { result } = renderHook(() =>
-      useReschedule(mockBooking, mockServices, mockOnSuccess, mockOnDone, mockShowError)
+    const { result } = renderHook(
+      () => useReschedule(mockBooking, mockServices, mockOnSuccess, mockOnDone, mockShowError),
+      { wrapper: queryClientWrapper() }
     );
 
     act(() => {
@@ -108,8 +113,9 @@ describe('useReschedule', () => {
     const { deleteBooking } = await import('../lib/api');
     vi.mocked(deleteBooking).mockRejectedValueOnce(new Error('DB error'));
 
-    const { result } = renderHook(() =>
-      useReschedule(mockBooking, mockServices, mockOnSuccess, mockOnDone, mockShowError)
+    const { result } = renderHook(
+      () => useReschedule(mockBooking, mockServices, mockOnSuccess, mockOnDone, mockShowError),
+      { wrapper: queryClientWrapper() }
     );
 
     act(() => {
@@ -117,7 +123,11 @@ describe('useReschedule', () => {
     });
 
     await act(async () => {
-      await result.current.confirmReschedule();
+      try {
+        await result.current.confirmReschedule();
+      } catch {
+        // Erro esperado — mutateAsync propaga mesmo com onError
+      }
     });
 
     expect(mockShowError).toHaveBeenCalledWith('Erro ao reagendar.');

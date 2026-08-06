@@ -44,7 +44,7 @@ const AdminBookingDesktop: FC<Props> = ({ booking }) => {
               </p>
             </div>
           </div>
-          <div className="mt-3 h-px bg-gradient-to-r from-[#D4AF37]/40 via-[#D4AF37]/10 to-transparent" />
+          <div className="mt-3 h-px bg-gradient-to-r from-gold/40 via-gold/10 to-transparent" />
         </div>
 
         {/* Step Indicator */}
@@ -57,7 +57,7 @@ const AdminBookingDesktop: FC<Props> = ({ booking }) => {
                   disabled={s.step > b.currentStep}
                   className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-[12px] font-medium transition-all cursor-pointer ${
                     b.currentStep === s.step
-                      ? 'bg-[#D4AF37]/15 border border-[#D4AF37]/40 text-[#D4AF37]'
+                      ? 'bg-gold/15 border border-gold/40 text-gold'
                       : s.step < b.currentStep
                         ? 'bg-white/[0.04] border border-white/[0.08] text-zinc-300 hover:text-white'
                         : 'bg-white/[0.02] border border-white/[0.04] text-zinc-500'
@@ -66,9 +66,9 @@ const AdminBookingDesktop: FC<Props> = ({ booking }) => {
                   <span
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
                       b.currentStep === s.step
-                        ? 'bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20'
+                        ? 'bg-gold text-black shadow-lg shadow-gold/20'
                         : s.step < b.currentStep
-                          ? 'bg-[#D4AF37]/30 text-[#D4AF37]'
+                          ? 'bg-gold/30 text-gold'
                           : 'bg-white/[0.06] text-zinc-500'
                     }`}
                   >
@@ -78,7 +78,7 @@ const AdminBookingDesktop: FC<Props> = ({ booking }) => {
                 </button>
                 {i < b.STEPS.length - 1 && (
                   <div
-                    className={`w-10 h-px ${s.step < b.currentStep ? 'bg-[#D4AF37]/50' : 'bg-white/[0.08]'}`}
+                    className={`w-10 h-px ${s.step < b.currentStep ? 'bg-gold/50' : 'bg-white/[0.08]'}`}
                   />
                 )}
               </Fragment>
@@ -128,28 +128,6 @@ const AdminBookingDesktop: FC<Props> = ({ booking }) => {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
               >
-                {b.barbers.length > 1 && (
-                  <div className="mb-6 space-y-2">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                      Barbeiro
-                    </label>
-                    <div className="flex gap-2">
-                      {b.barbers.map((barber) => (
-                        <button
-                          key={barber.id}
-                          onClick={() => b.setSelectedBarber(barber)}
-                          className={`px-4 py-2 rounded-lg text-[12px] font-bold border transition-all cursor-pointer ${
-                            b.selectedBarber?.id === barber.id
-                              ? 'bg-[#D4AF37]/10 border-[#D4AF37]/40 text-[#D4AF37]'
-                              : 'bg-white/[0.02] border-white/[0.06] text-zinc-400 hover:border-white/[0.12]'
-                          }`}
-                        >
-                          {barber.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
                 <ResponsiveServicesStep
                   services={b.services}
                   selectedServices={b.selectedServices}
@@ -157,6 +135,9 @@ const AdminBookingDesktop: FC<Props> = ({ booking }) => {
                   planName={b.currentPlan?.name}
                   onToggleService={b.toggleService}
                   onNextStep={b.handleNextStep}
+                  barbers={b.barbers}
+                  selectedBarber={b.selectedBarber}
+                  onSelectBarber={b.setSelectedBarber}
                 />
               </motion.div>
             )}

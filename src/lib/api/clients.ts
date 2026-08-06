@@ -128,3 +128,48 @@ export const getClientByPhone = async (phone: string) => {
   if (error) throw error;
   return data;
 };
+
+/**
+ * Cadastro público de cliente via RPC segura (SECURITY DEFINER).
+ * Upsert idempotente por telefone — substitui o INSERT direto na tabela,
+ * que era um risco de segurança (anon podia escrever em clients).
+ */
+export const registerPublicClient = async (data: { name: string; phone: string }) => {
+  const { data: result, error } = await supabase.rpc('cadastrar_cliente_publico', {
+    p_nome: data.name,
+    p_telefone: data.phone,
+  });
+
+  if (error) throw error;
+  return result;
+};
+
+/**
+ * Dashboard do cliente (stats + histórico) via RPC segura (SECURITY DEFINER).
+ * Retorna apenas os dados do telefone informado, sem expor a tabela clients.
+ */
+export const getClientDashboard = async (phone: string) => {
+  const cleanPhone = phone.replace(/\D/g, '');
+  const { data, error } = await supabase.rpc('get_client_dashboard', { p_phone: cleanPhone });
+
+  if (error) throw error;
+  return data as {
+    stats: {
+      historical_visits: number;
+      historical_spent: number;
+      last_visit_date: string | null;
+      is_mensalista: boolean;
+      mensalista_plan_id: string | null;
+      mensalista_expires_at: string | null;
+    } | null;
+    history: {
+      id: string;
+      booking_date: string;
+      booking_time: string;
+      status: string;
+      total_price: number;
+      total_duration: number;
+      service_ids: string[];
+    }[];
+  };
+};

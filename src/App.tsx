@@ -1,19 +1,18 @@
 import { lazy, Suspense, useEffect, useMemo, type ReactNode } from 'react';
-import { Routes, Route, Navigate, useLocation, matchPath } from 'react-router-dom';
-import { MotionConfig } from 'framer-motion';
+import { Routes, Route, Navigate, useLocation, useParams, matchPath } from 'react-router-dom';
+import { MotionConfig, AnimatePresence, motion } from 'framer-motion';
 import { useReducedMotion } from './hooks/useReducedMotion';
 import { useSEO } from './hooks/useSEO';
 import AdminLayout from './components/Admin/AdminLayout';
 import ErrorBoundary from './components/ErrorBoundary';
 import ConnectionStatusBanner from './components/ConnectionStatusBanner';
-import StandaloneGuard from './components/StandaloneGuard';
 import { BarberProvider } from './contexts/BarberContext';
-import BarberGuard from './components/Barber/BarberGuard';
 import { logError } from './lib/logger';
 
 const TITLES: Record<string, string> = {
   '/': 'BLACK DIAMOND',
   '/agendar': 'Agendar Horário | Black Diamond',
+  '/agendar/entrada': 'Agendar | Black Diamond',
   '/admin': 'Painel Admin | Black Diamond',
   '/admin/login': 'Login Admin | Black Diamond',
   '/admin/agendar': 'Novo Agendamento | Black Diamond',
@@ -22,12 +21,11 @@ const TITLES: Record<string, string> = {
   '/admin/profile': 'Perfil | Black Diamond',
   '/admin/reports': 'Relatórios | Black Diamond',
   '/admin/reset-password': 'Redefinir Senha | Black Diamond',
+  '/entrar': 'Acesso | Black Diamond',
   '/cancelar': 'Cancelar ou Reagendar | Black Diamond',
-  '/gerenciar/:token?': 'Gerenciar Agendamento | Black Diamond',
   '/cliente': 'Meus Agendamentos | Black Diamond',
   '/admin/notificacoes': 'Notificações | Black Diamond',
-  '/admin/onboarding': 'Configuração Inicial | Black Diamond',
-  '/barber': 'Meu Dia | Black Diamond',
+
   '/admin/assinatura': 'Assinatura | Black Diamond',
 };
 
@@ -67,7 +65,9 @@ function TitleManager() {
 // Lazy-loaded route components
 const Home = lazy(() => import('./pages/Home'));
 const BookingPage = lazy(() => import('./pages/BookingPage'));
+const BookingPreScreen = lazy(() => import('./components/Booking/BookingPreScreen'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const UniversalLogin = lazy(() => import('./pages/UniversalLogin'));
 const AdminResetPassword = lazy(() => import('./pages/AdminResetPassword'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdminWeekly = lazy(() => import('./pages/AdminWeekly'));
@@ -77,11 +77,9 @@ const AdminReports = lazy(() => import('./pages/AdminReports'));
 const AdminBooking = lazy(() => import('./pages/AdminBooking'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const CancelPage = lazy(() => import('./pages/CancelPage'));
-const ManageBooking = lazy(() => import('./pages/ManageBooking'));
+
 const ClientProfile = lazy(() => import('./components/ClientProfile'));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
-const BarberDashboard = lazy(() => import('./pages/BarberDashboard'));
-const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
 const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage'));
 
 // Route preloader - preloads route chunks on hover/focus for instant navigation
@@ -93,19 +91,18 @@ function preloadRoute(path: string) {
 
   const preloaders: Record<string, () => Promise<unknown>> = {
     '/agendar': () => import('./pages/BookingPage'),
+    '/agendar/entrada': () => import('./components/Booking/BookingPreScreen'),
     '/admin': () => import('./pages/AdminDashboard'),
     '/admin/login': () => import('./pages/AdminLogin'),
+    '/entrar': () => import('./pages/UniversalLogin'),
     '/admin/weekly': () => import('./pages/AdminWeekly'),
     '/admin/clients': () => import('./pages/AdminClients'),
     '/admin/profile': () => import('./pages/AdminProfile'),
     '/admin/reports': () => import('./pages/AdminReports'),
     '/admin/agendar': () => import('./pages/AdminBooking'),
     '/cancelar': () => import('./pages/CancelPage'),
-    '/gerenciar': () => import('./pages/ManageBooking'),
     '/cliente': () => import('./components/ClientProfile'),
     '/admin/notificacoes': () => import('./pages/NotificationsPage'),
-    '/admin/onboarding': () => import('./pages/OnboardingPage'),
-    '/barber': () => import('./pages/BarberDashboard'),
     '/admin/assinatura': () => import('./pages/SubscriptionPage'),
   };
 
@@ -119,10 +116,15 @@ function preloadRoute(path: string) {
   }
 }
 
+function GerenciarRedirect() {
+  const { token } = useParams<{ token: string }>();
+  return <Navigate to={`/cancelar${token ? `?token=${token}` : ''}`} replace />;
+}
+
 function LoadingFallback() {
   return (
     <div
-      className="min-h-screen bg-[#0f0f0f] flex items-center justify-center"
+      className="min-h-screen bg-[var(--color-dark-pure)] flex items-center justify-center"
       role="status"
       aria-live="polite"
       aria-label="Página está carregando"
@@ -220,186 +222,177 @@ function App() {
         Pular para o conteúdo
       </a>
       <TitleManager />
-      <div className="min-h-screen bg-[#0f0f0f] overflow-x-hidden">
+      <div className="min-h-screen bg-[var(--color-dark-pure)]">
         <ConnectionStatusBanner />
         <ErrorBoundary>
           <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              <Route
-                path="/admin/login"
-                element={
-                  <SectionErrorBoundary name="Login">
-                    <AdminLogin />
-                  </SectionErrorBoundary>
-                }
-              />
-              <Route
-                path="/admin/reset-password"
-                element={
-                  <SectionErrorBoundary name="Redefinir Senha">
-                    <AdminResetPassword />
-                  </SectionErrorBoundary>
-                }
-              />
-
-              {/* Onboarding — configuração inicial */}
-              <Route
-                path="/admin/onboarding"
-                element={
-                  <AdminLayout hideNavbar hideBottomTabs>
-                    <OnboardingPage />
-                  </AdminLayout>
-                }
-              />
-
-              <Route
-                path="/admin/notificacoes"
-                element={
-                  <AdminLayout>
-                    <NotificationsPage />
-                  </AdminLayout>
-                }
-              />
-
-              {/* Protected Admin Routes */}
-              <Route
-                path="/admin"
-                element={
-                  <AdminLayout>
-                    <AdminDashboard />
-                  </AdminLayout>
-                }
-              />
-              <Route
-                path="/admin/agendar"
-                element={
-                  <AdminLayout>
-                    <AdminBooking />
-                  </AdminLayout>
-                }
-              />
-              <Route
-                path="/admin/weekly"
-                element={
-                  <AdminLayout>
-                    <AdminWeekly />
-                  </AdminLayout>
-                }
-              />
-              <Route
-                path="/admin/clients"
-                element={
-                  <AdminLayout>
-                    <AdminClients />
-                  </AdminLayout>
-                }
-              />
-              <Route
-                path="/admin/profile"
-                element={
-                  <AdminLayout>
-                    <AdminProfile />
-                  </AdminLayout>
-                }
-              />
-              <Route
-                path="/admin/reports"
-                element={
-                  <AdminLayout>
-                    <AdminReports />
-                  </AdminLayout>
-                }
-              />
-
-              {/* Subscription management page */}
-              <Route
-                path="/admin/assinatura"
-                element={
-                  <AdminLayout hideBottomTabs>
-                    <SubscriptionPage />
-                  </AdminLayout>
-                }
-              />
-
-              {/* Redirect old /admin/assinaturas to profile settings */}
-              <Route path="/admin/assinaturas" element={<Navigate to="/admin/profile" replace />} />
-
-              {/* Barber Route - simplified dashboard for barber employees */}
-              <Route
-                path="/barber"
-                element={
-                  <AdminLayout>
-                    <BarberGuard>
-                      <BarberDashboard />
-                    </BarberGuard>
-                  </AdminLayout>
-                }
-              />
-
-              {/* Public client routes - blocked in PWA standalone mode */}
-              <Route
-                path="/"
-                element={
-                  <StandaloneGuard>
-                    <SectionErrorBoundary name="Página Inicial">
-                      <Home />
-                    </SectionErrorBoundary>
-                  </StandaloneGuard>
-                }
-              />
-              <Route
-                path="/agendar"
-                element={
-                  <BarberProvider>
-                    <StandaloneGuard>
-                      <SectionErrorBoundary name="Agendamento">
-                        <BookingPage />
+            <AnimatePresence>
+              <motion.div
+                key={pathname}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <Routes>
+                  <Route
+                    path="/admin/login"
+                    element={
+                      <SectionErrorBoundary name="Login">
+                        <AdminLogin />
                       </SectionErrorBoundary>
-                    </StandaloneGuard>
-                  </BarberProvider>
-                }
-              />
-              <Route
-                path="/cancelar"
-                element={
-                  <StandaloneGuard>
-                    <SectionErrorBoundary name="Cancelar Agendamento">
-                      <CancelPage />
-                    </SectionErrorBoundary>
-                  </StandaloneGuard>
-                }
-              />
-              <Route
-                path="/gerenciar/:token?"
-                element={
-                  <StandaloneGuard>
-                    <SectionErrorBoundary name="Gerenciar Agendamento">
-                      <ManageBooking />
-                    </SectionErrorBoundary>
-                  </StandaloneGuard>
-                }
-              />
-              <Route
-                path="/cliente"
-                element={
-                  <StandaloneGuard>
-                    <SectionErrorBoundary name="Perfil do Cliente">
-                      <ClientProfile />
-                    </SectionErrorBoundary>
-                  </StandaloneGuard>
-                }
-              />
+                    }
+                  />
+                  <Route
+                    path="/entrar"
+                    element={
+                      <SectionErrorBoundary name="Acesso">
+                        <UniversalLogin />
+                      </SectionErrorBoundary>
+                    }
+                  />
+                  <Route
+                    path="/admin/reset-password"
+                    element={
+                      <SectionErrorBoundary name="Redefinir Senha">
+                        <AdminResetPassword />
+                      </SectionErrorBoundary>
+                    }
+                  />
 
-              {/* Catch-all 404 Route */}
-              <Route
-                path="*"
-                element={
-                  <SectionErrorBoundary name="Página não encontrada">
-                    <NotFound />
-                  </SectionErrorBoundary>
-                }
-              />
-            </Routes>
+                  <Route
+                    path="/admin/notificacoes"
+                    element={
+                      <AdminLayout>
+                        <NotificationsPage />
+                      </AdminLayout>
+                    }
+                  />
+
+                  {/* Protected Admin Routes */}
+                  <Route
+                    path="/admin"
+                    element={
+                      <AdminLayout>
+                        <AdminDashboard />
+                      </AdminLayout>
+                    }
+                  />
+                  <Route
+                    path="/admin/agendar"
+                    element={
+                      <AdminLayout>
+                        <AdminBooking />
+                      </AdminLayout>
+                    }
+                  />
+                  <Route
+                    path="/admin/weekly"
+                    element={
+                      <AdminLayout>
+                        <AdminWeekly />
+                      </AdminLayout>
+                    }
+                  />
+                  <Route
+                    path="/admin/clients"
+                    element={
+                      <AdminLayout>
+                        <AdminClients />
+                      </AdminLayout>
+                    }
+                  />
+                  <Route
+                    path="/admin/profile"
+                    element={
+                      <AdminLayout>
+                        <AdminProfile />
+                      </AdminLayout>
+                    }
+                  />
+                  <Route
+                    path="/admin/reports"
+                    element={
+                      <AdminLayout>
+                        <AdminReports />
+                      </AdminLayout>
+                    }
+                  />
+
+                  {/* Subscription management page */}
+                  <Route
+                    path="/admin/assinatura"
+                    element={
+                      <AdminLayout hideBottomTabs>
+                        <SubscriptionPage />
+                      </AdminLayout>
+                    }
+                  />
+
+                  {/* Redirect old /admin/assinaturas to profile settings */}
+                  <Route
+                    path="/admin/assinaturas"
+                    element={<Navigate to="/admin/profile" replace />}
+                  />
+
+                  {/* Public client routes - blocked in PWA standalone mode */}
+                  <Route
+                    path="/"
+                    element={
+                      <SectionErrorBoundary name="Página Inicial">
+                        <Home />
+                      </SectionErrorBoundary>
+                    }
+                  />
+                  <Route
+                    path="/agendar/entrada"
+                    element={
+                      <SectionErrorBoundary name="Entrada Agendamento">
+                        <BookingPreScreen />
+                      </SectionErrorBoundary>
+                    }
+                  />
+                  <Route
+                    path="/agendar"
+                    element={
+                      <BarberProvider>
+                        <SectionErrorBoundary name="Agendamento">
+                          <BookingPage />
+                        </SectionErrorBoundary>
+                      </BarberProvider>
+                    }
+                  />
+                  <Route
+                    path="/cancelar"
+                    element={
+                      <SectionErrorBoundary name="Cancelar Agendamento">
+                        <CancelPage />
+                      </SectionErrorBoundary>
+                    }
+                  />
+                  <Route path="/gerenciar" element={<Navigate to="/cancelar" replace />} />
+                  <Route path="/gerenciar/:token" element={<GerenciarRedirect />} />
+                  <Route
+                    path="/cliente"
+                    element={
+                      <SectionErrorBoundary name="Perfil do Cliente">
+                        <ClientProfile />
+                      </SectionErrorBoundary>
+                    }
+                  />
+
+                  {/* Catch-all 404 Route */}
+                  <Route
+                    path="*"
+                    element={
+                      <SectionErrorBoundary name="Página não encontrada">
+                        <NotFound />
+                      </SectionErrorBoundary>
+                    }
+                  />
+                </Routes>
+              </motion.div>
+            </AnimatePresence>
           </Suspense>
         </ErrorBoundary>
       </div>

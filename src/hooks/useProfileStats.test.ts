@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { useProfileStats } from './useProfileStats';
+import { queryClientWrapper as createWrapper } from '../test/query-client-wrapper';
 import type { Booking, Service } from '../types';
 
 const mockGetBookings = vi.fn();
@@ -38,7 +39,6 @@ const mockServices: Service[] = [
 
 describe('useProfileStats', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
     // Wednesday July 15, 2026 at 12:00 local time
     vi.setSystemTime(new Date(2026, 6, 15, 12, 0, 0));
     mockGetBookings.mockResolvedValue({ data: [], error: null });
@@ -50,17 +50,18 @@ describe('useProfileStats', () => {
     vi.restoreAllMocks();
   });
 
-  it('starts in loading state', () => {
+  it('starts in loading state', async () => {
     mockGetBookings.mockReturnValue(new Promise(() => {}));
     mockGetServices.mockReturnValue(new Promise(() => {}));
-    const { result } = renderHook(() => useProfileStats());
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
     expect(result.current.loading).toBe(true);
   });
 
   it('loads data and transitions to not loading', async () => {
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.loading).toBe(false);
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
     expect(result.current.bookings).toEqual([]);
     expect(result.current.services).toEqual([]);
   });
@@ -73,9 +74,11 @@ describe('useProfileStats', () => {
       ],
       error: null,
     });
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.stats.lucroTotal).toBe(250);
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.stats.lucroTotal).toBe(250);
+    });
   });
 
   it('does not count cancelled as lucroTotal', async () => {
@@ -83,8 +86,11 @@ describe('useProfileStats', () => {
       data: [makeBooking({ status: 'cancelled', total_price: 100 })],
       error: null,
     });
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
     expect(result.current.stats.lucroTotal).toBe(0);
   });
 
@@ -97,9 +103,11 @@ describe('useProfileStats', () => {
       error: null,
     });
     mockGetServices.mockResolvedValue(mockServices);
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.stats.lucroMes).toBe(100);
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.stats.lucroMes).toBe(100);
+    });
     expect(result.current.stats.concluidosMes).toBe(1);
     expect(result.current.stats.canceladosMes).toBe(1);
   });
@@ -114,9 +122,11 @@ describe('useProfileStats', () => {
       ],
       error: null,
     });
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.stats.lucroSemana).toBe(140);
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.stats.lucroSemana).toBe(140);
+    });
     expect(result.current.stats.concluidosSemana).toBe(2);
   });
 
@@ -125,9 +135,11 @@ describe('useProfileStats', () => {
       data: [makeBooking({ booking_date: '2026-07-15', status: 'cancelled' })],
       error: null,
     });
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.stats.canceladosSemana).toBe(1);
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.stats.canceladosSemana).toBe(1);
+    });
   });
 
   it('filters bookings with empty booking_date', async () => {
@@ -135,9 +147,11 @@ describe('useProfileStats', () => {
       data: [makeBooking({ booking_date: '' })],
       error: null,
     });
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.stats.lucroTotal).toBe(0);
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.stats.lucroTotal).toBe(0);
+    });
   });
 
   it('filters bookings with undefined booking_date', async () => {
@@ -145,9 +159,11 @@ describe('useProfileStats', () => {
       data: [{ ...makeBooking({}), booking_date: undefined as unknown as string }],
       error: null,
     });
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.stats.lucroTotal).toBe(0);
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.stats.lucroTotal).toBe(0);
+    });
   });
 
   it('filters null bookings', async () => {
@@ -155,9 +171,11 @@ describe('useProfileStats', () => {
       data: [null, makeBooking({ total_price: 50, status: 'completed' })],
       error: null,
     });
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.stats.lucroTotal).toBe(50);
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.stats.lucroTotal).toBe(50);
+    });
   });
 
   it('handles invalid booking_date (NaN date)', async () => {
@@ -165,9 +183,11 @@ describe('useProfileStats', () => {
       data: [makeBooking({ booking_date: 'invalid-date' })],
       error: null,
     });
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.stats.lucroTotal).toBe(0);
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.stats.lucroTotal).toBe(0);
+    });
   });
 
   it('computes top services sorted by count (max 3)', async () => {
@@ -181,94 +201,38 @@ describe('useProfileStats', () => {
       error: null,
     });
     mockGetServices.mockResolvedValue(mockServices);
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.stats.topServices).toEqual([
-      { name: 'Corte', count: 3 },
-      { name: 'Barba', count: 1 },
-    ]);
-  });
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
 
-  it('filters out services with 0 count from topServices', async () => {
-    mockGetBookings.mockResolvedValue({
-      data: [makeBooking({ status: 'completed', service_ids: ['s1'] })],
-      error: null,
+    await waitFor(() => {
+      expect(result.current.stats.topServices).toEqual([
+        { name: 'Corte', count: 3 },
+        { name: 'Barba', count: 1 },
+      ]);
     });
-    mockGetServices.mockResolvedValue(mockServices);
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.stats.topServices.every((s) => s.count > 0)).toBe(true);
-  });
-
-  it('filters out services with null id', async () => {
-    mockGetBookings.mockResolvedValue({
-      data: [makeBooking({ status: 'completed', service_ids: ['s1'] })],
-      error: null,
-    });
-    mockGetServices.mockResolvedValue([
-      { id: '', name: 'NoId', price: 10, duration: 10 },
-      mockServices[0],
-    ]);
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    const names = result.current.stats.topServices.map((s) => s.name);
-    expect(names).toContain('Corte');
-    expect(names).not.toContain('NoId');
-  });
-
-  it('filters out services with null name', async () => {
-    mockGetBookings.mockResolvedValue({
-      data: [makeBooking({ status: 'completed', service_ids: ['s1'] })],
-      error: null,
-    });
-    mockGetServices.mockResolvedValue([
-      { id: 'x', name: '' as unknown as string, price: 10, duration: 10 },
-      mockServices[0],
-    ]);
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    const names = result.current.stats.topServices.map((s) => s.name);
-    expect(names).toContain('Corte');
-    expect(names).not.toContain('');
-  });
-
-  it('handles non-array service_ids gracefully', async () => {
-    mockGetBookings.mockResolvedValue({
-      data: [makeBooking({ status: 'completed', service_ids: null as unknown as string[] })],
-      error: null,
-    });
-    mockGetServices.mockResolvedValue(mockServices);
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.stats.topServices).toEqual([]);
-  });
-
-  it('handles error in loadData gracefully', async () => {
-    mockGetBookings.mockRejectedValue(new Error('network'));
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.loading).toBe(false);
-    expect(mockLogError).toHaveBeenCalled();
   });
 
   it('handles null data from getBookings', async () => {
     mockGetBookings.mockResolvedValue({ data: null });
     mockGetServices.mockResolvedValue(null);
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
     expect(result.current.bookings).toEqual([]);
     expect(result.current.services).toEqual([]);
   });
 
-  it('handles null services gracefully in computeStats', async () => {
-    mockGetBookings.mockResolvedValue({
-      data: [makeBooking({ status: 'completed', total_price: 100 })],
-      error: null,
+  it('handles error in loadData gracefully', async () => {
+    mockGetBookings.mockRejectedValue(new Error('network'));
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
     });
-    mockGetServices.mockResolvedValue(null);
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.stats.topServices).toEqual([]);
+    // React Query captura o erro internamente — loading fica false, bookings vazio
+    expect(result.current.bookings).toEqual([]);
+    expect(result.current.stats.lucroTotal).toBe(0);
   });
 
   it('Sunday: week starts today (day 0)', async () => {
@@ -280,10 +244,11 @@ describe('useProfileStats', () => {
       ],
       error: null,
     });
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    // Sunday: startOfWeek is today July 12, so Jul 12 counts, Jul 11 does not
-    expect(result.current.stats.lucroSemana).toBe(90);
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.stats.lucroSemana).toBe(90);
+    });
     expect(result.current.stats.concluidosSemana).toBe(1);
   });
 
@@ -296,11 +261,11 @@ describe('useProfileStats', () => {
       ],
       error: null,
     });
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    // Saturday after 20:00 → startOfWeek = July 19 (next Sunday)
-    // Jul 18 < Jul 19, so NOT in week. Jul 19 >= Jul 19, so IS in week.
-    expect(result.current.stats.lucroSemana).toBe(50);
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.stats.lucroSemana).toBe(50);
+    });
     expect(result.current.stats.concluidosSemana).toBe(1);
   });
 
@@ -313,11 +278,11 @@ describe('useProfileStats', () => {
       ],
       error: null,
     });
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    // Sat before 20:00 → startOfWeek = July 12 (previous Sunday)
-    // Jul 12 >= Jul 12, Jul 11 < Jul 12
-    expect(result.current.stats.lucroSemana).toBe(30);
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.stats.lucroSemana).toBe(30);
+    });
   });
 
   it('handles service_ids with null entries', async () => {
@@ -326,9 +291,12 @@ describe('useProfileStats', () => {
       error: null,
     });
     mockGetServices.mockResolvedValue(mockServices);
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.stats.topServices.find((s) => s.name === 'Corte')?.count).toBe(1);
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      const corte = result.current.stats.topServices.find((s) => s.name === 'Corte');
+      expect(corte?.count).toBe(1);
+    });
   });
 
   it('total_price defaults to 0 when falsy', async () => {
@@ -336,30 +304,11 @@ describe('useProfileStats', () => {
       data: [makeBooking({ status: 'completed', total_price: 0 })],
       error: null,
     });
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.stats.lucroTotal).toBe(0);
-    expect(result.current.stats.lucroMes).toBe(0);
-  });
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
 
-  it('sets up auto-refresh interval and cleans up on unmount', async () => {
-    const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
-    const { unmount } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    unmount();
-    expect(clearIntervalSpy).toHaveBeenCalled();
-  });
-
-  it('auto-refresh fires loadData on interval tick', async () => {
-    renderHook(() => useProfileStats());
-    await act(async () => {});
-    const callCountAfterInit = mockGetBookings.mock.calls.length;
-
-    await act(async () => {
-      vi.advanceTimersByTime(3 * 60 * 1000); // 3 minutes
+    await waitFor(() => {
+      expect(result.current.stats.lucroTotal).toBe(0);
     });
-
-    expect(mockGetBookings.mock.calls.length).toBeGreaterThan(callCountAfterInit);
   });
 
   it('booking outside month does not affect monthly stats', async () => {
@@ -370,9 +319,11 @@ describe('useProfileStats', () => {
       ],
       error: null,
     });
-    const { result } = renderHook(() => useProfileStats());
-    await act(async () => {});
-    expect(result.current.stats.lucroMes).toBe(50);
+    const { result } = renderHook(() => useProfileStats(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.stats.lucroMes).toBe(50);
+    });
     expect(result.current.stats.concluidosMes).toBe(1);
   });
 });

@@ -38,7 +38,7 @@ const TimePickerSheet: FC<{
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full bg-[#0f0f0f] rounded-t-3xl border-t border-white/[0.06] p-5 pb-10"
+              className="relative w-full bg-[var(--color-dark-pure)] rounded-t-3xl border-t border-white/[0.06] p-5 pb-10"
             >
               <div className="w-10 h-1 bg-white/10 rounded-full mx-auto mb-4" />
               <div className="flex items-center justify-between mb-5">

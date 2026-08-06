@@ -9,7 +9,7 @@ const BookingPage: FC = () => {
 
   return (
     <BookingWizardProvider showError={showError}>
-      <div className="font-sans relative min-h-screen bg-[#050505] flex flex-col selection:bg-[#D4AF37] selection:text-black overflow-x-hidden">
+      <div className="font-sans relative min-h-screen bg-[#050505] flex flex-col selection:bg-gold selection:text-black overflow-x-hidden">
         <main id="main-content" className="flex-1 relative z-10 h-full flex flex-col">
           <BookingPageContent />
         </main>

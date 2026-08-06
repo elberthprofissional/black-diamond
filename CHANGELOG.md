@@ -5,6 +5,291 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.35.1] - 2026-08-06
+
+### Removed
+- **Frase de efeito padrão removida da seção Sobre Nós** — A citação "Não sou o melhor, mas sou o melhor para você" não aparece mais no site:
+  - Banco de produção: `settings.barber_quote` e `barbers.quote` (Tato) limpos.
+  - `About.tsx`: `FALLBACK_QUOTE` removido — a frase só aparece se for configurada manualmente nas Configurações.
+  - `SettingsConta.tsx`: placeholder do campo "Frase" atualizado.
+  - Scripts de setup (`configurar-admins.mjs`, `sql-configurar-admins.sql`): não inserem mais a frase ao criar o barbeiro.
+
+### Tests
+- `About.test.tsx` atualizado (asserção negativa + teste de frase personalizada).
+- **116 arquivos, 1213 testes — 100% passando. TypeScript 0 erros. ESLint 0 erros.**
+
+## [3.35.0] - 2026-08-05
+
+### Added — Porta Única (acesso universal cliente + admin)
+- **Nova tela `/entrar`** (`UniversalLogin`) — um único campo inteligente que substitui as 2 telas de entrada:
+  - **Celular (11 dígitos)** → entra como CLIENTE direto no dashboard (sem senha, salva sessão e vai pra `/cliente`).
+  - **E-mail** → a senha aparece na mesma tela → entra como ADMINISTRADOR.
+  - Link "Prefere agendar sem login? Agendar agora" embaixo.
+- **`/admin/login` agora é a Porta Única em modo admin** — `AdminLogin.tsx` virou wrapper (`<UniversalLogin adminMode />`). AuthGuard, deep-links e o teste existente continuam funcionando.
+- **Menu de entrada** — "Meus agendamentos" virou **"Entrar"** (acesso universal).
+
+### Refactored
+- **`useAdminLogin`** (novo hook) — toda a lógica de login do admin extraída (signInWithPassword, rate limit client+server, bloqueio por pagamento, auditoria, esqueci a senha). `AdminLogin.tsx` caiu de ~180 para 10 linhas.
+- **`LoginBackground`** ganhou prop `subtitle` (tagline amigável pro cliente).
+
+### Security
+- **Inalterada e intocável:** o painel admin continua exigindo **e-mail + senha** (Supabase Auth). Celular NUNCA dá acesso administrativo — a senha é o muro.
+
+### Tests
+- Novo `UniversalLogin.test.tsx` (7 testes: celular→cliente, e-mail→admin, erro, modo admin, redireciona com sessão). `AdminLogin.test.tsx` segue verde sem alterações.
+- **115 arquivos, 1206 testes — 100% passando. TypeScript 0 erros. ESLint 0 erros, 0 warnings. Build ok (precache 81).**
+
+## [3.34.0] - 2026-08-05
+
+### Changed — Login Opcional do Cliente redesenhado
+- **"Código de acesso" falso removido** — Era gerado e exibido na própria tela (segurança teatral: qualquer um digitava o código que acabou de ver). Agora:
+  - **`/cliente`**: digita o telefone → entra **direto no dashboard** (sem etapa de código). Sessão salva por 7 dias — quem já agendou volta direto ao dashboard.
+  - **Menu de entrada simplificado** (`BookingPreScreenMenu`) — de 3 opções confusas para 2: **"Agendar agora"** (vai direto ao wizard, com pré-preenchimento nome/telefone quando há sessão) + **"Meus agendamentos"**. Link do admin movido para o rodapé (já existia lá).
+  - **Link mágico na tela de sucesso** (`SuccessStep`) — card "Seu link de gerenciamento" com botão **Copiar** → `/gerenciar?token=...` (cancelar/reagendar sem login). A infra `booking_tokens` já existia no banco e era usada apenas no `/cancelar` — agora o cliente recebe o link ao agendar.
+  - **Botão "Meus agendamentos"** na tela de sucesso (desktop + mobile).
+  - **`BookingWizardContext`** agora guarda `bookingResult` (token + manageUrl) e salva a sessão do cliente ao confirmar.
+
+### Removed
+- **~250 linhas de fluxo duplicado** — `CodeVerifyForm`, `DetectedView`, `ExistingPhoneForm`, `NewClientForm`, `StyledInput` (BookingPreScreen) e `VerifyStep` + estado de código (ClientProfile). O `Step` type perdeu o `'verify'`.
+
+### Added
+- **`src/lib/clientSession.ts`** — Sessão do cliente centralizada (`getClientSession` / `saveClientSession` / `clearClientSession`), eliminando chaves localStorage duplicadas.
+
+### Tests
+- `BookingPreScreen.test.tsx` reescrito (menu 2 opções + pré-preenchimento com sessão) e novo `ClientProfile.test.tsx` (telefone → dashboard, sessão restaurada).
+- **114 arquivos, 1199 testes — 100% passando. TypeScript 0 erros. ESLint 0 erros, 0 warnings. Build ok (precache 80).**
+
+## [3.33.1] - 2026-08-05
+
+### Security
+- **Auditoria completa do banco (service role)** — Schema vs migrations 52/52 ✅, integridade de dados ok, assinaturas PIX ativas até 31/08.
+- **CRITICO: Vazamento de clientes corrigido** — A chave anon (pública) conseguia LER todos os clientes (nome, telefone, e-mail, notas) e ESCREVER em `clients` (INSERT/UPDATE/DELETE). Nova migration `006_rls_estricto.sql`:
+  - Habilita RLS em `clients` e `bookings` + remove policies permissivas órfãs.
+  - `clients`: apenas admin (`is_admin()`); `bookings`: admin full + leitura pública filtrada por status/data (design).
+  - Nova RPC `cadastrar_cliente_publico()` (SECURITY DEFINER, upsert idempotente por telefone) — substitui o INSERT direto do fluxo "Sou novo aqui" (`BookingPreScreen`).
+  - Nova RPC `get_client_dashboard()` (SECURITY DEFINER) — stats + histórico do `/cliente` sem expor a tabela (`ClientProfile`).
+- **ALTO: Insert anon em bookings bloqueado** — Anon não pode mais criar agendamentos direto na tabela, pulando a RPC validadora (rate-limit, horário, cupom, mensalista).
+- **FIX: "function check_client_no_show_block(uuid) does not exist"** — A migration 005 dropou `check_client_no_show_block`, mas `criar_agendamento_rate_limited` ainda a chama para clientes existentes (cliente novo passava, cliente antigo quebrava). Recreada como **no-op** na migration 006 (bloqueio por faltas desativado — só notifica).
+- **Scripts de auditoria** — `audit-full-supabase.mjs` atualizado (função `is_client_blocked_by_no_show` removida de propósito na 005); novo `audit-rls.mjs` (mapeia exposição anon por tabela) e `audit-profundidade.mjs`.
+- **Testes** — `BookingPreScreen.test.tsx` e `api.test.ts` atualizados para as novas RPCs.
+
+### Cleanup
+- **CSS morto removido (575 → ~350 linhas)** — `src/index.css`: removidas 23 classes e keyframes sem uso no código (`animate-marquee`, `animate-slow-zoom`, `animate-text-marquee`, `card-dark`, `input-dark`, `surface-dark`, `divider-gold`, `polaroid-card`, `bg-dark-texture`, `bg-gold-gradient`, `text-gold-gradient`, `custom-scrollbar`, `notifications-tabs`, `pb-safe`, `pt-safe`, `table-container`, `corner-ticks`, `mega-number`, `reveal`/`reveal-delay-*`, keyframes `float`/`slow-zoom`/`marquee`/`text-marquee`). Mantidos os usados (`btn-gold`, `btn-ghost`, `label-gold`, `skeleton-pulse`, `tape-effect`, `nav-underline`, `scrollbar-hide`, `animate-slide-in`, `skip-link`, `scaleIn`, `drawCheck`).
+- **25 scripts obsoletos removidos** — `scripts/` de 42 → 17: one-shots (`fix-tato-duplicate`, `fix-notification-format`, `fix-testimonials-rls`, `find-duplicates`, `debug-*`, `remove-brand-settings`, `add-missing-columns`, `apply-fix-direct`), runners de migrations antigas (`run-migration-007/008/009`, `run-migration-mensalista(-v2)`, `run-migration-monthly`, `run-migration-subscriptions`, `run-migration-check/direct/now`), consolidadores (`consolidate-migrations(-v2)`, `build-final-migrations`), `optimize-images(-now)` (sharp não é mais dependência) e `setup-asaas` (Asaas removido).
+
+## [3.33.0] - 2026-08-04
+
+### Removed
+- **Multi-barbeiro removido** — O sistema agora opera com **barbeiro único** (Tato). Removidas todas as funcionalidades de múltiplos barbeiros:
+  - **Etapa "Escolha o barbeiro"** do agendamento público — wizard reduzido de 5 para 4 passos (Dados → Serviços → Data/Hora → Revisão). `BarberStep.tsx` deletado.
+  - **Filtro de barbeiro** do AdminDashboard — `BarberFilter.tsx` deletado; o dashboard mostra todos os agendamentos.
+  - **Seletor de barbeiro** no agendamento do admin (AdminBookingDesktop/Mobile) + estado `selectedBarber` em `useAdminBookingState`.
+  - **Página "Barbeiros"** nas Configurações — `SettingsBarbeiros.tsx` deletado (menu, títulos e lazy imports removidos de `SettingsList` e `AdminProfileSettings`).
+  - **Rota `/barber`** (painel do funcionário) — `BarberGuard.tsx` e `BarberDashboard.tsx` (+ testes) deletados; rota, preload e título removidos de `App.tsx`. Logo do sidebar navega sempre para `/admin`.
+  - **API de gestão** — `upsertBarber` e `deleteBarber` removidos de `src/lib/api/barbers.ts` (e export em `index.ts`).
+
+### Fixed
+- **Slots ignoravam agendamentos antigos** — No wizard público, a consulta de horários deixou de filtrar por `barber_id`. Agora `get_available_slots` considera **todos** os agendamentos (os 26 existentes não tinham `barber_id`), eliminando o risco de mostrar horário ocupado como livre.
+
+### Changed
+- **Notificações do barbeiro** — `useAdminBookingSubmit` e `useBookingPayment` enviam push/WhatsApp sempre para o barbeiro único (Tato), com URL de destino `/admin` (rota `/barber` não existe mais).
+- **AdminWeekly** — Removido filtro por barbeiro; mostra todos os agendamentos.
+- **Menu público (BookingPreScreenMenu)** — Texto "Acesso para barbeiros e admin" → "Acesso administrativo".
+- **E2E** — `critical-flows.spec.ts`: teste de seleção de barbeiro substituído por validação da etapa de serviços (4 passos).
+
+### Tests
+- **113 arquivos, 1193 testes** — 100% passando. TypeScript 0 erros. ESLint 0 erros (1 warning pré-existente em `BookingPreScreen.tsx`). Build ok (precache 84 → 79 entradas).
+
+## [3.32.0] - 2026-07-30
+
+### Performance
+- **BookingPreScreen** — Componente monolítico de 831 linhas dividido em 2 arquivos: `BookingPreScreen.tsx` (373 linhas, -55%) + `BookingPreScreenMenu.tsx` (167 linhas, memoizado). Reduz bundle da primeira tela que o cliente vê.
+- **ClientProfile** — Componente monolítico de 935 linhas dividido em 3 arquivos: `ClientProfile.tsx` (313 linhas, -67%) + `ClientProfileDashboard.tsx` (341 linhas, memoizado) + `ClientProfileTypes.ts` (26 linhas). Perfil do cliente agora carrega sob demanda.
+- **memo() adicionado em 5 componentes pesados** — `ClientPanel`, `AdminWeekly`, `BarberDashboard`, `SettingsServicos`, `SettingsHorarios` (já tinha). Estes 5 componentes somam 2.585 linhas agora protegidas contra re-render desnecessário.
+- ~1.000 linhas economizadas no bundle total.
+- **React import fix** — `React.forwardRef` / `React.ReactNode` / `React.ChangeEvent` / `React.FormEvent` substituídos por named imports (`forwardRef`, `ReactNode`, `ChangeEvent`, `FormEvent`), eliminando `ReferenceError` nos testes.
+
+### Changed
+- **BookingPreScreen** — Menu extraído para `BookingPreScreenMenu.tsx` com `memo()`. Componentes internos (StyledInput, StepDots, ExistingPhoneForm, CodeVerifyForm, DetectedView, NewClientForm) todos memoizados.
+- **ClientProfile** — Dashboard extraído para `ClientProfileDashboard.tsx` com `memo()`. Tipos movidos para `ClientProfileTypes.ts`.
+- **ClientPanel** — Envolto em `memo()` para evitar re-render nos painéis laterais.
+- **AdminWeekly** — Envolto em `memo()` para evitar re-render na agenda semanal.
+- **BarberDashboard** — Envolto em `memo()` para evitar re-render no dashboard.
+- **SettingsServicos** — Envolto em `memo()` para evitar re-render nas configurações.
+- **SettingsHorarios** — Já tinha `memo()`, mantido.
+
+### Tests
+- **114 arquivos, 1205 testes** — 100% passando. TypeScript 0 erros. Build 2.33s.
+
+### Removed
+- **Código morto** — 4 arquivos deletados (350 linhas): `QuickNav.tsx`, `PanelIcons.tsx`, `useAsyncData.ts`, `useAsyncEffect.ts`. Nenhum era importado por nenhum outro arquivo.
+- **PanelIcons** — Substituído por Lucide React direto em `BookingDetailPanel.tsx` e `BlockedSlotView.tsx`.
+
+### Documents
+- DOCUMENTACAO.md e CHANGELOG.md atualizados com novo split de componentes.
+
+## [3.31.0] - 2026-07-30
+
+### Performance
+- **G1** — `BookingPreScreen.tsx` — `Date.now()` em render puro corrigido. Agora o timer de expiração do código roda via `useEffect` + `setInterval` com cleanup, eliminando o warning `react-hooks/purity` e o risco de re-renders em loop.
+- **G2** — `useServices.ts` + `useBookings.ts` — `cache` do localStorage memoizado com `useMemo`. Antes, `placeholderData: cache ?? undefined` gerava referência instável a cada render, podendo disparar refetch desnecessário.
+- **G3** — `vite.config.ts` — Manual chunks explícitos adicionados para `@tanstack/react-query` e `lucide`. `vendor-other` reduziu de 167KB para 164KB e `vendor-query` agora tem chunk próprio (3.74KB).
+- **G5** — `ClientPanel.tsx` separado em chunk lazy via `React.lazy()` em `AdminClients.tsx`. Reduziu o bundle de `AdminClients` de 62KB para 40KB (-35%).
+- Build time: 2.55s → 2.19s.
+
+### Fixed
+- **G6** — `useNotifications.ts:81` — `notifications = query.data ?? []` agora é `useMemo`, eliminando warning `react-hooks/exhaustive-deps` no effect que depende da lista.
+- **G6** — `useProfileStats.ts:144-145` — `bookings` e `services` agora são memoizados. Resolve dois warnings `react-hooks/exhaustive-deps` no `useMemo` de `stats`.
+- **G6** — `useGallery.ts:118` — adicionado `images` à lista de deps do `useCallback` (era usado internamente mas faltava).
+- **G6** — `BookingWizardContext.tsx:204` — adicionado `selectedBarber?.user_id` à lista de deps (era usado em `handleConfirm` mas faltava).
+- **G6** — `useConnectionStatus.ts:76` — `retryTimerRef` capturado no início do effect (não no cleanup). Antes, valor do ref podia ter mudado entre setup e cleanup.
+- **G7** — `useNotificationPrefs.ts:48` e `useReschedule.ts:30` — `setState` em effect marcado com `eslint-disable` comentado (padrão legítimo de fetch no mount).
+
+### Removed
+- **P7** — Edge Functions Asaas mortas removidas: `supabase/functions/create-asaas-payment/` e `supabase/functions/asaas-webhook/` (358 linhas deletadas).
+- **P7** — `createAsaasPayment` + `PaymentResult` removidos de `src/lib/api/subscriptions.ts`. PIX manual é o caminho oficial desde v3.29.0.
+- **P7** — `useSubscription.ts` refatorado para remover `generatePayment`, `paymentResult` e `paymentError` (código morto da integração Asaas).
+- **P5** — Arquivos lixo da raiz removidos: `vite.log`, `nul`, `%TEMP%gold_files.txt`.
+
+### Added (infra)
+- **G9** — `supabase/migrations/008_performance_indexes.sql` — 9 índices novos + view `dashboard_daily_stats` + funções `bulk_cleanup_expired_tokens` e `get_dashboard_data(p_barber_id, p_date)` para substituir múltiplas queries do AdminDashboard por uma única chamada RPC.
+- **`src/lib/fire-and-forget.ts`** — Utilitário para promises fire-and-forget com logging centralizado (12+ importadores).
+- **`src/lib/api/notifications.ts`** — CRUD completo de notificações com tratamento de erro.
+- **`src/lib/api/blocked-users.ts`** — Lógica de bloqueio por falta de pagamento (PIX).
+- **`src/hooks/useForm.ts`** — Hook genérico de form com validação.
+- **`src/hooks/useBarberStats.ts`** — Stats mensais por barbeiro.
+- **`src/hooks/useSetting.ts`** — Hook CRUD para `settings` table.
+- **`src/components/Admin/shared/PauseModal.tsx`** — Modal premium para pausar agenda por período.
+
+### Tests
+- **114 arquivos, 1205 testes** — 100% passando. TypeScript 0 erros. ESLint 0 erros, 0 warnings.
+
+### Code Quality
+- ESLint: 13 erros → 0. Warnings: 20 → 0.
+
+### Performance
+- **G1** — `BookingPreScreen.tsx` — `Date.now()` em render puro corrigido. Agora o timer de expiração do código roda via `useEffect` + `setInterval` com cleanup, eliminando o warning `react-hooks/purity` e o risco de re-renders em loop.
+- **G2** — `useServices.ts` + `useBookings.ts` — `cache` do localStorage memoizado com `useMemo`. Antes, `placeholderData: cache ?? undefined` gerava referência instável a cada render, podendo disparar refetch desnecessário.
+- **G3** — `vite.config.ts` — Manual chunks explícitos adicionados para `@tanstack/react-query` e `lucide`. `vendor-other` reduziu de 167KB para 164KB e `vendor-query` agora tem chunk próprio (3.74KB).
+- **G5** — `ClientPanel.tsx` separado em chunk lazy via `React.lazy()` em `AdminClients.tsx`. Reduziu o bundle de `AdminClients` de 62KB para 40KB (-35%).
+- Build time: 2.55s → 2.19s.
+
+### Fixed
+- **G6** — `useNotifications.ts:81` — `notifications = query.data ?? []` agora é `useMemo`, eliminando warning `react-hooks/exhaustive-deps` no effect que depende da lista.
+- **G6** — `useProfileStats.ts:144-145` — `bookings` e `services` agora são memoizados. Resolve dois warnings `react-hooks/exhaustive-deps` no `useMemo` de `stats`.
+- **G6** — `useGallery.ts:118` — adicionado `images` à lista de deps do `useCallback` (era usado internamente mas faltava).
+- **G6** — `BookingWizardContext.tsx:204` — adicionado `selectedBarber?.user_id` à lista de deps (era usado em `handleConfirm` mas faltava).
+- **G6** — `useConnectionStatus.ts:76` — `retryTimerRef` capturado no início do effect (não no cleanup). Antes, valor do ref podia ter mudado entre setup e cleanup.
+- **G7** — `useNotificationPrefs.ts:48` e `useReschedule.ts:30` — `setState` em effect marcado com `eslint-disable` comentado (padrão legítimo de fetch no mount).
+
+### Removed
+- **P7** — Edge Functions Asaas mortas removidas: `supabase/functions/create-asaas-payment/` e `supabase/functions/asaas-webhook/` (358 linhas deletadas).
+- **P7** — `createAsaasPayment` + `PaymentResult` removidos de `src/lib/api/subscriptions.ts`. PIX manual é o caminho oficial desde v3.29.0.
+- **P7** — `useSubscription.ts` refatorado para remover `generatePayment`, `paymentResult` e `paymentError` (código morto da integração Asaas).
+- **P5** — Arquivos lixo da raiz removidos: `vite.log`, `nul`, `%TEMP%gold_files.txt`.
+
+### Added (infra)
+- **G9** — `supabase/migrations/008_performance_indexes.sql` — 9 índices novos + view `dashboard_daily_stats` + funções `bulk_cleanup_expired_tokens` e `get_dashboard_data(p_barber_id, p_date)` para substituir múltiplas queries do AdminDashboard por uma única chamada RPC.
+- **`src/lib/fire-and-forget.ts`** — Utilitário para promises fire-and-forget com logging centralizado (12+ importadores).
+- **`src/lib/api/notifications.ts`** — CRUD completo de notificações com tratamento de erro.
+- **`src/lib/api/blocked-users.ts`** — Lógica de bloqueio por falta de pagamento (PIX).
+- **`src/hooks/useForm.ts`** — Hook genérico de form com validação.
+- **`src/hooks/useBarberStats.ts`** — Stats mensais por barbeiro.
+- **`src/hooks/useSetting.ts`** — Hook CRUD para `settings` table.
+- **`src/components/Admin/shared/PauseModal.tsx`** — Modal premium para pausar agenda por período.
+
+### Tests
+- **114 arquivos, 1205 testes** — 100% passando. TypeScript 0 erros. ESLint 0 erros, 0 warnings.
+
+### Code Quality
+- ESLint: 13 erros → 0. Warnings: 20 → 0.
+
+## [3.30.1] - 2026-07-30
+
+### Fixed
+- **Lint** — 13 erros ESLint corrigidos (12 escapes `no-useless-escape` em `e2e/critical-flows.spec.ts` + 1 import duplicado em `useAuditLog.ts`).
+- **Tests** — 5 Unhandled Rejection em `useAuditLog.test.ts` corrigidos via `mockResolvedValue(undefined)` no `beforeEach`.
+- **Build** — `package.json` bumpado para 3.30.1.
+- **Cleanup** — Arquivos lixo (`vite.log`, `nul`, `%TEMP%gold_files.txt`) removidos da raiz.
+
+### Removed
+- **`src/components/GoogleReviewBadge.tsx`** — Componente morto.
+- **`src/components/ReviewRequestModal.tsx`** — Modal morto.
+- **`.eslintrc.cjs`** — Substituído por `eslint.config.js` (flat config).
+
+## [3.30.0] - 2026-07-28
+
+### Added
+- **BookingPreScreen — Novo fluxo de entrada inteligente** — Ao clicar em "Agendar" na Navbar, um modal premium com 3 opções aparece:
+  - **Já sou cliente**: input de telefone → detecção automática → código de 4 dígitos na tela → verificação → redireciona p/ `/agendar` com dados pré-preenchidos
+  - **Sou novo aqui**: formulário rápido de nome + telefone → redireciona p/ `/agendar` com dados
+  - **Agendar sem cadastro**: vai direto p/ o booking (sem pré-preenchimento)
+  - Fidelidade teaser: "Clientes cadastrados acumulam visitas e ganham serviços grátis"
+- **Reconhecimento inteligente de cliente** — Quando o telefone é digitado, o sistema consulta o banco via `getClientByPhone`. Se o cliente existe, mostra "Bem-vindo de volta, [nome]!" com animação premium.
+- **Código de acesso na tela** — Código de 4 dígitos exibido em caixas douradas, com timer de expiração e opção "Gerar novo código".
+- **BookingWizardContext pré-preenchido** — O wizard de agendamento agora lê `location.state` para receber nome e telefone do BookingPreScreen, eliminando a necessidade de redigitar.
+
+### Changed
+- **Navbar** — Link "Agendamentos" removido da navegação desktop. Agora o acesso ao perfil do cliente é feito através do BookingPreScreen.
+- **Home** — Botão "Agendar" agora abre o modal BookingPreScreen em vez de navegar direto para `/agendar`.
+- **`BookingWizardContext.tsx`** — Agora importa `useLocation` e inicializa `userInfo` a partir do estado da rota, permitindo pré-preenchimento.
+
+### Added (infra)
+- **`src/components/Booking/BookingPreScreen.tsx`** — Novo componente com 480+ linhas, animações framer-motion, 5 estados de tela (menu, existing-phone, code-verify, detected, new-client), cleanup de timeouts via useEffect.
+- **`src/components/Booking/BookingPreScreen.test.tsx`** — 9 testes unitários cobrindo: renderização do menu, guest flow, navegação entre telas, botão voltar, validação de formulários (nome vazio, telefone inválido), submit com dados válidos.
+
+### Tests
+- **114 arquivos, 1226 testes** — 100% passando. TypeScript 0 erros.
+
+## [3.29.0] - 2026-07-27
+
+### Added
+- **Unificação CancelPage + ManageBooking** — `CancelPage.tsx` agora aceita token via `?token=xxx` nos URL params, unificando as duas paginas em uma rota so.
+  - Rota `/gerenciar/:token` redireciona para `/cancelar?token=xxx` via `GerenciarRedirect`.
+  - `ManageBooking.tsx` e `ManageBooking.test.tsx` removidos.
+  - UI premium do ManageBooking mesclada: cards com brilho gradiente, linha dourada, estado de loading com animacao.
+  - Busca automatica quando phone chega via state (ex: do ClientProfile).
+  - Estados de erro para token invalido com design premium.
+- **Historico completo no /cliente** — Acordeao expansivel com agendamentos passados (concluidos/cancelados).
+  - Consulta via Supabase direto com fallback silencioso se RLS bloquear.
+  - Exibe data, horario, valor e status badge.
+- **Botao Reagendar no /cliente** — Navega para `/cancelar` com busca automatica por telefone.
+  - Gradiente dourado e icone ChevronRight no botao.
+  - Fluxo completo: /cliente → /cancelar → auto-busca → reagendar.
+- **Botao Compartilhar no Hero** — Copia o link do site para a area de transferencia.
+  - Feedback visual "Copiado!" com icone Check por 2 segundos.
+  - Fallback para navegadores sem Clipboard API.
+
+### Removed
+- **ManageBooking.tsx** — Pagina removida (unificada com CancelPage).
+- **ManageBooking.test.tsx** — Testes removidos (funcionalidade coberta pelos testes do CancelPage).
+- **Onboarding Page** (`/admin/onboarding`) — Removido completamente (arquivo + rotas + imports).
+- **HelpModal/Ajuda** — Removido das configuracoes.
+- **MarqueeStrip.tsx** — Componente morto deletado.
+- **HeroProps** — Interface vazia removida.
+- **Hover zoom nas fotos da galeria** — Efeito removido para experiencia mais fluida.
+
+### Changed
+- **Assinatura simplificada (PIX)** — Asaas removido. R$50/mes via PIX com confirmacao manual do dono.
+- **SubscriptionGuard** — Tela de bloqueio com chave PIX quando subscription expira.
+- **SettingsAssinaturas** — So visivel para elberthmayan2007@gmail.com.
+- **Migration 008_pix_setup.sql** — Chave PIX + subscription ativa ate fim do mes.
+- **Responsivo mobile** — Hero mais compacto, galeria com polaroids 15px mais estreitas.
+- **Footer** — Paleta cinza escuro. Aberto/Fechado movido para o Hero.
+- **Hero** — Badge Aberto/Fechado + botao Compartilhar lado a lado.
+- **Navbar** — Logo ampliada. Badge aberto/fechado removido.
+- **ClientProfile** — Dashboard com historico, stats cards, reagendar, cancelar.
+- **SettingsHorarios** — Refactor: acesso a ref movido para useEffect.
+- **AdminClients** — `Date.now()` durante render substituido por `useState(Date.now())`.
+
+### Fixed
+- **Footer.test.tsx** — Corrigido: "Admin" → "Acesso restrito".
+- **BookingPage.test.tsx** — Corrigido: adicionado `BarberProvider` wrapper.
+- **Hero.test.tsx** — Corrigido: `vi` nao utilizado removido.
+- **ClientProfile.tsx** — Corrigido: variavel `digits` nao utilizada removida.
+- **CancelPage.test.tsx** — Corrigido: logo alt text adicionado ao header.
+- **Lint warnings** — 3 warnings corrigidos (vi não usado, refs em render, Date.now em render).
+
 ## [3.27.1] - 2026-07-25
 
 ### Fixed

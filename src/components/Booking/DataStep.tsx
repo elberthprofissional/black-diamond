@@ -1,9 +1,10 @@
-import { memo, useState, type FC } from 'react';
+import { memo, useState, useCallback, useEffect, useRef, type FC } from 'react';
 import { User, Repeat, Tag } from 'lucide-react';
 import { formatPricePublic } from '../../lib/utils';
 import { WhatsAppIcon } from '../WhatsAppIcon';
 import CouponModal from './CouponModal';
 import CouponBadge from './CouponBadge';
+import { useForm } from '../../hooks/useForm';
 
 interface DataStepProps {
   name: string;
@@ -28,12 +29,19 @@ interface DataStepProps {
   onCouponRemove?: () => void;
 }
 
-function getPhoneError(phone: string): string | null {
-  const digits = phone.replace(/\D/g, '');
-  if (digits.length === 0) return null;
-  if (digits.length < 10) return 'Informe DDD + número (mín. 10 dígitos)';
-  if (digits.length > 11) return 'Número muito longo (máx. 11 dígitos)';
-  return null;
+function validateDataStep(values: { name: string; phone: string }) {
+  const errors: { name?: string; phone?: string } = {};
+  const digits = values.phone.replace(/\D/g, '');
+  if (digits.length > 0 && digits.length < 10) {
+    errors.phone = 'Informe DDD + número (mín. 10 dígitos)';
+  }
+  if (digits.length > 11) {
+    errors.phone = 'Número muito longo (máx. 11 dígitos)';
+  }
+  if (values.name && values.name.trim().length < 3) {
+    errors.name = 'Mínimo 3 caracteres';
+  }
+  return errors;
 }
 
 const DataStep: FC<DataStepProps> = memo(
@@ -55,6 +63,38 @@ const DataStep: FC<DataStepProps> = memo(
     onCouponRemove,
   }) => {
     const [couponModalOpen, setCouponModalOpen] = useState(false);
+
+    // Form validation state (touched tracking + validation via useForm)
+    const form = useForm({
+      initialValues: { name, phone },
+      validate: validateDataStep,
+    });
+
+    // Keep form values in sync with parent props
+    const prevRef = useRef({ name, phone });
+    useEffect(() => {
+      const prev = prevRef.current;
+      if (name !== prev.name || phone !== prev.phone) {
+        form.setValues({ name, phone });
+      }
+      prevRef.current = { name, phone };
+    }, [name, phone]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const handleNameChange = useCallback(
+      (value: string) => {
+        form.setValue('name', value);
+        onNameChange(value);
+      },
+      [onNameChange] // eslint-disable-line react-hooks/exhaustive-deps
+    );
+
+    const handlePhoneChange = useCallback(
+      (value: string) => {
+        form.setValue('phone', value);
+        onPhoneChange(value);
+      },
+      [onPhoneChange] // eslint-disable-line react-hooks/exhaustive-deps
+    );
 
     if (layout === 'desktop') {
       return (
@@ -80,11 +120,9 @@ const DataStep: FC<DataStepProps> = memo(
                     <span className="text-[12px] text-zinc-600 animate-pulse">Verificando...</span>
                   )}
                   {isMensalista && !clientLookupLoading && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-full">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
-                      <span className="text-[10px] font-bold text-[#D4AF37] uppercase">
-                        Mensalista
-                      </span>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gold/10 border border-gold/20 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gold" />
+                      <span className="text-[10px] font-bold text-gold uppercase">Mensalista</span>
                     </span>
                   )}
                 </div>
@@ -94,16 +132,17 @@ const DataStep: FC<DataStepProps> = memo(
                   placeholder="(00) 00000-0000"
                   data-testid="input-phone"
                   aria-label="Seu número de WhatsApp com DDD"
-                  aria-describedby={getPhoneError(phone) ? 'phone-error-desktop' : undefined}
-                  aria-invalid={!!getPhoneError(phone)}
-                  className="w-full bg-transparent border-b-2 border-white/10 focus:border-[#D4AF37] py-4 px-0 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 font-medium"
+                  aria-describedby={form.errors.phone ? 'phone-error-desktop' : undefined}
+                  aria-invalid={!!form.errors.phone}
+                  className="w-full bg-transparent border-b-2 border-white/10 focus:border-gold py-4 px-0 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 font-medium"
                   value={phone}
-                  onChange={(e) => onPhoneChange(e.target.value)}
+                  onChange={(e) => handlePhoneChange(e.target.value)}
+                  onBlur={form.handleBlur('phone')}
                   autoFocus
                 />
-                {getPhoneError(phone) && (
+                {form.errors.phone && form.touched.phone && (
                   <p id="phone-error-desktop" className="text-[12px] text-red-400/80" role="alert">
-                    {getPhoneError(phone)}
+                    {form.errors.phone}
                   </p>
                 )}
               </div>
@@ -122,16 +161,17 @@ const DataStep: FC<DataStepProps> = memo(
                   data-testid="input-name"
                   aria-label="Seu nome"
                   aria-describedby={
-                    name && name.trim().length < 3 ? 'name-error-desktop' : undefined
+                    form.errors.name && form.touched.name ? 'name-error-desktop' : undefined
                   }
-                  aria-invalid={!!(name && name.trim().length < 3)}
-                  className="w-full bg-transparent border-b-2 border-white/10 focus:border-[#D4AF37] py-4 px-0 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 font-medium"
+                  aria-invalid={!!(form.errors.name && form.touched.name)}
+                  className="w-full bg-transparent border-b-2 border-white/10 focus:border-gold py-4 px-0 text-[16px] text-white outline-none transition-all placeholder:text-zinc-600 font-medium"
                   value={name}
-                  onChange={(e) => onNameChange(e.target.value)}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  onBlur={form.handleBlur('name')}
                 />
-                {name && name.trim().length < 3 && (
+                {form.errors.name && form.touched.name && (
                   <p id="name-error-desktop" className="text-[12px] text-red-400/80" role="alert">
-                    Mínimo 3 caracteres
+                    {form.errors.name}
                   </p>
                 )}
               </div>
@@ -139,23 +179,21 @@ const DataStep: FC<DataStepProps> = memo(
 
             {/* Last Booking Suggestion - Desktop */}
             {lastBooking?.serviceIds && onApplyLastBooking && serviceNames && (
-              <div className="bg-[#D4AF37]/[0.06] border border-[#D4AF37]/20 rounded-xl p-5">
+              <div className="bg-gold/[0.06] border border-gold/20 rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-2">
-                  <Repeat size={16} className="text-[#D4AF37]" />
-                  <span className="text-[12px] font-semibold text-[#D4AF37] uppercase tracking-wider">
+                  <Repeat size={16} className="text-gold" />
+                  <span className="text-[12px] font-semibold text-gold uppercase tracking-wider">
                     Seu último agendamento
                   </span>
                 </div>
                 <p className="text-[14px] text-zinc-300 mb-4">
                   {lastBooking.serviceIds.map((id) => serviceNames[id] || 'Serviço').join(' + ')} —{' '}
-                  <span className="text-[#D4AF37]">
-                    {formatPricePublic(lastBooking.totalPrice)}
-                  </span>
+                  <span className="text-gold">{formatPricePublic(lastBooking.totalPrice)}</span>
                 </p>
                 <div className="flex gap-3">
                   <button
                     onClick={onApplyLastBooking}
-                    className="flex-1 py-2.5 bg-[#D4AF37]/15 hover:bg-[#D4AF37]/25 text-[#D4AF37] text-[12px] font-semibold rounded-lg transition-all cursor-pointer"
+                    className="flex-1 py-2.5 bg-gold/15 hover:bg-gold/25 text-gold text-[12px] font-semibold rounded-lg transition-all cursor-pointer"
                   >
                     Repetir este agendamento
                   </button>
@@ -179,9 +217,9 @@ const DataStep: FC<DataStepProps> = memo(
                 >
                   <Tag
                     size={13}
-                    className="text-zinc-600 group-hover:text-[#D4AF37] transition-colors"
+                    className="text-zinc-600 group-hover:text-gold transition-colors"
                   />
-                  <span className="text-[12px] text-zinc-500 group-hover:text-[#D4AF37] transition-colors">
+                  <span className="text-[12px] text-zinc-500 group-hover:text-gold transition-colors">
                     Adicionar cupom de desconto
                   </span>
                 </button>
@@ -211,11 +249,13 @@ const DataStep: FC<DataStepProps> = memo(
           <img
             src="/assets/login.webp"
             alt=""
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 w-full h-full object-cover grayscale opacity-20 pointer-events-none"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
           <div className="relative z-10">
-            <span className="text-[10px] font-black tracking-[0.4em] text-[#D4AF37] uppercase block mb-0.5">
+            <span className="text-[10px] font-black tracking-[0.4em] text-gold uppercase block mb-0.5">
               BLACK DIAMOND
             </span>
             <h2 className="text-xl font-black text-white tracking-tight">Preencha seus dados</h2>
@@ -231,13 +271,13 @@ const DataStep: FC<DataStepProps> = memo(
                 htmlFor="phone-mobile"
                 className="text-[12px] font-semibold text-zinc-400 flex items-center gap-1.5"
               >
-                <WhatsAppIcon className="w-3 h-3 text-[#D4AF37]" />
+                <WhatsAppIcon className="w-3 h-3 text-gold" />
                 WhatsApp
               </label>
               {isMensalista && !clientLookupLoading && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-full">
-                  <span className="w-1 h-1 rounded-full bg-[#D4AF37]" />
-                  <span className="text-[10px] font-bold text-[#D4AF37] uppercase">Mensalista</span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gold/10 border border-gold/20 rounded-full">
+                  <span className="w-1 h-1 rounded-full bg-gold" />
+                  <span className="text-[10px] font-bold text-gold uppercase">Mensalista</span>
                 </span>
               )}
               {clientLookupLoading && (
@@ -251,15 +291,18 @@ const DataStep: FC<DataStepProps> = memo(
               data-testid="input-phone"
               aria-label="Seu número de WhatsApp com DDD"
               autoFocus
-              aria-describedby={getPhoneError(phone) ? 'phone-error-mobile' : undefined}
-              aria-invalid={!!getPhoneError(phone)}
-              className="w-full bg-transparent border border-white/[0.06] focus:border-[#D4AF37] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600"
+              aria-describedby={
+                form.errors.phone && form.touched.phone ? 'phone-error-mobile' : undefined
+              }
+              aria-invalid={!!(form.errors.phone && form.touched.phone)}
+              className="w-full bg-transparent border border-white/[0.06] focus:border-gold rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600"
               value={phone}
-              onChange={(e) => onPhoneChange(e.target.value)}
+              onChange={(e) => handlePhoneChange(e.target.value)}
+              onBlur={form.handleBlur('phone')}
             />
-            {getPhoneError(phone) && (
+            {form.errors.phone && form.touched.phone && (
               <p id="phone-error-mobile" className="text-[10px] text-red-400/80" role="alert">
-                {getPhoneError(phone)}
+                {form.errors.phone}
               </p>
             )}
           </div>
@@ -268,7 +311,7 @@ const DataStep: FC<DataStepProps> = memo(
               htmlFor="name-mobile"
               className="text-[12px] font-semibold text-zinc-400 flex items-center gap-1.5"
             >
-              <User size={12} className="text-[#D4AF37]/60" />
+              <User size={12} className="text-gold/60" />
               Nome
             </label>
             <input
@@ -277,15 +320,18 @@ const DataStep: FC<DataStepProps> = memo(
               placeholder="Digite seu nome..."
               data-testid="input-name"
               aria-label="Seu nome"
-              aria-describedby={name && name.trim().length < 3 ? 'name-error-mobile' : undefined}
-              aria-invalid={!!(name && name.trim().length < 3)}
-              className="w-full bg-transparent border border-white/[0.06] focus:border-[#D4AF37] rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600"
+              aria-describedby={
+                form.errors.name && form.touched.name ? 'name-error-mobile' : undefined
+              }
+              aria-invalid={!!(form.errors.name && form.touched.name)}
+              className="w-full bg-transparent border border-white/[0.06] focus:border-gold rounded-xl px-4 py-3.5 text-sm text-white outline-none transition-all duration-300 placeholder:text-zinc-600"
               value={name}
-              onChange={(e) => onNameChange(e.target.value)}
+              onChange={(e) => handleNameChange(e.target.value)}
+              onBlur={form.handleBlur('name')}
             />
-            {name && name.trim().length < 3 && (
+            {form.errors.name && form.touched.name && (
               <p id="name-error-mobile" className="text-[10px] text-red-400/80" role="alert">
-                Mínimo 3 caracteres
+                {form.errors.name}
               </p>
             )}
           </div>
@@ -303,11 +349,8 @@ const DataStep: FC<DataStepProps> = memo(
                 onClick={() => setCouponModalOpen(true)}
                 className="flex items-center gap-2 group cursor-pointer w-full justify-end"
               >
-                <Tag
-                  size={12}
-                  className="text-zinc-600 group-hover:text-[#D4AF37] transition-colors"
-                />
-                <span className="text-[12px] text-zinc-500 group-hover:text-[#D4AF37] transition-colors">
+                <Tag size={12} className="text-zinc-600 group-hover:text-gold transition-colors" />
+                <span className="text-[12px] text-zinc-500 group-hover:text-gold transition-colors">
                   Adicionar cupom de desconto
                 </span>
               </button>
@@ -317,19 +360,17 @@ const DataStep: FC<DataStepProps> = memo(
 
           {/* Last Booking Suggestion */}
           {lastBooking?.serviceIds && onApplyLastBooking && serviceNames && (
-            <div className="bg-[#D4AF37]/[0.08] border border-[#D4AF37]/20 rounded-xl p-4">
+            <div className="bg-gold/[0.08] border border-gold/20 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Repeat size={14} className="text-[#D4AF37]" />
-                <span className="text-[12px] font-semibold text-[#D4AF37]">
-                  Seu último agendamento
-                </span>
+                <Repeat size={14} className="text-gold" />
+                <span className="text-[12px] font-semibold text-gold">Seu último agendamento</span>
               </div>
               <p className="text-[12px] text-zinc-300 mb-3">
                 {lastBooking.serviceIds.map((id) => serviceNames[id] || 'Serviço').join(' + ')}
               </p>
               <button
                 onClick={onApplyLastBooking}
-                className="w-full py-2.5 bg-[#D4AF37]/15 hover:bg-[#D4AF37]/25 text-[#D4AF37] text-[12px] font-semibold rounded-lg transition-all cursor-pointer"
+                className="w-full py-2.5 bg-gold/15 hover:bg-gold/25 text-gold text-[12px] font-semibold rounded-lg transition-all cursor-pointer"
               >
                 Repetir este agendamento
               </button>

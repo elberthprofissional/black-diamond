@@ -22,7 +22,6 @@ describe('useDayStatus', () => {
   });
 
   it('retorna isClosed true quando dia está desabilitado', () => {
-    // Fixar num dia útil (segunda)
     vi.setSystemTime(nextMonday());
 
     const hours = JSON.stringify({
@@ -32,10 +31,10 @@ describe('useDayStatus', () => {
     const { result } = renderHook(() => useDayStatus(hours));
     expect(result.current.isClosed).toBe(true);
     expect(result.current.isPastClosing).toBe(false);
+    expect(result.current.isBeforeOpening).toBe(false);
   });
 
   it('retorna isPastClosing true quando passou do horário', () => {
-    // Fixar num dia útil às 20h (depois das 18h)
     const monday = nextMonday();
     monday.setHours(20, 0, 0, 0);
     vi.setSystemTime(monday);
@@ -47,11 +46,12 @@ describe('useDayStatus', () => {
     const { result } = renderHook(() => useDayStatus(hours));
     expect(result.current.isClosed).toBe(false);
     expect(result.current.isPastClosing).toBe(true);
+    expect(result.current.isBeforeOpening).toBe(false);
   });
 
   it('retorna isPastClosing false quando está dentro do horário', () => {
     const monday = nextMonday();
-    monday.setHours(14, 0, 0, 0); // 14h, antes das 18h
+    monday.setHours(14, 0, 0, 0);
     vi.setSystemTime(monday);
 
     const hours = JSON.stringify({
@@ -61,6 +61,22 @@ describe('useDayStatus', () => {
     const { result } = renderHook(() => useDayStatus(hours));
     expect(result.current.isClosed).toBe(false);
     expect(result.current.isPastClosing).toBe(false);
+    expect(result.current.isBeforeOpening).toBe(false);
+  });
+
+  it('retorna isBeforeOpening true quando está antes da abertura', () => {
+    const monday = nextMonday();
+    monday.setHours(6, 0, 0, 0); // 6h, antes das 8h
+    vi.setSystemTime(monday);
+
+    const hours = JSON.stringify({
+      '1': { enabled: true, open: '08:00', close: '18:00' },
+    });
+
+    const { result } = renderHook(() => useDayStatus(hours));
+    expect(result.current.isClosed).toBe(false);
+    expect(result.current.isPastClosing).toBe(false);
+    expect(result.current.isBeforeOpening).toBe(true);
   });
 
   it('usa horário padrão 18:00 quando close não está definido', () => {
@@ -69,7 +85,7 @@ describe('useDayStatus', () => {
     vi.setSystemTime(monday);
 
     const hours = JSON.stringify({
-      '1': { enabled: true, open: '08:00' }, // sem close
+      '1': { enabled: true, open: '08:00' },
     });
 
     const { result } = renderHook(() => useDayStatus(hours));
@@ -82,6 +98,7 @@ describe('useDayStatus', () => {
     const { result } = renderHook(() => useDayStatus(''));
     expect(result.current.isClosed).toBe(false);
     expect(result.current.isPastClosing).toBe(false);
+    expect(result.current.isBeforeOpening).toBe(false);
   });
 
   it('retorna valores padrão quando JSON é inválido', () => {
@@ -90,5 +107,6 @@ describe('useDayStatus', () => {
     const { result } = renderHook(() => useDayStatus('invalid json'));
     expect(result.current.isClosed).toBe(false);
     expect(result.current.isPastClosing).toBe(false);
+    expect(result.current.isBeforeOpening).toBe(false);
   });
 });

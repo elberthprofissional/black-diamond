@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useNoShow } from './useNoShow';
+import { queryClientWrapper } from '../test/query-client-wrapper';
 
 const mockSupabaseFrom = vi.fn();
 const mockShowSuccess = vi.fn();
@@ -67,7 +68,7 @@ describe('useNoShow', () => {
   });
 
   it('returns initial state', () => {
-    const { result } = renderHook(() => useNoShow());
+    const { result } = renderHook(() => useNoShow(), { wrapper: queryClientWrapper() });
     expect(result.current.markingNoShow).toBeNull();
     expect(typeof result.current.markAsNoShow).toBe('function');
     expect(typeof result.current.undoNoShow).toBe('function');
@@ -77,7 +78,9 @@ describe('useNoShow', () => {
     mockSupabaseFrom.mockReturnValue(createSuccessChain());
     const onBookingUpdated = vi.fn();
 
-    const { result } = renderHook(() => useNoShow({ onBookingUpdated }));
+    const { result } = renderHook(() => useNoShow({ onBookingUpdated }), {
+      wrapper: queryClientWrapper(),
+    });
 
     await act(async () => {
       await result.current.markAsNoShow('booking-1', 'Cliente Teste', 'client-1', '11999999999');
@@ -91,7 +94,7 @@ describe('useNoShow', () => {
   it('calls checkAndNotifyNoShowLimit with client data', async () => {
     mockSupabaseFrom.mockReturnValue(createSuccessChain());
 
-    const { result } = renderHook(() => useNoShow());
+    const { result } = renderHook(() => useNoShow(), { wrapper: queryClientWrapper() });
 
     await act(async () => {
       await result.current.markAsNoShow('booking-1', 'Cliente Teste', 'client-1', '11999999999');
@@ -108,7 +111,7 @@ describe('useNoShow', () => {
     mockSupabaseFrom.mockReturnValue(createSuccessChain());
     mockCheckAndNotifyNoShowLimit.mockResolvedValue(true);
 
-    const { result } = renderHook(() => useNoShow());
+    const { result } = renderHook(() => useNoShow(), { wrapper: queryClientWrapper() });
 
     await act(async () => {
       await result.current.markAsNoShow('booking-1', 'Cliente Teste', 'client-1');
@@ -122,7 +125,7 @@ describe('useNoShow', () => {
   it('handles error when marking no-show', async () => {
     mockSupabaseFrom.mockReturnValue(createErrorChain('DB error'));
 
-    const { result } = renderHook(() => useNoShow());
+    const { result } = renderHook(() => useNoShow(), { wrapper: queryClientWrapper() });
 
     await act(async () => {
       await result.current.markAsNoShow('booking-1');
@@ -135,7 +138,7 @@ describe('useNoShow', () => {
   it('shows success without client data', async () => {
     mockSupabaseFrom.mockReturnValue(createSuccessChain());
 
-    const { result } = renderHook(() => useNoShow());
+    const { result } = renderHook(() => useNoShow(), { wrapper: queryClientWrapper() });
 
     await act(async () => {
       await result.current.markAsNoShow('booking-1');
@@ -148,7 +151,9 @@ describe('useNoShow', () => {
     mockSupabaseFrom.mockReturnValue(createSuccessChain());
     const onBookingUpdated = vi.fn();
 
-    const { result } = renderHook(() => useNoShow({ onBookingUpdated }));
+    const { result } = renderHook(() => useNoShow({ onBookingUpdated }), {
+      wrapper: queryClientWrapper(),
+    });
 
     await act(async () => {
       await result.current.undoNoShow('booking-1');
@@ -162,7 +167,7 @@ describe('useNoShow', () => {
   it('handles error when undoing no-show', async () => {
     mockSupabaseFrom.mockReturnValue(createErrorChain('DB error'));
 
-    const { result } = renderHook(() => useNoShow());
+    const { result } = renderHook(() => useNoShow(), { wrapper: queryClientWrapper() });
 
     await act(async () => {
       await result.current.undoNoShow('booking-1');
@@ -174,7 +179,7 @@ describe('useNoShow', () => {
   it('works without onBookingUpdated callback', async () => {
     mockSupabaseFrom.mockReturnValue(createSuccessChain());
 
-    const { result } = renderHook(() => useNoShow());
+    const { result } = renderHook(() => useNoShow(), { wrapper: queryClientWrapper() });
 
     await act(async () => {
       await result.current.markAsNoShow('booking-1', 'Cliente');
@@ -186,7 +191,7 @@ describe('useNoShow', () => {
   it('marks no-show with specific booking ID', async () => {
     mockSupabaseFrom.mockReturnValue(createSuccessChain());
 
-    const { result } = renderHook(() => useNoShow());
+    const { result } = renderHook(() => useNoShow(), { wrapper: queryClientWrapper() });
 
     await act(async () => {
       await result.current.markAsNoShow('booking-xyz-123');
@@ -199,7 +204,7 @@ describe('useNoShow', () => {
   it('undoes no-show with specific booking ID', async () => {
     mockSupabaseFrom.mockReturnValue(createSuccessChain());
 
-    const { result } = renderHook(() => useNoShow());
+    const { result } = renderHook(() => useNoShow(), { wrapper: queryClientWrapper() });
 
     await act(async () => {
       await result.current.undoNoShow('booking-abc-456');

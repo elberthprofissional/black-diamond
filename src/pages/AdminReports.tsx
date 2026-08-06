@@ -1,6 +1,7 @@
 import { type FC, useMemo, useState } from 'react';
 import { useProfileStats } from '../hooks/useProfileStats';
 import { useWeeklyRevenue } from '../hooks/useWeeklyRevenue';
+import { useBarberScope } from '../hooks/useBarberScope';
 import AdminLayout from '../components/Admin/AdminLayout';
 import { SkeletonDashboard } from '../components/Skeleton';
 
@@ -8,7 +9,13 @@ const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 const AdminReports: FC = () => {
   const { stats, loading } = useProfileStats();
-  const { currentWeek, lastWeek, changePercent, loading: weeklyLoading } = useWeeklyRevenue();
+  const { scopedBarberId } = useBarberScope();
+  const {
+    currentWeek,
+    lastWeek,
+    changePercent,
+    loading: weeklyLoading,
+  } = useWeeklyRevenue(scopedBarberId || undefined);
   const [period, setPeriod] = useState<'week' | 'month'>('week');
 
   const weeklyData = useMemo(() => {
@@ -53,7 +60,7 @@ const AdminReports: FC = () => {
               onClick={() => setPeriod('week')}
               className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg lg:rounded-xl text-[10px] lg:text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 period === 'week'
-                  ? 'bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37]'
+                  ? 'bg-gold/10 border border-gold/30 text-gold'
                   : 'bg-white/[0.02] border border-white/[0.06] text-zinc-500'
               }`}
             >
@@ -63,7 +70,7 @@ const AdminReports: FC = () => {
               onClick={() => setPeriod('month')}
               className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg lg:rounded-xl text-[10px] lg:text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 period === 'month'
-                  ? 'bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37]'
+                  ? 'bg-gold/10 border border-gold/30 text-gold'
                   : 'bg-white/[0.02] border border-white/[0.06] text-zinc-500'
               }`}
             >
@@ -78,7 +85,7 @@ const AdminReports: FC = () => {
             <span className="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
               {period === 'week' ? 'Ganhos Semana' : 'Ganhos Mês'}
             </span>
-            <p className="text-xl lg:text-2xl font-black text-[#D4AF37] tracking-tight tabular-nums">
+            <p className="text-xl lg:text-2xl font-black text-gold tracking-tight tabular-nums">
               R$ {currentRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
           </div>
@@ -130,7 +137,7 @@ const AdminReports: FC = () => {
               <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">
                 Esta
               </span>
-              <p className="text-base lg:text-lg font-black text-[#D4AF37] tabular-nums mt-0.5">
+              <p className="text-base lg:text-lg font-black text-gold tabular-nums mt-0.5">
                 R$ {currentWeek.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
               <span className="text-[9px] text-zinc-600">
@@ -162,11 +169,11 @@ const AdminReports: FC = () => {
                 key={day.label}
                 className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end"
               >
-                <span className="text-[8px] lg:text-[9px] font-bold text-[#D4AF37] tabular-nums">
+                <span className="text-[8px] lg:text-[9px] font-bold text-gold tabular-nums">
                   R${day.value.toFixed(0)}
                 </span>
                 <div
-                  className="w-full bg-gradient-to-t from-[#D4AF37] to-[#D4AF37]/40 rounded-t transition-all duration-500"
+                  className="w-full bg-gradient-to-t from-gold to-gold/40 rounded-t transition-all duration-500"
                   style={{
                     height: `${Math.max(day.percent, 4)}%`,
                     opacity: day.value > 0 ? 1 : 0.2,
@@ -201,13 +208,13 @@ const AdminReports: FC = () => {
                           {srv.name}
                         </span>
                       </div>
-                      <span className="text-[10px] font-bold text-[#D4AF37] tabular-nums">
+                      <span className="text-[10px] font-bold text-gold tabular-nums">
                         {srv.count}x
                       </span>
                     </div>
                     <div className="h-1.5 bg-white/[0.03] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-[#D4AF37] to-[#d4aF37]/60 rounded-full transition-all duration-500"
+                        className="h-full bg-gradient-to-r from-gold to-gold/60 rounded-full transition-all duration-500"
                         style={{ width: `${percentage}%` }}
                       />
                     </div>

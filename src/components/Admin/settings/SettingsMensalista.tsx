@@ -92,6 +92,7 @@ const SettingsMensalista: FC = () => {
   }, [showError]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
 
@@ -234,8 +235,8 @@ const SettingsMensalista: FC = () => {
       >
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/20 flex items-center justify-center">
-              <Crown size={18} className="text-[#D4AF37]" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gold/20 to-gold/5 border border-gold/20 flex items-center justify-center">
+              <Crown size={18} className="text-gold" />
             </div>
             <div>
               <h3 className="text-[18px] font-bold text-white tracking-tight">
@@ -244,7 +245,7 @@ const SettingsMensalista: FC = () => {
               <p className="text-[11px] text-zinc-500 flex items-center gap-1.5">
                 {plans.length > 0 ? (
                   <>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] text-[10px] font-bold">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gold/10 text-gold text-[10px] font-bold">
                       {plans.length} {plans.length === 1 ? 'plano' : 'planos'}
                     </span>
                     <span className="text-zinc-600">•</span>
@@ -264,7 +265,7 @@ const SettingsMensalista: FC = () => {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           onClick={openAdd}
-          className="btn-gold flex items-center gap-1.5 px-4 py-2.5 text-[12px] rounded-xl shadow-lg shadow-[#D4AF37]/10"
+          className="btn-gold flex items-center gap-1.5 px-4 py-2.5 text-[12px] rounded-xl shadow-lg shadow-gold/10"
         >
           <Plus size={14} strokeWidth={2.5} />
           <span className="hidden sm:inline">Novo Plano</span>
@@ -281,8 +282,8 @@ const SettingsMensalista: FC = () => {
           className="relative p-8 sm:p-12"
         >
           <div className="text-center max-w-md mx-auto">
-            <div className="w-14 h-14 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/15 flex items-center justify-center mx-auto mb-5">
-              <Crown size={24} className="text-[#D4AF37]" />
+            <div className="w-14 h-14 rounded-2xl bg-gold/10 border border-gold/15 flex items-center justify-center mx-auto mb-5">
+              <Crown size={24} className="text-gold" />
             </div>
             <h4 className="text-[16px] font-bold text-white mb-1.5">Nenhum plano cadastrado</h4>
             <p className="text-[13px] text-zinc-500 leading-relaxed mb-6">
@@ -324,19 +325,19 @@ const SettingsMensalista: FC = () => {
                 className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 ${
                   inactive
                     ? 'border-white/[0.04] bg-white/[0.01] opacity-60'
-                    : 'border-white/[0.06] bg-gradient-to-b from-[#111] to-[#0D0D0D] hover:border-[#D4AF37]/20 hover:shadow-lg hover:shadow-[#D4AF37]/[0.03]'
+                    : 'border-white/[0.06] bg-gradient-to-b from-[#111] to-[#0D0D0D] hover:border-gold/20 hover:shadow-lg hover:shadow-gold/[0.03]'
                 }`}
               >
                 {/* Hover glow */}
-                <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#D4AF37]/[0.02] rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-gold/[0.02] rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                 <div className="relative p-4 sm:p-5">
                   <div className="flex items-start justify-between gap-3">
                     {/* Left: Info */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D4AF37]/15 to-[#D4AF37]/5 border border-[#D4AF37]/15 flex items-center justify-center shrink-0">
-                          <Crown size={15} className="text-[#D4AF37]" />
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-gold/15 to-gold/5 border border-gold/15 flex items-center justify-center shrink-0">
+                          <Crown size={15} className="text-gold" />
                         </div>
                         <h4 className="text-[15px] font-bold text-white tracking-tight truncate">
                           {plan.name}
@@ -354,7 +355,7 @@ const SettingsMensalista: FC = () => {
 
                       {/* Price + Duration row */}
                       <div className="flex items-baseline gap-3 mt-2.5">
-                        <span className="text-[22px] font-black text-[#D4AF37] tracking-tight">
+                        <span className="text-[22px] font-black text-gold tracking-tight">
                           {formatPricePublic(plan.price)}
                         </span>
                         <span className="text-[11px] text-zinc-600 font-medium">/mês</span>
@@ -372,10 +373,10 @@ const SettingsMensalista: FC = () => {
                             return (
                               <div
                                 key={sid}
-                                className="w-5 h-5 rounded-md bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center"
+                                className="w-5 h-5 rounded-md bg-gold/10 border border-gold/20 flex items-center justify-center"
                                 title={svc?.name || ''}
                               >
-                                <span className="text-[7px] font-black text-[#D4AF37] uppercase">
+                                <span className="text-[7px] font-black text-gold uppercase">
                                   {svc?.name?.charAt(0) || '?'}
                                 </span>
                               </div>
@@ -405,7 +406,7 @@ const SettingsMensalista: FC = () => {
                               key={day}
                               className={`text-[8px] font-bold px-1.5 py-0.5 rounded transition-all ${
                                 active
-                                  ? 'bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/15'
+                                  ? 'bg-gold/10 text-gold border border-gold/15'
                                   : 'bg-white/[0.02] text-zinc-700 border border-white/[0.03]'
                               }`}
                             >
@@ -435,7 +436,7 @@ const SettingsMensalista: FC = () => {
 
                 {/* Bottom gold accent line */}
                 {plan.is_active && (
-                  <div className="absolute bottom-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent" />
+                  <div className="absolute bottom-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
                 )}
               </motion.div>
             );
@@ -545,14 +546,14 @@ const PlanFormFields: FC<PlanFormFieldsProps> = ({
     {/* Nome do plano */}
     <div className="space-y-1.5">
       <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-        <Crown size={12} className="text-[#D4AF37]" />
+        <Crown size={12} className="text-gold" />
         Nome do Plano
       </label>
       <input
         ref={nameInputRef}
         type="text"
         placeholder="Ex: Corte Black Premium"
-        className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-zinc-700 outline-none focus:border-[#D4AF37]/30 focus:bg-white/[0.05] transition-all duration-200"
+        className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-zinc-700 outline-none focus:border-gold/30 focus:bg-white/[0.05] transition-all duration-200"
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
@@ -562,7 +563,7 @@ const PlanFormFields: FC<PlanFormFieldsProps> = ({
     <div className="grid grid-cols-2 gap-3">
       <div className="space-y-1.5">
         <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-          <DollarSign size={11} className="text-[#D4AF37]" />
+          <DollarSign size={11} className="text-gold" />
           Preço Mensal
         </label>
         <div className="relative">
@@ -573,7 +574,7 @@ const PlanFormFields: FC<PlanFormFieldsProps> = ({
             type="text"
             inputMode="decimal"
             placeholder="0,00"
-            className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl pl-9 pr-4 py-3.5 text-sm text-white placeholder:text-zinc-700 outline-none focus:border-[#D4AF37]/30 focus:bg-white/[0.05] transition-all duration-200"
+            className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl pl-9 pr-4 py-3.5 text-sm text-white placeholder:text-zinc-700 outline-none focus:border-gold/30 focus:bg-white/[0.05] transition-all duration-200"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
           />
@@ -581,7 +582,7 @@ const PlanFormFields: FC<PlanFormFieldsProps> = ({
       </div>
       <div className="space-y-1.5">
         <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-          <Calendar size={11} className="text-[#D4AF37]" />
+          <Calendar size={11} className="text-gold" />
           Duração
         </label>
         <div className="relative">
@@ -590,7 +591,7 @@ const PlanFormFields: FC<PlanFormFieldsProps> = ({
             min="1"
             max="365"
             placeholder="30"
-            className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-zinc-700 outline-none focus:border-[#D4AF37]/30 focus:bg-white/[0.05] transition-all duration-200"
+            className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-zinc-700 outline-none focus:border-gold/30 focus:bg-white/[0.05] transition-all duration-200"
             value={durationDays}
             onChange={(e) => setDurationDays(e.target.value)}
           />
@@ -603,12 +604,12 @@ const PlanFormFields: FC<PlanFormFieldsProps> = ({
 
     {/* Price preview */}
     {hasPrice && name.trim() && (
-      <div className="px-4 py-3 bg-[#D4AF37]/[0.04] border border-[#D4AF37]/10 rounded-xl">
+      <div className="px-4 py-3 bg-gold/[0.04] border border-gold/10 rounded-xl">
         <p className="text-[11px] text-zinc-500">
           {editingId ? 'Plano atualizado' : 'Novo plano'}:{' '}
           <span className="text-white font-bold">{name.trim()}</span>
         </p>
-        <p className="text-[20px] font-black text-[#D4AF37] mt-0.5">
+        <p className="text-[20px] font-black text-gold mt-0.5">
           {formatPricePublic(parseFloat(price.replace(',', '.')) || 0)}
           <span className="text-[11px] font-medium text-zinc-500">/mês · {durationDays} dias</span>
         </p>
@@ -618,7 +619,7 @@ const PlanFormFields: FC<PlanFormFieldsProps> = ({
     {/* Dias permitidos */}
     <div className="space-y-2">
       <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-        <CalendarDays size={11} className="text-[#D4AF37]" />
+        <CalendarDays size={11} className="text-gold" />
         Dias Permitidos
       </label>
       <p className="text-[10px] text-zinc-600 -mt-1">
@@ -635,7 +636,7 @@ const PlanFormFields: FC<PlanFormFieldsProps> = ({
               onClick={() => toggleDay(day)}
               className={`py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200 cursor-pointer ${
                 active
-                  ? 'bg-gradient-to-b from-[#D4AF37]/20 to-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/25 shadow-sm shadow-[#D4AF37]/5'
+                  ? 'bg-gradient-to-b from-gold/20 to-gold/10 text-gold border border-gold/25 shadow-sm shadow-gold/5'
                   : 'bg-white/[0.02] text-zinc-500 border border-white/[0.04] hover:border-white/[0.08] hover:text-zinc-300'
               }`}
             >
@@ -649,7 +650,7 @@ const PlanFormFields: FC<PlanFormFieldsProps> = ({
     {/* Serviços inclusos */}
     <div className="space-y-2">
       <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-        <Check size={11} className="text-[#D4AF37]" />
+        <Check size={11} className="text-gold" />
         Serviços Inclusos
       </label>
       <p className="text-[10px] text-zinc-600 -mt-1">
@@ -674,7 +675,7 @@ const PlanFormFields: FC<PlanFormFieldsProps> = ({
                 onClick={() => toggleService(service.id)}
                 className={`w-full flex items-center justify-between px-3.5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${
                   selected
-                    ? 'bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/15'
+                    ? 'bg-gold/10 text-gold border border-gold/15'
                     : 'hover:bg-white/[0.03] text-zinc-400 border border-transparent'
                 }`}
               >
@@ -682,7 +683,7 @@ const PlanFormFields: FC<PlanFormFieldsProps> = ({
                   <div
                     className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all shrink-0 ${
                       selected
-                        ? 'bg-[#D4AF37] border-[#D4AF37] shadow-sm shadow-[#D4AF37]/20'
+                        ? 'bg-gold border-gold shadow-sm shadow-gold/20'
                         : 'border-white/15 group-hover:border-white/30'
                     }`}
                   >
@@ -755,7 +756,7 @@ const PlanFormModal: FC<
                 onClick={onSave}
                 disabled={!isValid}
                 className={`p-1 transition-colors cursor-pointer ${
-                  isValid ? 'text-[#D4AF37]' : 'text-zinc-600'
+                  isValid ? 'text-gold' : 'text-zinc-600'
                 }`}
                 aria-label="Salvar"
               >
@@ -800,7 +801,7 @@ const PlanFormModal: FC<
                   <X size={18} />
                 </button>
                 <div className="flex items-center gap-2">
-                  <Crown size={14} className="text-[#D4AF37]" />
+                  <Crown size={14} className="text-gold" />
                   <span className="text-[14px] font-semibold text-white">
                     {screen === 'add' ? 'Novo Plano Mensalista' : 'Editar Plano'}
                   </span>
@@ -810,7 +811,7 @@ const PlanFormModal: FC<
                   disabled={!isValid}
                   className={`text-[13px] font-bold transition-all cursor-pointer px-4 py-1.5 rounded-lg ${
                     isValid
-                      ? 'bg-[#D4AF37] text-black hover:bg-[#b8962e]'
+                      ? 'bg-gold text-black hover:bg-[#b8962e]'
                       : 'bg-white/[0.04] text-zinc-600 cursor-not-allowed'
                   }`}
                 >

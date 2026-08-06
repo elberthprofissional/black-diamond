@@ -57,6 +57,8 @@ const {
   deleteClient,
   createClient,
   updateClient,
+  registerPublicClient,
+  getClientDashboard,
 } = await import('./api');
 
 beforeEach(() => {
@@ -329,5 +331,59 @@ describe('updateClient', () => {
     queryResult = { data: null, error: null };
     await updateClient('c1', { name: 'Atualizado', phone: '456' });
     expect(queryBuilder.update).toHaveBeenCalledWith({ name: 'Atualizado', phone: '456' });
+  });
+});
+
+describe('registerPublicClient', () => {
+  it('chama RPC cadastrar_cliente_publico (upsert seguro por telefone)', async () => {
+    mockRpc.mockResolvedValue({
+      data: { id: 'c1', name: 'Novo', phone: '31999999999' },
+      error: null,
+    });
+
+    const result = await registerPublicClient({ name: 'Novo', phone: '31999999999' });
+
+    expect(mockRpc).toHaveBeenCalledWith('cadastrar_cliente_publico', {
+      p_nome: 'Novo',
+      p_telefone: '31999999999',
+    });
+    expect(result.id).toBe('c1');
+  });
+
+  it('lança erro quando a RPC falha', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: new Error('RPC error') });
+    await expect(registerPublicClient({ name: 'Novo', phone: '31999999999' })).rejects.toThrow(
+      'RPC error'
+    );
+  });
+});
+
+describe('getClientDashboard', () => {
+  it('chama RPC get_client_dashboard com telefone limpo', async () => {
+    mockRpc.mockResolvedValue({
+      data: {
+        stats: {
+          historical_visits: 3,
+          historical_spent: 105,
+          last_visit_date: '2026-07-25',
+          is_mensalista: false,
+          mensalista_plan_id: null,
+          mensalista_expires_at: null,
+        },
+        history: [{ id: 'b1', status: 'completed', total_price: 35 }],
+      },
+      error: null,
+    });
+
+    const result = await getClientDashboard('(31) 99999-9999');
+
+    expect(mockRpc).toHaveBeenCalledWith('get_client_dashboard', { p_phone: '31999999999' });
+    expect(result.stats?.historical_visits).toBe(3);
+    expect(result.history).toHaveLength(1);
+  });
+
+  it('lança erro quando a RPC falha', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: new Error('RPC error') });
+    await expect(getClientDashboard('31999999999')).rejects.toThrow('RPC error');
   });
 });

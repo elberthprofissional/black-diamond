@@ -6,9 +6,9 @@ import { getNextDays } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { useServices } from './useServices';
 import { useBarberSettings } from './useBarberSettings';
+import { useBarberContext } from '../contexts/BarberContext';
 import { useAdminClientSearch } from './useAdminClientSearch';
 import { useAdminBookingSubmit } from './useAdminBookingSubmit';
-import { useBarberContext } from '../contexts/BarberContext';
 import type { Service, Booking, Barber } from '../types';
 import { logError } from '../lib/logger';
 
@@ -28,9 +28,30 @@ export function useAdminBookingState() {
   const rescheduleBooking = location.state?.rescheduleBooking;
 
   const { services } = useServices();
-  const { barberPhone } = useBarberSettings();
+  const { barberPhone: settingsBarberPhone } = useBarberSettings();
+  const { barbers, currentBarber } = useBarberContext();
   const { showError } = useToast();
   const [existingBookings, setExistingBookings] = useState<Booking[]>([]);
+
+  // ── Multi-barbeiro: barbeiro escolhido para o agendamento ──
+  // selectedBarber = escolha explícita do admin; effectiveBarber faz fallback
+  // para o barbeiro logado (ou o primeiro ativo) quando nada foi escolhido.
+  const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
+  const defaultBarber = useMemo(() => {
+    if (
+      currentBarber &&
+      currentBarber.is_active &&
+      barbers.some((b) => b.id === currentBarber.id)
+    ) {
+      return currentBarber;
+    }
+    return barbers.find((b) => b.is_active) ?? barbers[0] ?? null;
+  }, [barbers, currentBarber]);
+  const effectiveBarber = selectedBarber ?? defaultBarber;
+
+  const selectedBarberPhone = effectiveBarber?.phone || settingsBarberPhone || '';
+  const selectedBarberUserId = effectiveBarber?.user_id;
+  const selectedBarberName = effectiveBarber?.name;
 
   const clientSearch = useAdminClientSearch();
   const {
@@ -55,8 +76,6 @@ export function useAdminBookingState() {
     loadClients,
   } = clientSearch;
 
-  const { barbers } = useBarberContext();
-  const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
 
   const [currentStep, setCurrentStep] = useState(() => {
@@ -157,7 +176,7 @@ export function useAdminBookingState() {
           }
         }
       })
-      .catch(() => {});
+      .catch((e) => logError(e, 'useAdminBookingState/loadClients'));
     return () => {
       mounted = false;
     };
@@ -190,7 +209,7 @@ export function useAdminBookingState() {
       let active = true;
       const loadBookings = async () => {
         try {
-          const result = await getBookings(selectedDate);
+          const result = await getBookings(selectedDate, { barberId: effectiveBarber?.id });
           if (active) setExistingBookings(result.data || []);
         } catch (e) {
           logError(e);
@@ -202,7 +221,7 @@ export function useAdminBookingState() {
         active = false;
       };
     }
-  }, [selectedDate, showError]);
+  }, [selectedDate, showError, effectiveBarber?.id]);
 
   useEffect(() => {
     if (rescheduleBooking && services.length > 0 && rescheduleBooking.service_ids) {
@@ -236,8 +255,10 @@ export function useAdminBookingState() {
     totalPrice,
     totalDuration,
     rescheduleBooking,
-    barberPhone,
-    selectedBarber,
+    barberPhone: selectedBarberPhone,
+    barberId: effectiveBarber?.id,
+    barberUserId: selectedBarberUserId,
+    barberName: selectedBarberName,
   });
 
   const handleNextStep = useCallback(() => {
@@ -312,9 +333,6 @@ export function useAdminBookingState() {
     isSearchOpen,
     setIsSearchOpen,
     selectClient,
-    barbers,
-    selectedBarber,
-    setSelectedBarber,
     selectedServices,
     currentStep,
     setCurrentStep,
@@ -329,6 +347,9 @@ export function useAdminBookingState() {
     totalDuration,
     isPreFilled,
     isSubmitting,
+    barbers,
+    selectedBarber: effectiveBarber,
+    setSelectedBarber,
 
     // Handlers
     toggleService,

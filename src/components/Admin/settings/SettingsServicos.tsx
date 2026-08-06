@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, type FC } from 'react';
+import { useState, useEffect, useRef, useCallback, memo, type FC } from 'react';
 import { useToast } from '../../../hooks/useToast';
 import ToastNotification from '../shared/ToastNotification';
 import { supabase } from '../../../lib/supabase';
@@ -48,6 +48,7 @@ const SettingsServicos: FC = () => {
   }, [showError]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadServices();
   }, [loadServices]);
 
@@ -220,7 +221,7 @@ const SettingsServicos: FC = () => {
               >
                 <div className="flex items-baseline gap-4">
                   <span className="text-[16px] font-semibold text-white">{service.name}</span>
-                  <span className="text-[14px] text-[#D4AF37] font-medium">
+                  <span className="text-[14px] text-gold font-medium">
                     {formatPrice(service.price)}
                   </span>
                 </div>
@@ -262,7 +263,7 @@ const SettingsServicos: FC = () => {
             <button
               onClick={openAdd}
               disabled={services.length >= MAX_SERVICES}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#D4AF37]/20 text-[#D4AF37] text-[12px] font-medium rounded-lg transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gold/20 text-gold text-[12px] font-medium rounded-lg transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <Plus size={12} />
               Adicionar
@@ -282,9 +283,7 @@ const SettingsServicos: FC = () => {
             >
               <div>
                 <p className="text-[14px] text-white">{service.name}</p>
-                <p className="text-[12px] text-[#D4AF37] font-medium">
-                  {formatPrice(service.price)}
-                </p>
+                <p className="text-[12px] text-gold font-medium">{formatPrice(service.price)}</p>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -328,7 +327,7 @@ const SettingsServicos: FC = () => {
               </span>
               <button
                 onClick={handleSubmit}
-                className="text-[#D4AF37] font-bold text-[16px] transition-colors cursor-pointer"
+                className="text-gold font-bold text-[16px] transition-colors cursor-pointer"
                 aria-label="Salvar"
               >
                 <Check size={24} />
@@ -354,7 +353,7 @@ const SettingsServicos: FC = () => {
                   }}
                   placeholder="Ex: Corte de Cabelo"
                   maxLength={MAX_NAME_LENGTH}
-                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[16px] text-white outline-none focus:border-[#D4AF37]/40 transition-all placeholder:text-zinc-600"
+                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[16px] text-white outline-none focus:border-gold/40 transition-all placeholder:text-zinc-600"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') handleSubmit();
                   }}
@@ -368,7 +367,7 @@ const SettingsServicos: FC = () => {
                 <select
                   value={durationInput}
                   onChange={(e) => setDurationInput(e.target.value)}
-                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[16px] text-white outline-none focus:border-[#D4AF37]/40 transition-all"
+                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[16px] text-white outline-none focus:border-gold/40 transition-all"
                 >
                   <option value="15">15 min</option>
                   <option value="30">30 min</option>
@@ -395,7 +394,7 @@ const SettingsServicos: FC = () => {
                       }
                     }}
                     placeholder="0,00"
-                    className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[16px] text-white outline-none focus:border-[#D4AF37]/40 transition-all placeholder:text-zinc-600"
+                    className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[16px] text-white outline-none focus:border-gold/40 transition-all placeholder:text-zinc-600"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSubmit();
                     }}
@@ -455,4 +454,4 @@ const SettingsServicos: FC = () => {
   );
 };
 
-export default SettingsServicos;
+export default memo(SettingsServicos);

@@ -2,12 +2,12 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, notificacoes push e integracao com WhatsApp.
 
-**Versao:** 3.27.1 | **Ultima atualizacao:** Julho 2026
+**Versao:** 3.35.0 | **Ultima atualizacao:** Agosto 2026
 
-> NOTA: Esta versao inclui Mensalista Reborn (CRUD de planos premium,
-> badges com status de expiracao, booking inteligente), Auto-cancel
-> com 2h de buffer (marca como cancelled, sem banner), e No-show
-> inteligente (notifica o barbeiro com WhatsApp DM ao inves de bloquear).
+> NOTA v3.33.0: **Multi-barbeiro removido** — o sistema opera com barbeiro unico (Tato).
+> Removidas: etapa de selecao de barbeiro no agendamento, filtro no dashboard,
+> pagina de Barbeiros nas configuracoes e a rota `/barber` (painel do funcionario).
+> Elberth (suporte) e Tato (dono) continuam com acesso administrativo.
 
 ---
 
@@ -29,6 +29,7 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 14. [Testes](#14-testes)
 15. [Troubleshooting](#15-troubleshooting)
 16. [Notas de Negocio](#16-notas-de-negocio)
+17. [Auditoria v3.31.0](#auditoria-v3310)
 17. [Notificacoes Push (Web Push)](#17-notificacoes-push-web-push)
 18. [Instalação PWA (Smart Install)](#18-instalacao-pwa-smart-install)
 19. [Sistema de Mensalista](#19-sistema-de-mensalista)
@@ -57,6 +58,9 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 - Placeholder de perfil generico (sem foto fixa do Tato)
 - Acessibilidade: focus-visible, contraste aprimorado, skip-link
 - Estado gerenciado com hooks + Context API (leve e sem dependências)
+- **Login opcional do cliente** — Dashboard com historico, stats, cancelamento e link magico de gerenciamento (sem codigo falso)
+- **Assinatura simplificada via PIX** — R$50/mes sem gateway de pagamento
+- **Badge Aberto/Fechado** no Hero em tempo real
 - Error reporting com Sentry (captura automatica de erros)
 - Coverage minimo no CI (qualidade garantida)
 - Projeto universal: template pronto para qualquer barbearia
@@ -77,6 +81,7 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 | Backend/Banco | Supabase (PostgreSQL) | ^2.108 |
 | Error Reporting | Sentry | ^1.x |
 | Hospedagem | Vercel | Gratis |
+| Pagamentos | PIX manual (sem gateway) | — |
 | Testes | Vitest + Testing Library + Playwright | Vitest 4.x |
 | CI/CD | GitHub Actions | Gratis |
 
@@ -284,6 +289,7 @@ O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto v
 | `/admin/reset-password` | Redefinicao de senha |
 
 ### Funcionalidades do Admin
+> **Barbeiro unico (v3.33.0):** Sem selecao de barbeiro no agendamento, sem filtro por barbeiro e sem painel `/barber`. Elberth (suporte) e Tato (dono) compartilham o mesmo painel `/admin`.
 - **Dashboard do dia:** Proximo cliente, lucro do dia, filtros por ocupados/livres/bloqueados
 - **Agenda da semana:** Navegacao por 6 dias, bloqueio/desbloqueio de dia inteiro
 - **Agendamento manual:** Busca por WhatsApp/nome, selecao de servicos, data/hora
@@ -302,7 +308,6 @@ O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto v
 - **Galeria:** Upload, delete, reordenacao e multi-select de fotos do portfolio (max 8 fotos)
 - **Horarios:** Configuracao de dias e horarios de funcionamento + **horario de almoço recorrente**
 - **Servicos:** Gerenciamento de servicos e precos
-- **Barbeiros:** Gerenciamento de barbeiros
 - **Mensalista:** Planos, servicos inclusos, duracao, dias permitidos — CRUD premium com glassmorphism
 - **Controle de Faltas:** Configuracao de limite de faltas (agora sem bloqueio automatico — so notifica)
 - **Fidelidade:** Configuracao de meta de visitas e servico premio
@@ -318,19 +323,20 @@ Schema completo: `supabase/migrations/` (migrations consolidadas)
 
 ### Migrations
 
-O projeto usa 9 migrations:
+O projeto usa **5 migrations consolidadas** (fundidas a partir de 9+ arquivos originais):
 
 | Arquivo | Conteudo |
 |---------|----------|
-| `001_schema.sql` | 20+ tabelas + indexes + constraints + RLS enable |
-| `002_rls.sql` | Todas as politicas RLS + is_admin() + storage |
-| `003_functions.sql` | 30+ funcoes RPC (versoes finais) |
-| `004_triggers.sql` | Triggers de notificacao + realtime |
-| `005_seed_cron.sql` | Dados iniciais + 6 cron jobs (seed e cron unificados) |
-| `006_multi_barber.sql` | Multi-barber (barbers, barber_settings, RPCs, triggers atualizados) |
-| `007_mensalista_reborn.sql` | Tabela mensalista_plans, RPCs, RLS, cron de notificacao |
-| `008_auto_complete_2h_buffer.sql` | Auto-cancel com 2h de buffer (cancelled ao inves de completed) |
-| `009_remove_no_show_block.sql` | Remove bloqueio automatico de clientes (so notifica) |
+| `001_schema_rls.sql` | Schema (18 tabelas) + extensões + RLS + is_admin() + storage |
+| `002_functions_triggers.sql` | 37 funcoes RPC + triggers de notificacao/realtime + seeds + cron |
+| `003_features_fixes.sql` | barbers, mensalista, barber_settings, RPCs, fixes e ajustes |
+| `004_subscriptions_pix.sql` | Assinatura PIX (subscriptions, payment_logs, payment_blocked_users, check_login_allowed) |
+| `005_performance_auditoria.sql` | Indices de performance + view dashboard_daily_stats + auditoria v3.31.0 |
+| `006_rls_estricto.sql` | **Seguranca (auditoria 08/2026):** RLS estrito em clients/bookings + RPCs publicas seguras (`cadastrar_cliente_publico`, `get_client_dashboard`) |
+
+> **Nota:** Para rodar tudo de uma vez, cole `scripts/_RODAR_NO_SQL_EDITOR.sql` no SQL Editor (contém as 5 migrations concatenadas em ordem).
+
+> **Nota (v3.33.0):** A tabela `barbers` permanece (o barbeiro unico Tato), mas a funcionalidade de multi-barbeiro (selecao, filtro, pagina de gerenciamento e rota `/barber`) foi removida do aplicativo.
 
 ### Tabelas
 
@@ -543,7 +549,7 @@ npm install
 ### Opção B: Manual
 1. Crie um projeto no [supabase.com](https://supabase.com)
 2. Acesse o SQL Editor
-3. Execute as migrations em ordem: `001_schema.sql` → `002_rls.sql` → `003_functions.sql` → `004_triggers.sql` → `005_seed_cron.sql` → `006_multi_barber.sql` no SQL Editor
+3. Execute as migrations em ordem: `001_schema_rls.sql` → `002_functions_triggers.sql` → `003_features_fixes.sql` → `004_subscriptions_pix.sql` → `005_performance_auditoria.sql` → `006_rls_estricto.sql` (ou cole `scripts/_RODAR_NO_SQL_EDITOR.sql` de uma vez)
 4. Acesse Authentication > Users e crie o usuario admin
 
 ### Passo 3: Configurar variaveis de ambiente
@@ -763,13 +769,17 @@ Black Diamond/
 │   │   │       └── SettingsServicos.tsx
 │   │   ├── Booking/            # Componentes de agendamento
 │   │   │   ├── BookingPageView.tsx
+│   │   │   ├── BookingPreScreen.tsx       # Tela de entrada simplificada (v3.34: sem codigo)
+│   │   │   ├── BookingPreScreenMenu.tsx    # Menu de 2 opcoes (memoizado)
 │   │   │   ├── DataStep.tsx
 │   │   │   ├── DateTimeStep.tsx
 │   │   │   ├── ReviewStep.tsx
 │   │   │   ├── ServiceStep.tsx
 │   │   │   └── SuccessStep.tsx
 │   │   ├── About.tsx
-│   │   ├── ClientProfile.tsx
+│   │   ├── ClientProfile.tsx              # ~230 linhas (v3.34: sem fluxo de codigo)
+│   │   ├── ClientProfileDashboard.tsx      # Dashboard extraido (memoizado)
+│   │   ├── ClientProfileTypes.ts           # Tipos extraidos
 │   │   ├── ConnectionStatusBanner.tsx
 │   │   ├── ErrorBoundary.tsx
 │   │   ├── Footer.tsx
@@ -877,12 +887,12 @@ Black Diamond/
 ├── supabase/
 │   ├── seeds/                  # Dados iniciais (depoimentos)
 │   ├── migrations/             # Migrations consolidadas (6 arquivos)
-│   │   ├── 001_schema.sql     # Tabelas + indexes + constraints
-│   │   ├── 002_rls.sql        # Politicas RLS + storage
-│   │   ├── 003_functions.sql  # Funcoes RPC (30+)
-│   │   ├── 004_triggers.sql   # Triggers + realtime
-│   │   ├── 005_seed_cron.sql  # Dados iniciais + cron jobs
-│   │   └── 006_multi_barber.sql # Multi-barber
+│   │   ├── 001_schema_rls.sql       # Schema + RLS + storage
+│   │   ├── 002_functions_triggers.sql # Funcoes RPC + triggers + seed + cron
+│   │   ├── 003_features_fixes.sql    # Features (barbers, mensalista) + fixes
+│   │   ├── 004_subscriptions_pix.sql # Assinatura PIX + bloqueio
+│   │   ├── 005_performance_auditoria.sql # Indices + auditoria
+│   │   └── 006_rls_estricto.sql       # Seguranca: RLS estrito + RPCs seguras
 │   └── functions/
 │       ├── send-push/          # Edge function de notificacao push
 │       └── sync-google-reviews/ # Edge function de sincronizacao de reviews
@@ -1043,7 +1053,130 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 
 ---
 
-## 16. Notas de Negocio
+## 16. Sistema de Assinatura (PIX Simplificado)
+
+### Visao Geral
+O Black Diamond usa um sistema de assinatura simplificado via PIX, sem gateway de pagamento.
+O barbeiro paga R$50/mes para usar o painel administrativo.
+
+### Fluxo Completo
+
+```
+📅 Dia 1-30 (trial) → Barbeiro usa o sistema de graca
+📅 Dia 30/31      → Sistema BLOQUEIA o admin
+                    (site publico continua funcionando)
+💳 Tela bloqueio  → Mostra chave PIX + QR Code
+💰 Barbeiro paga  → R$50 via PIX para chave do dono
+📧 Dono recebe    → Aviso de pagamento (email/WhatsApp)
+🔓 Dono libera    → Configuracoes > Assinaturas > "Confirmar Pgto"
+✅ Sistema ativo  → Liberado ate o proximo dia 30/31
+```
+
+### Como funciona
+
+**Para o barbeiro:**
+- Ao acessar o admin, o `SubscriptionGuard` verifica se a assinatura esta ativa
+- Se vencida, mostra tela de bloqueio com chave PIX, valor e instrucoes
+- A pagina `/admin/assinatura` exibe os dados de pagamento
+
+**Para o dono (voce):**
+- Acesse **Configuracoes > Assinaturas** (so aparece pro seu email)
+- Veja a lista de barbeiros com status:
+  - 🟢 Ativo — ate quando
+  - 🔴 Bloqueado — venceu em quando
+- Clique em **"Confirmar Pgto"** para liberar o barbeiro ate o fim do mes seguinte
+- Configure a chave PIX diretamente na pagina
+
+### Configuracao no Banco
+
+- Tabela `subscriptions` — subscriptions dos barbeiros (status, current_period_end, grace_period_end)
+- Tabela `payment_logs` — Historico de pagamentos
+- Setting `owner_pix_key` — Chave PIX configurada pelo dono
+- RPC `check_subscription_status` — Verifica status da subscription (is_active, is_blocked, dias_restantes)
+- RPC `update_subscription_paid` — Atualiza subscription como paga (estende current_period_end)
+
+### Comandos Uteis
+
+```sql
+-- Ver subscription de todos os barbeiros
+SELECT b.name, s.status, s.current_period_end, s.grace_period_end
+FROM barbers b
+LEFT JOIN subscriptions s ON s.barber_id = b.id;
+
+-- Ver historico de pagamentos
+SELECT * FROM payment_logs ORDER BY paid_at DESC;
+
+-- Liberar manualmente pelo SQL (emergencia)
+UPDATE subscriptions
+SET status = 'active',
+    current_period_start = CURRENT_DATE,
+    current_period_end = (DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month - 1 day')::DATE
+WHERE barber_id = 'UUID_DO_BARBEIRO';
+```
+
+---
+
+## 17. Login Opcional do Cliente
+
+### Porta Unica (v3.35) — acesso universal
+Cliente e admin entram pela **mesma tela** `/entrar`, com um único campo inteligente:
+- **Celular** → entra como CLIENTE no dashboard (sem senha)
+- **E-mail** → revela a senha → entra como ADMINISTRADOR
+- A rota legada `/admin/login` abre a mesma tela já em modo admin (AuthGuard e deep-links intactos)
+
+> 🔒 **Seguranca:** o painel admin exige sempre e-mail + senha (Supabase Auth).
+> Celular nunca da acesso administrativo.
+
+### Visao Geral (cliente)
+O cliente acessa seus agendamentos **sem senha, sem email e sem codigo falso**.
+Basta digitar o telefone e entrar direto no dashboard (v3.34).
+
+### Fluxo
+
+```
+/agendar/entrada (menu simplificado)
+
+▸ "Agendar agora" → vai direto pro wizard (sem cadastro obrigatorio)
+▸ "Meus agendamentos" → /cliente
+
+/cliente
+
+▸ Digita o telefone
+  → Entra DIRETO no dashboard (sem etapa de codigo)
+  → Sessao salva por 7 dias no dispositivo
+
+▸ Dashboard: "Ola, [Nome]!"
+  📊 Stats: visitas, gasto total, valor pendente
+  📅 Seus agendamentos (cards premium)
+  ✓ Cancelar agendamento (com confirmacao)
+  ➕ Novo agendamento
+  🚪 Sair (limpa sessao)
+
+Depois de agendar (SuccessStep)
+
+▸ Card "Seu link de gerenciamento" com botao Copiar
+  → /gerenciar?token=... abre cancelar/reagendar SEM login
+  → Mesma infra de booking_tokens que ja existia no /cancelar
+▸ Botao "Meus agendamentos" → /cliente (sessao ja salva)
+```
+
+### Seguranca
+- Sessao salva no localStorage por 7 dias (helper centralizado `src/lib/clientSession.ts`)
+- Link de gerenciamento com token unico (32 hex) expira em 30 dias — regenerado a cada agendamento
+- Nao requer SMS, email ou API externa — custo zero
+- Acesso restrito aos agendamentos associados ao telefone informado
+
+### Rotas
+- `/entrar` — Porta Unica (campo inteligente: celular → cliente, e-mail → admin)
+- `/cliente` — Dashboard do cliente (telefone → dashboard)
+- `/admin/login` — Porta Unica em modo admin (rota legada preservada)
+- `/gerenciar?token=xxx` — Link magico de gerenciamento (redirect pra `/cancelar`)
+
+> **Historico (v3.34):** Removido o "codigo de acesso" que era gerado e exibido na propria tela — era segurança teatral (qualquer um com o celular digitava o codigo que acabou de ver). O fluxo duplicado em BookingPreScreen e ClientProfile (~250 linhas) tambem foi eliminado.
+
+---
+
+## 18. Notas de Negocio
 
 ### Custo de operacao
 - Hospedagem (Vercel): R$ 0,00
@@ -1669,5 +1802,89 @@ Visualizacao completa do faturamento com 3 modos: diario, semanal e comparativo 
 - Sem comparacao entre periodos customizados
 
 ---
+
+## Refatoração v3.32.0
+
+Refatoração de componentes monolíticos para melhor performance e manutenibilidade.
+
+### Splits realizados
+
+| Componente | Antes | Depois | Economia |
+|-----------|-------|--------|----------|
+| `BookingPreScreen.tsx` | 831 linhas | 373 + 167 (2 arquivos) | **-35%** |
+| `ClientProfile.tsx` | 935 linhas | 313 + 341 + 26 (3 arquivos) | **-27%** |
+
+### memo() adicionado
+
+| Componente | Linhas | Status |
+|-----------|-------|--------|
+| `ClientPanel.tsx` | 755 | ✅ `memo()` adicionado |
+| `AdminWeekly.tsx` | 497 | ✅ `memo()` adicionado |
+| `BarberDashboard.tsx` | 523 | ✅ `memo()` adicionado |
+| `SettingsServicos.tsx` | 459 | ✅ `memo()` adicionado |
+| `SettingsHorarios.tsx` | 501 | ✅ Já tinha `memo()` |
+
+**Economia total:** ~1.000 linhas removidas do bundle principal.
+
+### React import fix
+- `React.forwardRef` / `React.ReactNode` / `React.ChangeEvent` / `React.FormEvent` substituídos por named imports (`forwardRef`, `ReactNode`, `ChangeEvent`, `FormEvent`)
+- Elimina `ReferenceError: React is not defined` nos testes
+
+### Resultados
+
+| Check | Status |
+|-------|--------|
+| TypeScript | 0 erros ✅ |
+| Testes | 1205 passando (114 arquivos) ✅ |
+| Build | 2.33s ✅ |
+
+## Auditoria v3.31.0
+
+Auditoria completa do projeto realizada em julho/2026 identificou e corrigiu os seguintes pontos:
+
+### Gargalos de performance corrigidos
+
+| ID | Problema | Correcao |
+|----|----------|----------|
+| G1 | `Date.now()` em render puro (BookingPreScreen) | Movido para `useEffect` + `setInterval` com cleanup |
+| G2 | Cache do localStorage instavel (useServices, useBookings) | Memoizado com `useMemo([])` / `useMemo([date])` |
+| G3 | Vendor chunks mal segmentados | Manual chunks explicitos para `@tanstack/react-query` e `lucide` |
+| G5 | ClientPanel monolitico no bundle de AdminClients (62KB) | Lazy load via `React.lazy()` — reduziu para 40KB (-35%) |
+
+### Warnings React Hooks corrigidos
+
+| Hook | Warning | Correcao |
+|------|---------|----------|
+| `useNotifications.ts:81` | `notifications` muda a cada render | `useMemo(() => query.data ?? [], [query.data])` |
+| `useProfileStats.ts:144-145` | `bookings`/`services` instaveis | `useMemo` dedicado |
+| `useGallery.ts:118` | `images` faltando em deps | Adicionado |
+| `BookingWizardContext.tsx:204` | `selectedBarber?.user_id` faltando | Adicionado |
+| `useConnectionStatus.ts:76` | `retryTimerRef.current` no cleanup | Capturado no inicio do effect |
+| `useNotificationPrefs.ts:48` | setState in effect (fetch mount) | eslint-disable com comentario |
+| `useReschedule.ts:30` | setState in effect (loading) | eslint-disable com comentario |
+
+### Codigo morto removido
+
+- **Edge Functions Asaas** (358 linhas): `create-asaas-payment/`, `asaas-webhook/`
+- **`createAsaasPayment()`** em `src/lib/api/subscriptions.ts`
+- **`PaymentResult` interface** (uso Asaas)
+- **`generatePayment`/`paymentResult`/`paymentError`** em `useSubscription.ts`
+- Componentes `GoogleReviewBadge.tsx`, `ReviewRequestModal.tsx`
+- `.eslintrc.cjs` (substituido por `eslint.config.js`)
+- Arquivos lixo: `vite.log`, `nul`, `%TEMP%gold_files.txt`
+
+### Migrations adicionadas
+
+- **`008_performance_indexes.sql`** — 9 indices + view `dashboard_daily_stats` + funcao `get_dashboard_data(uuid, date)` para agregar multiplas queries do AdminDashboard em uma unica chamada RPC.
+
+### Resultados
+
+| Check | Antes | Depois |
+|-------|-------|--------|
+| ESLint | 13 erros, 20 warnings | 0 erros, 0 warnings |
+| TypeScript | 0 erros | 0 erros |
+| Tests | 1205 passed, 5 Unhandled Rejection | 1205 passed, 0 errors |
+| Bundle AdminClients | 62KB | 40KB (-35%) |
+| Build time | 2.55s | 2.19s |
 
 *Documento atualizado em Julho 2026. Versao do sistema: 3.22.0*

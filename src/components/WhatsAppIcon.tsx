@@ -1,12 +1,14 @@
 interface WhatsAppIconProps {
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export function WhatsAppIcon({ className = 'w-4 h-4' }: WhatsAppIconProps) {
+export function WhatsAppIcon({ className = 'w-4 h-4', style }: WhatsAppIconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
       className={className}
+      style={style}
       fill="currentColor"
       aria-hidden="true"
       focusable="false"

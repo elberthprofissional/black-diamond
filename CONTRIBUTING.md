@@ -143,7 +143,7 @@ src/
 
 - Nunca deletar migrations que já foram aplicadas em produção
 - Para novas features, criar migration com nome `YYYYMMDD_descricao.sql`
-- As migrations em `supabase/migrations/` são o schema oficial (001-006)
+- As migrations em `supabase/migrations/` são o schema oficial (5 arquivos consolidados: 001-005)
 
 ---
 
@@ -246,7 +246,7 @@ Copie `.env.example` para `.env`:
 
 Cada barbearia tem seu próprio projeto Supabase. Para setup:
 1. Crie o projeto em [supabase.com](https://supabase.com)
-2. Execute as migrations em ordem no SQL Editor: `001_schema.sql` → `002_rls.sql` → `003_functions.sql` → `004_triggers.sql` → `005_seed_cron.sql` → `006_multi_barber.sql`
+2. Execute as migrations em ordem no SQL Editor: `001_schema_rls.sql` → `002_functions_triggers.sql` → `003_features_fixes.sql` → `004_subscriptions_pix.sql` → `005_performance_auditoria.sql` (ou cole o `scripts/_RODAR_NO_SQL_EDITOR.sql` de uma vez)
 3. Crie o usuário admin em Authentication > Users
 4. Adicione na tabela `admin_users`
 
@@ -288,10 +288,26 @@ supabase functions deploy send-push
 
 Antes de abrir um PR, confira:
 
-- [ ] Código compila sem erros (`npx tsc --noEmit`)
-- [ ] Lint passa (`npm run lint`)
+- [ ] Código compila sem erros (`npx tsc -b`)
+- [ ] Lint passa **sem erros nem warnings** (`npm run lint`)
 - [ ] Testes passam (`npm run test:run`)
 - [ ] Coverage não caiu abaixo de 70%
 - [ ] Funcionalidade testada no browser (se mudou UI)
 - [ ] Commit message segue Conventional Commits
 - [ ] Branch criada a partir da `staging`
+- [ ] Husky pre-commit hook rodou (ESLint + Prettier em arquivos staged)
+
+## Quality Gates
+
+Os seguintes checks rodam **automaticamente** antes do commit (via Husky + lint-staged):
+
+- `eslint --fix` em arquivos `.ts`/`.tsx` modificados
+- `prettier --write` em arquivos `.ts`/`.tsx`/`.json`/`.css` modificados
+
+O pre-push hook (se configurado) roda `npm run audit` para verificar vulnerabilidades.
+
+**Estado atual (v3.31.0):**
+- 0 erros ESLint, 0 warnings
+- 1205 testes em 114 arquivos, 100% verde
+- TypeScript strict mode, 0 erros
+- Build: 2.19s com chunk splitting por vendor

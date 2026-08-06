@@ -18,3 +18,5 @@ export const STORAGE_SERVICES_CACHE = 'barber_services_cache';
 export const STORAGE_PWA_INSTALLED = 'barber_pwa_installed';
 /** Chave para cache offline de agendamentos do dia */
 export const STORAGE_BOOKINGS_CACHE = 'barber_bookings_cache';
+/** Chave para sessão do cliente no ClientProfile */
+export const STORAGE_CLIENT_SESSION = 'bd_client_session';

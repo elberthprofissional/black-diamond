@@ -40,10 +40,10 @@ const ToggleRow: FC<ToggleRowProps> = ({
     <div className="flex items-center gap-3.5 min-w-0">
       <div
         className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-          checked ? 'bg-[#D4AF37]/10' : 'bg-white/[0.03]'
+          checked ? 'bg-gold/10' : 'bg-white/[0.03]'
         }`}
       >
-        <Icon size={15} className={checked ? 'text-[#D4AF37]' : 'text-zinc-600'} />
+        <Icon size={15} className={checked ? 'text-gold' : 'text-zinc-600'} />
       </div>
       <div className="text-left">
         <span className="text-[14px] text-white block font-medium">{label}</span>
@@ -53,7 +53,7 @@ const ToggleRow: FC<ToggleRowProps> = ({
     <div
       className={`w-11 h-6 rounded-full transition-all relative shrink-0 ml-3 ${
         loading ? 'opacity-50' : ''
-      } ${checked ? 'bg-[#D4AF37]' : 'bg-zinc-700'}`}
+      } ${checked ? 'bg-gold' : 'bg-zinc-700'}`}
     >
       <div
         className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm ${

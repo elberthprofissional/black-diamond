@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type FC } from 'react';
+import { useState, useEffect, useRef, memo, type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useBarberSettings } from '../../../hooks/useBarberSettings';
@@ -37,17 +37,20 @@ const SettingsHorarios: FC = () => {
   const [applyOpen, setApplyOpen] = useState(false);
   const [lunchOpen, setLunchOpen] = useState(false);
 
-  // Sync local hours state when barberHours changes — derived during render
+  // Sync local hours state when barberHours changes — via useEffect
   const prevHoursRef = useRef<string | undefined>(undefined);
-  if (barberHours && barberHours !== prevHoursRef.current) {
-    prevHoursRef.current = barberHours;
-    try {
-      setHours({ ...DEFAULT_HOURS, ...JSON.parse(barberHours) });
-    } catch (e) {
-      logError(e);
-      setHours(DEFAULT_HOURS);
+  useEffect(() => {
+    if (barberHours && barberHours !== prevHoursRef.current) {
+      prevHoursRef.current = barberHours;
+      try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setHours({ ...DEFAULT_HOURS, ...JSON.parse(barberHours) });
+      } catch (e) {
+        logError(e);
+        setHours(DEFAULT_HOURS);
+      }
     }
-  }
+  }, [barberHours]);
 
   // Alerta se tentar sair da pagina com alteracoes nao salvas
   useEffect(() => {
@@ -177,7 +180,7 @@ const SettingsHorarios: FC = () => {
         key={day}
         className={`flex items-center py-4 border-b border-white/[0.04] transition-all ${
           !h?.enabled ? 'opacity-40' : ''
-        } ${isModified && !justSaved ? 'bg-[#D4AF37]/[0.03]' : ''} ${justSaved && isModified ? 'bg-emerald-500/[0.03]' : ''}`}
+        } ${isModified && !justSaved ? 'bg-gold/[0.03]' : ''} ${justSaved && isModified ? 'bg-emerald-500/[0.03]' : ''}`}
       >
         <button
           onClick={() => toggle(day)}
@@ -185,7 +188,7 @@ const SettingsHorarios: FC = () => {
           aria-checked={!!h?.enabled}
           aria-label={`${DAY_NAMES[day]} ${h?.enabled ? 'ativo' : 'inativo'}`}
           className={`relative w-9 h-5 rounded-full transition-all duration-300 shrink-0 cursor-pointer mr-4 ${
-            h?.enabled ? 'bg-[#D4AF37]' : 'bg-white/10'
+            h?.enabled ? 'bg-gold' : 'bg-white/10'
           }`}
         >
           <span
@@ -199,7 +202,7 @@ const SettingsHorarios: FC = () => {
         >
           {DAY_NAMES[day]}
           {isModified && !justSaved && (
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#D4AF37] ml-2 align-middle" />
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-gold ml-2 align-middle" />
           )}
           {justSaved && isModified && (
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 ml-2 align-middle" />
@@ -230,7 +233,7 @@ const SettingsHorarios: FC = () => {
           </div>
           <button
             onClick={() => setApplyOpen(true)}
-            className="text-[12px] text-zinc-500 hover:text-[#D4AF37] transition-colors cursor-pointer"
+            className="text-[12px] text-zinc-500 hover:text-gold transition-colors cursor-pointer"
           >
             Aplicar para todos
           </button>
@@ -245,7 +248,7 @@ const SettingsHorarios: FC = () => {
             <div>
               <span className="text-white text-[14px] font-medium block">Horário de almoço</span>
               {hours.lunch_break ? (
-                <p className="text-[#D4AF37] text-[12px] font-medium mt-0.5">
+                <p className="text-gold text-[12px] font-medium mt-0.5">
                   {hours.lunch_break.start} às {hours.lunch_break.end}
                 </p>
               ) : (
@@ -313,7 +316,7 @@ const SettingsHorarios: FC = () => {
                   />
                   <button
                     onClick={() => setLunchOpen(false)}
-                    className="w-full py-3 rounded-xl bg-[#D4AF37]/10 text-[#D4AF37] font-semibold text-[12px] cursor-pointer hover:bg-[#D4AF37]/20 transition-all"
+                    className="w-full py-3 rounded-xl bg-gold/10 text-gold font-semibold text-[12px] cursor-pointer hover:bg-gold/20 transition-all"
                   >
                     Concluir
                   </button>
@@ -350,7 +353,7 @@ const SettingsHorarios: FC = () => {
           </div>
           <button
             onClick={() => setApplyOpen(true)}
-            className="text-[12px] text-zinc-500 hover:text-[#D4AF37] transition-colors cursor-pointer"
+            className="text-[12px] text-zinc-500 hover:text-gold transition-colors cursor-pointer"
           >
             Aplicar para todos
           </button>
@@ -365,7 +368,7 @@ const SettingsHorarios: FC = () => {
             <div>
               <span className="text-white text-[14px] font-medium block">Horário de almoço</span>
               {hours.lunch_break ? (
-                <p className="text-[#D4AF37] text-[12px] font-medium mt-0.5">
+                <p className="text-gold text-[12px] font-medium mt-0.5">
                   {hours.lunch_break.start} às {hours.lunch_break.end}
                 </p>
               ) : (
@@ -434,7 +437,7 @@ const SettingsHorarios: FC = () => {
                     aria-checked={!!h?.enabled}
                     aria-label={`${DAY_NAMES[day]} ${h?.enabled ? 'ativo' : 'inativo'}`}
                     className={`relative w-9 h-5 rounded-full transition-all duration-300 shrink-0 cursor-pointer ${
-                      h?.enabled ? 'bg-[#D4AF37]' : 'bg-white/10'
+                      h?.enabled ? 'bg-gold' : 'bg-white/10'
                     }`}
                   >
                     <span
@@ -478,7 +481,7 @@ const SettingsHorarios: FC = () => {
             <button
               onClick={saveAll}
               disabled={saving || !hasChanges}
-              className={`w-full py-3.5 rounded-xl font-bold text-[12px] uppercase tracking-[0.15em] transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-2 ${hasChanges ? 'bg-[#D4AF37] text-black' : 'bg-white/[0.04] text-zinc-600'}`}
+              className={`w-full py-3.5 rounded-xl font-bold text-[12px] uppercase tracking-[0.15em] transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-2 ${hasChanges ? 'bg-gold text-black' : 'bg-white/[0.04] text-zinc-600'}`}
             >
               {saving && (
                 <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
@@ -495,4 +498,4 @@ const SettingsHorarios: FC = () => {
   );
 };
 
-export default SettingsHorarios;
+export default memo(SettingsHorarios);

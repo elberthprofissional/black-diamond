@@ -119,7 +119,7 @@ const SubscriptionPage: FC = () => {
               </div>
             </div>
             <div className="text-right">
-              <p className="text-lg font-black text-[#D4AF37]">R$ 50,00</p>
+              <p className="text-lg font-black text-gold">R$ 50,00</p>
               <p className="text-[10px] text-zinc-600 uppercase tracking-wider">/mês</p>
             </div>
           </div>
@@ -145,10 +145,10 @@ const SubscriptionPage: FC = () => {
               ) : ownerPixKey ? (
                 <div className="space-y-3">
                   {/* PIX Key Display */}
-                  <div className="bg-white/[0.02] border border-[#D4AF37]/20 rounded-xl p-4">
+                  <div className="bg-white/[0.02] border border-gold/20 rounded-xl p-4">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center">
-                        <CreditCard size={14} className="text-[#D4AF37]" />
+                      <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center">
+                        <CreditCard size={14} className="text-gold" />
                       </div>
                       <div>
                         <p className="text-[10px] text-zinc-500 uppercase tracking-wider">
@@ -158,12 +158,12 @@ const SubscriptionPage: FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center justify-between bg-black/40 border border-white/[0.04] rounded-lg px-4 py-3.5">
-                      <span className="text-[15px] font-mono font-bold text-[#D4AF37] tracking-wider">
+                      <span className="text-[15px] font-mono font-bold text-gold tracking-wider">
                         {ownerPixKey}
                       </span>
                       <button
                         onClick={() => handleCopyPix(ownerPixKey)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37]/20 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gold/10 text-gold hover:bg-gold/20 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
                       >
                         <Copy size={10} />
                         {copied ? 'Copiado!' : 'Copiar'}
@@ -258,7 +258,7 @@ const SubscriptionPage: FC = () => {
         {/* Info */}
         <div className="bg-white/[0.02] border border-white/[0.04] rounded-xl p-4">
           <div className="flex items-start gap-3">
-            <Crown size={16} className="text-[#D4AF37] mt-0.5 shrink-0" />
+            <Crown size={16} className="text-gold mt-0.5 shrink-0" />
             <div>
               <p className="text-xs font-bold text-white mb-1">Black Diamond Pro</p>
               <p className="text-[10px] text-zinc-500 leading-relaxed">

@@ -42,51 +42,28 @@ const renderWithRouter = (ui: React.ReactElement) => {
 };
 
 describe('Services', () => {
-  it('renderiza o titulo da secao', () => {
-    renderWithRouter(<Services onBookingClick={vi.fn()} />);
-    expect(screen.getByText('Tabela de Serviços')).toBeInTheDocument();
+  it('renderiza o titulo SERVIÇOS', () => {
+    renderWithRouter(<Services />);
+    expect(screen.getByText('SERVIÇOS')).toBeInTheDocument();
   });
 
   it('renderiza todos os servicos', () => {
-    renderWithRouter(<Services onBookingClick={vi.fn()} />);
+    renderWithRouter(<Services />);
     expect(screen.getByText('Corte Masculino')).toBeInTheDocument();
     expect(screen.getByText('Barba')).toBeInTheDocument();
     expect(screen.getByText('Corte + Barba')).toBeInTheDocument();
   });
 
   it('renderiza precos dos servicos', () => {
-    renderWithRouter(<Services onBookingClick={vi.fn()} />);
+    renderWithRouter(<Services />);
     expect(screen.getByText('R$ 45')).toBeInTheDocument();
     expect(screen.getByText('R$ 30')).toBeInTheDocument();
     expect(screen.getByText('R$ 65')).toBeInTheDocument();
   });
 
-  it('chama onBookingClick ao clicar em um servico', async () => {
-    const handleClick = vi.fn();
-    renderWithRouter(<Services onBookingClick={handleClick} />);
-
-    const serviceItem = screen.getByText('Corte Masculino');
-    serviceItem.click();
-
-    expect(handleClick).toHaveBeenCalledTimes(1);
-  });
-
-  it('tem role=list para acessibilidade', () => {
-    renderWithRouter(<Services onBookingClick={vi.fn()} />);
-    expect(screen.getByRole('list', { name: /lista de serviços/i })).toBeInTheDocument();
-  });
-
-  it('servicos tem role=listitem', () => {
-    renderWithRouter(<Services onBookingClick={vi.fn()} />);
-    const items = screen.getAllByRole('listitem');
-    expect(items.length).toBe(3);
-  });
-
-  it('servicos sao acessiveis por teclado', () => {
-    renderWithRouter(<Services onBookingClick={vi.fn()} />);
-    const items = screen.getAllByRole('listitem');
-    items.forEach((item) => {
-      expect(item).toHaveAttribute('tabindex', '0');
-    });
+  it('tem secao com id=servicos', () => {
+    renderWithRouter(<Services />);
+    const section = document.getElementById('servicos');
+    expect(section).toBeInTheDocument();
   });
 });

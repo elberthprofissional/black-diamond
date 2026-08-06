@@ -40,7 +40,7 @@ const BottomTabs: FC = () => {
               aria-label={tab.label}
               onClick={() => navigate(tab.path)}
               className={`flex items-center justify-center w-12 h-12 cursor-pointer transition-all ${
-                active ? 'text-[#D4AF37]' : 'text-zinc-600'
+                active ? 'text-gold' : 'text-zinc-600'
               }`}
             >
               <tab.icon size={22} strokeWidth={active ? 2.2 : 1.5} />

@@ -60,7 +60,7 @@ const UnblockModal: FC<UnblockModalProps> = ({ booking, onConfirm, onCancel }) =
               </button>
               <button
                 onClick={onConfirm}
-                className="flex-1 py-3.5 text-[10px] font-bold text-[#D4AF37] hover:bg-[#D4AF37]/5 transition-all cursor-pointer"
+                className="flex-1 py-3.5 text-[10px] font-bold text-gold hover:bg-gold/5 transition-all cursor-pointer"
               >
                 Confirmar
               </button>

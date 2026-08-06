@@ -1,5 +1,5 @@
 import { type FC } from 'react';
-import { LockIcon, UnlockIcon } from './PanelIcons';
+import { Lock, Unlock } from 'lucide-react';
 
 interface BlockedSlotViewProps {
   onUnblock: () => void;
@@ -18,8 +18,8 @@ const BlockedSlotView: FC<BlockedSlotViewProps> = ({ onUnblock, onClose }) => {
         {/* Mobile: minimal */}
         <div className="lg:hidden space-y-4">
           <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02]">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-[#D4AF37]/10">
-              <LockIcon />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-gold/10">
+              <Lock size={18} className="text-gold" />
             </div>
             <div>
               <h3 className="text-[14px] font-bold text-white">Horário Bloqueado</h3>
@@ -31,7 +31,7 @@ const BlockedSlotView: FC<BlockedSlotViewProps> = ({ onUnblock, onClose }) => {
               onUnblock();
               onClose();
             }}
-            className="w-full h-10 bg-[#D4AF37]/10 text-[#D4AF37] font-bold text-[10px] uppercase tracking-[0.2em] transition-all cursor-pointer rounded-xl"
+            className="w-full h-10 bg-gold/10 text-gold font-bold text-[10px] uppercase tracking-[0.2em] transition-all cursor-pointer rounded-xl"
           >
             Desbloquear
           </button>
@@ -40,7 +40,7 @@ const BlockedSlotView: FC<BlockedSlotViewProps> = ({ onUnblock, onClose }) => {
         <div className="hidden lg:block space-y-6">
           <div className="flex items-center gap-4 bg-white/[0.02] border border-white/[0.06] p-4 rounded-xl">
             <div className="w-12 h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl flex items-center justify-center shrink-0">
-              <LockIcon width={20} height={20} />
+              <Lock size={20} className="text-gold" />
             </div>
             <div>
               <h3 className="text-sm font-bold text-white">Horário Indisponível</h3>
@@ -54,9 +54,9 @@ const BlockedSlotView: FC<BlockedSlotViewProps> = ({ onUnblock, onClose }) => {
               onUnblock();
               onClose();
             }}
-            className="w-full h-11 bg-[#D4AF37]/10 border border-[#D4AF37]/20 hover:bg-[#D4AF37]/20 text-[#D4AF37] font-black text-[10px] uppercase tracking-[0.25em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
+            className="w-full h-11 bg-gold/10 border border-gold/20 hover:bg-gold/20 text-gold font-black text-[10px] uppercase tracking-[0.25em] transition-all cursor-pointer flex items-center justify-center gap-2 rounded-xl"
           >
-            <UnlockIcon />
+            <Unlock size={12} strokeWidth={2.5} />
             Desbloquear Horário
           </button>
         </div>

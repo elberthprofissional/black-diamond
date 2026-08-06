@@ -1,0 +1,8 @@
+[
+  {
+    "kind": "snapshot",
+    "stepIndex": 11,
+    "summary": "Step 11 'Expected the page to display a confirmation heading 'Agendamento confirmado' in the main content area.' failed. Error: TEST FAILURE\n\nThe service selection step is missing — no service cards or price labels were found, so a booking cannot be completed.\n\nObservations:\n- The form accepted phone and name and advanced to the 'Serviços' step, but no service items were visible on that step.\n- No elements with data-testid='service-card' were found in the DOM or page extract, and no price strings (e.g., 'R$') or date/time picker elements (data-testid='date-picker' or data-testid='time-slot') were present.\n- The visible interactive controls are limited to the step indicators, a back button, and the 'Continuar' button; without service-selection UI it is impossible to select a service, choose date/time, or complete a booking.\n\nResult: The booking flow is blocked by a missing/absent service-selection interface. The test cannot proceed and is therefore marked as failed.",
+    "path": "steps/11-snapshot.html"
+  }
+]

@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import {
   updateClient,
   updateClientNotes,
@@ -67,53 +68,190 @@ export function useClientPanel(
     setIsDeleteOpen(false);
   }, []);
 
+  // Mutation: salvar edição do cliente
+  const saveEditMutation = useMutation({
+    mutationFn: async ({
+      clientId,
+      name,
+      phone,
+    }: {
+      clientId: string;
+      name: string;
+      phone: string;
+    }) => {
+      await updateClient(clientId, { name, phone });
+      return { name, phone };
+    },
+    onSuccess: (result, { clientId }) => {
+      setSelectedClient((p) => (p ? { ...p, name: result.name, phone: result.phone } : p));
+      setClients((prev) =>
+        prev.map((c) => (c.id === clientId ? { ...c, name: result.name, phone: result.phone } : c))
+      );
+      setIsEditing(false);
+    },
+    onError: (error) => {
+      showError(getErrorMessage(error));
+    },
+    onSettled: () => {
+      setSaving(false);
+    },
+  });
+
+  // Mutation: salvar notas
+  const saveNotesMutation = useMutation({
+    mutationFn: async ({ clientId, notes }: { clientId: string; notes: string }) => {
+      await updateClientNotes(clientId, notes);
+      return notes;
+    },
+    onSuccess: (notes) => {
+      setSelectedClient((p) => (p ? { ...p, notes } : p));
+    },
+    onError: (error) => {
+      showError(getErrorMessage(error));
+    },
+    onSettled: () => {
+      setSavingNotes(false);
+    },
+  });
+
+  // Mutation: deletar cliente
+  const deleteMutation = useMutation({
+    mutationFn: async (clientId: string) => {
+      await deleteClient(clientId);
+      return clientId;
+    },
+    onSuccess: (clientId) => {
+      setClients((prev) => prev.filter((c) => c.id !== clientId));
+      closePanel();
+      showSuccess('Cliente excluído!');
+    },
+    onError: (error) => {
+      showError(getErrorMessage(error));
+    },
+    onSettled: () => {
+      setIsDeleting(false);
+      setIsDeleteOpen(false);
+    },
+  });
+
+  // Mutation: alternar mensalista
+  const toggleMensalistaMutation = useMutation({
+    mutationFn: async ({
+      clientId,
+      newValue,
+      planId,
+      expDate,
+    }: {
+      clientId: string;
+      newValue: boolean;
+      planId?: string;
+      expDate?: string | null;
+    }) => {
+      if (newValue) {
+        await toggleClientMensalista(clientId, true, planId, expDate);
+      } else {
+        await toggleClientMensalista(clientId, false);
+      }
+      return { newValue, planId, expDate };
+    },
+    onSuccess: (result, { clientId }) => {
+      const { newValue, planId, expDate } = result;
+      setSelectedClient((prev) =>
+        prev
+          ? {
+              ...prev,
+              is_mensalista: newValue,
+              mensalista_plan_id: newValue ? planId : undefined,
+              mensalista_expires_at: newValue ? expDate || undefined : undefined,
+            }
+          : prev
+      );
+      setClients((prev) =>
+        prev.map((c) =>
+          c.id === clientId
+            ? {
+                ...c,
+                is_mensalista: newValue,
+                mensalista_plan_id: newValue ? planId : undefined,
+                mensalista_expires_at: newValue ? expDate || undefined : undefined,
+              }
+            : c
+        )
+      );
+      if (newValue) {
+        setExpiresAt('');
+        showSuccess('Cliente agora é mensalista!');
+      } else {
+        showSuccess('Mensalidade removida.');
+      }
+    },
+    onError: (error) => {
+      showError(getErrorMessage(error));
+    },
+  });
+
+  // Mutation: renovar mensalidade
+  const renewMensalidadeMutation = useMutation({
+    mutationFn: async ({
+      clientId,
+      planId,
+      days,
+    }: {
+      clientId: string;
+      planId?: string;
+      days: number;
+    }) => {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      const newExpiry = getLocalDateString(d);
+      await toggleClientMensalista(clientId, true, planId, newExpiry);
+      return newExpiry;
+    },
+    onSuccess: (newExpiry, { clientId }) => {
+      setSelectedClient((prev) => (prev ? { ...prev, mensalista_expires_at: newExpiry } : prev));
+      setClients((prev) =>
+        prev.map((c) => (c.id === clientId ? { ...c, mensalista_expires_at: newExpiry } : c))
+      );
+      setExpiresAt(newExpiry);
+      showSuccess(`Mensalidade renovada até ${new Date(newExpiry).toLocaleDateString('pt-BR')}!`);
+    },
+    onError: (error) => {
+      showError(getErrorMessage(error));
+    },
+  });
+
   const handleSaveEdit = useCallback(async () => {
     if (!selectedClient || !editName.trim() || !editPhone.trim()) return;
     setSaving(true);
     try {
-      await updateClient(selectedClient.id, { name: editName.trim(), phone: editPhone.trim() });
-      setSelectedClient((p) => (p ? { ...p, name: editName.trim(), phone: editPhone.trim() } : p));
-      setClients((prev) =>
-        prev.map((c) =>
-          c.id === selectedClient.id ? { ...c, name: editName.trim(), phone: editPhone.trim() } : c
-        )
-      );
-      setIsEditing(false);
-    } catch (error) {
-      showError(getErrorMessage(error));
-    } finally {
-      setSaving(false);
+      await saveEditMutation.mutateAsync({
+        clientId: selectedClient.id,
+        name: editName.trim(),
+        phone: editPhone.trim(),
+      });
+    } catch {
+      // onError já mostra o toast
     }
-  }, [selectedClient, editName, editPhone, showError, setClients]);
+  }, [selectedClient, editName, editPhone, saveEditMutation]);
 
   const handleSaveNotes = useCallback(async () => {
     if (!selectedClient) return;
     setSavingNotes(true);
     try {
-      await updateClientNotes(selectedClient.id, notesText.trim());
-      setSelectedClient((p) => (p ? { ...p, notes: notesText.trim() } : p));
-    } catch (error) {
-      showError(getErrorMessage(error));
-    } finally {
-      setSavingNotes(false);
+      await saveNotesMutation.mutateAsync({
+        clientId: selectedClient.id,
+        notes: notesText.trim(),
+      });
+    } catch {
+      // onError já mostra o toast
     }
-  }, [selectedClient, notesText, showError]);
+  }, [selectedClient, notesText, saveNotesMutation]);
 
   const confirmDelete = useCallback(async () => {
     if (!selectedClient) return;
     setIsDeleting(true);
-    try {
-      await deleteClient(selectedClient.id);
-      setClients((prev) => prev.filter((c) => c.id !== selectedClient.id));
-      closePanel();
-      showSuccess('Cliente excluído!');
-    } catch (error) {
-      showError(getErrorMessage(error));
-    } finally {
-      setIsDeleting(false);
-      setIsDeleteOpen(false);
-    }
-  }, [selectedClient, closePanel, showSuccess, showError, setClients]);
+    await deleteMutation.mutateAsync(selectedClient.id);
+  }, [selectedClient, deleteMutation]);
 
   const [expiresAt, setExpiresAt] = useState<string>('');
 
@@ -122,68 +260,19 @@ export function useClientPanel(
       if (!selectedClient) return false;
       try {
         const newValue = !selectedClient.is_mensalista;
-        // If removing, just toggle off
-        if (!newValue) {
-          await toggleClientMensalista(selectedClient.id, false);
-          setSelectedClient((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  is_mensalista: false,
-                  mensalista_plan_id: undefined,
-                  mensalista_expires_at: undefined,
-                }
-              : prev
-          );
-          setClients((prev) =>
-            prev.map((c) =>
-              c.id === selectedClient.id
-                ? {
-                    ...c,
-                    is_mensalista: false,
-                    mensalista_plan_id: undefined,
-                    mensalista_expires_at: undefined,
-                  }
-                : c
-            )
-          );
-          showSuccess('Mensalidade removida.');
-          return true;
-        }
-        // If activating, use provided planId and expiryDate
-        const expDate = expiryDate || expiresAt || null;
-        await toggleClientMensalista(selectedClient.id, true, planId, expDate);
-        setSelectedClient((prev) =>
-          prev
-            ? {
-                ...prev,
-                is_mensalista: true,
-                mensalista_plan_id: planId || undefined,
-                mensalista_expires_at: expDate || undefined,
-              }
-            : prev
-        );
-        setClients((prev) =>
-          prev.map((c) =>
-            c.id === selectedClient.id
-              ? {
-                  ...c,
-                  is_mensalista: true,
-                  mensalista_plan_id: planId || undefined,
-                  mensalista_expires_at: expDate || undefined,
-                }
-              : c
-          )
-        );
-        setExpiresAt('');
-        showSuccess('Cliente agora é mensalista!');
+        const expDate = newValue ? expiryDate || expiresAt || null : null;
+        await toggleMensalistaMutation.mutateAsync({
+          clientId: selectedClient.id,
+          newValue,
+          planId: newValue ? planId : undefined,
+          expDate,
+        });
         return true;
-      } catch (error) {
-        showError(getErrorMessage(error));
+      } catch {
         return false;
       }
     },
-    [selectedClient, expiresAt, showSuccess, showError, setClients]
+    [selectedClient, expiresAt, toggleMensalistaMutation]
   );
 
   const openPanelWithExpiry = useCallback(
@@ -204,28 +293,16 @@ export function useClientPanel(
     async (days: number = 30) => {
       if (!selectedClient || !selectedClient.is_mensalista) return;
       try {
-        const d = new Date();
-        d.setDate(d.getDate() + days);
-        const newExpiry = getLocalDateString(d);
-        await toggleClientMensalista(
-          selectedClient.id,
-          true,
-          selectedClient.mensalista_plan_id,
-          newExpiry
-        );
-        setSelectedClient((prev) => (prev ? { ...prev, mensalista_expires_at: newExpiry } : prev));
-        setClients((prev) =>
-          prev.map((c) =>
-            c.id === selectedClient.id ? { ...c, mensalista_expires_at: newExpiry } : c
-          )
-        );
-        setExpiresAt(newExpiry);
-        showSuccess(`Mensalidade renovada até ${new Date(newExpiry).toLocaleDateString('pt-BR')}!`);
-      } catch (error) {
-        showError(getErrorMessage(error));
+        await renewMensalidadeMutation.mutateAsync({
+          clientId: selectedClient.id,
+          planId: selectedClient.mensalista_plan_id,
+          days,
+        });
+      } catch {
+        // onError já mostra o toast
       }
     },
-    [selectedClient, showSuccess, showError, setClients]
+    [selectedClient, renewMensalidadeMutation]
   );
 
   const panelTotal = useMemo(

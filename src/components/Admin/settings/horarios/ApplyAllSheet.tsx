@@ -170,7 +170,7 @@ const ApplyAllSheet: FC<{
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full bg-[#0f0f0f] rounded-t-3xl border-t border-white/[0.06] px-5 pt-4 pb-8"
+              className="relative w-full bg-[var(--color-dark-pure)] rounded-t-3xl border-t border-white/[0.06] px-5 pt-4 pb-8"
             >
               <div className="w-10 h-1 bg-white/10 rounded-full mx-auto mb-5" />
               {content}
@@ -192,7 +192,7 @@ const ApplyAllSheet: FC<{
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ duration: 0.2 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-sm bg-gradient-to-b from-[#141414] to-[#0f0f0f] border border-white/[0.06] rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] overflow-hidden"
+              className="relative w-full max-w-sm bg-gradient-to-b from-[#141414] to-[var(--color-dark-pure)] border border-white/[0.06] rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] overflow-hidden"
             >
               <div className="h-px bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
               <div className="p-6">{content}</div>

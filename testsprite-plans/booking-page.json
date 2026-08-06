@@ -1,0 +1,41 @@
+{
+  "projectId": "fd821351-8286-45a2-bd1d-df63cea0db27",
+  "type": "frontend",
+  "name": "Agendamento - dados e lista de serviços",
+  "description": "Visitante acessa a página de agendamento, preenche os dados e chega na seleção de serviços",
+  "priority": "p0",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Navigate to https://black-diamond-wheat.vercel.app/agendar"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the page shows the booking form with fields for phone/WhatsApp and name, and a 'Continuar' button"
+    },
+    {
+      "type": "action",
+      "description": "Fill '(11) 91234-5678' in the phone/WhatsApp input field"
+    },
+    {
+      "type": "action",
+      "description": "Fill 'Visitante Teste' in the name input field"
+    },
+    {
+      "type": "action",
+      "description": "Click the 'Continuar' button to proceed"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the next step shows a list of selectable services with names and prices"
+    },
+    {
+      "type": "action",
+      "description": "Select one of the available service cards"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the selected service becomes highlighted/marked and the price is reflected"
+    }
+  ]
+}

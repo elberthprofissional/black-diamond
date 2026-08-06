@@ -66,14 +66,24 @@ vi.mock('framer-motion', () => {
   };
 });
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import BookingPage from './BookingPage';
+import { BarberProvider } from '../contexts/BarberContext';
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+});
 
 describe('BookingPage', () => {
   it('renderiza o componente sem erros', () => {
     render(
-      <MemoryRouter>
-        <BookingPage />
-      </MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <BarberProvider>
+            <BookingPage />
+          </BarberProvider>
+        </MemoryRouter>
+      </QueryClientProvider>
     );
     // O provider renderiza sem erros — verifica que há elementos no DOM
     const texts = screen.getAllByText(/black|diamond/i);

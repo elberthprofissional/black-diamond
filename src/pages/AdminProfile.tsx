@@ -1,15 +1,5 @@
 import { type FC } from 'react';
-import {
-  User,
-  Bell,
-  Lock,
-  ChevronRight,
-  Settings,
-  LogOut,
-  Trash2,
-  HelpCircle,
-  Download,
-} from 'lucide-react';
+import { User, Bell, Lock, ChevronRight, Settings, LogOut, Trash2, Download } from 'lucide-react';
 import { useAdminProfileState } from '../hooks/useAdminProfileState';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 import { usePwaInstall } from '../hooks/usePwaInstall';
@@ -17,7 +7,6 @@ import AdminLayout from '../components/Admin/AdminLayout';
 import AdminProfileSettings from '../components/Admin/settings/AdminProfileSettings';
 import LogoutConfirmModal from '../components/Admin/profile/LogoutConfirmModal';
 import ResetDataModal from '../components/Admin/profile/ResetDataModal';
-import HelpModal from '../components/Admin/settings/HelpModal';
 import ToastNotification from '../components/Admin/shared/ToastNotification';
 
 const AdminProfile: FC = () => {
@@ -36,7 +25,6 @@ const AdminProfile: FC = () => {
         onConfirm={p.handleLogout}
         onCancel={() => p.setShowLogoutConfirm(false)}
       />
-      <HelpModal isOpen={p.showHelp} onClose={() => p.setShowHelp(false)} />
       <ResetDataModal
         open={p.showResetConfirm}
         step={p.resetStep}
@@ -78,7 +66,6 @@ const AdminProfile: FC = () => {
       <AdminProfileSettings
         settingsSection={p.settingsSection}
         setSettingsSection={p.setSettingsSection}
-        setShowHelp={p.setShowHelp}
       />
     </div>
   );
@@ -90,7 +77,6 @@ const AdminProfile: FC = () => {
         <AdminProfileSettings
           settingsSection={p.settingsSection}
           setSettingsSection={p.setSettingsSection}
-          setShowHelp={p.setShowHelp}
         />
       ) : (
         <div className="min-h-[calc(100vh-8rem)] flex flex-col">
@@ -165,9 +151,9 @@ const AdminProfile: FC = () => {
               className="w-full flex items-center gap-4 bg-[#111111] border border-white/5 rounded-xl px-5 py-4 transition-all cursor-pointer hover:bg-white/[0.02]"
             >
               <div
-                className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${p.isSubscribed ? 'bg-[#D4AF37]/10' : 'bg-white/[0.04]'}`}
+                className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${p.isSubscribed ? 'bg-gold/10' : 'bg-white/[0.04]'}`}
               >
-                <Bell size={16} className={p.isSubscribed ? 'text-[#D4AF37]' : 'text-zinc-400'} />
+                <Bell size={16} className={p.isSubscribed ? 'text-gold' : 'text-zinc-400'} />
               </div>
               <span className="flex-1 text-left text-[14px] font-medium text-white">
                 Notificações
@@ -188,8 +174,8 @@ const AdminProfile: FC = () => {
                 onClick={handleInstall}
                 className="w-full flex items-center gap-4 bg-[#111111] border border-white/5 rounded-xl px-5 py-4 transition-all cursor-pointer hover:bg-white/[0.02]"
               >
-                <div className="w-9 h-9 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
-                  <Download size={16} className="text-[#D4AF37]" />
+                <div className="w-9 h-9 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
+                  <Download size={16} className="text-gold" />
                 </div>
                 <span className="flex-1 text-left text-[14px] font-medium text-white">
                   Instalar aplicativo
@@ -217,17 +203,6 @@ const AdminProfile: FC = () => {
               <span className="flex-1 text-left text-[14px] font-medium text-white">
                 Todas as configurações
               </span>
-              <ChevronRight size={16} className="text-zinc-600" />
-            </button>
-
-            <button
-              onClick={() => p.setShowHelp(true)}
-              className="w-full flex items-center gap-4 bg-[#111111] border border-white/5 rounded-xl px-5 py-4 transition-all cursor-pointer hover:bg-white/[0.02]"
-            >
-              <div className="w-9 h-9 rounded-lg bg-white/[0.04] flex items-center justify-center shrink-0">
-                <HelpCircle size={16} className="text-zinc-400" />
-              </div>
-              <span className="flex-1 text-left text-[14px] font-medium text-white">Ajuda</span>
               <ChevronRight size={16} className="text-zinc-600" />
             </button>
           </div>

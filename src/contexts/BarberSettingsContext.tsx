@@ -109,6 +109,7 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
   }, [defaultPhone]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refetch();
   }, [refetch]);
 
@@ -140,6 +141,7 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
     return false;
   }, []);
 
+  // Updaters simples — seguem o mesmo padrão de upsert + setState
   const updateBarberPhoto = useCallback(async (photoUrl: string) => {
     const { error } = await supabase
       .from('settings')

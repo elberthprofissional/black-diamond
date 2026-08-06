@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, type FC } from 'react';
+import { useState, useEffect, useMemo, memo, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -16,6 +16,7 @@ import {
 import { formatPhone, formatPricePublic, getLocalDateString } from '../../../lib/utils';
 import { cleanPhoneForWhatsApp } from '../../../lib/whatsapp';
 import { getServices, type MilestoneProgress } from '../../../lib/api';
+import { fireAndForget } from '../../../lib/fire-and-forget';
 import type { ClientWithStats, BookingWithClient, MensalistaPlan, Service } from '../../../types';
 import HistoryView from './HistoryView';
 
@@ -83,9 +84,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
 
   useEffect(() => {
     if (showHistory && services.length === 0) {
-      getServices()
-        .then(setServices)
-        .catch(() => {});
+      fireAndForget(getServices().then(setServices), { context: 'ClientPanel/loadServices' });
     }
   }, [showHistory, services.length]);
 
@@ -212,7 +211,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-        className="relative w-full sm:w-[440px] max-h-[85vh] sm:max-h-none sm:h-full mt-auto sm:mt-0 bg-[#0E0E0E] border-t sm:border-t-0 sm:border-l border-[#D4AF37]/20 shadow-2xl overflow-y-auto scrollbar-hide flex flex-col text-left rounded-t-2xl sm:rounded-none"
+        className="relative w-full sm:w-[440px] max-h-[85vh] sm:max-h-none sm:h-full mt-auto sm:mt-0 bg-[#0E0E0E] border-t sm:border-t-0 sm:border-l border-gold/20 shadow-2xl overflow-y-auto scrollbar-hide flex flex-col text-left rounded-t-2xl sm:rounded-none"
       >
         {/* Mobile drag handle */}
         <div className="sm:hidden flex justify-center pt-3 pb-1">
@@ -228,7 +227,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
             >
               <X size={16} />
             </button>
-            <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.25em]">
+            <span className="text-[10px] font-black text-gold uppercase tracking-[0.25em]">
               Dados do Cliente
             </span>
           </div>
@@ -267,7 +266,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                         ? 'bg-red-500/10 border border-red-500/20 text-red-400'
                         : isExpiringSoon
                           ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
-                          : 'bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-[#D4AF37]'
+                          : 'bg-gold/10 border border-gold/20 text-gold'
                     }`}
                   >
                     {isExpired ? <AlertTriangle size={10} /> : <Crown size={10} />}
@@ -296,9 +295,9 @@ const ClientPanel: FC<ClientPanelProps> = ({
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                 Visitas
               </span>
-              <span className="flex items-center gap-1.5 text-sm font-black text-[#D4AF37]">
+              <span className="flex items-center gap-1.5 text-sm font-black text-gold">
                 {panelBookings.length} {panelBookings.length === 1 ? 'visita' : 'visitas'}
-                <ChevronRight size={14} className="text-[#D4AF37]/60" />
+                <ChevronRight size={14} className="text-gold/60" />
               </span>
             </button>
             <div className="flex justify-between items-center px-2">
@@ -350,7 +349,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                 }
                 navigate(`/admin/agendar?${params.toString()}`);
               }}
-              className="flex-1 h-10 bg-[#D4AF37] hover:bg-[#b8962e] text-black font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              className="flex-1 h-10 bg-gold hover:bg-[#b8962e] text-black font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Plus size={12} strokeWidth={3} />
               {panelBookings.length > 0 ? 'Reagendar' : 'Agendar'}
@@ -362,7 +361,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
             disabled={savingMensalista}
             className={`w-full h-10 border rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               client.is_mensalista
-                ? 'border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37]/20'
+                ? 'border-gold/30 bg-gold/10 text-gold hover:bg-gold/20'
                 : 'border-white/[0.06] bg-white/[0.02] text-zinc-400 hover:bg-white/[0.04] hover:text-white'
             }`}
           >
@@ -378,10 +377,10 @@ const ClientPanel: FC<ClientPanelProps> = ({
 
           {/* Loyalty Milestones */}
           {milestoneProgress && milestoneProgress.length > 0 && (
-            <div className="bg-[#121212] border border-[#D4AF37]/10 rounded-xl p-4 space-y-4">
+            <div className="bg-[#121212] border border-gold/10 rounded-xl p-4 space-y-4">
               <div className="flex items-center gap-2">
-                <Gift size={14} className="text-[#D4AF37]" />
-                <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest">
+                <Gift size={14} className="text-gold" />
+                <span className="text-[10px] font-bold text-gold uppercase tracking-widest">
                   Fidelidade — {milestoneProgress[0]?.progress || 0} visitas
                 </span>
               </div>
@@ -417,7 +416,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                               isClaimed
                                 ? 'bg-emerald-500 shadow-[0_0_6px_rgba(52,211,153,0.4)]'
                                 : i < Math.min(progress, needed)
-                                  ? 'bg-[#D4AF37] shadow-[0_0_6px_rgba(197,160,89,0.4)]'
+                                  ? 'bg-gold shadow-[0_0_6px_rgba(197,160,89,0.4)]'
                                   : 'bg-white/[0.06]'
                             }`}
                           />
@@ -455,7 +454,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                 >
                   <div className="px-5 pt-5 pb-3 space-y-4">
                     <div className="flex items-center gap-2">
-                      <Crown size={16} className="text-[#D4AF37]" />
+                      <Crown size={16} className="text-gold" />
                       <p className="text-[14px] font-semibold text-white">Ativar Mensalista</p>
                     </div>
                     <p className="text-[12px] text-zinc-500">
@@ -474,7 +473,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                             onClick={() => setSelectedPlanId(plan.id)}
                             className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all cursor-pointer ${
                               selectedPlanId === plan.id
-                                ? 'bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-[#D4AF37]'
+                                ? 'bg-gold/10 border border-gold/20 text-gold'
                                 : 'hover:bg-white/[0.03] border border-transparent text-zinc-400'
                             }`}
                           >
@@ -496,7 +495,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                         type="date"
                         value={mensalistaExpiryDate}
                         onChange={(e) => setMensalistaExpiryDate(e.target.value)}
-                        className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-[#D4AF37]/30 transition-all"
+                        className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-gold/30 transition-all"
                       />
                     </div>
                   </div>
@@ -510,7 +509,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                     <div className="w-px bg-white/[0.06]" />
                     <button
                       onClick={confirmMensalistaPlan}
-                      className="flex-1 py-3 text-[12px] font-semibold text-[#D4AF37] hover:text-[#b8962e] transition-colors cursor-pointer"
+                      className="flex-1 py-3 text-[12px] font-semibold text-gold hover:text-[#b8962e] transition-colors cursor-pointer"
                     >
                       Ativar
                     </button>
@@ -527,7 +526,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                   Válido até
                 </p>
                 <p
-                  className={`text-[14px] font-bold mt-0.5 ${new Date(expiresAt) < new Date() ? 'text-red-400' : 'text-[#D4AF37]'}`}
+                  className={`text-[14px] font-bold mt-0.5 ${new Date(expiresAt) < new Date() ? 'text-red-400' : 'text-gold'}`}
                 >
                   {new Date(expiresAt).toLocaleDateString('pt-BR')}
                 </p>
@@ -540,7 +539,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                 className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
                   new Date(expiresAt) < new Date()
                     ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
-                    : 'bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37]/20'
+                    : 'bg-gold/10 text-gold hover:bg-gold/20'
                 }`}
               >
                 Renovar
@@ -550,7 +549,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
 
           <div className="space-y-4 pt-2">
             <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.04]">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D4AF37]">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gold">
                 Anotações
               </h3>
               <button
@@ -562,7 +561,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
             </div>
 
             {notesText.trim() ? (
-              <div className="space-y-1.5 pl-3 border-l border-[#D4AF37]/20 my-2 text-left">
+              <div className="space-y-1.5 pl-3 border-l border-gold/20 my-2 text-left">
                 {notesText.split('\n').map((line, idx) => (
                   <p key={idx} className="text-xs text-zinc-300 leading-relaxed">
                     {line}
@@ -585,7 +584,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                     value={notesText}
                     onChange={(e) => onNotesChange(e.target.value)}
                     placeholder="Ex: Prefere degradê baixo..."
-                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-xs text-white placeholder:text-zinc-700 outline-none focus:border-[#D4AF37]/30 resize-none h-20"
+                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-xs text-white placeholder:text-zinc-700 outline-none focus:border-gold/30 resize-none h-20"
                     autoFocus
                   />
                   <button
@@ -593,7 +592,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                       await onSaveNotes();
                     }}
                     disabled={savingNotes}
-                    className="w-full py-2.5 bg-[#D4AF37] text-black text-[10px] font-bold uppercase tracking-wider rounded-xl cursor-pointer active:scale-95 transition-all"
+                    className="w-full py-2.5 bg-gold text-black text-[10px] font-bold uppercase tracking-wider rounded-xl cursor-pointer active:scale-95 transition-all"
                   >
                     {savingNotes ? '...' : 'Salvar'}
                   </button>
@@ -628,7 +627,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                   await onSaveNotes();
                 }}
                 disabled={savingNotes}
-                className="text-[#D4AF37] font-bold text-[16px] transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                className="text-gold font-bold text-[16px] transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                 aria-label="Salvar"
               >
                 {savingNotes ? '...' : <Check size={20} />}
@@ -676,7 +675,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                   <ArrowLeft size={20} />
                   <span className="text-sm font-bold text-white">Voltar</span>
                 </button>
-                <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.2em]">
+                <span className="text-[10px] font-black text-gold uppercase tracking-[0.2em]">
                   Histórico
                 </span>
                 <div className="w-16" />
@@ -718,7 +717,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
                     <X size={16} />
                     <span className="text-sm font-bold text-white">Fechar</span>
                   </button>
-                  <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.2em]">
+                  <span className="text-[10px] font-black text-gold uppercase tracking-[0.2em]">
                     Histórico de {client.name?.split(' ')[0]}
                   </span>
                   <div className="w-16" />
@@ -750,4 +749,4 @@ const ClientPanel: FC<ClientPanelProps> = ({
   );
 };
 
-export default ClientPanel;
+export default memo(ClientPanel);

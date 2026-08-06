@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Hero from '../components/Hero';
@@ -14,33 +14,18 @@ const renderWithRouter = (ui: React.ReactElement) => {
 
 describe('Hero', () => {
   it('renderiza o titulo BLACK DIAMOND', () => {
-    renderWithRouter(<Hero onBookingClick={vi.fn()} />);
+    renderWithRouter(<Hero />);
     expect(screen.getByText('Black')).toBeInTheDocument();
     expect(screen.getByText('Diamond')).toBeInTheDocument();
   });
 
   it('renderiza a descricao', () => {
-    renderWithRouter(<Hero onBookingClick={vi.fn()} />);
-    expect(screen.getByText(/Excelência em cada detalhe/)).toBeInTheDocument();
-  });
-
-  it('renderiza botao de agendamento', () => {
-    renderWithRouter(<Hero onBookingClick={vi.fn()} />);
-    expect(screen.getByText('Agende seu horário')).toBeInTheDocument();
-  });
-
-  it('chama onBookingClick ao clicar no botao', async () => {
-    const handleClick = vi.fn();
-    renderWithRouter(<Hero onBookingClick={handleClick} />);
-
-    const button = screen.getByText('Agende seu horário');
-    button.click();
-
-    expect(handleClick).toHaveBeenCalledTimes(1);
+    renderWithRouter(<Hero />);
+    expect(screen.getByText(/Corte na régua/)).toBeInTheDocument();
   });
 
   it('renderiza a imagem de fundo', () => {
-    renderWithRouter(<Hero onBookingClick={vi.fn()} />);
+    renderWithRouter(<Hero />);
     const img = screen.getByRole('img', { name: /black diamond/i });
     expect(img).toBeInTheDocument();
     expect(img).toHaveAttribute('src', '/assets/hero-bg.webp');

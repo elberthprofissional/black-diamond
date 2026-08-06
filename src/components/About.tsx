@@ -1,13 +1,93 @@
 import { useState, useEffect, useRef, type FC } from 'react';
 import { User } from 'lucide-react';
 import { useBarberSettings } from '../hooks/useBarberSettings';
+import { getBarbers } from '../lib/api/barbers';
+import type { Barber } from '../types';
+import { logError } from '../lib/logger';
 
+const FALLBACK_BIO =
+  'Acredito que a barbearia é um dos poucos lugares onde o homem pode relaxar de verdade. Por isso, busco oferecer um atendimento tranquilo, com atenção aos detalhes e respeito a cada cliente.';
+
+interface BarberCardProps {
+  barber: Barber;
+  index: number;
+}
+
+/** Card de um barbeiro: foto polaroid com efeito de fita adesiva + nome + bio + frase. */
+const BarberCard: FC<BarberCardProps> = ({ barber, index }) => {
+  const [photoError, setPhotoError] = useState(false);
+  const hasPhoto = !!barber.photo_url && !photoError;
+  const name = barber.name || 'Barbeiro';
+  const bio = barber.bio || FALLBACK_BIO;
+  const quote = barber.quote || '';
+
+  return (
+    <article
+      className={`bg-[#181818] border border-white/[0.08] p-6 sm:p-8 rounded-none shadow-2xl flex flex-col ${
+        index % 2 === 1 ? 'lg:translate-y-8' : ''
+      }`}
+    >
+      {/* Polaroid com efeito de fita */}
+      <div className="relative w-full max-w-[220px] mx-auto bg-white p-2 sm:p-3 pt-2 sm:pt-3 pb-5 sm:pb-8 shadow-2xl -rotate-2">
+        <div className="tape-effect" />
+        <div className="aspect-[4/5] bg-zinc-900 overflow-hidden relative border border-zinc-200 flex items-center justify-center">
+          {hasPhoto ? (
+            <img
+              src={barber.photo_url}
+              alt={`Foto de ${name}`}
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full object-cover object-top"
+              onError={() => setPhotoError(true)}
+            />
+          ) : (
+            <div className="w-full h-full bg-[#181818] flex items-center justify-center">
+              <User size={48} className="lucide-user text-zinc-500" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-8 text-center space-y-4">
+        <h3 className="text-3xl sm:text-4xl font-bold uppercase tracking-tight font-sans leading-none text-white">
+          {name}
+        </h3>
+        <p className="font-serif italic font-normal lowercase tracking-normal text-zinc-400 text-sm">
+          seu barbeiro
+        </p>
+        <p className="text-zinc-300 font-sans text-sm font-light leading-relaxed">{bio}</p>
+        {quote && (
+          <blockquote className="border-l-2 border-gold/40 pl-4 py-1 text-sm font-serif italic text-gold text-left">
+            &ldquo;{quote}&rdquo;
+          </blockquote>
+        )}
+      </div>
+    </article>
+  );
+};
+
+/** Seção Sobre Mim — exibe todos os barbeiros ativos (multi-barbeiro). */
 const About: FC = () => {
   const { barberPhoto, barberBio, barberName, barberQuote } = useBarberSettings();
+  const [barbers, setBarbers] = useState<Barber[]>([]);
   const [photoError, setPhotoError] = useState(false);
   const prevPhotoRef = useRef(barberPhoto);
 
-  // Reset photo error when photo URL changes
+  useEffect(() => {
+    let active = true;
+    getBarbers()
+      .then((data) => {
+        if (active) setBarbers(data || []);
+      })
+      .catch((e) => {
+        logError(e, 'About/getBarbers');
+        // Sem barbeiros via RPC → fallback para perfil único via settings
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   useEffect(() => {
     if (prevPhotoRef.current !== barberPhoto) {
       prevPhotoRef.current = barberPhoto;
@@ -15,92 +95,107 @@ const About: FC = () => {
     }
   }, [barberPhoto]);
 
-  const hasPhoto = !!barberPhoto && !photoError;
-  const displayBio =
-    barberBio ||
-    'Acredito que a barbearia é um dos poucos lugares onde o homem pode relaxar de verdade. Por isso, busco oferecer um atendimento tranquilo, com atenção aos detalhes e respeito a cada cliente.';
-  const displayQuote = barberQuote || 'Não sou o melhor, mas sou o melhor para você.';
+  // Barbeiros exibidos publicamente: ativos E com WhatsApp (exclui perfil de suporte/dev)
+  const displayBarbers = barbers.filter((b) => b.is_active && !!b.phone);
 
-  return (
-    <section
-      id="sobre"
-      className="py-24 md:py-64 bg-[#141414] overflow-hidden border-y border-white/[0.02]"
-    >
-      <div className="container mx-auto px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex flex-col lg:flex-row items-center gap-10 md:gap-24">
-            {/* Editorial Text */}
-            <div className="w-full lg:w-1/2 space-y-8 text-center lg:text-left order-2 lg:order-first">
-              <div className="space-y-4">
-                <h3 className="text-xs font-bebas text-[#D4AF37] tracking-[0.5em] uppercase">
-                  Sobre Mim
-                </h3>
-                <h2 className="text-5xl sm:text-6xl md:text-8xl font-bebas text-white leading-none uppercase tracking-widest">
-                  PRAZER, <br />
-                  <span className="font-serif italic font-light">{barberName || 'Barbeiro'}</span>
-                </h2>
-              </div>
+  // ── FALLBACK: perfil único via settings (sem barbeiros na tabela) ──
+  if (displayBarbers.length === 0) {
+    const hasPhoto = !!barberPhoto && !photoError;
+    const displayPhoto = hasPhoto ? barberPhoto : '/assets/tato-portrait.jpg';
+    const displayName = barberName || 'Barbeiro';
+    const displayBio = barberBio || FALLBACK_BIO;
+    const displayQuote = barberQuote;
 
-              {/* Barber Photo - Mobile */}
-              <div className="w-full lg:hidden relative">
-                {hasPhoto ? (
-                  <div className="relative aspect-[3/4] max-h-[350px] rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl mx-auto bg-[#1a1a1a]">
-                    <img
-                      src={barberPhoto}
-                      alt={`Foto de ${barberName || 'Barbeiro'}`}
-                      className="w-full h-full object-cover object-top"
-                      loading="lazy"
-                      onError={() => setPhotoError(true)}
-                    />
-                  </div>
-                ) : (
-                  <div className="relative aspect-[3/4] max-h-[350px] rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl mx-auto bg-[#151515] flex items-center justify-center">
-                    <div className="flex items-center justify-center">
-                      <div className="w-20 h-20 rounded-full bg-white/[0.02] flex items-center justify-center ring-1 ring-white/[0.06]">
-                        <User size={32} className="text-zinc-600" />
+    return (
+      <section
+        id="sobre"
+        className="py-24 md:py-32 bg-dark-elevated relative overflow-hidden text-white"
+      >
+        <div className="container mx-auto px-6 max-w-5xl relative z-10">
+          {/* Main Section Card */}
+          <div className="bg-[#181818] border border-white/[0.08] p-6 sm:p-8 md:p-14 rounded-none shadow-2xl relative">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-8 sm:gap-10 lg:gap-14 items-center">
+              {/* Barber Photo with Polaroid Frame & Tape Effect */}
+              <div className="sm:col-span-5 flex justify-center">
+                <div className="relative w-full max-w-[180px] sm:max-w-[260px] md:max-w-[320px] bg-white p-2 sm:p-3 pt-2 sm:pt-3 pb-5 sm:pb-8 shadow-2xl transform -rotate-2">
+                  <div className="tape-effect" />
+                  <div className="aspect-[4/5] bg-zinc-900 overflow-hidden relative border border-zinc-200 flex items-center justify-center">
+                    {hasPhoto ? (
+                      <img
+                        src={displayPhoto}
+                        alt={`Foto de ${displayName}`}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover object-top"
+                        onError={() => setPhotoError(true)}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-[#181818] flex items-center justify-center">
+                        <User size={48} className="lucide-user text-zinc-500" />
                       </div>
-                    </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
 
-              <div className="space-y-8 max-w-lg mx-auto lg:mx-0">
-                <p className="text-zinc-400 font-roboto font-light text-[16px] md:text-2xl leading-relaxed">
+              {/* Content Column */}
+              <div className="sm:col-span-7 flex flex-col items-start space-y-4 sm:space-y-6 text-left">
+                <div className="space-y-2">
+                  <span className="text-[11px] font-sans font-bold uppercase tracking-[0.25em] text-zinc-400">
+                    Sobre Mim
+                  </span>
+                  <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold uppercase tracking-tight font-sans leading-none">
+                    <span>{displayName}</span>, <br />
+                    <span className="font-serif italic font-normal lowercase tracking-normal text-zinc-300">
+                      seu barbeiro
+                    </span>
+                  </h2>
+                </div>
+
+                <p className="text-zinc-300 font-sans text-sm sm:text-base font-light leading-relaxed">
                   {displayBio}
                 </p>
 
-                <div className="pt-6 border-t border-white/[0.05]">
-                  <p className="text-base md:text-3xl font-serif italic text-[#D4AF37] leading-relaxed">
-                    "{displayQuote}"
-                  </p>
-                </div>
+                {displayQuote && (
+                  <blockquote className="border-l-2 border-gold/40 pl-4 py-1 text-sm font-serif italic text-gold">
+                    &ldquo;{displayQuote}&rdquo;
+                  </blockquote>
+                )}
               </div>
             </div>
-
-            {/* Barber Photo - Desktop */}
-            <div className="hidden lg:block w-full lg:w-[55%] relative lg:ml-[100px]">
-              {hasPhoto ? (
-                <div className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl bg-[#1a1a1a]">
-                  <img
-                    src={barberPhoto}
-                    alt="Barbeiro"
-                    className="w-full h-full object-cover object-top scale-110"
-                    loading="lazy"
-                    onError={() => setPhotoError(true)}
-                  />
-                </div>
-              ) : (
-                <div className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl bg-[#151515] flex items-center justify-center">
-                  <div className="flex items-center justify-center">
-                    <div className="w-28 h-28 rounded-full bg-white/[0.02] flex items-center justify-center ring-1 ring-white/[0.06]">
-                      <User size={48} className="text-zinc-600" />
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div className="absolute -bottom-8 -right-8 w-32 h-px bg-[#D4AF37]/30" />
-            </div>
           </div>
+        </div>
+      </section>
+    );
+  }
+
+  // ── MULTI-BARBEIRO: grid com todos os barbeiros ativos ──
+  return (
+    <section
+      id="sobre"
+      className="py-24 md:py-32 bg-dark-elevated relative overflow-hidden text-white"
+    >
+      <div className="container mx-auto px-6 max-w-6xl relative z-10">
+        <div className="text-center mb-12 md:mb-16 space-y-3">
+          <span className="text-[11px] font-sans font-bold uppercase tracking-[0.25em] text-zinc-400">
+            Sobre Nós
+          </span>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold uppercase tracking-tight font-sans leading-none">
+            Conheça nossa equipe
+          </h2>
+          <p className="text-zinc-400 font-sans text-sm sm:text-base font-light max-w-xl mx-auto">
+            Cada corte é feito com atenção aos detalhes, no seu ritmo e do seu jeito.
+          </p>
+        </div>
+
+        <div
+          className={`grid grid-cols-1 gap-8 md:gap-10 ${
+            displayBarbers.length > 1 ? 'md:grid-cols-2 lg:gap-12' : ''
+          }`}
+        >
+          {displayBarbers.map((barber, index) => (
+            <BarberCard key={barber.id} barber={barber} index={index} />
+          ))}
         </div>
       </div>
     </section>

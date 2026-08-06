@@ -4,6 +4,8 @@ import { getErrorMessage } from '../lib/utils';
 import { openWhatsApp, formatWaDate, formatWaTime, formatWaCurrency } from '../lib/whatsapp';
 import { useBarberSettings } from './useBarberSettings';
 import { useRateLimit } from './useRateLimit';
+import { createNotification } from '../lib/api/notifications';
+import { fireAndForget } from '../lib/fire-and-forget';
 import type { Service } from '../types';
 import { logError } from '../lib/logger';
 
@@ -24,6 +26,7 @@ interface PaymentParams {
   couponId?: string;
   discountAmount?: number;
   barberId?: string;
+  barberUserId?: string;
   barberPhone?: string;
 }
 
@@ -161,6 +164,7 @@ export function useBookingPayment(
         couponId,
         discountAmount,
         barberId,
+        barberUserId,
         barberPhone: barberPhoneParam,
       } = params;
 
@@ -238,6 +242,20 @@ export function useBookingPayment(
           }
         } catch (e) {
           logError(e);
+        }
+
+        // Notificação para o barbeiro
+        if (barberUserId) {
+          fireAndForget(
+            createNotification({
+              userId: barberUserId,
+              title: 'Novo Agendamento!',
+              body: `${userInfo.name.trim()} — ${formatWaDate(selectedDate)} às ${formatWaTime(selectedTime)}`,
+              tag: `booking-new-${Date.now()}`,
+              url: '/admin',
+            }),
+            { context: 'useBookingPayment/barberNotification' }
+          );
         }
 
         onComplete();

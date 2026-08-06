@@ -18,7 +18,7 @@
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/version-3.27.1-blue?style=flat-square" alt="Version"/>
+    <img src="https://img.shields.io/badge/version-3.33.0-blue?style=flat-square" alt="Version"/>
     <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"/>
     <img src="https://img.shields.io/badge/build-passing-brightgreen?style=flat-square" alt="Build"/>
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React"/>
@@ -45,7 +45,9 @@
 ### Público-alvo
 
 - **Clientes**: Agendam serviços online 24/7 pelo celular ou desktop
-- **Barbeiros/Admin**: Gerenciam agenda, clientes, serviços e financeiro
+- **Barbeiro/Admin**: Gerencia agenda, clientes, serviços e financeiro
+
+> 💈 **Barbeiro único** — O sistema opera com um único barbeiro (sem seleção de barbeiro no agendamento, sem filtro por barbeiro e sem painel de funcionário `/barber`).
 
 ---
 
@@ -82,8 +84,10 @@
 | **✂️ Galeria de Fotos** | Carrossel com preview em tela cheia |
 | **📍 Localização** | Mapa integrado com Google Maps |
 | **💬 WhatsApp** | Contato direto via botão flutuante |
-| **📋 Gerenciar Agendamento** | Cancelar/reagendar via token enviado por email |
-| **🏆 Programa de Fidelidade** | Cliente acumula visitas e ganha serviços gratuitos |
+| **📋 Gerenciar Agendamento** | Cancelar/reagendar via token ou telefone (rota unificada `/cancelar`) |
+| **🔗 Compartilhar** | Botao no Hero que copia o link da barbearia |
+| **🚪 Porta Única de Acesso** | Uma tela só (`/entrar`): celular entra como cliente, e-mail abre o painel admin |
+| **🏆 Programa de Fidelidade** | Cliente acumula visitas e ganha servicos gratuitos |
 
 ### 🔐 Área Administrativa
 
@@ -103,6 +107,9 @@
 | **🔔 Notificações Push** | Notificações in-app + push para novos agendamentos |
 | **💬 Lembretes WhatsApp** | Envio de lembretes com templates personalizáveis |
 | **📋 Audit Logs** | Registro de todas as ações administrativas |
+| **👤 Login Opcional do Cliente** | Dashboard com historico, stats e cancelamento — telefone direto + link magico de gerenciamento |
+| **🔒 Assinatura Simplificada (PIX)** | R$50/mes via PIX manual (sem integracao com gateway) |
+| **🔗 Compartilhar Link** | Botao no Hero que copia o link da barbearia para divulgar |
 
 ---
 
@@ -118,6 +125,9 @@ npm install
 
 # 2. Configurar variáveis de ambiente
 cp .env.example .env
+# Validate variables (optional)
+# Install dotenv-cli globally if not present: npm install -g dotenv-cli
+# Then run: npx dotenv -e .env -- npx dotenv-safe
 # Edite .env com suas credenciais do Supabase
 
 # 3. Rodar migrations do banco
@@ -220,13 +230,14 @@ Decisões de arquitetura documentadas em [`docs/adr/`](docs/adr/):
 | Mecanismo | Descrição |
 |-----------|-----------|
 | **Rate Limiting** | 3 agendamentos/min, 10 buscas/min, 5 consultas de telefone/min |
-| **Row Level Security (RLS)** | Proteção em todas as tabelas do banco |
+| **Row Level Security (RLS)** | Proteção em todas as 19 tabelas do banco |
 | **Preço Server-Side** | Calculado na function SQL, impossível manipular pelo client |
 | **Token Único** | Gerenciamento de agendamento via token de 30 dias |
-| **Audit Logs** | Registro de todas as ações administrativas |
+| **Audit Logs** | Estrutura preservada mas escrita desativada (v3.31.0) — ações críticas continuam em tabelas dedicadas |
 | **Cron Jobs** | Auto-complete de agendamentos, cleanup, relatório semanal |
 | **Content Security Policy** | Headers restritivos no Vercel |
 | **Auth Admin** | Login com email/senha via Supabase Auth |
+| **Bloqueio por Pagamento** | `check_login_allowed` RPC valida se email está em `payment_blocked_users` |
 
 ---
 
@@ -234,11 +245,16 @@ Decisões de arquitetura documentadas em [`docs/adr/`](docs/adr/):
 
 | Tipo | Framework | Status |
 |------|-----------|--------|
-| **Unitários** | Vitest | 1211 testes |
+| **Unitários** | Vitest | 1193 testes em 113 arquivos |
 | **Integração** | Vitest + Supabase mock | APIs |
 | **E2E** | Playwright | Fluxos críticos |
 | **Visual** | Playwright | Screenshots responsivos |
 | **Acessibilidade** | axe-core | Checklist |
+
+**Qualidade de código:**
+- ESLint: 0 erros, 0 warnings
+- TypeScript: 0 erros (strict mode)
+- Build: 2.19s com chunks separados por vendor
 
 ```bash
 # Rodar testes

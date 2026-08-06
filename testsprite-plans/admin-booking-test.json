@@ -1,0 +1,44 @@
+{
+  "projectId": "fd821351-8286-45a2-bd1d-df63cea0db27",
+  "type": "frontend",
+  "name": "Admin criar agendamento manual",
+  "description": "Admin logado cria um novo agendamento manual para um cliente",
+  "priority": "p0",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Navigate to https://black-diamond-wheat.vercel.app/admin/login"
+    },
+    {
+      "type": "action",
+      "description": "Login with email elberthmayan2007@gmail.com and password mayan123"
+    },
+    {
+      "type": "action",
+      "description": "Click 'Novo Agendamento' or 'Agendar' button from the dashboard or sidebar"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the booking form shows steps for client, service, date/time, and review"
+    },
+    { "type": "action", "description": "Type 'Teste Admin' in the client name field" },
+    { "type": "action", "description": "Type 11988888888 in the client phone field" },
+    { "type": "action", "description": "Click next to proceed to service selection" },
+    {
+      "type": "assertion",
+      "description": "Verify the service selection step shows at least one service"
+    },
+    { "type": "action", "description": "Select the first available service" },
+    { "type": "action", "description": "Click next to proceed to date/time selection" },
+    {
+      "type": "assertion",
+      "description": "Verify a date picker and available time slots are shown"
+    },
+    { "type": "action", "description": "Select an available date and time" },
+    { "type": "action", "description": "Click next or confirm to review the booking" },
+    {
+      "type": "assertion",
+      "description": "Verify the review step shows all booking details correctly"
+    }
+  ]
+}

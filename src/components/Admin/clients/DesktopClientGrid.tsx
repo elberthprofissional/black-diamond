@@ -25,7 +25,7 @@ const DesktopClientGrid: FC<DesktopClientGridProps> = ({
   onSelect,
 }) => {
   return (
-    <div className="hidden lg:grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 gap-3">
+    <div className="hidden sm:grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 gap-3">
       {clients.map((client) => {
         const initial = (client.name || '?').charAt(0).toUpperCase();
 
@@ -73,7 +73,7 @@ const DesktopClientGrid: FC<DesktopClientGridProps> = ({
                               ? 'bg-red-500/10 text-red-400'
                               : isExpiring
                                 ? 'bg-amber-500/10 text-amber-400'
-                                : 'bg-[#D4AF37]/10 text-[#D4AF37]'
+                                : 'bg-gold/10 text-gold'
                           }`}
                         >
                           {isExpired && <AlertTriangle size={8} />}
