@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode, type FC } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { supabase } from '../../lib/supabase';
 import { logError } from '../../lib/logger';
 
@@ -23,6 +23,15 @@ const AuthGuard: FC<AuthGuardProps> = ({ children }) => {
       }
     };
 
+    // Bloqueia não-admins e erros de verificação (fail-closed): desloga e
+    // redireciona. O signOut é essencial — sem ele, a tela de login veria a
+    // sessão ativa e devolveria o usuário ao /admin (loop de redirect).
+    const rejectAccess = async () => {
+      if (!active) return;
+      await supabase.auth.signOut().catch(() => {});
+      redirect();
+    };
+
     const checkAuth = async () => {
       try {
         const {
@@ -32,6 +41,17 @@ const AuthGuard: FC<AuthGuardProps> = ({ children }) => {
 
         if (!session) {
           redirect();
+          return;
+        }
+
+        // Valida que o usuário autenticado é realmente admin (admin_users).
+        // A RPC is_admin() é SECURITY DEFINER (migration 001) e ganhou
+        // GRANT EXECUTE explícito na migration 008.
+        const { data: isAdmin, error: adminError } = await supabase.rpc('is_admin');
+        if (!active) return;
+
+        if (adminError || !isAdmin) {
+          await rejectAccess();
           return;
         }
 
@@ -48,7 +68,7 @@ const AuthGuard: FC<AuthGuardProps> = ({ children }) => {
         unsubscribe = subscription.unsubscribe;
       } catch (e) {
         logError(e);
-        redirect();
+        await rejectAccess();
       }
     };
 

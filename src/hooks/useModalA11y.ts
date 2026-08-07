@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export function useModalA11y(isOpen: boolean, onClose: () => void) {
+export function useModalA11y(isOpen: boolean, onClose: () => void, initialFocusSelector?: string) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -52,9 +52,14 @@ export function useModalA11y(isOpen: boolean, onClose: () => void) {
     const timer = setTimeout(() => {
       const dialog = dialogRef.current;
       if (!dialog) return;
-      const first = dialog.querySelector<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
+      const target = initialFocusSelector
+        ? dialog.querySelector<HTMLElement>(initialFocusSelector)
+        : null;
+      const first =
+        target ??
+        dialog.querySelector<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
       first?.focus();
     }, 50);
 
@@ -63,7 +68,7 @@ export function useModalA11y(isOpen: boolean, onClose: () => void) {
       clearTimeout(timer);
       previousFocusRef.current?.focus();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, initialFocusSelector]);
 
   return { dialogRef };
 }

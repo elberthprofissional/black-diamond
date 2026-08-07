@@ -2,12 +2,14 @@
 
 Sistema completo de agendamento online para barbearias, com painel administrativo, notificacoes push e integracao com WhatsApp.
 
-**Versao:** 3.35.0 | **Ultima atualizacao:** Agosto 2026
+**Versao:** 3.36.0 | **Ultima atualizacao:** Agosto 2026
 
-> NOTA v3.33.0: **Multi-barbeiro removido** — o sistema opera com barbeiro unico (Tato).
-> Removidas: etapa de selecao de barbeiro no agendamento, filtro no dashboard,
-> pagina de Barbeiros nas configuracoes e a rota `/barber` (painel do funcionario).
-> Elberth (suporte) e Tato (dono) continuam com acesso administrativo.
+> NOTA v3.36.0: **Barbeiro unico por padrao, multi-barbeiro suportado.** A etapa de
+> selecao de barbeiro no agendamento publico e ocultada quando ha apenas 1 barbeiro
+> ativo (fluxo de 4 etapas). Com mais de um barbeiro, a selecao volta a aparecer e o
+> escopo RLS por barbeiro (migration 007) vale no banco: dono ve tudo, barbeiro comum
+> ve so os proprios agendamentos. Elberth (suporte) e Tato (dono) continuam com acesso
+> administrativo.
 
 ---
 
@@ -77,7 +79,7 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 | Estilo | Tailwind CSS | 4.x (via PostCSS) |
 | Animacoes | Framer Motion | 12.x |
 | Icones | Lucide React | 0.460 |
-| Roteamento | React Router DOM | 7.x |
+| Roteamento | React Router | 8.x |
 | Backend/Banco | Supabase (PostgreSQL) | ^2.108 |
 | Error Reporting | Sentry | ^1.x |
 | Hospedagem | Vercel | Gratis |
@@ -289,7 +291,7 @@ O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto v
 | `/admin/reset-password` | Redefinicao de senha |
 
 ### Funcionalidades do Admin
-> **Barbeiro unico (v3.33.0):** Sem selecao de barbeiro no agendamento, sem filtro por barbeiro e sem painel `/barber`. Elberth (suporte) e Tato (dono) compartilham o mesmo painel `/admin`.
+> **Barbeiro unico por padrao (v3.36.0):** A selecao de barbeiro so aparece com 2+ barbeiros ativos. Elberth (suporte) e Tato (dono) compartilham o mesmo painel `/admin`. Escopo RLS por barbeiro: migration `007`.
 - **Dashboard do dia:** Proximo cliente, lucro do dia, filtros por ocupados/livres/bloqueados
 - **Agenda da semana:** Navegacao por 6 dias, bloqueio/desbloqueio de dia inteiro
 - **Agendamento manual:** Busca por WhatsApp/nome, selecao de servicos, data/hora
@@ -323,7 +325,7 @@ Schema completo: `supabase/migrations/` (migrations consolidadas)
 
 ### Migrations
 
-O projeto usa **5 migrations consolidadas** (fundidas a partir de 9+ arquivos originais):
+O projeto usa **8 migrations consolidadas** (fundidas a partir de 9+ arquivos originais):
 
 | Arquivo | Conteudo |
 |---------|----------|
@@ -333,10 +335,12 @@ O projeto usa **5 migrations consolidadas** (fundidas a partir de 9+ arquivos or
 | `004_subscriptions_pix.sql` | Assinatura PIX (subscriptions, payment_logs, payment_blocked_users, check_login_allowed) |
 | `005_performance_auditoria.sql` | Indices de performance + view dashboard_daily_stats + auditoria v3.31.0 |
 | `006_rls_estricto.sql` | **Seguranca (auditoria 08/2026):** RLS estrito em clients/bookings + RPCs publicas seguras (`cadastrar_cliente_publico`, `get_client_dashboard`) |
+| `007_barber_scope_rls.sql` | **Multi-barbeiro (v3.36):** escopo RLS por barbeiro (`is_barber_owner`, `current_barber_id`) — dono ve tudo, barbeiro comum ve so os proprios bookings |
+| `008_secure_bookings_public_access.sql` | **Hardening (auditoria 08/2026):** remove a policy publica de `bookings` (vazava notas/precos/historico) + `GRANT EXECUTE` de `is_admin()` pro AuthGuard |
 
-> **Nota:** Para rodar tudo de uma vez, cole `scripts/_RODAR_NO_SQL_EDITOR.sql` no SQL Editor (contém as 5 migrations concatenadas em ordem).
+> **Nota:** Para rodar tudo de uma vez, cole `scripts/_RODAR_NO_SQL_EDITOR.sql` no SQL Editor (contém as 8 migrations concatenadas em ordem).
 
-> **Nota (v3.33.0):** A tabela `barbers` permanece (o barbeiro unico Tato), mas a funcionalidade de multi-barbeiro (selecao, filtro, pagina de gerenciamento e rota `/barber`) foi removida do aplicativo.
+> **Nota (v3.36.0):** A tabela `barbers` e a funcionalidade de multi-barbeiro foram mantidas. A etapa de selecao de barbeiro no fluxo publico so aparece com mais de um barbeiro ativo; o escopo por barbeiro no banco e garantido pela migration `007`. A rota `/barber` (painel do funcionario) continua fora do app.
 
 ### Tabelas
 
@@ -549,7 +553,7 @@ npm install
 ### Opção B: Manual
 1. Crie um projeto no [supabase.com](https://supabase.com)
 2. Acesse o SQL Editor
-3. Execute as migrations em ordem: `001_schema_rls.sql` → `002_functions_triggers.sql` → `003_features_fixes.sql` → `004_subscriptions_pix.sql` → `005_performance_auditoria.sql` → `006_rls_estricto.sql` (ou cole `scripts/_RODAR_NO_SQL_EDITOR.sql` de uma vez)
+3. Execute as migrations em ordem: `001_schema_rls.sql` → `002_functions_triggers.sql` → `003_features_fixes.sql` → `004_subscriptions_pix.sql` → `005_performance_auditoria.sql` → `006_rls_estricto.sql` → `007_barber_scope_rls.sql` → `008_secure_bookings_public_access.sql` (ou cole `scripts/_RODAR_NO_SQL_EDITOR.sql` de uma vez)
 4. Acesse Authentication > Users e crie o usuario admin
 
 ### Passo 3: Configurar variaveis de ambiente
@@ -886,13 +890,15 @@ Black Diamond/
 │   └── vite-env.d.ts           # Tipos globais (Window, Navigator)
 ├── supabase/
 │   ├── seeds/                  # Dados iniciais (depoimentos)
-│   ├── migrations/             # Migrations consolidadas (6 arquivos)
+│   ├── migrations/             # Migrations consolidadas (8 arquivos)
 │   │   ├── 001_schema_rls.sql       # Schema + RLS + storage
 │   │   ├── 002_functions_triggers.sql # Funcoes RPC + triggers + seed + cron
 │   │   ├── 003_features_fixes.sql    # Features (barbers, mensalista) + fixes
 │   │   ├── 004_subscriptions_pix.sql # Assinatura PIX + bloqueio
 │   │   ├── 005_performance_auditoria.sql # Indices + auditoria
-│   │   └── 006_rls_estricto.sql       # Seguranca: RLS estrito + RPCs seguras
+│   │   ├── 006_rls_estricto.sql       # Seguranca: RLS estrito + RPCs seguras
+│   │   ├── 007_barber_scope_rls.sql   # Multi-barbeiro: escopo RLS por barbeiro
+│   │   └── 008_secure_bookings_public_access.sql # Hardening: sem leitura publica de bookings + GRANT is_admin
 │   └── functions/
 │       ├── send-push/          # Edge function de notificacao push
 │       └── sync-google-reviews/ # Edge function de sincronizacao de reviews
@@ -953,7 +959,7 @@ vi.mock('framer-motion', () => ({
 }));
 
 // Mock do React Router
-vi.mock('react-router-dom', () => ({
+vi.mock('react-router', () => ({
   useNavigate: () => vi.fn(),
   useLocation: () => ({ pathname: '/', search: '' }),
 }));
@@ -977,8 +983,8 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 
 ### Cobertura atual
 
-- **105 arquivos de teste**
-- **1162 testes** (unit + E2E)
+- **116 arquivos de teste**
+- **1211 testes** (unit + E2E)
 - Hooks, Utils, API, Componentes e Paginas cobertos
 - CI/CD com GitHub Actions: lint → test:coverage → typecheck → build
 - **Coverage minimo:** 70% (statements, branches, functions, lines)

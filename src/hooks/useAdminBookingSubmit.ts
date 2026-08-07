@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { createBooking, deleteBooking } from '../lib/api';
 import { openWhatsApp, formatWaDate, formatWaCurrency } from '../lib/whatsapp';
 import { useAuditLog } from './useAuditLog';

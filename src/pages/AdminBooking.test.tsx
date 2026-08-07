@@ -51,7 +51,7 @@ vi.mock('../lib/supabase', () => {
   };
 });
 
-vi.mock('react-router-dom', () => ({
+vi.mock('react-router', () => ({
   useNavigate: () => vi.fn(),
   useLocation: () => ({ pathname: '/admin/agendar', search: '', state: null }),
 }));

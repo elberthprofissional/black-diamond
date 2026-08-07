@@ -151,7 +151,7 @@ vi.mock('../hooks/useSubscription', () => ({
 }));
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 import { BarberProvider } from '../contexts/BarberContext';
 import AdminDashboard from './AdminDashboard';

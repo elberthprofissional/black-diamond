@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router';
 import { deleteAllClients } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { getErrorMessage } from '../lib/utils';

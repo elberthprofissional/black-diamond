@@ -1,6 +1,6 @@
 import { memo, type FC } from 'react';
 import { motion } from 'framer-motion';
-import { Scissors, Check, MessageCircle } from 'lucide-react';
+import { Scissors, Check } from 'lucide-react';
 import type { Barber } from '../../types';
 
 interface BarberStepProps {
@@ -11,8 +11,7 @@ interface BarberStepProps {
 
 /**
  * Etapa de seleção do barbeiro no agendamento público (multi-barbeiro).
- * O cliente escolhe com quem quer cortar — o WhatsApp e a notificação
- * do agendamento vão para o barbeiro escolhido.
+ * Card minimalista: foto + nome — sem descrição.
  */
 const BarberStep: FC<BarberStepProps> = memo(({ barbers, selectedBarber, onSelectBarber }) => {
   if (barbers.length === 0) {
@@ -50,7 +49,7 @@ const BarberStep: FC<BarberStepProps> = memo(({ barbers, selectedBarber, onSelec
               transition={{ delay: index * 0.06, duration: 0.3 }}
               onClick={() => onSelectBarber(barber)}
               aria-pressed={isSelected}
-              className={`group relative w-full text-left rounded-2xl border p-4 sm:p-5 transition-all duration-300 cursor-pointer overflow-hidden ${
+              className={`group relative w-full flex flex-col items-center gap-3 rounded-2xl border p-5 sm:p-6 transition-all duration-300 cursor-pointer ${
                 isSelected
                   ? 'border-gold/60 bg-gold/[0.07] shadow-[0_0_30px_rgba(212,175,55,0.15)]'
                   : 'border-white/[0.07] bg-white/[0.02] hover:border-white/[0.18] hover:bg-white/[0.04]'
@@ -67,49 +66,29 @@ const BarberStep: FC<BarberStepProps> = memo(({ barbers, selectedBarber, onSelec
                 <Check size={13} strokeWidth={3} />
               </div>
 
-              <div className="flex items-center gap-4">
-                <div
-                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shrink-0 border flex items-center justify-center transition-all duration-300 ${
-                    isSelected
-                      ? 'border-gold/50'
-                      : 'border-white/[0.08] group-hover:border-white/20'
-                  }`}
-                >
-                  {barber.photo_url ? (
-                    <img
-                      src={barber.photo_url}
-                      alt={`Foto de ${barber.name}`}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Scissors size={22} className="text-gold/80" />
-                  )}
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <p className="text-[15px] sm:text-base font-bold text-white tracking-tight truncate">
-                    {barber.name}
-                  </p>
-                  {barber.bio ? (
-                    <p className="text-[11px] sm:text-xs text-zinc-500 mt-1 leading-snug line-clamp-2">
-                      {barber.bio}
-                    </p>
-                  ) : barber.phone ? (
-                    <p className="text-[11px] sm:text-xs text-zinc-500 mt-1 flex items-center gap-1.5">
-                      <MessageCircle size={11} className="text-gold/70" />
-                      WhatsApp disponível
-                    </p>
-                  ) : null}
-                </div>
+              {/* Foto */}
+              <div
+                className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border flex items-center justify-center transition-all duration-300 ${
+                  isSelected ? 'border-gold/50' : 'border-white/[0.08] group-hover:border-white/20'
+                }`}
+              >
+                {barber.photo_url ? (
+                  <img
+                    src={barber.photo_url}
+                    alt={`Foto de ${barber.name}`}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Scissors size={28} className="text-gold/80" />
+                )}
               </div>
 
-              {barber.quote && isSelected && (
-                <p className="mt-3 pt-3 border-t border-gold/15 text-[11px] font-serif italic text-gold/80 leading-snug">
-                  &ldquo;{barber.quote}&rdquo;
-                </p>
-              )}
+              {/* Nome */}
+              <p className="text-[15px] sm:text-base font-bold text-white tracking-tight text-center leading-snug">
+                {barber.name}
+              </p>
             </motion.button>
           );
         })}

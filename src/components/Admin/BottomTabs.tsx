@@ -1,5 +1,5 @@
 import { type FC } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router';
 import { Clock, CalendarDays, Users, BarChart3 } from 'lucide-react';
 import { useBarberContext } from '../../contexts/BarberContext';
 

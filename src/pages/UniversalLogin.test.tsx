@@ -1,7 +1,7 @@
 import { createElement, type ReactNode } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -20,6 +20,10 @@ Object.defineProperty(window, 'matchMedia', {
 const mockNavigate = vi.fn();
 const mockGetSession = vi.fn().mockResolvedValue({ data: { session: null }, error: null });
 const mockGetClientByPhone = vi.fn();
+const mockResolverLoginProfissional = vi.fn();
+const mockBuscarClientesPorNome = vi.fn();
+const mockVerificarSenhaCliente = vi.fn();
+const mockCriarSenhaCliente = vi.fn();
 
 vi.mock('../lib/supabase', () => ({
   supabase: {
@@ -35,6 +39,13 @@ vi.mock('../lib/supabase', () => ({
 
 vi.mock('../lib/api', () => ({
   getClientByPhone: (...args: unknown[]) => mockGetClientByPhone(...args),
+}));
+
+vi.mock('../lib/api/clientAuth', () => ({
+  resolverLoginProfissional: (...args: unknown[]) => mockResolverLoginProfissional(...args),
+  buscarClientesPorNome: (...args: unknown[]) => mockBuscarClientesPorNome(...args),
+  verificarSenhaCliente: (...args: unknown[]) => mockVerificarSenhaCliente(...args),
+  criarSenhaCliente: (...args: unknown[]) => mockCriarSenhaCliente(...args),
 }));
 
 vi.mock('../hooks/useToast', () => ({
@@ -63,8 +74,8 @@ vi.mock('../hooks/useBarberSettings', () => ({
   useBarberSettings: () => ({ brandColor: '#d4af37', brandLogo: null, brandName: '' }),
 }));
 
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
+vi.mock('react-router', async () => {
+  const actual = await vi.importActual('react-router');
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
@@ -111,14 +122,18 @@ const renderUniversal = (props?: { adminMode?: boolean }) =>
     </MemoryRouter>
   );
 
-describe('UniversalLogin — Porta Única', () => {
+describe('UniversalLogin — Porta Única v3.36', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
     mockGetSession.mockResolvedValue({ data: { session: null }, error: null });
+    mockVerificarSenhaCliente.mockResolvedValue({ ok: false, needs_password: false });
+    mockResolverLoginProfissional.mockResolvedValue({ type: 'none' });
+    mockBuscarClientesPorNome.mockResolvedValue([]);
   });
 
-  it('celular válido entra como cliente, salva sessão e navega para /cliente', async () => {
+  it('celular sem senha oferece entrar direto e navega para /cliente', async () => {
+    mockVerificarSenhaCliente.mockResolvedValue({ ok: false, needs_password: false });
     mockGetClientByPhone.mockResolvedValue({ id: 'c1', name: 'João Silva', phone: '11999999999' });
     renderUniversal();
 
@@ -128,6 +143,12 @@ describe('UniversalLogin — Porta Única', () => {
     fireEvent.click(screen.getByTestId('btn-continuar'));
 
     await waitFor(() => {
+      expect(screen.getByTestId('btn-enter-no-password')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId('btn-enter-no-password'));
+
+    await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/cliente');
       const session = JSON.parse(localStorage.getItem('bd_client_session') || '{}');
       expect(session.phone).toBe('11999999999');
@@ -135,7 +156,7 @@ describe('UniversalLogin — Porta Única', () => {
     });
   });
 
-  it('celular sem cadastro entra como Cliente e ainda salva a sessão', async () => {
+  it('cliente sem cadastro entra como Cliente e ainda salva a sessão', async () => {
     mockGetClientByPhone.mockResolvedValue(null);
     renderUniversal();
 
@@ -143,6 +164,10 @@ describe('UniversalLogin — Porta Única', () => {
       target: { value: '11999999999' },
     });
     fireEvent.click(screen.getByTestId('btn-continuar'));
+    await waitFor(() => {
+      expect(screen.getByTestId('btn-enter-no-password')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByTestId('btn-enter-no-password'));
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/cliente');
@@ -151,7 +176,123 @@ describe('UniversalLogin — Porta Única', () => {
     });
   });
 
-  it('mostra erro para entrada que não é celular nem e-mail', async () => {
+  it('cliente com senha criada pede a senha e valida antes de entrar', async () => {
+    mockVerificarSenhaCliente.mockResolvedValueOnce({
+      ok: false,
+      needs_password: true,
+      name: 'João Silva',
+    });
+    mockVerificarSenhaCliente.mockResolvedValueOnce({
+      ok: true,
+      needs_password: true,
+      name: 'João Silva',
+      phone: '11999999999',
+      client_id: 'c1',
+    });
+    renderUniversal();
+
+    fireEvent.change(screen.getByTestId('input-universal'), {
+      target: { value: '11999999999' },
+    });
+    fireEvent.click(screen.getByTestId('btn-continuar'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('input-client-password')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByTestId('input-client-password'), {
+      target: { value: 'senha123' },
+    });
+    fireEvent.click(screen.getByTestId('btn-client-login'));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/cliente');
+      const session = JSON.parse(localStorage.getItem('bd_client_session') || '{}');
+      expect(session.hasPassword).toBe(true);
+    });
+  });
+
+  it('cliente sem senha pode criar uma senha direto do login', async () => {
+    mockVerificarSenhaCliente.mockResolvedValue({ ok: false, needs_password: false });
+    mockGetClientByPhone.mockResolvedValue({ id: 'c1', name: 'Maria', phone: '11999999999' });
+    mockCriarSenhaCliente.mockResolvedValue({ ok: true, name: 'Maria' });
+    renderUniversal();
+
+    fireEvent.change(screen.getByTestId('input-universal'), {
+      target: { value: '11999999999' },
+    });
+    fireEvent.click(screen.getByTestId('btn-continuar'));
+    await waitFor(() => {
+      expect(screen.getByTestId('btn-go-create-password')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByTestId('btn-go-create-password'));
+
+    fireEvent.change(screen.getByTestId('input-new-password'), { target: { value: 'senha123' } });
+    fireEvent.change(screen.getByTestId('input-confirm-password'), {
+      target: { value: 'senha123' },
+    });
+    fireEvent.click(screen.getByTestId('btn-create-password'));
+
+    await waitFor(() => {
+      expect(mockCriarSenhaCliente).toHaveBeenCalledWith('11999999999', 'senha123');
+      expect(mockNavigate).toHaveBeenCalledWith('/cliente');
+    });
+  });
+
+  it('nome de barbeiro resolve para o painel admin com e-mail preenchido', async () => {
+    mockResolverLoginProfissional.mockResolvedValue({
+      type: 'profissional',
+      email: 'tato@blackdiamond.com',
+      name: 'Tato',
+      phone: '4399553590',
+    });
+    renderUniversal();
+
+    fireEvent.change(screen.getByTestId('input-universal'), {
+      target: { value: 'Tato' },
+    });
+    fireEvent.click(screen.getByTestId('btn-continuar'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('input-email')).toBeInTheDocument();
+      expect((screen.getByTestId('input-email') as HTMLInputElement).value).toBe(
+        'tato@blackdiamond.com'
+      );
+    });
+  });
+
+  it('nome de cliente com múltiplos matches mostra desambiguação', async () => {
+    mockBuscarClientesPorNome.mockResolvedValue([
+      {
+        id: 'c1',
+        name: 'Maria Teste',
+        phone: '31977776666',
+        phone_masked: '(31) *****-**66',
+        has_password: false,
+      },
+      {
+        id: 'c2',
+        name: 'Mariane Helena',
+        phone: '31989824495',
+        phone_masked: '(31) *****-**95',
+        has_password: false,
+      },
+    ]);
+    renderUniversal();
+
+    fireEvent.change(screen.getByTestId('input-universal'), {
+      target: { value: 'Maria' },
+    });
+    fireEvent.click(screen.getByTestId('btn-continuar'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/qual é você/i)).toBeInTheDocument();
+      expect(screen.getByText('Maria Teste')).toBeInTheDocument();
+      expect(screen.getByText('Mariane Helena')).toBeInTheDocument();
+    });
+  });
+
+  it('mostra erro para entrada que não é celular, nome nem e-mail', async () => {
     renderUniversal();
 
     fireEvent.change(screen.getByTestId('input-universal'), {
@@ -160,7 +301,7 @@ describe('UniversalLogin — Porta Única', () => {
     fireEvent.click(screen.getByTestId('btn-continuar'));
 
     await waitFor(() => {
-      expect(screen.getByText(/celular com DDD/i)).toBeInTheDocument();
+      expect(screen.getByText(/não encontramos ninguém/i)).toBeInTheDocument();
     });
     expect(mockNavigate).not.toHaveBeenCalled();
   });

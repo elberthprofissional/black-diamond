@@ -18,7 +18,9 @@ const BarberCard: FC<BarberCardProps> = ({ barber, index }) => {
   const [photoError, setPhotoError] = useState(false);
   const hasPhoto = !!barber.photo_url && !photoError;
   const name = barber.name || 'Barbeiro';
-  const bio = barber.bio || FALLBACK_BIO;
+  // Bio opcional: exibe apenas quando preenchida (o formulário de barbeiros
+  // não tem mais o campo; texto genérico repetido ficaria feio com vários barbeiros).
+  const bio = barber.bio || '';
   const quote = barber.quote || '';
 
   return (
@@ -55,7 +57,7 @@ const BarberCard: FC<BarberCardProps> = ({ barber, index }) => {
         <p className="font-serif italic font-normal lowercase tracking-normal text-zinc-400 text-sm">
           seu barbeiro
         </p>
-        <p className="text-zinc-300 font-sans text-sm font-light leading-relaxed">{bio}</p>
+        {bio && <p className="text-zinc-300 font-sans text-sm font-light leading-relaxed">{bio}</p>}
         {quote && (
           <blockquote className="border-l-2 border-gold/40 pl-4 py-1 text-sm font-serif italic text-gold text-left">
             &ldquo;{quote}&rdquo;

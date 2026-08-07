@@ -1,6 +1,6 @@
 import { type FC } from 'react';
 import { Phone, MapPin, Clock, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 import { formatPhone } from '../lib/utils';
 

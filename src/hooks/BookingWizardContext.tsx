@@ -10,9 +10,10 @@ import {
   type RefObject,
   type MouseEvent,
 } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router';
 import { useWizardStep } from './useWizardStep';
 import { useBarberContext } from '../contexts/BarberContext';
+import { useBarberSettings } from './useBarberSettings';
 import { useClientLookup } from './useClientLookup';
 import { useBookingSlots } from './useBookingSlots';
 import { useBookingPayment } from './useBookingPayment';
@@ -25,6 +26,10 @@ import type { Service, Barber } from '../types';
 interface BookingWizardValue {
   step: number;
   stepTitle: string;
+  /** Wizard tem a etapa de escolha de barbeiro? (2+ barbeiros ativos, não-solo) */
+  showBarberStep: boolean;
+  /** Número total de passos do wizard (4 ou 5). */
+  totalSteps: number;
   services: Service[];
   selectedServices: Service[];
   selectedDate: string;
@@ -97,6 +102,11 @@ export function BookingWizardProvider({
   const navigate = useNavigate();
   const location = useLocation();
   const { bookableBarbers } = useBarberContext();
+  const { singleBarberMode } = useBarberSettings();
+
+  // Multi-barbeiro real (2+ ativos, fora do modo solo): o cliente escolhe o
+  // barbeiro antes da data → wizard com 5 passos. Modo solo/1 barbeiro: 4.
+  const showBarberStep = !singleBarberMode && bookableBarbers.length > 1;
 
   // ── Step control ──
   const {
@@ -106,7 +116,7 @@ export function BookingWizardProvider({
     stepTitle,
     goNext: wizardGoNext,
     goBack,
-  } = useWizardStep();
+  } = useWizardStep(showBarberStep ? 5 : 4);
 
   // ── Services ──
   const { services: allServices, loading: servicesLoading } = useServices();
@@ -121,13 +131,17 @@ export function BookingWizardProvider({
     };
   });
 
-  // ── Auto-select quando há apenas UM barbeiro disponível ──
+  // ── Auto-select: modo solo (sempre o primeiro) ou quando há apenas UM barbeiro ──
   useEffect(() => {
-    if (bookableBarbers.length === 1 && !selectedBarber) {
+    if (
+      !selectedBarber &&
+      bookableBarbers.length > 0 &&
+      (singleBarberMode || bookableBarbers.length === 1)
+    ) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedBarber(bookableBarbers[0] ?? null);
     }
-  }, [bookableBarbers, selectedBarber]);
+  }, [bookableBarbers, selectedBarber, singleBarberMode]);
 
   // ── Client lookup ──
   const handleNameFound = useCallback((name: string) => {
@@ -170,6 +184,8 @@ export function BookingWizardProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedBarber?.id]);
 
+  const totalSteps = showBarberStep ? 5 : 4;
+
   // ── Payment ──
   const {
     coupon,
@@ -181,7 +197,13 @@ export function BookingWizardProvider({
     finalPrice,
     isSubmitting,
     handleConfirm: rawConfirm,
-  } = useBookingPayment(selectedServices, showError, () => setStep(5));
+  } = useBookingPayment(selectedServices, showError, () => setStep(totalSteps + 1));
+
+  // Modo solo: expõe apenas o barbeiro principal (nunca mostra seletor)
+  const effectiveBarbers = useMemo(
+    () => (singleBarberMode ? bookableBarbers.slice(0, 1) : bookableBarbers),
+    [singleBarberMode, bookableBarbers]
+  );
 
   // ── Toggle service ──
   const toggleService = useCallback((service: Service) => {
@@ -287,6 +309,8 @@ export function BookingWizardProvider({
     () => ({
       step,
       stepTitle,
+      showBarberStep,
+      totalSteps,
       services: allServices,
       selectedServices,
       toggleService,
@@ -296,7 +320,7 @@ export function BookingWizardProvider({
       setSelectedTime: slots.setSelectedTime,
       userInfo,
       setUserInfo,
-      barbers: bookableBarbers,
+      barbers: effectiveBarbers,
       selectedBarber,
       onSelectBarber: setSelectedBarber,
       isSubmitting,
@@ -334,6 +358,8 @@ export function BookingWizardProvider({
     [
       step,
       stepTitle,
+      showBarberStep,
+      totalSteps,
       allServices,
       selectedServices,
       toggleService,
@@ -343,7 +369,7 @@ export function BookingWizardProvider({
       slots.setSelectedTime,
       userInfo,
       setUserInfo,
-      bookableBarbers,
+      effectiveBarbers,
       selectedBarber,
       isSubmitting,
       slots.existingBookings,

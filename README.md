@@ -18,7 +18,7 @@
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/version-3.33.0-blue?style=flat-square" alt="Version"/>
+    <img src="https://img.shields.io/badge/version-3.36.0-blue?style=flat-square" alt="Version"/>
     <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"/>
     <img src="https://img.shields.io/badge/build-passing-brightgreen?style=flat-square" alt="Build"/>
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React"/>
@@ -47,7 +47,7 @@
 - **Clientes**: Agendam serviços online 24/7 pelo celular ou desktop
 - **Barbeiro/Admin**: Gerencia agenda, clientes, serviços e financeiro
 
-> 💈 **Barbeiro único** — O sistema opera com um único barbeiro (sem seleção de barbeiro no agendamento, sem filtro por barbeiro e sem painel de funcionário `/barber`).
+> 💈 **Barbeiro único por padrão** — O agendamento público esconde a etapa de escolha de barbeiro quando há apenas 1 barbeiro cadastrado (fluxo de 4 etapas: Dados → Serviços → Data/Hora → Revisão). O multi-barbeiro continua suportado: com mais de um barbeiro ativo a seleção aparece, e o escopo RLS por barbeiro (migration `007`) passa a valer no banco (dono vê tudo; barbeiro comum vê só os próprios agendamentos).
 
 ---
 
@@ -60,7 +60,7 @@
 | **Build** | Vite | 8.x |
 | **Estilização** | Tailwind CSS | 4.x |
 | **Animações** | Framer Motion | 12.x |
-| **Roteamento** | React Router DOM | 7.x |
+| **Roteamento** | React Router | 8.x |
 | **Ícones** | Lucide React | 1.x |
 | **Backend/Database** | Supabase (PostgreSQL) | — |
 | **Auth** | Supabase Auth | — |
@@ -236,8 +236,9 @@ Decisões de arquitetura documentadas em [`docs/adr/`](docs/adr/):
 | **Audit Logs** | Estrutura preservada mas escrita desativada (v3.31.0) — ações críticas continuam em tabelas dedicadas |
 | **Cron Jobs** | Auto-complete de agendamentos, cleanup, relatório semanal |
 | **Content Security Policy** | Headers restritivos no Vercel |
-| **Auth Admin** | Login com email/senha via Supabase Auth |
+| **Auth Admin** | Login com email/senha via Supabase Auth; AuthGuard valida `is_admin` antes de liberar as telas |
 | **Bloqueio por Pagamento** | `check_login_allowed` RPC valida se email está em `payment_blocked_users` |
+| **Sem leitura pública de bookings** | A chave anon não lê a tabela `bookings` (migration `008`); consultas públicas passam por RPCs `SECURITY DEFINER` com rate limit |
 
 ---
 
@@ -245,7 +246,7 @@ Decisões de arquitetura documentadas em [`docs/adr/`](docs/adr/):
 
 | Tipo | Framework | Status |
 |------|-----------|--------|
-| **Unitários** | Vitest | 1193 testes em 113 arquivos |
+| **Unitários** | Vitest | 1211 testes em 116 arquivos |
 | **Integração** | Vitest + Supabase mock | APIs |
 | **E2E** | Playwright | Fluxos críticos |
 | **Visual** | Playwright | Screenshots responsivos |
@@ -254,7 +255,7 @@ Decisões de arquitetura documentadas em [`docs/adr/`](docs/adr/):
 **Qualidade de código:**
 - ESLint: 0 erros, 0 warnings
 - TypeScript: 0 erros (strict mode)
-- Build: 2.19s com chunks separados por vendor
+- Build: ~5.5s com chunks separados por vendor
 
 ```bash
 # Rodar testes
@@ -276,7 +277,7 @@ O deploy é feito na **Vercel** com integração contínua via GitHub Actions.
    - `VITE_VAPID_PUBLIC_KEY` (para push notifications)
    - `SENTRY_DSN` (opcional)
 
-2. Faça push para a branch `main`
+2. Faça push para a branch `main` (o CI também cobre `master` e `develop`)
 
 3. O deploy é automático via GitHub Actions + Vercel
 

@@ -1,5 +1,5 @@
 -- =========================================================================
--- BLACK DIAMOND - 007 - ESCONTE POR BARBEIRO (RLS MULTI-BARBEIRO)
+-- BLACK DIAMOND - 011 - ESCONTE POR BARBEIRO (RLS MULTI-BARBEIRO)
 -- =========================================================================
 -- Contexto: a v3.36 traz de volta o multi-barbeiro (cliente escolhe o
 -- barbeiro; cada barbeiro tem login próprio). A policy "Agendamentos
@@ -15,6 +15,10 @@
 --
 -- A leitura pública do site (anon) NÃO muda — continua pela policy
 -- "Leitura publica agendamentos" (status/data).
+--
+-- ⚠️ Atualização (migration 008): a policy "Leitura publica agendamentos"
+--    foi REMOVIDA — consultas públicas de bookings agora passam 100% por
+--    RPCs SECURITY DEFINER (get_occupied_slots, get_client_dashboard, etc.).
 --
 -- ⚠️  Execute no SQL Editor do Supabase (depois das migrations 001-006).
 --     Reversão: rodar o bloco comentado no final deste arquivo.

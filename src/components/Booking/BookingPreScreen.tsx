@@ -1,5 +1,5 @@
 import { type CSSProperties, type FC } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { ArrowLeft, Lock } from 'lucide-react';
 import BookingPreScreenMenu from './BookingPreScreenMenu';
 

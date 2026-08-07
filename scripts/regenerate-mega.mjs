@@ -18,10 +18,14 @@ const FILES = [
   '004_subscriptions_pix.sql',
   '005_performance_auditoria.sql',
   '006_rls_estricto.sql',
+  '011_barber_scope_rls.sql',
+  '012_secure_bookings_public_access.sql',
+  '013_barber_availability_fix.sql',
+  '014_login_contas.sql',
 ];
 
 const header = `-- =========================================================================
--- BLACK DIAMOND — TODAS AS MIGRATIONS (001 → 006)
+-- BLACK DIAMOND — TODAS AS MIGRATIONS (001 → 014)
 -- =========================================================================
 -- Arquivo gerado por scripts/regenerate-mega.mjs a partir de
 -- supabase/migrations/*.sql. Cole TUDO no SQL Editor do Supabase

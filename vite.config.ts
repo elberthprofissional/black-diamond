@@ -138,7 +138,7 @@ export default defineConfig({
     sourcemap: !!process.env.SENTRY_AUTH_TOKEN,
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion', '@supabase/supabase-js'],
+    include: ['react', 'react-dom', 'react-router', 'framer-motion', '@supabase/supabase-js'],
   },
   test: {
     globals: true,

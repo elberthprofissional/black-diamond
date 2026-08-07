@@ -1,5 +1,5 @@
 import { type FC } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { ArrowLeft, Search, Bell, Plus } from 'lucide-react';
 
 interface ClientListHeaderProps {

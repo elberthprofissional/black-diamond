@@ -1,6 +1,6 @@
 import { memo, type FC, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { CalendarPlus, CalendarClock, ChevronRight } from 'lucide-react';
 import { getClientSession } from '../../lib/clientSession';
 
@@ -51,7 +51,7 @@ const MenuOption: FC<MenuOptionProps> = memo(({ icon, title, subtitle, onClick, 
           </p>
         </div>
         <p
-          className={`text-xs sm:text-sm font-medium transition-colors duration-300 mt-0.5 truncate ${
+          className={`text-xs sm:text-sm font-medium transition-colors duration-300 mt-0.5 line-clamp-2 leading-snug ${
             primary ? 'text-zinc-900/80' : 'text-zinc-400 group-hover:text-zinc-300'
           }`}
         >

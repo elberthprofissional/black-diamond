@@ -1,5 +1,5 @@
 import { useState, useEffect, type FC } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, User, LogOut, Settings } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';

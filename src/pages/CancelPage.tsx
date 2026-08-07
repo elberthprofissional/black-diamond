@@ -1,7 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Calendar, ArrowLeft, ChevronRight, Loader2, Sparkles, X } from 'lucide-react';
-import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
+import { useLocation, useSearchParams, useNavigate } from 'react-router';
 import {
   getBookingsByPhone,
   getBookingsByToken,

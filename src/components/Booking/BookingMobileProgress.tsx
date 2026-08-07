@@ -1,21 +1,39 @@
 import { type FC } from 'react';
-import { User, Scissors, Calendar, FileText } from 'lucide-react';
+import { User, Scissors, Calendar, FileText, Sparkles } from 'lucide-react';
 
 interface BookingMobileProgressProps {
   step: number;
   stepTitle: string;
   onBack: () => void;
+  totalSteps?: number;
 }
 
-const STEP_ICONS: FC<{ size?: number; className?: string }>[] = [
+const STEP_ICONS_4: FC<{ size?: number; className?: string }>[] = [
   User,
   Scissors,
   Calendar,
   FileText,
 ];
-const STEP_LABELS = ['Dados', 'Serviços', 'Data/Hora', 'Revisar'];
+const STEP_LABELS_4 = ['Dados', 'Serviços', 'Data/Hora', 'Revisar'];
+const STEP_ICONS_5: FC<{ size?: number; className?: string }>[] = [
+  User,
+  Scissors,
+  Sparkles,
+  Calendar,
+  FileText,
+];
+const STEP_LABELS_5 = ['Dados', 'Serviços', 'Barbeiro', 'Data/Hora', 'Revisar'];
 
-const BookingMobileProgress: FC<BookingMobileProgressProps> = ({ step, stepTitle, onBack }) => {
+const BookingMobileProgress: FC<BookingMobileProgressProps> = ({
+  step,
+  stepTitle,
+  onBack,
+  totalSteps = 4,
+}) => {
+  const hasBarberStep = totalSteps === 5;
+  const icons = hasBarberStep ? STEP_ICONS_5 : STEP_ICONS_4;
+  const labels = hasBarberStep ? STEP_LABELS_5 : STEP_LABELS_4;
+  const progressPct = Math.max(10, ((step - 1) / (totalSteps - 1)) * 100);
   return (
     <header className="px-4 pt-3 pb-3 shrink-0 border-b border-white/[0.04] bg-[#050505] sticky top-0 z-50">
       <div className="flex items-center gap-2.5">
@@ -45,11 +63,11 @@ const BookingMobileProgress: FC<BookingMobileProgressProps> = ({ step, stepTitle
         <div
           className="absolute left-0 -ml-9 top-[28px] h-[1px] bg-gold transition-all duration-500 z-0"
           style={{
-            width: `${Math.max(10, ((step - 1) / 3) * 100)}%`,
+            width: `${progressPct}%`,
           }}
         />
-        {[1, 2, 3, 4].map((s) => {
-          const Icon = STEP_ICONS[s - 1];
+        {Array.from({ length: totalSteps }, (_, i) => i + 1).map((s) => {
+          const Icon = icons[s - 1];
           if (!Icon) return null;
           const isCompleted = step > s;
           const isActive = step === s;
@@ -81,7 +99,7 @@ const BookingMobileProgress: FC<BookingMobileProgressProps> = ({ step, stepTitle
                   isActive ? 'text-gold' : isCompleted ? 'text-zinc-400' : 'text-zinc-600'
                 }`}
               >
-                {STEP_LABELS[s - 1]}
+                {labels[s - 1]}
               </span>
             </div>
           );

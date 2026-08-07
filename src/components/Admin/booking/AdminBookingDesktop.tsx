@@ -138,6 +138,7 @@ const AdminBookingDesktop: FC<Props> = ({ booking }) => {
                   barbers={b.barbers}
                   selectedBarber={b.selectedBarber}
                   onSelectBarber={b.setSelectedBarber}
+                  singleBarberMode={b.singleBarberMode}
                 />
               </motion.div>
             )}

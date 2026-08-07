@@ -1,7 +1,7 @@
 import { useState, useEffect, memo, type FC, type FormEvent } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { Loader2, ArrowLeft, Phone, ShieldCheck, Smartphone } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { Loader2, ArrowLeft, Phone, ShieldCheck, Smartphone, Lock, KeyRound } from 'lucide-react';
 import {
   getBookingsByPhone,
   getClientByPhone,
@@ -9,6 +9,7 @@ import {
   getServices,
   getClientDashboard,
 } from '../lib/api';
+import { verificarSenhaCliente, criarSenhaCliente } from '../lib/api/clientAuth';
 import { getMensalistaPlanName, getMensalistaPlanServices } from '../lib/api/mensalista';
 import { formatPhone } from '../lib/utils';
 import { logError } from '../lib/logger';
@@ -23,53 +24,92 @@ import ClientProfileDashboard from './ClientProfileDashboard';
 const PhoneStep: FC<{
   phone: string;
   onPhoneChange: (v: string) => void;
+  password: string;
+  onPasswordChange: (v: string) => void;
+  needsPassword: boolean;
   loading: boolean;
   error: string;
   onSubmit: (e: FormEvent) => void;
-}> = memo(({ phone, onPhoneChange, loading, error, onSubmit }) => (
-  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-    <form onSubmit={onSubmit} className="space-y-4">
-      <div className="text-center mb-6">
-        <div className="w-16 h-16 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-4">
-          <Smartphone size={28} className="text-gold" />
+}> = memo(
+  ({
+    phone,
+    onPhoneChange,
+    password,
+    onPasswordChange,
+    needsPassword,
+    loading,
+    error,
+    onSubmit,
+  }) => (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+      <form onSubmit={onSubmit} className="space-y-4">
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-4">
+            {needsPassword ? (
+              <Lock size={28} className="text-gold" />
+            ) : (
+              <Smartphone size={28} className="text-gold" />
+            )}
+          </div>
+          <p className="text-[14px] text-zinc-400 leading-relaxed">
+            {needsPassword
+              ? 'Este telefone tem senha de proteção. Digite-a para continuar.'
+              : 'Digite seu telefone para acessar seus agendamentos.'}
+          </p>
         </div>
-        <p className="text-[14px] text-zinc-400 leading-relaxed">
-          Digite seu telefone para acessar seus agendamentos.
-        </p>
-      </div>
-      <div className="relative">
-        <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-        <input
-          type="tel"
-          value={phone}
-          onChange={(e) => onPhoneChange(formatPhone(e.target.value))}
-          placeholder="(00) 00000-0000"
-          maxLength={15}
-          autoFocus
-          className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-4 text-[16px] text-white outline-none focus:border-gold transition-all placeholder:text-zinc-600"
-        />
-      </div>
-      <button
-        type="submit"
-        disabled={loading || phone.replace(/\D/g, '').length < 11}
-        className="btn-gold w-full h-11 flex items-center justify-center gap-2 disabled:opacity-50"
-      >
-        {loading ? (
-          <Loader2 size={14} className="animate-spin" />
-        ) : (
-          <>
-            <ShieldCheck size={14} /> Entrar
-          </>
+        {!needsPassword && (
+          <div className="relative">
+            <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => onPhoneChange(formatPhone(e.target.value))}
+              placeholder="(00) 00000-0000"
+              maxLength={15}
+              autoFocus
+              className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-4 text-[16px] text-white outline-none focus:border-gold transition-all placeholder:text-zinc-600"
+            />
+          </div>
         )}
-      </button>
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
-          <p className="text-[12px] text-red-400/80 text-center">{error}</p>
-        </div>
-      )}
-    </form>
-  </motion.div>
-));
+        {needsPassword && (
+          <div className="relative">
+            <KeyRound
+              size={16}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"
+            />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => onPasswordChange(e.target.value)}
+              placeholder="Sua senha"
+              maxLength={128}
+              autoFocus
+              className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-4 text-[16px] text-white outline-none focus:border-gold transition-all placeholder:text-zinc-600"
+            />
+          </div>
+        )}
+        <button
+          type="submit"
+          disabled={loading || (!needsPassword && phone.replace(/\D/g, '').length < 11)}
+          className="btn-gold w-full h-11 flex items-center justify-center gap-2 disabled:opacity-50"
+        >
+          {loading ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <>
+              <ShieldCheck size={14} /> Entrar
+            </>
+          )}
+        </button>
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+            <p className="text-[12px] text-red-400/80 text-center">{error}</p>
+          </div>
+        )}
+      </form>
+    </motion.div>
+  )
+);
 PhoneStep.displayName = 'PhoneStep';
 
 // ─── Main Component ───
@@ -80,6 +120,13 @@ const ClientProfile: FC = () => {
   const [step, setStep] = useState<Step>(initialSession ? 'dashboard' : 'phone');
   const [phone, setPhone] = useState(initialSession?.phone ?? '');
   const [clientName, setClientName] = useState(initialSession?.name ?? '');
+  const [needsPassword, setNeedsPassword] = useState(false);
+  const [password, setPassword] = useState('');
+  const [protectOpen, setProtectOpen] = useState(false);
+  const [protectPassword, setProtectPassword] = useState('');
+  const [protectConfirm, setProtectConfirm] = useState('');
+  const [protectLoading, setProtectLoading] = useState(false);
+  const [protectMessage, setProtectMessage] = useState('');
   const [bookings, setBookings] = useState<BookingEntry[]>([]);
   const [stats, setStats] = useState<ClientStats | null>(null);
   const [mensalistaInfo, setMensalistaInfo] = useState<MensalistaInfo | null>(null);
@@ -199,23 +246,78 @@ const ClientProfile: FC = () => {
     e.preventDefault();
     setError('');
     const digits = phone.replace(/\D/g, '');
-    if (digits.length < 11) {
+    if (!needsPassword && digits.length < 11) {
       setError('Informe um celular válido com DDD (11 dígitos).');
       return;
     }
     setLoading(true);
     try {
-      // Busca o nome real (RPC com rate limit) para a saudação do dashboard
+      // Já sabemos que tem senha? Valida antes de entrar.
+      if (needsPassword) {
+        const result = await verificarSenhaCliente(digits, password).catch(() => null);
+        if (!result?.ok) {
+          setError(result?.message || 'Senha incorreta.');
+          setLoading(false);
+          return;
+        }
+        const name = result.name || 'Cliente';
+        setClientName(name);
+        saveClientSession(digits, name, true);
+        setStep('dashboard');
+        await loadBookings(digits);
+        return;
+      }
+      // Primeira checagem: o cliente tem senha criada?
+      // Fail-closed: se a verificação der erro, não deixa entrar sem senha.
+      const status = await verificarSenhaCliente(digits, '');
+      if (status?.needs_password) {
+        setNeedsPassword(true);
+        setPhone(formatPhone(digits));
+        setLoading(false);
+        return;
+      }
+      // Sem senha → entra direto (atrito zero).
       const lookup = await getClientByPhone(digits).catch(() => null);
       const name = (lookup as { name?: string } | null)?.name || 'Cliente';
       setClientName(name);
-      saveClientSession(digits, name);
+      saveClientSession(digits, name, false);
       setStep('dashboard');
       await loadBookings(digits);
     } catch (e) {
       logError(e);
       setError('Erro ao buscar agendamentos. Tente novamente.');
       setLoading(false);
+    }
+  };
+
+  /** Cria uma senha para proteger o acesso do cliente (card no dashboard). */
+  const handleProtectAccess = async (e: FormEvent) => {
+    e.preventDefault();
+    setProtectMessage('');
+    if (protectPassword.length < 6) {
+      setProtectMessage('A senha precisa ter pelo menos 6 caracteres.');
+      return;
+    }
+    if (protectPassword !== protectConfirm) {
+      setProtectMessage('As senhas não coincidem.');
+      return;
+    }
+    setProtectLoading(true);
+    try {
+      const result = await criarSenhaCliente(phone.replace(/\D/g, ''), protectPassword);
+      if (result?.ok) {
+        setProtectOpen(false);
+        setProtectPassword('');
+        setProtectConfirm('');
+        setNeedsPassword(true);
+        saveClientSession(phone.replace(/\D/g, ''), clientName, true);
+      } else {
+        setProtectMessage(result?.message || 'Não foi possível criar a senha.');
+      }
+    } catch {
+      setProtectMessage('Erro ao criar a senha. Tente novamente.');
+    } finally {
+      setProtectLoading(false);
     }
   };
 
@@ -248,6 +350,12 @@ const ClientProfile: FC = () => {
     setHistoryBookings([]);
     setShowHistory(false);
     setMensalistaInfo(null);
+    setNeedsPassword(false);
+    setPassword('');
+    setProtectOpen(false);
+    setProtectPassword('');
+    setProtectConfirm('');
+    setProtectMessage('');
   };
 
   const toggleHistory = () => {
@@ -283,6 +391,9 @@ const ClientProfile: FC = () => {
           <PhoneStep
             phone={phone}
             onPhoneChange={setPhone}
+            password={password}
+            onPasswordChange={setPassword}
+            needsPassword={needsPassword}
             loading={loading}
             error={error}
             onSubmit={handlePhoneSubmit}
@@ -290,27 +401,114 @@ const ClientProfile: FC = () => {
         )}
 
         {step === 'dashboard' && (
-          <ClientProfileDashboard
-            clientName={clientName}
-            phone={phone}
-            stats={stats}
-            mensalistaInfo={mensalistaInfo}
-            bookings={bookings}
-            loading={loading}
-            error={error}
-            cancellingId={cancellingId}
-            confirmCancel={confirmCancel}
-            historyBookings={historyBookings}
-            showHistory={showHistory}
-            historyLoading={historyLoading}
-            totalFutureSpent={totalFutureSpent}
-            onLogout={handleLogout}
-            onCancel={handleCancel}
-            onReschedule={handleReschedule}
-            onSetConfirmCancel={setConfirmCancel}
-            onToggleHistory={toggleHistory}
-            onSetError={setError}
-          />
+          <>
+            {/* Card: proteger acesso com senha */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-[#111111] border border-white/[0.06] rounded-2xl p-4 mb-4"
+            >
+              {!protectOpen ? (
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-gold/10 border border-gold/15 flex items-center justify-center shrink-0">
+                    <Lock size={15} className="text-gold" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[13px] font-bold text-white">
+                      {needsPassword ? 'Senha criada ✓' : 'Proteja seu acesso'}
+                    </p>
+                    <p className="text-[10px] text-zinc-500">
+                      {needsPassword
+                        ? 'Seu acesso já é protegido por senha.'
+                        : 'Crie uma senha para que só você veja seus agendamentos.'}
+                    </p>
+                  </div>
+                  {!needsPassword && (
+                    <button
+                      onClick={() => setProtectOpen(true)}
+                      className="shrink-0 text-[10px] font-bold uppercase tracking-[0.1em] text-black bg-gold rounded-xl px-3 h-9 hover:opacity-90 transition-opacity cursor-pointer"
+                    >
+                      Criar senha
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <form onSubmit={handleProtectAccess} className="space-y-3">
+                  <p className="text-[13px] font-bold text-white flex items-center gap-2">
+                    <KeyRound size={14} className="text-gold" /> Criar senha de proteção
+                  </p>
+                  <input
+                    type="password"
+                    value={protectPassword}
+                    onChange={(e) => setProtectPassword(e.target.value)}
+                    placeholder="Nova senha (mín. 6 caracteres)"
+                    data-testid="input-protect-password"
+                    autoComplete="new-password"
+                    maxLength={128}
+                    className="w-full h-11 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[14px] text-white outline-none focus:border-gold transition-all placeholder:text-zinc-600"
+                  />
+                  <input
+                    type="password"
+                    value={protectConfirm}
+                    onChange={(e) => setProtectConfirm(e.target.value)}
+                    placeholder="Repita a senha"
+                    data-testid="input-protect-confirm"
+                    autoComplete="new-password"
+                    maxLength={128}
+                    className="w-full h-11 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[14px] text-white outline-none focus:border-gold transition-all placeholder:text-zinc-600"
+                  />
+                  {protectMessage && <p className="text-[11px] text-red-400">{protectMessage}</p>}
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={protectLoading}
+                      className="flex-1 h-10 rounded-xl bg-gold text-black font-bold text-[10px] uppercase tracking-[0.15em] hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      {protectLoading ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        <>
+                          <ShieldCheck size={13} /> Salvar
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProtectOpen(false);
+                        setProtectMessage('');
+                      }}
+                      className="px-4 h-10 rounded-xl border border-white/[0.08] text-zinc-400 hover:text-white text-[10px] font-bold uppercase tracking-[0.1em] transition-colors cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              )}
+            </motion.div>
+
+            <ClientProfileDashboard
+              clientName={clientName}
+              phone={phone}
+              stats={stats}
+              mensalistaInfo={mensalistaInfo}
+              bookings={bookings}
+              loading={loading}
+              error={error}
+              cancellingId={cancellingId}
+              confirmCancel={confirmCancel}
+              historyBookings={historyBookings}
+              showHistory={showHistory}
+              historyLoading={historyLoading}
+              totalFutureSpent={totalFutureSpent}
+              onLogout={handleLogout}
+              onCancel={handleCancel}
+              onReschedule={handleReschedule}
+              onSetConfirmCancel={setConfirmCancel}
+              onToggleHistory={toggleHistory}
+              onSetError={setError}
+            />
+          </>
         )}
       </div>
     </div>

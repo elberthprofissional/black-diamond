@@ -33,6 +33,19 @@ export {
   getClientDashboard,
 } from './clients';
 
+export {
+  resolverLoginProfissional,
+  buscarClientesPorNome,
+  verificarSenhaCliente,
+  criarSenhaCliente,
+} from './clientAuth';
+export type {
+  ResolverResult,
+  ResolvedProfessional,
+  ClientMatch,
+  ClientPasswordStatus,
+} from './clientAuth';
+
 export { getTemplates, createTemplate, deleteTemplate } from './templates';
 export type { WhatsAppTemplate } from './templates';
 export { getMaxNoShows, getClientNoShowCount, checkAndNotifyNoShowLimit } from './noShow';

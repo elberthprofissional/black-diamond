@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router';
 
 const mockNavigate = vi.fn();
 const mockUpdateUser = vi.fn();
@@ -9,8 +9,8 @@ const mockGetSession = vi.fn().mockResolvedValue({ data: { session: { user: {} }
 const mockShowError = vi.fn();
 const mockShowSuccess = vi.fn();
 
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
+vi.mock('react-router', async () => {
+  const actual = await vi.importActual('react-router');
   return { ...actual, useNavigate: () => mockNavigate };
 });
 

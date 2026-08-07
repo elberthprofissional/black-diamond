@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef, memo, type FC } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 import { getLocalDateString, getTimeSlotsForDate } from '../lib/utils';
 import { getAvailableSlots } from '../lib/api';

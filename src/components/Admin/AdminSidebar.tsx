@@ -1,6 +1,6 @@
 import { useState, memo, type FC } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users, ChevronDown, User, LogOut, Clock, Settings } from 'lucide-react';
 import { useAdminLogout } from '../../hooks/useAdminLogout';

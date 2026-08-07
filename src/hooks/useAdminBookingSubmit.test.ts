@@ -21,7 +21,7 @@ const mockCreateBooking = vi.fn();
 const mockDeleteBooking = vi.fn();
 const mockOpenWhatsApp = vi.fn();
 
-vi.mock('react-router-dom', () => ({
+vi.mock('react-router', () => ({
   useNavigate: () => mockNavigate,
 }));
 

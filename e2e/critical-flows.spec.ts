@@ -3,6 +3,9 @@ import { test, expect } from '@playwright/test';
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
 const isLocal = BASE_URL.includes('localhost');
 
+// Telefone único por execução: evita acumular bookings no limite de 3/dia por telefone
+const testPhone = `1199${String(Date.now()).slice(-7)}`;
+
 test.describe('Fluxos Críticos - Agendamento', () => {
   test('fluxo de agendamento avança para a etapa de serviços', async ({ page }) => {
     test.skip(isLocal, 'Requires live Supabase connection');
@@ -12,15 +15,22 @@ test.describe('Fluxos Críticos - Agendamento', () => {
     // Click "Agendar agora" (menu v3.34: só 2 opções)
     await page.click('text=Agendar agora');
 
-    // Step 1: Preencher dados
-    await page.locator('[data-testid="input-name"]').first().fill('Cliente Teste E2E');
-    await page.locator('[data-testid="input-phone"]').first().fill('11999887766');
+    // Aguardar o formulário estabilizar (transição skeleton → form na navegação SPA)
+    await expect(page.locator('[data-testid="input-name"]').first()).toBeVisible({
+      timeout: 15000,
+    });
+    await page.waitForLoadState('networkidle').catch(() => {});
+    await page.waitForTimeout(700);
+
+    // Step 1: Preencher dados (pressSequentially evita race do fill durante a transição)
+    const nameInput = page.locator('[data-testid="input-name"]').first();
+    await nameInput.click();
+    await nameInput.pressSequentially('Cliente Teste E2E');
+    await page.locator('[data-testid="input-phone"]').first().pressSequentially(testPhone);
     await page.click('[data-testid="next-step"]');
 
     // Step 2: Etapa de serviços deve estar visível (sem seleção de barbeiro — barbeiro único)
-    await expect(
-      page.locator('text=Escolha os serviços').or(page.locator('text=Serviços'))
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Escolha os serviços').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('cupom de desconto pode ser adicionado', async ({ page }) => {
@@ -30,6 +40,12 @@ test.describe('Fluxos Críticos - Agendamento', () => {
 
     // Clica em "Agendar agora" (menu v3.34: só 2 opções)
     await page.click('text=Agendar agora');
+
+    // Aguardar o formulário estabilizar
+    await expect(page.locator('[data-testid="input-name"]').first()).toBeVisible({
+      timeout: 15000,
+    });
+    await page.waitForTimeout(700);
 
     // Verifica se o botão de cupom existe
     await expect(page.locator('text=cupom de desconto').or(page.locator('text=Cupom'))).toBeVisible(
@@ -43,10 +59,11 @@ test.describe('Fluxos Críticos - Agendamento', () => {
     // Tentar acessar página de gerenciamento sem token
     await page.goto('/gerenciar');
 
-    // Deve mostrar mensagem de erro ou formulário para token
-    await expect(page.locator('text=token').or(page.locator('text=Token'))).toBeVisible({
-      timeout: 10000,
-    });
+    // v3.36: a página unificada de gerenciamento pede o telefone para buscar agendamentos
+    // (busca por telefone + token; o token aparece após a busca)
+    await expect(
+      page.locator('text=Cancelar ou Reagendar').or(page.locator('text=Gerencie')).first()
+    ).toBeVisible({ timeout: 10000 });
   });
 });
 
@@ -57,18 +74,13 @@ test.describe('Admin - Navegação', () => {
     await page.goto('/admin');
 
     // Se logado, deve mostrar sidebar com navegação
-    // Se não logado, redireciona pra login — teste verifica redirecionamento
-    const isLoginPage = page.url().includes('/admin/login');
-    if (isLoginPage) {
-      await expect(
-        page.locator('input[type="email"]').or(page.locator('[data-testid="input-email"]'))
-      ).toBeVisible({ timeout: 10000 });
-    } else {
-      // Verificar links de navegação
-      await expect(page.locator('text=Agenda do Dia').or(page.locator('text=Hoje'))).toBeVisible({
-        timeout: 10000,
-      });
-    }
+    // Se não logado, redireciona pra login (v3.36: UniversalLogin) — teste verifica redirecionamento
+    await expect
+      .poll(async () => page.url(), { timeout: 10000 })
+      .toMatch(/\/admin\/login|\/entrar|\/login/);
+    await expect(
+      page.locator('input[type="email"]').or(page.locator('[data-testid="input-email"]')).first()
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test('rota admin/login carrega corretamente', async ({ page }) => {

@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 
 vi.mock('../hooks/useToast', () => ({
   useToast: () => ({ toast: null, showSuccess: vi.fn(), showError: vi.fn() }),

@@ -14,6 +14,8 @@ interface ResponsiveServicesStepProps {
   barbers?: Barber[];
   selectedBarber?: Barber | null;
   onSelectBarber?: (barber: Barber) => void;
+  /** Modo barbeiro único: esconde o seletor de barbeiro. */
+  singleBarberMode?: boolean;
 }
 
 export default function ResponsiveServicesStep({
@@ -26,9 +28,10 @@ export default function ResponsiveServicesStep({
   barbers,
   selectedBarber,
   onSelectBarber,
+  singleBarberMode = false,
 }: ResponsiveServicesStepProps) {
   const bookableBarbers = (barbers || []).filter((b) => b.is_active);
-  const showBarberSelector = bookableBarbers.length > 1 && !!onSelectBarber;
+  const showBarberSelector = !singleBarberMode && bookableBarbers.length > 1 && !!onSelectBarber;
 
   const renderBarberSelector = () => {
     if (!showBarberSelector) return null;

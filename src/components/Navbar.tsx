@@ -1,5 +1,5 @@
 import { useState, useEffect, memo, type FC } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 
 const Navbar: FC = memo(() => {

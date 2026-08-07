@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, type ReactNode } from 'react';
-import { Routes, Route, Navigate, useLocation, useParams, matchPath } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useParams, matchPath } from 'react-router';
 import { MotionConfig, AnimatePresence, motion } from 'framer-motion';
 import { useReducedMotion } from './hooks/useReducedMotion';
 import { useSEO } from './hooks/useSEO';

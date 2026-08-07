@@ -1,5 +1,5 @@
 import { useState, useCallback, type FC } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { ArrowLeft, Bell, Trash2, ListChecks } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNotifications, type Notification } from '../hooks/useNotifications';

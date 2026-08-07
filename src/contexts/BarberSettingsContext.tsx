@@ -13,6 +13,7 @@ const SETTINGS_KEYS = [
   'brand_logo',
   'brand_login_bg',
   'onboarding_completed',
+  'single_barber_mode',
 ] as const;
 
 interface BarberSettingsContextType {
@@ -28,6 +29,8 @@ interface BarberSettingsContextType {
   brandLogo: string;
   brandLoginBg: string;
   onboardingCompleted: boolean;
+  /** Modo barbeiro único: cliente não escolhe barbeiro no agendamento. */
+  singleBarberMode: boolean;
   loading: boolean;
   updateBarberName: (name: string) => Promise<boolean>;
   updateBarberPhone: (phone: string) => Promise<boolean>;
@@ -37,6 +40,7 @@ interface BarberSettingsContextType {
   updateBarberInstagram: (instagram: string) => Promise<boolean>;
   updateBarberHours: (hours: string) => Promise<boolean>;
   updateOnboardingCompleted: (completed: boolean) => Promise<boolean>;
+  updateSingleBarberMode: (single: boolean) => Promise<boolean>;
   refetch: () => Promise<void>;
 }
 
@@ -57,6 +61,7 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
   const [brandLogo, setBrandLogo] = useState<string>('');
   const [brandLoginBg, setBrandLoginBg] = useState<string>('');
   const [onboardingCompleted, setOnboardingCompleted] = useState<boolean>(false);
+  const [singleBarberMode, setSingleBarberMode] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
   const refetch = useCallback(async () => {
@@ -97,6 +102,9 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
           }
           if (row.key === 'onboarding_completed') {
             setOnboardingCompleted(row.value === 'true');
+          }
+          if (row.key === 'single_barber_mode') {
+            setSingleBarberMode(row.value === 'true');
           }
         }
       }
@@ -250,6 +258,17 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
     return false;
   }, []);
 
+  const updateSingleBarberMode = useCallback(async (single: boolean) => {
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key: 'single_barber_mode', value: String(single) }, { onConflict: 'key' });
+    if (!error) {
+      setSingleBarberMode(single);
+      return true;
+    }
+    return false;
+  }, []);
+
   return (
     <BarberSettingsContext.Provider
       value={{
@@ -265,6 +284,7 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
         brandLogo,
         brandLoginBg,
         onboardingCompleted,
+        singleBarberMode,
         loading,
         updateBarberName,
         updateBarberPhone,
@@ -274,6 +294,7 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
         updateBarberInstagram,
         updateBarberHours,
         updateOnboardingCompleted,
+        updateSingleBarberMode,
         refetch,
       }}
     >
@@ -303,6 +324,7 @@ export function useBarberSettings() {
       brandLogo: '',
       brandLoginBg: '',
       onboardingCompleted: false,
+      singleBarberMode: false,
       loading: false,
       updateBarberName: async () => false,
       updateBarberPhone: async () => false,
@@ -312,6 +334,7 @@ export function useBarberSettings() {
       updateBarberInstagram: async () => false,
       updateBarberHours: async () => false,
       updateOnboardingCompleted: async () => false,
+      updateSingleBarberMode: async () => false,
       refetch: async () => {},
     };
   }

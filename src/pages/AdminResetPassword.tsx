@@ -1,5 +1,5 @@
 import { useState, useEffect, type FC, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EyeOff, Eye, ChevronRight, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';

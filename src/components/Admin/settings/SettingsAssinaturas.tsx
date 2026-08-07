@@ -1,5 +1,6 @@
 import { type FC, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { useBarberContext } from '../../../contexts/BarberContext';
 import {
   checkSubscriptionStatus,
   markAsPaid,
@@ -19,7 +20,7 @@ interface BarberWithSub {
 
 const SettingsAssinaturas: FC = () => {
   const { toast, showSuccess, showError } = useToast();
-  const [isElberth, setIsElberth] = useState<boolean | null>(null);
+  const { isOwner, loading: barbersLoading } = useBarberContext();
 
   const [barbers, setBarbers] = useState<BarberWithSub[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,14 +31,6 @@ const SettingsAssinaturas: FC = () => {
   const [pixInput, setPixInput] = useState('');
   const [savingPix, setSavingPix] = useState(false);
   const [copiedPix, setCopiedPix] = useState(false);
-
-  // Check if user is Elberth
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      const email = data.session?.user?.email;
-      setIsElberth(email === 'elberthmayan2007@gmail.com');
-    });
-  }, []);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -76,8 +69,8 @@ const SettingsAssinaturas: FC = () => {
 
   /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
   useEffect(() => {
-    if (isElberth) loadData();
-  }, [isElberth]);
+    if (isOwner) loadData();
+  }, [isOwner]);
   /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   const handleConfirm = async (barberId: string) => {
@@ -112,15 +105,16 @@ const SettingsAssinaturas: FC = () => {
     }
   };
 
-  // Auth gate
-  if (isElberth === false) return null;
-  if (isElberth === null) {
+  // Auth gate: somente dono (is_owner) gerencia assinaturas.
+  // O perfil de suporte/dev também é is_owner no banco — regra configurável.
+  if (barbersLoading) {
     return (
       <div className="flex items-center justify-center py-16">
         <Loader2 size={20} className="animate-spin text-zinc-600" />
       </div>
     );
   }
+  if (!isOwner) return null;
 
   if (loading || pixKeyLoading) {
     return (

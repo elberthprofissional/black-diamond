@@ -3,6 +3,10 @@ import { test, expect } from '@playwright/test';
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
 const isLocal = BASE_URL.includes('localhost');
 
+// Telefone único por execução: evita acumular bookings no limite de 3/dia por telefone
+// (o script scripts/limpar-testes-e2e.mjs continua limpando pelos NOMES de teste)
+const testPhone = `1199${String(Date.now()).slice(-7)}`;
+
 test.describe('Fluxo de Agendamento', () => {
   test('usuário consegue agendar do início ao fim', async ({ page }) => {
     test.skip(isLocal, 'Booking requires live Supabase connection');
@@ -12,8 +16,12 @@ test.describe('Fluxo de Agendamento', () => {
     await expect(page.locator('[data-testid="input-name"]').first()).toBeVisible({
       timeout: 10000,
     });
-    await page.locator('[data-testid="input-name"]').first().fill('Cliente Teste E2E');
-    await page.locator('[data-testid="input-phone"]').first().fill('11999887766');
+    await page.waitForLoadState('networkidle').catch(() => {});
+    await page.waitForTimeout(700); // aguarda transição skeleton → form
+    const nameInput = page.locator('[data-testid="input-name"]').first();
+    await nameInput.click();
+    await nameInput.pressSequentially('Cliente Teste E2E');
+    await page.locator('[data-testid="input-phone"]').first().pressSequentially(testPhone);
     await page.click('[data-testid="next-step"]');
 
     // Step 2: Selecionar serviço
@@ -64,8 +72,14 @@ test.describe('Fluxo de Agendamento', () => {
     await page.goto('/agendar');
 
     // Preencher dados
-    await page.locator('[data-testid="input-name"]').first().fill('Cliente Teste WA');
-    await page.locator('[data-testid="input-phone"]').first().fill('11999887766');
+    await expect(page.locator('[data-testid="input-name"]').first()).toBeVisible({
+      timeout: 10000,
+    });
+    await page.waitForTimeout(700); // aguarda transição skeleton → form
+    const nameInput = page.locator('[data-testid="input-name"]').first();
+    await nameInput.click();
+    await nameInput.pressSequentially('Cliente Teste WA');
+    await page.locator('[data-testid="input-phone"]').first().pressSequentially(testPhone);
     await page.click('[data-testid="next-step"]');
 
     // Selecionar serviço

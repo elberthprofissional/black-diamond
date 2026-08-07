@@ -5,6 +5,24 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.36.0] - 2026-08-06
+
+### Fix (Auditoria 360°)
+- **Fluxo de agendamento público corrigido** — a tela de sucesso (passo 6) era inalcançável porque o `onComplete` setava o passo 5; o wizard agora tem 4 passos reais (Dados → Serviços → Data/Hora → Revisão) e a confirmação avança para o sucesso corretamente.
+- **Passo de barbeiro oculto com 1 barbeiro** — a etapa "Escolha o barbeiro" foi removida do fluxo público; só aparece quando há mais de um barbeiro ativo (multi-barbeiro segue suportado via migration `007`).
+- **`react-router-dom@7` → `react-router@8.3.0`** — elimina a última vulnerabilidade high de produção (`GHSA-qwww-vcr4-c8h2`, CSRF em RSC; app é SPA sem RSC, mas a versão 7.18.2 continua na faixa afetada). `npm audit --omit=dev` agora reporta **0 vulnerabilidades**.
+- **CI corrigido** — o job `security` rodava `npm audit` completo e falhava por vulns **dev-only** (Lighthouse CI, undici, uuid), bloqueando o deploy documentado. Agora audita apenas dependências de produção e os triggers cobrem `main`, `master` e `develop`.
+- **AuthGuard valida `is_admin`** — antes qualquer usuário autenticado (mesmo não-admin) abria as telas admin; agora o guard consulta `is_admin()` (GRANT EXECUTE garantido na migration `008`) e desloga não-admins.
+- **Policy pública de `bookings` removida (migration `008`)** — a chave anon podia ler `notes`, `total_price`, `discount_amount` e `client_id` de TODOS os agendamentos (histórico completo). Consultas públicas passam por RPCs `SECURITY DEFINER` com rate limit.
+- **Migration `007` integrada ao mega-arquivo** — `_RODAR_NO_SQL_EDITOR.sql` agora cobre 001→008 (antes parava na 006), eliminando a inconsistência entre ambientes.
+
+### Security
+- `GRANT EXECUTE ON FUNCTION is_admin() TO authenticated` para suportar a validação do AuthGuard.
+
+### Tests
+- `useWizardStep.test.ts` atualizado para o fluxo de 4 passos.
+- **116 arquivos, 1211 testes — 100% passando. TypeScript 0 erros. ESLint 0 erros. Audit de produção 0 vulnerabilidades.**
+
 ## [3.35.1] - 2026-08-06
 
 ### Removed

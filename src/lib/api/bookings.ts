@@ -97,7 +97,9 @@ export const getBookings = async (
   }
 
   if (barberId) {
-    query = query.eq('barber_id', barberId);
+    // Inclui os bookings do barbeiro E os bloqueios globais (barber_id NULL),
+    // para que slots bloqueados (almoço, folga) apareçam ocupados na visão dele.
+    query = query.or(`barber_id.eq.${barberId},barber_id.is.null`);
   }
 
   const { data, error, count } = await query;

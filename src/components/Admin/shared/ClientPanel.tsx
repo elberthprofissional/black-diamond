@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, memo, type FC } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,

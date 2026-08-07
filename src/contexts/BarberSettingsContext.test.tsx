@@ -74,6 +74,7 @@ describe('BarberSettingsContext', () => {
     expect(result.current.barberBio).toBe('Barbeiro há 10 anos');
     expect(result.current.barberQuote).toBe('"O melhor corte da cidade"');
     expect(result.current.barberInstagram).toBe('@tatobarber');
+    expect(result.current.singleBarberMode).toBe(false);
   });
 
   it('retorna valores default quando não está dentro de um provider', () => {
@@ -251,6 +252,35 @@ describe('BarberSettingsContext', () => {
       { key: 'barber_quote', value: '"Nova frase"' },
       { onConflict: 'key' }
     );
+  });
+
+  it('updateSingleBarberMode salva e atualiza estado', async () => {
+    const { result } = renderHook(() => useBarberSettings(), { wrapper: Wrapper });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    mockBuilder.upsert.mockResolvedValue({ error: null });
+
+    let success = false;
+    await act(async () => {
+      success = await result.current.updateSingleBarberMode(true);
+    });
+
+    expect(success).toBe(true);
+    expect(mockBuilder.upsert).toHaveBeenCalledWith(
+      { key: 'single_barber_mode', value: 'true' },
+      { onConflict: 'key' }
+    );
+    expect(result.current.singleBarberMode).toBe(true);
+  });
+
+  it('carrega single_barber_mode do banco quando true', async () => {
+    mockDataSnapshot = [...mockSettingsData, { key: 'single_barber_mode', value: 'true' }];
+    const { result } = renderHook(() => useBarberSettings(), { wrapper: Wrapper });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.singleBarberMode).toBe(true);
   });
 
   it('dispara evento customizado ao atualizar telefone', async () => {

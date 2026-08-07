@@ -1,5 +1,5 @@
 import { useState, useMemo, lazy, Suspense, type FC } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import { AnimatePresence } from 'framer-motion';
 import { useClients } from '../hooks/useClients';
 import ReminderFilterTabs from '../components/Admin/shared/ReminderFilterTabs';

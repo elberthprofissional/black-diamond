@@ -4,11 +4,13 @@ import { STORAGE_CLIENT_SESSION } from './constants';
 export interface ClientSession {
   phone: string;
   name: string;
+  /** Cliente criou uma senha? (controla o convite "Proteger meu acesso" no dashboard) */
+  hasPassword?: boolean;
 }
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-function read(): { phone: string; name: string; expiresAt: number } | null {
+function read(): { phone: string; name: string; hasPassword?: boolean; expiresAt: number } | null {
   try {
     const saved = localStorage.getItem(STORAGE_CLIENT_SESSION);
     if (!saved) return null;
@@ -31,15 +33,15 @@ export function getClientSession(): ClientSession | null {
     localStorage.removeItem(STORAGE_CLIENT_SESSION);
     return null;
   }
-  return { phone: session.phone, name: session.name };
+  return { phone: session.phone, name: session.name, hasPassword: session.hasPassword };
 }
 
 /** Salva (ou renova) a sessão do cliente. */
-export function saveClientSession(phone: string, name: string) {
+export function saveClientSession(phone: string, name: string, hasPassword?: boolean) {
   try {
     localStorage.setItem(
       STORAGE_CLIENT_SESSION,
-      JSON.stringify({ phone, name, expiresAt: Date.now() + SESSION_TTL_MS })
+      JSON.stringify({ phone, name, hasPassword, expiresAt: Date.now() + SESSION_TTL_MS })
     );
   } catch {
     /* noop */

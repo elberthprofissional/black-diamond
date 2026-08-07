@@ -1,6 +1,6 @@
 import { useState, type FC } from 'react';
 import { Check, ArrowLeft, Link2, CalendarClock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useBarberSettings } from '../../hooks/useBarberSettings';
 
 interface SuccessStepProps {

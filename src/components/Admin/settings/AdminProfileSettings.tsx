@@ -16,6 +16,7 @@ import {
   Users,
 } from 'lucide-react';
 import SettingsList from './SettingsList';
+import { useBarberContext } from '../../../contexts/BarberContext';
 
 const SettingsConta = lazy(() => import('./SettingsConta'));
 const SettingsGaleria = lazy(() => import('./SettingsGaleria'));
@@ -70,95 +71,119 @@ interface Props {
 
 const Fallback = () => <div className="skeleton-pulse h-32" />;
 
-const AdminProfileSettings: FC<Props> = ({ settingsSection, setSettingsSection }) => (
-  <>
-    {/* Mobile header */}
-    <div className="lg:hidden flex items-center gap-3 px-4 -mt-1 mb-4">
-      <button
-        onClick={() => {
-          if (settingsSection) setSettingsSection(null);
-          else setSettingsSection('__back');
-        }}
-        className="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors cursor-pointer"
-        aria-label="Voltar"
-      >
-        <ArrowLeft size={20} />
-      </button>
-      <div className="flex-1">
-        <h1 className="text-lg font-bold tracking-tight text-white">
-          {sectionTitle(settingsSection)}
-        </h1>
-      </div>
-    </div>
+/** Seções de negócio — apenas o dono gerencia. Barbeiros comuns ficam com Conta e Notificações. */
+const OWNER_ONLY_IDS = new Set([
+  'galeria',
+  'servicos',
+  'horarios',
+  'barbeiros',
+  'faltas',
+  'fidelidade',
+  'cupons',
+  'mensalista',
+  'assinaturas',
+  'dados',
+]);
 
-    {/* Mobile: list or section */}
-    <div className="lg:hidden">
-      {settingsSection === null && <SettingsList onSelect={setSettingsSection} />}
-      <Suspense fallback={<Fallback />}>
-        {settingsSection === 'conta' && <SettingsConta />}
-        {settingsSection === 'galeria' && <SettingsGaleria />}
-        {settingsSection === 'servicos' && <SettingsServicos />}
-        {settingsSection === 'horarios' && <SettingsHorarios />}
-        {settingsSection === 'barbeiros' && <SettingsBarbeiros />}
-        {settingsSection === 'faltas' && <SettingsFaltas />}
-        {settingsSection === 'fidelidade' && <SettingsFidelidade />}
-        {settingsSection === 'cupons' && <SettingsCupons />}
-        {settingsSection === 'mensalista' && <SettingsMensalista />}
-        {settingsSection === 'assinaturas' && <SettingsAssinaturas />}
-        {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
-        {settingsSection === 'dados' && <SettingsDados />}
-      </Suspense>
-    </div>
+const AdminProfileSettings: FC<Props> = ({ settingsSection, setSettingsSection }) => {
+  const { isOwner } = useBarberContext();
+  // Telas de negócio só para o dono — barbeiros comuns não veem nem acessam.
+  const navItems = isOwner ? NAV_ITEMS : NAV_ITEMS.filter((item) => !OWNER_ONLY_IDS.has(item.id)); // Guard: barbeiro comum não pode abrir seção de dono por URL/estado residual
+  const effectiveSection =
+    settingsSection && !isOwner && OWNER_ONLY_IDS.has(settingsSection) ? 'conta' : settingsSection;
 
-    {/* Desktop: sidebar + content */}
-    <div className="hidden lg:flex gap-8 items-start">
-      <div className="w-[200px] shrink-0 sticky top-6 self-start">
-        <div className="space-y-2">
-          <h2 className="label-gold px-3 mb-4">Configurações</h2>
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const active = (settingsSection || 'conta') === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setSettingsSection(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] transition-all cursor-pointer ${active ? 'bg-white/5 text-white font-medium' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03]'}`}
-              >
-                <Icon size={15} className={active ? 'text-gold' : 'text-zinc-500'} />
-                {item.label}
-              </button>
-            );
-          })}
+  return (
+    <>
+      {/* Mobile header */}
+      <div className="lg:hidden flex items-center gap-3 px-4 -mt-1 mb-4">
+        <button
+          onClick={() => {
+            if (settingsSection) setSettingsSection(null);
+            else setSettingsSection('__back');
+          }}
+          className="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+          aria-label="Voltar"
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <div className="flex-1">
+          <h1 className="text-lg font-bold tracking-tight text-white">
+            {sectionTitle(effectiveSection)}
+          </h1>
         </div>
       </div>
-      <div className="flex-1 min-w-0 min-h-[600px]">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={settingsSection || 'conta'}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
-          >
-            <Suspense fallback={<Fallback />}>
-              {(!settingsSection || settingsSection === 'conta') && <SettingsConta />}
-              {settingsSection === 'galeria' && <SettingsGaleria />}
-              {settingsSection === 'servicos' && <SettingsServicos />}
-              {settingsSection === 'horarios' && <SettingsHorarios />}
-              {settingsSection === 'barbeiros' && <SettingsBarbeiros />}
-              {settingsSection === 'faltas' && <SettingsFaltas />}
-              {settingsSection === 'fidelidade' && <SettingsFidelidade />}
-              {settingsSection === 'cupons' && <SettingsCupons />}
-              {settingsSection === 'mensalista' && <SettingsMensalista />}
-              {settingsSection === 'assinaturas' && <SettingsAssinaturas />}
-              {settingsSection === 'notificacoes' && <SettingsNotificacoes />}
-              {settingsSection === 'dados' && <SettingsDados />}
-            </Suspense>
-          </motion.div>
-        </AnimatePresence>
+
+      {/* Mobile: list or section */}
+      <div className="lg:hidden">
+        {settingsSection === null && (
+          <SettingsList onSelect={setSettingsSection} isOwner={isOwner} />
+        )}
+        <Suspense fallback={<Fallback />}>
+          {effectiveSection === 'conta' && <SettingsConta />}
+          {effectiveSection === 'galeria' && <SettingsGaleria />}
+          {effectiveSection === 'servicos' && <SettingsServicos />}
+          {effectiveSection === 'horarios' && <SettingsHorarios />}
+          {effectiveSection === 'barbeiros' && <SettingsBarbeiros />}
+          {effectiveSection === 'faltas' && <SettingsFaltas />}
+          {effectiveSection === 'fidelidade' && <SettingsFidelidade />}
+          {effectiveSection === 'cupons' && <SettingsCupons />}
+          {effectiveSection === 'mensalista' && <SettingsMensalista />}
+          {effectiveSection === 'assinaturas' && <SettingsAssinaturas />}
+          {effectiveSection === 'notificacoes' && <SettingsNotificacoes />}
+          {effectiveSection === 'dados' && <SettingsDados />}
+        </Suspense>
       </div>
-    </div>
-  </>
-);
+
+      {/* Desktop: sidebar + content */}
+      <div className="hidden lg:flex gap-8 items-start">
+        <div className="w-[200px] shrink-0 sticky top-6 self-start">
+          <div className="space-y-2">
+            <h2 className="label-gold px-3 mb-4">Configurações</h2>
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active = (effectiveSection || 'conta') === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setSettingsSection(item.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] transition-all cursor-pointer ${active ? 'bg-white/5 text-white font-medium' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03]'}`}
+                >
+                  <Icon size={15} className={active ? 'text-gold' : 'text-zinc-500'} />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="flex-1 min-w-0 min-h-[600px]">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={effectiveSection || 'conta'}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
+            >
+              <Suspense fallback={<Fallback />}>
+                {(!effectiveSection || effectiveSection === 'conta') && <SettingsConta />}
+                {effectiveSection === 'galeria' && <SettingsGaleria />}
+                {effectiveSection === 'servicos' && <SettingsServicos />}
+                {effectiveSection === 'horarios' && <SettingsHorarios />}
+                {effectiveSection === 'barbeiros' && <SettingsBarbeiros />}
+                {effectiveSection === 'faltas' && <SettingsFaltas />}
+                {effectiveSection === 'fidelidade' && <SettingsFidelidade />}
+                {effectiveSection === 'cupons' && <SettingsCupons />}
+                {effectiveSection === 'mensalista' && <SettingsMensalista />}
+                {effectiveSection === 'assinaturas' && <SettingsAssinaturas />}
+                {effectiveSection === 'notificacoes' && <SettingsNotificacoes />}
+                {effectiveSection === 'dados' && <SettingsDados />}
+              </Suspense>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+    </>
+  );
+};
 
 export default AdminProfileSettings;

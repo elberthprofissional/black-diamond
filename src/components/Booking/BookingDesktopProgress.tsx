@@ -4,17 +4,41 @@ interface BookingDesktopProgressProps {
   step: number;
   stepTitle: string;
   goBack?: () => void;
+  totalSteps?: number;
 }
 
-const STEP_LABELS = ['', 'Dados', 'Serviços', 'Horário'];
+const STEP_LABELS_4 = ['', 'Dados', 'Serviços', 'Horário'];
+const STEP_LABELS_5 = ['', 'Dados', 'Serviços', 'Barbeiro', 'Horário'];
 
-const BookingDesktopProgress: FC<BookingDesktopProgressProps> = ({ step, stepTitle, goBack }) => {
-  if (step >= 4) return null;
+const BookingDesktopProgress: FC<BookingDesktopProgressProps> = ({
+  step,
+  stepTitle,
+  goBack,
+  totalSteps = 4,
+}) => {
+  const hasBarberStep = totalSteps === 5;
+  // A última etapa (revisão) não mostra o progresso
+  const lastShown = totalSteps - 1;
+  if (step >= totalSteps) return null;
+
+  const labels = hasBarberStep ? STEP_LABELS_5 : STEP_LABELS_4;
+  const subtitle =
+    step === 1
+      ? 'Preencha suas informações'
+      : step === 2
+        ? 'Escolha os serviços'
+        : step === 3
+          ? hasBarberStep
+            ? 'Escolha o barbeiro'
+            : 'Defina data e horário'
+          : step === 4
+            ? 'Defina data e horário'
+            : '';
 
   return (
     <div className="px-6 lg:px-10 xl:px-14 py-4 lg:py-6 flex items-center justify-between border-b border-white/[0.04]">
       <div className="flex items-center gap-5">
-        {step > 1 && step < 4 && goBack && (
+        {step > 1 && step < totalSteps && goBack && (
           <button
             onClick={goBack}
             aria-label="Voltar para o passo anterior"
@@ -34,21 +58,17 @@ const BookingDesktopProgress: FC<BookingDesktopProgressProps> = ({ step, stepTit
             </svg>
           </button>
         )}
-        {step < 4 && (
+        {step < totalSteps && (
           <div>
             <h2 className="text-lg xl:text-xl font-bold text-white">{stepTitle}</h2>
-            <p className="text-[12px] text-zinc-500 mt-0.5">
-              {step === 1 && 'Preencha suas informações'}
-              {step === 2 && 'Escolha os serviços'}
-              {step === 3 && 'Defina data e horário'}
-            </p>
+            <p className="text-[12px] text-zinc-500 mt-0.5">{subtitle}</p>
           </div>
         )}
       </div>
 
-      {step < 4 && (
+      {step < totalSteps && (
         <div className="flex items-center gap-3" role="list" aria-label="Progresso do agendamento">
-          {[1, 2, 3].map((s, i) => (
+          {Array.from({ length: lastShown }, (_, i) => i + 1).map((s, i) => (
             <Fragment key={s}>
               <div
                 role="listitem"
@@ -69,9 +89,9 @@ const BookingDesktopProgress: FC<BookingDesktopProgressProps> = ({ step, stepTit
                 >
                   {step > s ? '✓' : s}
                 </span>
-                <span className="hidden xl:inline text-zinc-400">{STEP_LABELS[s]}</span>
+                <span className="hidden xl:inline text-zinc-400">{labels[s]}</span>
               </div>
-              {i < 2 && (
+              {i < lastShown - 1 && (
                 <div className={`w-6 h-px ${step > s ? 'bg-gold/30' : 'bg-white/[0.06]'}`} />
               )}
             </Fragment>

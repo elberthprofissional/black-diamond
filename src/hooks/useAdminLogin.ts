@@ -1,5 +1,5 @@
 import { useCallback, useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { supabase } from '../lib/supabase';
 import { useToast } from './useToast';
 import { useModalA11y } from './useModalA11y';

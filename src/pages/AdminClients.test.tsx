@@ -1,7 +1,7 @@
 import { createElement, type ReactNode } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router';
 
 vi.mock('../components/Admin/AuthGuard', () => ({
   default: ({ children }: { children: ReactNode }) => children,

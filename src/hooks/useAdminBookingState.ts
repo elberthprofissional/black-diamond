@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router';
 import { getBookings } from '../lib/api';
 import { useToast } from './useToast';
 import { getNextDays } from '../lib/utils';
@@ -28,7 +28,7 @@ export function useAdminBookingState() {
   const rescheduleBooking = location.state?.rescheduleBooking;
 
   const { services } = useServices();
-  const { barberPhone: settingsBarberPhone } = useBarberSettings();
+  const { barberPhone: settingsBarberPhone, singleBarberMode } = useBarberSettings();
   const { barbers, currentBarber } = useBarberContext();
   const { showError } = useToast();
   const [existingBookings, setExistingBookings] = useState<Booking[]>([]);
@@ -36,8 +36,14 @@ export function useAdminBookingState() {
   // ── Multi-barbeiro: barbeiro escolhido para o agendamento ──
   // selectedBarber = escolha explícita do admin; effectiveBarber faz fallback
   // para o barbeiro logado (ou o primeiro ativo) quando nada foi escolhido.
+  // Em modo solo (singleBarberMode), ignora qualquer seleção explícita: usa
+  // sempre o barbeiro principal.
   const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
   const defaultBarber = useMemo(() => {
+    // Modo solo: sempre o primeiro barbeiro ativo (barbeiro único/principal)
+    if (singleBarberMode) {
+      return barbers.find((b) => b.is_active) ?? barbers[0] ?? null;
+    }
     if (
       currentBarber &&
       currentBarber.is_active &&
@@ -46,8 +52,8 @@ export function useAdminBookingState() {
       return currentBarber;
     }
     return barbers.find((b) => b.is_active) ?? barbers[0] ?? null;
-  }, [barbers, currentBarber]);
-  const effectiveBarber = selectedBarber ?? defaultBarber;
+  }, [barbers, currentBarber, singleBarberMode]);
+  const effectiveBarber = singleBarberMode ? defaultBarber : (selectedBarber ?? defaultBarber);
 
   const selectedBarberPhone = effectiveBarber?.phone || settingsBarberPhone || '';
   const selectedBarberUserId = effectiveBarber?.user_id;
@@ -348,6 +354,7 @@ export function useAdminBookingState() {
     isPreFilled,
     isSubmitting,
     barbers,
+    singleBarberMode,
     selectedBarber: effectiveBarber,
     setSelectedBarber,
 
