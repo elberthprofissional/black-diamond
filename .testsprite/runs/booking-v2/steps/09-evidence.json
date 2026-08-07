@@ -1,8 +1,0 @@
-[
-  {
-    "kind": "snapshot",
-    "stepIndex": 9,
-    "summary": "Step 9 'Rolar a página da etapa 'Serviços' para revelar os cards de serviço e etiquetas de preço (por exemplo, textos com 'R$' ou nomes de serviço' passed.",
-    "path": "steps/09-snapshot.html"
-  }
-]

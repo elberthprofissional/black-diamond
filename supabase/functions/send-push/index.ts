@@ -27,7 +27,7 @@ interface PushPayload {
 }
 
 const ALLOWED_ORIGINS = [
-  'https://black-diamond.vercel.app',
+  'https://black-diamond-wheat.vercel.app',
   'http://localhost:5173',
   'http://localhost:5174',
   /^https:\/\/black-diamond-.*vercel\.app$/,

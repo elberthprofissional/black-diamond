@@ -85,7 +85,7 @@ export function useReminders() {
           setTemplates(dbTemplates);
           templatesRef.current = dbTemplates;
         } else {
-          const baseUrl = import.meta.env.VITE_SITE_URL || 'https://black-diamond.vercel.app';
+          const baseUrl = import.meta.env.VITE_SITE_URL || 'https://black-diamond-wheat.vercel.app';
           const siteUrl = baseUrl + '/agendar';
           const defaults = getSeasonalTemplates(siteUrl);
           const now = new Date().toISOString();

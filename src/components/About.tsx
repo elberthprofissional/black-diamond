@@ -103,7 +103,7 @@ const About: FC = () => {
   // ── FALLBACK: perfil único via settings (sem barbeiros na tabela) ──
   if (displayBarbers.length === 0) {
     const hasPhoto = !!barberPhoto && !photoError;
-    const displayPhoto = hasPhoto ? barberPhoto : '/assets/tato-portrait.jpg';
+    const displayPhoto = hasPhoto ? barberPhoto : '/assets/tato.webp';
     const displayName = barberName || 'Barbeiro';
     const displayBio = barberBio || FALLBACK_BIO;
     const displayQuote = barberQuote;

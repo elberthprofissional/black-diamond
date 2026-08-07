@@ -797,7 +797,7 @@ $$ LANGUAGE plpgsql SECURITY INVOKER;
 
 -- CONFIGURACAO PADRAO
 
-INSERT INTO settings (key, value) VALUES ('site_url', 'https://black-diamond.vercel.app')
+INSERT INTO settings (key, value) VALUES ('site_url', 'https://black-diamond-wheat.vercel.app')
 ON CONFLICT (key) DO NOTHING;
 
 -- GATILHO: NOTIFICACAO AO CRIAR AGENDAMENTO (via token)
@@ -835,7 +835,7 @@ BEGIN
 
     v_clean_phone := regexp_replace(v_client.phone, '\D', '', 'g');
 
-    SELECT COALESCE(value, 'https://black-diamond.vercel.app') INTO v_site_url
+    SELECT COALESCE(value, 'https://black-diamond-wheat.vercel.app') INTO v_site_url
     FROM settings WHERE key = 'site_url';
 
     v_manage_url := v_site_url || '/gerenciar?token=' || NEW.token;

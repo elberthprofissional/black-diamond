@@ -263,7 +263,7 @@ BEGIN
 
     v_clean_phone := regexp_replace(v_client.phone, '\D', '', 'g');
 
-    SELECT COALESCE(value, 'https://black-diamond.vercel.app') INTO v_site_url
+    SELECT COALESCE(value, 'https://black-diamond-wheat.vercel.app') INTO v_site_url
     FROM settings WHERE key = 'site_url';
 
     v_manage_url := v_site_url || '/gerenciar?token=' || NEW.token;

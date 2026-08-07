@@ -12,10 +12,10 @@ interface SEOProps {
 }
 
 const SITE_NAME = 'Black Diamond Barbearia';
-const SITE_URL = import.meta.env.VITE_SITE_URL || 'https://black-diamond.vercel.app';
+const SITE_URL = import.meta.env.VITE_SITE_URL || 'https://black-diamond-wheat.vercel.app';
 const DEFAULT_DESCRIPTION =
   'Agende seu horário na Black Diamond Barbearia. Cortes, barba e serviços premium em Campinas.';
-const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.webp`;
+const DEFAULT_OG_IMAGE = `${SITE_URL}/assets/og-image.png`;
 
 export function useSEO({
   title,

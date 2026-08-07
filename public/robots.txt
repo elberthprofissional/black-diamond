@@ -6,6 +6,6 @@ Allow: /gerenciar
 Allow: /cliente
 Disallow: /admin/
 
-Sitemap: https://black-diamond.vercel.app/sitemap.xml
+Sitemap: https://black-diamond-wheat.vercel.app/sitemap.xml
 
 # Crawl-delay: 10
