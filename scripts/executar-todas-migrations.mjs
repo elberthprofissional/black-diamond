@@ -39,13 +39,16 @@ const HEADERS = {
 
 // ─── MIGRATIONS EM ORDEM ─────────────────────────────────────────────────────
 
-const MIGRATIONS = [
-  { file: '001_schema_rls.sql',            desc: 'Schema + RLS + Storage' },
-  { file: '002_functions_triggers.sql',    desc: 'Funções + Triggers + Seed + Cron' },
-  { file: '003_features_fixes.sql',        desc: 'Features (barbers, mensalista) + Fixes' },
-  { file: '004_subscriptions_pix.sql',     desc: 'Assinaturas PIX + Bloqueio + Fix agendamento' },
-  { file: '005_performance_auditoria.sql', desc: 'Índices + View dashboard + Auditoria' },
-];
+import { readdirSync } from 'fs';
+
+const migrationFiles = readdirSync(resolve(ROOT, 'supabase/migrations'))
+  .filter((f) => f.endsWith('.sql'))
+  .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+const MIGRATIONS = migrationFiles.map((file) => ({
+  file,
+  desc: `Migration ${file}`,
+}));
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 

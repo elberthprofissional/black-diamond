@@ -1,45 +1,36 @@
 /**
  * regenerate-mega.mjs
- * Regenera scripts/_RODAR_NO_SQL_EDITOR.sql a partir dos 5 arquivos
- * consolidados finais em supabase/migrations/. Este é o arquivo único
- * para colar no SQL Editor do Supabase.
+ * Regenera supabase/_RODAR_NO_SQL_EDITOR.sql a partir de todas as migrations
+ * em supabase/migrations/*.sql em ordem numéica.
  */
-import { readFileSync, writeFileSync } from 'fs';
+import { readdirSync, readFileSync, writeFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
+const MIGRATIONS_DIR = resolve(ROOT, 'supabase/migrations');
 
-const FILES = [
-  '001_schema_rls.sql',
-  '002_functions_triggers.sql',
-  '003_features_fixes.sql',
-  '004_subscriptions_pix.sql',
-  '005_performance_auditoria.sql',
-  '006_rls_estricto.sql',
-  '011_barber_scope_rls.sql',
-  '012_secure_bookings_public_access.sql',
-  '013_barber_availability_fix.sql',
-  '014_login_contas.sql',
-];
+const files = readdirSync(MIGRATIONS_DIR)
+  .filter((f) => f.endsWith('.sql'))
+  .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
 const header = `-- =========================================================================
--- BLACK DIAMOND — TODAS AS MIGRATIONS (001 → 014)
+-- BLACK DIAMOND — TODAS AS MIGRATIONS CONSOLIDADAS (${files[0]} → ${files[files.length - 1]})
 -- =========================================================================
 -- Arquivo gerado por scripts/regenerate-mega.mjs a partir de
--- supabase/migrations/*.sql. Cole TUDO no SQL Editor do Supabase
--- e execute em ordem (o arquivo já está na ordem correta).
+-- supabase/migrations/*.sql. Cole TUDO no SQL Editor do Supabase.
 -- =========================================================================
 
 `;
 
 let out = header;
-for (const f of FILES) {
-  const content = readFileSync(resolve(ROOT, 'supabase/migrations', f), 'utf8');
+for (const f of files) {
+  const content = readFileSync(resolve(MIGRATIONS_DIR, f), 'utf8');
   out += `\n-- >>> MIGRATION: ${f} <<<\n\n`;
   out += content.trimEnd() + '\n';
 }
 
-writeFileSync(resolve(ROOT, 'scripts/_RODAR_NO_SQL_EDITOR.sql'), out);
-console.log(`✅ _RODAR_NO_SQL_EDITOR.sql regenerado (${out.split('\n').length} linhas)`);
+const outputPath = resolve(ROOT, 'supabase/_RODAR_NO_SQL_EDITOR.sql');
+writeFileSync(outputPath, out);
+console.log(`✅ supabase/_RODAR_NO_SQL_EDITOR.sql regenerado com ${files.length} migrations (${out.split('\n').length} linhas)`);
