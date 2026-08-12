@@ -1,7 +1,16 @@
 import { useState, useEffect, memo, type FC, type FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router';
-import { Loader2, ArrowLeft, Phone, ShieldCheck, Smartphone, Lock, KeyRound } from 'lucide-react';
+import {
+  Loader2,
+  ArrowLeft,
+  Phone,
+  ShieldCheck,
+  Smartphone,
+  Lock,
+  KeyRound,
+  Mail,
+} from 'lucide-react';
 import {
   getBookingsByPhone,
   getClientByPhone,
@@ -9,7 +18,12 @@ import {
   getServices,
   getClientDashboard,
 } from '../lib/api';
-import { verificarSenhaCliente, criarSenhaCliente } from '../lib/api/clientAuth';
+import {
+  verificarSenhaCliente,
+  criarSenhaCliente,
+  atualizarEmailCliente,
+  alterarSenhaCliente,
+} from '../lib/api/clientAuth';
 import { getMensalistaPlanName, getMensalistaPlanServices } from '../lib/api/mensalista';
 import { formatPhone } from '../lib/utils';
 import { logError } from '../lib/logger';
@@ -120,8 +134,18 @@ const ClientProfile: FC = () => {
   const [step, setStep] = useState<Step>(initialSession ? 'dashboard' : 'phone');
   const [phone, setPhone] = useState(initialSession?.phone ?? '');
   const [clientName, setClientName] = useState(initialSession?.name ?? '');
-  const [needsPassword, setNeedsPassword] = useState(false);
+  const [needsPassword, setNeedsPassword] = useState(initialSession?.hasPassword ?? false);
   const [password, setPassword] = useState('');
+  // ── Conta (e-mail + trocar senha) ──
+  const [clientEmail, setClientEmail] = useState('');
+  const [accountEmail, setAccountEmail] = useState('');
+  const [accountMsg, setAccountMsg] = useState('');
+  const [accountErr, setAccountErr] = useState('');
+  const [accountBusy, setAccountBusy] = useState(false);
+  const [pwCurrent, setPwCurrent] = useState('');
+  const [pwNew, setPwNew] = useState('');
+  const [pwConfirm, setPwConfirm] = useState('');
+  const [pwBusy, setPwBusy] = useState(false);
   const [protectOpen, setProtectOpen] = useState(false);
   const [protectPassword, setProtectPassword] = useState('');
   const [protectConfirm, setProtectConfirm] = useState('');
@@ -146,6 +170,8 @@ const ClientProfile: FC = () => {
       const dashboard = await getClientDashboard(phoneNumber);
       if (!dashboard.stats) return null;
       const s = dashboard.stats;
+      setClientEmail(s.email || '');
+      setAccountEmail(s.email || '');
       if (s.is_mensalista && s.mensalista_plan_id) {
         try {
           const [planName, planServiceIds] = await Promise.all([
@@ -321,6 +347,67 @@ const ClientProfile: FC = () => {
     }
   };
 
+  /** Salva/atualiza o e-mail do cliente (canal de recuperação de senha). */
+  const handleSaveEmail = async (e: FormEvent) => {
+    e.preventDefault();
+    setAccountMsg('');
+    const email = accountEmail.trim();
+    if (!email) {
+      setAccountErr('Informe seu e-mail.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      setAccountErr('E-mail inválido.');
+      return;
+    }
+    setAccountErr('');
+    setAccountBusy(true);
+    try {
+      const result = await atualizarEmailCliente(phone.replace(/\D/g, ''), email);
+      if (result?.ok) {
+        setClientEmail(email);
+        setAccountMsg('E-mail salvo! Use-o para recuperar sua senha.');
+      } else {
+        setAccountErr(result?.message || 'Não foi possível salvar o e-mail.');
+      }
+    } catch {
+      setAccountErr('Erro ao salvar o e-mail. Tente novamente.');
+    } finally {
+      setAccountBusy(false);
+    }
+  };
+
+  /** Troca a senha (exige a senha atual). */
+  const handleChangePassword = async (e: FormEvent) => {
+    e.preventDefault();
+    setAccountMsg('');
+    if (pwNew.length < 6) {
+      setAccountErr('A nova senha precisa ter pelo menos 6 caracteres.');
+      return;
+    }
+    if (pwNew !== pwConfirm) {
+      setAccountErr('As senhas não coincidem.');
+      return;
+    }
+    setAccountErr('');
+    setPwBusy(true);
+    try {
+      const result = await alterarSenhaCliente(phone.replace(/\D/g, ''), pwCurrent, pwNew);
+      if (result?.ok) {
+        setAccountMsg('Senha alterada!');
+        setPwCurrent('');
+        setPwNew('');
+        setPwConfirm('');
+      } else {
+        setAccountErr(result?.message || 'Não foi possível alterar a senha.');
+      }
+    } catch {
+      setAccountErr('Erro ao alterar a senha. Tente novamente.');
+    } finally {
+      setPwBusy(false);
+    }
+  };
+
   const handleCancel = async (booking: BookingEntry) => {
     setCancellingId(booking.id);
     setConfirmCancel(null);
@@ -356,6 +443,13 @@ const ClientProfile: FC = () => {
     setProtectPassword('');
     setProtectConfirm('');
     setProtectMessage('');
+    setClientEmail('');
+    setAccountEmail('');
+    setAccountMsg('');
+    setAccountErr('');
+    setPwCurrent('');
+    setPwNew('');
+    setPwConfirm('');
   };
 
   const toggleHistory = () => {
@@ -484,6 +578,134 @@ const ClientProfile: FC = () => {
                     </button>
                   </div>
                 </form>
+              )}
+            </motion.div>
+
+            {/* Card: minha conta (e-mail + trocar senha) */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-[#111111] border border-white/[0.06] rounded-2xl p-4 mb-4"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-9 h-9 rounded-lg bg-gold/10 border border-gold/15 flex items-center justify-center shrink-0">
+                  <ShieldCheck size={15} className="text-gold" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[13px] font-bold text-white">Minha conta</p>
+                  <p className="text-[10px] text-zinc-500">
+                    E-mail para recuperar a senha e seus dados de acesso.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="relative">
+                  <Mail
+                    size={14}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"
+                  />
+                  <input
+                    type="email"
+                    value={accountEmail}
+                    onChange={(e) => {
+                      setAccountEmail(e.target.value);
+                      setAccountMsg('');
+                      setAccountErr('');
+                    }}
+                    placeholder="seu@email.com"
+                    data-testid="input-account-email"
+                    autoComplete="email"
+                    maxLength={120}
+                    className="w-full h-11 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-4 text-[14px] text-white outline-none focus:border-gold transition-all placeholder:text-zinc-600"
+                  />
+                </div>
+                <button
+                  onClick={handleSaveEmail}
+                  disabled={accountBusy}
+                  className="w-full h-10 rounded-xl border border-white/[0.08] bg-white/[0.02] text-zinc-300 hover:text-white hover:border-gold/30 text-[10px] font-bold uppercase tracking-[0.15em] transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  {accountBusy ? (
+                    <Loader2 size={13} className="animate-spin" />
+                  ) : (
+                    <>
+                      <Mail size={13} /> {clientEmail ? 'Atualizar e-mail' : 'Salvar e-mail'}
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {needsPassword && (
+                <div className="pt-3 mt-3 border-t border-white/[0.05] space-y-2">
+                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <KeyRound size={11} className="text-gold" /> Trocar senha
+                  </p>
+                  <input
+                    type="password"
+                    value={pwCurrent}
+                    onChange={(e) => {
+                      setPwCurrent(e.target.value);
+                      setAccountMsg('');
+                      setAccountErr('');
+                    }}
+                    placeholder="Senha atual"
+                    data-testid="input-pw-current"
+                    autoComplete="current-password"
+                    maxLength={128}
+                    className="w-full h-11 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[14px] text-white outline-none focus:border-gold transition-all placeholder:text-zinc-600"
+                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="password"
+                      value={pwNew}
+                      onChange={(e) => {
+                        setPwNew(e.target.value);
+                        setAccountMsg('');
+                        setAccountErr('');
+                      }}
+                      placeholder="Nova (mín. 6)"
+                      data-testid="input-pw-new"
+                      autoComplete="new-password"
+                      maxLength={128}
+                      className="flex-1 min-w-0 h-11 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[14px] text-white outline-none focus:border-gold transition-all placeholder:text-zinc-600"
+                    />
+                    <input
+                      type="password"
+                      value={pwConfirm}
+                      onChange={(e) => {
+                        setPwConfirm(e.target.value);
+                        setAccountMsg('');
+                        setAccountErr('');
+                      }}
+                      placeholder="Repetir"
+                      data-testid="input-pw-confirm"
+                      autoComplete="new-password"
+                      maxLength={128}
+                      className="flex-1 min-w-0 h-11 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[14px] text-white outline-none focus:border-gold transition-all placeholder:text-zinc-600"
+                    />
+                  </div>
+                  <button
+                    onClick={handleChangePassword}
+                    disabled={pwBusy}
+                    className="w-full h-10 rounded-xl bg-gold text-black font-bold text-[10px] uppercase tracking-[0.15em] hover:opacity-90 transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    {pwBusy ? (
+                      <Loader2 size={13} className="animate-spin" />
+                    ) : (
+                      <>
+                        <KeyRound size={13} /> Alterar senha
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {(accountMsg || accountErr) && (
+                <p
+                  className={`text-[11px] mt-2 text-center ${accountErr ? 'text-red-400' : 'text-emerald-400'}`}
+                >
+                  {accountErr || accountMsg}
+                </p>
               )}
             </motion.div>
 

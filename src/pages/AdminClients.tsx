@@ -195,6 +195,7 @@ const AdminClients: FC = () => {
               onToggleMensalista={c.handleToggleMensalista}
               expiresAt={c.expiresAt}
               onRenewMensalidade={c.handleRenewMensalidade}
+              onResetPassword={c.handleResetPassword}
               milestoneProgress={c.milestoneProgress}
             />
           </Suspense>

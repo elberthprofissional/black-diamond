@@ -14,6 +14,8 @@ export interface ClientStats {
   total_visits: number;
   total_spent: number;
   last_visit: string | null;
+  /** E-mail cadastrado (usado na recuperação de senha) — vazio se não tiver. */
+  email?: string;
 }
 
 export interface MensalistaInfo {

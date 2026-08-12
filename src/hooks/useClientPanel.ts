@@ -8,6 +8,7 @@ import {
   type MilestoneProgress,
 } from '../lib/api';
 import { getClientMilestones } from '../lib/api/loyalty';
+import { limparSenhaClienteAdmin } from '../lib/api/clientAuth';
 import { supabase } from '../lib/supabase';
 import { getErrorMessage, getLocalDateString } from '../lib/utils';
 import { useToast } from './useToast';
@@ -133,6 +134,33 @@ export function useClientPanel(
       setIsDeleteOpen(false);
     },
   });
+
+  // Mutation: admin redefine a senha do cliente (fallback de recuperação)
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (clientId: string) => {
+      const result = await limparSenhaClienteAdmin(clientId);
+      if (!result?.ok) {
+        throw new Error(result?.message || 'Não foi possível redefinir a senha.');
+      }
+      return result;
+    },
+    onSuccess: (result) => {
+      showSuccess(result?.name ? `Senha de ${result.name} removida!` : 'Senha removida!');
+    },
+    onError: (error) => {
+      showError(getErrorMessage(error));
+    },
+  });
+
+  const handleResetPassword = useCallback(async (): Promise<boolean> => {
+    if (!selectedClient) return false;
+    try {
+      await resetPasswordMutation.mutateAsync(selectedClient.id);
+      return true;
+    } catch {
+      return false;
+    }
+  }, [selectedClient, resetPasswordMutation]);
 
   // Mutation: alternar mensalista
   const toggleMensalistaMutation = useMutation({
@@ -343,6 +371,7 @@ export function useClientPanel(
     confirmDelete,
     handleToggleMensalista,
     handleRenewMensalidade,
+    handleResetPassword,
     expiresAt,
     setExpiresAt,
     panelTotal,

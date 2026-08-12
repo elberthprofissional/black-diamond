@@ -1,5 +1,5 @@
 import { type FC } from 'react';
-import { Phone, MapPin, Clock, User } from 'lucide-react';
+import { Phone, MapPin, Clock } from 'lucide-react';
 import { Link } from 'react-router';
 import { useBarberSettings } from '../hooks/useBarberSettings';
 import { formatPhone } from '../lib/utils';
@@ -144,13 +144,6 @@ const Footer: FC = () => {
             © {new Date().getFullYear()} {displayName}. Todos os direitos reservados.
           </p>
           <div className="flex items-center gap-4">
-            <Link
-              to="/cliente"
-              className="flex items-center gap-1.5 text-[10px] text-zinc-700 uppercase tracking-[0.2em] hover:text-[#D4AF37] transition-colors font-medium group"
-            >
-              <User size={10} className="group-hover:text-[#D4AF37] transition-colors" />
-              Meus Agendamentos
-            </Link>
             <Link
               to="/admin/login"
               className="text-[10px] text-zinc-700 uppercase tracking-[0.2em] hover:text-zinc-500 transition-colors font-medium"

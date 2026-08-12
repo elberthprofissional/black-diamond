@@ -14,7 +14,6 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { getClientByPhone } from '../lib/api';
 import { saveClientSession } from '../lib/clientSession';
 import { useScrollLock } from '../hooks/useScrollLock';
 import { useBarberSettings } from '../hooks/useBarberSettings';
@@ -22,10 +21,14 @@ import { useAdminLogin } from '../hooks/useAdminLogin';
 import {
   resolverLoginProfissional,
   buscarClientesPorNome,
-  verificarSenhaCliente,
+  verificarLoginCliente,
   criarSenhaCliente,
+  criarContaCliente,
+  solicitarRecuperacaoCliente,
+  redefinirSenhaCliente,
   type ClientMatch,
 } from '../lib/api/clientAuth';
+import { openWhatsApp } from '../lib/whatsapp';
 import LoginBackground from '../components/Admin/LoginBackground';
 import LoginHeader from '../components/Admin/LoginHeader';
 import LoginForm from '../components/Admin/LoginForm';
@@ -44,10 +47,12 @@ interface UniversalLoginProps {
 type ClientStage =
   | { kind: 'id' }
   | { kind: 'no-password'; phone: string; name: string }
-  | { kind: 'password'; phone: string; name: string }
-  | { kind: 'create'; phone: string; name: string };
+  | { kind: 'password'; phone: string; name: string; isEmail?: boolean }
+  | { kind: 'create'; phone: string; name: string }
+  | { kind: 'create-account' }
+  | { kind: 'recover-send'; phone?: string }
+  | { kind: 'recover-code'; phone: string; name: string };
 
-/** Resultado da detecção do campo inteligente. */
 type IdentifierKind = 'empty' | 'email' | 'phone' | 'name';
 
 function detectKind(input: string): IdentifierKind {
@@ -79,9 +84,14 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
   const [clientError, setClientError] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  // ── Conta do cliente v2 ──
+  const [recoverIdentifier, setRecoverIdentifier] = useState('');
+  const [recoverEmailMasked, setRecoverEmailMasked] = useState('');
+  const [recoverCode, setRecoverCode] = useState('');
+  const [accountForm, setAccountForm] = useState({ name: '', email: '', phone: '' });
 
   const admin = useAdminLogin({ initialEmail });
-  const { brandColor } = useBarberSettings();
+  const { brandColor, barberPhone } = useBarberSettings();
   const isPWA =
     window.matchMedia('(display-mode: standalone)').matches || !!window.navigator.standalone;
 
@@ -119,27 +129,48 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
     navigate('/cliente');
   };
 
-  // ── Fluxo do cliente a partir de um telefone ──
-  const handleClientPhone = async (digits: string) => {
+  // ── Fluxo do cliente a partir de um identificador (telefone OU e-mail) ──
+  const handleClientIdentifier = async (identifier: string) => {
     setClientLoading(true);
     setClientError('');
     try {
+      const isEmail = identifier.includes('@');
       // Cliente tem senha? (needs_password=true → senha criada; false → sem senha)
       // Fail-closed: se a verificação der erro, NUNCA deixar entrar sem senha.
-      const status = await verificarSenhaCliente(digits, '');
+      const status = await verificarLoginCliente(identifier, '');
       if (status?.needs_password) {
-        setStage({ kind: 'password', phone: digits, name: status.name || 'Cliente' });
+        setStage({
+          kind: 'password',
+          phone: isEmail ? identifier : status.phone || identifier,
+          name: status.name || 'Cliente',
+          isEmail,
+        });
         return;
       }
-      // Sem senha → oferece criar senha OU entrar direto (atrito zero).
-      const lookup = await getClientByPhone(digits).catch(() => null);
-      const name = (lookup as { name?: string } | null)?.name || 'Cliente';
-      setStage({ kind: 'no-password', phone: digits, name });
+      if (status?.ok === false && !status.needs_password) {
+        // Sem senha → tela intermediária (entrar direto ou criar senha).
+        // Telefone desconhecido ainda entra (atrito zero); e-mail desconhecido
+        // sem conta (status sem phone) mostra erro honesto.
+        if (!isEmail || status.phone) {
+          setStage({
+            kind: 'no-password',
+            phone: status.phone || identifier.replace(/\D/g, ''),
+            name: status.name || 'Cliente',
+          });
+          return;
+        }
+      }
+      setClientError(status?.message || 'Não encontramos esse cadastro.');
     } catch {
       setClientError('Erro ao buscar seus dados. Tente novamente.');
     } finally {
       setClientLoading(false);
     }
+  };
+
+  // ── Fluxo do cliente a partir de um telefone ──
+  const handleClientPhone = async (digits: string) => {
+    await handleClientIdentifier(digits);
   };
 
   // ── Fluxo do cliente a partir de um match (nome ou desambiguação) ──
@@ -158,16 +189,149 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
     }
   };
 
+  // ── Enviar código de recuperação (edge function envia o e-mail) ──
+  const handleRecoverSend = async (e: FormEvent) => {
+    e.preventDefault();
+    const prefilled = stage.kind === 'recover-send' ? (stage.phone ?? '') : '';
+    const identifier = recoverIdentifier.trim() || prefilled;
+    setClientLoading(true);
+    setClientError('');
+    setRecoverEmailMasked('');
+    try {
+      const result = await solicitarRecuperacaoCliente(identifier);
+      if (result.ok) {
+        setStage({
+          kind: 'recover-code',
+          phone: result.phone || identifier.replace(/\D/g, ''),
+          name: result.name || 'Cliente',
+        });
+        setRecoverEmailMasked(result.email_masked || '');
+        return;
+      }
+      if (result.needs_password === false && result.phone) {
+        // Cliente sem senha → entra direto
+        await enterClient(result.phone, result.name || 'Cliente', false);
+        return;
+      }
+      setClientError(
+        result.message ||
+          (result.no_email
+            ? 'Este cadastro ainda não tem e-mail. Use a opção abaixo.'
+            : 'Não foi possível enviar o código.')
+      );
+    } catch {
+      setClientError('Erro ao enviar o código. Tente novamente.');
+    } finally {
+      setClientLoading(false);
+    }
+  };
+
+  // ── Validar código + definir nova senha ──
+  const handleRecoverSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (stage.kind !== 'recover-code') return;
+    setClientLoading(true);
+    setClientError('');
+    if (recoverCode.length !== 6) {
+      setClientError('Digite o código de 6 dígitos.');
+      setClientLoading(false);
+      return;
+    }
+    if (newPassword.length < 6) {
+      setClientError('A nova senha precisa ter pelo menos 6 caracteres.');
+      setClientLoading(false);
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setClientError('As senhas não coincidem.');
+      setClientLoading(false);
+      return;
+    }
+    try {
+      const result = await redefinirSenhaCliente(stage.phone, recoverCode, newPassword);
+      if (result.ok) {
+        await enterClient(stage.phone, stage.name, true);
+        return;
+      }
+      setClientError(result.message || 'Código inválido ou expirado.');
+    } catch {
+      setClientError('Erro ao redefinir a senha. Tente novamente.');
+    } finally {
+      setClientLoading(false);
+    }
+  };
+
+  // ── Criar conta completa (nome + e-mail + telefone + senha) ──
+  const handleCreateAccount = async (e: FormEvent) => {
+    e.preventDefault();
+    setClientLoading(true);
+    setClientError('');
+    if (accountForm.name.trim().length < 2) {
+      setClientError('Informe seu nome.');
+      setClientLoading(false);
+      return;
+    }
+    if (accountForm.phone.replace(/\D/g, '').length < 11) {
+      setClientError('Informe um celular válido com DDD.');
+      setClientLoading(false);
+      return;
+    }
+    if (newPassword.length < 6 || newPassword !== confirmPassword) {
+      setClientError(
+        newPassword.length < 6
+          ? 'A senha precisa ter pelo menos 6 caracteres.'
+          : 'As senhas não coincidem.'
+      );
+      setClientLoading(false);
+      return;
+    }
+    try {
+      const result = await criarContaCliente({
+        name: accountForm.name,
+        email: accountForm.email,
+        phone: accountForm.phone.replace(/\D/g, ''),
+        password: newPassword,
+      });
+      if (result.ok) {
+        await enterClient(
+          result.phone || accountForm.phone.replace(/\D/g, ''),
+          result.name || accountForm.name,
+          true
+        );
+        return;
+      }
+      setClientError(result.message || 'Não foi possível criar a conta.');
+    } catch {
+      setClientError('Erro ao criar a conta. Tente novamente.');
+    } finally {
+      setClientLoading(false);
+    }
+  };
+
   // ── Submit do campo inteligente ──
   const handleUniversalSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setClientError('');
     setNameMatches([]);
 
-    // E-mail → modo admin (a senha é o muro)
+    // E-mail → profissional (admin) ou cliente (conta v2)
     if (kind === 'email') {
-      admin.setEmail(input.trim());
-      setView('admin');
+      setClientLoading(true);
+      try {
+        const resolved = await resolverLoginProfissional(input.trim()).catch(() => null);
+        if (resolved?.type === 'profissional') {
+          admin.setEmail(input.trim());
+          setView('admin');
+          return;
+        }
+        // Não é profissional → tenta conta de cliente (login por e-mail)
+        await handleClientIdentifier(input.trim());
+        return;
+      } catch {
+        setClientError('Erro ao buscar seus dados. Tente novamente.');
+      } finally {
+        setClientLoading(false);
+      }
       return;
     }
 
@@ -210,16 +374,17 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
     }
   };
 
-  // ── Login por senha do cliente ──
+  // ── Login por senha do cliente (telefone OU e-mail) ──
   const handleClientPassword = async (e: FormEvent) => {
     e.preventDefault();
     if (stage.kind !== 'password') return;
     setClientLoading(true);
     setClientError('');
     try {
-      const result = await verificarSenhaCliente(stage.phone, admin.password);
+      const result = await verificarLoginCliente(stage.phone, admin.password);
       if (result?.ok) {
-        await enterClient(stage.phone, result.name || stage.name, true);
+        const phone = result.phone || stage.phone.replace(/\D/g, '');
+        await enterClient(phone, result.name || stage.name, true);
         return;
       }
       setClientError(result?.message || 'Senha incorreta.');
@@ -266,7 +431,21 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
     setConfirmPassword('');
     setClientError('');
     setClientLoading(false);
+    setRecoverIdentifier('');
+    setRecoverEmailMasked('');
+    setRecoverCode('');
+    setAccountForm({ name: '', email: '', phone: '' });
     admin.setPassword('');
+  };
+
+  /** Abre o WhatsApp do barbeiro como fallback de recuperação. */
+  const openRecoveryWhatsApp = () => {
+    const msg = `Oi! Perdi minha senha da Black Diamond e o e-mail de recuperação não chegou. Pode me ajudar?`;
+    if (barberPhone) {
+      openWhatsApp(barberPhone, msg);
+    } else {
+      window.open('https://wa.me', '_blank');
+    }
   };
 
   // ── Ícone vivo do campo ──
@@ -486,7 +665,9 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
             <p className="text-[15px] font-bold text-white">
               Bem-vindo de volta{stage.name ? `, ${stage.name}` : ''}!
             </p>
-            <p className="text-[11px] text-zinc-500 tabular-nums">{formatPhone(stage.phone)}</p>
+            <p className="text-[11px] text-zinc-500 tabular-nums">
+              {stage.isEmail ? stage.phone : formatPhone(stage.phone)}
+            </p>
           </div>
           <div className="relative">
             <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
@@ -524,7 +705,333 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
             onClick={() => setStage({ kind: 'id' })}
             className="w-full text-center text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors uppercase tracking-[0.1em]"
           >
-            ← Usar outro celular
+            ← Usar outro telefone/e-mail
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setRecoverIdentifier(stage.phone);
+              setStage({ kind: 'recover-send', phone: stage.phone });
+            }}
+            className="w-full text-center text-[10px] text-zinc-500 hover:text-gold transition-colors cursor-pointer uppercase tracking-[0.1em]"
+          >
+            Esqueci minha senha
+          </button>
+        </motion.form>
+      );
+    }
+
+    // ── Esqueci a senha: enviar código ──
+    if (stage.kind === 'recover-send') {
+      return (
+        <motion.form
+          key="recover-send"
+          initial={{ opacity: 0, x: 16 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          onSubmit={handleRecoverSend}
+          className="w-full space-y-4"
+        >
+          <div className="text-center space-y-1.5">
+            <div className="w-12 h-12 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-3">
+              <KeyRound size={20} className="text-gold" />
+            </div>
+            <p className="text-[15px] font-bold text-white">Esqueci minha senha</p>
+            <p className="text-[11px] text-zinc-500 leading-relaxed">
+              Vamos enviar um <b className="text-zinc-300">código de 6 dígitos</b> para o seu
+              e-mail. Confirme o telefone ou e-mail da sua conta:
+            </p>
+          </div>
+          <div className="relative">
+            <Smartphone
+              size={14}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"
+            />
+            <input
+              type="text"
+              value={recoverIdentifier}
+              onChange={(e) => setRecoverIdentifier(e.target.value)}
+              placeholder="Telefone ou e-mail cadastrado"
+              data-testid="input-recover-identifier"
+              maxLength={120}
+              autoFocus
+              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
+            />
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            type="submit"
+            data-testid="btn-recover-send"
+            disabled={clientLoading || !recoverIdentifier.trim()}
+            className="w-full h-11 lg:h-12 text-black font-bold uppercase tracking-[0.15em] text-[12px] rounded-2xl lg:rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: brandColor }}
+          >
+            {clientLoading ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <>
+                <KeyRound size={14} /> Enviar código
+              </>
+            )}
+          </motion.button>
+          <p className="text-[10px] text-zinc-600 text-center leading-relaxed">
+            📧 O e-mail pode levar alguns minutos e pode cair na caixa de{' '}
+            <b className="text-zinc-400">SPAM / Lixo eletrônico</b>.
+          </p>
+          {clientError && <p className="text-[12px] text-red-400 text-center">{clientError}</p>}
+          <button
+            type="button"
+            onClick={openRecoveryWhatsApp}
+            className="w-full text-center text-[10px] text-zinc-500 hover:text-gold transition-colors cursor-pointer uppercase tracking-[0.1em]"
+          >
+            💬 Prefere resolver pelo WhatsApp? Fale com a barbearia
+          </button>
+          <button
+            type="button"
+            onClick={() => setStage({ kind: 'id' })}
+            className="w-full text-center text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors cursor-pointer uppercase tracking-[0.1em]"
+          >
+            ← Voltar
+          </button>
+        </motion.form>
+      );
+    }
+
+    // ── Esqueci a senha: código + nova senha ──
+    if (stage.kind === 'recover-code') {
+      return (
+        <motion.form
+          key="recover-code"
+          initial={{ opacity: 0, x: 16 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          onSubmit={handleRecoverSubmit}
+          className="w-full space-y-4"
+        >
+          <div className="text-center space-y-1.5">
+            <div className="w-12 h-12 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-3">
+              <ShieldCheck size={20} className="text-gold" />
+            </div>
+            <p className="text-[15px] font-bold text-white">Digite o código</p>
+            <p className="text-[11px] text-zinc-500 leading-relaxed">
+              {recoverEmailMasked ? (
+                <>
+                  Enviamos para <b className="text-zinc-300">{recoverEmailMasked}</b> (confira o
+                  spam!)
+                </>
+              ) : (
+                'Enviamos o código para o seu e-mail (confira o spam!).'
+              )}
+            </p>
+          </div>
+          <div className="relative">
+            <KeyRound
+              size={14}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"
+            />
+            <input
+              type="text"
+              inputMode="numeric"
+              value={recoverCode}
+              onChange={(e) => setRecoverCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              placeholder="000000"
+              data-testid="input-recover-code"
+              maxLength={6}
+              autoFocus
+              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-center text-xl font-black tracking-[0.4em] text-gold outline-none focus:border-gold transition-all"
+            />
+          </div>
+          <div className="relative">
+            <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Nova senha (mín. 6 caracteres)"
+              data-testid="input-recover-new-password"
+              autoComplete="new-password"
+              maxLength={128}
+              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
+            />
+          </div>
+          <div className="relative">
+            <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Repita a nova senha"
+              data-testid="input-recover-confirm-password"
+              autoComplete="new-password"
+              maxLength={128}
+              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
+            />
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            type="submit"
+            data-testid="btn-recover-submit"
+            disabled={clientLoading || recoverCode.length !== 6 || newPassword.length < 6}
+            className="w-full h-11 lg:h-12 text-black font-bold uppercase tracking-[0.15em] text-[12px] rounded-2xl lg:rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: brandColor }}
+          >
+            {clientLoading ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <>
+                <ShieldCheck size={14} /> Redefinir senha
+              </>
+            )}
+          </motion.button>
+          {clientError && <p className="text-[12px] text-red-400 text-center">{clientError}</p>}
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => setStage({ kind: 'recover-send', phone: stage.phone })}
+              className="w-full text-center text-[10px] text-zinc-500 hover:text-gold transition-colors cursor-pointer uppercase tracking-[0.1em]"
+            >
+              ↻ Reenviar código
+            </button>
+            <button
+              type="button"
+              onClick={openRecoveryWhatsApp}
+              className="w-full text-center text-[10px] text-zinc-500 hover:text-gold transition-colors cursor-pointer uppercase tracking-[0.1em]"
+            >
+              💬 Não chegou? Fale com a barbearia no WhatsApp
+            </button>
+            <button
+              type="button"
+              onClick={() => setStage({ kind: 'id' })}
+              className="w-full text-center text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors cursor-pointer uppercase tracking-[0.1em]"
+            >
+              ← Voltar
+            </button>
+          </div>
+        </motion.form>
+      );
+    }
+
+    // ── Criar conta completa ──
+    if (stage.kind === 'create-account') {
+      return (
+        <motion.form
+          key="create-account"
+          initial={{ opacity: 0, x: 16 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          onSubmit={handleCreateAccount}
+          className="w-full space-y-4"
+        >
+          <div className="text-center space-y-1.5">
+            <div className="w-12 h-12 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-3">
+              <User size={20} className="text-gold" />
+            </div>
+            <p className="text-[15px] font-bold text-white">Criar minha conta</p>
+            <p className="text-[11px] text-zinc-500 leading-relaxed">
+              Acompanhe seus cortes, total gasto e plano mensal. Se o seu telefone já tem histórico,{' '}
+              <b className="text-zinc-300">tudo é vinculado automaticamente</b>.
+            </p>
+          </div>
+          <div className="relative">
+            <User size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
+            <input
+              type="text"
+              value={accountForm.name}
+              onChange={(e) => setAccountForm({ ...accountForm, name: e.target.value })}
+              placeholder="Seu nome"
+              data-testid="input-account-name"
+              autoComplete="name"
+              maxLength={80}
+              autoFocus
+              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
+            />
+          </div>
+          <div className="relative">
+            <Smartphone
+              size={14}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"
+            />
+            <input
+              type="tel"
+              value={accountForm.phone}
+              onChange={(e) =>
+                setAccountForm({ ...accountForm, phone: formatPhone(e.target.value) })
+              }
+              placeholder="Celular com DDD"
+              data-testid="input-account-phone"
+              autoComplete="tel"
+              maxLength={15}
+              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
+            />
+          </div>
+          <div className="relative">
+            <ShieldCheck
+              size={14}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"
+            />
+            <input
+              type="email"
+              value={accountForm.email}
+              onChange={(e) => setAccountForm({ ...accountForm, email: e.target.value })}
+              placeholder="Seu e-mail (usado para recuperar a senha)"
+              data-testid="input-account-email"
+              autoComplete="email"
+              maxLength={120}
+              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
+            />
+          </div>
+          <div className="relative">
+            <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Senha (mín. 6 caracteres)"
+              data-testid="input-account-password"
+              autoComplete="new-password"
+              maxLength={128}
+              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
+            />
+          </div>
+          <div className="relative">
+            <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Repita a senha"
+              data-testid="input-account-confirm"
+              autoComplete="new-password"
+              maxLength={128}
+              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
+            />
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            type="submit"
+            data-testid="btn-account-submit"
+            disabled={clientLoading}
+            className="w-full h-11 lg:h-12 text-black font-bold uppercase tracking-[0.15em] text-[12px] rounded-2xl lg:rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: brandColor }}
+          >
+            {clientLoading ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <>
+                <Check size={14} /> Criar conta
+              </>
+            )}
+          </motion.button>
+          {clientError && <p className="text-[12px] text-red-400 text-center">{clientError}</p>}
+          <button
+            type="button"
+            onClick={() => setStage({ kind: 'id' })}
+            className="w-full text-center text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors cursor-pointer uppercase tracking-[0.1em]"
+          >
+            ← Voltar
           </button>
         </motion.form>
       );
@@ -614,6 +1121,29 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
         </motion.button>
 
         <div className="flex flex-col items-center gap-2.5">
+          <button
+            type="button"
+            data-testid="btn-go-create-account"
+            onClick={() => setStage({ kind: 'create-account' })}
+            className="text-[10px] font-medium uppercase tracking-[0.1em] transition-colors cursor-pointer opacity-70 hover:opacity-100"
+            style={{ color: brandColor }}
+          >
+            Primeira vez? Criar minha conta →
+          </button>
+          <button
+            type="button"
+            data-testid="btn-go-recover-home"
+            onClick={() => {
+              setRecoverIdentifier('');
+              setRecoverEmailMasked('');
+              setRecoverCode('');
+              setStage({ kind: 'recover-send' });
+            }}
+            className="text-[10px] font-medium uppercase tracking-[0.1em] transition-colors cursor-pointer opacity-70 hover:opacity-100"
+            style={{ color: brandColor }}
+          >
+            Esqueci minha senha
+          </button>
           <button
             type="button"
             onClick={() => navigate('/agendar')}

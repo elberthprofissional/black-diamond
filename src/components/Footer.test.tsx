@@ -44,4 +44,9 @@ describe('Footer', () => {
     renderWithRouter(<Footer />);
     expect(screen.getByText('Acesso restrito')).toBeInTheDocument();
   });
+
+  it('nao renderiza o link "Meus Agendamentos" no rodape', () => {
+    renderWithRouter(<Footer />);
+    expect(screen.queryByText('Meus Agendamentos')).not.toBeInTheDocument();
+  });
 });

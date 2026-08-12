@@ -71,3 +71,129 @@ export const criarSenhaCliente = async (
   if (error) throw error;
   return (data as { ok: boolean; message?: string; name?: string }) || { ok: false };
 };
+
+// ──────────────────────────────────────────────────────────────
+// Conta do cliente v2 — recuperação, criar conta e login por e-mail
+// ──────────────────────────────────────────────────────────────
+
+export interface LoginClienteResult {
+  ok: boolean;
+  name?: string;
+  phone?: string;
+  needs_password?: boolean;
+  message?: string;
+}
+
+/** Login por telefone OU e-mail + senha (RPC verificar_login_cliente). */
+export const verificarLoginCliente = async (
+  identifier: string,
+  password: string
+): Promise<LoginClienteResult> => {
+  const { data, error } = await supabase.rpc('verificar_login_cliente', {
+    p_identifier: identifier.trim(),
+    p_password: password,
+  });
+  if (error) throw error;
+  return (data as LoginClienteResult) || { ok: false };
+};
+
+export interface CriarContaResult {
+  ok: boolean;
+  message?: string;
+  name?: string;
+  phone?: string;
+  client_id?: string;
+}
+
+/** Cria uma conta completa (nome + e-mail + telefone + senha). Herda histórico se o telefone já existe. */
+export const criarContaCliente = async (input: {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+}): Promise<CriarContaResult> => {
+  const { data, error } = await supabase.rpc('criar_conta_cliente', {
+    p_nome: input.name.trim(),
+    p_email: input.email.trim(),
+    p_telefone: input.phone.replace(/\D/g, ''),
+    p_senha: input.password,
+  });
+  if (error) throw error;
+  return (data as CriarContaResult) || { ok: false };
+};
+
+export interface RecuperacaoResult {
+  ok: boolean;
+  message?: string;
+  name?: string;
+  phone?: string;
+  email_masked?: string;
+  needs_password?: boolean;
+  no_email?: boolean;
+  mailer_not_configured?: boolean;
+}
+
+/** Pede o código de recuperação (edge function envia o e-mail). */
+export const solicitarRecuperacaoCliente = async (
+  identifier: string
+): Promise<RecuperacaoResult> => {
+  const { data, error } = await supabase.functions.invoke('cliente-recuperar-senha', {
+    body: { identifier: identifier.trim() },
+  });
+  if (error) throw error;
+  return (data as RecuperacaoResult) || { ok: false, message: 'Erro ao solicitar recuperação.' };
+};
+
+/** Redefine a senha usando o código recebido por e-mail. */
+export const redefinirSenhaCliente = async (
+  phone: string,
+  token: string,
+  novaSenha: string
+): Promise<{ ok: boolean; message?: string }> => {
+  const { data, error } = await supabase.rpc('redefinir_senha_cliente', {
+    p_phone: phone.replace(/\D/g, ''),
+    p_token: token.trim(),
+    p_nova_senha: novaSenha,
+  });
+  if (error) throw error;
+  return (data as { ok: boolean; message?: string }) || { ok: false };
+};
+
+/** Atualiza o e-mail do cliente (dashboard). */
+export const atualizarEmailCliente = async (
+  phone: string,
+  email: string
+): Promise<{ ok: boolean; message?: string }> => {
+  const { data, error } = await supabase.rpc('atualizar_email_cliente', {
+    p_phone: phone.replace(/\D/g, ''),
+    p_email: email.trim(),
+  });
+  if (error) throw error;
+  return (data as { ok: boolean; message?: string }) || { ok: false };
+};
+
+/** Troca a senha (exige a senha atual). */
+export const alterarSenhaCliente = async (
+  phone: string,
+  senhaAtual: string,
+  novaSenha: string
+): Promise<{ ok: boolean; message?: string }> => {
+  const { data, error } = await supabase.rpc('alterar_senha_cliente', {
+    p_phone: phone.replace(/\D/g, ''),
+    p_senha_atual: senhaAtual,
+    p_nova_senha: novaSenha,
+  });
+  if (error) throw error;
+  return (data as { ok: boolean; message?: string }) || { ok: false };
+};
+
+/** Admin: remove a senha do cliente (ele entra sem senha e cria outra). */
+export const limparSenhaClienteAdmin = async (
+  clientId: string
+): Promise<{ ok: boolean; message?: string; name?: string }> => {
+  const { data, error } = await supabase.rpc('limpar_senha_cliente', {
+    p_client_id: clientId,
+  });
+  if (error) throw error;
+  return (data as { ok: boolean; message?: string; name?: string }) || { ok: false };
+};

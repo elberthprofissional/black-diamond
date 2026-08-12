@@ -38,6 +38,13 @@ export {
   buscarClientesPorNome,
   verificarSenhaCliente,
   criarSenhaCliente,
+  verificarLoginCliente,
+  criarContaCliente,
+  solicitarRecuperacaoCliente,
+  redefinirSenhaCliente,
+  atualizarEmailCliente,
+  alterarSenhaCliente,
+  limparSenhaClienteAdmin,
 } from './clientAuth';
 export type {
   ResolverResult,

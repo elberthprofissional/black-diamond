@@ -118,6 +118,7 @@ const defaultProps = {
   onReminder: vi.fn(),
   onClose: vi.fn(),
   onToggleMensalista: vi.fn().mockResolvedValue(true),
+  onResetPassword: vi.fn().mockResolvedValue(true),
 };
 
 function renderClientPanel(overrides = {}) {
@@ -231,5 +232,23 @@ describe('ClientPanel', () => {
     fireEvent.click(toggleBtn);
     // Sem planos cadastrados, chama diretamente sem argumentos
     expect(onToggleMensalista).toHaveBeenCalled();
+  });
+
+  it('Redefinir senha: abre o modal de confirmação', () => {
+    renderClientPanel();
+    const btn = screen.getByText('Redefinir senha do cliente');
+    fireEvent.click(btn);
+    expect(screen.getByText(/redefinir senha de joão/i)).toBeTruthy();
+  });
+
+  it('Redefinir senha: confirmar chama onResetPassword e fecha o modal', async () => {
+    const onResetPassword = vi.fn().mockResolvedValue(true);
+    renderClientPanel({ onResetPassword });
+    fireEvent.click(screen.getByText('Redefinir senha do cliente'));
+    fireEvent.click(screen.getByText('Redefinir'));
+    await vi.waitFor(() => {
+      expect(onResetPassword).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText(/redefinir senha de joão/i)).not.toBeInTheDocument();
+    });
   });
 });

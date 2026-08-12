@@ -24,6 +24,10 @@ const mockResolverLoginProfissional = vi.fn();
 const mockBuscarClientesPorNome = vi.fn();
 const mockVerificarSenhaCliente = vi.fn();
 const mockCriarSenhaCliente = vi.fn();
+const mockVerificarLoginCliente = vi.fn();
+const mockCriarContaCliente = vi.fn();
+const mockSolicitarRecuperacaoCliente = vi.fn();
+const mockRedefinirSenhaCliente = vi.fn();
 
 vi.mock('../lib/supabase', () => ({
   supabase: {
@@ -34,6 +38,9 @@ vi.mock('../lib/supabase', () => ({
       signOut: vi.fn().mockResolvedValue({ error: null }),
     },
     rpc: (..._args: unknown[]) => Promise.resolve({ data: null, error: null }),
+    functions: {
+      invoke: (..._args: unknown[]) => Promise.resolve({ data: null, error: null }),
+    },
   },
 }));
 
@@ -46,6 +53,10 @@ vi.mock('../lib/api/clientAuth', () => ({
   buscarClientesPorNome: (...args: unknown[]) => mockBuscarClientesPorNome(...args),
   verificarSenhaCliente: (...args: unknown[]) => mockVerificarSenhaCliente(...args),
   criarSenhaCliente: (...args: unknown[]) => mockCriarSenhaCliente(...args),
+  verificarLoginCliente: (...args: unknown[]) => mockVerificarLoginCliente(...args),
+  criarContaCliente: (...args: unknown[]) => mockCriarContaCliente(...args),
+  solicitarRecuperacaoCliente: (...args: unknown[]) => mockSolicitarRecuperacaoCliente(...args),
+  redefinirSenhaCliente: (...args: unknown[]) => mockRedefinirSenhaCliente(...args),
 }));
 
 vi.mock('../hooks/useToast', () => ({
@@ -71,7 +82,16 @@ vi.mock('../hooks/useModalA11y', () => ({
 }));
 
 vi.mock('../hooks/useBarberSettings', () => ({
-  useBarberSettings: () => ({ brandColor: '#d4af37', brandLogo: null, brandName: '' }),
+  useBarberSettings: () => ({
+    brandColor: '#d4af37',
+    brandLogo: null,
+    brandName: '',
+    barberPhone: '5543990000000',
+  }),
+}));
+
+vi.mock('../lib/whatsapp', () => ({
+  openWhatsApp: vi.fn(),
 }));
 
 vi.mock('react-router', async () => {
@@ -128,13 +148,18 @@ describe('UniversalLogin — Porta Única v3.36', () => {
     localStorage.clear();
     mockGetSession.mockResolvedValue({ data: { session: null }, error: null });
     mockVerificarSenhaCliente.mockResolvedValue({ ok: false, needs_password: false });
+    mockVerificarLoginCliente.mockResolvedValue({ ok: false, needs_password: false });
     mockResolverLoginProfissional.mockResolvedValue({ type: 'none' });
     mockBuscarClientesPorNome.mockResolvedValue([]);
   });
 
   it('celular sem senha oferece entrar direto e navega para /cliente', async () => {
-    mockVerificarSenhaCliente.mockResolvedValue({ ok: false, needs_password: false });
-    mockGetClientByPhone.mockResolvedValue({ id: 'c1', name: 'João Silva', phone: '11999999999' });
+    mockVerificarLoginCliente.mockResolvedValue({
+      ok: false,
+      needs_password: false,
+      name: 'João Silva',
+      phone: '11999999999',
+    });
     renderUniversal();
 
     fireEvent.change(screen.getByTestId('input-universal'), {
@@ -157,7 +182,7 @@ describe('UniversalLogin — Porta Única v3.36', () => {
   });
 
   it('cliente sem cadastro entra como Cliente e ainda salva a sessão', async () => {
-    mockGetClientByPhone.mockResolvedValue(null);
+    mockVerificarLoginCliente.mockResolvedValue({ ok: false, needs_password: false });
     renderUniversal();
 
     fireEvent.change(screen.getByTestId('input-universal'), {
@@ -177,12 +202,12 @@ describe('UniversalLogin — Porta Única v3.36', () => {
   });
 
   it('cliente com senha criada pede a senha e valida antes de entrar', async () => {
-    mockVerificarSenhaCliente.mockResolvedValueOnce({
+    mockVerificarLoginCliente.mockResolvedValueOnce({
       ok: false,
       needs_password: true,
       name: 'João Silva',
     });
-    mockVerificarSenhaCliente.mockResolvedValueOnce({
+    mockVerificarLoginCliente.mockResolvedValueOnce({
       ok: true,
       needs_password: true,
       name: 'João Silva',
@@ -213,8 +238,7 @@ describe('UniversalLogin — Porta Única v3.36', () => {
   });
 
   it('cliente sem senha pode criar uma senha direto do login', async () => {
-    mockVerificarSenhaCliente.mockResolvedValue({ ok: false, needs_password: false });
-    mockGetClientByPhone.mockResolvedValue({ id: 'c1', name: 'Maria', phone: '11999999999' });
+    mockVerificarLoginCliente.mockResolvedValue({ ok: false, needs_password: false });
     mockCriarSenhaCliente.mockResolvedValue({ ok: true, name: 'Maria' });
     renderUniversal();
 
@@ -235,6 +259,132 @@ describe('UniversalLogin — Porta Única v3.36', () => {
 
     await waitFor(() => {
       expect(mockCriarSenhaCliente).toHaveBeenCalledWith('11999999999', 'senha123');
+      expect(mockNavigate).toHaveBeenCalledWith('/cliente');
+    });
+  });
+
+  it('esqueci a senha: envia código e redefine com sucesso', async () => {
+    mockVerificarLoginCliente.mockResolvedValue({
+      ok: false,
+      needs_password: true,
+      name: 'João Silva',
+      phone: '11999999999',
+    });
+    mockSolicitarRecuperacaoCliente.mockResolvedValue({
+      ok: true,
+      phone: '11999999999',
+      name: 'João Silva',
+      email_masked: 'jo**@gmail.com',
+    });
+    mockRedefinirSenhaCliente.mockResolvedValue({ ok: true, message: 'Senha redefinida!' });
+    renderUniversal();
+
+    // Entra com celular (com senha) → etapa de senha
+    fireEvent.change(screen.getByTestId('input-universal'), {
+      target: { value: '11999999999' },
+    });
+    fireEvent.click(screen.getByTestId('btn-continuar'));
+    await waitFor(() => {
+      expect(screen.getByTestId('input-client-password')).toBeInTheDocument();
+    });
+
+    // Clica em "Esqueci minha senha"
+    fireEvent.click(screen.getByText(/esqueci minha senha/i));
+
+    // Etapa de envio: telefone já preenchido → envia
+    await waitFor(() => {
+      expect(screen.getByTestId('btn-recover-send')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByTestId('btn-recover-send'));
+
+    // Etapa do código + nova senha
+    await waitFor(() => {
+      expect(screen.getByTestId('input-recover-code')).toBeInTheDocument();
+      expect(screen.getByText(/jo\*\*@gmail\.com/i)).toBeInTheDocument();
+    });
+    fireEvent.change(screen.getByTestId('input-recover-code'), { target: { value: '123456' } });
+    fireEvent.change(screen.getByTestId('input-recover-new-password'), {
+      target: { value: 'nova123' },
+    });
+    fireEvent.change(screen.getByTestId('input-recover-confirm-password'), {
+      target: { value: 'nova123' },
+    });
+    fireEvent.click(screen.getByTestId('btn-recover-submit'));
+
+    await waitFor(() => {
+      expect(mockRedefinirSenhaCliente).toHaveBeenCalledWith('11999999999', '123456', 'nova123');
+      expect(mockNavigate).toHaveBeenCalledWith('/cliente');
+      const session = JSON.parse(localStorage.getItem('bd_client_session') || '{}');
+      expect(session.hasPassword).toBe(true);
+    });
+  });
+
+  it('esqueci minha senha direto da tela inicial abre a recuperação', async () => {
+    mockSolicitarRecuperacaoCliente.mockResolvedValue({
+      ok: true,
+      phone: '11999999999',
+      name: 'João Silva',
+      email_masked: 'jo**@gmail.com',
+    });
+    renderUniversal();
+
+    // Link de recuperação visível na tela inicial (sem precisar digitar nada antes)
+    fireEvent.click(screen.getByTestId('btn-go-recover-home'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('btn-recover-send')).toBeInTheDocument();
+    });
+
+    // Informa o telefone e envia o código
+    fireEvent.change(screen.getByTestId('input-recover-identifier'), {
+      target: { value: '11999999999' },
+    });
+    fireEvent.click(screen.getByTestId('btn-recover-send'));
+
+    await waitFor(() => {
+      expect(mockSolicitarRecuperacaoCliente).toHaveBeenCalledWith('11999999999');
+      expect(screen.getByTestId('input-recover-code')).toBeInTheDocument();
+    });
+  });
+
+  it('criar conta completa: nome + celular + e-mail + senha', async () => {
+    mockCriarContaCliente.mockResolvedValue({
+      ok: true,
+      phone: '11999999999',
+      name: 'Maria Souza',
+      message: 'Conta criada!',
+    });
+    renderUniversal();
+
+    fireEvent.click(screen.getByTestId('btn-go-create-account'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('input-account-name')).toBeInTheDocument();
+    });
+    fireEvent.change(screen.getByTestId('input-account-name'), {
+      target: { value: 'Maria Souza' },
+    });
+    fireEvent.change(screen.getByTestId('input-account-phone'), {
+      target: { value: '11999999999' },
+    });
+    fireEvent.change(screen.getByTestId('input-account-email'), {
+      target: { value: 'maria@gmail.com' },
+    });
+    fireEvent.change(screen.getByTestId('input-account-password'), {
+      target: { value: 'senha123' },
+    });
+    fireEvent.change(screen.getByTestId('input-account-confirm'), {
+      target: { value: 'senha123' },
+    });
+    fireEvent.click(screen.getByTestId('btn-account-submit'));
+
+    await waitFor(() => {
+      expect(mockCriarContaCliente).toHaveBeenCalledWith({
+        name: 'Maria Souza',
+        email: 'maria@gmail.com',
+        phone: '11999999999',
+        password: 'senha123',
+      });
       expect(mockNavigate).toHaveBeenCalledWith('/cliente');
     });
   });
@@ -307,6 +457,12 @@ describe('UniversalLogin — Porta Única v3.36', () => {
   });
 
   it('e-mail revela o formulário do admin (senha) na mesma tela', async () => {
+    mockResolverLoginProfissional.mockResolvedValue({
+      type: 'profissional',
+      email: 'tato@test.com',
+      name: 'Tato',
+      phone: '4399553590',
+    });
     renderUniversal();
 
     fireEvent.change(screen.getByTestId('input-universal'), {
@@ -321,6 +477,25 @@ describe('UniversalLogin — Porta Única v3.36', () => {
     });
   });
 
+  it('e-mail que não é profissional nem conta de cliente mostra erro amigável', async () => {
+    mockResolverLoginProfissional.mockResolvedValue({ type: 'none' });
+    mockVerificarLoginCliente.mockResolvedValue({
+      ok: false,
+      message: 'Não encontramos uma conta com esse telefone/e-mail.',
+    });
+    renderUniversal();
+
+    fireEvent.change(screen.getByTestId('input-universal'), {
+      target: { value: 'naoexiste@test.com' },
+    });
+    fireEvent.click(screen.getByTestId('btn-continuar'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/não encontramos uma conta/i)).toBeInTheDocument();
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('modo adminMode abre direto no formulário do admin', async () => {
     renderUniversal({ adminMode: true });
 
@@ -330,6 +505,12 @@ describe('UniversalLogin — Porta Única v3.36', () => {
   });
 
   it('voltar do modo admin limpa o campo e retorna ao modo cliente', async () => {
+    mockResolverLoginProfissional.mockResolvedValue({
+      type: 'profissional',
+      email: 'tato@test.com',
+      name: 'Tato',
+      phone: '4399553590',
+    });
     renderUniversal();
 
     // E-mail → modo admin

@@ -12,6 +12,8 @@ import {
   Check,
   ChevronRight,
   AlertTriangle,
+  KeyRound,
+  Loader2,
 } from 'lucide-react';
 import { formatPhone, formatPricePublic, getLocalDateString } from '../../../lib/utils';
 import { cleanPhoneForWhatsApp } from '../../../lib/whatsapp';
@@ -41,6 +43,7 @@ interface ClientPanelProps {
   onClose: () => void;
   onToggleMensalista: (planId?: string, expiryDate?: string) => Promise<boolean> | boolean;
   onRenewMensalidade?: () => void;
+  onResetPassword: () => Promise<boolean> | boolean;
 }
 
 const ClientPanel: FC<ClientPanelProps> = ({
@@ -63,6 +66,7 @@ const ClientPanel: FC<ClientPanelProps> = ({
   onClose,
   onToggleMensalista,
   onRenewMensalidade,
+  onResetPassword,
   expiresAt,
 }) => {
   const navigate = useNavigate();
@@ -149,6 +153,8 @@ const ClientPanel: FC<ClientPanelProps> = ({
     setShowHistory(true);
   };
 
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
   const [showMensalistaModal, setShowMensalistaModal] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [mensalistaExpiryDate, setMensalistaExpiryDate] = useState(() => {
@@ -357,6 +363,15 @@ const ClientPanel: FC<ClientPanelProps> = ({
           </div>
 
           <button
+            type="button"
+            onClick={() => setIsResetPasswordOpen(true)}
+            className="w-full h-10 border border-white/[0.06] bg-white/[0.02] text-zinc-400 hover:text-white hover:bg-white/[0.04] rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5"
+          >
+            <KeyRound size={12} />
+            Redefinir senha do cliente
+          </button>
+
+          <button
             onClick={handleMensalistaClick}
             disabled={savingMensalista}
             className={`w-full h-10 border rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
@@ -433,6 +448,67 @@ const ClientPanel: FC<ClientPanelProps> = ({
               </div>
             </div>
           )}
+
+          {/* Redefinir senha — Modal de confirmação */}
+          <AnimatePresence>
+            {isResetPasswordOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[500] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center"
+                onClick={() => setIsResetPasswordOpen(false)}
+              >
+                <motion.div
+                  initial={{ y: '100%' }}
+                  animate={{ y: 0 }}
+                  exit={{ y: '100%' }}
+                  transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+                  className="w-full sm:max-w-sm bg-[#141414] sm:rounded-xl rounded-t-2xl overflow-hidden border border-white/[0.06]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="px-5 pt-5 pb-3 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <KeyRound size={16} className="text-gold" />
+                      <p className="text-[14px] font-semibold text-white">
+                        Redefinir senha de {client.name?.split(' ')[0]}?
+                      </p>
+                    </div>
+                    <p className="text-[12px] text-zinc-500 leading-relaxed">
+                      A senha será <b className="text-zinc-300">removida</b>. O cliente passa a
+                      entrar sem senha e poderá criar uma nova quando quiser.
+                    </p>
+                  </div>
+                  <div className="flex border-t border-white/[0.06]">
+                    <button
+                      onClick={() => setIsResetPasswordOpen(false)}
+                      className="flex-1 py-3 text-[12px] font-medium text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <div className="w-px bg-white/[0.06]" />
+                    <button
+                      onClick={async () => {
+                        setResettingPassword(true);
+                        const ok = await onResetPassword();
+                        setResettingPassword(false);
+                        // Só fecha se deu certo (falha → toast de erro já aparece)
+                        if (ok) setIsResetPasswordOpen(false);
+                      }}
+                      disabled={resettingPassword}
+                      className="flex-1 py-3 text-[12px] font-semibold text-gold hover:text-[#b8962e] transition-colors cursor-pointer disabled:opacity-40 flex items-center justify-center gap-1.5"
+                    >
+                      {resettingPassword ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        'Redefinir'
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Mensalista Plan Selection Modal */}
           <AnimatePresence>

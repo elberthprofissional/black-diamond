@@ -1,7 +1,8 @@
 import { useState, type FC } from 'react';
-import { Check, ArrowLeft, Link2, CalendarClock } from 'lucide-react';
+import { Check, ArrowLeft, Link2, CalendarClock, KeyRound } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useBarberSettings } from '../../hooks/useBarberSettings';
+import { getClientSession } from '../../lib/clientSession';
 
 interface SuccessStepProps {
   clientName: string;
@@ -26,6 +27,8 @@ const SuccessStep: FC<SuccessStepProps> = ({
   const navigate = useNavigate();
   const { barberPhone } = useBarberSettings();
   const [copied, setCopied] = useState(false);
+  // Convite pós-agendamento: só aparece para quem NÃO tem sessão de cliente salva.
+  const hasSession = !!getClientSession();
   // Review request modal removido (Google Reviews foi desativado)
 
   // Calcular progresso pra fidelidade
@@ -211,6 +214,17 @@ const SuccessStep: FC<SuccessStepProps> = ({
           Voltar ao início
         </button>
 
+        {/* Convite pós-agendamento: criar conta para acompanhar cortes */}
+        {!hasSession && (
+          <button
+            onClick={() => navigate('/entrar')}
+            className="mt-5 text-[12px] text-zinc-400 hover:text-gold transition-colors cursor-pointer flex items-center gap-1.5"
+          >
+            <KeyRound size={12} className="text-gold shrink-0" />
+            Crie sua conta grátis para acompanhar seus cortes, gastos e plano mensal →
+          </button>
+        )}
+
         {/* Subtle confetti dots */}
         {[
           { left: 25, top: 15, dur: 3.2 },
@@ -307,6 +321,15 @@ const SuccessStep: FC<SuccessStepProps> = ({
         <button onClick={() => navigate('/')} className="btn-ghost px-6 py-3">
           Voltar ao início
         </button>
+        {!hasSession && (
+          <button
+            onClick={() => navigate('/entrar')}
+            className="text-[12px] text-zinc-500 hover:text-gold transition-colors cursor-pointer flex items-center gap-1.5"
+          >
+            <KeyRound size={12} className="text-gold shrink-0" />
+            Crie sua conta grátis para acompanhar seus cortes →
+          </button>
+        )}
       </div>
     </div>
   );

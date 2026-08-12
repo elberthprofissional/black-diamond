@@ -56,6 +56,18 @@ vi.mock('../lib/api/mensalista', () => ({
   getMensalistaPlanServices: vi.fn().mockResolvedValue([]),
 }));
 
+const mockVerificarSenhaCliente = vi.hoisted(() => vi.fn());
+const mockCriarSenhaCliente = vi.hoisted(() => vi.fn());
+const mockAtualizarEmailCliente = vi.hoisted(() => vi.fn());
+const mockAlterarSenhaCliente = vi.hoisted(() => vi.fn());
+
+vi.mock('../lib/api/clientAuth', () => ({
+  verificarSenhaCliente: mockVerificarSenhaCliente,
+  criarSenhaCliente: mockCriarSenhaCliente,
+  atualizarEmailCliente: mockAtualizarEmailCliente,
+  alterarSenhaCliente: mockAlterarSenhaCliente,
+}));
+
 vi.mock('../lib/logger', () => ({
   logError: vi.fn(),
 }));
@@ -108,6 +120,10 @@ describe('ClientProfile (sem código de acesso)', () => {
     mockGetBookingsByPhone.mockResolvedValue([booking]);
     mockGetClientByPhone.mockResolvedValue({ id: 'c1', name: 'João Silva', phone: '11999999999' });
     mockGetClientDashboard.mockResolvedValue(dashboardStats);
+    mockVerificarSenhaCliente.mockResolvedValue({ ok: false, needs_password: false });
+    mockCriarSenhaCliente.mockResolvedValue({ ok: true });
+    mockAtualizarEmailCliente.mockResolvedValue({ ok: true, message: 'E-mail atualizado!' });
+    mockAlterarSenhaCliente.mockResolvedValue({ ok: true });
   });
 
   it('mostra a tela de telefone no primeiro acesso (sem código)', () => {
@@ -176,6 +192,38 @@ describe('ClientProfile (sem código de acesso)', () => {
       const session = JSON.parse(localStorage.getItem('bd_client_session') || '{}');
       expect(session.phone).toBe('11999999999');
       expect(session.name).toBe('João Silva');
+    });
+  });
+
+  it('mostra o card "Minha conta" no dashboard', async () => {
+    renderPage();
+
+    const phoneInput = screen.getByPlaceholderText('(00) 00000-0000');
+    await userEvent.type(phoneInput, '11999999999');
+    await userEvent.click(screen.getByText('Entrar'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Minha conta')).toBeInTheDocument();
+      expect(screen.getByText('Salvar e-mail')).toBeInTheDocument();
+    });
+  });
+
+  it('salva o e-mail da conta a partir do dashboard', async () => {
+    renderPage();
+
+    const phoneInput = screen.getByPlaceholderText('(00) 00000-0000');
+    await userEvent.type(phoneInput, '11999999999');
+    await userEvent.click(screen.getByText('Entrar'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('input-account-email')).toBeInTheDocument();
+    });
+    await userEvent.type(screen.getByTestId('input-account-email'), 'joao@test.com');
+    await userEvent.click(screen.getByText('Salvar e-mail'));
+
+    await waitFor(() => {
+      expect(mockAtualizarEmailCliente).toHaveBeenCalledWith('11999999999', 'joao@test.com');
+      expect(screen.getByText(/e-mail salvo/i)).toBeInTheDocument();
     });
   });
 });
