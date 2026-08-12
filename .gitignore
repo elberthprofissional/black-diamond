@@ -28,6 +28,9 @@ dist-ssr
 
 .vercel
 .env
+.env.bak*
+.env.backup*
+scripts/backup-pre-limpieza.json
 .env.local
 .env.*.local
 .env.development.local

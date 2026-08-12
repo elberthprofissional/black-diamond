@@ -7,7 +7,7 @@
  * Tenta múltiplos métodos de execução:
  *   1. RPCs de SQL (exec_sql, execute_sql, pgexecute, etc.)
  *   2. Supabase Management API (precisa de PAT)
- *   3. pg direto (precisa de DATABASE_URL)
+ *   3. (removido — dependência pg era usada apenas como fallback opcional)
  * 
  * Se tudo falhar, salva arquivo consolidado para colar no SQL Editor.
  *
@@ -209,24 +209,6 @@ async function main() {
     }
   }
 
-  // Tentar pg direto
-  if (!methodFound) {
-    const dbUrl = process.env.DATABASE_URL || process.env.SUPABASE_DB_URL;
-    if (dbUrl) {
-      log('Tentando conexão direta PostgreSQL...');
-      try {
-        const { default: pg } = await import('pg');
-        const client = new pg.Client({ connectionString: dbUrl });
-        await client.connect();
-        await client.query(consolidatedSQL);
-        ok('Migration executada via PostgreSQL direto!');
-        methodFound = true;
-        await client.end();
-      } catch (e) {
-        fail(`PostgreSQL direto: ${e.message}`);
-      }
-    }
-  }
 
   // ── PASSO 3: Tentar migração por migração via RPC ──
   if (!methodFound) {
