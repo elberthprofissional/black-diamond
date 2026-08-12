@@ -161,6 +161,7 @@ export const getClientDashboard = async (phone: string) => {
       is_mensalista: boolean;
       mensalista_plan_id: string | null;
       mensalista_expires_at: string | null;
+      email: string;
     } | null;
     history: {
       id: string;

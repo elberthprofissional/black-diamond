@@ -30,37 +30,3 @@ export async function checkLoginAllowed(email: string): Promise<LoginCheckResult
     reason: data?.reason ?? null,
   };
 }
-
-/**
- * Busca todos os emails bloqueados (admin apenas).
- */
-export async function getBlockedUsers(): Promise<string[]> {
-  const { data, error } = await supabase
-    .from('payment_blocked_users')
-    .select('email')
-    .order('blocked_at', { ascending: false });
-
-  if (error) throw error;
-  return (data || []).map((row) => row.email);
-}
-
-/**
- * Bloqueia um email por falta de pagamento (admin apenas).
- */
-export async function blockUser(email: string): Promise<void> {
-  const { error } = await supabase.from('payment_blocked_users').insert({
-    email: email.trim().toLowerCase(),
-  });
-  if (error) throw error;
-}
-
-/**
- * Remove o bloqueio de um email (admin apenas).
- */
-export async function unblockUser(email: string): Promise<void> {
-  const { error } = await supabase
-    .from('payment_blocked_users')
-    .delete()
-    .eq('email', email.trim().toLowerCase());
-  if (error) throw error;
-}
