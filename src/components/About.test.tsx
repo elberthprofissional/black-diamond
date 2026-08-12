@@ -7,9 +7,11 @@ const mockUseBarberSettings = vi.fn(() => ({
   barberPhone: '',
   barberPhoto: '',
   barberBio: '',
+  barberTeamBio: '',
   barberQuote: '',
   barberInstagram: '',
   onboardingCompleted: false,
+  singleBarberMode: false,
   loading: false,
 }));
 
@@ -17,18 +19,29 @@ vi.mock('../hooks/useBarberSettings', () => ({
   useBarberSettings: () => mockUseBarberSettings(),
 }));
 
+const mockGetBarbers = vi.fn();
+vi.mock('../lib/api/barbers', () => ({
+  getBarbers: () => mockGetBarbers(),
+}));
+
+const BASE_SETTINGS = {
+  barberName: '',
+  barberPhone: '',
+  barberPhoto: '',
+  barberBio: '',
+  barberTeamBio: '',
+  barberQuote: '',
+  barberInstagram: '',
+  onboardingCompleted: false,
+  singleBarberMode: false,
+  loading: false,
+};
+
 beforeEach(() => {
   mockUseBarberSettings.mockReset();
-  mockUseBarberSettings.mockReturnValue({
-    barberName: '',
-    barberPhone: '',
-    barberPhoto: '',
-    barberBio: '',
-    barberQuote: '',
-    barberInstagram: '',
-    onboardingCompleted: false,
-    loading: false,
-  });
+  mockUseBarberSettings.mockReturnValue(BASE_SETTINGS);
+  mockGetBarbers.mockReset();
+  mockGetBarbers.mockResolvedValue([]);
 });
 
 describe('About', () => {
@@ -110,5 +123,110 @@ describe('About', () => {
     render(<About />);
     const section = document.getElementById('sobre');
     expect(section).toBeInTheDocument();
+  });
+
+  it('com 1 barbeiro ativo mantém Sobre Mim com o nome dele', async () => {
+    mockGetBarbers.mockResolvedValue([
+      {
+        id: 'b1',
+        name: 'Tato',
+        phone: '4399553590',
+        is_active: true,
+        photo_url: '',
+        bio: '',
+        quote: '',
+      },
+    ]);
+    render(<About />);
+    expect(await screen.findByText('Tato')).toBeInTheDocument();
+    expect(screen.getByText('Sobre Mim')).toBeInTheDocument();
+  });
+
+  it('com 2 barbeiros ativos mostra Sobre Nós', async () => {
+    mockGetBarbers.mockResolvedValue([
+      {
+        id: 'b1',
+        name: 'Tato',
+        phone: '4399553590',
+        is_active: true,
+        photo_url: '',
+        bio: '',
+        quote: '',
+      },
+      {
+        id: 'b2',
+        name: 'João',
+        phone: '4399553600',
+        is_active: true,
+        photo_url: '',
+        bio: '',
+        quote: '',
+      },
+    ]);
+    render(<About />);
+    expect(await screen.findByText('Sobre Nós')).toBeInTheDocument();
+    expect(screen.getByText('Tato')).toBeInTheDocument();
+    expect(screen.getByText('João')).toBeInTheDocument();
+  });
+
+  it('usa a bio da equipe quando 2+ barbeiros', async () => {
+    mockUseBarberSettings.mockReturnValue({
+      ...BASE_SETTINGS,
+      barberTeamBio: 'Somos uma equipe apaixonada por cortes.',
+    });
+    mockGetBarbers.mockResolvedValue([
+      {
+        id: 'b1',
+        name: 'Tato',
+        phone: '4399553590',
+        is_active: true,
+        photo_url: '',
+        bio: '',
+        quote: '',
+      },
+      {
+        id: 'b2',
+        name: 'João',
+        phone: '4399553600',
+        is_active: true,
+        photo_url: '',
+        bio: '',
+        quote: '',
+      },
+    ]);
+    render(<About />);
+    expect(await screen.findByText(/Somos uma equipe apaixonada por cortes/)).toBeInTheDocument();
+  });
+
+  it('com modo barbeiro único ativo, mantém Sobre Mim mesmo com 2 barbeiros', async () => {
+    mockUseBarberSettings.mockReturnValue({
+      ...BASE_SETTINGS,
+      singleBarberMode: true,
+      barberName: 'Tato',
+    });
+    mockGetBarbers.mockResolvedValue([
+      {
+        id: 'b1',
+        name: 'Tato',
+        phone: '4399553590',
+        is_active: true,
+        photo_url: '',
+        bio: '',
+        quote: '',
+      },
+      {
+        id: 'b2',
+        name: 'João',
+        phone: '4399553600',
+        is_active: true,
+        photo_url: '',
+        bio: '',
+        quote: '',
+      },
+    ]);
+    render(<About />);
+    expect(await screen.findByText('Sobre Mim')).toBeInTheDocument();
+    expect(screen.queryByText('Sobre Nós')).not.toBeInTheDocument();
+    expect(screen.queryByText('João')).not.toBeInTheDocument();
   });
 });

@@ -32,7 +32,9 @@ const EMBERS: Array<{
 ];
 
 /**
- * Tela de entrada do agendamento — Visual Redesenhado Premium v4.0.
+ * Tela de entrada do agendamento — Visual Premium Cinematográfico v5.0.
+ * Fundo em camadas: fotografia real da barbearia com virada dourada,
+ * spotlight, aurora, feixe de luz, brasas e grão de filme.
  */
 const BookingPreScreen: FC = () => {
   const navigate = useNavigate();
@@ -44,15 +46,22 @@ const BookingPreScreen: FC = () => {
         {/* Deep Dark Base */}
         <div className="absolute inset-0 bg-radial from-[#120d06] via-[#080808] to-[#030303]" />
 
-        {/* Central Gold Spotlight Effect */}
+        {/* Minimal base — dark velvet com leve virada quente (sem foto) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0906] via-[#060605] to-[#030303]" />
+        <div className="absolute inset-0 bg-gold/[0.03]" />
+
+        {/* Central Gold Spotlight Effect — suave */}
         <div
-          className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[700px] sm:w-[900px] h-[500px] sm:h-[650px] rounded-full bg-gradient-to-b from-gold/15 via-gold/5 to-transparent blur-[130px] opacity-80"
+          className="absolute top-[6%] left-1/2 -translate-x-1/2 w-[640px] sm:w-[860px] h-[480px] sm:h-[620px] rounded-full bg-gradient-to-b from-gold/[0.12] via-gold/[0.04] to-transparent blur-[120px] opacity-80"
           style={{ animation: 'spotlight-drift 18s ease-in-out infinite' }}
         />
 
-        {/* Dynamic Glow Orbs */}
-        <div className="absolute top-[35%] -left-40 w-[450px] h-[450px] rounded-full bg-[#8B6914]/10 blur-[130px] animate-pulse" />
-        <div className="absolute bottom-[10%] -right-40 w-[500px] h-[500px] rounded-full bg-gold/10 blur-[140px]" />
+        {/* Dynamic Glow Orbs — só dois, bem suaves */}
+        <div className="absolute top-[38%] -left-48 w-[420px] h-[420px] rounded-full bg-[#8B6914]/[0.07] blur-[130px] animate-pulse" />
+        <div className="absolute bottom-[8%] -right-48 w-[460px] h-[460px] rounded-full bg-gold/[0.06] blur-[140px]" />
+
+        {/* Sweeping light beam — lens flare dourado */}
+        <div className="light-beam" />
 
         {/* Subtle Luxury Grid Overlay */}
         <div
@@ -69,9 +78,12 @@ const BookingPreScreen: FC = () => {
           className="absolute inset-0"
           style={{
             background:
-              'radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.85) 100%)',
+              'radial-gradient(ellipse at center, transparent 18%, rgba(0,0,0,0.88) 100%)',
           }}
         />
+
+        {/* Film grain — textura cinematográfica */}
+        <div className="film-grain" />
 
         {/* Animated Gold Embers */}
         {EMBERS.map((ember, i) => (
@@ -108,6 +120,13 @@ const BookingPreScreen: FC = () => {
             Voltar
           </span>
         </button>
+
+        {/* Mini marca — presente premium */}
+        <span className="hidden sm:flex items-center gap-2 text-[9px] text-zinc-500 uppercase tracking-[0.3em] font-bold">
+          <span className="w-1 h-1 rotate-45 bg-gold/70" aria-hidden />
+          Est. 2026
+          <span className="w-1 h-1 rotate-45 bg-gold/70" aria-hidden />
+        </span>
       </header>
 
       {/* Main Content Area */}

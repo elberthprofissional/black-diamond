@@ -70,7 +70,8 @@ const BarberCard: FC<BarberCardProps> = ({ barber, index }) => {
 
 /** Seção Sobre Mim — exibe todos os barbeiros ativos (multi-barbeiro). */
 const About: FC = () => {
-  const { barberPhoto, barberBio, barberName, barberQuote } = useBarberSettings();
+  const { barberPhoto, barberBio, barberTeamBio, barberName, barberQuote, singleBarberMode } =
+    useBarberSettings();
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [photoError, setPhotoError] = useState(false);
   const prevPhotoRef = useRef(barberPhoto);
@@ -99,14 +100,23 @@ const About: FC = () => {
 
   // Barbeiros exibidos publicamente: ativos E com WhatsApp (exclui perfil de suporte/dev)
   const displayBarbers = barbers.filter((b) => b.is_active && !!b.phone);
+  // "Modo barbeiro único" (config) força o layout de um barbeiro mesmo com 2+ linhas.
+  const isTeam = !singleBarberMode && displayBarbers.length >= 2;
 
-  // ── FALLBACK: perfil único via settings (sem barbeiros na tabela) ──
-  if (displayBarbers.length === 0) {
-    const hasPhoto = !!barberPhoto && !photoError;
-    const displayPhoto = hasPhoto ? barberPhoto : '/assets/tato.webp';
-    const displayName = barberName || 'Barbeiro';
-    const displayBio = barberBio || FALLBACK_BIO;
-    const displayQuote = barberQuote;
+  // ── BARBEIRO ÚNICO (0/1 ativo ou modo único): seção "Sobre Mim" ──
+  if (!isTeam) {
+    const single = displayBarbers[0] ?? null;
+    const sourcePhoto = single?.photo_url || barberPhoto;
+    const hasPhoto = !!sourcePhoto && !photoError;
+    const displayPhoto = hasPhoto ? sourcePhoto : '/assets/tato.webp';
+    // No modo único, o nome que o dono edita no painel (barber_name) tem prioridade.
+    const displayName = single
+      ? barberName && barberName !== 'Admin'
+        ? barberName
+        : single.name || 'Barbeiro'
+      : barberName || 'Barbeiro';
+    const displayBio = single?.bio || barberBio || FALLBACK_BIO;
+    const displayQuote = single?.quote || barberQuote;
 
     return (
       <section
@@ -171,7 +181,10 @@ const About: FC = () => {
     );
   }
 
-  // ── MULTI-BARBEIRO: grid com todos os barbeiros ativos ──
+  // ── MULTI-BARBEIRO (2+ ativos): "Sobre Nós" com bio coletiva + cards ──
+  const teamBio =
+    barberTeamBio || 'Cada corte é feito com atenção aos detalhes, no seu ritmo e do seu jeito.';
+
   return (
     <section
       id="sobre"
@@ -186,7 +199,7 @@ const About: FC = () => {
             Conheça nossa equipe
           </h2>
           <p className="text-zinc-400 font-sans text-sm sm:text-base font-light max-w-xl mx-auto">
-            Cada corte é feito com atenção aos detalhes, no seu ritmo e do seu jeito.
+            {teamBio}
           </p>
         </div>
 

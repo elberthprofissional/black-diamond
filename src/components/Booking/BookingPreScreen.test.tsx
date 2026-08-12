@@ -60,6 +60,10 @@ describe('BookingPreScreen', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    Object.defineProperty(window, 'innerWidth', {
+      value: 1024,
+      configurable: true,
+    });
   });
 
   it('renderiza o menu principal com as 2 opções', () => {
@@ -128,5 +132,26 @@ describe('BookingPreScreen', () => {
     renderPage();
 
     expect(screen.getByText(/Que bom te ver de novo, Maria!/)).toBeInTheDocument();
+  });
+
+  it('renderiza o layout mobile (centralizado) em telas < 1024px', () => {
+    Object.defineProperty(window, 'innerWidth', { value: 390, configurable: true });
+
+    renderPage();
+
+    expect(screen.getByText('Agendar agora')).toBeInTheDocument();
+    expect(screen.getByText('Entrar')).toBeInTheDocument();
+    // Detalhes da barbearia são exclusivos do layout desktop
+    expect(screen.queryByText(/Corte na régua/)).not.toBeInTheDocument();
+  });
+
+  it('renderiza detalhes da barbearia no layout desktop (>= 1024px)', () => {
+    Object.defineProperty(window, 'innerWidth', { value: 1440, configurable: true });
+
+    renderPage();
+
+    expect(screen.getByText(/Corte na régua/)).toBeInTheDocument();
+    expect(screen.getByText(/Seg–Sáb · 08h às 18h/)).toBeInTheDocument();
+    expect(screen.getByText('Agendar agora')).toBeInTheDocument();
   });
 });

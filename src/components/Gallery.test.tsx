@@ -1,7 +1,16 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 import Gallery from './Gallery';
+
+const mockGetGalleryImages = vi.fn();
+const mockGetBarbers = vi.fn();
+vi.mock('../lib/api/gallery', () => ({
+  getGalleryImages: () => mockGetGalleryImages(),
+}));
+vi.mock('../lib/api/barbers', () => ({
+  getBarbers: () => mockGetBarbers(),
+}));
 
 // Mock do Supabase
 vi.mock('../lib/supabase', () => {
@@ -39,6 +48,13 @@ vi.mock('../lib/supabase', () => {
 });
 
 describe('Gallery', () => {
+  beforeEach(() => {
+    mockGetGalleryImages.mockReset();
+    mockGetBarbers.mockReset();
+    mockGetGalleryImages.mockResolvedValue([]);
+    mockGetBarbers.mockResolvedValue([]);
+  });
+
   it('renderiza o titulo Galeria', async () => {
     render(
       <BarberSettingsProvider>
@@ -95,6 +111,51 @@ describe('Gallery', () => {
     );
     await waitFor(() => {
       expect(screen.queryByText(/siga a gente no/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it('com 2 barbeiros e fotos, mostra marquee Nossos Trabalhos com as fotos duplicadas', async () => {
+    mockGetBarbers.mockResolvedValue([
+      { id: 'b1', name: 'Tato', phone: '4399553590', is_active: true },
+      { id: 'b2', name: 'João', phone: '4399553600', is_active: true },
+    ]);
+    mockGetGalleryImages.mockResolvedValue([
+      { id: 'g1', image_url: '/hero1.jpg', alt: '', position: 1 },
+      { id: 'g2', image_url: '/hero2.jpg', alt: '', position: 2 },
+      { id: 'g3', image_url: '/corte1.jpg', alt: 'Corte 1', position: 3 },
+      { id: 'g4', image_url: '/corte2.jpg', alt: 'Corte 2', position: 4 },
+      { id: 'g5', image_url: '/corte3.jpg', alt: 'Corte 3', position: 5 },
+    ]);
+    render(
+      <BarberSettingsProvider>
+        <Gallery />
+      </BarberSettingsProvider>
+    );
+    await waitFor(() => {
+      expect(screen.getByText(/Nossos/)).toBeInTheDocument();
+      // 3 fotos (após as 2 do Hero) duplicadas para o loop infinito
+      expect(document.querySelectorAll('.marquee-track img')).toHaveLength(6);
+    });
+  });
+
+  it('com 2 barbeiros mas sem fotos suficientes, mantém a colagem', async () => {
+    mockGetBarbers.mockResolvedValue([
+      { id: 'b1', name: 'Tato', phone: '4399553590', is_active: true },
+      { id: 'b2', name: 'João', phone: '4399553600', is_active: true },
+    ]);
+    mockGetGalleryImages.mockResolvedValue([
+      { id: 'g1', image_url: '/hero1.jpg', alt: '', position: 1 },
+      { id: 'g2', image_url: '/hero2.jpg', alt: '', position: 2 },
+    ]);
+    render(
+      <BarberSettingsProvider>
+        <Gallery />
+      </BarberSettingsProvider>
+    );
+    await waitFor(() => {
+      // Colagem: subtítulo continua "Meus" e placeholders aparecem
+      expect(screen.getByText(/Meus/)).toBeInTheDocument();
+      expect(document.querySelectorAll('.lucide-image')).toHaveLength(3);
     });
   });
 });

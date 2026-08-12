@@ -93,6 +93,7 @@ const BookingPageContent: FC = memo(() => {
             onSelectTime={ctx.setSelectedTime}
             availableSlots={ctx.availableSlots}
             existingBookings={ctx.existingBookings}
+            slotDuration={ctx.slotDuration}
             layout={layout}
             dateContainerRef={isDesktop ? undefined : ctx.dateContainerRef}
             onMouseDown={isDesktop ? undefined : ctx.handleMouseDown}

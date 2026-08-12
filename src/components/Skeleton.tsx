@@ -100,34 +100,4 @@ export const SkeletonClients: FC = () => (
   </div>
 );
 
-/**
- * Skeleton específico para listas de agendamentos do admin.
- * Mostra slots de horário com formato de booking card.
- */
-export const SkeletonBookingList: FC<{ count?: number; className?: string }> = ({
-  count = 6,
-  className = '',
-}) => (
-  <div className={`space-y-2 ${className}`} aria-busy="true" aria-label="Carregando agendamentos">
-    {Array.from({ length: count }).map((_, i) => (
-      <div
-        key={i}
-        className="flex items-center gap-3 p-3 bg-white/[0.02] rounded-xl border border-white/[0.04]"
-      >
-        {/* Hora */}
-        <Skeleton variant="rect" width={48} height={20} className="rounded-md shrink-0" />
-        {/* Avatar */}
-        <Skeleton variant="circle" width={36} height={36} className="shrink-0" />
-        {/* Info */}
-        <div className="flex-1 space-y-1.5">
-          <Skeleton variant="text" width="50%" height={14} />
-          <Skeleton variant="text" width="35%" height={11} />
-        </div>
-        {/* Badge */}
-        <Skeleton variant="rect" width={56} height={22} className="rounded-md shrink-0" />
-      </div>
-    ))}
-  </div>
-);
-
 export default Skeleton;

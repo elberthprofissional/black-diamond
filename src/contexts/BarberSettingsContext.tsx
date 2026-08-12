@@ -8,6 +8,7 @@ const SETTINGS_KEYS = [
   'barber_photo',
   'barber_bio',
   'barber_quote',
+  'barber_team_bio',
   'barber_instagram',
   'barber_hours',
   'brand_logo',
@@ -22,6 +23,8 @@ interface BarberSettingsContextType {
   barberPhoto: string;
   barberBio: string;
   barberQuote: string;
+  /** Bio coletiva da seção Sobre Nós (usada quando há 2+ barbeiros ativos). */
+  barberTeamBio: string;
   barberInstagram: string;
   barberHours: string;
   brandName: string;
@@ -36,6 +39,7 @@ interface BarberSettingsContextType {
   updateBarberPhone: (phone: string) => Promise<boolean>;
   updateBarberPhoto: (photoUrl: string) => Promise<boolean>;
   updateBarberBio: (bio: string) => Promise<boolean>;
+  updateBarberTeamBio: (bio: string) => Promise<boolean>;
   updateBarberQuote: (quote: string) => Promise<boolean>;
   updateBarberInstagram: (instagram: string) => Promise<boolean>;
   updateBarberHours: (hours: string) => Promise<boolean>;
@@ -54,6 +58,7 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
   const [barberPhoto, setBarberPhoto] = useState<string>('');
   const [barberBio, setBarberBio] = useState<string>('');
   const [barberQuote, setBarberQuote] = useState<string>('');
+  const [barberTeamBio, setBarberTeamBio] = useState<string>('');
   const [barberInstagram, setBarberInstagram] = useState<string>('');
   const [barberHours, setBarberHours] = useState<string>('');
   const brandName = 'Black Diamond';
@@ -84,6 +89,9 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
           }
           if (row.key === 'barber_bio') {
             setBarberBio(row.value || '');
+          }
+          if (row.key === 'barber_team_bio') {
+            setBarberTeamBio(row.value || '');
           }
           if (row.key === 'barber_quote') {
             setBarberQuote(row.value || '');
@@ -167,6 +175,17 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
       .upsert({ key: 'barber_bio', value: newBio }, { onConflict: 'key' });
     if (!error) {
       setBarberBio(newBio);
+      return true;
+    }
+    return false;
+  }, []);
+
+  const updateBarberTeamBio = useCallback(async (newBio: string) => {
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key: 'barber_team_bio', value: newBio }, { onConflict: 'key' });
+    if (!error) {
+      setBarberTeamBio(newBio);
       return true;
     }
     return false;
@@ -277,6 +296,7 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
         barberPhoto,
         barberBio,
         barberQuote,
+        barberTeamBio,
         barberInstagram,
         barberHours,
         brandName,
@@ -290,6 +310,7 @@ export function BarberSettingsProvider({ children }: { children: ReactNode }) {
         updateBarberPhone,
         updateBarberPhoto,
         updateBarberBio,
+        updateBarberTeamBio,
         updateBarberQuote,
         updateBarberInstagram,
         updateBarberHours,
@@ -317,6 +338,7 @@ export function useBarberSettings() {
       barberPhoto: '',
       barberBio: '',
       barberQuote: '',
+      barberTeamBio: '',
       barberInstagram: '',
       barberHours: '',
       brandName: 'Black Diamond',
@@ -330,6 +352,7 @@ export function useBarberSettings() {
       updateBarberPhone: async () => false,
       updateBarberPhoto: async () => false,
       updateBarberBio: async () => false,
+      updateBarberTeamBio: async () => false,
       updateBarberQuote: async () => false,
       updateBarberInstagram: async () => false,
       updateBarberHours: async () => false,
