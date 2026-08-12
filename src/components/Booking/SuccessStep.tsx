@@ -1,8 +1,17 @@
 import { useState, type FC } from 'react';
-import { Check, ArrowLeft, Link2, CalendarClock, KeyRound } from 'lucide-react';
+import {
+  Check,
+  ArrowLeft,
+  Link2,
+  CalendarClock,
+  KeyRound,
+  ChevronRight,
+  Smartphone,
+} from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useBarberSettings } from '../../hooks/useBarberSettings';
 import { getClientSession } from '../../lib/clientSession';
+import { formatPhone } from '../../lib/utils';
 
 interface SuccessStepProps {
   clientName: string;
@@ -15,6 +24,8 @@ interface SuccessStepProps {
   } | null;
   /** Link mágico de gerenciamento (token) — aparece após agendar online. */
   manageUrl?: string;
+  /** Telefone do cliente — pré-preenche o convite de criação de conta. */
+  clientPhone?: string;
 }
 
 const SuccessStep: FC<SuccessStepProps> = ({
@@ -23,6 +34,7 @@ const SuccessStep: FC<SuccessStepProps> = ({
   isOffline = false,
   nextMilestone,
   manageUrl,
+  clientPhone = '',
 }) => {
   const navigate = useNavigate();
   const { barberPhone } = useBarberSettings();
@@ -80,6 +92,61 @@ const SuccessStep: FC<SuccessStepProps> = ({
   };
 
   const shortUrl = manageUrl?.replace(/^https?:\/\//, '') ?? '';
+
+  // ── Convite pós-agendamento: personalizado com o progresso real de fidelidade ──
+  const inviteText = (() => {
+    if (nextMilestone && !nextMilestone.already_claimed && nextMilestone.progress > 0) {
+      const remaining = nextMilestone.milestone.visits_required - nextMilestone.progress;
+      if (remaining > 0) {
+        return `Você já tem ${nextMilestone.progress} ${nextMilestone.progress === 1 ? 'corte' : 'cortes'} registrados — faltam ${remaining} para o prêmio!`;
+      }
+    }
+    return 'Crie sua conta grátis e acompanhe cortes, gastos e plano mensal.';
+  })();
+
+  const inviteCard = (compact: boolean) => (
+    <div className={`w-full ${compact ? '' : 'mt-4'} gold-border-card rounded-2xl p-4 text-left`}>
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-lg bg-gold/10 border border-gold/25 flex items-center justify-center shrink-0">
+          <KeyRound size={17} className="text-gold" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-bold text-white">Guarde seu histórico</p>
+          <p className="text-[11px] text-zinc-400 leading-relaxed mt-0.5">{inviteText}</p>
+        </div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {['Histórico de cortes', 'Fidelidade com prêmios', 'Plano mensal'].map((benefit) => (
+          <span
+            key={benefit}
+            className="text-[9px] uppercase tracking-wider text-zinc-400 bg-white/[0.04] border border-white/[0.06] rounded-md px-2 py-1"
+          >
+            {benefit}
+          </span>
+        ))}
+      </div>
+
+      {clientPhone && (
+        <div className="mt-3 flex items-center gap-2 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2">
+          <Smartphone size={13} className="text-gold shrink-0" />
+          <p className="text-[11px] text-zinc-400 truncate">
+            Celular <b className="text-white">{formatPhone(clientPhone)}</b> já preenchido
+          </p>
+        </div>
+      )}
+
+      <button
+        data-testid="btn-create-account-invite"
+        onClick={() =>
+          navigate(clientPhone ? `/entrar?phone=${clientPhone.replace(/\D/g, '')}` : '/entrar')
+        }
+        className="mt-4 w-full h-11 rounded-xl bg-gold text-black text-[12px] font-bold uppercase tracking-[0.15em] hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-gold/20 cursor-pointer"
+      >
+        Criar minha conta grátis <ChevronRight size={14} />
+      </button>
+    </div>
+  );
 
   const manageLinkCard = (compact: boolean) => (
     <div
@@ -214,16 +281,8 @@ const SuccessStep: FC<SuccessStepProps> = ({
           Voltar ao início
         </button>
 
-        {/* Convite pós-agendamento: criar conta para acompanhar cortes */}
-        {!hasSession && (
-          <button
-            onClick={() => navigate('/entrar')}
-            className="mt-5 text-[12px] text-zinc-400 hover:text-gold transition-colors cursor-pointer flex items-center gap-1.5"
-          >
-            <KeyRound size={12} className="text-gold shrink-0" />
-            Crie sua conta grátis para acompanhar seus cortes, gastos e plano mensal →
-          </button>
-        )}
+        {/* Convite pós-agendamento: criar conta com o telefone já preenchido */}
+        {!hasSession && inviteCard(false)}
 
         {/* Subtle confetti dots */}
         {[
@@ -321,15 +380,7 @@ const SuccessStep: FC<SuccessStepProps> = ({
         <button onClick={() => navigate('/')} className="btn-ghost px-6 py-3">
           Voltar ao início
         </button>
-        {!hasSession && (
-          <button
-            onClick={() => navigate('/entrar')}
-            className="text-[12px] text-zinc-500 hover:text-gold transition-colors cursor-pointer flex items-center gap-1.5"
-          >
-            <KeyRound size={12} className="text-gold shrink-0" />
-            Crie sua conta grátis para acompanhar seus cortes →
-          </button>
-        )}
+        {!hasSession && inviteCard(true)}
       </div>
     </div>
   );

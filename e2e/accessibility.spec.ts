@@ -96,6 +96,10 @@ test.describe('Acessibilidade - Página de Agendamento', () => {
 });
 
 test.describe('Acessibilidade - Login Admin', () => {
+  // Storage limpo: com sessão ativa o app redireciona /admin/login → /admin
+  // no meio dos asserts (o form some). Sem sessão o form fica estável.
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test('login page passa em auditoria de acessibilidade', async ({ page }) => {
     await page.goto('/admin/login');
     await page.waitForLoadState('networkidle');

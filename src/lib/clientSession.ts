@@ -36,6 +36,15 @@ export function getClientSession(): ClientSession | null {
   return { phone: session.phone, name: session.name, hasPassword: session.hasPassword };
 }
 
+/** Avisa a UI (ex.: Navbar) que a sessão do cliente mudou. */
+function notifySessionChange() {
+  try {
+    window.dispatchEvent(new Event('client-session-change'));
+  } catch {
+    /* noop */
+  }
+}
+
 /** Salva (ou renova) a sessão do cliente. */
 export function saveClientSession(phone: string, name: string, hasPassword?: boolean) {
   try {
@@ -46,6 +55,7 @@ export function saveClientSession(phone: string, name: string, hasPassword?: boo
   } catch {
     /* noop */
   }
+  notifySessionChange();
 }
 
 /** Remove a sessão do cliente (logout). */
@@ -55,4 +65,5 @@ export function clearClientSession() {
   } catch {
     /* noop */
   }
+  notifySessionChange();
 }

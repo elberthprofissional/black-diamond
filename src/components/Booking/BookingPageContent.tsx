@@ -245,6 +245,7 @@ const BookingPageContent: FC = memo(() => {
                   isOffline={ctx.isOfflineBooking}
                   nextMilestone={ctx.nextMilestone}
                   manageUrl={ctx.bookingResult?.manageUrl}
+                  clientPhone={ctx.userInfo.phone}
                 />
               </motion.div>
             )}
@@ -337,6 +338,7 @@ const BookingPageContent: FC = memo(() => {
           isOffline={ctx.isOfflineBooking}
           nextMilestone={ctx.nextMilestone}
           manageUrl={ctx.bookingResult?.manageUrl}
+          clientPhone={ctx.userInfo.phone}
         />
       )}
     </div>

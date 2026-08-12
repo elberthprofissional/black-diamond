@@ -12,7 +12,6 @@ import { logError } from './lib/logger';
 const TITLES: Record<string, string> = {
   '/': 'BLACK DIAMOND',
   '/agendar': 'Agendar Horário | Black Diamond',
-  '/agendar/entrada': 'Agendar | Black Diamond',
   '/admin': 'Painel Admin | Black Diamond',
   '/admin/login': 'Login Admin | Black Diamond',
   '/admin/agendar': 'Novo Agendamento | Black Diamond',
@@ -65,7 +64,6 @@ function TitleManager() {
 // Lazy-loaded route components
 const Home = lazy(() => import('./pages/Home'));
 const BookingPage = lazy(() => import('./pages/BookingPage'));
-const BookingPreScreen = lazy(() => import('./components/Booking/BookingPreScreen'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const UniversalLogin = lazy(() => import('./pages/UniversalLogin'));
 const AdminResetPassword = lazy(() => import('./pages/AdminResetPassword'));
@@ -91,7 +89,6 @@ function preloadRoute(path: string) {
 
   const preloaders: Record<string, () => Promise<unknown>> = {
     '/agendar': () => import('./pages/BookingPage'),
-    '/agendar/entrada': () => import('./components/Booking/BookingPreScreen'),
     '/admin': () => import('./pages/AdminDashboard'),
     '/admin/login': () => import('./pages/AdminLogin'),
     '/entrar': () => import('./pages/UniversalLogin'),
@@ -119,6 +116,14 @@ function preloadRoute(path: string) {
 function GerenciarRedirect() {
   const { token } = useParams<{ token: string }>();
   return <Navigate to={`/cancelar${token ? `?token=${token}` : ''}`} replace />;
+}
+
+// As páginas admin renderizam seu próprio <AdminLayout> (que já provê
+// BarberProvider). Este wrapper existe só para fornecer o BarberProvider
+// ANTES do componente (algumas páginas chamam useBarberScope no topo),
+// sem duplicar o layout completo.
+function AdminPage({ children }: { children: ReactNode }) {
+  return <BarberProvider>{children}</BarberProvider>;
 }
 
 function LoadingFallback() {
@@ -269,13 +274,17 @@ function App() {
                     }
                   />
 
-                  {/* Protected Admin Routes */}
+                  {/* Protected Admin Routes
+                   * NOTA: as páginas admin já renderizam seu próprio <AdminLayout>.
+                   * Envolver aqui de novo DUPLICA o layout (2 sidebars). Só
+                   * /admin/agendar (mobile) e /admin/notificacoes dependem do wrapper.
+                   */}
                   <Route
                     path="/admin"
                     element={
-                      <AdminLayout>
+                      <AdminPage>
                         <AdminDashboard />
-                      </AdminLayout>
+                      </AdminPage>
                     }
                   />
                   <Route
@@ -289,33 +298,33 @@ function App() {
                   <Route
                     path="/admin/weekly"
                     element={
-                      <AdminLayout>
+                      <AdminPage>
                         <AdminWeekly />
-                      </AdminLayout>
+                      </AdminPage>
                     }
                   />
                   <Route
                     path="/admin/clients"
                     element={
-                      <AdminLayout>
+                      <AdminPage>
                         <AdminClients />
-                      </AdminLayout>
+                      </AdminPage>
                     }
                   />
                   <Route
                     path="/admin/profile"
                     element={
-                      <AdminLayout>
+                      <AdminPage>
                         <AdminProfile />
-                      </AdminLayout>
+                      </AdminPage>
                     }
                   />
                   <Route
                     path="/admin/reports"
                     element={
-                      <AdminLayout>
+                      <AdminPage>
                         <AdminReports />
-                      </AdminLayout>
+                      </AdminPage>
                     }
                   />
 
@@ -323,9 +332,9 @@ function App() {
                   <Route
                     path="/admin/assinatura"
                     element={
-                      <AdminLayout hideBottomTabs>
+                      <AdminPage>
                         <SubscriptionPage />
-                      </AdminLayout>
+                      </AdminPage>
                     }
                   />
 
@@ -344,14 +353,8 @@ function App() {
                       </SectionErrorBoundary>
                     }
                   />
-                  <Route
-                    path="/agendar/entrada"
-                    element={
-                      <SectionErrorBoundary name="Entrada Agendamento">
-                        <BookingPreScreen />
-                      </SectionErrorBoundary>
-                    }
-                  />
+                  {/* v3.37: a tela de entrada foi removida — fluxo vai direto ao wizard. */}
+                  <Route path="/agendar/entrada" element={<Navigate to="/agendar" replace />} />
                   <Route
                     path="/agendar"
                     element={

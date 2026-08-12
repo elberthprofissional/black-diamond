@@ -10,10 +10,8 @@ test.describe('Fluxos Críticos - Agendamento', () => {
   test('fluxo de agendamento avança para a etapa de serviços', async ({ page }) => {
     test.skip(isLocal, 'Requires live Supabase connection');
 
-    await page.goto('/agendar/entrada');
-
-    // Click "Agendar agora" (menu v3.34: só 2 opções)
-    await page.click('text=Agendar agora');
+    // v3.37: sem tela de entrada — o menu "Agendar" vai direto ao formulário
+    await page.goto('/agendar');
 
     // Aguardar o formulário estabilizar (transição skeleton → form na navegação SPA)
     await expect(page.locator('[data-testid="input-name"]').first()).toBeVisible({
@@ -36,10 +34,8 @@ test.describe('Fluxos Críticos - Agendamento', () => {
   test('cupom de desconto pode ser adicionado', async ({ page }) => {
     test.skip(isLocal, 'Requires live Supabase connection');
 
-    await page.goto('/agendar/entrada');
-
-    // Clica em "Agendar agora" (menu v3.34: só 2 opções)
-    await page.click('text=Agendar agora');
+    // v3.37: sem tela de entrada — vai direto ao formulário
+    await page.goto('/agendar');
 
     // Aguardar o formulário estabilizar
     await expect(page.locator('[data-testid="input-name"]').first()).toBeVisible({

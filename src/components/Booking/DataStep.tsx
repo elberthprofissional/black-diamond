@@ -1,6 +1,8 @@
 import { memo, useState, useCallback, useEffect, useRef, type FC } from 'react';
-import { User, Repeat, Tag } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { User, Repeat, Tag, LogIn, UserPlus, CheckCircle2 } from 'lucide-react';
 import { formatPricePublic } from '../../lib/utils';
+import { getClientSession } from '../../lib/clientSession';
 import { WhatsAppIcon } from '../WhatsAppIcon';
 import CouponModal from './CouponModal';
 import CouponBadge from './CouponBadge';
@@ -62,6 +64,8 @@ const DataStep: FC<DataStepProps> = memo(
     onCouponValidate,
     onCouponRemove,
   }) => {
+    const navigate = useNavigate();
+    const session = getClientSession();
     const [couponModalOpen, setCouponModalOpen] = useState(false);
 
     // Form validation state (touched tracking + validation via useForm)
@@ -96,15 +100,81 @@ const DataStep: FC<DataStepProps> = memo(
       [onPhoneChange] // eslint-disable-line react-hooks/exhaustive-deps
     );
 
+    const renderLoginBanner = () => {
+      if (session) {
+        return (
+          <div className="bg-gold/10 border border-gold/30 rounded-xl p-3.5 flex items-center justify-between text-left gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-full bg-gold/20 flex items-center justify-center shrink-0">
+                <CheckCircle2 size={14} className="text-gold" />
+              </div>
+              <div>
+                <p className="text-[13px] font-medium text-white">
+                  Conectado como <span className="text-gold font-bold">{session.name}</span>
+                </p>
+                <p className="text-[11px] text-zinc-400">
+                  Seus dados foram preenchidos automaticamente.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/cliente')}
+              className="text-[11px] font-semibold text-gold hover:underline shrink-0"
+            >
+              Minha conta →
+            </button>
+          </div>
+        );
+      }
+
+      return (
+        <div className="bg-zinc-900/80 border border-white/10 rounded-xl p-4 space-y-3 text-left">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0 mt-0.5">
+              <User size={16} className="text-gold" />
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[13px] font-semibold text-white">Já possui uma conta?</p>
+              <p className="text-[11px] text-zinc-400 leading-relaxed">
+                Entre para agendar mais rápido, acompanhar seus horários e não precisar digitar seus
+                dados novamente.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => navigate('/entrar')}
+              className="flex-1 sm:flex-none px-3.5 py-1.5 bg-gold hover:bg-gold/90 text-black text-[12px] font-bold rounded-lg transition-all cursor-pointer text-center flex items-center justify-center gap-1.5"
+            >
+              <LogIn size={13} />
+              Entrar
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/entrar?mode=create')}
+              className="flex-1 sm:flex-none px-3.5 py-1.5 bg-white/10 hover:bg-white/15 text-white text-[12px] font-semibold rounded-lg transition-all cursor-pointer text-center flex items-center justify-center gap-1.5"
+            >
+              <UserPlus size={13} />
+              Criar conta
+            </button>
+          </div>
+        </div>
+      );
+    };
+
     if (layout === 'desktop') {
       return (
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-full max-w-lg space-y-8">
+          <div className="w-full max-w-lg space-y-6">
             {/* Header */}
             <div className="space-y-2">
               <h2 className="text-2xl font-bold tracking-tight text-white">Seus dados</h2>
               <p className="text-[14px] text-zinc-400">Preencha suas informações para continuar.</p>
             </div>
+
+            {/* Banner de Login Opcional */}
+            {renderLoginBanner()}
 
             {/* Form — WhatsApp primeiro, Nome depois (auto-preenchimento) */}
             <div className="space-y-6">
@@ -262,6 +332,9 @@ const DataStep: FC<DataStepProps> = memo(
             <p className="text-[10px] text-zinc-400">Precisamos do seu nome e WhatsApp</p>
           </div>
         </div>
+
+        {/* Login Banner (opcional) */}
+        {renderLoginBanner()}
 
         {/* Fields — WhatsApp primeiro, Nome depois (auto-preenchimento) */}
         <div className="space-y-4">

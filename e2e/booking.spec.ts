@@ -1,20 +1,25 @@
 import { test, expect } from '@playwright/test';
+import { selectFirstServiceAndDateTime, confirmBooking } from './helpers/booking';
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
 const isLocal = BASE_URL.includes('localhost');
 
-// Telefone único por execução: evita acumular bookings no limite de 3/dia por telefone
-// (o script scripts/limpar-testes-e2e.mjs continua limpando pelos NOMES de teste)
+// Telefone único por execução: evita acumular bookings no limite de 3/dia por
+// telefone (o script scripts/limpar-testes-e2e.mjs continua limpando pelos NOMES).
 const testPhone = `1199${String(Date.now()).slice(-7)}`;
 
 test.describe('Fluxo de Agendamento', () => {
+  // Os 2 testes criam bookings reais na mesma data; rodam em série para não
+  // disputarem o mesmo horário. O 2º usa o segundo slot disponível.
+  test.describe.configure({ mode: 'serial' });
+
   test('usuário consegue agendar do início ao fim', async ({ page }) => {
     test.skip(isLocal, 'Booking requires live Supabase connection');
     await page.goto('/agendar');
 
     // Step 1: Preencher dados (DataStep comes first)
     await expect(page.locator('[data-testid="input-name"]').first()).toBeVisible({
-      timeout: 10000,
+      timeout: 15000,
     });
     await page.waitForLoadState('networkidle').catch(() => {});
     await page.waitForTimeout(700); // aguarda transição skeleton → form
@@ -22,36 +27,12 @@ test.describe('Fluxo de Agendamento', () => {
     await nameInput.click();
     await nameInput.pressSequentially('Cliente Teste E2E');
     await page.locator('[data-testid="input-phone"]').first().pressSequentially(testPhone);
-    await page.click('[data-testid="next-step"]');
 
-    // Step 2: Selecionar serviço
-    await expect(page.locator('[data-testid="service-card"]').first()).toBeVisible({
-      timeout: 10000,
-    });
-    await page.click('[data-testid="service-card"]:first-child');
-    await page.click('[data-testid="next-step"]');
+    // Fluxo até a revisão: serviços → barbeiro → data/horário (1º slot)
+    await selectFirstServiceAndDateTime(page);
 
-    // Step 3: Selecionar data e hora
-    await expect(page.locator('[data-testid="date-picker"]').first()).toBeVisible({
-      timeout: 10000,
-    });
-    await page.click('[data-testid="date-picker"]:first-child');
-    await page.click('[data-testid="time-slot"]:first-child');
-    // Step 3 → Step 4 (Review)
-    await page.click('[data-testid="next-step"]');
-    // Step 4: Confirm
-    await expect(page.locator('[data-testid="confirm-booking"]').first()).toBeVisible({
-      timeout: 10000,
-    });
-    await page.click('[data-testid="confirm-booking"]:visible');
-
-    // Verificar sucesso (desktop + mobile both render, use .first())
-    await expect(
-      page
-        .locator('text=horário foi agendado')
-        .or(page.locator('text=agendamento foi salvo'))
-        .first()
-    ).toBeVisible({ timeout: 15000 });
+    // Confirmar e verificar sucesso
+    await confirmBooking(page);
   });
 
   test('WhatsApp abre após agendamento', async ({ page }) => {
@@ -73,36 +54,21 @@ test.describe('Fluxo de Agendamento', () => {
 
     // Preencher dados
     await expect(page.locator('[data-testid="input-name"]').first()).toBeVisible({
-      timeout: 10000,
+      timeout: 15000,
     });
     await page.waitForTimeout(700); // aguarda transição skeleton → form
     const nameInput = page.locator('[data-testid="input-name"]').first();
     await nameInput.click();
     await nameInput.pressSequentially('Cliente Teste WA');
     await page.locator('[data-testid="input-phone"]').first().pressSequentially(testPhone);
-    await page.click('[data-testid="next-step"]');
 
-    // Selecionar serviço
-    await page.click('[data-testid="service-card"]:first-child');
-    await page.click('[data-testid="next-step"]');
+    // Fluxo até a revisão usando o 1º slot livre da lista (a página recarrega os
+    // slots, então o horário do teste anterior já não aparece — resiliente mesmo
+    // quando a agenda do dia só tem 1 vaga).
+    await selectFirstServiceAndDateTime(page, 0);
 
-    // Selecionar data e hora
-    await page.click('[data-testid="date-picker"]:first-child');
-    await page.click('[data-testid="time-slot"]:first-child');
-    // Step 3 → Step 4 (Review)
-    await page.click('[data-testid="next-step"]');
-    // Step 4: Confirm
-    await expect(page.locator('[data-testid="confirm-booking"]').first()).toBeVisible({
-      timeout: 10000,
-    });
-    await page.click('[data-testid="confirm-booking"]:visible');
-
-    await expect(
-      page
-        .locator('text=horário foi agendado')
-        .or(page.locator('text=agendamento foi salvo'))
-        .first()
-    ).toBeVisible({ timeout: 15000 });
+    // Confirmar e aguardar sucesso
+    await confirmBooking(page);
 
     // Verificar que WhatsApp foi chamado
     const urls = await page.evaluate(

@@ -48,6 +48,7 @@ const BarberStep: FC<BarberStepProps> = memo(({ barbers, selectedBarber, onSelec
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.06, duration: 0.3 }}
               onClick={() => onSelectBarber(barber)}
+              data-testid="barber-card"
               aria-pressed={isSelected}
               className={`group relative w-full flex flex-col items-center gap-3 rounded-2xl border p-5 sm:p-6 transition-all duration-300 cursor-pointer ${
                 isSelected

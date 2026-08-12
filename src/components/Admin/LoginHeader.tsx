@@ -17,29 +17,27 @@ export default function LoginHeader({ isPWA }: LoginHeaderProps) {
         <button
           onClick={() => navigate('/')}
           aria-label="Voltar para a página inicial"
-          className="fixed top-6 left-6 z-50 text-white hover:text-[#D4AF37] transition-colors cursor-pointer active:scale-95"
+          className="absolute top-4 left-4 sm:top-6 sm:left-6 lg:top-8 lg:left-8 z-50 p-2.5 rounded-full bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] hover:border-amber-400/40 text-zinc-300 hover:text-white transition-all cursor-pointer active:scale-95"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={18} />
         </button>
       )}
 
-      {/* Mobile Logo */}
-      <div className="lg:hidden flex flex-col items-center mb-6">
+      {/* Logo — compacto, dentro do card */}
+      <div className="flex justify-center">
         {brandLogo ? (
-          <img src={brandLogo} alt="Logo" className="w-28 h-28 object-contain" />
+          <img
+            src={brandLogo}
+            alt="Logo"
+            className="w-20 h-20 sm:w-16 sm:h-16 lg:w-14 lg:h-14 object-contain drop-shadow-[0_0_18px_rgba(212,175,55,0.15)]"
+          />
         ) : (
-          <img src="/assets/logo.webp" alt="Logo" className="w-28 h-28" />
+          <img
+            src="/assets/logo.webp"
+            alt="Logo"
+            className="w-20 h-20 sm:w-16 sm:h-16 lg:w-14 lg:h-14 drop-shadow-[0_0_18px_rgba(212,175,55,0.15)]"
+          />
         )}
-      </div>
-
-      {/* Header Desktop */}
-      <div className="hidden lg:block mb-16 space-y-4 w-full text-left">
-        <h1 className="text-4xl lg:text-5xl font-bebas tracking-[0.05em] text-white leading-none">
-          Bem-vindo
-        </h1>
-        <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-zinc-500">
-          Insira seus dados para continuar
-        </p>
       </div>
     </>
   );

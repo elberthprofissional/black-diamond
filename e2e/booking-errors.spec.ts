@@ -1,4 +1,17 @@
 import { test, expect } from '@playwright/test';
+import {
+  selectFirstServiceAndDateTime,
+  selectBarberIfPresent,
+  advanceToServices,
+} from './helpers/booking';
+
+// Testes que acessam /admin/login ou /admin sem intenção de usar a sessão
+// precisam de storage limpo (o storageState global já vem logado).
+const CLEAN_STORAGE = { cookies: [], origins: [] };
+
+// Telefone único por execução: os testes que criam agendamentos reais não
+// podem reutilizar o mesmo telefone (limite de 3 agendamentos/dia por fone).
+const testPhone = `1199${String(Date.now()).slice(-7)}`;
 
 test.describe('Booking - Tratamento de Erros', () => {
   test('exibe erro quando rede falha ao carregar serviços', async ({ page }) => {
@@ -15,16 +28,7 @@ test.describe('Booking - Tratamento de Erros', () => {
 
     // Preencher dados (DataStep comes first)
     await page.locator('[data-testid="input-name"]').first().fill('Cliente Teste');
-    await page.locator('[data-testid="input-phone"]').first().fill('11999887766');
-    await page.click('[data-testid="next-step"]');
-
-    // Selecionar serviço
-    await page.click('[data-testid="service-card"]:first-child');
-    await page.click('[data-testid="next-step"]');
-
-    // Selecionar data e hora
-    await page.click('[data-testid="date-picker"]:first-child');
-    await page.click('[data-testid="time-slot"]:first-child');
+    await page.locator('[data-testid="input-phone"]').first().fill(testPhone);
 
     // Intercept a chamada de criação e retorna erro
     await page.route('**/rest/v1/rpc/criar_agendamento_rate_limited', (route) =>
@@ -34,9 +38,10 @@ test.describe('Booking - Tratamento de Erros', () => {
       })
     );
 
-    // Step 3 → Step 4 (Review)
-    await page.click('[data-testid="next-step"]');
-    // Step 4: Confirm
+    // Fluxo até a revisão (serviços → barbeiro → data/horário)
+    await selectFirstServiceAndDateTime(page);
+
+    // Confirmar
     await expect(page.locator('[data-testid="confirm-booking"]').first()).toBeVisible({
       timeout: 10000,
     });
@@ -84,12 +89,13 @@ test.describe('Booking - Concorrência', () => {
 
     // Preencher dados (DataStep comes first)
     await page.locator('[data-testid="input-name"]').first().fill('Cliente A');
-    await page.locator('[data-testid="input-phone"]').first().fill('11988776655');
-    await page.click('[data-testid="next-step"]');
+    await page.locator('[data-testid="input-phone"]').first().fill(testPhone);
 
-    // Selecionar serviço
+    // Fluxo até a etapa de data/horário
+    await advanceToServices(page);
     await page.click('[data-testid="service-card"]:first-child');
     await page.click('[data-testid="next-step"]');
+    await selectBarberIfPresent(page);
 
     await page.click('[data-testid="date-picker"]:first-child');
 
@@ -107,10 +113,15 @@ test.describe('Booking - Limites', () => {
 
     // Preencher dados (DataStep comes first)
     await page.locator('[data-testid="input-name"]').first().fill('Cliente Teste');
-    await page.locator('[data-testid="input-phone"]').first().fill('11999887766');
-    await page.click('[data-testid="next-step"]');
+    await page.locator('[data-testid="input-phone"]').first().fill(testPhone);
+
+    // Avançar até a etapa de serviços (barbeiro vem depois)
+    await advanceToServices(page);
 
     // Verificar que a seleção de serviço funciona
+    await expect(page.locator('[data-testid="service-card"]').first()).toBeVisible({
+      timeout: 10000,
+    });
     await page.click('[data-testid="service-card"]:first-child');
 
     // Deve permitir selecionar pelo menos um
@@ -142,13 +153,19 @@ test.describe('Acessibilidade', () => {
     const skipLink = page.locator('.skip-link');
     await expect(skipLink).toBeVisible();
   });
+});
 
-  test('modais possuem aria attributes', async ({ page }) => {
-    await page.goto('/admin/login');
+test.describe('Acessibilidade - Login', () => {
+  test.describe('(sem sessão)', () => {
+    test.use({ storageState: CLEAN_STORAGE });
 
-    // Verificar que o formulário tem labels
-    await expect(page.locator('label[for="login-email"]')).toBeVisible();
-    await expect(page.locator('label[for="login-password"]')).toBeVisible();
+    test('modais possuem aria attributes', async ({ page }) => {
+      await page.goto('/admin/login');
+
+      // Verificar que o formulário tem labels
+      await expect(page.locator('label[for="login-email"]')).toBeVisible();
+      await expect(page.locator('label[for="login-password"]')).toBeVisible();
+    });
   });
 });
 
@@ -170,52 +187,60 @@ test.describe('Performance', () => {
 });
 
 test.describe('Admin - Autenticação', () => {
-  test('rota admin redireciona para login sem sessão', async ({ page }) => {
-    await page.goto('/admin');
-    await expect(page).toHaveURL(/\/admin\/login/);
-  });
+  test.describe('(sem sessão)', () => {
+    test.use({ storageState: CLEAN_STORAGE });
 
-  test('login com credenciais inválidas mostra erro', async ({ page }) => {
-    await page.goto('/admin/login');
-    await page.fill('[data-testid="input-email"]', 'wrong@email.com');
-    await page.fill('[data-testid="input-password"]', 'wrongpassword');
-    await page.click('[data-testid="btn-login"]');
+    test('rota admin redireciona para login sem sessão', async ({ page }) => {
+      await page.goto('/admin');
+      await expect(page).toHaveURL(/\/admin\/login/);
+    });
 
-    // Wait for error - could be "incorretos", "Conta bloqueada", "Muitas tentativas", or rate limit error
-    await expect(
-      page
-        .locator('text=incorretos')
-        .or(page.locator('text=Conta bloqueada'))
-        .or(page.locator('text=Muitas tentativas'))
-        .or(page.locator('text=Erro'))
-    ).toBeVisible({ timeout: 25000 });
-  });
+    test('login com credenciais inválidas mostra erro', async ({ page }) => {
+      await page.goto('/admin/login');
+      await page.fill('[data-testid="input-email"]', 'wrong@email.com');
+      await page.fill('[data-testid="input-password"]', 'wrongpassword');
+      await page.click('[data-testid="btn-login"]');
 
-  test('login com campos vazios mostra erro', async ({ page }) => {
-    await page.goto('/admin/login');
-    // Click submit without filling fields - browser required validation or custom error
-    await page.locator('[data-testid="btn-login"]').click();
-    // The form has required attributes on inputs, so native validation or custom error shows
-    await page.waitForTimeout(1000);
-    // Just verify the page didn't navigate away (still on login)
-    await expect(page).toHaveURL(/\/admin\/login/);
+      // Wait for error - could be "incorretos", "Conta bloqueada", "Muitas tentativas", or rate limit error
+      await expect(
+        page
+          .locator('text=incorretos')
+          .or(page.locator('text=Conta bloqueada'))
+          .or(page.locator('text=Muitas tentativas'))
+          .or(page.locator('text=Erro'))
+      ).toBeVisible({ timeout: 25000 });
+    });
+
+    test('login com campos vazios mostra erro', async ({ page }) => {
+      await page.goto('/admin/login');
+      // Click submit without filling fields - browser required validation or custom error
+      await page.locator('[data-testid="btn-login"]').click();
+      // The form has required attributes on inputs, so native validation or custom error shows
+      await page.waitForTimeout(1000);
+      // Just verify the page didn't navigate away (still on login)
+      await expect(page).toHaveURL(/\/admin\/login/);
+    });
   });
 });
 
 test.describe('Admin - Rate Limiting', () => {
-  test('bloqueio temporário após múltiplas tentativas', async ({ page }) => {
-    await page.goto('/admin/login');
+  test.describe('(sem sessão)', () => {
+    test.use({ storageState: CLEAN_STORAGE });
 
-    for (let i = 0; i < 5; i++) {
-      await page.fill('[data-testid="input-email"]', 'test@test.com');
-      await page.fill('[data-testid="input-password"]', 'wrong');
-      await page.click('[data-testid="btn-login"]');
-      await page.waitForTimeout(500);
-    }
+    test('bloqueio temporário após múltiplas tentativas', async ({ page }) => {
+      await page.goto('/admin/login');
 
-    await expect(
-      page.locator('text=Muitas tentativas').or(page.locator('text=Conta bloqueada'))
-    ).toBeVisible({ timeout: 10000 });
+      for (let i = 0; i < 5; i++) {
+        await page.fill('[data-testid="input-email"]', 'test@test.com');
+        await page.fill('[data-testid="input-password"]', 'wrong');
+        await page.click('[data-testid="btn-login"]');
+        await page.waitForTimeout(500);
+      }
+
+      await expect(
+        page.locator('text=Muitas tentativas').or(page.locator('text=Conta bloqueada'))
+      ).toBeVisible({ timeout: 10000 });
+    });
   });
 });
 

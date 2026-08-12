@@ -1,5 +1,5 @@
-import { useEffect, useState, type FC, type FormEvent } from 'react';
-import { useNavigate } from 'react-router';
+import { useEffect, useRef, useState, type FC, type FormEvent } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Loader2,
@@ -7,7 +7,6 @@ import {
   User,
   ShieldCheck,
   Smartphone,
-  Scissors,
   Lock,
   KeyRound,
   Check,
@@ -76,9 +75,15 @@ function detectKind(input: string): IdentifierKind {
  */
 const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEmail = '' }) => {
   const navigate = useNavigate();
+  // Convite pós-agendamento → /entrar?phone=... pré-preenche e dispara o fluxo.
+  const [searchParams] = useSearchParams();
+  const prefillPhone = searchParams.get('phone') ?? '';
   const [view, setView] = useState<'client' | 'admin'>(adminMode ? 'admin' : 'client');
   const [input, setInput] = useState(initialEmail);
-  const [stage, setStage] = useState<ClientStage>({ kind: 'id' });
+  const initialMode = searchParams.get('mode');
+  const [stage, setStage] = useState<ClientStage>(
+    initialMode === 'create' ? { kind: 'create-account' } : { kind: 'id' }
+  );
   const [nameMatches, setNameMatches] = useState<ClientMatch[]>([]);
   const [clientLoading, setClientLoading] = useState(false);
   const [clientError, setClientError] = useState('');
@@ -91,7 +96,7 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
   const [accountForm, setAccountForm] = useState({ name: '', email: '', phone: '' });
 
   const admin = useAdminLogin({ initialEmail });
-  const { brandColor, barberPhone } = useBarberSettings();
+  const { barberPhone } = useBarberSettings();
   const isPWA =
     window.matchMedia('(display-mode: standalone)').matches || !!window.navigator.standalone;
 
@@ -107,18 +112,6 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
     };
     checkSession();
   }, [navigate]);
-
-  // PWA: trava navegação de voltar caso esteja standalone
-  useEffect(() => {
-    if (!isPWA) return;
-    const handlePopState = () => {
-      window.close();
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [isPWA]);
 
   useScrollLock();
 
@@ -167,6 +160,30 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
       setClientLoading(false);
     }
   };
+
+  // Pré-preenchimento vindo do convite pós-agendamento (?phone=): preenche o
+  // campo e dispara o fluxo automaticamente (senha ou entrada direta).
+  // Só roda no modo cliente, uma única vez (flag) — seguro em StrictMode.
+  const prefillRan = useRef(false);
+  useEffect(() => {
+    if (prefillRan.current || adminMode || !prefillPhone || stage.kind !== 'id' || input) return;
+    prefillRan.current = true;
+    setInput(formatPhone(prefillPhone));
+    void handleClientIdentifier(prefillPhone);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // PWA: trava navegação de voltar caso esteja standalone
+  useEffect(() => {
+    if (!isPWA) return;
+    const handlePopState = () => {
+      window.close();
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isPWA]);
 
   // ── Fluxo do cliente a partir de um telefone ──
   const handleClientPhone = async (digits: string) => {
@@ -271,7 +288,8 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
       setClientLoading(false);
       return;
     }
-    if (accountForm.phone.replace(/\D/g, '').length < 11) {
+    const cleanPhone = accountForm.phone.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
       setClientError('Informe um celular válido com DDD.');
       setClientLoading(false);
       return;
@@ -286,18 +304,41 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
       return;
     }
     try {
+      // 1. Tenta criar conta no Supabase Auth em segundo plano se houver e-mail
+      if (accountForm.email.includes('@') && typeof supabase.auth?.signUp === 'function') {
+        void Promise.resolve(
+          supabase.auth.signUp({
+            email: accountForm.email.trim(),
+            password: newPassword,
+            options: {
+              data: { name: accountForm.name.trim(), phone: cleanPhone },
+            },
+          })
+        )
+          .then(({ data }) => {
+            if (data?.user) {
+              void Promise.resolve(
+                supabase.rpc('sync_client_user', {
+                  p_name: accountForm.name.trim(),
+                  p_phone: cleanPhone,
+                  p_email: accountForm.email.trim(),
+                })
+              ).catch(() => {});
+            }
+          })
+          .catch(() => {});
+      }
+
+      // 2. RPC de criação de conta (persiste dados, aplica senha e gera sessão)
       const result = await criarContaCliente({
-        name: accountForm.name,
-        email: accountForm.email,
-        phone: accountForm.phone.replace(/\D/g, ''),
+        name: accountForm.name.trim(),
+        email: accountForm.email.trim(),
+        phone: cleanPhone,
         password: newPassword,
       });
+
       if (result.ok) {
-        await enterClient(
-          result.phone || accountForm.phone.replace(/\D/g, ''),
-          result.name || accountForm.name,
-          true
-        );
+        await enterClient(result.phone || cleanPhone, result.name || accountForm.name, true);
         return;
       }
       setClientError(result.message || 'Não foi possível criar a conta.');
@@ -448,144 +489,127 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
     }
   };
 
-  // ── Ícone vivo do campo ──
-  const fieldIcon =
-    kind === 'email' ? (
-      <ShieldCheck size={15} className="text-gold" />
-    ) : kind === 'phone' ? (
-      <Smartphone size={15} className="text-gold" />
-    ) : kind === 'name' ? (
-      <Scissors size={15} className="text-gold" />
-    ) : (
-      <User size={15} className="text-zinc-600" />
-    );
+  // ── Ícone e texto de apoio do campo (fixos: a visão do cliente é por celular) ──
+  const fieldIcon = <Smartphone size={16} className="text-gold" />;
 
-  const hintText =
-    kind === 'email'
-      ? 'Profissional detectado — sua senha abre o painel.'
-      : kind === 'phone'
-        ? 'Cliente — seu celular entra direto nos seus horários.'
-        : kind === 'name'
-          ? 'Procurando por esse nome...'
-          : 'Celular, nome ou e-mail. Qualquer um funciona.';
+  const hintText = 'Sem senha? Você entra do mesmo jeito.';
 
   const renderClientView = () => {
-    // ── Desambiguação por nome ──
-    if (nameMatches.length > 1) {
+    // ── Seleção entre múltiplos clientes com o mesmo nome ──
+    if (nameMatches.length > 0) {
       return (
         <motion.div
-          key="name-matches"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          key="client-matches"
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
           className="w-full space-y-4"
         >
-          <div className="text-center space-y-1.5">
-            <p className="text-[14px] font-bold text-white">Qual é você?</p>
+          <div className="text-center space-y-1">
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
+              Desambiguação
+            </p>
+            <h2 className="text-lg font-bold text-white tracking-tight">Qual é você?</h2>
             <p className="text-[11px] text-zinc-500">
-              Encontramos {nameMatches.length} pessoas com esse nome.
+              Encontramos mais de um cliente com o nome &quot;{input.trim()}&quot;. Escolha o seu:
             </p>
           </div>
-          <div className="space-y-2">
-            {nameMatches.map((m) => (
+
+          <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+            {nameMatches.map((match) => (
               <button
-                key={m.id}
+                key={match.id}
                 type="button"
-                onClick={() => handleClientMatch(m)}
-                className="w-full flex items-center gap-3 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3.5 hover:border-gold/30 hover:bg-white/[0.05] transition-all cursor-pointer group"
+                onClick={() => handleClientMatch(match)}
+                className="w-full p-3.5 rounded-xl bg-white/[0.03] hover:bg-gold/10 border border-white/[0.06] hover:border-gold/30 text-left transition-all group flex items-center justify-between cursor-pointer"
               >
-                <div className="w-9 h-9 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
-                  <User size={15} className="text-gold" />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="text-[13px] font-semibold text-white group-hover:text-gold transition-colors">
-                    {m.name}
+                <div>
+                  <p className="text-xs font-bold text-white group-hover:text-gold transition-colors">
+                    {match.name}
                   </p>
-                  <p className="text-[10px] text-zinc-500 tabular-nums">{m.phone_masked}</p>
+                  <p className="text-[10px] text-zinc-500 font-mono tracking-wider">
+                    {match.phone_masked}
+                  </p>
                 </div>
-                {m.has_password && <Lock size={12} className="text-zinc-600" />}
-                <ChevronRight
-                  size={14}
-                  className="text-zinc-600 group-hover:text-gold transition-colors"
-                />
+                <span className="text-[10px] font-bold text-gold opacity-0 group-hover:opacity-100 transition-opacity">
+                  Selecionar →
+                </span>
               </button>
             ))}
           </div>
+
           <button
             type="button"
-            onClick={() => {
-              setNameMatches([]);
-              setInput('');
-            }}
-            className="w-full text-center text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors uppercase tracking-[0.1em]"
+            onClick={resetClient}
+            className="w-full text-center text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors cursor-pointer uppercase tracking-[0.1em] pt-2"
           >
-            ← Voltar
+            ← Digitar meu número completo
           </button>
         </motion.div>
       );
     }
 
-    // ── Cliente sem senha — entra direto ou cria senha ──
+    // ── Cliente sem senha: pode entrar direto OU criar senha ──
     if (stage.kind === 'no-password') {
       return (
         <motion.div
           key="no-password"
-          initial={{ opacity: 0, x: 16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3 }}
-          className="w-full space-y-4"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full space-y-4 text-center"
         >
-          <div className="text-center space-y-1.5">
-            <div className="w-12 h-12 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-3">
-              <Smartphone size={20} className="text-gold" />
-            </div>
-            <p className="text-[15px] font-bold text-white">
-              Bem-vindo{stage.name !== 'Cliente' ? `, ${stage.name}` : ''}! 👋
-            </p>
-            <p className="text-[11px] text-zinc-500 tabular-nums">{formatPhone(stage.phone)}</p>
+          <div className="w-12 h-12 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-2">
+            <User size={20} className="text-gold" />
           </div>
-          <motion.button
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            type="button"
-            data-testid="btn-enter-no-password"
-            onClick={() => enterClient(stage.phone, stage.name, false)}
-            className="w-full h-11 lg:h-12 text-black font-bold uppercase tracking-[0.15em] text-[12px] rounded-2xl lg:rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-2"
-            style={{ backgroundColor: brandColor }}
-          >
-            <Smartphone size={14} /> Entrar agora
-          </motion.button>
+          <div className="space-y-1">
+            <p className="text-base font-bold text-white">Olá, {stage.name || 'Cliente'}!</p>
+            <p className="text-[11px] text-zinc-500 font-mono">{formatPhone(stage.phone)}</p>
+          </div>
+
+          <div className="space-y-2.5 pt-2">
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              type="button"
+              data-testid="btn-enter-no-password"
+              onClick={() => enterClient(stage.phone, stage.name, false)}
+              className="w-full h-12 text-black font-extrabold uppercase tracking-[0.15em] text-[12px] rounded-xl transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-gold via-amber-400 to-gold shadow-lg shadow-gold/20 hover:shadow-gold/30 cursor-pointer"
+            >
+              Entrar direto no painel <ChevronRight size={16} />
+            </motion.button>
+
+            <button
+              type="button"
+              data-testid="btn-go-create-password"
+              onClick={() => setStage({ kind: 'create', phone: stage.phone, name: stage.name })}
+              className="w-full py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[11px] font-semibold text-zinc-300 hover:text-white transition-all cursor-pointer"
+            >
+              🔒 Criar uma senha para proteger meu acesso
+            </button>
+          </div>
+
           <button
             type="button"
-            data-testid="btn-go-create-password"
-            onClick={() => setStage({ kind: 'create', phone: stage.phone, name: stage.name })}
-            className="w-full h-11 rounded-xl border border-white/[0.08] text-zinc-400 hover:text-white hover:border-gold/30 text-[10px] font-bold uppercase tracking-[0.15em] transition-all cursor-pointer flex items-center justify-center gap-2"
+            onClick={resetClient}
+            className="w-full text-center text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors uppercase tracking-[0.1em] pt-2 cursor-pointer"
           >
-            <KeyRound size={13} /> Criar senha para proteger meu acesso
-          </button>
-          <button
-            type="button"
-            onClick={() => setStage({ kind: 'id' })}
-            className="w-full text-center text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors uppercase tracking-[0.1em]"
-          >
-            ← Usar outro celular
+            ← Entrar com outro número
           </button>
         </motion.div>
       );
     }
 
-    // ── Criar senha (cliente novo) ──
+    // ── Criar senha pela primeira vez ──
     if (stage.kind === 'create') {
       return (
         <motion.form
-          key="create"
-          initial={{ opacity: 0, x: 16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3 }}
+          key="client-create-password"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           onSubmit={handleCreatePassword}
           className="w-full space-y-4"
         >
           <div className="text-center space-y-1.5">
-            <div className="w-12 h-12 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-2">
               <KeyRound size={20} className="text-gold" />
             </div>
             <p className="text-[15px] font-bold text-white">Crie uma senha</p>
@@ -603,7 +627,7 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
               data-testid="input-new-password"
               autoComplete="new-password"
               maxLength={128}
-              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
+              className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none transition-all focus:border-gold focus:bg-white/[0.05]"
             />
           </div>
           <div className="relative">
@@ -616,7 +640,7 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
               data-testid="input-confirm-password"
               autoComplete="new-password"
               maxLength={128}
-              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
+              className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none transition-all focus:border-gold focus:bg-white/[0.05]"
             />
           </div>
           <motion.button
@@ -625,14 +649,13 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
             type="submit"
             data-testid="btn-create-password"
             disabled={clientLoading}
-            className="w-full h-11 lg:h-12 text-black font-bold uppercase tracking-[0.15em] text-[12px] rounded-2xl lg:rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: brandColor }}
+            className="w-full h-12 text-black font-extrabold uppercase tracking-[0.15em] text-[12px] rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-gold via-amber-400 to-gold shadow-lg shadow-gold/20 hover:shadow-gold/30 cursor-pointer"
           >
             {clientLoading ? (
-              <Loader2 size={14} className="animate-spin" />
+              <Loader2 size={16} className="animate-spin" />
             ) : (
               <>
-                <Check size={14} /> Criar senha e entrar
+                <Check size={16} /> Criar senha e entrar
               </>
             )}
           </motion.button>
@@ -652,14 +675,13 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
       return (
         <motion.form
           key="client-password"
-          initial={{ opacity: 0, x: 16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           onSubmit={handleClientPassword}
           className="w-full space-y-4"
         >
           <div className="text-center space-y-1.5">
-            <div className="w-12 h-12 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-2">
               <Lock size={20} className="text-gold" />
             </div>
             <p className="text-[15px] font-bold text-white">
@@ -680,7 +702,7 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
               autoComplete="current-password"
               maxLength={128}
               autoFocus
-              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
+              className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none transition-all focus:border-gold focus:bg-white/[0.05]"
             />
           </div>
           <motion.button
@@ -689,14 +711,13 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
             type="submit"
             data-testid="btn-client-login"
             disabled={clientLoading}
-            className="w-full h-11 lg:h-12 text-black font-bold uppercase tracking-[0.15em] text-[12px] rounded-2xl lg:rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: brandColor }}
+            className="w-full h-12 text-black font-extrabold uppercase tracking-[0.15em] text-[12px] rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-gold via-amber-400 to-gold shadow-lg shadow-gold/20 hover:shadow-gold/30 cursor-pointer"
           >
             {clientLoading ? (
-              <Loader2 size={14} className="animate-spin" />
+              <Loader2 size={16} className="animate-spin" />
             ) : (
               <>
-                <ShieldCheck size={14} /> Entrar
+                <ShieldCheck size={16} /> Entrar
               </>
             )}
           </motion.button>
@@ -721,29 +742,27 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
       );
     }
 
-    // ── Esqueci a senha: enviar código ──
+    // ── Recuperar senha (solicitar código) ──
     if (stage.kind === 'recover-send') {
       return (
         <motion.form
           key="recover-send"
-          initial={{ opacity: 0, x: 16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           onSubmit={handleRecoverSend}
           className="w-full space-y-4"
         >
           <div className="text-center space-y-1.5">
-            <div className="w-12 h-12 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-2">
               <KeyRound size={20} className="text-gold" />
             </div>
-            <p className="text-[15px] font-bold text-white">Esqueci minha senha</p>
+            <p className="text-[15px] font-bold text-white">Recuperar minha senha</p>
             <p className="text-[11px] text-zinc-500 leading-relaxed">
-              Vamos enviar um <b className="text-zinc-300">código de 6 dígitos</b> para o seu
-              e-mail. Confirme o telefone ou e-mail da sua conta:
+              Enviaremos um código para o e-mail cadastrado na sua conta.
             </p>
           </div>
           <div className="relative">
-            <Smartphone
+            <ShieldCheck
               size={14}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"
             />
@@ -751,11 +770,12 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
               type="text"
               value={recoverIdentifier}
               onChange={(e) => setRecoverIdentifier(e.target.value)}
-              placeholder="Telefone ou e-mail cadastrado"
+              placeholder="Seu e-mail ou celular com DDD"
               data-testid="input-recover-identifier"
+              autoComplete="username"
               maxLength={120}
               autoFocus
-              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
+              className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none transition-all focus:border-gold focus:bg-white/[0.05]"
             />
           </div>
           <motion.button
@@ -764,72 +784,49 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
             type="submit"
             data-testid="btn-recover-send"
             disabled={clientLoading || !recoverIdentifier.trim()}
-            className="w-full h-11 lg:h-12 text-black font-bold uppercase tracking-[0.15em] text-[12px] rounded-2xl lg:rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: brandColor }}
+            className="w-full h-12 text-black font-extrabold uppercase tracking-[0.15em] text-[12px] rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-gold via-amber-400 to-gold shadow-lg shadow-gold/20 hover:shadow-gold/30 cursor-pointer"
           >
             {clientLoading ? (
-              <Loader2 size={14} className="animate-spin" />
+              <Loader2 size={16} className="animate-spin" />
             ) : (
               <>
-                <KeyRound size={14} /> Enviar código
+                <ChevronRight size={16} /> Enviar código por e-mail
               </>
             )}
           </motion.button>
-          <p className="text-[10px] text-zinc-600 text-center leading-relaxed">
-            📧 O e-mail pode levar alguns minutos e pode cair na caixa de{' '}
-            <b className="text-zinc-400">SPAM / Lixo eletrônico</b>.
-          </p>
           {clientError && <p className="text-[12px] text-red-400 text-center">{clientError}</p>}
-          <button
-            type="button"
-            onClick={openRecoveryWhatsApp}
-            className="w-full text-center text-[10px] text-zinc-500 hover:text-gold transition-colors cursor-pointer uppercase tracking-[0.1em]"
-          >
-            💬 Prefere resolver pelo WhatsApp? Fale com a barbearia
-          </button>
           <button
             type="button"
             onClick={() => setStage({ kind: 'id' })}
             className="w-full text-center text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors cursor-pointer uppercase tracking-[0.1em]"
           >
-            ← Voltar
+            ← Voltar para o login
           </button>
         </motion.form>
       );
     }
 
-    // ── Esqueci a senha: código + nova senha ──
+    // ── Recuperar senha (código recebido por e-mail) ──
     if (stage.kind === 'recover-code') {
       return (
         <motion.form
           key="recover-code"
-          initial={{ opacity: 0, x: 16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           onSubmit={handleRecoverSubmit}
           className="w-full space-y-4"
         >
           <div className="text-center space-y-1.5">
-            <div className="w-12 h-12 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-3">
-              <ShieldCheck size={20} className="text-gold" />
+            <div className="w-12 h-12 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-2">
+              <KeyRound size={20} className="text-gold" />
             </div>
-            <p className="text-[15px] font-bold text-white">Digite o código</p>
+            <p className="text-[15px] font-bold text-white">Código de verificação</p>
             <p className="text-[11px] text-zinc-500 leading-relaxed">
-              {recoverEmailMasked ? (
-                <>
-                  Enviamos para <b className="text-zinc-300">{recoverEmailMasked}</b> (confira o
-                  spam!)
-                </>
-              ) : (
-                'Enviamos o código para o seu e-mail (confira o spam!).'
-              )}
+              Enviamos um código de 6 dígitos para{' '}
+              <b className="text-gold font-mono">{recoverEmailMasked || 'seu e-mail'}</b>.
             </p>
           </div>
-          <div className="relative">
-            <KeyRound
-              size={14}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"
-            />
+          <div className="space-y-3">
             <input
               type="text"
               inputMode="numeric"
@@ -839,34 +836,34 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
               data-testid="input-recover-code"
               maxLength={6}
               autoFocus
-              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-center text-xl font-black tracking-[0.4em] text-gold outline-none focus:border-gold transition-all"
+              className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl text-center text-xl tracking-[0.5em] font-mono font-bold text-gold outline-none transition-all focus:border-gold focus:bg-white/[0.05]"
             />
-          </div>
-          <div className="relative">
-            <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Nova senha (mín. 6 caracteres)"
-              data-testid="input-recover-new-password"
-              autoComplete="new-password"
-              maxLength={128}
-              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
-            />
-          </div>
-          <div className="relative">
-            <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Repita a nova senha"
-              data-testid="input-recover-confirm-password"
-              autoComplete="new-password"
-              maxLength={128}
-              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
-            />
+            <div className="relative">
+              <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Nova senha (mín. 6 caracteres)"
+                data-testid="input-recover-new-password"
+                autoComplete="new-password"
+                maxLength={128}
+                className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none transition-all focus:border-gold focus:bg-white/[0.05]"
+              />
+            </div>
+            <div className="relative">
+              <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repita a nova senha"
+                data-testid="input-recover-confirm-password"
+                autoComplete="new-password"
+                maxLength={128}
+                className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none transition-all focus:border-gold focus:bg-white/[0.05]"
+              />
+            </div>
           </div>
           <motion.button
             whileHover={{ scale: 1.01 }}
@@ -874,19 +871,18 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
             type="submit"
             data-testid="btn-recover-submit"
             disabled={clientLoading || recoverCode.length !== 6 || newPassword.length < 6}
-            className="w-full h-11 lg:h-12 text-black font-bold uppercase tracking-[0.15em] text-[12px] rounded-2xl lg:rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: brandColor }}
+            className="w-full h-12 text-black font-extrabold uppercase tracking-[0.15em] text-[12px] rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-gold via-amber-400 to-gold shadow-lg shadow-gold/20 hover:shadow-gold/30 cursor-pointer"
           >
             {clientLoading ? (
-              <Loader2 size={14} className="animate-spin" />
+              <Loader2 size={16} className="animate-spin" />
             ) : (
               <>
-                <ShieldCheck size={14} /> Redefinir senha
+                <ShieldCheck size={16} /> Redefinir senha
               </>
             )}
           </motion.button>
           {clientError && <p className="text-[12px] text-red-400 text-center">{clientError}</p>}
-          <div className="space-y-2">
+          <div className="space-y-2 pt-2 border-t border-white/[0.06]">
             <button
               type="button"
               onClick={() => setStage({ kind: 'recover-send', phone: stage.phone })}
@@ -899,7 +895,7 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
               onClick={openRecoveryWhatsApp}
               className="w-full text-center text-[10px] text-zinc-500 hover:text-gold transition-colors cursor-pointer uppercase tracking-[0.1em]"
             >
-              💬 Não chegou? Fale com a barbearia no WhatsApp
+              💬 Fale com a barbearia no WhatsApp
             </button>
             <button
               type="button"
@@ -913,184 +909,252 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
       );
     }
 
-    // ── Criar conta completa ──
+    // ── Criar conta de cliente ──
     if (stage.kind === 'create-account') {
       return (
         <motion.form
-          key="create-account"
-          initial={{ opacity: 0, x: 16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3 }}
+          key="client-create-account"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.25 }}
           onSubmit={handleCreateAccount}
-          className="w-full space-y-4"
+          className="w-full space-y-6"
         >
-          <div className="text-center space-y-1.5">
-            <div className="w-12 h-12 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-3">
-              <User size={20} className="text-gold" />
-            </div>
-            <p className="text-[15px] font-bold text-white">Criar minha conta</p>
-            <p className="text-[11px] text-zinc-500 leading-relaxed">
-              Acompanhe seus cortes, total gasto e plano mensal. Se o seu telefone já tem histórico,{' '}
-              <b className="text-zinc-300">tudo é vinculado automaticamente</b>.
+          <div className="text-center space-y-1.5 mb-2">
+            <h1 className="text-2xl font-bold text-white tracking-tight">Criar sua conta</h1>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Cadastre-se para agendar, reagendar e acompanhar seu histórico.
             </p>
           </div>
-          <div className="relative">
-            <User size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
-            <input
-              type="text"
-              value={accountForm.name}
-              onChange={(e) => setAccountForm({ ...accountForm, name: e.target.value })}
-              placeholder="Seu nome"
-              data-testid="input-account-name"
-              autoComplete="name"
-              maxLength={80}
-              autoFocus
-              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
-            />
+
+          <div className="space-y-4">
+            {/* Bloco: Dados Pessoais */}
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
+                  Nome completo
+                </label>
+                <div className="relative group">
+                  <User
+                    size={15}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-amber-400 transition-colors"
+                  />
+                  <input
+                    type="text"
+                    value={accountForm.name}
+                    onChange={(e) => setAccountForm({ ...accountForm, name: e.target.value })}
+                    placeholder="Seu nome"
+                    data-testid="input-account-name"
+                    autoComplete="name"
+                    maxLength={80}
+                    autoFocus
+                    className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-5 text-sm text-white placeholder:text-zinc-600 outline-none transition-all focus:border-amber-400/80 focus:bg-white/[0.05]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
+                    WhatsApp
+                  </label>
+                  <div className="relative group">
+                    <Smartphone
+                      size={15}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-amber-400 transition-colors"
+                    />
+                    <input
+                      type="tel"
+                      value={accountForm.phone}
+                      onChange={(e) =>
+                        setAccountForm({ ...accountForm, phone: formatPhone(e.target.value) })
+                      }
+                      placeholder="(00) 90000-0000"
+                      data-testid="input-account-phone"
+                      autoComplete="tel"
+                      maxLength={15}
+                      className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-zinc-600 outline-none transition-all focus:border-amber-400/80 focus:bg-white/[0.05]"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
+                    E-mail
+                  </label>
+                  <div className="relative group">
+                    <ShieldCheck
+                      size={15}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-amber-400 transition-colors"
+                    />
+                    <input
+                      type="email"
+                      value={accountForm.email}
+                      onChange={(e) => setAccountForm({ ...accountForm, email: e.target.value })}
+                      placeholder="seu@email.com"
+                      data-testid="input-account-email"
+                      autoComplete="email"
+                      maxLength={120}
+                      className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-zinc-600 outline-none transition-all focus:border-amber-400/80 focus:bg-white/[0.05]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bloco: Senha de Acesso */}
+            <div className="space-y-3 pt-2 border-t border-white/[0.06]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
+                    Criar Senha
+                  </label>
+                  <div className="relative group">
+                    <Lock
+                      size={15}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-amber-400 transition-colors"
+                    />
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Mín. 6 caracteres"
+                      data-testid="input-account-password"
+                      autoComplete="new-password"
+                      maxLength={128}
+                      className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-zinc-600 outline-none transition-all focus:border-amber-400/80 focus:bg-white/[0.05]"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
+                    Confirmar Senha
+                  </label>
+                  <div className="relative group">
+                    <Lock
+                      size={15}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-amber-400 transition-colors"
+                    />
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Repita a senha"
+                      data-testid="input-account-confirm"
+                      autoComplete="new-password"
+                      maxLength={128}
+                      className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-zinc-600 outline-none transition-all focus:border-amber-400/80 focus:bg-white/[0.05]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="relative">
-            <Smartphone
-              size={14}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"
-            />
-            <input
-              type="tel"
-              value={accountForm.phone}
-              onChange={(e) =>
-                setAccountForm({ ...accountForm, phone: formatPhone(e.target.value) })
-              }
-              placeholder="Celular com DDD"
-              data-testid="input-account-phone"
-              autoComplete="tel"
-              maxLength={15}
-              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
-            />
-          </div>
-          <div className="relative">
-            <ShieldCheck
-              size={14}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"
-            />
-            <input
-              type="email"
-              value={accountForm.email}
-              onChange={(e) => setAccountForm({ ...accountForm, email: e.target.value })}
-              placeholder="Seu e-mail (usado para recuperar a senha)"
-              data-testid="input-account-email"
-              autoComplete="email"
-              maxLength={120}
-              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
-            />
-          </div>
-          <div className="relative">
-            <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Senha (mín. 6 caracteres)"
-              data-testid="input-account-password"
-              autoComplete="new-password"
-              maxLength={128}
-              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
-            />
-          </div>
-          <div className="relative">
-            <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Repita a senha"
-              data-testid="input-account-confirm"
-              autoComplete="new-password"
-              maxLength={128}
-              className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm text-zinc-100 outline-none focus:border-gold transition-all"
-            />
-          </div>
+
+          {clientError && (
+            <motion.p
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-[12px] font-medium text-red-400 text-center bg-red-500/10 border border-red-500/20 rounded-lg p-2.5"
+            >
+              {clientError}
+            </motion.p>
+          )}
+
           <motion.button
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
             type="submit"
             data-testid="btn-account-submit"
             disabled={clientLoading}
-            className="w-full h-11 lg:h-12 text-black font-bold uppercase tracking-[0.15em] text-[12px] rounded-2xl lg:rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: brandColor }}
+            className="w-full h-12 text-black font-extrabold uppercase tracking-[0.15em] text-[12px] rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-amber-400 hover:bg-amber-300 shadow-md shadow-amber-400/10 cursor-pointer"
           >
             {clientLoading ? (
-              <Loader2 size={14} className="animate-spin" />
+              <Loader2 size={16} className="animate-spin" />
             ) : (
               <>
-                <Check size={14} /> Criar conta
+                <Check size={16} /> Criar minha conta
               </>
             )}
           </motion.button>
-          {clientError && <p className="text-[12px] text-red-400 text-center">{clientError}</p>}
-          <button
-            type="button"
-            onClick={() => setStage({ kind: 'id' })}
-            className="w-full text-center text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors cursor-pointer uppercase tracking-[0.1em]"
-          >
-            ← Voltar
-          </button>
+
+          <div className="pt-2 text-center">
+            <button
+              type="button"
+              onClick={() => setStage({ kind: 'id' })}
+              className="text-xs font-medium text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            >
+              Já possui conta? <span className="text-amber-400 font-bold underline">Entrar →</span>
+            </button>
+          </div>
         </motion.form>
       );
     }
 
-    // ── Campo inteligente (padrão) ──
+    // ── Campo inteligente (padrão - Entrar na Barbearia) ──
     return (
       <motion.form
         key="client-view"
-        initial={{ opacity: 0, x: -16 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3 }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.25 }}
         onSubmit={handleUniversalSubmit}
-        className="w-full space-y-6 lg:space-y-8"
+        className="w-full space-y-6"
       >
-        <div className="space-y-4 lg:space-y-6">
-          <div className="space-y-1.5 lg:space-y-2">
-            <label
-              htmlFor="universal-identifier"
-              className="block text-[10px] lg:text-xs font-medium uppercase tracking-[0.1em] text-zinc-500"
-            >
-              Celular, nome ou e-mail
-            </label>
-            <div className="relative">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2">{fieldIcon}</div>
-              <input
-                id="universal-identifier"
-                type="text"
-                autoComplete="username"
-                inputMode={kind === 'phone' ? 'tel' : 'text'}
-                value={input}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setInput(kind === 'phone' ? formatPhone(v) : v);
-                  setClientError('');
-                }}
-                placeholder="(00) 00000-0000, seu nome ou seu@email.com"
-                data-testid="input-universal"
-                maxLength={120}
-                autoFocus
-                className="w-full h-12 bg-transparent border border-zinc-800 rounded-xl pl-11 pr-5 text-sm font-medium text-zinc-100 outline-none transition-all lg:h-14 lg:text-base focus:border-gold"
-              />
+        <div className="text-center space-y-1.5 mb-2">
+          <h1 className="text-2xl font-bold text-white tracking-tight">Acesse sua conta</h1>
+          <p className="text-xs text-zinc-400 leading-relaxed">
+            Digite seu WhatsApp ou E-mail para visualizar e gerenciar seus horários.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <label
+            htmlFor="universal-identifier"
+            className="block text-[11px] font-medium uppercase tracking-wider text-zinc-400"
+          >
+            Seu celular ou e-mail
+          </label>
+          <div className="relative group">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors text-zinc-500 group-focus-within:text-amber-400">
+              {fieldIcon}
             </div>
-            <motion.p
-              key={kind}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-[10px] text-zinc-600 leading-relaxed min-h-[24px]"
-            >
-              {hintText}
-            </motion.p>
+            <input
+              id="universal-identifier"
+              type="text"
+              autoComplete="username"
+              inputMode={kind === 'phone' ? 'tel' : 'text'}
+              value={input}
+              onChange={(e) => {
+                const v = e.target.value;
+                setInput(kind === 'phone' ? formatPhone(v) : v);
+                setClientError('');
+              }}
+              placeholder="(00) 90000-0000 ou seu e-mail"
+              data-testid="input-universal"
+              maxLength={120}
+              autoFocus
+              className="w-full h-12 bg-white/[0.03] border border-white/[0.08] rounded-xl pl-11 pr-5 text-sm font-medium text-white outline-none transition-all focus:border-amber-400/80 focus:bg-white/[0.05] placeholder:text-zinc-600"
+            />
           </div>
+          <motion.p
+            key={kind}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-[11px] text-zinc-500 text-center min-h-[16px]"
+          >
+            {hintText}
+          </motion.p>
         </div>
 
         {clientError && (
           <motion.p
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-[12px] text-red-400 text-center"
+            className="text-[12px] font-medium text-red-400 text-center bg-red-500/10 border border-red-500/20 rounded-lg p-2.5"
           >
             {clientError}
           </motion.p>
@@ -1102,145 +1166,185 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
           type="submit"
           data-testid="btn-continuar"
           disabled={clientLoading || !input.trim()}
-          className="w-full h-11 lg:h-12 text-black font-bold uppercase tracking-[0.15em] text-[12px] rounded-2xl lg:rounded-sm hover:opacity-90 transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ backgroundColor: brandColor }}
+          className="w-full h-12 text-black font-extrabold uppercase tracking-[0.15em] text-[12px] rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-amber-400 hover:bg-amber-300 shadow-md shadow-amber-400/10 cursor-pointer"
         >
           {clientLoading ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : kind === 'email' ? (
-            <>
-              <ShieldCheck size={14} /> Entrar como admin
-            </>
-          ) : kind === 'name' ? (
-            <>
-              <Scissors size={14} /> Continuar
-            </>
+            <Loader2 size={16} className="animate-spin" />
           ) : (
-            'Continuar'
+            <>
+              Continuar <ChevronRight size={16} />
+            </>
           )}
         </motion.button>
 
-        <div className="flex flex-col items-center gap-2.5">
-          <button
-            type="button"
-            data-testid="btn-go-create-account"
-            onClick={() => setStage({ kind: 'create-account' })}
-            className="text-[10px] font-medium uppercase tracking-[0.1em] transition-colors cursor-pointer opacity-70 hover:opacity-100"
-            style={{ color: brandColor }}
-          >
-            Primeira vez? Criar minha conta →
-          </button>
-          <button
-            type="button"
-            data-testid="btn-go-recover-home"
-            onClick={() => {
-              setRecoverIdentifier('');
-              setRecoverEmailMasked('');
-              setRecoverCode('');
-              setStage({ kind: 'recover-send' });
-            }}
-            className="text-[10px] font-medium uppercase tracking-[0.1em] transition-colors cursor-pointer opacity-70 hover:opacity-100"
-            style={{ color: brandColor }}
-          >
-            Esqueci minha senha
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/agendar')}
-            className="text-[10px] font-medium uppercase tracking-[0.1em] transition-colors cursor-pointer opacity-70 hover:opacity-100"
-            style={{ color: brandColor }}
-          >
-            Prefere agendar sem login? Agendar agora →
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors cursor-pointer uppercase tracking-[0.1em]"
-          >
-            ← Voltar ao início
-          </button>
+        <div className="border-t border-white/[0.06] pt-4 space-y-3">
+          <div className="flex items-center justify-between text-xs font-medium">
+            <button
+              type="button"
+              data-testid="btn-go-create-account"
+              onClick={() => setStage({ kind: 'create-account' })}
+              className="text-amber-400 hover:underline transition-colors cursor-pointer"
+            >
+              Criar uma conta →
+            </button>
+            <button
+              type="button"
+              data-testid="btn-go-recover-home"
+              onClick={() => {
+                setRecoverIdentifier('');
+                setRecoverEmailMasked('');
+                setRecoverCode('');
+                setStage({ kind: 'recover-send' });
+              }}
+              className="text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+            >
+              Esqueci minha senha
+            </button>
+          </div>
+
+          <div className="pt-2 text-center">
+            <button
+              type="button"
+              onClick={() => navigate('/agendar')}
+              className="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-medium text-zinc-300 hover:text-white transition-all cursor-pointer inline-flex items-center gap-1.5"
+            >
+              Agendar sem login →
+            </button>
+          </div>
         </div>
       </motion.form>
     );
   };
 
   return (
-    <div className="h-screen w-full bg-[#0A0A0A] text-white flex relative overflow-hidden font-sans select-none">
+    <div className="h-screen w-full bg-[#080808] text-white flex relative overflow-hidden font-sans select-none">
       <LoginBackground subtitle="Agende seu horário, consulte ou cancele — tudo em um só lugar." />
 
       {/* --- ACCESS SECTION --- */}
-      <div className="flex-1 h-full flex flex-col items-center justify-center p-6 md:p-12 lg:p-24 relative bg-[#0A0A0A] sm:bg-[#121212]">
-        <div className="absolute inset-0 hidden md:block lg:hidden overflow-hidden">
+      <div className="flex-1 h-full flex flex-col items-center justify-center p-4 sm:p-8 lg:p-24 relative bg-[#080808] overflow-y-auto">
+        {/* Mobile Background Ambient Scrim */}
+        <div className="absolute inset-0 lg:hidden overflow-hidden pointer-events-none">
           <img
             src="/assets/login.webp"
             alt="Background"
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover grayscale opacity-10"
+            className="w-full h-full object-cover grayscale opacity-[0.06]"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] via-[#0A0A0A]/80 to-[#0A0A0A]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#080808] via-[#080808]/90 to-[#080808]" />
         </div>
 
         <div className="absolute inset-0 pointer-events-none overflow-hidden hidden lg:block">
-          <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-gold/5 rounded-full blur-[120px]" />
+          <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-amber-400/5 rounded-full blur-[120px]" />
         </div>
 
-        {/* --- FORM CARD --- */}
+        {/* --- FORM CONTAINER --- */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-[340px] lg:max-w-[420px] relative z-10 flex flex-col items-center"
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          className="w-full max-w-[400px] sm:max-w-[440px] lg:max-w-[420px] relative z-10 my-auto"
         >
-          <LoginHeader isPWA={isPWA} />
+          <div className="w-full rounded-2xl lg:rounded-none bg-white/[0.03] sm:bg-white/[0.04] lg:bg-transparent border border-white/[0.08] lg:border-none backdrop-blur-md lg:backdrop-blur-none p-5 sm:p-8 lg:p-0 shadow-xl lg:shadow-none flex flex-col items-center">
+            <LoginHeader isPWA={isPWA} />
 
-          <AnimatePresence mode="wait">
-            {view === 'client' ? (
-              <motion.div key="client" className="w-full">
-                {renderClientView()}
-              </motion.div>
-            ) : (
-              <motion.div
-                key="admin"
-                initial={{ opacity: 0, x: 16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3 }}
-                className="w-full"
-              >
-                <LoginForm
-                  email={admin.email}
-                  onEmailChange={(v) => {
-                    admin.setEmail(v);
-                    admin.setLoginError(null);
-                  }}
-                  password={admin.password}
-                  onPasswordChange={(v) => {
-                    admin.setPassword(v);
-                    admin.setLoginError(null);
-                  }}
-                  showPassword={admin.showPassword}
-                  onTogglePassword={() => admin.setShowPassword(!admin.showPassword)}
-                  onSubmit={admin.handleLogin}
-                  onForgotPassword={admin.onOpenForgot}
-                  isLoggingIn={admin.isLoggingIn}
-                  isBlocked={admin.isBlocked}
-                  attempts={admin.attempts}
-                  maxAttempts={admin.maxAttempts}
-                  error={admin.loginError}
-                />
-
+            {/* Sleek Line Tabs (Entrar | Criar Conta) */}
+            {view === 'client' && (stage.kind === 'id' || stage.kind === 'create-account') && (
+              <div className="w-full flex border-b border-white/10 mt-6 mb-6">
                 <button
                   type="button"
                   onClick={() => {
-                    setView('client');
-                    resetClient();
+                    setClientError('');
+                    setStage({ kind: 'id' });
                   }}
-                  className="w-full mt-4 text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors cursor-pointer uppercase tracking-[0.1em] flex items-center justify-center gap-1"
+                  className={`flex-1 py-3 text-[12px] font-bold tracking-wider uppercase transition-all border-b-2 flex items-center justify-center gap-2 cursor-pointer ${
+                    stage.kind !== 'create-account'
+                      ? 'text-amber-400 border-amber-400'
+                      : 'text-zinc-500 hover:text-zinc-300 border-transparent'
+                  }`}
                 >
-                  <ArrowLeft size={10} /> Não é admin? Entre com seu celular
+                  <Smartphone size={14} /> Entrar
                 </button>
-              </motion.div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setClientError('');
+                    setStage({ kind: 'create-account' });
+                  }}
+                  className={`flex-1 py-3 text-[12px] font-bold tracking-wider uppercase transition-all border-b-2 flex items-center justify-center gap-2 cursor-pointer ${
+                    stage.kind === 'create-account'
+                      ? 'text-amber-400 border-amber-400'
+                      : 'text-zinc-500 hover:text-zinc-300 border-transparent'
+                  }`}
+                >
+                  <User size={14} /> Criar Conta
+                </button>
+              </div>
             )}
-          </AnimatePresence>
+
+            <div className="w-full">
+              <AnimatePresence mode="wait">
+                {view === 'client' ? (
+                  <motion.div key="client" className="w-full">
+                    {renderClientView()}
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="admin"
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="w-full"
+                  >
+                    <div className="text-center space-y-2 mb-6">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-400">
+                        Barbearia
+                      </p>
+                      <h1 className="text-2xl font-bold text-white tracking-tight">
+                        Acesso da Barbearia
+                      </h1>
+                      <p className="text-[11px] lg:text-xs text-zinc-400 leading-relaxed">
+                        Entre com seu e-mail e senha para gerenciar sua agenda.
+                      </p>
+                    </div>
+
+                    <LoginForm
+                      email={admin.email}
+                      onEmailChange={(v) => {
+                        admin.setEmail(v);
+                        admin.setLoginError(null);
+                      }}
+                      password={admin.password}
+                      onPasswordChange={(v) => {
+                        admin.setPassword(v);
+                        admin.setLoginError(null);
+                      }}
+                      showPassword={admin.showPassword}
+                      onTogglePassword={() => admin.setShowPassword(!admin.showPassword)}
+                      onSubmit={admin.handleLogin}
+                      onForgotPassword={admin.onOpenForgot}
+                      isLoggingIn={admin.isLoggingIn}
+                      isBlocked={admin.isBlocked}
+                      attempts={admin.attempts}
+                      maxAttempts={admin.maxAttempts}
+                      error={admin.loginError}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setView('client');
+                        resetClient();
+                      }}
+                      className="w-full mt-6 text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer uppercase tracking-[0.1em] flex items-center justify-center gap-1.5"
+                    >
+                      <ArrowLeft size={12} /> Não é admin? Voltar para o agendamento
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
         </motion.div>
       </div>
 

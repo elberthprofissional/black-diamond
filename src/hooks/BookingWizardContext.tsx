@@ -20,7 +20,7 @@ import { useBookingPayment } from './useBookingPayment';
 import { useBookingLoyalty } from './useBookingLoyalty';
 import { useServices } from './useServices';
 import { applyCoupon } from '../lib/api';
-import { saveClientSession } from '../lib/clientSession';
+import { getClientSession, saveClientSession } from '../lib/clientSession';
 import type { Service, Barber } from '../types';
 
 interface BookingWizardValue {
@@ -125,11 +125,12 @@ export function BookingWizardProvider({
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
   const [userInfo, setUserInfo] = useState<{ name: string; phone: string }>(() => {
-    // Pre-fill from route state (passed by BookingPreScreen)
+    // Pre-fill: estado da rota OU sessão do cliente logado (ex.: veio pelo menu).
     const state = location.state as { name?: string; phone?: string } | undefined;
+    const session = getClientSession();
     return {
-      name: state?.name || '',
-      phone: state?.phone || '',
+      name: state?.name || session?.name || '',
+      phone: state?.phone || session?.phone || '',
     };
   });
 
