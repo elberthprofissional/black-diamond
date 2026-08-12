@@ -157,6 +157,7 @@ const AdminBookingDesktop: FC<Props> = ({ booking }) => {
                   selectedTime={b.selectedTime}
                   existingBookings={b.existingBookings}
                   rescheduleBookingId={b.rescheduleBooking?.id}
+                  barberId={b.selectedBarber?.id}
                   onSelectDate={b.handleSelectDate}
                   onSelectTime={b.setSelectedTime}
                   onFinish={b.handleFinish}

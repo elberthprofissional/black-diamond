@@ -163,4 +163,40 @@ describe('isTimeOccupied', () => {
   it('matches time ignoring seconds', () => {
     expect(isTimeOccupied('10:00', [{ booking_time: '10:00:00', status: 'confirmed' }])).toBe(true);
   });
+
+  it('considera a duracao do booking existente (sobreposicao)', () => {
+    // Booking de 70min às 09:00 termina 10:10 → 10:00 fica ocupado
+    const longBooking = [{ booking_time: '09:00:00', status: 'confirmed', total_duration: 70 }];
+    expect(isTimeOccupied('10:00', longBooking)).toBe(true);
+    // Mas 11:00 segue livre
+    expect(isTimeOccupied('11:00', longBooking)).toBe(false);
+  });
+
+  it('considera a duracao do novo agendamento (duration param)', () => {
+    // Booking de 30min às 09:30 (termina 10:00): um agendamento de 30min às 09:00
+    // não colide (termina 09:30), mas um de 60min colide (terminaria 10:00)
+    const shortBooking = [{ booking_time: '09:30:00', status: 'confirmed', total_duration: 30 }];
+    expect(isTimeOccupied('09:00', shortBooking, 30)).toBe(false);
+    expect(isTimeOccupied('09:00', shortBooking, 60)).toBe(true);
+  });
+
+  it('mesmo horario de inicio sempre colide (nao da pra agendar 2 no mesmo horario)', () => {
+    const b = [{ booking_time: '10:00:00', status: 'confirmed', total_duration: 30 }];
+    expect(isTimeOccupied('10:00', b, 30)).toBe(true);
+    expect(isTimeOccupied('10:00', b, 60)).toBe(true);
+  });
+
+  it('trata booking sem total_duration como 60min', () => {
+    const legacy = [{ booking_time: '09:00:00', status: 'confirmed' }];
+    // 60min às 09:00 → termina exatamente 10:00 → 10:00 livre, 09:00 ocupado
+    expect(isTimeOccupied('10:00', legacy)).toBe(false);
+    expect(isTimeOccupied('09:00', legacy)).toBe(true);
+    expect(isTimeOccupied('11:00', legacy)).toBe(false);
+  });
+
+  it('nao sobrepoe quando termina exatamente no inicio do proximo slot', () => {
+    const exact = [{ booking_time: '09:00:00', status: 'confirmed', total_duration: 60 }];
+    expect(isTimeOccupied('10:00', exact)).toBe(false);
+    expect(isTimeOccupied('09:00', exact)).toBe(true);
+  });
 });

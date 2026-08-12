@@ -29,9 +29,11 @@ import {
   KeyRound,
   Scissors,
   RotateCcw,
+  Clock,
 } from 'lucide-react';
 import { useBarberSettings } from '../../../hooks/useBarberSettings';
 import { motion } from 'framer-motion';
+import BarberHoursModal from './BarberHoursModal';
 
 const EMPTY_FORM = {
   id: undefined as string | undefined,
@@ -41,6 +43,8 @@ const EMPTY_FORM = {
   is_active: true,
   is_owner: false,
   sort_order: 0,
+  login_email: '',
+  login_password: '',
 };
 
 interface BarberFormModalProps {
@@ -186,6 +190,47 @@ const BarberFormModal: FC<BarberFormModalProps> = ({
               />
             </div>
           </div>
+
+          {/* Login do barbeiro — só para barbeiro novo */}
+          {isNew && (
+            <div className="border border-white/[0.06] rounded-xl p-4 space-y-3 bg-white/[0.02]">
+              <div className="flex items-center gap-2">
+                <KeyRound size={14} className="text-gold" />
+                <p className="text-[11px] font-bold text-white uppercase tracking-widest">
+                  Login do barbeiro (opcional)
+                </p>
+              </div>
+              <p className="text-[10px] text-zinc-600 -mt-1">
+                Preencha para o barbeiro entrar no painel dele. Se deixar vazio, você pode criar o
+                acesso depois.
+              </p>
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  value={form.login_email}
+                  onChange={(e) => setForm({ ...form, login_email: e.target.value })}
+                  placeholder="juninho@email.com"
+                  className="w-full h-11 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[14px] text-white outline-none focus:border-gold transition-all placeholder:text-zinc-600"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                  Senha (mín. 6 caracteres)
+                </label>
+                <input
+                  type="password"
+                  value={form.login_password}
+                  onChange={(e) => setForm({ ...form, login_password: e.target.value })}
+                  placeholder="••••••••"
+                  minLength={6}
+                  className="w-full h-11 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 text-[14px] text-white outline-none focus:border-gold transition-all placeholder:text-zinc-600"
+                />
+              </div>
+            </div>
+          )}
         </form>
 
         {/* Footer */}
@@ -232,13 +277,16 @@ const SettingsBarbeiros: FC = () => {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [hoursBarberId, setHoursBarberId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const loadBarbers = async () => {
     try {
+      // Exclui perfis ocultos (is_hidden — ex.: dono/dev que não atende) da lista.
       const { data, error } = await supabase
         .from('barbers')
         .select('*')
+        .eq('is_hidden', false)
         .order('sort_order', { ascending: true });
       if (error) throw error;
       setBarbers((data || []) as Barber[]);
@@ -266,6 +314,8 @@ const SettingsBarbeiros: FC = () => {
       is_active: barber.is_active,
       is_owner: barber.is_owner,
       sort_order: barber.sort_order ?? 0,
+      login_email: '',
+      login_password: '',
     });
   };
 
@@ -309,7 +359,7 @@ const SettingsBarbeiros: FC = () => {
     }
     setSaving(true);
     try {
-      await upsertBarber({
+      const barberId = await upsertBarber({
         id: form.id,
         name: form.name.trim(),
         phone: form.phone.replace(/\D/g, '') || undefined,
@@ -318,7 +368,40 @@ const SettingsBarbeiros: FC = () => {
         is_owner: form.is_owner,
         sort_order: form.sort_order,
       });
-      showSuccess(editingId === 'new' ? 'Barbeiro adicionado!' : 'Barbeiro atualizado!');
+
+      // Cria o login do barbeiro pela edge function (dono autenticado)
+      let loginCreated = false;
+      let loginFailed = false;
+      if (editingId === 'new' && form.login_email && form.login_password) {
+        try {
+          const { error: fnError } = await supabase.functions.invoke('criar-acesso-barbeiro', {
+            body: {
+              barberId,
+              name: form.name.trim(),
+              email: form.login_email.trim(),
+              password: form.login_password,
+              isOwner: form.is_owner,
+            },
+          });
+          if (fnError) throw fnError;
+          loginCreated = true;
+        } catch (err) {
+          logError(err, 'SettingsBarbeiros/login');
+          loginFailed = true;
+        }
+      }
+
+      if (loginFailed) {
+        showError('Barbeiro salvo, mas falhou ao criar o login. Crie o acesso depois.');
+      } else {
+        showSuccess(
+          editingId === 'new'
+            ? loginCreated
+              ? 'Barbeiro adicionado com acesso!'
+              : 'Barbeiro adicionado!'
+            : 'Barbeiro atualizado!'
+        );
+      }
       cancelEdit();
       await loadBarbers();
     } catch (err) {
@@ -458,6 +541,11 @@ const SettingsBarbeiros: FC = () => {
                 <p className="text-[14px] font-bold text-white truncate flex items-center gap-2">
                   {barber.name}
                   {barber.is_owner && <Crown size={13} className="text-gold shrink-0" />}
+                  {barber.barber_hours && (
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-gold/90 bg-gold/10 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                      <Clock size={9} /> Horário próprio
+                    </span>
+                  )}
                   {!barber.is_active && (
                     <span className="text-[9px] font-bold uppercase tracking-wider text-red-400/80 bg-red-400/10 px-1.5 py-0.5 rounded">
                       Inativo
@@ -480,6 +568,19 @@ const SettingsBarbeiros: FC = () => {
                 </p>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setHoursBarberId(barber.id)}
+                  className={`w-9 h-9 rounded-lg border flex items-center justify-center transition-all cursor-pointer ${
+                    barber.barber_hours
+                      ? 'border-gold/25 text-gold hover:bg-gold/10 hover:border-gold/40'
+                      : 'border-white/[0.08] text-zinc-500 hover:text-gold hover:border-gold/30'
+                  }`}
+                  aria-label={`Horários de ${barber.name}`}
+                  title="Horários"
+                >
+                  <Clock size={14} />
+                </button>
                 <button
                   type="button"
                   onClick={() => startEdit(barber)}
@@ -521,13 +622,26 @@ const SettingsBarbeiros: FC = () => {
       {/* Hint sobre login */}
       <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-4">
         <p className="text-[11px] text-zinc-500 leading-relaxed">
-          <span className="font-bold text-zinc-300">Criar o login do barbeiro:</span> rode o script{' '}
-          <code className="text-gold">scripts/criar-acesso-barbeiro.mjs</code> (ou crie o usuário no
-          Supabase) e o barbeiro aparecerá com o selo verde{' '}
-          <span className="text-emerald-400">acesso</span>. Cada barbeiro vê apenas os próprios
-          agendamentos; o dono vê tudo.
+          <span className="font-bold text-zinc-300">Login do barbeiro:</span> ao adicionar um
+          barbeiro novo, você pode informar e-mail e senha no formulário para ele já entrar no
+          painel dele. Cada barbeiro vê apenas os próprios agendamentos; o dono vê tudo. Quem ainda
+          não tem login aparece com o selo <span className="text-amber-400">sem login</span>.
         </p>
       </div>
+
+      {/* Modal de horários por barbeiro */}
+      {hoursBarberId &&
+        (() => {
+          const target = barbers.find((b) => b.id === hoursBarberId);
+          if (!target) return null;
+          return (
+            <BarberHoursModal
+              barber={target}
+              onClose={() => setHoursBarberId(null)}
+              onSaved={loadBarbers}
+            />
+          );
+        })()}
 
       {/* Modal do formulário (desktop: centralizado / mobile: tela cheia) */}
       {editingId && (

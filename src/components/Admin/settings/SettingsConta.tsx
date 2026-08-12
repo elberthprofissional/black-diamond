@@ -12,7 +12,7 @@ import MobileEditScreen from './MobileEditScreen';
  * Desktop: inline edit. Mobile: tela cheia via MobileEditScreen.
  * Foto: upload com redimensionamento automatico para WebP. */
 
-const MAX = { name: 8, bio: 200, quote: 80, instagram: 30 };
+const MAX = { name: 8, bio: 200, teamBio: 300, quote: 80, instagram: 30 };
 
 const SettingsConta: FC = () => {
   const settings = useBarberSettings();
@@ -23,6 +23,7 @@ const SettingsConta: FC = () => {
     name: settings.barberName,
     phone: settings.barberPhone,
     bio: settings.barberBio,
+    teamBio: settings.barberTeamBio,
     quote: settings.barberQuote,
     instagram: settings.barberInstagram,
   });
@@ -33,6 +34,7 @@ const SettingsConta: FC = () => {
       settings.barberName !== settingsRef.current.barberName ||
       settings.barberPhone !== settingsRef.current.barberPhone ||
       settings.barberBio !== settingsRef.current.barberBio ||
+      settings.barberTeamBio !== settingsRef.current.barberTeamBio ||
       settings.barberQuote !== settingsRef.current.barberQuote ||
       settings.barberInstagram !== settingsRef.current.barberInstagram
     ) {
@@ -41,6 +43,7 @@ const SettingsConta: FC = () => {
         name: settings.barberName,
         phone: settings.barberPhone,
         bio: settings.barberBio,
+        teamBio: settings.barberTeamBio,
         quote: settings.barberQuote,
         instagram: settings.barberInstagram,
       });
@@ -97,6 +100,14 @@ const SettingsConta: FC = () => {
         ok = await settings.updateBarberBio(value);
         if (ok) showSuccess('Bio alterada!');
         break;
+      case 'teamBio':
+        if (value.length > MAX.teamBio) {
+          showError(`Máximo de ${MAX.teamBio} caracteres`);
+          return;
+        }
+        ok = await settings.updateBarberTeamBio(value);
+        if (ok) showSuccess('Bio da equipe alterada!');
+        break;
       case 'quote':
         if (value.length > MAX.quote) {
           showError(`Máximo de ${MAX.quote} caracteres`);
@@ -129,6 +140,8 @@ const SettingsConta: FC = () => {
       case 'phone':
         return val.replace(/\D/g, '').length >= 10 && val.replace(/\D/g, '') !== current;
       case 'bio':
+        return val !== current;
+      case 'teamBio':
         return val !== current;
       case 'quote':
         return val !== current;
@@ -180,6 +193,15 @@ const SettingsConta: FC = () => {
       helper: `${(inputs.bio || '').length}/${MAX.bio}`,
     },
     {
+      field: 'teamBio',
+      label: 'Bio da Equipe (Sobre Nós)',
+      placeholder: 'Texto sobre a equipe...',
+      display: vals.teamBio,
+      type: 'textarea',
+      inputProps: { maxLength: MAX.teamBio, rows: 3 },
+      helper: `${(inputs.teamBio || '').length}/${MAX.teamBio} — usada no site quando há 2+ barbeiros`,
+    },
+    {
       field: 'quote',
       label: 'Frase',
       placeholder: 'Sua frase de efeito',
@@ -225,7 +247,12 @@ const SettingsConta: FC = () => {
                 <textarea
                   ref={ref as React.RefObject<HTMLTextAreaElement>}
                   value={inputs[f.field] ?? ''}
-                  onChange={(e) => setInput(f.field, e.target.value.slice(0, MAX.bio))}
+                  onChange={(e) =>
+                    setInput(
+                      f.field,
+                      e.target.value.slice(0, Number(f.inputProps.maxLength) || MAX.bio)
+                    )
+                  }
                   placeholder={f.placeholder}
                   rows={3}
                   className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 text-[14px] text-white outline-none focus:border-gold/40 transition-all placeholder:text-zinc-600 resize-none"
@@ -263,10 +290,15 @@ const SettingsConta: FC = () => {
                 <textarea
                   ref={ref as React.RefObject<HTMLTextAreaElement>}
                   value={inputs[f.field] ?? ''}
-                  onChange={(e) => setInput(f.field, e.target.value.slice(0, MAX.bio))}
+                  onChange={(e) =>
+                    setInput(
+                      f.field,
+                      e.target.value.slice(0, Number(f.inputProps.maxLength) || MAX.bio)
+                    )
+                  }
                   placeholder={f.placeholder}
                   rows={4}
-                  maxLength={MAX.bio}
+                  maxLength={Number(f.inputProps.maxLength) || MAX.bio}
                   className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3.5 text-[16px] text-white outline-none focus:border-gold/40 transition-all placeholder:text-zinc-600 resize-none"
                 />
               ) : (

@@ -21,6 +21,8 @@ interface ResponsiveDateTimeStepProps {
   existingBookings: Booking[];
   rescheduleBookingId?: string;
   rescheduleBooking?: BookingWithClient;
+  /** Barbeiro do agendamento — usa o horário próprio dele quando houver. */
+  barberId?: string;
   onSelectDate: (date: string) => void;
   onSelectTime: (time: string) => void;
   onFinish?: () => void;
@@ -39,6 +41,7 @@ export default function ResponsiveDateTimeStep({
   existingBookings,
   rescheduleBookingId,
   rescheduleBooking,
+  barberId,
   onSelectDate,
   onSelectTime,
   onFinish,
@@ -55,14 +58,18 @@ export default function ResponsiveDateTimeStep({
   useEffect(() => {
     if (selectedDate) {
       let active = true;
-      getTimeSlotsForDate(selectedDate).then((slots) => {
+      getTimeSlotsForDate(selectedDate, barberId).then((slots) => {
         if (active) setTimeSlots(slots);
       });
       return () => {
         active = false;
       };
     }
-  }, [selectedDate]);
+  }, [selectedDate, barberId]);
+
+  // Duração total dos serviços selecionados — slots que não comportam essa
+  // duração sem sobrepor outro agendamento são considerados ocupados.
+  const totalDuration = selectedServices.reduce((sum, s) => sum + (s.duration || 0), 0);
 
   const isOccupied = (time: string) => {
     const toCheck = rescheduleBookingId
@@ -70,7 +77,7 @@ export default function ResponsiveDateTimeStep({
       : rescheduleBooking
         ? existingBookings.filter((b) => b.id !== rescheduleBooking.id)
         : existingBookings;
-    return isTimeOccupied(time, toCheck);
+    return isTimeOccupied(time, toCheck, totalDuration || 60);
   };
 
   const formattedDate = selectedDate.split('-').reverse().join('/');

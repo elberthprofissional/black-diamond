@@ -112,12 +112,34 @@ export const getNextDays = (config?: NextDaysConfig | string) => {
   return days;
 };
 
+/** Converte 'HH:MM(:SS)' em minutos desde 00:00. */
+const timeToMinutes = (t: string): number => {
+  const [h = 0, m = 0] = t.split(':').map(Number);
+  return h * 60 + (m || 0);
+};
+
+/**
+ * Verifica se um horário está ocupado por algum agendamento, considerando a
+ * DURAÇÃO: o slot pretendido [time, time + duration) colide com um booking
+ * existente [b.booking_time, b.booking_time + duração).
+ *
+ * - `duration` (opcional, default 60): duração em minutos do novo agendamento.
+ * - Booking legado/bloqueio sem total_duration é tratado como 60min.
+ * - Bookings cancelados nunca ocupam.
+ */
 export const isTimeOccupied = (
   time: string,
-  bookings: { booking_time: string; status: string }[]
+  bookings: { booking_time: string; status: string; total_duration?: number }[],
+  duration = 60
 ) => {
+  const slotStart = timeToMinutes(time);
+  const slotEnd = slotStart + Math.max(duration, 1);
   return bookings.some((b) => {
-    const bookingTime = b.booking_time.slice(0, 5);
-    return bookingTime === time && b.status !== 'cancelled';
+    if (b.status === 'cancelled') return false;
+    const bStart = timeToMinutes(b.booking_time);
+    const bDuration = Number(b.total_duration) > 0 ? Number(b.total_duration) : 60;
+    const bEnd = bStart + bDuration;
+    // Sobreposição de intervalos: slotStart < bEnd AND bStart < slotEnd
+    return slotStart < bEnd && bStart < slotEnd;
   });
 };

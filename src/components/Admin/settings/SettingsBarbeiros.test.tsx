@@ -37,6 +37,7 @@ vi.mock('../../../lib/supabase', () => ({
   supabase: {
     from: vi.fn(() => ({
       select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       then: mockOrderThen,
     })),
@@ -117,5 +118,28 @@ describe('SettingsBarbeiros', () => {
 
     // Barbeiro inativo não oferece o botão de desativar (lixeira)
     expect(screen.queryByRole('button', { name: 'Remover Carlos' })).not.toBeInTheDocument();
+  });
+
+  it('abre o modal de horários do barbeiro ao clicar no relógio', async () => {
+    mockBarbers = [
+      {
+        id: 'b1',
+        name: 'Juninho',
+        phone: '44999999999',
+        photo_url: null,
+        is_active: true,
+        is_owner: false,
+        sort_order: 0,
+      },
+    ];
+
+    const { findByRole } = render(<SettingsBarbeiros />);
+
+    const hoursButton = await findByRole('button', { name: 'Horários de Juninho' });
+    fireEvent.click(hoursButton);
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Padrão da barbearia' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Personalizado' })).toBeInTheDocument();
   });
 });

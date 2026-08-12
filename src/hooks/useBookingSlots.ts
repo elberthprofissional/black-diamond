@@ -16,9 +16,15 @@ import { logError } from '../lib/logger';
  *
  * @param showError - Função para exibir mensagens de erro.
  * @param barberId - ID do barbeiro (opcional) para filtrar slots.
- * @returns {{ selectedDate, selectedTime, availableSlots, nextDays, ... }}
+ * @param duration - Duração em minutos dos serviços selecionados (opcional). Slots que
+ *   não comportam essa duração sem sobrepor outro agendamento são ocultados.
+ * @returns {{ selectedDate, selectedTime, availableSlots, nextDays, slotDuration, ... }}
  */
-export function useBookingSlots(showError: (msg: string) => void, barberId?: string) {
+export function useBookingSlots(
+  showError: (msg: string) => void,
+  barberId?: string,
+  duration?: number
+) {
   const [barberHoursJson, setBarberHoursJson] = useState('');
   const [nextDaysConfig, setNextDaysConfig] = useState<{
     saturdayCloseHour?: number;
@@ -35,7 +41,7 @@ export function useBookingSlots(showError: (msg: string) => void, barberId?: str
   const [selectedTime, setSelectedTime] = useState('');
   const [workingDays, setWorkingDays] = useState('1,2,3,4,5,6');
   const [existingBookings, setExistingBookings] = useState<
-    { booking_time: string; status: string }[]
+    { booking_time: string; status: string; total_duration?: number }[]
   >([]);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
 
@@ -90,8 +96,9 @@ export function useBookingSlots(showError: (msg: string) => void, barberId?: str
         try {
           const [bookingsResult, slotsData] = await Promise.all([
             getBookings(selectedDate, { barberId }).catch(() => ({ data: [] })),
-            getAvailableSlots(selectedDate, barberId).catch(() =>
-              getTimeSlotsForDate(selectedDate)
+            getAvailableSlots(selectedDate, barberId, duration).catch(() =>
+              // Fallback: respeita o horário próprio do barbeiro quando houver
+              getTimeSlotsForDate(selectedDate, barberId)
             ),
           ]);
           if (!active) return;
@@ -107,7 +114,7 @@ export function useBookingSlots(showError: (msg: string) => void, barberId?: str
         active = false;
       };
     }
-  }, [selectedDate, showError, barberId]);
+  }, [selectedDate, showError, barberId, duration]);
 
   return {
     selectedDate,
@@ -117,6 +124,8 @@ export function useBookingSlots(showError: (msg: string) => void, barberId?: str
     existingBookings,
     availableSlots,
     nextDays,
+    /** Duração (min) usada para filtrar os slots — repassada à UI de ocupação. */
+    slotDuration: duration && duration > 0 ? duration : 60,
     dateContainerRef,
     handleMouseDown,
     handleMouseLeave,

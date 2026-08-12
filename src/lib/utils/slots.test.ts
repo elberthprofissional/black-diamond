@@ -429,3 +429,91 @@ describe('getTimeSlotsForDate', () => {
     expect(slots).not.toContain('14:00');
   });
 });
+
+describe('getTimeSlotsForDate com barberId (horário por barbeiro)', () => {
+  const SHORT_WEEK = {
+    '1': { enabled: true, open: '10:00', close: '12:00' },
+    '2': { enabled: true, open: '10:00', close: '12:00' },
+    '3': { enabled: true, open: '10:00', close: '12:00' },
+    '4': { enabled: true, open: '10:00', close: '12:00' },
+    '5': { enabled: true, open: '10:00', close: '12:00' },
+    '6': { enabled: true, open: '10:00', close: '12:00' },
+    '0': { enabled: false, open: '09:00', close: '14:00' },
+  };
+  const GLOBAL_WEEK = {
+    '1': { enabled: true, open: '08:00', close: '18:00' },
+    '2': { enabled: true, open: '08:00', close: '18:00' },
+    '3': { enabled: true, open: '08:00', close: '18:00' },
+    '4': { enabled: true, open: '08:00', close: '18:00' },
+    '5': { enabled: true, open: '08:00', close: '18:00' },
+    '6': { enabled: true, open: '08:00', close: '14:00' },
+    '0': { enabled: false, open: '09:00', close: '14:00' },
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSupabase.builder.maybeSingle.mockResolvedValue({ data: null, error: null });
+  });
+
+  it('usa o horário próprio do barbeiro quando ele tem override', async () => {
+    // jsonb do PostgREST chega como objeto
+    mockSupabase.builder.maybeSingle.mockResolvedValue({
+      data: { barber_hours: SHORT_WEEK },
+      error: null,
+    });
+
+    // 2026-07-27 é segunda-feira
+    const slots = await getTimeSlotsForDate('2026-07-27', 'barber-1');
+    expect(slots).toEqual(['10:00', '11:00']);
+    // Consultou barbers (override) e não precisou cair no settings
+    expect(mockSupabase.supabase.from).toHaveBeenCalledWith('barbers');
+    expect(mockSupabase.supabase.from).not.toHaveBeenCalledWith('settings');
+  });
+
+  it('aceita barber_hours como string JSON (fallback de texto)', async () => {
+    mockSupabase.builder.maybeSingle.mockResolvedValue({
+      data: { barber_hours: JSON.stringify(SHORT_WEEK) },
+      error: null,
+    });
+
+    // 2026-08-03 é segunda-feira
+    const slots = await getTimeSlotsForDate('2026-08-03', 'barber-1');
+    expect(slots).toEqual(['10:00', '11:00']);
+  });
+
+  it('cai no horário padrão quando o barbeiro não tem override', async () => {
+    mockSupabase.builder.maybeSingle
+      .mockResolvedValueOnce({ data: { barber_hours: null }, error: null }) // barbers
+      .mockResolvedValueOnce({
+        data: { value: JSON.stringify(GLOBAL_WEEK) },
+        error: null,
+      }); // settings
+
+    // 2026-08-10 é segunda-feira
+    const slots = await getTimeSlotsForDate('2026-08-10', 'barber-1');
+    expect(slots).toContain('08:00');
+    expect(slots).not.toContain('18:00');
+    expect(mockSupabase.supabase.from).toHaveBeenCalledWith('settings');
+  });
+
+  it('cache separa barbeiros diferentes na mesma data', async () => {
+    mockSupabase.builder.maybeSingle.mockResolvedValue({
+      data: { barber_hours: SHORT_WEEK },
+      error: null,
+    });
+
+    // 2026-08-17 é segunda-feira
+    const slotsWithBarber = await getTimeSlotsForDate('2026-08-17', 'barber-1');
+    expect(slotsWithBarber).toEqual(['10:00', '11:00']);
+
+    // Sem barbeiro (global) na mesma data: nova chamada, não usa cache do barbeiro
+    mockSupabase.builder.maybeSingle.mockResolvedValue({
+      data: { value: JSON.stringify(GLOBAL_WEEK) },
+      error: null,
+    });
+    const globalSlots = await getTimeSlotsForDate('2026-08-17');
+    expect(globalSlots).toContain('08:00');
+    expect(globalSlots).not.toEqual(['10:00', '11:00']);
+    expect(mockSupabase.supabase.from).toHaveBeenCalledTimes(2);
+  });
+});

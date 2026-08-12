@@ -113,6 +113,7 @@ const AdminBookingMobile: FC<Props> = ({ booking }) => {
                   existingBookings={b.existingBookings}
                   rescheduleBookingId={b.rescheduleBooking?.id}
                   rescheduleBooking={b.rescheduleBooking}
+                  barberId={b.selectedBarber?.id}
                   onSelectDate={b.handleSelectDate}
                   onSelectTime={b.setSelectedTime}
                   onFinish={b.handleFinish}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef, memo, type FC } from 'react';
 import { useNavigate } from 'react-router';
 
-import { getLocalDateString, getTimeSlotsForDate } from '../lib/utils';
+import { getLocalDateString, getTimeSlotsForDate, isTimeOccupied } from '../lib/utils';
 import { getAvailableSlots } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { useBookings } from '../hooks/useBookings';
@@ -179,8 +179,9 @@ const AdminWeekly: FC = () => {
           if (mounted) setAllSlots(slots);
         })
         .catch(() => {
-          // Fallback: gera slots localmente se a RPC falhar
-          getTimeSlotsForDate(selectedDateStr)
+          // Fallback: gera slots localmente se a RPC falhar (respeita o
+          // horário próprio do barbeiro quando a visão é por barbeiro)
+          getTimeSlotsForDate(selectedDateStr, scopedBarberId || undefined)
             .then((slots) => {
               if (mounted) setAllSlots(slots);
             })
@@ -252,15 +253,7 @@ const AdminWeekly: FC = () => {
   );
 
   const freeSlots = useMemo(
-    () =>
-      allSlots.filter((slot) => {
-        if (
-          dayBookings.some((b) => b.booking_time.slice(0, 5) === slot && b.status !== 'cancelled')
-        ) {
-          return false;
-        }
-        return true;
-      }),
+    () => allSlots.filter((slot) => !isTimeOccupied(slot, dayBookings)),
     [allSlots, dayBookings]
   );
 

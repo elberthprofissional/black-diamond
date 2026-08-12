@@ -147,11 +147,46 @@ function cacheSet(key: string, data: string[]): void {
   slotsCache.set(key, { data, ts: Date.now() });
 }
 
-export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> => {
+interface LunchBreakCfg {
+  enabled: boolean;
+  start: string;
+  end: string;
+  days: number[];
+}
+
+type ParsedHours = Record<string, unknown>;
+
+/** Normaliza um valor jsonb/text para objeto de horários (ou null). */
+function normalizeHoursJson(v: unknown): ParsedHours | null {
+  if (!v) return null;
+  if (typeof v === 'string') {
+    try {
+      const parsed = JSON.parse(v);
+      return parsed && typeof parsed === 'object' ? (parsed as ParsedHours) : null;
+    } catch {
+      return null;
+    }
+  }
+  if (typeof v === 'object') return v as ParsedHours;
+  return null;
+}
+
+/**
+ * Gera os slots do dia para uma data.
+ * @param dateStr - Data no formato YYYY-MM-DD
+ * @param barberId - ID do barbeiro (opcional). Se o barbeiro tiver horário
+ *   próprio (barbers.barber_hours), usa o dele; caso contrário usa o horário
+ *   padrão da barbearia (settings.barber_hours).
+ */
+export const getTimeSlotsForDate = async (
+  dateStr: string,
+  barberId?: string
+): Promise<string[]> => {
   // Evita acessar dados expirados
   evictExpiredSlots();
 
-  const cached = slotsCache.get(dateStr);
+  const cacheKey = `${dateStr}|${barberId || '*'}`;
+  const cached = slotsCache.get(cacheKey);
   if (cached && Date.now() - cached.ts < SLOTS_CACHE_TTL) {
     return cached.data;
   }
@@ -159,49 +194,59 @@ export const getTimeSlotsForDate = async (dateStr: string): Promise<string[]> =>
   const date = new Date(dateStr + 'T12:00:00');
   const dow = String(date.getDay());
 
-  // Tenta buscar o JSON completo primeiro (inclui lunch_break)
+  // 1. Horário do barbeiro (override) ou padrão global — JSON completo (inclui lunch_break)
+  let parsed: ParsedHours | null = null;
   try {
-    const { data } = await supabase
-      .from('settings')
-      .select('value')
-      .eq('key', 'barber_hours')
-      .maybeSingle();
-
-    if (data?.value) {
-      const parsed = JSON.parse(data.value);
-      const daySchedule = parsed[dow] as DaySchedule | undefined;
-
-      if (!daySchedule?.enabled) {
-        cacheSet(dateStr, []);
-        return [];
-      }
-
-      let slots = generateHourlySlots(daySchedule.open, daySchedule.close);
-
-      // Filtra horário de almoço
-      const lunchBreak = parsed.lunch_break as
-        { enabled: boolean; start: string; end: string; days: number[] } | undefined;
-
-      if (lunchBreak?.enabled && lunchBreak.days?.includes(Number(dow))) {
-        slots = slots.filter((slot) => slot < lunchBreak.start || slot >= lunchBreak.end);
-      }
-
-      cacheSet(dateStr, slots);
-      return slots;
+    if (barberId) {
+      const { data } = await supabase
+        .from('barbers')
+        .select('barber_hours')
+        .eq('id', barberId)
+        .maybeSingle();
+      parsed = normalizeHoursJson(data?.barber_hours);
+    }
+    if (!parsed) {
+      const { data } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'barber_hours')
+        .maybeSingle();
+      parsed = normalizeHoursJson(data?.value);
     }
   } catch (e) {
     logError(e);
     // fallback abaixo
   }
 
-  // Fallback: configurações individuais (legado) — sem lunch_break
+  if (parsed) {
+    const daySchedule = parsed[dow] as DaySchedule | undefined;
+
+    if (!daySchedule?.enabled) {
+      cacheSet(cacheKey, []);
+      return [];
+    }
+
+    let slots = generateHourlySlots(daySchedule.open, daySchedule.close);
+
+    // Filtra horário de almoço (do barbeiro ou global, conforme a fonte)
+    const lunchBreak = parsed.lunch_break as LunchBreakCfg | undefined;
+
+    if (lunchBreak?.enabled && lunchBreak.days?.includes(Number(dow))) {
+      slots = slots.filter((slot) => slot < lunchBreak.start || slot >= lunchBreak.end);
+    }
+
+    cacheSet(cacheKey, slots);
+    return slots;
+  }
+
+  // 2. Fallback: configurações individuais (legado) — sem lunch_break
   const hours = await getBarberHours();
   const daySchedule = hours[dow];
   if (!daySchedule?.enabled) {
-    cacheSet(dateStr, []);
+    cacheSet(cacheKey, []);
     return [];
   }
   const slots = generateHourlySlots(daySchedule.open, daySchedule.close);
-  cacheSet(dateStr, slots);
+  cacheSet(cacheKey, slots);
   return slots;
 };

@@ -16,7 +16,9 @@ interface DateTimeStepProps {
   onSelectDate: (date: string) => void;
   onSelectTime: (time: string) => void;
   availableSlots: string[];
-  existingBookings: { booking_time: string; status: string }[];
+  existingBookings: { booking_time: string; status: string; total_duration?: number }[];
+  /** Duração (min) do agendamento pretendido — slots que não comportam são ocupados. */
+  slotDuration?: number;
   layout: 'desktop' | 'mobile';
   dateContainerRef?: RefObject<HTMLDivElement | null>;
   onMouseDown?: (e: MouseEvent) => void;
@@ -33,6 +35,7 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
   onSelectTime,
   availableSlots,
   existingBookings,
+  slotDuration,
   layout,
   dateContainerRef,
   onMouseDown,
@@ -86,7 +89,7 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
             aria-label="Horários disponíveis"
           >
             {availableSlots.map((time) => {
-              const occupied = isTimeOccupied(time, existingBookings);
+              const occupied = isTimeOccupied(time, existingBookings, slotDuration);
               const isSelected = selectedTime === time;
               return (
                 <button
@@ -184,7 +187,7 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
             aria-label="Horários disponíveis"
           >
             {availableSlots.map((time) => {
-              const occupied = isTimeOccupied(time, existingBookings);
+              const occupied = isTimeOccupied(time, existingBookings, slotDuration);
               const isSelected = selectedTime === time;
               return (
                 <button

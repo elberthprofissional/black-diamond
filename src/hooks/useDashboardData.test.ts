@@ -17,6 +17,10 @@ vi.mock('../lib/api', () => ({
 vi.mock('../lib/utils', () => ({
   getLocalDateString: (...args: unknown[]) => mockGetLocalDateString(...args),
   getTimeSlotsForDate: (...args: unknown[]) => mockGetTimeSlotsForDate(...args),
+  isTimeOccupied: (
+    time: string,
+    bookings: { booking_time: string; status: string; total_duration?: number }[]
+  ) => bookings.some((b) => b.status !== 'cancelled' && b.booking_time.slice(0, 5) === time),
 }));
 
 vi.mock('./useBookings', () => ({

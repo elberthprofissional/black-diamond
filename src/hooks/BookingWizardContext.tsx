@@ -42,7 +42,9 @@ interface BookingWizardValue {
   isStepDisabled: boolean;
   isSubmitting: boolean;
   availableSlots: string[];
-  existingBookings: { booking_time: string; status: string }[];
+  existingBookings: { booking_time: string; status: string; total_duration?: number }[];
+  /** Duração (min) dos serviços selecionados — usada para ocupação dos slots. */
+  slotDuration: number;
   dateContainerRef: RefObject<HTMLDivElement | null>;
   handleMouseDown: (e: MouseEvent) => void;
   handleMouseLeave: () => void;
@@ -169,8 +171,14 @@ export function BookingWizardProvider({
   }, [lastBooking, allServices, wizardGoNext]);
 
   // ── Slots ──
-  // Multi-barbeiro: os horários disponíveis são filtrados pelo barbeiro escolhido
-  const slots = useBookingSlots(showError, selectedBarber?.id);
+  // Multi-barbeiro: os horários disponíveis são filtrados pelo barbeiro escolhido.
+  // A duração total dos serviços selecionados determina quais slots comportam o
+  // agendamento sem sobrepor outro (ex: Corte+Barba = 70min não cabe em 09:00→10:10).
+  const slotDuration = useMemo(
+    () => selectedServices.reduce((sum, s) => sum + (s.duration || 0), 0),
+    [selectedServices]
+  );
+  const slots = useBookingSlots(showError, selectedBarber?.id, slotDuration);
 
   // ── Trocar de barbeiro reseta a data/horário escolhidos ──
   const prevBarberIdRef = useRef<string | null | undefined>(undefined);
@@ -326,6 +334,7 @@ export function BookingWizardProvider({
       isSubmitting,
       existingBookings: slots.existingBookings,
       availableSlots: slots.availableSlots,
+      slotDuration: slots.slotDuration,
       dateContainerRef: slots.dateContainerRef,
       handleMouseDown: slots.handleMouseDown,
       handleMouseLeave: slots.handleMouseLeave,
@@ -374,6 +383,7 @@ export function BookingWizardProvider({
       isSubmitting,
       slots.existingBookings,
       slots.availableSlots,
+      slots.slotDuration,
       slots.dateContainerRef,
       slots.handleMouseDown,
       slots.handleMouseLeave,

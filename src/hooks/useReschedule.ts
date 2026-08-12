@@ -29,7 +29,8 @@ export function useReschedule(
     let active = true;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingSlots(true);
-    getBookings(rescheduleDate)
+    // Só os bookings do MESMO barbeiro (ou bloqueios globais) aparecem ocupados
+    getBookings(rescheduleDate, { barberId: selectedBooking?.barber_id || undefined })
       .then((result) => {
         if (active) setExistingBookings(result.data || []);
       })
@@ -42,7 +43,7 @@ export function useReschedule(
     return () => {
       active = false;
     };
-  }, [rescheduleDate, isRescheduling, showError]);
+  }, [rescheduleDate, isRescheduling, selectedBooking?.barber_id, showError]);
 
   // Mutation para confirmar o reagendamento
   const confirmMutation = useMutation({
@@ -67,6 +68,8 @@ export function useReschedule(
           booking_time: rescheduleTime,
           total_price: totalPrice,
           total_duration: totalDuration,
+          // Mantém o mesmo barbeiro no reagendamento
+          barber_id: selectedBooking.barber_id || undefined,
         },
         {
           name: selectedBooking.clients?.name || '',

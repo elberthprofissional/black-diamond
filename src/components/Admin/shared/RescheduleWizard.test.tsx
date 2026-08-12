@@ -64,6 +64,7 @@ vi.mock('../../../lib/utils', () => {
     }),
     formatDisplayName: vi.fn((name: string) => name),
     formatPricePublic: vi.fn((price: number) => `R$ ${price.toFixed(2)}`),
+    isTimeOccupied: vi.fn(() => false),
   };
 });
 

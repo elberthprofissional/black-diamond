@@ -205,7 +205,9 @@ export default function CancelPage() {
     setLoadingSlots(true);
     setSelectedTime('');
 
-    getAvailableSlots(selectedDate)
+    // Passa a duração do booking sendo reagendado: slots que sobrepõem
+    // um horário ocupado (pela duração real) não devem ser oferecidos.
+    getAvailableSlots(selectedDate, undefined, rescheduleBooking.total_duration || 60)
       .then((slots) => {
         if (active) setAvailableSlots(slots);
       })

@@ -150,6 +150,10 @@ export interface Barber {
   is_owner: boolean;
   sort_order: number;
   created_at: string;
+  /** Dias de trabalho por barbeiro ({ '0': boolean, ..., '6': boolean }). */
+  working_days?: Record<string, boolean> | null;
+  /** Horário próprio do barbeiro; null/ausente = horário padrão da barbearia. */
+  barber_hours?: Record<string, unknown> | null;
 }
 
 export interface BarberSettings {

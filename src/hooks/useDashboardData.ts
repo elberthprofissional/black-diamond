@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { getAvailableSlots } from '../lib/api';
-import { getLocalDateString, getTimeSlotsForDate } from '../lib/utils';
+import { getLocalDateString, getTimeSlotsForDate, isTimeOccupied } from '../lib/utils';
 import { useBookings } from './useBookings';
 import { useSlotBlocking } from './useSlotBlocking';
 import type { BookingWithClient } from '../types';
@@ -171,9 +171,13 @@ export function useDashboardData(barberId?: string) {
       );
       const blockedBookings = bookings.filter((b) => b.status !== 'cancelled' && b.is_blocked);
 
-      const isTimeOccupied = (time: string) =>
-        bookings.some((b) => b.status !== 'cancelled' && b.booking_time.slice(0, 5) === time);
-      const freeSlots = availableSlots.filter((slot) => !isTimeOccupied(slot));
+      const freeSlots = availableSlots.filter(
+        (slot) =>
+          !isTimeOccupied(
+            slot,
+            bookings as { booking_time: string; status: string; total_duration?: number }[]
+          )
+      );
 
       const now = new Date();
       const currentTime =

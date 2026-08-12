@@ -1,6 +1,11 @@
 import { useState, useEffect, useMemo, type FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getLocalDateString, formatDisplayName, formatPricePublic } from '../../../lib/utils';
+import {
+  getLocalDateString,
+  formatDisplayName,
+  formatPricePublic,
+  isTimeOccupied,
+} from '../../../lib/utils';
 import { getAvailableSlots } from '../../../lib/api';
 import type { Service, Booking, BookingWithClient } from '../../../types';
 
@@ -60,16 +65,29 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
   const next14Days = useMemo(() => getNext14Days(), []);
   const [rescheduleSlots, setRescheduleSlots] = useState<string[]>([]);
 
+  // Duração total dos serviços do reagendamento — slots que não comportam essa
+  // duração sem sobrepor outro agendamento são ocultados.
+  const rescheduleDuration = useMemo(
+    () => rescheduleServices.reduce((sum, s) => sum + (s.duration || 0), 0),
+    [rescheduleServices]
+  );
+
   useEffect(() => {
     if (!rescheduleDate || step !== 2) return;
     let active = true;
-    getAvailableSlots(rescheduleDate).then((slots) => {
+    // Mantém o barbeiro do agendamento: os horários livres seguem o horário
+    // próprio dele (quando tiver) e o conflito é por barbeiro.
+    getAvailableSlots(
+      rescheduleDate,
+      selectedBooking.barber_id || undefined,
+      rescheduleDuration
+    ).then((slots) => {
       if (active) setRescheduleSlots(slots);
     });
     return () => {
       active = false;
     };
-  }, [rescheduleDate, step]);
+  }, [rescheduleDate, step, selectedBooking.barber_id, rescheduleDuration]);
 
   const handleBack = () => {
     if (step > 1) setStep(step - 1);
@@ -319,14 +337,12 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                     <span className="text-[10px] font-bold text-gold uppercase tracking-wider">
                       {
                         rescheduleSlots.filter((slot: string) => {
-                          const occupied =
+                          const isSelfSlot =
                             rescheduleDate === selectedBooking.booking_date &&
-                            slot === selectedBooking.booking_time.slice(0, 5)
-                              ? false
-                              : existingBookings.some(
-                                  (b) =>
-                                    b.status !== 'cancelled' && b.booking_time.slice(0, 5) === slot
-                                );
+                            slot === selectedBooking.booking_time.slice(0, 5);
+                          const occupied = isSelfSlot
+                            ? false
+                            : isTimeOccupied(slot, existingBookings, rescheduleDuration || 60);
                           return !occupied;
                         }).length
                       }{' '}
@@ -344,13 +360,12 @@ const RescheduleWizard: FC<RescheduleWizardProps> = ({
                 ) : (
                   <div className="grid grid-cols-4 gap-2">
                     {rescheduleSlots.map((slot: string) => {
-                      const occupied =
+                      const isSelfSlot =
                         rescheduleDate === selectedBooking.booking_date &&
-                        slot === selectedBooking.booking_time.slice(0, 5)
-                          ? false
-                          : existingBookings.some(
-                              (b) => b.status !== 'cancelled' && b.booking_time.slice(0, 5) === slot
-                            );
+                        slot === selectedBooking.booking_time.slice(0, 5);
+                      const occupied = isSelfSlot
+                        ? false
+                        : isTimeOccupied(slot, existingBookings, rescheduleDuration || 60);
                       const isSelected = rescheduleTime === slot;
                       return (
                         <button

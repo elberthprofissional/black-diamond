@@ -16,7 +16,7 @@ export async function getBarberByUserId(userId: string): Promise<Barber | null> 
   return data[0] as Barber;
 }
 
-interface UpsertBarberInput {
+export interface UpsertBarberInput {
   id?: string;
   name: string;
   phone?: string;
@@ -26,6 +26,12 @@ interface UpsertBarberInput {
   is_active?: boolean;
   is_owner?: boolean;
   sort_order?: number;
+  /** Dias de trabalho por barbeiro (objeto { '0': boolean, ..., '6': boolean }). */
+  working_days?: Record<string, boolean> | null;
+  /** Horário próprio do barbeiro (mesmo formato de settings.barber_hours). */
+  barber_hours?: Record<string, unknown> | null;
+  /** true → volta ao horário padrão da barbearia (limpa barber_hours). */
+  use_default_hours?: boolean;
 }
 
 /** Cria ou atualiza um barbeiro (somente admin — RPC upsert_barber). */
@@ -41,6 +47,9 @@ export async function upsertBarber(input: UpsertBarberInput): Promise<string> {
     p_is_active: input.is_active ?? true,
     p_is_owner: input.is_owner ?? false,
     p_sort_order: input.sort_order ?? 0,
+    p_working_days: input.working_days ?? null,
+    p_barber_hours: input.barber_hours ?? null,
+    p_use_default_hours: input.use_default_hours ?? false,
   });
   if (error) throw error;
   return data as string;

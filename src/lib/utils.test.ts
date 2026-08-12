@@ -164,6 +164,23 @@ describe('isTimeOccupied', () => {
   it('retorna false para horario cancelado', () => {
     expect(isTimeOccupied('11:00', bookings)).toBe(false);
   });
+
+  it('considera duracao dos bookings (sobreposicao de intervalo)', () => {
+    const longBookings = [{ booking_time: '09:00:00', status: 'confirmed', total_duration: 70 }];
+    expect(isTimeOccupied('10:00', longBookings)).toBe(true);
+    expect(isTimeOccupied('11:00', longBookings)).toBe(false);
+  });
+
+  it('considera duracao do novo agendamento via param', () => {
+    const shortBooking = [{ booking_time: '09:30:00', status: 'confirmed', total_duration: 30 }];
+    expect(isTimeOccupied('09:00', shortBooking, 30)).toBe(false);
+    expect(isTimeOccupied('09:00', shortBooking, 60)).toBe(true);
+  });
+
+  it('mesmo horario de inicio sempre colide', () => {
+    const b = [{ booking_time: '10:00:00', status: 'confirmed', total_duration: 30 }];
+    expect(isTimeOccupied('10:00', b, 30)).toBe(true);
+  });
 });
 
 describe('getErrorMessage', () => {

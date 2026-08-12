@@ -35,7 +35,12 @@ const SettingsAssinaturas: FC = () => {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const { data: allBarbers } = await supabase.from('barbers').select('*').order('name');
+      // Exclui perfis ocultos (is_hidden — ex.: dono/dev que não atende) da lista.
+      const { data: allBarbers } = await supabase
+        .from('barbers')
+        .select('*')
+        .eq('is_hidden', false)
+        .order('name');
       const pixVal = await getOwnerPixKey();
       setOwnerPixKey(pixVal || '');
       setPixInput(pixVal || '');
