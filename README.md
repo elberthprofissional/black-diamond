@@ -80,8 +80,8 @@
 |----------------|-----------|
 | **📅 Agendamento Online** | Fluxo em 4 etapas (Dados → Serviços → Data/Hora → Revisão) |
 | **🕐 Horários em Tempo Real** | Slots disponíveis calculados automaticamente com base nos horários configurados |
-| **📱 PWA Instalável** | Funciona como app nativo no celular |
-| **✂️ Galeria de Fotos** | Carrossel com preview em tela cheia |
+| **📱 PWA Instalável** | App "Black Diamond" instalável no celular (cliente e barbeiro) |
+| **✂️ Galeria de Fotos** | Carrossel com filtro por barbeiro e preview em tela cheia |
 | **📍 Localização** | Mapa integrado com Google Maps |
 | **💬 WhatsApp** | Contato direto via botão flutuante |
 | **📋 Gerenciar Agendamento** | Cancelar/reagendar via token ou telefone (rota unificada `/cancelar`) |
@@ -100,14 +100,14 @@
 | **⚡ Reagendar Rápido** | 1 toque pra reagendar com últimos dados do cliente |
 | **✂️ Serviços** | Gerenciar preços, duração e descrição dos serviços |
 | **🕐 Horários de Funcionamento** | Configurar dias abertos/fechados, horário de almoço |
-| **📸 Galeria** | Upload de fotos com conversão WebP, reordenação, preview |
+| **📸 Galeria** | Upload de fotos com conversão WebP, reordenação, preview, filtro por barbeiro |
 | **💎 Mensalista** | Planos de assinatura mensal com CRUD premium, badges de expiração (🟢/🟡/🔴), booking inteligente com detecção automática, filtros de clientes mensalistas |
 | **🚫 Controle de Faltas** | Marcar no-show, notificação inteligente com WhatsApp DM ao invés de bloqueio automático |
 | **🎁 Fidelidade** | Configurar visitas para prêmio, notificação automática |
 | **🔔 Notificações Push** | Notificações in-app + push para novos agendamentos |
 | **💬 Lembretes WhatsApp** | Envio de lembretes com templates personalizáveis |
 | **📋 Audit Logs** | Registro de todas as ações administrativas |
-| **👤 Login Opcional do Cliente** | Dashboard com historico, stats e cancelamento — telefone direto + link magico de gerenciamento |
+| **👤 Login Opcional do Cliente** | Dashboard com sidebar, historico, stats, cancelamento e instalação PWA — telefone direto + link magico |
 | **🔗 Compartilhar Link** | Botao no Hero que copia o link da barbearia para divulgar |
 
 ---

@@ -26,7 +26,7 @@ export default defineConfig({
         short_name: 'Black Diamond',
         description: 'Painel administrativo da Black Diamond Barbearia.',
         lang: 'pt-BR',
-        start_url: '/admin/login',
+        start_url: '/',
         scope: '/',
         display: 'standalone',
         background_color: '#050505',
@@ -55,6 +55,13 @@ export default defineConfig({
         ],
         shortcuts: [
           {
+            name: 'Área do Cliente',
+            short_name: 'Cliente',
+            url: '/cliente',
+            description: 'Acesse seus agendamentos',
+            icons: [{ src: '/assets/logo.webp', sizes: '192x192', type: 'image/webp' }],
+          },
+          {
             name: 'Painel Admin',
             short_name: 'Admin',
             url: '/admin',
@@ -62,10 +69,10 @@ export default defineConfig({
             icons: [{ src: '/assets/logo.webp', sizes: '192x192', type: 'image/webp' }],
           },
           {
-            name: 'Agenda Semanal',
-            short_name: 'Agenda',
-            url: '/admin/weekly',
-            description: 'Visualizar agenda da semana',
+            name: 'Agendar Horário',
+            short_name: 'Agendar',
+            url: '/agendar',
+            description: 'Agende seu horário agora',
             icons: [{ src: '/assets/logo.webp', sizes: '192x192', type: 'image/webp' }],
           },
         ],

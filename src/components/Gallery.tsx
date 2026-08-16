@@ -11,6 +11,7 @@ interface GalleryImage {
   image_url: string;
   alt: string;
   position: number;
+  barber_id?: string | null;
 }
 
 const PLACEHOLDER_POLAROIDS = [
@@ -38,6 +39,7 @@ const MARQUEE_ROTATIONS = [
 const Gallery: FC = memo(() => {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [barbers, setBarbers] = useState<Barber[]>([]);
+  const [activeFilter, setActiveFilter] = useState<string>('all');
   const { singleBarberMode } = useBarberSettings();
 
   useEffect(() => {
@@ -58,15 +60,19 @@ const Gallery: FC = memo(() => {
   // "Modo barbeiro único" (config) mantém a colagem mesmo com 2+ linhas.
   const marqueeMode = !singleBarberMode && displayBarbers.length >= 2;
 
-  // Marquee: usa TODAS as fotos (pula as 2 do Hero). Colagem: mostra as 3 seguintes.
-  const marqueeItems = images.slice(2).map((img, idx) => ({
+  // Filtrar imagens por barbeiro selecionado
+  const filteredImages =
+    activeFilter === 'all' ? images : images.filter((img) => img.barber_id === activeFilter);
+
+  // Marquee: usa TODAS as fotos filtradas (pula as 2 do Hero). Colagem: mostra as 3 seguintes.
+  const marqueeItems = filteredImages.slice(2).map((img, idx) => ({
     url: img.image_url,
     alt: img.alt || 'Foto de corte',
     rotate: MARQUEE_ROTATIONS[idx % MARQUEE_ROTATIONS.length] ?? '-rotate-1',
   }));
   const useMarquee = marqueeMode && marqueeItems.length >= 3;
 
-  const galleryImages = images.slice(2, 5);
+  const galleryImages = filteredImages.slice(2, 5);
   const displayItems = Array.from({ length: 3 }).map((_, idx) => {
     const img = galleryImages[idx];
     if (img) {
@@ -85,6 +91,8 @@ const Gallery: FC = memo(() => {
     '--marquee-duration': `${Math.max(36, marqueeItems.length * 6)}s`,
   } as CSSProperties;
 
+  const hasBarberFilter = displayBarbers.length >= 2;
+
   return (
     <section
       id="galeria"
@@ -92,7 +100,7 @@ const Gallery: FC = memo(() => {
     >
       <div className="container mx-auto px-6 max-w-6xl text-center">
         {/* Header */}
-        <div className="mb-12 md:mb-16 space-y-2">
+        <div className="mb-8 md:mb-12 space-y-2">
           <span className="text-[11px] font-sans font-bold uppercase tracking-[0.35em] text-zinc-400 block">
             Galeria
           </span>
@@ -100,12 +108,43 @@ const Gallery: FC = memo(() => {
             <span>{useMarquee ? 'Nossos' : 'Meus'}</span>{' '}
             <span className="font-serif italic font-normal text-white lowercase">trabalhos</span>
           </h2>
-          {useMarquee && (
+          {useMarquee && !hasBarberFilter && (
             <p className="hidden sm:block text-zinc-500 font-sans text-[11px] sm:text-xs font-light tracking-[0.15em] uppercase max-w-md mx-auto">
               Passe o mouse sobre as fotos para pausar
             </p>
           )}
         </div>
+
+        {/* ── Abas de filtro por barbeiro ── */}
+        {hasBarberFilter && (
+          <div className="flex items-center justify-center gap-1 mb-10 md:mb-14 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06] w-fit mx-auto">
+            <button
+              type="button"
+              onClick={() => setActiveFilter('all')}
+              className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                activeFilter === 'all'
+                  ? 'bg-white/[0.08] text-white shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              Todos
+            </button>
+            {displayBarbers.map((barber) => (
+              <button
+                key={barber.id}
+                type="button"
+                onClick={() => setActiveFilter(barber.id)}
+                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                  activeFilter === barber.id
+                    ? 'bg-white/[0.08] text-white shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                {barber.name}
+              </button>
+            ))}
+          </div>
+        )}
 
         {useMarquee ? (
           /* ── MARQUEE: todas as fotos em loop (2+ barbeiros) ── */

@@ -5,6 +5,25 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [Unreleased] - 2026-08-16
+
+### Changed
+- **Login redesenhado (split-panel editorial)** — `/entrar` e `/admin/login` agora usam layout de dois painéis: imagem da barbearia à esquerda (~52%) com overlays cinematográficos + texto contextual ("ÁREA DO CLIENTE"/"ÁREA DO BARBEIRO") posicionado no terço inferior; form integrado ao painel direito (~48%) sem card externo, com glow dourado difuso e gradiente vertical sutil. Desktop mantém `grid-cols-[52fr_48fr]`; mobile usa fundo escuro sólido com brand compacto e form centralizado. Labels uppercase com `tracking-[0.1em]`, inputs `h-[54px]`, tabs com `focus:ring-2 focus:ring-gold/20`. Imagem do painel esquerdo: `/assets/cadastrar-logar.webp` (fixo, ignora `barberPhoto` do banco para evitar flicker).
+- **Dashboard do cliente elevado** — sidebar com navegação (Agendamentos/Histórico/Configurações), bottom tabs no mobile, container desktop ampliado para `max-w-[1100px]`, page headers com título + subtítulo, métricas maiores (`text-[24px] sm:text-[28px]`), empty states elegantes com ícone `w-20 h-20`, agendamentos em grid 2 colunas no desktop, configurações com card de perfil e segurança mais ricos. Mobile mantém experiência app-like com bottom tabs e `safe-area-inset-bottom`.
+- **PWA instalação no cliente** — botão "Instalar App" na sidebar desktop e card premium "Instalar Black Diamond" nas configurações mobile. Manifest ajustado: `start_url` de `/admin/login` para `/`, novos atalhos "Área do Cliente" e "Agendar Horário". App único "Black Diamond" serve para cliente e barbeiro — cada um instala pelo contexto que está usando.
+- **Tagline atualizada** — "Corte na régua. Barba na régua. Papo reto..." → "Seu estilo, no nível que ele merece." (Hero, Footer, BookingPreScreenMenu).
+- **Galeria com filtro por barbeiro** — nova coluna `barber_id` na tabela `gallery_images` (migration `008_gallery_barber_id.sql`). Quando há 2+ barbeiros, abas de filtro aparecem: "Todos" / nome do barbeiro. Estilo consistente com as tabs do login.
+- **Botão "Já possui uma conta?" removido do agendamento** — bloco com "Entrar" e "Criar conta" removido do passo de dados (`DataStep`).
+- **Removido do admin login**: "Não é admin? Voltar para o agendamento" e footer "Black Diamond Barbearia".
+
+### Removed
+- **`barber_photo` removido do banco** — setting `barber_photo` da tabela `settings` deletada (foto do barbeiro triste com criança). Imagem de fallback do login trocada para `/assets/cadastrar-logar.webp`.
+- **Clientes de teste removidos** — "Cliente Verificacao Sucesso" e 164 notificações "Cliente Teste E2e" deletados do banco. Cliente "Alan" removido acidentalmente e recriado (UUID novo, dados preservados).
+
+### Fixed
+- **Flicker da foto no login** — `barberPhoto` do Supabase causava troca visual rápida ao carregar. Agora o login usa sempre `/assets/cadastrar-logar.webp` (fixo).
+- **Cliente sem senha** — Elberth pode acessar o painel sem senha (senha limpa no banco). Fluxo de recuperação de senha pendente (API não implementada).
+
 ## [Unreleased] - 2026-08-15
 
 ### Removed
@@ -37,7 +56,7 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - **Scripts de auditoria de responsividade** — `scripts/audit-responsive-text.mjs` (texto cortado + fontes minúsculas + conteúdo na borda), `scripts/audit-responsive-admin.mjs` (varre as rotas admin autenticadas no mobile) e `scripts/audit-responsive-overlap.mjs` (sobreposição de texto/elementos). Rodam com `BASE_URL=http://localhost:5174 node scripts/<script>.mjs`.
 
 ### Docs
-- README, DOCUMENTACAO e DEPLOY_GUIDE sincronizados com o estado atual (assinaturas removidas, 7 migrations, 20 tabelas, edge functions reais).
+- README, DOCUMENTACAO e DEPLOY_GUIDE sincronizados com o estado atual (assinaturas removidas, 7 migrations, 20 tabelas, edge functions reais). *(Nota: agora 8 migrations com a 008_gallery_barber_id)*
 
 ## [3.36.0] - 2026-08-06
 

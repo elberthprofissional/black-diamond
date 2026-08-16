@@ -6,7 +6,7 @@ import { logError } from '../logger';
 export const getGalleryImages = async (): Promise<GalleryImage[]> => {
   const { data } = await supabase
     .from('gallery_images')
-    .select('id, image_url, alt, position, created_at')
+    .select('id, image_url, alt, position, barber_id, created_at')
     .order('position', { ascending: true });
 
   return (data || []) as GalleryImage[];

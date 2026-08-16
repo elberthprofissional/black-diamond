@@ -88,10 +88,10 @@ Logout seguro com limpeza de sessão.
 Gerencia push notifications do PWA.
 
 ### `usePwaInstall`
-Gerencia instalação do PWA com detecção de plataforma.
+Gerencia instalação do PWA com detecção de plataforma. Usado tanto no admin (`AdminProfile`) quanto no cliente (`ClientProfileDashboard`).
 
 ```tsx
-const { isIOS, isStandalone, isIOSChrome, handleInstall } = usePwaInstall(
+const { isIOS, isStandalone, isIOSChrome, canInstall, handleInstall } = usePwaInstall(
   () => showSuccess('Instalado!'),
   (msg) => showError(msg),
 );
@@ -100,3 +100,5 @@ const { isIOS, isStandalone, isIOSChrome, handleInstall } = usePwaInstall(
 - iPhone (Safari): exibe modal com instruções passo-a-passo
 - Android (Chrome): dispara `beforeinstallprompt` nativo
 - Desktop: prompt de instalação do navegador
+- **Cliente:** botão "Instalar App" na sidebar (desktop) e card premium nas Configurações (mobile)
+- **Admin:** botão "Instalar App" no perfil

@@ -73,6 +73,7 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
   const [recoverEmailMasked, setRecoverEmailMasked] = useState('');
   const [recoverCode, setRecoverCode] = useState('');
   const [accountForm, setAccountForm] = useState({ name: '', email: '', phone: '' });
+  const [isGoogleAuth, setIsGoogleAuth] = useState(false);
 
   const admin = useAdminLogin({ initialEmail });
   const { barberPhone, brandLogo, brandName, barberName } = useBarberSettings();
@@ -144,6 +145,52 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
     void handleClientIdentifier(prefillPhone);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user && view === 'client') {
+        const email = session.user.email;
+        const fullName = session.user.user_metadata?.full_name || '';
+
+        if (email) {
+          setClientLoading(true);
+          try {
+            const { data, error } = await supabase.rpc('buscar_cliente_por_email_auth', {
+              p_email: email,
+            });
+
+            if (!error && data && data.length > 0) {
+              const client = data[0];
+              saveClientSession(client.phone, client.name, true);
+
+              if (adminMode) {
+                navigate('/admin');
+              } else if (prefillPhone) {
+                navigate(`/agendar?phone=${client.phone}`);
+              } else {
+                navigate('/cliente');
+              }
+            } else {
+              setStage({ kind: 'create-account' });
+              setIsGoogleAuth(true);
+              setAccountForm((prev) => ({ ...prev, email, name: fullName }));
+              setClientError('Finalize seu cadastro informando seu WhatsApp.');
+            }
+          } catch (err) {
+            console.error('Erro ao verificar email do google:', err);
+          } finally {
+            setClientLoading(false);
+          }
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [view, adminMode, navigate, prefillPhone]);
 
   useEffect(() => {
     if (!isPWA) return;
@@ -294,14 +341,21 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
       setClientError('Informe um e-mail válido para segurança.');
       return;
     }
-    if (newPassword.length < 6) {
-      setClientError('A senha deve ter no mínimo 6 caracteres.');
-      return;
+
+    let finalPassword = newPassword;
+    if (isGoogleAuth) {
+      finalPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+    } else {
+      if (newPassword.length < 6) {
+        setClientError('A senha deve ter no mínimo 6 caracteres.');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setClientError('As senhas não coincidem.');
+        return;
+      }
     }
-    if (newPassword !== confirmPassword) {
-      setClientError('As senhas não coincidem.');
-      return;
-    }
+
     setClientLoading(true);
     setClientError('');
     try {
@@ -309,7 +363,7 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
         name: name.trim(),
         email: email.trim(),
         phone: rawPhone,
-        password: newPassword,
+        password: finalPassword,
       });
       if (res.ok) {
         await enterClient(rawPhone, name.trim(), true);
@@ -1044,37 +1098,40 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
                               autoComplete="email"
                               maxLength={120}
                               className={inputClass}
+                              disabled={isGoogleAuth}
                             />
                           </div>
                         </div>
-                        <div className="space-y-4 sm:grid sm:grid-cols-2 sm:gap-4">
-                          <div className="space-y-1.5 text-left">
-                            <label className={labelClass}>Senha</label>
-                            <input
-                              type="password"
-                              value={newPassword}
-                              onChange={(e) => setNewPassword(e.target.value)}
-                              placeholder="Mín. 6 dígitos"
-                              data-testid="input-account-password"
-                              autoComplete="new-password"
-                              maxLength={128}
-                              className={inputClass}
-                            />
+                        {!isGoogleAuth && (
+                          <div className="space-y-4 sm:grid sm:grid-cols-2 sm:gap-4">
+                            <div className="space-y-1.5 text-left">
+                              <label className={labelClass}>Senha</label>
+                              <input
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                placeholder="Mín. 6 dígitos"
+                                data-testid="input-account-password"
+                                autoComplete="new-password"
+                                maxLength={128}
+                                className={inputClass}
+                              />
+                            </div>
+                            <div className="space-y-1.5 text-left">
+                              <label className={labelClass}>Confirmar</label>
+                              <input
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                placeholder="Repita a senha"
+                                data-testid="input-account-confirm"
+                                autoComplete="new-password"
+                                maxLength={128}
+                                className={inputClass}
+                              />
+                            </div>
                           </div>
-                          <div className="space-y-1.5 text-left">
-                            <label className={labelClass}>Confirmar</label>
-                            <input
-                              type="password"
-                              value={confirmPassword}
-                              onChange={(e) => setConfirmPassword(e.target.value)}
-                              placeholder="Repita a senha"
-                              data-testid="input-account-confirm"
-                              autoComplete="new-password"
-                              maxLength={128}
-                              className={inputClass}
-                            />
-                          </div>
-                        </div>
+                        )}
                       </div>
                       {clientError && (
                         <p className="text-xs font-medium text-red-400 text-left bg-red-500/10 border border-red-500/20 rounded-xl p-3">
@@ -1092,7 +1149,7 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
                         ) : (
                           <>
                             <Check size={16} />
-                            <span>Criar minha conta</span>
+                            <span>{isGoogleAuth ? 'Finalizar Cadastro' : 'Criar minha conta'}</span>
                           </>
                         )}
                       </button>
@@ -1115,6 +1172,57 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
                 // ── Campo inteligente (padrão) ──
                 return (
                   <form onSubmit={handleUniversalSubmit} className="w-full space-y-4">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setClientLoading(true);
+                        const { error } = await supabase.auth.signInWithOAuth({
+                          provider: 'google',
+                          options: {
+                            redirectTo: `${window.location.origin}/entrar`,
+                          },
+                        });
+                        if (error) {
+                          setClientError('Erro ao conectar com o Google.');
+                          setClientLoading(false);
+                        }
+                      }}
+                      disabled={clientLoading}
+                      className="w-full h-14 bg-white text-black font-semibold text-[15px] rounded-xl transition-all flex items-center justify-center gap-3 shadow-lg hover:bg-gray-50 disabled:opacity-50 cursor-pointer active:scale-[0.99]"
+                    >
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                          fill="#4285F4"
+                        />
+                        <path
+                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                          fill="#34A853"
+                        />
+                        <path
+                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                          fill="#FBBC05"
+                        />
+                        <path
+                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                          fill="#EA4335"
+                        />
+                      </svg>
+                      Continuar com Google
+                    </button>
+
+                    <div className="flex items-center gap-3 my-2">
+                      <div className="h-px bg-white/[0.08] flex-1" />
+                      <span className="text-xs text-zinc-500 font-medium">OU</span>
+                      <div className="h-px bg-white/[0.08] flex-1" />
+                    </div>
+
                     <div className="space-y-1.5 text-left">
                       <label htmlFor="universal-identifier" className={labelClass}>
                         Celular ou E-mail
@@ -1154,15 +1262,7 @@ const UniversalLogin: FC<UniversalLoginProps> = ({ adminMode = false, initialEma
                         <span>Continuar</span>
                       )}
                     </button>
-                    <div className="flex items-center justify-between text-xs pt-1">
-                      <button
-                        type="button"
-                        data-testid="btn-go-create-account"
-                        onClick={() => setStage({ kind: 'create-account' })}
-                        className="text-[#d4af37] hover:underline font-semibold transition-all cursor-pointer"
-                      >
-                        Criar conta
-                      </button>
+                    <div className="flex items-center justify-center text-xs pt-1">
                       <button
                         type="button"
                         data-testid="btn-go-recover-home"

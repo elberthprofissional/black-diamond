@@ -92,7 +92,7 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 ### Visao Geral do Projeto
 O Black Diamond foi projetado para ser **universal** — pronto para qualquer barbearia. O projeto inclui:
 - `DEPLOY_GUIDE.md` — Guia passo a passo para deploy em novas barbearias
-- `supabase/migrations/` — Migrations consolidadas (6 arquivos: schema, rls, functions, triggers, seed, cron)
+- `supabase/migrations/` — Migrations (8 arquivos: schema, rls, functions, triggers, seed, cron + remoção assinaturas + galeria barber_id)
 - `supabase/seeds/` — Dados iniciais (depoimentos, etc)
 - Placeholder generico na secao About (sem foto fixa do Tato)
 - Sentry para error reporting em producao
@@ -323,7 +323,7 @@ Schema completo: `supabase/migrations/` (migrations consolidadas)
 
 ### Migrations
 
-O projeto usa **7 migrations** em `supabase/migrations/` (6 consolidadas + 1 de remocao). Cada arquivo preserva os marcadores `-- >>> MIGRATION:` das migrations originais — veja `supabase/migrations/README.md` para o mapeamento completo.
+O projeto usa **8 migrations** em `supabase/migrations/` (6 consolidadas + 1 de remocao + 1 nova). Cada arquivo preserva os marcadores `-- >>> MIGRATION:` das migrations originais — veja `supabase/migrations/README.md` para o mapeamento completo.
 
 | Arquivo | Conteudo |
 |---------|----------|
@@ -334,8 +334,9 @@ O projeto usa **7 migrations** em `supabase/migrations/` (6 consolidadas + 1 de 
 | `005_conta_cliente_v2.sql` | Conta do cliente v2 (login por telefone/e-mail, recuperacao de senha por codigo, e-mail no dashboard) + horario proprio por barbeiro |
 | `006_agenda_duration_auth.sql` | Conflito por duracao (slots que nao comportam o servico somem) + integracao Supabase Auth (`sync_client_user`, `clients.user_id`) |
 | `007_remove_assinaturas_pix.sql` | **Remocao (2026-08-15):** dropa o sistema de assinaturas/PIX (subscriptions, payment_logs, payment_blocked_users e funcoes relacionadas) |
+| `008_gallery_barber_id.sql` | **Galeria (2026-08-16):** adiciona coluna `barber_id` na tabela `gallery_images` para filtrar fotos por barbeiro |
 
-> **Nota:** Para rodar tudo de uma vez, cole `supabase/_RODAR_NO_SQL_EDITOR.sql` no SQL Editor (contem as 7 migrations concatenadas em ordem).
+> **Nota:** Para rodar tudo de uma vez, cole `supabase/_RODAR_NO_SQL_EDITOR.sql` no SQL Editor (contem as 8 migrations concatenadas em ordem).
 
 > **Nota (v3.36.0):** A tabela `barbers` e a funcionalidade de multi-barbeiro foram mantidas. A etapa de selecao de barbeiro no fluxo publico so aparece com mais de um barbeiro ativo; o escopo por barbeiro no banco e garantido pela migration `004_escopo_barbeiro_acesso.sql`. A rota `/barber` (painel do funcionario) continua fora do app.
 
@@ -392,7 +393,7 @@ user_id UUID PK (FK para auth.users), created_at TIMESTAMPTZ
 
 **gallery_images** — Fotos da galeria do portfolio
 ```sql
-id UUID PK, image_url TEXT, alt TEXT, position INTEGER, created_at TIMESTAMPTZ
+id UUID PK, image_url TEXT, alt TEXT, position INTEGER, barber_id UUID (FK para barbers, nullable), created_at TIMESTAMPTZ
 ```
 
 **booking_tokens** — Tokens de gerenciamento de agendamentos
@@ -894,14 +895,15 @@ Black Diamond/
 │   └── vite-env.d.ts           # Tipos globais (Window, Navigator)
 ├── supabase/
 │   ├── seeds/                  # Dados iniciais (depoimentos)
-│   ├── migrations/             # Migrations consolidadas (7 arquivos)
+│   ├── migrations/             # Migrations (8 arquivos)
 │   │   ├── 001_schema_core.sql          # Schema base + RPCs + triggers + seeds + cron
 │   │   ├── 002_multi_barber_pagamentos.sql # Multi-barbeiro + pagamentos
 │   │   ├── 003_auditoria_rls.sql        # Performance + auditoria + RLS estrito
 │   │   ├── 004_escopo_barbeiro_acesso.sql # Escopo RLS por barbeiro + acesso publico seguro
 │   │   ├── 005_conta_cliente_v2.sql     # Conta do cliente v2 + horario por barbeiro
 │   │   ├── 006_agenda_duration_auth.sql # Conflito por duracao + Supabase Auth
-│   │   └── 007_remove_assinaturas_pix.sql # Remocao do sistema de assinaturas/PIX
+│   │   ├── 007_remove_assinaturas_pix.sql # Remocao do sistema de assinaturas/PIX
+│   │   └── 008_gallery_barber_id.sql     # Galeria: coluna barber_id para filtro por barbeiro
 │   └── functions/
 │       ├── send-push/              # Edge function de notificacao push
 │       ├── cliente-recuperar-senha/ # Recuperacao de senha por codigo (cliente)
@@ -1237,7 +1239,7 @@ Depois de agendar (SuccessStep)
 - [x] Cupons de desconto (percentage, fixed, free) com validacao server-side
 - [x] Programa de fidelidade com milestones e progresso
 - [x] Controle de faltas (no-show) com bloqueio automatico
-- [x] Migrations consolidadas (14+ → 6 arquivos limpos)
+- [x] Migrations consolidadas (14+ → 8 arquivos limpos)
 - [x] Documentacao atualizada com novas features
 - [x] Bugfix: useGallery snapshot deep copy (rollback corrompido)
 - [x] Bugfix: useGallerySelection delete parcial (rastreia deletados com sucesso)
@@ -1351,6 +1353,14 @@ Um banner fixo no rodapé das páginas públicas convida o visitante a instalar 
 - Não aparece em páginas admin (o admin tem botão próprio no perfil)
 - Não aparece se o app já estiver instalado (`display-mode: standalone`)
 - Pode ser dispensado pelo usuário (armazenado em `sessionStorage`)
+
+### Instalação no dashboard do cliente
+O dashboard do cliente (`ClientProfileDashboard`) também oferece instalação PWA:
+- **Desktop:** Botão "Instalar App" na sidebar, entre "Novo Agendamento" e "Sair"
+- **Mobile:** Card premium "Instalar Black Diamond" na aba Configurações
+- O app instalado é o mesmo "Black Diamond" — o cliente instala pelo contexto que está usando
+- Manifest ajustado: `start_url` de `/admin/login` para `/` (abre no contexto do usuário)
+- Atalhos adicionados: "Área do Cliente" (`/cliente`) e "Agendar Horário" (`/agendar`)
 
 ### Componentes
 

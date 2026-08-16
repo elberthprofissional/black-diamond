@@ -4,7 +4,7 @@ Estrutura de `supabase/migrations/`. As migrations são a **fonte de verdade**
 do schema — o arquivo `supabase/_RODAR_NO_SQL_EDITOR.sql` é apenas uma
 consolidação gerada por `scripts/regenerate-mega.mjs`.
 
-## Estrutura (6 arquivos, consolidados em 2026-08-15)
+## Estrutura (8 arquivos)
 
 | Arquivo | Conteúdo | Origem (migrations antigas) |
 |---------|----------|------------------------------|
@@ -15,6 +15,7 @@ consolidação gerada por `scripts/regenerate-mega.mjs`.
 | `005_conta_cliente_v2.sql` | Conta do cliente v2: login por telefone/e-mail com senha (bcrypt), horário próprio por barbeiro (`barbers.barber_hours`), recuperação de senha por código, e-mail no dashboard | 014_login_contas, 015_barber_hours, 016_conta_cliente_recuperacao, 017_conta_cliente_email_dashboard |
 | `006_agenda_duration_auth.sql` | Conflito por duração (slots que não comportam o serviço somem) + integração Supabase Auth (`sync_client_user`, `clients.user_id`) | 018_duration_overlap, 019_client_supabase_auth |
 | `007_remove_assinaturas_pix.sql` | Remoção do sistema de assinaturas/PIX (tabelas, funções, trigger, cron, `owner_pix_key`) | — (nova em 2026-08-15) |
+| `008_gallery_barber_id.sql` | Adiciona coluna `barber_id` na tabela `gallery_images` para filtrar fotos por barbeiro | — (nova em 2026-08-16) |
 
 Cada arquivo preserva os marcadores `-- >>> MIGRATION: <arquivo_original> <<<`
 para rastreabilidade, e o conteúdo é **idêntico** ao das migrations originais

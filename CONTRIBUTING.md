@@ -247,7 +247,7 @@ Copie `.env.example` para `.env`:
 
 Cada barbearia tem seu próprio projeto Supabase. Para setup:
 1. Crie o projeto em [supabase.com](https://supabase.com)
-2. Execute as migrations em ordem no SQL Editor: `001_schema_core.sql` → `002_multi_barber_pagamentos.sql` → `003_auditoria_rls.sql` → `004_escopo_barbeiro_acesso.sql` → `005_conta_cliente_v2.sql` → `006_agenda_duration_auth.sql` (ou cole o `supabase/_RODAR_NO_SQL_EDITOR.sql` de uma vez)
+2. Execute as migrations em ordem no SQL Editor: `001_schema_core.sql` → `002_multi_barber_pagamentos.sql` → `003_auditoria_rls.sql` → `004_escopo_barbeiro_acesso.sql` → `005_conta_cliente_v2.sql` → `006_agenda_duration_auth.sql` → `008_gallery_barber_id.sql` (ou cole o `supabase/_RODAR_NO_SQL_EDITOR.sql` de uma vez)
 3. Crie o usuário admin em Authentication > Users
 4. Adicione na tabela `admin_users`
 

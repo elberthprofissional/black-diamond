@@ -73,10 +73,11 @@ Antes de comecar, tenha em maos:
    - `supabase/migrations/004_escopo_barbeiro_acesso.sql`
    - `supabase/migrations/005_conta_cliente_v2.sql`
    - `supabase/migrations/006_agenda_duration_auth.sql`
+   - `supabase/migrations/008_gallery_barber_id.sql` (adiciona `barber_id` na galeria)
    - (Dica: o arquivo `supabase/_RODAR_NO_SQL_EDITOR.sql` já contém tudo concatenado para colar de uma vez)
 4. Copie e cole cada arquivo no editor e clique **"Run"**
 
-> **Historico:** As migrations foram consolidadas (2026-08-15) em 6 arquivos unicos, agrupando as 15 migrations originais (`001_schema_rls.sql` … `019_client_supabase_auth.sql`). Cada arquivo preserva os marcadores `-- >>> MIGRATION:` e o conteúdo original. Veja `supabase/migrations/README.md`.
+> **Historico:** As migrations foram consolidadas (2026-08-15) em arquivos unicos + 2 novas (007 e 008), agrupando as 15 migrations originais (`001_schema_rls.sql` … `019_client_supabase_auth.sql`). Cada arquivo preserva os marcadores `-- >>> MIGRATION:` e o conteúdo original. Veja `supabase/migrations/README.md`.
 
 ### Passo 1.4 — Criar usuário admin
 

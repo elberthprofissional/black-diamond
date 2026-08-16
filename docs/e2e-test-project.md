@@ -20,7 +20,7 @@ Opção A — SQL Editor (recomendada):
 
 1. No projeto de teste, abra **SQL Editor** → **New query**
 2. Copie TODO o conteúdo de `supabase/_RODAR_NO_SQL_EDITOR.sql`
-   (é a consolidação das 7 migrations) e rode.
+   (é a consolidação das 8 migrations) e rode.
 3. Confira: `node scripts/audit-migrations.mjs` apontando o `.env` para o
    projeto de teste (veja passo 3).
 

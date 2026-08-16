@@ -1,7 +1,7 @@
 # DEPRECATION NOTICE — universal.sql
 
 > **Status:** REMOVIDO (v3.24.0)
-> **Substituto:** `supabase/migrations/` (7 arquivos consolidados)
+> **Substituto:** `supabase/migrations/` (8 arquivos)
 
 ## O que aconteceu
 
@@ -29,8 +29,9 @@ done
 | `005_conta_cliente_v2.sql` | Conta do cliente v2 (login, recuperação, e-mail, horários) |
 | `006_agenda_duration_auth.sql` | Conflito por duração + Supabase Auth |
 | `007_remove_assinaturas_pix.sql` | Remoção do sistema de assinaturas/PIX (2026-08-15) |
+| `008_gallery_barber_id.sql` | Galeria: coluna `barber_id` para filtro por barbeiro (2026-08-16) |
 
-> Consolidado em 7 arquivos (2026-08-15) a partir das 15 migrations originais — veja `supabase/migrations/README.md` para o mapeamento.
+> Consolidado em 8 arquivos (2026-08-16) a partir das 15 migrations originais — veja `supabase/migrations/README.md` para o mapeamento.
 
 > Consulte `supabase/migrations/README.md` para o detalhamento das faixas.
 

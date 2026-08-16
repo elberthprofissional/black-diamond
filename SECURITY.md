@@ -40,8 +40,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
 
 > **Nota (v3.33.0):** O sistema e de **barbeiro unico** — a rota `/barber` (painel de funcionario) foi removida. Todos os admins logados usam `/admin/*`.
 
-### PWA como ferramenta admin
-Quando o app e instalado como PWA, o `StandaloneGuard` bloqueia todas as rotas publicas e redireciona para `/admin/login`. Isso garante que o app instalado seja exclusivamente para o admin.
+### PWA como ferramenta de acesso
+O app PWA "Black Diamond" pode ser instalado tanto pelo admin quanto pelo cliente. O `StandaloneGuard` bloqueia rotas publicas no PWA, redirecionando para `/admin/login` (admin) ou mantendo o acesso ao `/cliente` (cliente). O manifest usa `start_url: '/'` para abrir no contexto do usuario.
 
 ## 3. Row Level Security (RLS)
 
@@ -52,7 +52,7 @@ Quando o app e instalado como PWA, o `StandaloneGuard` bloqueia todas as rotas p
 | `services` | Publica | Admin |
 | `settings` | Publica | Admin |
 | `mensalista_plans` | Publica | Admin |
-| `gallery_images` | Publica (anon) | Admin |
+| `gallery_images` | Publica (anon, com `barber_id` para filtro) | Admin |
 | `testimonials` | Publica (ativos) | Admin |
 | `barbers` | Publica (ativos) | Admin |
 | `clients` | Admin | Admin |

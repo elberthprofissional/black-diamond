@@ -180,5 +180,6 @@ export interface GalleryImage {
   image_url: string;
   alt: string;
   position: number;
+  barber_id?: string | null;
   created_at?: string;
 }
