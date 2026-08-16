@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
  * - retry: false para evitar timeouts
  * - gcTime: 0 para evitar memory leaks entre testes
  */
-export function createTestQueryClient() {
+function createTestQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {

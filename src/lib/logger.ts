@@ -53,26 +53,3 @@ export function logError(error: unknown, context?: string, extra?: Record<string
 
   saveToLocalStorage(entry);
 }
-
-/**
- * Recupera os últimos erros registrados (útil para debugging em produção).
- */
-export function getRecentErrors(): ErrorLogEntry[] {
-  try {
-    const stored = localStorage.getItem(ERROR_LOG_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Limpa o log de erros do localStorage.
- */
-export function clearErrorLog(): void {
-  try {
-    localStorage.removeItem(ERROR_LOG_KEY);
-  } catch {
-    // ignora
-  }
-}

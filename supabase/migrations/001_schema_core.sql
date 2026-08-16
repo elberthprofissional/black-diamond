@@ -1,4 +1,517 @@
 -- =========================================================================
+-- BLACK DIAMOND - 001 SCHEMA CORE
+-- SCHEMA + FUNÇÕES + TRIGGERS + CRON
+-- =========================================================================
+-- Consolidado de: 001_schema_rls.sql, 002_functions_triggers.sql
+-- Unificado na consolidação 2026-08-15 — conteúdo preservado na ordem
+-- original de execução (idempotente, CREATE OR REPLACE / IF NOT EXISTS).
+-- =========================================================================
+
+-- >>> MIGRATION: 001_schema_rls.sql <<<
+
+-- =========================================================================
+-- BLACK DIAMOND - 001 - SCHEMA + RLS + STORAGE
+-- =========================================================================
+-- Consolidado de: 001_schema_rls.sql
+-- Tabelas, extensões, índices, constraints, is_admin(), políticas RLS e storage.
+-- =========================================================================
+
+
+-- ──────────────────────────────────────────────────────────────
+-- >>> SEÇÃO: 001_schema_rls.sql <<<
+-- ──────────────────────────────────────────────────────────────
+-- =========================================================================
+-- BLACK DIAMOND - 001 - SCHEMA + RLS
+-- =========================================================================
+-- Consolidado de: 001_schema.sql, 002_rls.sql
+-- =========================================================================
+
+-- Tabelas, extensions, indexes, constraints e RLS.
+-- Estado final consolidado de todas as migrations anteriores.
+
+-- Extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS http;
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+-- TABELAS PRINCIPAIS
+
+-- Planos mensalistas
+CREATE TABLE IF NOT EXISTS mensalista_plans (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    included_service_ids UUID[] DEFAULT '{}',
+    allowed_days INTEGER[] DEFAULT '{1,2,3,4,5}',
+    is_active BOOLEAN DEFAULT TRUE,
+    is_default BOOLEAN DEFAULT FALSE,
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Servicos
+CREATE TABLE IF NOT EXISTS services (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    description TEXT,
+    price DECIMAL(10,2) NOT NULL,
+    duration INTEGER NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Clientes
+CREATE TABLE IF NOT EXISTS clients (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL UNIQUE,
+    email TEXT,
+    notes TEXT,
+    is_favorite BOOLEAN DEFAULT FALSE,
+    is_mensalista BOOLEAN DEFAULT FALSE,
+    mensalista_plan_id UUID REFERENCES mensalista_plans(id) ON DELETE SET NULL,
+    mensalista_expires_at DATE,
+    is_blocked BOOLEAN DEFAULT FALSE,
+    manually_added BOOLEAN DEFAULT FALSE,
+    historical_visits INTEGER DEFAULT 0,
+    historical_spent DECIMAL(10,2) DEFAULT 0,
+    last_visit_date DATE,
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Agendamentos
+CREATE TABLE IF NOT EXISTS bookings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    client_id UUID REFERENCES clients(id) ON DELETE CASCADE,
+    service_ids UUID[] NOT NULL,
+    booking_date DATE NOT NULL,
+    booking_time TIME NOT NULL,
+    total_price DECIMAL(10,2) NOT NULL,
+    total_duration INTEGER NOT NULL,
+    status TEXT DEFAULT 'pending',
+    is_blocked BOOLEAN DEFAULT FALSE,
+    reminder_sent BOOLEAN DEFAULT FALSE,
+    notes TEXT,
+    stats_preserved BOOLEAN DEFAULT FALSE,
+    no_show BOOLEAN DEFAULT FALSE,
+    coupon_id UUID,
+    discount_amount NUMERIC DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Configuracoes (chave-valor)
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Push subscriptions
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    endpoint TEXT NOT NULL UNIQUE,
+    p256dh TEXT NOT NULL,
+    auth TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Logs de auditoria
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    action TEXT NOT NULL,
+    target_id UUID,
+    details JSONB,
+    ip_address TEXT,
+    user_agent TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Imagens da galeria
+CREATE TABLE IF NOT EXISTS gallery_images (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    image_url TEXT NOT NULL,
+    alt TEXT DEFAULT '',
+    position INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Templates de WhatsApp
+CREATE TABLE IF NOT EXISTS whatsapp_templates (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    key TEXT NOT NULL,
+    name TEXT NOT NULL,
+    body TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Tokens de gerenciamento de agendamentos
+CREATE TABLE IF NOT EXISTS booking_tokens (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+    token TEXT NOT NULL UNIQUE,
+    expires_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '30 days'),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Notificacoes in-app
+CREATE TABLE IF NOT EXISTS notifications (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    tag TEXT,
+    url TEXT,
+    read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Administradores
+CREATE TABLE IF NOT EXISTS admin_users (
+    user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Depoimentos
+CREATE TABLE IF NOT EXISTS testimonials (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    text TEXT NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Rate limiting
+CREATE TABLE IF NOT EXISTS rate_limits (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    key TEXT NOT NULL,
+    ip_address TEXT,
+    attempts INTEGER DEFAULT 1,
+    window_start TIMESTAMPTZ DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Cupons
+CREATE TABLE IF NOT EXISTS coupons (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code text NOT NULL UNIQUE,
+    description text DEFAULT '',
+    discount_type text NOT NULL CHECK (discount_type IN ('percentage', 'fixed', 'free')),
+    discount_value numeric NOT NULL DEFAULT 0,
+    valid_from date NOT NULL DEFAULT CURRENT_DATE,
+    valid_until date,
+    max_uses integer,
+    current_uses integer NOT NULL DEFAULT 0,
+    is_active boolean NOT NULL DEFAULT true,
+    applicable_service_ids uuid[] DEFAULT '{}',
+    created_at timestamp with time zone DEFAULT now()
+);
+
+-- Milestones de fidelidade
+CREATE TABLE IF NOT EXISTS loyalty_milestones (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    visits_required integer NOT NULL CHECK (visits_required > 0),
+    reward_service_id uuid NOT NULL,
+    is_active boolean DEFAULT true,
+    created_at timestamptz DEFAULT now()
+);
+
+-- Milestones resgatados por cliente
+CREATE TABLE IF NOT EXISTS client_milestones (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    client_id uuid NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    milestone_id uuid NOT NULL REFERENCES loyalty_milestones(id) ON DELETE CASCADE,
+    claimed_at timestamptz DEFAULT now(),
+    UNIQUE (client_id, milestone_id)
+);
+
+-- FOREIGN KEYS
+ALTER TABLE bookings
+    ADD CONSTRAINT fk_bookings_coupon
+    FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE SET NULL;
+
+-- INDEXES
+
+-- Impedir duplo agendamento no mesmo horario
+DROP INDEX IF EXISTS idx_no_double_booking;
+CREATE UNIQUE INDEX idx_no_double_booking
+ON bookings (booking_date, booking_time)
+WHERE (status != 'cancelled' AND is_blocked = FALSE);
+
+-- Performance
+CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(booking_date);
+CREATE INDEX IF NOT EXISTS idx_bookings_date_status ON bookings(booking_date, status);
+CREATE INDEX IF NOT EXISTS idx_bookings_client_id ON bookings(client_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_no_show_client ON bookings(client_id, no_show, booking_date DESC) WHERE no_show = TRUE;
+CREATE INDEX IF NOT EXISTS idx_clients_mensalista ON clients(id) WHERE is_mensalista;
+CREATE INDEX IF NOT EXISTS idx_clients_blocked ON clients(id) WHERE is_blocked;
+CREATE INDEX IF NOT EXISTS idx_clients_deleted_at ON clients(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_mensalista_plans_active ON mensalista_plans(is_active) WHERE is_active;
+CREATE INDEX IF NOT EXISTS idx_booking_tokens_token ON booking_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_booking_tokens_booking_id ON booking_tokens(booking_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON notifications (user_id, read, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_key ON rate_limits(key, window_start);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_cleanup ON rate_limits(created_at);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_lookup ON rate_limits(key, window_start DESC);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_ip_lookup ON rate_limits(key, ip_address, window_start DESC);
+CREATE INDEX IF NOT EXISTS idx_client_milestones_client ON client_milestones(client_id);
+CREATE INDEX IF NOT EXISTS idx_loyalty_milestones_active ON loyalty_milestones(is_active) WHERE is_active;
+
+-- CONSTRAINTS
+
+ALTER TABLE bookings DROP CONSTRAINT IF EXISTS chk_booking_block_rules;
+ALTER TABLE bookings ADD CONSTRAINT chk_booking_block_rules
+CHECK (
+    (is_blocked = true AND client_id IS NULL AND total_price = 0 AND total_duration = 0) OR
+    (is_blocked = false AND client_id IS NOT NULL)
+);
+
+-- HABILITAR RLS
+ALTER TABLE services ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE mensalista_plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE gallery_images ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE booking_tokens ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE whatsapp_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE testimonials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rate_limits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE coupons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE loyalty_milestones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reminder_logs ENABLE ROW LEVEL SECURITY;
+
+-- TABELA: reminder_logs
+CREATE TABLE IF NOT EXISTS reminder_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    template_id TEXT,
+    template_name TEXT,
+    message_preview TEXT,
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_reminder_logs_client_id ON reminder_logs(client_id);
+CREATE INDEX IF NOT EXISTS idx_reminder_logs_sent_at ON reminder_logs(sent_at DESC);
+CREATE INDEX IF NOT EXISTS idx_reminder_logs_user_id ON reminder_logs(user_id);
+
+-- CONSTRAINT: unique service name
+ALTER TABLE services ADD CONSTRAINT uq_services_name UNIQUE (name);
+ALTER TABLE client_milestones ENABLE ROW LEVEL SECURITY;
+
+-- Todas as politicas de Row Level Security + is_admin() + storage policies.
+-- Estado final consolidado de todas as migrations anteriores.
+
+-- FUNCAO is_admin()
+CREATE OR REPLACE FUNCTION is_admin()
+RETURNS boolean AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM admin_users WHERE user_id = auth.uid()
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
+
+-- POLICIAS POR TABELA
+
+-- SERVICOS: leitura publica, escrita admin
+DROP POLICY IF EXISTS "Servicos leitura publica" ON services;
+CREATE POLICY "Servicos leitura publica" ON services FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Servicos gerenciamento admin" ON services;
+CREATE POLICY "Servicos gerenciamento admin" ON services FOR ALL TO authenticated
+USING (is_admin())
+WITH CHECK (is_admin());
+
+-- CLIENTES: apenas admin
+DROP POLICY IF EXISTS "Clientes gerenciamento admin" ON clients;
+CREATE POLICY "Clientes gerenciamento admin" ON clients FOR ALL TO authenticated
+USING (is_admin())
+WITH CHECK (is_admin());
+
+-- AGENDAMENTOS: admin full + leitura publica para consulta
+DROP POLICY IF EXISTS "Agendamentos gerenciamento admin" ON bookings;
+CREATE POLICY "Agendamentos gerenciamento admin" ON bookings FOR ALL TO authenticated
+USING (is_admin())
+WITH CHECK (is_admin());
+
+DROP POLICY IF EXISTS "Leitura publica agendamentos" ON bookings;
+CREATE POLICY "Leitura publica agendamentos" ON bookings FOR SELECT
+USING (
+    (status IN ('pending', 'confirmed') AND booking_date >= CURRENT_DATE)
+    OR status = 'completed'
+);
+
+-- CONFIGURACOES: leitura publica, escrita admin
+DROP POLICY IF EXISTS "Configuracoes leitura publica" ON settings;
+CREATE POLICY "Configuracoes leitura publica" ON settings FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Configuracoes gerenciamento admin" ON settings;
+CREATE POLICY "Configuracoes gerenciamento admin" ON settings FOR ALL TO authenticated
+USING (is_admin())
+WITH CHECK (is_admin());
+
+-- MENSALISTA PLANS: leitura publica, escrita admin
+DROP POLICY IF EXISTS "Mensalista plans leitura publica" ON mensalista_plans;
+CREATE POLICY "Mensalista plans leitura publica" ON mensalista_plans FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Mensalista plans admin" ON mensalista_plans;
+CREATE POLICY "Mensalista plans admin" ON mensalista_plans FOR ALL TO authenticated
+USING (is_admin())
+WITH CHECK (is_admin());
+
+-- PUSH SUBSCRIPTIONS: apenas admin
+DROP POLICY IF EXISTS "Push subscriptions admin" ON push_subscriptions;
+CREATE POLICY "Push subscriptions admin" ON push_subscriptions FOR ALL TO authenticated
+USING (is_admin())
+WITH CHECK (is_admin());
+
+-- GALLERY: admin gerencia, publico leitura
+DROP POLICY IF EXISTS "Admin can manage gallery" ON gallery_images;
+CREATE POLICY "Admin can manage gallery" ON gallery_images
+    FOR ALL TO authenticated
+    USING (is_admin())
+    WITH CHECK (is_admin());
+
+DROP POLICY IF EXISTS "Anyone can read gallery" ON gallery_images;
+CREATE POLICY "Anyone can read gallery" ON gallery_images
+    FOR SELECT TO anon USING (true);
+
+-- AUDIT LOGS: apenas admin
+DROP POLICY IF EXISTS "Admin can read audit logs" ON audit_logs;
+CREATE POLICY "Admin can read audit logs" ON audit_logs
+    FOR SELECT TO authenticated USING (is_admin());
+
+DROP POLICY IF EXISTS "System can insert audit logs" ON audit_logs;
+CREATE POLICY "System can insert audit logs" ON audit_logs
+    FOR INSERT TO authenticated WITH CHECK (is_admin());
+
+-- BOOKING TOKENS: apenas admin
+DROP POLICY IF EXISTS "Admin can read booking tokens" ON booking_tokens;
+CREATE POLICY "Admin can read booking tokens"
+    ON booking_tokens FOR SELECT TO authenticated USING (is_admin());
+
+-- NOTIFICATIONS: dono ve as proprias
+DROP POLICY IF EXISTS "Users see own notifications" ON notifications;
+CREATE POLICY "Users see own notifications"
+    ON notifications FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Admins can insert own notifications" ON notifications;
+CREATE POLICY "Admins can insert own notifications"
+    ON notifications FOR INSERT TO authenticated
+    WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can mark own as read" ON notifications;
+CREATE POLICY "Users can mark own as read"
+    ON notifications FOR UPDATE
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete own notifications" ON notifications;
+CREATE POLICY "Users can delete own notifications"
+    ON notifications FOR DELETE USING (auth.uid() = user_id);
+
+-- ADMIN USERS: apenas admin gerencia
+DROP POLICY IF EXISTS "Admin users apenas admin" ON admin_users;
+CREATE POLICY "Admin users apenas admin" ON admin_users FOR ALL TO authenticated
+USING (is_admin())
+WITH CHECK (is_admin());
+
+-- WHATSAPP TEMPLATES: apenas admin gerencia
+DROP POLICY IF EXISTS "WhatsApp templates admin" ON whatsapp_templates;
+CREATE POLICY "WhatsApp templates admin"
+ON whatsapp_templates FOR ALL
+USING (is_admin())
+WITH CHECK (is_admin());
+
+-- TESTIMONIALS: publico le ativos, admin faz tudo
+DROP POLICY IF EXISTS "Public can read active testimonials" ON testimonials;
+CREATE POLICY "Public can read active testimonials"
+  ON testimonials FOR SELECT USING (is_active = true);
+
+DROP POLICY IF EXISTS "Admin full access to testimonials" ON testimonials;
+CREATE POLICY "Admin full access to testimonials"
+  ON testimonials FOR ALL
+  USING (is_admin())
+  WITH CHECK (is_admin());
+
+-- COUPONS: apenas admin
+DROP POLICY IF EXISTS "Admin can manage coupons" ON coupons;
+CREATE POLICY "Admin can manage coupons"
+  ON coupons FOR ALL
+  USING (is_admin())
+  WITH CHECK (is_admin());
+
+-- LOYALTY MILESTONES: apenas admin
+DROP POLICY IF EXISTS "Admin manage loyalty_milestones" ON loyalty_milestones;
+CREATE POLICY "Admin manage loyalty_milestones"
+  ON loyalty_milestones FOR ALL
+  USING (is_admin())
+  WITH CHECK (is_admin());
+
+-- CLIENT MILESTONES: admin le, sistema insere
+DROP POLICY IF EXISTS "Admin read client_milestones" ON client_milestones;
+CREATE POLICY "Admin read client_milestones"
+  ON client_milestones FOR SELECT TO authenticated USING (is_admin());
+
+DROP POLICY IF EXISTS "System insert client_milestones" ON client_milestones;
+CREATE POLICY "System insert client_milestones"
+  ON client_milestones FOR INSERT TO authenticated WITH CHECK (is_admin());
+
+-- RATE LIMITS: nenhuma politica de acesso direto
+-- Apenas SECURITY DEFINER functions acessam (bypass RLS)
+
+-- STORAGE POLICIES
+
+-- Gallery bucket: leitura publica, escrita apenas admin
+DROP POLICY IF EXISTS "Gallery: public read" ON storage.objects;
+CREATE POLICY "Gallery: public read"
+ON storage.objects FOR SELECT TO public
+USING (bucket_id = 'gallery');
+
+DROP POLICY IF EXISTS "Gallery: admin insert" ON storage.objects;
+CREATE POLICY "Gallery: admin insert"
+ON storage.objects FOR INSERT TO authenticated
+WITH CHECK (bucket_id = 'gallery' AND is_admin());
+
+DROP POLICY IF EXISTS "Gallery: admin delete" ON storage.objects;
+CREATE POLICY "Gallery: admin delete"
+ON storage.objects FOR DELETE TO authenticated
+USING (bucket_id = 'gallery' AND is_admin());
+
+DROP POLICY IF EXISTS "Gallery: admin update" ON storage.objects;
+CREATE POLICY "Gallery: admin update"
+ON storage.objects FOR UPDATE TO authenticated
+USING (bucket_id = 'gallery' AND is_admin())
+WITH CHECK (bucket_id = 'gallery' AND is_admin());
+
+-- Avatars bucket: leitura publica, escrita apenas admin
+DROP POLICY IF EXISTS "Avatars: public read" ON storage.objects;
+CREATE POLICY "Avatars: public read"
+ON storage.objects FOR SELECT TO public
+USING (bucket_id = 'avatars');
+
+DROP POLICY IF EXISTS "Avatars: admin all" ON storage.objects;
+CREATE POLICY "Avatars: admin all"
+ON storage.objects FOR ALL TO authenticated
+USING (bucket_id = 'avatars' AND is_admin())
+WITH CHECK (bucket_id = 'avatars' AND is_admin());
+
+-- >>> MIGRATION: 002_functions_triggers.sql <<<
+
+-- =========================================================================
 -- BLACK DIAMOND - 002 - FUNÇÕES + TRIGGERS + SEED + CRON
 -- =========================================================================
 -- Consolidado de: 002_functions_triggers.sql, 003_seed_cron.sql
@@ -1051,4 +1564,3 @@ SELECT cron.schedule('monthly-cleanup', '0 5 1 * *', $$ SELECT cleanup_old_data(
 
 -- 6. Relatorio semanal (domingo, 23h)
 SELECT cron.schedule('weekly-report', '0 23 * * 0', $$ SELECT send_weekly_report() $$);
-

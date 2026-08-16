@@ -67,15 +67,16 @@ Antes de comecar, tenha em maos:
 1. No menu lateral, clique em **"SQL Editor"**
 2. Clique **"New Query"**
 3. Abra o SQL Editor e execute cada migration em ordem:
-   - `supabase/migrations/001_schema_rls.sql`
-   - `supabase/migrations/002_functions_triggers.sql`
-   - `supabase/migrations/003_features_fixes.sql`
-   - `supabase/migrations/004_subscriptions_pix.sql`
-   - `supabase/migrations/005_performance_auditoria.sql`
-   - (Dica: o arquivo `scripts/_RODAR_NO_SQL_EDITOR.sql` já contém tudo concatenado para colar de uma vez)
+   - `supabase/migrations/001_schema_core.sql`
+   - `supabase/migrations/002_multi_barber_pagamentos.sql`
+   - `supabase/migrations/003_auditoria_rls.sql`
+   - `supabase/migrations/004_escopo_barbeiro_acesso.sql`
+   - `supabase/migrations/005_conta_cliente_v2.sql`
+   - `supabase/migrations/006_agenda_duration_auth.sql`
+   - (Dica: o arquivo `supabase/_RODAR_NO_SQL_EDITOR.sql` já contém tudo concatenado para colar de uma vez)
 4. Copie e cole cada arquivo no editor e clique **"Run"**
 
-> **Historico:** As migrations foram consolidadas em 5 arquivos unicos (`001_schema_rls.sql`, `002_functions_triggers.sql`, `003_features_fixes.sql`, `004_subscriptions_pix.sql`, `005_performance_auditoria.sql`). O estado final vivia em arquivos separados que foram fundidos para facilitar o deploy.
+> **Historico:** As migrations foram consolidadas (2026-08-15) em 6 arquivos unicos, agrupando as 15 migrations originais (`001_schema_rls.sql` … `019_client_supabase_auth.sql`). Cada arquivo preserva os marcadores `-- >>> MIGRATION:` e o conteúdo original. Veja `supabase/migrations/README.md`.
 
 ### Passo 1.4 — Criar usuário admin
 
@@ -223,7 +224,7 @@ Pronto, o sistema já está no ar! Agora o barbeiro configura o resto **sozinho*
 
 ```
 Supabase:
-  New Project → Anotar URL + Key → SQL Editor → Rodar migrations (001→005) → Auth > Add User
+  New Project → Anotar URL + Key → SQL Editor → Rodar migrations (001→006) → Auth > Add User
 
 Código:
   Location.tsx (iframe + endereço) → Footer.tsx (Instagram + endereço)

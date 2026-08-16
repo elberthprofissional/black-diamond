@@ -30,7 +30,7 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 13. [Estrutura de Pastas](#13-estrutura-de-pastas)
 14. [Testes](#14-testes)
 15. [Troubleshooting](#15-troubleshooting)
-16. [Notas de Negocio](#16-notas-de-negocio)
+16. [Sistema de Assinatura (Removido)](#16-sistema-de-assinatura-removido)
 17. [Auditoria v3.31.0](#auditoria-v3310)
 17. [Notificacoes Push (Web Push)](#17-notificacoes-push-web-push)
 18. [Instalação PWA (Smart Install)](#18-instalacao-pwa-smart-install)
@@ -61,7 +61,6 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 - Acessibilidade: focus-visible, contraste aprimorado, skip-link
 - Estado gerenciado com hooks + Context API (leve e sem dependências)
 - **Login opcional do cliente** — Dashboard com historico, stats, cancelamento e link magico de gerenciamento (sem codigo falso)
-- **Assinatura simplificada via PIX** — R$50/mes sem gateway de pagamento
 - **Badge Aberto/Fechado** no Hero em tempo real
 - Error reporting com Sentry (captura automatica de erros)
 - Coverage minimo no CI (qualidade garantida)
@@ -83,7 +82,6 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 | Backend/Banco | Supabase (PostgreSQL) | ^2.108 |
 | Error Reporting | Sentry | ^1.x |
 | Hospedagem | Vercel | Gratis |
-| Pagamentos | PIX manual (sem gateway) | — |
 | Testes | Vitest + Testing Library + Playwright | Vitest 4.x |
 | CI/CD | GitHub Actions | Gratis |
 
@@ -325,22 +323,21 @@ Schema completo: `supabase/migrations/` (migrations consolidadas)
 
 ### Migrations
 
-O projeto usa **8 migrations consolidadas** (fundidas a partir de 9+ arquivos originais):
+O projeto usa **7 migrations** em `supabase/migrations/` (6 consolidadas + 1 de remocao). Cada arquivo preserva os marcadores `-- >>> MIGRATION:` das migrations originais — veja `supabase/migrations/README.md` para o mapeamento completo.
 
 | Arquivo | Conteudo |
 |---------|----------|
-| `001_schema_rls.sql` | Schema (18 tabelas) + extensões + RLS + is_admin() + storage |
-| `002_functions_triggers.sql` | 37 funcoes RPC + triggers de notificacao/realtime + seeds + cron |
-| `003_features_fixes.sql` | barbers, mensalista, barber_settings, RPCs, fixes e ajustes |
-| `004_subscriptions_pix.sql` | Assinatura PIX (subscriptions, payment_logs, payment_blocked_users, check_login_allowed) |
-| `005_performance_auditoria.sql` | Indices de performance + view dashboard_daily_stats + auditoria v3.31.0 |
-| `006_rls_estricto.sql` | **Seguranca (auditoria 08/2026):** RLS estrito em clients/bookings + RPCs publicas seguras (`cadastrar_cliente_publico`, `get_client_dashboard`) |
-| `007_barber_scope_rls.sql` | **Multi-barbeiro (v3.36):** escopo RLS por barbeiro (`is_barber_owner`, `current_barber_id`) — dono ve tudo, barbeiro comum ve so os proprios bookings |
-| `008_secure_bookings_public_access.sql` | **Hardening (auditoria 08/2026):** remove a policy publica de `bookings` (vazava notas/precos/historico) + `GRANT EXECUTE` de `is_admin()` pro AuthGuard |
+| `001_schema_core.sql` | Schema base (20 tabelas) + extensoes + RLS + is_admin() + storage + RPCs (agendamento, slots, cupons, no-show, fidelidade) + triggers + seeds + cron |
+| `002_multi_barber_pagamentos.sql` | Multi-barbeiro (`barbers`, `get_barbers`) + assinaturas/PIX (removidas pela `007`) |
+| `003_auditoria_rls.sql` | Indices de performance + auditoria + RLS estrito |
+| `004_escopo_barbeiro_acesso.sql` | Escopo RLS por barbeiro (`is_barber_owner`, `current_barber_id`) + acesso publico seguro de bookings (RPCs com rate limit) |
+| `005_conta_cliente_v2.sql` | Conta do cliente v2 (login por telefone/e-mail, recuperacao de senha por codigo, e-mail no dashboard) + horario proprio por barbeiro |
+| `006_agenda_duration_auth.sql` | Conflito por duracao (slots que nao comportam o servico somem) + integracao Supabase Auth (`sync_client_user`, `clients.user_id`) |
+| `007_remove_assinaturas_pix.sql` | **Remocao (2026-08-15):** dropa o sistema de assinaturas/PIX (subscriptions, payment_logs, payment_blocked_users e funcoes relacionadas) |
 
-> **Nota:** Para rodar tudo de uma vez, cole `scripts/_RODAR_NO_SQL_EDITOR.sql` no SQL Editor (contém as 8 migrations concatenadas em ordem).
+> **Nota:** Para rodar tudo de uma vez, cole `supabase/_RODAR_NO_SQL_EDITOR.sql` no SQL Editor (contem as 7 migrations concatenadas em ordem).
 
-> **Nota (v3.36.0):** A tabela `barbers` e a funcionalidade de multi-barbeiro foram mantidas. A etapa de selecao de barbeiro no fluxo publico so aparece com mais de um barbeiro ativo; o escopo por barbeiro no banco e garantido pela migration `007`. A rota `/barber` (painel do funcionario) continua fora do app.
+> **Nota (v3.36.0):** A tabela `barbers` e a funcionalidade de multi-barbeiro foram mantidas. A etapa de selecao de barbeiro no fluxo publico so aparece com mais de um barbeiro ativo; o escopo por barbeiro no banco e garantido pela migration `004_escopo_barbeiro_acesso.sql`. A rota `/barber` (painel do funcionario) continua fora do app.
 
 ### Tabelas
 
@@ -553,7 +550,7 @@ npm install
 ### Opção B: Manual
 1. Crie um projeto no [supabase.com](https://supabase.com)
 2. Acesse o SQL Editor
-3. Execute as migrations em ordem: `001_schema_rls.sql` → `002_functions_triggers.sql` → `003_features_fixes.sql` → `004_subscriptions_pix.sql` → `005_performance_auditoria.sql` → `006_rls_estricto.sql` → `007_barber_scope_rls.sql` → `008_secure_bookings_public_access.sql` (ou cole `scripts/_RODAR_NO_SQL_EDITOR.sql` de uma vez)
+3. Execute as migrations em ordem: `001_schema_core.sql` → `002_multi_barber_pagamentos.sql` → `003_auditoria_rls.sql` → `004_escopo_barbeiro_acesso.sql` → `005_conta_cliente_v2.sql` → `006_agenda_duration_auth.sql` (ou cole `supabase/_RODAR_NO_SQL_EDITOR.sql` de uma vez; a `007_remove_assinaturas_pix.sql` so roda em bases que ja tinham o sistema de assinaturas)
 4. Acesse Authentication > Users e crie o usuario admin
 
 ### Passo 3: Configurar variaveis de ambiente
@@ -737,27 +734,34 @@ Black Diamond/
 │   │   │   └── shared/         # Componentes compartilhados
 │   │   │       ├── BlockedPanel.tsx
 │   │   │       ├── BookingDetailPanel.tsx
+│   │   │       ├── AdminBookingShell.tsx
+│   │   │       ├── BlockedPanel.tsx
+│   │   │       ├── BlockedSlotView.tsx
+│   │   │       ├── BookingDetailPanel.tsx
 │   │   │       ├── BookingSearchModal.tsx
-│   │   │       ├── BookingSummaryPanel.tsx
+│   │   │       ├── BookingSlidePanel.tsx
 │   │   │       ├── ClientPanel.tsx
+│   │   │       ├── ClosedDayView.tsx
 │   │   │       ├── CompleteModal.tsx
 │   │   │       ├── DashboardHeader.tsx
+│   │   │       ├── DayOffButton.tsx
 │   │   │       ├── DeleteClientModal.tsx
 │   │   │       ├── DeleteModal.tsx
 │   │   │       ├── EditClientModal.tsx
+│   │   │       ├── EndOfDayView.tsx
 │   │   │       ├── FilterTabs.tsx
 │   │   │       ├── FreePanel.tsx
+│   │   │       ├── HistoryView.tsx
 │   │   │       ├── NewClientModal.tsx
 │   │   │       ├── OccupiedPanel.tsx
-│   │   │       ├── ProfileDesktopMetrics.tsx
-│   │   │       ├── ProfileMobile.tsx
-│   │   │       ├── ProfileServicesChart.tsx
+│   │   │       ├── OfflineBanner.tsx
+│   │   │       ├── ReminderClientList.tsx
+│   │   │       ├── ReminderFilterTabs.tsx
 │   │   │       ├── ReminderModal.tsx
 │   │   │       ├── RescheduleWizard.tsx
 │   │   │       ├── ThankYouModal.tsx
 │   │   │       ├── ToastNotification.tsx
-│   │   │       ├── UnblockModal.tsx
-│   │   │       └── WhatsAppReminderButton.tsx
+│   │   │       └── UnblockModal.tsx
 │   │   │   └── settings/       # Configuracoes do admin
 │   │   │       ├── SettingsList.tsx
 │   │   │       ├── SettingsConta.tsx
@@ -890,18 +894,18 @@ Black Diamond/
 │   └── vite-env.d.ts           # Tipos globais (Window, Navigator)
 ├── supabase/
 │   ├── seeds/                  # Dados iniciais (depoimentos)
-│   ├── migrations/             # Migrations consolidadas (8 arquivos)
-│   │   ├── 001_schema_rls.sql       # Schema + RLS + storage
-│   │   ├── 002_functions_triggers.sql # Funcoes RPC + triggers + seed + cron
-│   │   ├── 003_features_fixes.sql    # Features (barbers, mensalista) + fixes
-│   │   ├── 004_subscriptions_pix.sql # Assinatura PIX + bloqueio
-│   │   ├── 005_performance_auditoria.sql # Indices + auditoria
-│   │   ├── 006_rls_estricto.sql       # Seguranca: RLS estrito + RPCs seguras
-│   │   ├── 007_barber_scope_rls.sql   # Multi-barbeiro: escopo RLS por barbeiro
-│   │   └── 008_secure_bookings_public_access.sql # Hardening: sem leitura publica de bookings + GRANT is_admin
+│   ├── migrations/             # Migrations consolidadas (7 arquivos)
+│   │   ├── 001_schema_core.sql          # Schema base + RPCs + triggers + seeds + cron
+│   │   ├── 002_multi_barber_pagamentos.sql # Multi-barbeiro + pagamentos
+│   │   ├── 003_auditoria_rls.sql        # Performance + auditoria + RLS estrito
+│   │   ├── 004_escopo_barbeiro_acesso.sql # Escopo RLS por barbeiro + acesso publico seguro
+│   │   ├── 005_conta_cliente_v2.sql     # Conta do cliente v2 + horario por barbeiro
+│   │   ├── 006_agenda_duration_auth.sql # Conflito por duracao + Supabase Auth
+│   │   └── 007_remove_assinaturas_pix.sql # Remocao do sistema de assinaturas/PIX
 │   └── functions/
-│       ├── send-push/          # Edge function de notificacao push
-│       └── sync-google-reviews/ # Edge function de sincronizacao de reviews
+│       ├── send-push/              # Edge function de notificacao push
+│       ├── cliente-recuperar-senha/ # Recuperacao de senha por codigo (cliente)
+│       └── criar-acesso-barbeiro/   # Criacao de acesso para barbeiros
 ├── e2e/                        # Testes E2E (Playwright)
 │   ├── accessibility.spec.ts   # Testes de acessibilidade
 │   ├── admin.spec.ts           # Testes do admin (login, navegacao, rate limiting)
@@ -1059,66 +1063,19 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 
 ---
 
-## 16. Sistema de Assinatura (PIX Simplificado)
+## 16. Sistema de Assinatura (Removido)
 
-### Visao Geral
-O Black Diamond usa um sistema de assinatura simplificado via PIX, sem gateway de pagamento.
-O barbeiro paga R$50/mes para usar o painel administrativo.
-
-### Fluxo Completo
-
-```
-📅 Dia 1-30 (trial) → Barbeiro usa o sistema de graca
-📅 Dia 30/31      → Sistema BLOQUEIA o admin
-                    (site publico continua funcionando)
-💳 Tela bloqueio  → Mostra chave PIX + QR Code
-💰 Barbeiro paga  → R$50 via PIX para chave do dono
-📧 Dono recebe    → Aviso de pagamento (email/WhatsApp)
-🔓 Dono libera    → Configuracoes > Assinaturas > "Confirmar Pgto"
-✅ Sistema ativo  → Liberado ate o proximo dia 30/31
-```
-
-### Como funciona
-
-**Para o barbeiro:**
-- Ao acessar o admin, o `SubscriptionGuard` verifica se a assinatura esta ativa
-- Se vencida, mostra tela de bloqueio com chave PIX, valor e instrucoes
-- A pagina `/admin/assinatura` exibe os dados de pagamento
-
-**Para o dono (voce):**
-- Acesse **Configuracoes > Assinaturas** (so aparece pro seu email)
-- Veja a lista de barbeiros com status:
-  - 🟢 Ativo — ate quando
-  - 🔴 Bloqueado — venceu em quando
-- Clique em **"Confirmar Pgto"** para liberar o barbeiro ate o fim do mes seguinte
-- Configure a chave PIX diretamente na pagina
-
-### Configuracao no Banco
-
-- Tabela `subscriptions` — subscriptions dos barbeiros (status, current_period_end, grace_period_end)
-- Tabela `payment_logs` — Historico de pagamentos
-- Setting `owner_pix_key` — Chave PIX configurada pelo dono
-- RPC `check_subscription_status` — Verifica status da subscription (is_active, is_blocked, dias_restantes)
-- RPC `update_subscription_paid` — Atualiza subscription como paga (estende current_period_end)
-
-### Comandos Uteis
-
-```sql
--- Ver subscription de todos os barbeiros
-SELECT b.name, s.status, s.current_period_end, s.grace_period_end
-FROM barbers b
-LEFT JOIN subscriptions s ON s.barber_id = b.id;
-
--- Ver historico de pagamentos
-SELECT * FROM payment_logs ORDER BY paid_at DESC;
-
--- Liberar manualmente pelo SQL (emergencia)
-UPDATE subscriptions
-SET status = 'active',
-    current_period_start = CURRENT_DATE,
-    current_period_end = (DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month - 1 day')::DATE
-WHERE barber_id = 'UUID_DO_BARBEIRO';
-```
+> **REMOVIDO em 2026-08-15** (migration `007_remove_assinaturas_pix.sql`).
+>
+> O sistema de assinaturas mensais com pagamento PIX (R$50/mes) foi **descontinuado**:
+> as tabelas `subscriptions`, `payment_logs` e `payment_blocked_users` foram dropadas,
+> junto com as funcoes (`check_subscription_status`, `update_subscription_paid`,
+> `check_login_allowed`, `auto_create_subscription`, ...), o trigger, o cron e a setting
+> `owner_pix_key`. Os dados antigos foram preservados em
+> `scripts/backup-assinaturas-pix.json`.
+>
+> O painel administrativo **nao exige mais pagamento** — o acesso e livre para todos
+> os barbeiros cadastrados.
 
 ---
 
@@ -1665,16 +1622,11 @@ O programa de fidelidade permite que clientes acumulem visitas a cada atendiment
 - `src/hooks/useClientPanel.ts` — Hook que busca progresso do cliente
 - `src/hooks/useBookingModals.ts` — Chama incrementVisitAndReward apos completar booking
 
-### Tabela no Banco
-```sql
-CREATE TABLE loyalty_config (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  visit_threshold integer NOT NULL,
-  reward_service_id uuid NOT NULL,
-  enabled boolean DEFAULT false,
-  created_at timestamp with time zone DEFAULT now()
-);
-```
+### Tabelas no Banco
+- `loyalty_milestones` — meta de visitas e servico premio (configurado pelo admin)
+- `client_milestones` — progresso e resgates por cliente
+
+(A tabela antiga `loyalty_config` foi removida na limpeza de 2026-08-15 — o progresso agora vive em `loyalty_milestones` + `client_milestones`.)
 
 ---
 
@@ -1756,55 +1708,51 @@ Permite marcar quando um cliente nao comparece. Apos um numero configuravel de f
 ## 26. Taxa de Ocupacao
 
 ### Visao Geral
-Metrica de quantos percentuais dos horarios disponiveis estao ocupados no dia atual.
+Visao do dia atual com contadores de horarios ocupados, livres e bloqueados.
 
 ### Onde Aparece
-- Dashboard do admin (card com barra de progresso)
-- Abas de filtro (Ocupados / Livres / Bloqueados com contadores)
+- Dashboard do admin (abas de filtro Ocupados / Livres / Bloqueados com contadores)
 
 ### Funcionamento
-- Calcula: ocupados / total de slots x 100
-- Verde (>60%), Neutro (30-60%), Baixo (<30%)
-- Dados em tempo real via realtime subscription
+- Abas calculam a quantidade de slots em cada estado (ocupado / livre / bloqueado)
+- Contadores atualizados em tempo real via realtime subscription
 
 ### Componentes
-- `src/components/Admin/shared/OccupancyRateCard.tsx` — Card com percentual e barra
 - `src/components/Admin/shared/FilterTabs.tsx` — Abas com contadores
-- `src/hooks/useDashboardData.ts` — Calculo de slots
-
-### Limitacoes Atuais
-- Apenas dia atual (sem historico)
-- Sem grafico de tendencia ao longo do tempo
-- Sem analise por horario especifico
+- `src/components/Admin/shared/OccupiedPanel.tsx` — Painel de agendamentos ocupados
+- `src/components/Admin/shared/FreePanel.tsx` — Painel de horarios livres
+- `src/components/Admin/shared/BlockedPanel.tsx` — Painel de horarios bloqueados
+- `src/hooks/useDashboardData.ts` — Dados do dia
 
 ---
 
-## 27. Graficos de Faturamento
+## 27. Painel (Resumo de Faturamento)
 
 ### Visao Geral
-Visualizacao completa do faturamento com 3 modos: diario, semanal e comparativo mensal.
+Pagina "Painel" (AdminReports) com resumo financeiro da semana/mes, comparacao semanal, ganhos por dia e servicos mais populares.
 
 ### Modos de Exibicao
-1. **Diario (mes)** — Grafico de barras com faturamento por dia do mes atual
-2. **Semanal** — Grafico de barras com faturamento das ultimas 8 semanas
-3. **Comparacao Mensal** — Grafico de linha com ultimos 8 meses + indicador de variacao
+1. **Semana** — Ganhos da semana atual, comparacao com a semana anterior e barras por dia
+2. **Mes** — Ganhos do mes atual (lucroMes), cortes e cancelamentos no periodo
 
 ### Cards de Estatisticas
-- **Media Diaria** — Media de faturamento por dia com receita
-- **Melhor Dia** — Dia com maior faturamento no mes
+- **Ganhos Semana/Mes** — Faturamento no periodo selecionado
+- **Total Geral** — Faturamento acumulado (lucroTotal)
+- **Cortes** — Atendimentos concluidos no periodo
+- **Cancelamentos** — Cancelamentos no periodo
+- **Comparacao Semanal** — Variacao percentual vs semana anterior
+- **Ganhos por Dia** — Barras por dia da semana
+- **Servicos Populares** — Top 5 servicos mais pedidos
 
 ### Componentes
-- `src/components/Admin/shared/RevenueChart.tsx` — Grafico principal (recharts)
-- `src/components/Admin/shared/ProfileServicesChart.tsx` — Top 3 servicos mais pedidos
-- `src/components/Admin/shared/ProfileDesktopMetrics.tsx` — Metricas desktop
-- `src/components/Admin/shared/ProfileMobile.tsx` — Metricas mobile
-- `src/hooks/useRevenueChartData.ts` — Calculo dos dados
-- `src/hooks/useProfileStats.ts` — Estatisticas gerais
+- `src/pages/AdminReports.tsx` — Pagina completa (sem dependencia de componentes de grafico externos)
+- `src/hooks/useProfileStats.ts` — Estatisticas gerais (lucros, concluidos, cancelados, topServices)
+- `src/hooks/useWeeklyRevenue.ts` — Receita semanal e variacao vs semana anterior
 
 ### Limitacoes Atuais
 - Sem faturamento por servico (apenas contagem)
 - Sem grafico de pizza/rosca
-- Sem analise por dia da semana
+- Sem analise por dia da semana historico
 - Sem comparacao entre periodos customizados
 
 ---

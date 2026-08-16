@@ -31,7 +31,10 @@ dist-ssr
 .env.bak*
 .env.backup*
 scripts/backup-pre-limpieza.json
+scripts/backup-tabelas-mortas.json
+scripts/backup-assinaturas-pix.json
 .env.local
+.env.e2e
 .env.*.local
 .env.development.local
 .env.test.local

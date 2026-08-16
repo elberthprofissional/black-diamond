@@ -24,8 +24,6 @@ const TITLES: Record<string, string> = {
   '/cancelar': 'Cancelar ou Reagendar | Black Diamond',
   '/cliente': 'Meus Agendamentos | Black Diamond',
   '/admin/notificacoes': 'Notificações | Black Diamond',
-
-  '/admin/assinatura': 'Assinatura | Black Diamond',
 };
 
 function TitleManager() {
@@ -78,7 +76,6 @@ const CancelPage = lazy(() => import('./pages/CancelPage'));
 
 const ClientProfile = lazy(() => import('./components/ClientProfile'));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
-const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage'));
 
 // Route preloader - preloads route chunks on hover/focus for instant navigation
 // Usa cache de promessas pra evitar duplicacao de import() — previne ChunkLoadError
@@ -100,7 +97,6 @@ function preloadRoute(path: string) {
     '/cancelar': () => import('./pages/CancelPage'),
     '/cliente': () => import('./components/ClientProfile'),
     '/admin/notificacoes': () => import('./pages/NotificationsPage'),
-    '/admin/assinatura': () => import('./pages/SubscriptionPage'),
   };
 
   const preloader = preloaders[path];
@@ -326,22 +322,6 @@ function App() {
                         <AdminReports />
                       </AdminPage>
                     }
-                  />
-
-                  {/* Subscription management page */}
-                  <Route
-                    path="/admin/assinatura"
-                    element={
-                      <AdminPage>
-                        <SubscriptionPage />
-                      </AdminPage>
-                    }
-                  />
-
-                  {/* Redirect old /admin/assinaturas to profile settings */}
-                  <Route
-                    path="/admin/assinaturas"
-                    element={<Navigate to="/admin/profile" replace />}
                   />
 
                   {/* Public client routes - blocked in PWA standalone mode */}

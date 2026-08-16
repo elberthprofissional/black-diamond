@@ -14,8 +14,8 @@ function daysSince(dateStr: string): number {
   return Math.floor((now.getTime() - d.getTime()) / 86400000);
 }
 
-export const clientsQueryKey = ['clients'] as const;
-export const mensalistaPlansQueryKey = ['mensalistaPlans'] as const;
+const clientsQueryKey = ['clients'] as const;
+const mensalistaPlansQueryKey = ['mensalistaPlans'] as const;
 
 function enrichClients(clientsData: Client[]): ClientWithStats[] {
   return (clientsData || [])

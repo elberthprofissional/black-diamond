@@ -36,6 +36,9 @@ const BookingPageContent: FC = memo(() => {
   /** Com 2+ barbeiros ativos (e fora do modo solo), insere a etapa de escolha. */
   const showBarberStep = ctx.showBarberStep;
   const lastStep = ctx.totalSteps;
+  // Estrutura de passos (solo/multi) só é final depois que barbeiros e settings
+  // carregam — renderiza skeleton até lá (mesmo padrão do servicesLoading).
+  const isLoading = ctx.loading || ctx.servicesLoading;
 
   const renderStepContent = (stepIndex: number) => {
     switch (stepIndex) {
@@ -187,7 +190,7 @@ const BookingPageContent: FC = memo(() => {
 
           <div className="flex-1 overflow-y-auto px-6 lg:px-10 xl:px-14 pt-8 lg:pt-10 pb-6 flex flex-col">
             <AnimatePresence mode="popLayout">
-              {ctx.servicesLoading && (
+              {isLoading && (
                 <motion.div
                   key="skeleton-desktop"
                   initial={{ opacity: 0 }}
@@ -199,7 +202,7 @@ const BookingPageContent: FC = memo(() => {
                 </motion.div>
               )}
 
-              {!ctx.servicesLoading && ctx.step <= lastStep && (
+              {!isLoading && ctx.step <= lastStep && (
                 <motion.div key={`d${ctx.step}`} {...stepAnimation} className="flex-1">
                   {renderStepContent(ctx.step)}
                 </motion.div>
@@ -278,13 +281,13 @@ const BookingPageContent: FC = memo(() => {
       />
 
       <div className="flex-1 px-4 pt-4 pb-8 flex flex-col justify-start">
-        {ctx.servicesLoading && (
+        {isLoading && (
           <div className="w-full">
             <SkeletonBooking layout="mobile" submitting={ctx.isSubmitting} />
           </div>
         )}
 
-        {!ctx.servicesLoading && (
+        {!isLoading && (
           <AnimatePresence mode="popLayout">
             {ctx.step <= lastStep && (
               <motion.div

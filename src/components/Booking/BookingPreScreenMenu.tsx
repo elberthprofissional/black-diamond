@@ -147,9 +147,7 @@ const BookingPreScreenMenu: FC = memo(() => {
                 <span className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/25 flex items-center justify-center shrink-0">
                   <Scissors size={14} className="text-gold-bright" />
                 </span>
-                <span className="text-sm font-medium">
-                  Corte na régua, barba na régua, papo reto
-                </span>
+                <span className="text-sm font-medium">Seu estilo, no nível que ele merece</span>
               </div>
               <div className="flex items-center gap-3 text-zinc-400">
                 <span className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/25 flex items-center justify-center shrink-0">

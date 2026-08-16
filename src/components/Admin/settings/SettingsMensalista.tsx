@@ -404,7 +404,7 @@ const SettingsMensalista: FC = () => {
                           return (
                             <span
                               key={day}
-                              className={`text-[8px] font-bold px-1.5 py-0.5 rounded transition-all ${
+                              className={`text-[10px] font-bold px-1.5 py-0.5 rounded transition-all ${
                                 active
                                   ? 'bg-gold/10 text-gold border border-gold/15'
                                   : 'bg-white/[0.02] text-zinc-700 border border-white/[0.03]'

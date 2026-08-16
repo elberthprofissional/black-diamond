@@ -48,7 +48,7 @@ async function main() {
   // ===================================================================
   // 1. SCHEMA — MIGRATION 001
   // ===================================================================
-  divider('MIGRAÇÃO 001 — SCHEMA + RLS');
+  divider('MIGRAÇÃO 001 (001_schema_core.sql) — SCHEMA + RLS');
 
   // Tabelas principais
   const schemaTables = [
@@ -106,7 +106,7 @@ async function main() {
   // ===================================================================
   // 2. FUNCTIONS — MIGRATION 002
   // ===================================================================
-  divider('MIGRAÇÃO 002 — FUNÇÕES + TRIGGERS');
+  divider('MIGRAÇÃO 001 (001_schema_core.sql) — FUNÇÕES + TRIGGERS');
 
   const rpcsToCheck = [
     'criar_agendamento',
@@ -150,79 +150,15 @@ async function main() {
   }
 
   // ===================================================================
-  // 3. SUBSCRIPTIONS + PIX — MIGRAÇÃO 006 (consolidada)
+  // 3. (REMOVER) ASSINATURAS/PIX — removidas pela migration 007
+  //    Tabelas subscriptions/payment_logs/payment_blocked_users e funções
+  //    de assinatura foram dropadas em 2026-08-15. Não checar mais.
   // ===================================================================
-  divider('MIGRAÇÃO 006 — ASSINATURAS + PIX + BLOQUEIO');
-
-  // Tabelas
-  const subTables = [
-    { table: 'subscriptions', columns: 'id, barber_id, status, current_period_start, current_period_end, grace_period_end, asaas_customer_id, asaas_payment_id, auto_renew' },
-    { table: 'payment_logs', columns: 'id, subscription_id, barber_id, asaas_payment_id, amount, status, payment_method, pix_qr_code, pix_payload, payment_link, paid_at, due_date' },
-    { table: 'payment_blocked_users', columns: 'email, blocked_at, reason' },
-  ];
-
-  for (const { table, columns } of subTables) {
-    try {
-      const colArr = columns.split(', ');
-      const { error } = await supabase
-        .from(table)
-        .select(colArr.join(','))
-        .limit(1);
-      if (error) {
-        if (error.code === '42P01') fail(table, 'Tabela NÃO existe!');
-        else if (error.message?.includes('permission')) ok(table, 'Existe (sem permissão de leitura)');
-        else fail(table, `Erro: ${error.message}`);
-      } else {
-        ok(table, `${colArr.length} colunas OK`);
-      }
-    } catch (e) {
-      if (e.message?.includes('relation') && e.message?.includes('does not exist')) {
-        fail(table, 'Tabela NÃO existe!');
-      } else {
-        warn(table, `Erro: ${e.message.slice(0, 80)}`);
-      }
-    }
-  }
-
-  // Functions da 006
-  const subRpcs = [
-    { name: 'update_subscription_paid', params: { p_barber_id: '00000000-0000-0000-0000-000000000000' } },
-    { name: 'check_subscription_status', params: { p_barber_id: '00000000-0000-0000-0000-000000000000' } },
-    { name: 'get_payment_history', params: { p_barber_id: '00000000-0000-0000-0000-000000000000' } },
-    { name: 'check_login_allowed', params: { p_email: 'teste@teste.com' } },
-  ];
-
-  for (const { name, params } of subRpcs) {
-    try {
-      const { error } = await supabase.rpc(name, params);
-      if (error && error.message?.includes('function') && error.message?.includes('not found')) {
-        fail(name, 'Função NÃO existe');
-      } else {
-        ok(name, 'Existe');
-      }
-    } catch (e) {
-      warn(name, `Erro: ${e.message.slice(0, 80)}`);
-    }
-  }
-
-  // Settings da 006 — PIX key
-  try {
-    const { data, error } = await supabase
-      .from('settings')
-      .select('value')
-      .eq('key', 'owner_pix_key')
-      .maybeSingle();
-    if (error) warn('settings.owner_pix_key', error.message);
-    else if (data) ok('settings.owner_pix_key', data.value);
-    else warn('settings.owner_pix_key', 'Não configurado');
-  } catch (e) {
-    warn('settings.owner_pix_key', e.message);
-  }
 
   // ===================================================================
-  // 4. FIX AGENDAMENTO — MIGRAÇÃO 007 (consolidada)
+  // 4. FIX AGENDAMENTO (consolidado em 004/005)
   // ===================================================================
-  divider('MIGRAÇÃO 007 — FIX AGENDAMENTO + WRAPPER');
+  divider('FIX AGENDAMENTO + WRAPPER (consolidado em 004/005)');
 
   // Verifica se o wrapper existe (assinatura com UUID primeiro)
   try {
@@ -253,7 +189,7 @@ async function main() {
   // ===================================================================
   // 5. BARBEIROS — TABELA EXTRA (não estava no audit original)
   // ===================================================================
-  divider('TABELA BARBEIROS');
+  divider('MIGRAÇÃO 002 (002_multi_barber_pagamentos.sql) — TABELA BARBEIROS');
 
   try {
     const { data, error } = await supabase

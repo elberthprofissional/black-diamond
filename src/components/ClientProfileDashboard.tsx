@@ -50,21 +50,21 @@ const StatsGrid: FC<{ stats: ClientStats; totalFutureSpent: number }> = memo(
       <div className="bg-white/[0.03] rounded-xl p-3 text-center border border-white/[0.04]">
         <CalendarCheck size={14} className="text-gold mx-auto mb-1" />
         <p className="text-[16px] font-bold text-white">{stats.total_visits}</p>
-        <p className="text-[8px] text-zinc-600 uppercase tracking-wider">Visitas</p>
+        <p className="text-[10px] text-zinc-600 uppercase tracking-wider">Visitas</p>
       </div>
       <div className="bg-white/[0.03] rounded-xl p-3 text-center border border-white/[0.04]">
         <TrendingUp size={14} className="text-gold mx-auto mb-1" />
         <p className="text-[16px] font-bold text-white">
           {formatPrice(stats.total_spent, { locale: true })}
         </p>
-        <p className="text-[8px] text-zinc-600 uppercase tracking-wider">Gasto Total</p>
+        <p className="text-[10px] text-zinc-600 uppercase tracking-wider">Gasto Total</p>
       </div>
       <div className="bg-white/[0.03] rounded-xl p-3 text-center border border-white/[0.04]">
         <CreditCard size={14} className="text-gold mx-auto mb-1" />
         <p className="text-[16px] font-bold text-white">
           {formatPrice(totalFutureSpent, { locale: true })}
         </p>
-        <p className="text-[8px] text-zinc-600 uppercase tracking-wider">Pendente</p>
+        <p className="text-[10px] text-zinc-600 uppercase tracking-wider">Pendente</p>
       </div>
     </div>
   )
@@ -95,7 +95,7 @@ const MensalistaSection: FC<{ info: MensalistaInfo }> = memo(({ info }) => (
     </div>
     {info.services.length > 0 && (
       <div className="space-y-1.5 ml-11">
-        <p className="text-[9px] text-zinc-600 uppercase tracking-wider">Serviços inclusos</p>
+        <p className="text-[10px] text-zinc-600 uppercase tracking-wider">Serviços inclusos</p>
         <div className="flex flex-wrap gap-1.5">
           {info.services.map((svc, i) => (
             <span
@@ -109,7 +109,7 @@ const MensalistaSection: FC<{ info: MensalistaInfo }> = memo(({ info }) => (
       </div>
     )}
     {info.expiresAt && (
-      <p className="text-[9px] text-zinc-600 ml-11 mt-2">
+      <p className="text-[10px] text-zinc-600 ml-11 mt-2">
         Válido até <span className="text-zinc-400">{formatDateBR(info.expiresAt)}</span>
       </p>
     )}
@@ -260,7 +260,7 @@ const HistoryItem: FC<{ booking: BookingEntry }> = memo(({ booking }) => (
         {formatPrice(booking.total_price, { locale: true })}
       </span>
       <span
-        className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider ${booking.status === 'completed' ? 'bg-gold/10 text-gold' : 'bg-red-500/10 text-red-400'}`}
+        className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${booking.status === 'completed' ? 'bg-gold/10 text-gold' : 'bg-red-500/10 text-red-400'}`}
       >
         {booking.status === 'completed' ? 'Concluído' : 'Cancelado'}
       </span>

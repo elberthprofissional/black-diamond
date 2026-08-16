@@ -92,7 +92,7 @@ const Hero: FC = () => {
 
             {/* Headline */}
             <div className="w-full">
-              <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-[5.2rem] font-bold leading-[0.95] tracking-tight uppercase font-sans">
+              <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-[5.2rem] font-bold leading-[1.1] tracking-tight uppercase font-sans">
                 <span>{firstName}</span> <br />
                 <span className="font-serif italic font-normal text-white lowercase tracking-normal">
                   {restName || 'barbeiro'}
@@ -102,8 +102,7 @@ const Hero: FC = () => {
 
             {/* Tagline / Subtitle */}
             <p className="text-zinc-400 font-sans text-xs sm:text-base md:text-lg max-w-md font-light leading-relaxed">
-              Corte na régua. Barba na régua. Papo reto. Esquece fila — agenda, vem, senta e sai
-              renovado.
+              Seu estilo, no nível que ele merece.
             </p>
 
             {/* Status badge - Aberto/Fechado */}

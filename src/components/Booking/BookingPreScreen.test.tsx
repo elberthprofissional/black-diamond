@@ -150,7 +150,7 @@ describe('BookingPreScreen', () => {
 
     renderPage();
 
-    expect(screen.getByText(/Corte na régua/)).toBeInTheDocument();
+    expect(screen.getByText(/Seu estilo/)).toBeInTheDocument();
     expect(screen.getByText(/Seg–Sáb · 08h às 18h/)).toBeInTheDocument();
     expect(screen.getByText('Agendar agora')).toBeInTheDocument();
   });

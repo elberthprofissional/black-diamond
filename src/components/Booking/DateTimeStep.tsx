@@ -133,7 +133,7 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
         onMouseMove={onMouseMove}
         role="radiogroup"
         aria-label="Selecione uma data"
-        className="flex overflow-x-auto gap-2.5 pb-2 scrollbar-hide -mx-5 px-5 snap-x shrink-0 cursor-grab active:cursor-grabbing select-none"
+        className="flex overflow-x-auto gap-2.5 pb-2 scrollbar-hide -mx-4 px-4 snap-x shrink-0 cursor-grab active:cursor-grabbing select-none"
       >
         {nextDays.map((day) => {
           const isSelected = selectedDate === day.fullDate;
@@ -157,7 +157,7 @@ const DateTimeStep: FC<DateTimeStepProps> = ({
               }`}
             >
               <span
-                className={`text-[9px] font-bold uppercase tracking-widest ${
+                className={`text-[10px] font-bold uppercase tracking-widest ${
                   isSelected ? 'text-black/60' : day.isToday ? 'text-[#D4AF37]' : 'text-zinc-500'
                 }`}
               >

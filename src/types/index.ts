@@ -156,12 +156,6 @@ export interface Barber {
   barber_hours?: Record<string, unknown> | null;
 }
 
-export interface BarberSettings {
-  barber_id: string;
-  key: string;
-  value: string;
-}
-
 export interface WhatsAppTemplate {
   id: string;
   key: string;

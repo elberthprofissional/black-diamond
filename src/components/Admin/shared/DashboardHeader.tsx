@@ -18,7 +18,7 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({ nextBooking, dailyRevenue, 
           className="flex-1 min-w-0 bg-[#111] border border-white/[0.06] py-3 px-3 sm:py-5 sm:px-6 rounded-xl sm:rounded-2xl flex items-center gap-3 sm:gap-4 group hover:border-[#D4AF37]/20 transition-all duration-200 cursor-pointer"
         >
           <div className="flex flex-col items-start min-w-0 flex-1">
-            <span className="text-[9px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+            <span className="text-[10px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
               Proximo Cliente
             </span>
             {nextBooking ? (
@@ -39,7 +39,7 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({ nextBooking, dailyRevenue, 
           <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-zinc-700 group-hover:text-[#D4AF37] transition-colors shrink-0" />
         </button>
         <div className="shrink-0 sm:flex-1 bg-[#111] border border-white/[0.06] py-3 px-3 sm:py-5 sm:px-6 rounded-xl sm:rounded-2xl flex flex-col justify-center min-w-0">
-          <span className="text-[9px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] whitespace-nowrap">
+          <span className="text-[10px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] whitespace-nowrap">
             Lucro do Dia
           </span>
           {dailyRevenue > 0 ? (

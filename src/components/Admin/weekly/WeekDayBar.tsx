@@ -31,12 +31,12 @@ const WeekDayBar: FC<WeekDayBarProps> = ({ days, onSelect }) => (
         }`}
       >
         {day.isPast && (
-          <span className="absolute top-1.5 right-2 text-[8px] text-zinc-800 font-black uppercase tracking-widest">
+          <span className="absolute top-1.5 right-2 text-[9px] sm:text-[8px] text-zinc-800 font-black uppercase tracking-widest">
             FIM
           </span>
         )}
         <span
-          className={`text-[9px] font-black uppercase tracking-[0.15em] ${day.isSelected ? 'text-black/50' : day.isPast ? 'text-zinc-800' : 'opacity-40'}`}
+          className={`text-[10px] sm:text-[9px] font-black uppercase tracking-[0.12em] ${day.isSelected ? 'text-black/50' : day.isPast ? 'text-zinc-800' : 'opacity-40'}`}
         >
           {day.date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace(/\./g, '')}
         </span>

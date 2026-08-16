@@ -177,6 +177,10 @@ test.describe('Acessibilidade - Gerenciar/Cancelar Agendamento', () => {
 });
 
 test.describe('Acessibilidade - Navegação por Teclado', () => {
+  // Storage limpo: sem sessão admin ativa, /admin/login fica estável (com
+  // sessão o app redireciona para /admin e o modal some no meio do clique).
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test('tab navigation funciona na home page', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');

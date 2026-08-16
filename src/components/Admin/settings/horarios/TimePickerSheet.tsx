@@ -18,7 +18,7 @@ const TimePickerSheet: FC<{
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="bg-white/[0.04] border border-white/[0.06] rounded-xl px-5 py-3 text-[16px] text-white font-semibold cursor-pointer active:scale-95 transition-all min-w-[80px]"
+        className="bg-white/[0.04] border border-white/[0.06] rounded-xl px-2 sm:px-5 py-3 text-[16px] text-white font-semibold cursor-pointer active:scale-95 transition-all min-w-[58px] sm:min-w-[80px]"
       >
         {value}
       </button>

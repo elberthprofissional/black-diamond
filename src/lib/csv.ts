@@ -27,20 +27,6 @@ export function generateCsv<T>(data: T[], columns: CsvColumn<T>[], separator = '
   return [header, ...rows].join('\r\n');
 }
 
-/** Faz download de um blob CSV no navegador. */
-export function downloadCsv(content: string, filename: string): void {
-  const BOM = '\uFEFF'; // UTF-8 BOM para Excel abrir acentos corretamente
-  const blob = new Blob([BOM + content], { type: 'text/csv;charset=utf-8;separator=;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
-
 /** Formata período para nome de arquivo (ex: 20260101-20260731). */
 export function formatDateRange(start: Date, end: Date): string {
   const fmt = (d: Date) => {

@@ -504,30 +504,6 @@ describe('UniversalLogin — Porta Única v3.36', () => {
     expect(screen.queryByTestId('input-universal')).not.toBeInTheDocument();
   });
 
-  it('voltar do modo admin limpa o campo e retorna ao modo cliente', async () => {
-    mockResolverLoginProfissional.mockResolvedValue({
-      type: 'profissional',
-      email: 'tato@test.com',
-      name: 'Tato',
-      phone: '4399553590',
-    });
-    renderUniversal();
-
-    // E-mail → modo admin
-    fireEvent.change(screen.getByTestId('input-universal'), {
-      target: { value: 'tato@test.com' },
-    });
-    fireEvent.click(screen.getByTestId('btn-continuar'));
-    await waitFor(() => {
-      expect(screen.getByTestId('input-password')).toBeInTheDocument();
-    });
-
-    // "Não é admin?" → volta ao modo cliente com campo limpo
-    fireEvent.click(screen.getByText(/não é admin/i));
-    expect(screen.getByTestId('input-universal')).toBeInTheDocument();
-    expect((screen.getByTestId('input-universal') as HTMLInputElement).value).toBe('');
-  });
-
   it('link "Agendar sem login" leva para /agendar', async () => {
     renderUniversal();
 

@@ -21,7 +21,7 @@ describe('Hero', () => {
 
   it('renderiza a descricao', () => {
     renderWithRouter(<Hero />);
-    expect(screen.getByText(/Corte na régua/)).toBeInTheDocument();
+    expect(screen.getByText(/Seu estilo/)).toBeInTheDocument();
   });
 
   it('renderiza a imagem de fundo', () => {

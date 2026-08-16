@@ -1,7 +1,7 @@
 # DEPRECATION NOTICE — universal.sql
 
 > **Status:** REMOVIDO (v3.24.0)
-> **Substituto:** `supabase/migrations/` (001-006)
+> **Substituto:** `supabase/migrations/` (7 arquivos consolidados)
 
 ## O que aconteceu
 
@@ -22,12 +22,17 @@ done
 
 | Arquivo | Conteudo |
 |---------|----------|
-| `001_schema.sql` | 20+ tabelas + indexes + constraints + RLS enable |
-| `002_rls.sql` | Todas as politicas RLS + is_admin() + storage |
-| `003_functions.sql` | 30+ funcoes RPC (versoes finais) |
-| `004_triggers.sql` | Triggers de notificacao + realtime |
-| `005_seed_cron.sql` | Dados iniciais + cron jobs |
-| `006_multi_barber.sql` | Multi-barber + cleanup mensalista |
+| `001_schema_core.sql` | Schema base + RPCs + triggers + cron |
+| `002_multi_barber_pagamentos.sql` | Multi-barbeiro + assinaturas/PIX |
+| `003_auditoria_rls.sql` | Performance/auditoria + RLS estrito |
+| `004_escopo_barbeiro_acesso.sql` | Escopo por barbeiro + acesso público seguro |
+| `005_conta_cliente_v2.sql` | Conta do cliente v2 (login, recuperação, e-mail, horários) |
+| `006_agenda_duration_auth.sql` | Conflito por duração + Supabase Auth |
+| `007_remove_assinaturas_pix.sql` | Remoção do sistema de assinaturas/PIX (2026-08-15) |
+
+> Consolidado em 7 arquivos (2026-08-15) a partir das 15 migrations originais — veja `supabase/migrations/README.md` para o mapeamento.
+
+> Consulte `supabase/migrations/README.md` para o detalhamento das faixas.
 
 ## Seeds
 
@@ -35,4 +40,4 @@ Dados iniciais (depoimentos, etc) ficam em `supabase/seeds/`.
 
 ## Para projetos antigos
 
-Se você ainda tem `universal.sql` no seu projeto, pode deletá-lo com segurança. As migrations 001-006 cobrem todo o schema necessário.
+Se você ainda tem `universal.sql` no seu projeto, pode deletá-lo com segurança. As migrations em `supabase/migrations/` cobrem todo o schema necessário.

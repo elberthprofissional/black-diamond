@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import BookingSearchModal from './BookingSearchModal';
-import type { Client } from '../../types';
+import type { Client } from '../../../types';
 
 const mockClients: Client[] = [
   { id: '1', name: 'João Silva', phone: '31999999999', created_at: '2024-01-01' },

@@ -108,7 +108,6 @@
 | **💬 Lembretes WhatsApp** | Envio de lembretes com templates personalizáveis |
 | **📋 Audit Logs** | Registro de todas as ações administrativas |
 | **👤 Login Opcional do Cliente** | Dashboard com historico, stats e cancelamento — telefone direto + link magico de gerenciamento |
-| **🔒 Assinatura Simplificada (PIX)** | R$50/mes via PIX manual (sem integracao com gateway) |
 | **🔗 Compartilhar Link** | Botao no Hero que copia o link da barbearia para divulgar |
 
 ---
@@ -131,7 +130,8 @@ cp .env.example .env
 # Edite .env com suas credenciais do Supabase
 
 # 3. Rodar migrations do banco
-npx supabase db push
+# Abra o SQL Editor do Supabase e cole o conteudo de supabase/_RODAR_NO_SQL_EDITOR.sql
+# (ou execute cada arquivo de supabase/migrations/ em ordem — veja supabase/migrations/README.md)
 
 # 4. Iniciar em desenvolvimento
 npm run dev
@@ -230,15 +230,14 @@ Decisões de arquitetura documentadas em [`docs/adr/`](docs/adr/):
 | Mecanismo | Descrição |
 |-----------|-----------|
 | **Rate Limiting** | 3 agendamentos/min, 10 buscas/min, 5 consultas de telefone/min |
-| **Row Level Security (RLS)** | Proteção em todas as 19 tabelas do banco |
+| **Row Level Security (RLS)** | Proteção em todas as 20 tabelas do banco |
 | **Preço Server-Side** | Calculado na function SQL, impossível manipular pelo client |
 | **Token Único** | Gerenciamento de agendamento via token de 30 dias |
 | **Audit Logs** | Estrutura preservada mas escrita desativada (v3.31.0) — ações críticas continuam em tabelas dedicadas |
 | **Cron Jobs** | Auto-complete de agendamentos, cleanup, relatório semanal |
 | **Content Security Policy** | Headers restritivos no Vercel |
 | **Auth Admin** | Login com email/senha via Supabase Auth; AuthGuard valida `is_admin` antes de liberar as telas |
-| **Bloqueio por Pagamento** | `check_login_allowed` RPC valida se email está em `payment_blocked_users` |
-| **Sem leitura pública de bookings** | A chave anon não lê a tabela `bookings` (migration `008`); consultas públicas passam por RPCs `SECURITY DEFINER` com rate limit |
+| **Sem leitura pública de bookings** | A chave anon não lê a tabela `bookings` (migration `004_escopo_barbeiro_acesso.sql`); consultas públicas passam por RPCs `SECURITY DEFINER` com rate limit |
 
 ---
 
@@ -301,6 +300,7 @@ O deploy é feito na **Vercel** com integração contínua via GitHub Actions.
 | `VITE_VAPID_PUBLIC_KEY` | Chave pública VAPID para notificações push | `BLxxx...` |
 | `VITE_GA_ID` | Google Analytics ID | `G-XXXXXXXXXX` |
 | `VITE_SENTRY_DSN` | DSN do Sentry para monitoramento de erros | `https://xxx@xxx.ingest.sentry.io/xxx` |
+| `SUPABASE_PUBLISHABLE_KEY` | Chave publishable do Supabase (usada apenas por scripts de auditoria em `scripts/`) | `sb_publishable_...` |
 
 ### Supabase Edge Functions (secrets)
 
@@ -309,8 +309,6 @@ O deploy é feito na **Vercel** com integração contínua via GitHub Actions.
 | `VAPID_PRIVATE_KEY` | Chave privada VAPID para push notifications |
 | `VAPID_PUBLIC_KEY` | Chave pública VAPID (mesma do VITE) |
 | `VAPID_SUBJECT` | Email de contato para VAPID |
-| `GOOGLE_PLACES_API_KEY` | API Key do Google Places para sincronizar reviews |
-| `GOOGLE_PLACE_ID` | ID do lugar no Google Places |
 
 ### Arquivo .env.example
 

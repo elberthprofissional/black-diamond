@@ -137,12 +137,12 @@ const BookingPreScreen: FC = () => {
       {/* Modern Glass Footer */}
       <footer className="relative z-20 border-t border-white/5 bg-black/40 backdrop-blur-md py-3 px-6">
         <div className="flex items-center justify-between max-w-lg mx-auto">
-          <p className="text-[9px] text-zinc-500 tracking-[0.25em] uppercase font-bold">
+          <p className="text-[10px] text-zinc-500 tracking-[0.25em] uppercase font-bold">
             Black Diamond Barbearia
           </p>
           <button
             onClick={() => navigate('/admin')}
-            className="group flex items-center gap-1.5 text-[9px] text-zinc-500 hover:text-gold transition-colors duration-300 uppercase tracking-[0.2em] font-semibold cursor-pointer"
+            className="group flex items-center gap-1.5 text-[10px] text-zinc-500 hover:text-gold transition-colors duration-300 uppercase tracking-[0.2em] font-semibold cursor-pointer"
           >
             <Lock
               size={10}

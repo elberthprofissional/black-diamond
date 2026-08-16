@@ -1,6 +1,6 @@
 import { memo, useState, useCallback, useEffect, useRef, type FC } from 'react';
 import { useNavigate } from 'react-router';
-import { User, Repeat, Tag, LogIn, UserPlus, CheckCircle2 } from 'lucide-react';
+import { User, Repeat, Tag, CheckCircle2 } from 'lucide-react';
 import { formatPricePublic } from '../../lib/utils';
 import { getClientSession } from '../../lib/clientSession';
 import { WhatsAppIcon } from '../WhatsAppIcon';
@@ -127,40 +127,7 @@ const DataStep: FC<DataStepProps> = memo(
         );
       }
 
-      return (
-        <div className="bg-zinc-900/80 border border-white/10 rounded-xl p-4 space-y-3 text-left">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0 mt-0.5">
-              <User size={16} className="text-gold" />
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[13px] font-semibold text-white">Já possui uma conta?</p>
-              <p className="text-[11px] text-zinc-400 leading-relaxed">
-                Entre para agendar mais rápido, acompanhar seus horários e não precisar digitar seus
-                dados novamente.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 pt-1">
-            <button
-              type="button"
-              onClick={() => navigate('/entrar')}
-              className="flex-1 sm:flex-none px-3.5 py-1.5 bg-gold hover:bg-gold/90 text-black text-[12px] font-bold rounded-lg transition-all cursor-pointer text-center flex items-center justify-center gap-1.5"
-            >
-              <LogIn size={13} />
-              Entrar
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/entrar?mode=create')}
-              className="flex-1 sm:flex-none px-3.5 py-1.5 bg-white/10 hover:bg-white/15 text-white text-[12px] font-semibold rounded-lg transition-all cursor-pointer text-center flex items-center justify-center gap-1.5"
-            >
-              <UserPlus size={13} />
-              Criar conta
-            </button>
-          </div>
-        </div>
-      );
+      return null;
     };
 
     if (layout === 'desktop') {
@@ -317,7 +284,7 @@ const DataStep: FC<DataStepProps> = memo(
         {/* Banner */}
         <div className="relative h-28 rounded-2xl overflow-hidden border border-white/[0.04] bg-[#0E0E0E] flex items-center px-5">
           <img
-            src="/assets/login.webp"
+            src="/assets/cadastrar-logar.webp"
             alt=""
             loading="lazy"
             decoding="async"

@@ -5,7 +5,7 @@ import type { Service } from '../types';
 import { logError } from '../lib/logger';
 import { STORAGE_SERVICES_CACHE } from '../lib/constants';
 
-export const servicesQueryKey = ['services'] as const;
+const servicesQueryKey = ['services'] as const;
 
 // Cache offline no localStorage (fallback para quando não há conexão)
 function loadCache(): Service[] | null {

@@ -1,9 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
-import { existsSync } from 'fs';
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
 const AUTH_FILE = 'e2e/.auth/admin.json';
-const hasAuth = existsSync(AUTH_FILE);
 
 export default defineConfig({
   testDir: './e2e',
@@ -24,6 +22,12 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
+  // Todos os projetos de browser dependem do auth-setup: assim o storageState
+  // é SEMPRE gerado antes de qualquer teste rodar (e o arquivo é sempre
+  // materializado pelo setup, mesmo quando ele é pulado em localhost — ver
+  // e2e/auth.setup.ts). Antes, `hasAuth` era calculado no load da config e, em
+  // checkout fresco (e2e/.auth é gitignored), os testes de sessão rodavam sem
+  // a sessão e falhavam no primeiro run.
   projects: [
     {
       name: 'auth-setup',
@@ -34,36 +38,41 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        ...(hasAuth ? { storageState: AUTH_FILE } : {}),
+        storageState: AUTH_FILE,
       },
+      dependencies: ['auth-setup'],
     },
     {
       name: 'firefox',
       use: {
         ...devices['Desktop Firefox'],
-        ...(hasAuth ? { storageState: AUTH_FILE } : {}),
+        storageState: AUTH_FILE,
       },
+      dependencies: ['auth-setup'],
     },
     {
       name: 'webkit',
       use: {
         ...devices['Desktop Safari'],
-        ...(hasAuth ? { storageState: AUTH_FILE } : {}),
+        storageState: AUTH_FILE,
       },
+      dependencies: ['auth-setup'],
     },
     {
       name: 'mobile-chrome',
       use: {
         ...devices['Pixel 5'],
-        ...(hasAuth ? { storageState: AUTH_FILE } : {}),
+        storageState: AUTH_FILE,
       },
+      dependencies: ['auth-setup'],
     },
     {
       name: 'mobile-safari',
       use: {
         ...devices['iPhone 13'],
-        ...(hasAuth ? { storageState: AUTH_FILE } : {}),
+        storageState: AUTH_FILE,
       },
+      dependencies: ['auth-setup'],
     },
   ],
   webServer: {

@@ -120,7 +120,7 @@ const SuccessStep: FC<SuccessStepProps> = ({
         {['Histórico de cortes', 'Fidelidade com prêmios', 'Plano mensal'].map((benefit) => (
           <span
             key={benefit}
-            className="text-[9px] uppercase tracking-wider text-zinc-400 bg-white/[0.04] border border-white/[0.06] rounded-md px-2 py-1"
+            className="text-[10px] uppercase tracking-wider text-zinc-400 bg-white/[0.04] border border-white/[0.06] rounded-md px-2 py-1"
           >
             {benefit}
           </span>

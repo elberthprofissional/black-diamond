@@ -12,6 +12,9 @@ test.describe('Fluxo de Agendamento', () => {
   // Os 2 testes criam bookings reais na mesma data; rodam em série para não
   // disputarem o mesmo horário. O 2º usa o segundo slot disponível.
   test.describe.configure({ mode: 'serial' });
+  // Fluxo completo contra produção (fetch de slots + confirmação) pode
+  // estourar o timeout padrão de 30s em rede lenta — dá folga.
+  test.setTimeout(90_000);
 
   test('usuário consegue agendar do início ao fim', async ({ page }) => {
     test.skip(isLocal, 'Booking requires live Supabase connection');

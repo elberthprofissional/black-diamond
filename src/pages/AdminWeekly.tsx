@@ -279,11 +279,11 @@ const AdminWeekly: FC = () => {
         <OfflineBanner isCached={isCached} onRetry={loadData} />
 
         {/* Titulo + data na mesma linha */}
-        <div className="flex items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+        <div className="flex items-end sm:items-center justify-between gap-3 pb-4 border-b border-white/[0.06]">
           <h1 className="text-lg lg:text-2xl font-bold tracking-tight text-white uppercase shrink-0">
             Agenda da Semana
           </h1>
-          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] capitalize shrink-0">
+          <p className="text-[10px] sm:text-[11px] text-zinc-500 font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] capitalize text-right leading-snug sm:shrink-0 flex-1 sm:flex-none min-w-0">
             {dayLabel}
           </p>
         </div>

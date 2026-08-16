@@ -22,8 +22,7 @@ const Footer: FC = () => {
               {displayName}
             </p>
             <p className="text-[13px] text-zinc-500 leading-relaxed max-w-xs font-light">
-              Corte na régua. Barba na régua. Papo reto. Esquece fila — agenda, vem, senta e sai
-              renovado.
+              Seu estilo, no nível que ele merece.
             </p>
             {/* Quick nav links */}
             <nav

@@ -5,6 +5,40 @@ Todas as mudancas notaveis neste projeto serao documentadas neste arquivo.
 O formato e baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [Unreleased] - 2026-08-15
+
+### Removed
+- **Sistema de assinaturas/PIX descontinuado** — tabelas `subscriptions`, `payment_logs` e `payment_blocked_users` dropadas (migration `007_remove_assinaturas_pix.sql`), junto com RPCs (`check_login_allowed`, `check_subscription_status`, `update_subscription_paid`, `auto_create_subscription`, `limpar_subscriptions_antigas`), trigger, cron e setting `owner_pix_key`. Backup em `scripts/backup-assinaturas-pix.json`. O painel admin deixa de exigir pagamento.
+- **Tabelas mortas dropadas** — `barber_commissions`, `barber_schedules`, `barber_settings`, `expenses`, `fixed_expenses`, `recurring_expenses`, `loyalty_config`, `system_settings` (backup em `scripts/backup-tabelas-mortas.json`).
+- **Código morto removido** — `useSubscription`, `useExport`, `useSetting`, `useBarberStats`, `SubscriptionGuard`, `SubscriptionPage`, `SettingsAssinaturas`, `src/lib/api/subscriptions.ts`, `src/lib/api/blocked-users.ts`, edge function `sync-google-reviews` (nunca implementada) e `scripts/setup-pix-key.mjs`.
+
+### Refactored
+- **Migrations consolidadas** — as 15 migrations originais foram agrupadas em 6 (`001_schema_core` → `006_agenda_duration_auth`) + a nova `007_remove_assinaturas_pix`; cada arquivo preserva os marcadores `-- >>> MIGRATION:`. Ver `supabase/migrations/README.md`.
+- **Pasta `scripts/` reorganizada** e centralizada; `.env.example` ganhou `SUPABASE_PUBLISHABLE_KEY` (chave publishable rotacionável para auditorias — a antiga hardcoded foi removida de `audit-360.mjs`).
+- **CI** passa a baixar o artefato `dist` (build com env vars injetadas) nos jobs de e2e/a11y/lighthouse.
+
+### Changed
+- **Tela de acesso redesenhada (estilo Instagram)** — `/entrar` e `/admin/login` agora usam coluna estreita centralizada com foto da barbearia como pano de fundo cinematográfico; botões dourados sólidos sem gradiente/glow, inputs e links mais limpos, cabeçalho "Bem-vindo de volta". Comportamento e `data-testid` preservados (23 testes de login verdes).
+
+### Changed
+- **Redesign das telas de acesso (`/entrar` e `/admin/login`)** — as telas estavam sem atmosfera (fundo preto vazio + card cinza chapado; no mobile ainda usavam o retrato do barbeiro como wallpaper, o que ficava amador, e as fotos disponíveis (`fundo-mobile.webp`/`login.webp`) eram escuras demais para servirem de fundo). Agora seguem o **mesmo DNA do BookingPreScreen** (aprovado): fundo premium 100% CSS (veludo escuro com virada quente, spotlight dourado derivando, orbs de brilho, feixe de luz, grid de luxo, brasas subindo e grão de filme — sem depender de foto), marca ENORME como protagonista (logo com anéis duplos girando + nome em duas linhas: primeira em branco, resto `gold-engraved` + `font-cinzel`), divider ornamental, card com cantoneiras douradas (`corner-ornament`), botões com gradiente dourado + glow e layout de coluna única centralizada (mobile e desktop). `data-testid` e comportamento preservados (16 testes de login verdes); snapshots visuais do login regenerados.
+
+### Fix
+- **Responsividade: fontes minúsculas (8-9px) no mobile** — ilegíveis em celular. Subidas para 10px: labels dos passos do wizard de agendamento (`BookingMobileProgress`), stats/status do painel do cliente (`ClientProfileDashboard`), dia da semana em `DateTimeStep`, chips de benefício em `SuccessStep`, labels do marquee da galeria, footer do `BookingPreScreen`, header do dashboard admin (`DashboardHeader`), contadores dos filtros (`ReminderFilterTabs`, `SettingsMensalista`) e eyebrow "SERVIÇOS" da Home (10→11px).
+- **Responsividade: título do Hero colidia** — `leading-[0.95]` fazia as duas linhas de "BLACK DIAMOND" se sobreporem em telas pequenas (verificado por análise de pixels: gap real de 12px após a correção para `leading-[1.1]`). Mesmo problema no nome do barbeiro na seção Sobre (`leading-none` → `leading-tight` + margem no subtítulo).
+- **Responsividade: botão de cupom escondido** — no passo 1 do wizard a 320px, o botão "Adicionar cupom de desconto" ficava atrás da barra fixa do rodapé; verificado acessível após rolagem completa (o `pb-28` do layout resolve).
+- **Horários da data anterior sumiam ao trocar de dia no agendamento** — `useBookingSlots` não limpava `availableSlots`/`existingBookings` ao mudar a data: os horários ANTIGOS ficavam visíveis até o fetch da nova data resolver (o usuário podia tocar num horário da data errada) e depois a lista "sumia" ao chegar a resposta real. Agora os slots são limpos imediatamente ao trocar de data.
+- **Estrutura de passos do wizard podia mudar no meio do fluxo** — com barbeiros/settings ainda carregando, `showBarberStep` podia oscilar (4 → 5 passos), desmontando a etapa de data/horário e apagando a seleção. O wizard agora renderiza um skeleton até barbeiros e settings carregarem (`loading` no contexto).
+- **Import quebrado** em `BookingSearchModal.test.tsx` (`../../types` não existe — agora `../../../types`); passava porque `import type` é stripado pelo esbuild sem resolver.
+- **E2E**: os testes de rate-limit de login agora interceptam o RPC `check_rate_limit` (antes envenenavam o IP real por 15 min e derrubavam re-execuções da suíte); `auth.setup` sempre materializa o storageState e todos os projetos dependem dele (corrige o primeiro run em checkout fresco); helper de agendamento mais paciente com o rate limit dos RPCs públicos.
+- **CI**: job `quality` ganhou o passo `npx knip` (impede código morto de voltar; entrypoints declarados em `knip.json`).
+
+### Added
+- **Scripts de auditoria de responsividade** — `scripts/audit-responsive-text.mjs` (texto cortado + fontes minúsculas + conteúdo na borda), `scripts/audit-responsive-admin.mjs` (varre as rotas admin autenticadas no mobile) e `scripts/audit-responsive-overlap.mjs` (sobreposição de texto/elementos). Rodam com `BASE_URL=http://localhost:5174 node scripts/<script>.mjs`.
+
+### Docs
+- README, DOCUMENTACAO e DEPLOY_GUIDE sincronizados com o estado atual (assinaturas removidas, 7 migrations, 20 tabelas, edge functions reais).
+
 ## [3.36.0] - 2026-08-06
 
 ### Fix (Auditoria 360°)

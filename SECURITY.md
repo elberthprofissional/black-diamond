@@ -45,7 +45,7 @@ Quando o app e instalado como PWA, o `StandaloneGuard` bloqueia todas as rotas p
 
 ## 3. Row Level Security (RLS)
 
-**RLS habilitado em TODAS as 19 tabelas.**
+**RLS habilitado em TODAS as 20 tabelas.**
 
 | Tabela | Leitura | Escrita |
 |--------|---------|---------|
@@ -56,13 +56,18 @@ Quando o app e instalado como PWA, o `StandaloneGuard` bloqueia todas as rotas p
 | `testimonials` | Publica (ativos) | Admin |
 | `barbers` | Publica (ativos) | Admin |
 | `clients` | Admin | Admin |
-| `bookings` | Admin + publica (futuros) | Admin |
+| `bookings` | Admin (sem leitura publica) | Admin |
 | `notifications` | Dono | Dono |
 | `push_subscriptions` | Admin | Admin |
 | `admin_users` | Admin | Admin |
 | `audit_logs` | Admin | Admin (via SECURITY DEFINER) |
 | `booking_tokens` | Admin | Admin |
 | `coupons` | Admin | Admin |
+| `whatsapp_templates` | Admin | Admin |
+| `loyalty_milestones` | Admin (progresso publico via RPC) | Admin |
+| `client_milestones` | Admin (progresso publico via RPC) | Admin |
+| `reminder_logs` | N/A (SECURITY DEFINER) | N/A |
+| `client_reset_tokens` | N/A (RPCs) | N/A |
 | `rate_limits` | N/A (SECURITY DEFINER) | N/A |
 
 ## 4. Rate Limiting
@@ -144,10 +149,12 @@ if (!adminCheck) {
 }
 ```
 
-**Edge functions protegidas:**
-- `send-push` — envio de notificacoes push
+**Edge functions:**
+- `send-push` — envio de notificacoes push (verifica admin)
+- `cliente-recuperar-senha` — recuperacao de senha do cliente por codigo (via e-mail, MailerSend)
+- `criar-acesso-barbeiro` — dono cria login de barbeiro pelo painel (Auth + `admin_users` + `barbers.user_id`)
 
-> **Historico:** Edge Functions `create-asaas-payment` e `asaas-webhook` foram removidas em v3.31.0 (integracao com Asaas descontinuada em favor de PIX manual).
+> **Historico:** Edge Functions `create-asaas-payment` e `asaas-webhook` foram removidas em v3.31.0 (integracao com Asaas descontinuada em favor de PIX manual, que tambem foi removido em 2026-08-15 — ver migration `007_remove_assinaturas_pix.sql`).
 
 ## 8. Banco de Dados — Constraints
 
@@ -179,7 +186,7 @@ WHERE (status != 'cancelled' AND is_blocked = FALSE);
 
 ## 10. Audit Logging
 
-> **Status v3.31.0:** O sistema de `audit_logs` foi **desativado** porque crescia rapido e nao era consultado. As acoes criticas (login, booking) continuam sendo registradas em suas proprias tabelas (`notifications`, `subscriptions`, etc.).
+> **Status v3.31.0:** O sistema de `audit_logs` foi **desativado** porque crescia rapido e nao era consultado. As acoes criticas (login, booking) continuam sendo registradas em suas proprias tabelas.
 
 **Acoes definidas (tipo) — implementadas como no-op em `src/lib/api/audit.ts`:**
 - `login_success`, `login_failed`
@@ -207,7 +214,7 @@ Para reativar, basta implementar a logica em `insertAuditLog()` (`src/lib/api/au
 ## 13. Boas Praticas
 
 1. **Nunca commitar `.env`** — `.gitignore` exclui arquivos `.env*` (exceto `.env.example`)
-2. **Secrets no Supabase** — `VAPID_PRIVATE_KEY`, `GOOGLE_PLACES_API_KEY` ficam em Edge Function secrets, nao no frontend
+2. **Secrets no Supabase** — `VAPID_PRIVATE_KEY`, `MAILERSEND_API_KEY` ficam em Edge Function secrets, nao no frontend
 3. **SQL parametrizado** — Todas as queries usam PostgREST (parametrizado por padrao)
 4. **React XSS** — React escapa inputs automaticamente
 5. **CSP** — Previne carregamento de scripts externos nao autorizados

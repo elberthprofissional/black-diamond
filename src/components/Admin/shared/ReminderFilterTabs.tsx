@@ -26,7 +26,10 @@ const ReminderFilterTabs: FC<ReminderFilterTabsProps> = ({
   ];
 
   return (
-    <div role="tablist" className="flex gap-2 lg:gap-6 overflow-x-auto scrollbar-hide pb-1">
+    <div
+      role="tablist"
+      className="flex flex-wrap gap-2 lg:flex-nowrap lg:gap-6 lg:overflow-x-auto scrollbar-hide pb-1"
+    >
       {filters.map((f) => {
         const active = activeFilter === f.key;
         const Icon = f.icon;
@@ -46,7 +49,7 @@ const ReminderFilterTabs: FC<ReminderFilterTabsProps> = ({
             <span className="flex items-center gap-1.5 lg:gap-2">
               {f.label}
               <span
-                className={`text-[8px] lg:text-[9px] px-1.5 py-0.5 rounded-md font-black ${
+                className={`text-[10px] lg:text-[10px] px-1.5 py-0.5 rounded-md font-black ${
                   active ? 'bg-current/20 text-current' : 'bg-white/5 text-zinc-600'
                 }`}
               >

@@ -196,6 +196,13 @@ test.describe('Admin - Autenticação', () => {
     });
 
     test('login com credenciais inválidas mostra erro', async ({ page }) => {
+      // Intercepta o RPC de rate limit: o teste valida a mensagem de senha
+      // errada, e chamadas reais acumulariam rows em rate_limits (todo login
+      // conta uma tentativa) — o IP acabaria bloqueado após poucas execuções.
+      await page.route('**/rest/v1/rpc/check_rate_limit**', (route) =>
+        route.fulfill({ status: 200, contentType: 'application/json', body: 'true' })
+      );
+
       await page.goto('/admin/login');
       await page.fill('[data-testid="input-email"]', 'wrong@email.com');
       await page.fill('[data-testid="input-password"]', 'wrongpassword');
@@ -228,6 +235,20 @@ test.describe('Admin - Rate Limiting', () => {
     test.use({ storageState: CLEAN_STORAGE });
 
     test('bloqueio temporário após múltiplas tentativas', async ({ page }) => {
+      // Intercepta o RPC server-side de rate limit: o backend real bloquearia o
+      // IP por 15 min (inserindo rows em rate_limits), derrubando re-execuções
+      // da suíte — inclusive o auth.setup. Simula o servidor: 4 tentativas
+      // permitidas, a 5ª negada.
+      let calls = 0;
+      await page.route('**/rest/v1/rpc/check_rate_limit**', (route) => {
+        calls += 1;
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(calls >= 5 ? false : true),
+        });
+      });
+
       await page.goto('/admin/login');
 
       for (let i = 0; i < 5; i++) {

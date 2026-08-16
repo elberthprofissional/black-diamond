@@ -1,0 +1,12 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "e2e/auth.setup.ts",
+    "e2e/**/*.spec.ts",
+    "lighthouse.config.js",
+    "scripts/*.mjs",
+    "scripts/lib/*.mjs",
+    "scripts/audit-360/*.mjs",
+    "supabase/functions/*/index.ts"
+  ]
+}

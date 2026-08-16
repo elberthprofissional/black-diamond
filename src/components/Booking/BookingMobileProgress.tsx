@@ -58,10 +58,10 @@ const BookingMobileProgress: FC<BookingMobileProgressProps> = ({
         </div>
       </div>
       <div className="relative flex justify-between items-center w-full mt-3 px-4 pb-0.5 select-none">
-        <div className="absolute left-0 right-0 -mx-9 top-[28px] h-[1px] bg-white/10 z-0" />
-        <div className="absolute left-0 -ml-9 top-[28px] h-[1px] bg-white/10 z-0" />
+        <div className="absolute left-0 right-0 -mx-4 top-[28px] h-[1px] bg-white/10 z-0" />
+        <div className="absolute left-0 -ml-4 top-[28px] h-[1px] bg-white/10 z-0" />
         <div
-          className="absolute left-0 -ml-9 top-[28px] h-[1px] bg-gold transition-all duration-500 z-0"
+          className="absolute left-0 -ml-4 top-[28px] h-[1px] bg-gold transition-all duration-500 z-0"
           style={{
             width: `${progressPct}%`,
           }}
@@ -95,7 +95,7 @@ const BookingMobileProgress: FC<BookingMobileProgressProps> = ({
                 }`}
               />
               <span
-                className={`text-[8px] font-bold mt-1 transition-colors duration-500 tracking-wider text-center ${
+                className={`text-[10px] font-bold mt-1 transition-colors duration-500 tracking-wider text-center ${
                   isActive ? 'text-gold' : isCompleted ? 'text-zinc-400' : 'text-zinc-600'
                 }`}
               >

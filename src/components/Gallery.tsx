@@ -153,11 +153,11 @@ const Gallery: FC = memo(() => {
             {displayItems.map((item, index) => (
               <div
                 key={index}
-                className={`shrink-0 relative w-[130px] sm:w-[240px] md:w-[310px] bg-white p-2 sm:p-3.5 pt-3 sm:pt-4 pb-5 sm:pb-8 shadow-[0_15px_30px_rgba(0,0,0,0.7)] ${item.transform} ${
+                className={`shrink-0 relative w-[110px] sm:w-[240px] md:w-[310px] bg-white p-2 sm:p-3.5 pt-3 sm:pt-4 pb-5 sm:pb-8 shadow-[0_15px_30px_rgba(0,0,0,0.7)] ${item.transform} ${
                   index === 0
-                    ? '-mr-4 sm:-mr-12 md:-mr-16'
+                    ? '-mr-2 sm:-mr-12 md:-mr-16'
                     : index === 2
-                      ? '-ml-4 sm:-ml-12 md:-ml-16'
+                      ? '-ml-2 sm:-ml-12 md:-ml-16'
                       : ''
                 }`}
               >
@@ -172,13 +172,13 @@ const Gallery: FC = memo(() => {
                       alt={(item as { title: string }).title || 'Foto de corte'}
                       loading="lazy"
                       decoding="async"
-                      sizes="(max-width: 640px) 130px, (max-width: 768px) 240px, 310px"
+                      sizes="(max-width: 640px) 110px, (max-width: 768px) 240px, 310px"
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="flex flex-col items-center gap-2 text-zinc-600">
                       <ImageIcon size={28} className="sm:size-10" />
-                      <span className="text-[8px] sm:text-[10px] font-sans font-medium uppercase tracking-wider">
+                      <span className="text-[10px] sm:text-[10px] font-sans font-medium uppercase tracking-wider">
                         Adicione fotos
                       </span>
                     </div>

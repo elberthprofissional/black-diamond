@@ -6,7 +6,6 @@ import { useModalA11y } from './useModalA11y';
 import { useRateLimit } from './useRateLimit';
 import { useAuditLog } from './useAuditLog';
 import { logError } from '../lib/logger';
-import { checkLoginAllowed } from '../lib/api/blocked-users';
 
 /**
  * Lógica completa de autenticação do administrador (Supabase Auth).
@@ -94,20 +93,6 @@ export function useAdminLogin(options?: { initialEmail?: string }) {
         } else {
           const userEmail = email.trim().toLowerCase();
           logLogin(true, userEmail);
-
-          // Verifica bloqueio por pagamento (server-side via RPC)
-          try {
-            const { allowed, reason } = await checkLoginAllowed(userEmail);
-            if (!allowed) {
-              await supabase.auth.signOut();
-              setLoginError(reason || 'Conta bloqueada.');
-              return;
-            }
-          } catch (err) {
-            logError(err, 'checkLoginAllowed');
-            // Se RPC falhar, permite login como fallback
-          }
-
           navigate('/admin', { replace: true });
         }
       } catch (err) {

@@ -82,7 +82,7 @@ const AdminReports: FC = () => {
         {/* Resumo Rápido - 2x2 grid compacto */}
         <div className="grid grid-cols-2 gap-2.5">
           <div className="bg-[#111111] border border-white/5 rounded-xl p-4">
-            <span className="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
+            <span className="text-[10px] sm:text-[11px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
               {period === 'week' ? 'Ganhos Semana' : 'Ganhos Mês'}
             </span>
             <p className="text-xl lg:text-2xl font-black text-gold tracking-tight tabular-nums">
@@ -90,7 +90,7 @@ const AdminReports: FC = () => {
             </p>
           </div>
           <div className="bg-[#111111] border border-white/5 rounded-xl p-4">
-            <span className="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
+            <span className="text-[10px] sm:text-[11px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
               Total Geral
             </span>
             <p className="text-xl lg:text-2xl font-black text-white tracking-tight tabular-nums">
@@ -98,7 +98,7 @@ const AdminReports: FC = () => {
             </p>
           </div>
           <div className="bg-[#111111] border border-white/5 rounded-xl p-4">
-            <span className="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
+            <span className="text-[10px] sm:text-[11px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
               Cortes
             </span>
             <p className="text-xl lg:text-2xl font-black text-white tracking-tight tabular-nums">
@@ -106,7 +106,7 @@ const AdminReports: FC = () => {
             </p>
           </div>
           <div className="bg-[#111111] border border-white/5 rounded-xl p-4">
-            <span className="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
+            <span className="text-[10px] sm:text-[11px] lg:text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
               Cancelamentos
             </span>
             <p className="text-xl lg:text-2xl font-black text-red-500/70 tracking-tight tabular-nums">
@@ -134,24 +134,24 @@ const AdminReports: FC = () => {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-white/[0.02] rounded-lg p-3">
-              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">
+              <span className="text-[10px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">
                 Esta
               </span>
               <p className="text-base lg:text-lg font-black text-gold tabular-nums mt-0.5">
                 R$ {currentWeek.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
-              <span className="text-[9px] text-zinc-600">
+              <span className="text-[10px] sm:text-[9px] text-zinc-600">
                 {currentWeek.count} {currentWeek.count === 1 ? 'corte' : 'cortes'}
               </span>
             </div>
             <div className="bg-white/[0.02] rounded-lg p-3">
-              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">
+              <span className="text-[10px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">
                 Anterior
               </span>
               <p className="text-base lg:text-lg font-black text-zinc-400 tabular-nums mt-0.5">
                 R$ {lastWeek.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
-              <span className="text-[9px] text-zinc-600">
+              <span className="text-[10px] sm:text-[9px] text-zinc-600">
                 {lastWeek.count} {lastWeek.count === 1 ? 'corte' : 'cortes'}
               </span>
             </div>
@@ -169,7 +169,7 @@ const AdminReports: FC = () => {
                 key={day.label}
                 className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end"
               >
-                <span className="text-[8px] lg:text-[9px] font-bold text-gold tabular-nums">
+                <span className="text-[10px] lg:text-[9px] font-bold text-gold tabular-nums">
                   R${day.value.toFixed(0)}
                 </span>
                 <div
@@ -179,7 +179,7 @@ const AdminReports: FC = () => {
                     opacity: day.value > 0 ? 1 : 0.2,
                   }}
                 />
-                <span className="text-[8px] lg:text-[9px] font-bold text-zinc-600 uppercase">
+                <span className="text-[10px] lg:text-[9px] font-bold text-zinc-600 uppercase">
                   {day.label}
                 </span>
               </div>
@@ -201,7 +201,7 @@ const AdminReports: FC = () => {
                   <div key={idx} className="space-y-1.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
-                        <span className="w-5 h-5 rounded-full bg-white/[0.04] flex items-center justify-center text-[8px] font-bold text-zinc-500">
+                        <span className="w-5 h-5 rounded-full bg-white/[0.04] flex items-center justify-center text-[10px] font-bold text-zinc-500">
                           {idx + 1}
                         </span>
                         <span className="text-[11px] lg:text-[12px] font-bold text-zinc-300">

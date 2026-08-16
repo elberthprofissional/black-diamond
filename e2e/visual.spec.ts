@@ -17,10 +17,22 @@ const mobile = { viewport: { width: 375, height: 667 } };
 const tablet = { viewport: { width: 768, height: 1024 } };
 
 test.describe('Regressao visual — Paginas publicas', () => {
+  // O slider de depoimentos tem autoplay (JS setInterval de 4s) que o
+  // Playwright não desabilita automaticamente — faz o screenshot nunca
+  // "estabilizar" (falha intermitente). Pausa com hover antes do screenshot.
+  async function pauseTestimonialsAutoplay(page: import('@playwright/test').Page) {
+    const slider = page.locator('[aria-roledescription="carousel"]');
+    if (await slider.count()) {
+      await slider.first().hover({ force: true });
+      await page.waitForTimeout(300);
+    }
+  }
+
   test('Home page — desktop', async ({ page }) => {
     await page.setViewportSize(desktop.viewport);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
+    await pauseTestimonialsAutoplay(page);
     await expect(page).toHaveScreenshot('home-desktop.png', { fullPage: true });
   });
 
@@ -28,6 +40,7 @@ test.describe('Regressao visual — Paginas publicas', () => {
     await page.setViewportSize(mobile.viewport);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
+    await pauseTestimonialsAutoplay(page);
     await expect(page).toHaveScreenshot('home-mobile.png', { fullPage: true });
   });
 
@@ -35,6 +48,7 @@ test.describe('Regressao visual — Paginas publicas', () => {
     await page.setViewportSize(tablet.viewport);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
+    await pauseTestimonialsAutoplay(page);
     await expect(page).toHaveScreenshot('home-tablet.png', { fullPage: true });
   });
 
@@ -82,6 +96,10 @@ test.describe('Regressao visual — Paginas publicas', () => {
 });
 
 test.describe('Regressao visual — Admin', () => {
+  // Storage limpo: os testes de login precisam ver o formulário, não o
+  // dashboard (com a sessão admin ativa o /admin/login redireciona).
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test('Login page — desktop', async ({ page }) => {
     await page.setViewportSize(desktop.viewport);
     await page.goto('/admin/login');
@@ -248,11 +266,11 @@ test.describe('Regressao visual — Componentes', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     await page.evaluate(() => {
-      const el = document.querySelector('[data-testid=testimonials]');
+      const el = document.querySelector('#depoimentos');
       if (el) el.scrollIntoView();
     });
     await page.waitForTimeout(500);
-    const testimonials = page.locator('[data-testid=testimonials]');
+    const testimonials = page.locator('#depoimentos');
     await expect(testimonials).toHaveScreenshot('testimonials-section.png');
   });
 

@@ -51,10 +51,10 @@ const BarberCard: FC<BarberCardProps> = ({ barber, index }) => {
       </div>
 
       <div className="mt-8 text-center space-y-4">
-        <h3 className="text-3xl sm:text-4xl font-bold uppercase tracking-tight font-sans leading-none text-white">
+        <h3 className="text-3xl sm:text-4xl font-bold uppercase tracking-tight font-sans leading-tight text-white">
           {name}
         </h3>
-        <p className="font-serif italic font-normal lowercase tracking-normal text-zinc-400 text-sm">
+        <p className="font-serif italic font-normal lowercase tracking-normal text-zinc-400 text-sm mt-1">
           seu barbeiro
         </p>
         {bio && <p className="text-zinc-300 font-sans text-sm font-light leading-relaxed">{bio}</p>}

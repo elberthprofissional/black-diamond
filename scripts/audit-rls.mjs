@@ -40,7 +40,7 @@ const TABLES = [
   'booking_tokens', 'push_subscriptions', 'subscriptions', 'payment_logs',
   'payment_blocked_users', 'rate_limits', 'reminder_logs', 'coupons',
   'loyalty_milestones', 'client_milestones', 'whatsapp_templates',
-  'services', 'settings', 'barbers', 'barber_settings', 'gallery_images',
+  'services', 'settings', 'barbers', 'gallery_images',
   'testimonials', 'mensalista_plans',
 ];
 

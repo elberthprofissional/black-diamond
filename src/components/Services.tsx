@@ -18,7 +18,7 @@ const Services: FC = memo(() => {
         <div className="max-w-3xl mx-auto">
           {/* Header */}
           <div className="mb-10 md:mb-20 text-center">
-            <span className="text-[10px] sm:text-[11px] font-sans font-bold uppercase tracking-[0.3em] text-zinc-500 block mb-3 md:mb-4">
+            <span className="text-[11px] sm:text-[12px] font-sans font-bold uppercase tracking-[0.3em] text-zinc-500 block mb-3 md:mb-4">
               SERVIÇOS
             </span>
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold uppercase tracking-tight font-sans text-white mb-2 md:mb-3">

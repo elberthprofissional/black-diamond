@@ -134,20 +134,6 @@ vi.mock('../hooks/useBarberSettings', () => ({
   }),
 }));
 
-vi.mock('../hooks/useSubscription', () => ({
-  useSubscription: () => ({
-    status: null,
-    loading: false,
-    error: null,
-    payments: [],
-    generatingPayment: false,
-    paymentResult: null,
-    paymentError: null,
-    refresh: vi.fn().mockResolvedValue(undefined),
-    generatePayment: vi.fn().mockResolvedValue(undefined),
-  }),
-}));
-
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BarberSettingsProvider } from '../contexts/BarberSettingsContext';
 import { BarberProvider } from '../contexts/BarberContext';

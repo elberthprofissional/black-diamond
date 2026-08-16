@@ -28,6 +28,8 @@ interface BookingWizardValue {
   stepTitle: string;
   /** Wizard tem a etapa de escolha de barbeiro? (2+ barbeiros ativos, não-solo) */
   showBarberStep: boolean;
+  /** Barbeiros/settings ainda carregando — estrutura de passos ainda não é final. */
+  loading: boolean;
   /** Número total de passos do wizard (4 ou 5). */
   totalSteps: number;
   services: Service[];
@@ -103,12 +105,18 @@ export function BookingWizardProvider({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { bookableBarbers } = useBarberContext();
-  const { singleBarberMode } = useBarberSettings();
+  const { bookableBarbers, loading: barbersLoading } = useBarberContext();
+  const { singleBarberMode, loading: settingsLoading } = useBarberSettings();
 
   // Multi-barbeiro real (2+ ativos, fora do modo solo): o cliente escolhe o
   // barbeiro antes da data → wizard com 5 passos. Modo solo/1 barbeiro: 4.
+  // IMPORTANTE: a estrutura de passos só pode ser decidida DEPOIS que barbeiros
+  // e settings carregarem — se ela mudar no meio do fluxo (ex.: settings ainda
+  // carregando quando o cliente já está na etapa de data/horário), o passo
+  // desmonta e a seleção de data/horário some. O consumer (BookingPageContent)
+  // renderiza um skeleton enquanto `loading` for true.
   const showBarberStep = !singleBarberMode && bookableBarbers.length > 1;
+  const loading = barbersLoading || settingsLoading;
 
   // ── Step control ──
   const {
@@ -318,6 +326,7 @@ export function BookingWizardProvider({
     () => ({
       step,
       stepTitle,
+      loading,
       showBarberStep,
       totalSteps,
       services: allServices,
@@ -368,6 +377,7 @@ export function BookingWizardProvider({
     [
       step,
       stepTitle,
+      loading,
       showBarberStep,
       totalSteps,
       allServices,

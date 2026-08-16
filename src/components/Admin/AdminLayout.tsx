@@ -4,7 +4,6 @@ import AdminNavbar from './Navbar';
 import BottomTabs from './BottomTabs';
 import { BarberProvider } from '../../contexts/BarberContext';
 import AuthGuard from './AuthGuard';
-import SubscriptionGuard from './shared/SubscriptionGuard';
 
 interface SecondarySidebarItem {
   id: string;
@@ -88,7 +87,7 @@ const AdminLayout: FC<AdminLayoutProps> = ({
               {/* Main Content — flex-1 wrapper centers the child via mx-auto on block */}
               <div className="flex-1 min-w-0 overflow-y-auto">
                 <main id="main-content" className={mainClassName}>
-                  <SubscriptionGuard>{children}</SubscriptionGuard>
+                  {children}
                 </main>
               </div>
             </div>

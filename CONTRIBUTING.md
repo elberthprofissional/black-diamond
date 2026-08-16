@@ -21,7 +21,8 @@ cp .env.example .env
 # Edite .env com suas credenciais do Supabase
 
 # 4. Rodar migrations
-npx supabase db push
+# Abra o SQL Editor do Supabase e cole o conteudo de supabase/_RODAR_NO_SQL_EDITOR.sql
+# (ou execute cada arquivo de supabase/migrations/ em ordem — veja supabase/migrations/README.md)
 
 # 5. Iniciar desenvolvimento
 npm run dev
@@ -246,7 +247,7 @@ Copie `.env.example` para `.env`:
 
 Cada barbearia tem seu próprio projeto Supabase. Para setup:
 1. Crie o projeto em [supabase.com](https://supabase.com)
-2. Execute as migrations em ordem no SQL Editor: `001_schema_rls.sql` → `002_functions_triggers.sql` → `003_features_fixes.sql` → `004_subscriptions_pix.sql` → `005_performance_auditoria.sql` (ou cole o `scripts/_RODAR_NO_SQL_EDITOR.sql` de uma vez)
+2. Execute as migrations em ordem no SQL Editor: `001_schema_core.sql` → `002_multi_barber_pagamentos.sql` → `003_auditoria_rls.sql` → `004_escopo_barbeiro_acesso.sql` → `005_conta_cliente_v2.sql` → `006_agenda_duration_auth.sql` (ou cole o `supabase/_RODAR_NO_SQL_EDITOR.sql` de uma vez)
 3. Crie o usuário admin em Authentication > Users
 4. Adicione na tabela `admin_users`
 

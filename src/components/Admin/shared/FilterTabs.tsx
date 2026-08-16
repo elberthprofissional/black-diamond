@@ -32,7 +32,7 @@ const FilterTabs: FC<FilterTabsProps> = ({
   };
 
   return (
-    <div role="tablist" className="flex gap-6">
+    <div role="tablist" className="flex gap-3 sm:gap-6">
       {FILTERS.map(({ key, label }) => {
         const active = filter === key;
         return (

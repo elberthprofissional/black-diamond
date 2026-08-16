@@ -60,7 +60,11 @@ async function q(TOKEN, sql) {
 function loadEnv() {
   const envContent = readFileSync(resolve(ROOT, '.env'), 'utf8');
   const get = (k) => envContent.match(new RegExp(`^${k}=(.+)$`, 'm'))?.[1]?.trim();
-  return { URL: get('VITE_SUPABASE_URL'), ANON: get('VITE_SUPABASE_ANON_KEY') };
+  return {
+    URL: get('VITE_SUPABASE_URL'),
+    ANON: get('VITE_SUPABASE_ANON_KEY'),
+    PUBLISHABLE: get('SUPABASE_PUBLISHABLE_KEY'),
+  };
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -181,9 +185,7 @@ async function runAudit(TOKEN) {
 
   section('4. POLÍTICAS RLS (todas)');
   const policies = await query('policies', `
-    SELECT tablename, policyname, cmd, roles::text AS roles,
-           pg_get_expr(qual, polrelid) AS qual,
-           pg_get_expr(with_check, polrelid) AS with_check
+    SELECT tablename, policyname, cmd, roles::text AS roles, qual, with_check
     FROM pg_policies WHERE schemaname = 'public'
     ORDER BY tablename, cmd;`, TOKEN);
   if (policies) {
@@ -688,8 +690,9 @@ async function runProducao() {
 
 async function runKeys() {
   const url = `https://${PROJECT_REF}.supabase.co`;
-  const PUBLISHABLE = 'sb_publishable_Ddbs0VP1QEHdVyk5XeTQeg_1KuQz5kR';
-  const { ANON } = loadEnv();
+  // A chave publishable NUNCA deve ficar hardcoded no código: ela rotaciona.
+  // Configure SUPABASE_PUBLISHABLE_KEY no .env para testar a chave publicada.
+  const { ANON, PUBLISHABLE } = loadEnv();
 
   const headers = (k) => ({ apikey: k, Authorization: 'Bearer ' + k, Accept: 'application/json' });
 
@@ -716,7 +719,11 @@ async function runKeys() {
   const publicas = ['services', 'settings', 'barbers', 'gallery_images', 'testimonials'];
   const sensiveis = ['secrets', 'clients', 'bookings', 'admin_settings', 'subscriptions', 'booking_tokens', 'payment_logs', 'notifications', 'push_subscriptions'];
 
-  await testKey('CHAVE PUBLISHABLE (da producao)', PUBLISHABLE, [...publicas, ...sensiveis]);
+  if (PUBLISHABLE) {
+    await testKey('CHAVE PUBLISHABLE (SUPABASE_PUBLISHABLE_KEY do .env)', PUBLISHABLE, [...publicas, ...sensiveis]);
+  } else {
+    console.log('\n(.env sem SUPABASE_PUBLISHABLE_KEY — teste da publishable pulado)');
+  }
   if (ANON) await testKey('CHAVE ATUAL DO .env (VITE_SUPABASE_ANON_KEY)', ANON, ['services', 'secrets', 'clients']);
   else console.log('\n(.env sem VITE_SUPABASE_ANON_KEY)');
 }

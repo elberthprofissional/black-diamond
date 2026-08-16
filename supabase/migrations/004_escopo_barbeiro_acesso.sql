@@ -1,23 +1,224 @@
 -- =========================================================================
--- BLACK DIAMOND - 015 - HORÁRIO POR BARBEIRO (override opcional)
+-- BLACK DIAMOND - 004 ESCOPO BARBEIRO ACESSO
+-- ESCOPO POR BARBEIRO + ACESSO PÚBLICO SEGURO
 -- =========================================================================
--- Contexto: a barbearia tem um horário padrão (settings.barber_hours) que
--- vale para TODOS os barbeiros. Agora cada barbeiro pode ter o PRÓPRIO
--- horário (mesmo formato JSON do padrão, incluindo lunch_break):
---   - barbers.barber_hours = NULL   → usa o horário padrão da barbearia
---   - barbers.barber_hours = {...}  → usa o horário personalizado do barbeiro
+-- Consolidado de: 011_barber_scope_rls.sql, 012_secure_bookings_public_access.sql, 013_barber_availability_fix.sql
+-- Unificado na consolidação 2026-08-15 — conteúdo preservado na ordem
+-- original de execução (idempotente, CREATE OR REPLACE / IF NOT EXISTS).
+-- =========================================================================
+
+-- >>> MIGRATION: 011_barber_scope_rls.sql <<<
+
+-- =========================================================================
+-- BLACK DIAMOND - 011 - ESCONTE POR BARBEIRO (RLS MULTI-BARBEIRO)
+-- =========================================================================
+-- Contexto: a v3.36 traz de volta o multi-barbeiro (cliente escolhe o
+-- barbeiro; cada barbeiro tem login próprio). A policy "Agendamentos
+-- gerenciamento admin" (001/006) dava leitura/escrita TOTAL a qualquer
+-- admin autenticado — o filtro por barbeiro do frontend era só cosmético.
 --
--- O conflito de agenda já era por barbeiro (migration 013): um cliente
--- agendado com o Tato às 14h NÃO bloqueia o outro barbeiro às 14h.
+-- Esta migration transforma o escopo em regra de banco:
+--   • DONO (barbers.is_owner = true — ex.: Tato)  → vê e gerencia TUDO
+--   • BARBEIRO COMUM (barbers.user_id = auth.uid()) → vê/gerencia apenas os
+--     agendamentos com barber_id = o dele
+--   • Admin SEM vínculo na tabela barbers → não vê NADA de bookings
+--     (fail-closed; evita "admin fantasma" lendo tudo silenciosamente)
+--
+-- A leitura pública do site (anon) NÃO muda — continua pela policy
+-- "Leitura publica agendamentos" (status/data).
+--
+-- ⚠️ Atualização (migration 008): a policy "Leitura publica agendamentos"
+--    foi REMOVIDA — consultas públicas de bookings agora passam 100% por
+--    RPCs SECURITY DEFINER (get_occupied_slots, get_client_dashboard, etc.).
+--
+-- ⚠️  Execute no SQL Editor do Supabase (depois das migrations 001-006).
+--     Reversão: rodar o bloco comentado no final deste arquivo.
+--     Valide com: node scripts/audit-rls.mjs
 -- =========================================================================
 
 -- ──────────────────────────────────────────────────────────────────────
--- 1. Coluna de horário próprio no barbeiro
+-- 1. FUNÇÕES AUXILIARES
 -- ──────────────────────────────────────────────────────────────────────
-ALTER TABLE barbers ADD COLUMN IF NOT EXISTS barber_hours jsonb;
+-- O admin logado é dono? (é o barbeiro chefe — vê tudo)
+CREATE OR REPLACE FUNCTION public.is_barber_owner()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.barbers
+    WHERE user_id = auth.uid() AND is_owner = true
+  );
+$$;
+
+-- ID do barbeiro vinculado ao usuário logado (null se não vinculado)
+CREATE OR REPLACE FUNCTION public.current_barber_id()
+RETURNS uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+AS $$
+  SELECT id FROM public.barbers WHERE user_id = auth.uid() LIMIT 1;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.is_barber_owner() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.current_barber_id() TO authenticated;
 
 -- ──────────────────────────────────────────────────────────────────────
--- 2. get_available_slots — usa o horário do barbeiro quando ele tem override
+-- 2. SUBSTITUIR A POLICY ADMIN DE BOOKINGS PELO ESCOPO POR BARBEIRO
+--    (a antiga "Agendamentos gerenciamento admin" dava tudo a todo admin)
+-- ──────────────────────────────────────────────────────────────────────
+DROP POLICY IF EXISTS "Agendamentos gerenciamento admin" ON public.bookings;
+
+-- Leitura: dono vê tudo; barbeiro comum vê só os próprios
+CREATE POLICY "Agendamentos leitura por barbeiro" ON public.bookings
+FOR SELECT TO authenticated
+USING (
+  is_admin()
+  AND (is_barber_owner() OR barber_id = current_barber_id())
+);
+
+-- Inserção: dono agenda para qualquer barbeiro; barbeiro comum só para si
+CREATE POLICY "Agendamentos criacao admin" ON public.bookings
+FOR INSERT TO authenticated
+WITH CHECK (
+  is_admin()
+  AND (is_barber_owner() OR barber_id = current_barber_id())
+);
+
+-- Atualização (ex.: status, reagendamento): escopo igual ao SELECT
+CREATE POLICY "Agendamentos edicao admin" ON public.bookings
+FOR UPDATE TO authenticated
+USING (
+  is_admin()
+  AND (is_barber_owner() OR barber_id = current_barber_id())
+)
+WITH CHECK (
+  is_admin()
+  AND (is_barber_owner() OR barber_id = current_barber_id())
+);
+
+-- Exclusão: escopo igual ao SELECT
+CREATE POLICY "Agendamentos exclusao admin" ON public.bookings
+FOR DELETE TO authenticated
+USING (
+  is_admin()
+  AND (is_barber_owner() OR barber_id = current_barber_id())
+);
+
+-- ──────────────────────────────────────────────────────────────────────
+-- 3. VALIDAÇÃO MANUAL (opcional — rode no SQL Editor para conferir):
+--
+--    -- Como um barbeiro comum (troque pelo user_id real do novo barbeiro):
+--    SET LOCAL ROLE authenticated;
+--    SET LOCAL request.jwt.claims = '{"sub":"<user_id-do-barbeiro>"}';
+--    SELECT count(*) FROM bookings;  -- só os agendamentos DELE
+--    RESET ROLE;
+--
+-- ──────────────────────────────────────────────────────────────────────
+-- REVERSÃO (se precisar voltar ao comportamento antigo):
+--
+--   DROP POLICY IF EXISTS "Agendamentos leitura por barbeiro" ON public.bookings;
+--   DROP POLICY IF EXISTS "Agendamentos criacao admin" ON public.bookings;
+--   DROP POLICY IF EXISTS "Agendamentos edicao admin" ON public.bookings;
+--   DROP POLICY IF EXISTS "Agendamentos exclusao admin" ON public.bookings;
+--   CREATE POLICY "Agendamentos gerenciamento admin" ON public.bookings
+--   FOR ALL TO authenticated USING (is_admin()) WITH CHECK (is_admin());
+-- ──────────────────────────────────────────────────────────────────────
+
+-- >>> MIGRATION: 012_secure_bookings_public_access.sql <<<
+
+-- =========================================================================
+-- BLACK DIAMOND - 012 - HARDENING DE ACESSO PÚBLICO (BOOKINGS + IS_ADMIN)
+-- =========================================================================
+-- Achados da auditoria 360 (2026-08-06):
+--
+--   🚨 1. A policy "Leitura publica agendamentos" (001/006) permitia que a
+--          chave anon (pública) fizesse SELECT em TODAS as colunas de
+--          bookings — incluindo `notes`, `total_price`, `discount_amount`,
+--          `client_id`, `coupon_id` — de TODOS os clientes, tanto no
+--          histórico completo (`status = 'completed'`) quanto nos
+--          agendamentos futuros. Qualquer pessoa com a chave anon montava
+--          o histórico financeiro inteiro da barbearia.
+--
+--          A leitura pública que o SITE precisa hoje é 100% coberta por
+--          RPCs SECURITY DEFINER (que validam, filtram e aplicam rate limit):
+--            - get_available_slots / get_occupied_slots → página de agendamento
+--            - get_bookings_by_token / cancel_booking_public → gerenciar/cancelar
+--            - get_bookings_by_phone_rate_limited / get_last_booking_by_phone_rate_limited
+--            - get_client_dashboard → painel do cliente (/cliente)
+--          Nenhuma parte pública do app faz SELECT direto na tabela bookings
+--          (verificado na auditoria: 0 referências públicas).
+--
+--          Solução: REMOVER a policy pública. O admin continua com acesso
+--          total via as policies "Agendamentos ..." da migration 007
+--          (escopo por barbeiro) e a tabela deixa de ser legível por anon
+--          (inclusive via Realtime).
+--
+--   🚨 2. O AuthGuard do frontend só verificava existência de sessão —
+--          qualquer usuário autenticado (mesmo não-admin) conseguia abrir
+--          as telas admin. A função is_admin() (001) é SECURITY DEFINER,
+--          mas sem GRANT EXECUTE explícito alguns projetos Supabase
+--          revogam o EXECUTE padrão de PUBLIC, impossibilitando o
+--          frontend de validar. Aqui garantimos o GRANT para que o
+--          AuthGuard possa rejeitar não-admins.
+--
+--  ⚠️  Ordem: rodar DEPOIS das migrations 001-007.
+--      Reversão da policy: recriar
+--        CREATE POLICY "Leitura publica agendamentos" ON public.bookings
+--        FOR SELECT USING (
+--          (status IN ('pending', 'confirmed') AND booking_date >= CURRENT_DATE)
+--          OR status = 'completed'
+--        );
+-- =========================================================================
+
+-- ──────────────────────────────────────────────────────────────────────
+-- 1. REMOVER A POLICY PÚBLICA DE LEITURA DE BOOKINGS
+-- ──────────────────────────────────────────────────────────────────────
+DROP POLICY IF EXISTS "Leitura publica agendamentos" ON public.bookings;
+
+-- ──────────────────────────────────────────────────────────────────────
+-- 2. GARANTIR QUE is_admin() SEJA CHAMÁVEL PELO FRONTEND AUTENTICADO
+--    (usada pelo AuthGuard para validar acesso às telas admin)
+-- ──────────────────────────────────────────────────────────────────────
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
+
+-- ──────────────────────────────────────────────────────────────────────
+-- 3. VALIDAÇÃO MANUAL (opcional — rode no SQL Editor para conferir):
+--
+--    SET ROLE anon;
+--    SELECT count(*) FROM bookings;    -- deve falhar (permission denied)
+--    SELECT * FROM get_occupied_slots(CURRENT_DATE); -- ok (RPC pública)
+--    RESET ROLE;
+--
+--    Depois valide com: node scripts/audit-rls.mjs
+-- ──────────────────────────────────────────────────────────────────────
+
+-- >>> MIGRATION: 013_barber_availability_fix.sql <<<
+
+-- =========================================================================
+-- BLACK DIAMOND - 013 - DISPONIBILIDADE POR BARBEIRO (FIX MULTI-BARBEIRO)
+-- =========================================================================
+-- Contexto: com o multi-barbeiro, cada barbeiro tem os PRÓPRIOS horários
+-- disponíveis (o Tato ocupado às 14h NÃO bloqueia o Juninho às 14h).
+--
+-- Problema encontrado:
+--   1. get_available_slots / get_occupied_slots: quando consultados por um
+--      barbeiro específico (p_barber_id), os bookings com barber_id NULL
+--      (bloqueios de horário, almoço, agendamentos legados) NÃO eram
+--      considerados → um horário bloqueado aparecia como LIVRE.
+--   2. criar_agendamento: dependia apenas do unique index parcial
+--      (date, time, barber_id) — bookings com barber_id NULL não conflitavam
+--      com barbeiros específicos, permitindo agendar em cima de bloqueio.
+--
+-- Correção: bookings globais (barber_id IS NULL) bloqueiam TODOS os barbeiros;
+-- bookings de um barbeiro bloqueiam apenas ele.
+-- =========================================================================
+
+
+-- ──────────────────────────────────────────────────────────────────────
+-- 1. get_available_slots — bloqueios globais bloqueiam todos os barbeiros
 -- ──────────────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION get_available_slots(p_date date, p_barber_id uuid DEFAULT NULL)
 RETURNS TABLE(slot_time text) AS $$
@@ -29,13 +230,7 @@ BEGIN
     IF p_date < CURRENT_DATE THEN RETURN; END IF;
     v_day_of_week := EXTRACT(DOW FROM p_date);
     v_day_key := v_day_of_week::text;
-    -- Horário do barbeiro (override) ou padrão global da barbearia
-    IF p_barber_id IS NOT NULL THEN
-        SELECT barber_hours INTO v_hours_json FROM barbers WHERE id = p_barber_id;
-    END IF;
-    IF v_hours_json IS NULL THEN
-        v_hours_json := (SELECT value::jsonb FROM settings WHERE key = 'barber_hours');
-    END IF;
+    v_hours_json := (SELECT value::jsonb FROM settings WHERE key = 'barber_hours');
     IF v_hours_json IS NOT NULL AND v_hours_json ? v_day_key THEN
         v_day_enabled := (v_hours_json->v_day_key->>'enabled')::boolean;
         IF v_day_enabled THEN
@@ -83,9 +278,29 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ──────────────────────────────────────────────────────────────────────
--- 3. criar_agendamento — validação de horário usa o override do barbeiro
---    (mesmo comportamento, apenas a fonte do horário muda)
+-- 2. get_occupied_slots — mesma correção
 -- ──────────────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION get_occupied_slots(p_date date, p_barber_id uuid DEFAULT NULL)
+RETURNS TABLE(booking_time time, status text) AS $$
+BEGIN
+    RETURN QUERY SELECT b.booking_time, b.status
+    FROM bookings b
+    WHERE b.booking_date = p_date
+    AND b.status != 'cancelled'
+    AND (
+        p_barber_id IS NOT NULL AND (b.barber_id = p_barber_id OR b.barber_id IS NULL)
+        OR p_barber_id IS NULL
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ──────────────────────────────────────────────────────────────────────
+-- 3. criar_agendamento — validação explícita de conflito por barbeiro
+-- ──────────────────────────────────────────────────────────────────────
+-- Dropar versões antigas para permitir CREATE OR REPLACE limpo.
+DROP FUNCTION IF EXISTS criar_agendamento(text, text, uuid[], date, time without time zone, numeric, integer, text);
+DROP FUNCTION IF EXISTS criar_agendamento(text, text, uuid[], date, time without time zone, numeric, integer, text, uuid);
+
 CREATE OR REPLACE FUNCTION criar_agendamento(
     p_cliente_nome text,
     p_cliente_telefone text,
@@ -158,13 +373,7 @@ BEGIN
     v_day_of_week := EXTRACT(DOW FROM p_data);
     v_day_key := v_day_of_week::text;
 
-    -- Horário do barbeiro (override) ou padrão global da barbearia
-    IF p_barber_id IS NOT NULL THEN
-        SELECT barber_hours INTO v_hours_json FROM barbers WHERE id = p_barber_id;
-    END IF;
-    IF v_hours_json IS NULL THEN
-        v_hours_json := (SELECT value::jsonb FROM settings WHERE key = 'barber_hours');
-    END IF;
+    v_hours_json := (SELECT value::jsonb FROM settings WHERE key = 'barber_hours');
 
     IF v_hours_json IS NOT NULL AND v_hours_json ? v_day_key THEN
         v_day_enabled := (v_hours_json->v_day_key->>'enabled')::boolean;
@@ -353,65 +562,42 @@ EXCEPTION
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- ──────────────────────────────────────────────────────────────────────
--- 4. upsert_barber — aceita working_days / barber_hours por barbeiro
---    (DROP antes para trocar a assinatura com segurança; re-grant de EXECUTE)
--- ──────────────────────────────────────────────────────────────────────
-DROP FUNCTION IF EXISTS upsert_barber(uuid, uuid, text, text, text, text, text, boolean, boolean, integer);
+-- Garante que a versão com rate limiting continua chamando a função correta
+DROP FUNCTION IF EXISTS criar_agendamento_rate_limited(text, text, uuid[], date, time without time zone, numeric, integer, text, uuid, numeric, uuid);
 
-CREATE FUNCTION upsert_barber(
-    p_id uuid DEFAULT NULL,
-    p_user_id uuid DEFAULT NULL,
-    p_name text DEFAULT NULL,
-    p_phone text DEFAULT NULL,
-    p_photo_url text DEFAULT NULL,
-    p_bio text DEFAULT NULL,
-    p_quote text DEFAULT NULL,
-    p_is_active boolean DEFAULT true,
-    p_is_owner boolean DEFAULT false,
-    p_sort_order integer DEFAULT 0,
-    p_working_days jsonb DEFAULT NULL,
-    p_barber_hours jsonb DEFAULT NULL,
-    p_use_default_hours boolean DEFAULT false
-) RETURNS uuid AS $$
+CREATE OR REPLACE FUNCTION criar_agendamento_rate_limited(
+    p_cliente_nome text,
+    p_cliente_telefone text,
+    p_servicos uuid[],
+    p_data date,
+    p_hora time,
+    p_preco_total decimal,
+    p_duracao_total integer,
+    p_cliente_email text DEFAULT NULL,
+    p_coupon_id uuid DEFAULT NULL,
+    p_discount_amount decimal DEFAULT 0,
+    p_barber_id uuid DEFAULT NULL
+)
+RETURNS jsonb AS $$
 DECLARE
-    v_barber_id uuid;
+    v_client_id uuid;
 BEGIN
-    IF NOT is_admin() THEN
-        RAISE EXCEPTION 'Apenas administradores podem gerenciar barbeiros';
+    IF NOT check_rate_limit('criar_agendamento', 3, 60) THEN
+        RAISE EXCEPTION 'Muitas tentativas. Aguarde 1 minuto e tente novamente.';
     END IF;
 
-    IF p_id IS NOT NULL THEN
-        UPDATE barbers SET
-            name = COALESCE(p_name, name),
-            phone = COALESCE(p_phone, phone),
-            photo_url = COALESCE(p_photo_url, photo_url),
-            bio = COALESCE(p_bio, bio),
-            quote = COALESCE(p_quote, quote),
-            is_active = COALESCE(p_is_active, is_active),
-            is_owner = COALESCE(p_is_owner, is_owner),
-            sort_order = COALESCE(p_sort_order, sort_order),
-            working_days = COALESCE(p_working_days, working_days),
-            -- p_use_default_hours = true → volta ao horário padrão da barbearia
-            barber_hours = CASE
-                WHEN p_use_default_hours THEN NULL
-                ELSE COALESCE(p_barber_hours, barber_hours)
-            END
-        WHERE id = p_id
-        RETURNING id INTO v_barber_id;
-    ELSE
-        INSERT INTO barbers (user_id, name, phone, photo_url, bio, quote, is_active, is_owner, sort_order, working_days, barber_hours)
-        VALUES (
-            p_user_id, p_name, p_phone, p_photo_url, p_bio, p_quote,
-            p_is_active, p_is_owner, p_sort_order,
-            p_working_days,
-            CASE WHEN p_use_default_hours THEN NULL ELSE p_barber_hours END
-        )
-        RETURNING id INTO v_barber_id;
+    SELECT id INTO v_client_id FROM clients WHERE phone = p_cliente_telefone LIMIT 1;
+    IF v_client_id IS NOT NULL THEN
+        PERFORM check_client_no_show_block(v_client_id);
     END IF;
 
-    RETURN v_barber_id;
+    RETURN criar_agendamento(
+        p_cliente_nome, p_cliente_telefone, p_servicos,
+        p_data, p_hora, p_preco_total, p_duracao_total, p_cliente_email,
+        p_coupon_id, p_barber_id
+    );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-GRANT EXECUTE ON FUNCTION upsert_barber(uuid, uuid, text, text, text, text, text, boolean, boolean, integer, jsonb, jsonb, boolean) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION criar_agendamento(text, text, uuid[], date, time without time zone, numeric, integer, text, uuid, uuid) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION criar_agendamento_rate_limited(text, text, uuid[], date, time without time zone, numeric, integer, text, uuid, numeric, uuid) TO anon, authenticated;

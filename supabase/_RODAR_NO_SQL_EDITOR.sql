@@ -1,10 +1,21 @@
 -- =========================================================================
--- BLACK DIAMOND — TODAS AS MIGRATIONS CONSOLIDADAS (001_schema_rls.sql → 019_client_supabase_auth.sql)
+-- BLACK DIAMOND — TODAS AS MIGRATIONS CONSOLIDADAS (001_schema_core.sql → 007_remove_assinaturas_pix.sql)
 -- =========================================================================
 -- Arquivo gerado por scripts/regenerate-mega.mjs a partir de
 -- supabase/migrations/*.sql. Cole TUDO no SQL Editor do Supabase.
 -- =========================================================================
 
+
+-- >>> MIGRATION: 001_schema_core.sql <<<
+
+-- =========================================================================
+-- BLACK DIAMOND - 001 SCHEMA CORE
+-- SCHEMA + FUNÇÕES + TRIGGERS + CRON
+-- =========================================================================
+-- Consolidado de: 001_schema_rls.sql, 002_functions_triggers.sql
+-- Unificado na consolidação 2026-08-15 — conteúdo preservado na ordem
+-- original de execução (idempotente, CREATE OR REPLACE / IF NOT EXISTS).
+-- =========================================================================
 
 -- >>> MIGRATION: 001_schema_rls.sql <<<
 
@@ -1564,6 +1575,17 @@ SELECT cron.schedule('monthly-cleanup', '0 5 1 * *', $$ SELECT cleanup_old_data(
 -- 6. Relatorio semanal (domingo, 23h)
 SELECT cron.schedule('weekly-report', '0 23 * * 0', $$ SELECT send_weekly_report() $$);
 
+-- >>> MIGRATION: 002_multi_barber_pagamentos.sql <<<
+
+-- =========================================================================
+-- BLACK DIAMOND - 002 MULTI BARBER PAGAMENTOS
+-- MULTI-BARBEIRO + ASSINATURAS/PIX
+-- =========================================================================
+-- Consolidado de: 003_features_fixes.sql, 004_subscriptions_pix.sql
+-- Unificado na consolidação 2026-08-15 — conteúdo preservado na ordem
+-- original de execução (idempotente, CREATE OR REPLACE / IF NOT EXISTS).
+-- =========================================================================
+
 -- >>> MIGRATION: 003_features_fixes.sql <<<
 
 -- =========================================================================
@@ -1618,17 +1640,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_no_double_booking_legacy
     ON bookings(booking_date, booking_time)
     WHERE status IN ('pending', 'confirmed') AND barber_id IS NULL;
 
--- 4. TABELA barber_settings (horarios por barbeiro)
-CREATE TABLE IF NOT EXISTS barber_settings (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    barber_id UUID NOT NULL,
-    key TEXT NOT NULL,
-    value TEXT NOT NULL,
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(barber_id, key)
-);
-
-CREATE INDEX IF NOT EXISTS idx_barber_settings_barber_id ON barber_settings(barber_id);
+-- 4. (removido) Tabela barber_settings foi dropada na limpeza — o app usa
+-- settings.barber_hours e barbers.barber_hours (ver migrations 015+).
 
 -- 5. RLS PARA barbers
 ALTER TABLE barbers ENABLE ROW LEVEL SECURITY;
@@ -1643,18 +1656,7 @@ CREATE POLICY "Barbeiros gerenciamento admin" ON barbers
     USING (is_admin())
     WITH CHECK (is_admin());
 
--- 6. RLS PARA barber_settings
-ALTER TABLE barber_settings ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Barber settings leitura publica" ON barber_settings;
-CREATE POLICY "Barber settings leitura publica" ON barber_settings
-    FOR SELECT USING (true);
-
-DROP POLICY IF EXISTS "Barber settings gerenciamento admin" ON barber_settings;
-CREATE POLICY "Barber settings gerenciamento admin" ON barber_settings
-    FOR ALL TO authenticated
-    USING (is_admin())
-    WITH CHECK (is_admin());
+-- 6. (removido) RLS de barber_settings — tabela dropada na limpeza.
 
 -- 7. RPC: get_barbers
 CREATE OR REPLACE FUNCTION get_barbers()
@@ -2838,6 +2840,17 @@ GRANT EXECUTE ON FUNCTION criar_agendamento_rate_limited(text, text, uuid[], dat
 -- causava ambiguidade na resolução de named parameters pelo Supabase RPC.
 DROP FUNCTION IF EXISTS public.criar_agendamento_rate_limited(uuid, text, text, text, uuid, date, numeric, integer, time, numeric, uuid[]);
 
+-- >>> MIGRATION: 003_auditoria_rls.sql <<<
+
+-- =========================================================================
+-- BLACK DIAMOND - 003 AUDITORIA RLS
+-- PERFORMANCE/AUDITORIA + RLS ESTRITO
+-- =========================================================================
+-- Consolidado de: 005_performance_auditoria.sql, 006_rls_estricto.sql
+-- Unificado na consolidação 2026-08-15 — conteúdo preservado na ordem
+-- original de execução (idempotente, CREATE OR REPLACE / IF NOT EXISTS).
+-- =========================================================================
+
 -- >>> MIGRATION: 005_performance_auditoria.sql <<<
 
 -- =========================================================================
@@ -3283,13 +3296,13 @@ SELECT cron.schedule('verificar-mensalistas', '0 8 * * *', $$ SELECT verificar_m
 DROP FUNCTION IF EXISTS is_client_blocked_by_no_show(uuid);
 
 -- =========================================================================
--- DOCUMENTACAO: Tabelas expenses e recurring_expenses
+-- HISTORICO: Tabelas expenses e recurring_expenses
 -- =========================================================================
--- Estas tabelas existem no banco de producao (criadas manualmente no SQL Editor)
--- mas nao possuem migration correspondente. Mantidas para compatibilidade.
--- Caso nao sejam mais uteis, podem ser dropadas com:
---   DROP TABLE IF EXISTS expenses CASCADE;
---   DROP TABLE IF EXISTS recurring_expenses CASCADE;
+-- Existiam no banco de producao (criadas manualmente no SQL Editor, sem
+-- migration correspondente) e foram DROPADAS na limpeza de 2026-08-15
+-- junto com barber_commissions, barber_schedules, barber_settings,
+-- fixed_expenses, loyalty_config e system_settings (tabelas sem uso no app).
+-- Backup em scripts/backup-tabelas-mortas.json.
 -- =========================================================================
 
 -- =========================================================================
@@ -3579,6 +3592,17 @@ GRANT EXECUTE ON FUNCTION public.check_client_no_show_block(uuid) TO anon, authe
 --    SELECT public.get_client_dashboard('31999999999');              -- ok
 --    RESET ROLE;
 -- ──────────────────────────────────────────────────────────────────────
+
+-- >>> MIGRATION: 004_escopo_barbeiro_acesso.sql <<<
+
+-- =========================================================================
+-- BLACK DIAMOND - 004 ESCOPO BARBEIRO ACESSO
+-- ESCOPO POR BARBEIRO + ACESSO PÚBLICO SEGURO
+-- =========================================================================
+-- Consolidado de: 011_barber_scope_rls.sql, 012_secure_bookings_public_access.sql, 013_barber_availability_fix.sql
+-- Unificado na consolidação 2026-08-15 — conteúdo preservado na ordem
+-- original de execução (idempotente, CREATE OR REPLACE / IF NOT EXISTS).
+-- =========================================================================
 
 -- >>> MIGRATION: 011_barber_scope_rls.sql <<<
 
@@ -4174,6 +4198,17 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 GRANT EXECUTE ON FUNCTION criar_agendamento(text, text, uuid[], date, time without time zone, numeric, integer, text, uuid, uuid) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION criar_agendamento_rate_limited(text, text, uuid[], date, time without time zone, numeric, integer, text, uuid, numeric, uuid) TO anon, authenticated;
+
+-- >>> MIGRATION: 005_conta_cliente_v2.sql <<<
+
+-- =========================================================================
+-- BLACK DIAMOND - 005 CONTA CLIENTE V2
+-- CONTA DO CLIENTE V2 (LOGIN, HORÁRIOS, RECUPERAÇÃO, E-MAIL)
+-- =========================================================================
+-- Consolidado de: 014_login_contas.sql, 015_barber_hours.sql, 016_conta_cliente_recuperacao.sql, 017_conta_cliente_email_dashboard.sql
+-- Unificado na consolidação 2026-08-15 — conteúdo preservado na ordem
+-- original de execução (idempotente, CREATE OR REPLACE / IF NOT EXISTS).
+-- =========================================================================
 
 -- >>> MIGRATION: 014_login_contas.sql <<<
 
@@ -5279,6 +5314,17 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.get_client_dashboard(text) TO anon, authenticated;
 
+-- >>> MIGRATION: 006_agenda_duration_auth.sql <<<
+
+-- =========================================================================
+-- BLACK DIAMOND - 006 AGENDA DURATION AUTH
+-- CONFLITO POR DURAÇÃO + SUPABASE AUTH
+-- =========================================================================
+-- Consolidado de: 018_duration_overlap.sql, 019_client_supabase_auth.sql
+-- Unificado na consolidação 2026-08-15 — conteúdo preservado na ordem
+-- original de execução (idempotente, CREATE OR REPLACE / IF NOT EXISTS).
+-- =========================================================================
+
 -- >>> MIGRATION: 018_duration_overlap.sql <<<
 
 -- =========================================================================
@@ -5934,3 +5980,35 @@ CREATE POLICY "Bookings update client or admin" ON public.bookings
 GRANT EXECUTE ON FUNCTION public.sync_client_user(text, text, text) TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION public.get_my_client_profile() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_my_client_bookings() TO authenticated;
+
+-- >>> MIGRATION: 007_remove_assinaturas_pix.sql <<<
+
+-- =========================================================================
+-- BLACK DIAMOND - 007 - REMOÇÃO DO SISTEMA DE ASSINATURAS/PIX
+-- =========================================================================
+-- O sistema de assinaturas mensais com pagamento PIX (Asaas) foi removido
+-- (2026-08-15). Esta migration dropa tabelas, funções, trigger e cron
+-- relacionados. Dados antigos: scripts/backup-assinaturas-pix.json.
+-- =========================================================================
+
+-- Cron: limpar assinaturas antigas (job #9)
+SELECT cron.unschedule(9) WHERE EXISTS (SELECT 1 FROM cron.job WHERE jobid = 9);
+
+-- Trigger que criava assinatura automática ao inserir barbeiro
+DROP TRIGGER IF EXISTS trg_auto_create_subscription ON public.barbers;
+
+-- Tabelas
+DROP TABLE IF EXISTS public.subscriptions CASCADE;
+DROP TABLE IF EXISTS public.payment_logs CASCADE;
+DROP TABLE IF EXISTS public.payment_blocked_users CASCADE;
+
+-- Funções
+DROP FUNCTION IF EXISTS public.auto_create_subscription;
+DROP FUNCTION IF EXISTS public.check_login_allowed;
+DROP FUNCTION IF EXISTS public.check_subscription_status;
+DROP FUNCTION IF EXISTS public.get_payment_history;
+DROP FUNCTION IF EXISTS public.update_subscription_paid;
+DROP FUNCTION IF EXISTS public.limpar_subscriptions_antigas;
+
+-- Setting da chave PIX do proprietário (só era usada pelas assinaturas)
+DELETE FROM public.settings WHERE key = 'owner_pix_key';

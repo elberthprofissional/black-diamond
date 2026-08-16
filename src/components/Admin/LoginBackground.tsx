@@ -1,109 +1,84 @@
-import { motion } from 'framer-motion';
-import { CalendarDays, Scissors, Clock3 } from 'lucide-react';
-import { useBarberSettings } from '../../hooks/useBarberSettings';
+/**
+ * Fundo premium 100% CSS para as telas de login — mesmo DNA do
+ * BookingPreScreen aprovado: veludo escuro com virada quente,
+ * spotlight dourado, orbs de brilho, feixe de luz, grid de luxo,
+ * brasas subindo e grão de filme. Sem depender de foto de fundo.
+ */
 
-interface LoginBackgroundProps {
-  subtitle?: string;
-}
+const EMBERS = [
+  { left: '8%', size: 3, duration: 13, delay: 0, opacity: 0.5, drift: '40px' },
+  { left: '22%', size: 2, duration: 10, delay: 2.5, opacity: 0.35, drift: '-28px' },
+  { left: '38%', size: 3, duration: 14, delay: 1.2, opacity: 0.45, drift: '52px' },
+  { left: '55%', size: 2, duration: 9, delay: 4.0, opacity: 0.3, drift: '-36px' },
+  { left: '72%', size: 3, duration: 12, delay: 0.8, opacity: 0.5, drift: '32px' },
+  { left: '88%', size: 2, duration: 11, delay: 3.3, opacity: 0.4, drift: '-24px' },
+] as const;
 
-export default function LoginBackground({ subtitle }: LoginBackgroundProps) {
-  const { brandName, brandColor } = useBarberSettings();
-  const displayName = brandName || 'Black Diamond';
-  const tagline =
-    subtitle ?? 'Corte, barba e tratamento exclusivo. Reserve seu horário em poucos toques.';
-
-  const highlights = [
-    {
-      icon: CalendarDays,
-      title: 'Agendamento rápido & sem filas',
-      desc: 'Veja os horários livres em tempo real e garanta sua cadeira na barbearia.',
-    },
-    {
-      icon: Scissors,
-      title: 'Histórico & Preferências',
-      desc: 'Seus serviços e cortes anteriores salvos para o próximo atendimento.',
-    },
-    {
-      icon: Clock3,
-      title: 'Total autonomia no seu celular',
-      desc: 'Consulte, altere ou cancele seu horário sempre que precisar.',
-    },
-  ];
-
+export default function LoginBackground() {
   return (
-    <div className="hidden lg:flex lg:w-[52%] h-full relative overflow-hidden bg-[#070707] border-r border-white/[0.08]">
-      {/* Background imagery with rich tone */}
-      <motion.div
-        initial={{ scale: 1.03 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 1.8, ease: 'easeOut' }}
+    <div
+      className="fixed inset-0 pointer-events-none select-none overflow-hidden"
+      aria-hidden="true"
+    >
+      {/* Deep Dark Base */}
+      <div className="absolute inset-0 bg-radial from-[#120d06] via-[#080808] to-[#030303]" />
+
+      {/* Minimal base — dark velvet com leve virada quente */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0a0906] via-[#060605] to-[#030303]" />
+      <div className="absolute inset-0 bg-gold/[0.03]" />
+
+      {/* Central Gold Spotlight Effect — suave */}
+      <div
+        className="absolute top-[6%] left-1/2 -translate-x-1/2 w-[540px] sm:w-[720px] h-[400px] sm:h-[520px] rounded-full bg-gradient-to-b from-gold/[0.10] via-gold/[0.03] to-transparent blur-[110px] opacity-80"
+        style={{ animation: 'spotlight-drift 18s ease-in-out infinite' }}
+      />
+
+      {/* Dynamic Glow Orbs */}
+      <div className="absolute top-[35%] -left-40 w-[360px] h-[360px] rounded-full bg-[#8B6914]/[0.06] blur-[120px] animate-pulse" />
+      <div className="absolute bottom-[12%] -right-40 w-[400px] h-[400px] rounded-full bg-gold/[0.05] blur-[130px]" />
+
+      {/* Sweeping light beam — lens flare dourado */}
+      <div className="light-beam" />
+
+      {/* Subtle Luxury Grid Overlay */}
+      <div
+        className="absolute inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, #d4af37 1px, transparent 1px), linear-gradient(to bottom, #d4af37 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+        }}
+      />
+
+      {/* Vignette Layer for Focus */}
+      <div
         className="absolute inset-0"
-      >
-        <img
-          src="/assets/login.webp"
-          alt="Barbearia Black Diamond"
-          loading="lazy"
-          decoding="async"
-          className="w-full h-full object-cover grayscale opacity-30 mix-blend-luminosity"
+        style={{
+          background: 'radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.85) 100%)',
+        }}
+      />
+
+      {/* Film grain — textura cinematográfica */}
+      <div className="film-grain" />
+
+      {/* Animated Gold Embers */}
+      {EMBERS.map((ember, i) => (
+        <span
+          key={i}
+          className="ember"
+          style={
+            {
+              left: ember.left,
+              width: ember.size,
+              height: ember.size,
+              animationDuration: `${ember.duration}s`,
+              animationDelay: `${ember.delay}s`,
+              '--ember-drift': ember.drift,
+              '--ember-opacity': ember.opacity,
+            } as React.CSSProperties
+          }
         />
-      </motion.div>
-
-      {/* Modern gradient scrims */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#070707] via-[#070707]/80 to-[#070707]/30" />
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#070707]/40 to-[#070707]" />
-
-      <div className="relative z-10 w-full h-full flex flex-col justify-between p-12 xl:p-20">
-        {/* Brand header */}
-        <div className="flex items-center gap-3">
-          <div
-            className="w-2.5 h-2.5 rounded-full"
-            style={{ backgroundColor: brandColor || '#D4AF37' }}
-          />
-          <span className="text-[12px] font-bold tracking-[0.25em] text-zinc-400 uppercase">
-            {displayName}
-          </span>
-        </div>
-
-        {/* Hero Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.7 }}
-          className="space-y-10 max-w-lg my-auto"
-        >
-          <div className="space-y-4">
-            <h2 className="text-5xl xl:text-6xl font-bebas tracking-wide text-white leading-[0.95] uppercase">
-              Seu estilo em <br />
-              <span style={{ color: brandColor || '#D4AF37' }}>primeiro lugar.</span>
-            </h2>
-            <p className="text-sm text-zinc-400 font-normal leading-relaxed max-w-md">{tagline}</p>
-          </div>
-
-          {/* Real customer highlights */}
-          <div className="space-y-5 pt-6 border-t border-white/10">
-            {highlights.map((item, idx) => {
-              const IconComp = item.icon;
-              return (
-                <div key={idx} className="flex items-start gap-4 group">
-                  <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center shrink-0 mt-0.5 group-hover:border-amber-400/40 transition-colors">
-                    <IconComp size={18} className="text-amber-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-[14px] font-semibold text-zinc-200">{item.title}</h3>
-                    <p className="text-[12px] text-zinc-400 leading-relaxed mt-0.5">{item.desc}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </motion.div>
-
-        {/* Footer info */}
-        <div className="text-[12px] text-zinc-500 font-medium flex items-center justify-between border-t border-white/[0.06] pt-6">
-          <span>Atendimento com excelência</span>
-          <span>{displayName}</span>
-        </div>
-      </div>
+      ))}
     </div>
   );
 }

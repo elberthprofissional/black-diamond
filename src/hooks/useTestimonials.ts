@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Testimonial } from '../types';
 import * as api from '../lib/api/testimonials';
 
-export const testimonialsQueryKey = ['testimonials'] as const;
+const testimonialsQueryKey = ['testimonials'] as const;
 
 interface UseTestimonialsReturn {
   testimonials: Testimonial[];

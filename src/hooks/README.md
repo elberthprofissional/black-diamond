@@ -4,11 +4,11 @@ Hooks customizados do projeto organizados por categoria.
 
 ## Booking
 
-### `useBookingWizard`
-Hook principal que gerencia todo o fluxo de agendamento do cliente.
+### `BookingWizardContext`
+Contexto principal que gerencia todo o fluxo de agendamento do cliente (4 etapas: Dados → Serviços → Data/Hora → Revisão).
 
 ```tsx
-const { step, services, selectedServices, toggleService, goNext, goBack } = useBookingWizard(showError);
+const { step, services, selectedServices, toggleService, goNext, goBack } = useBookingWizardContext();
 ```
 
 **Retorna:** step atual, serviços, seleção, navegação, preços, disponibilidade.

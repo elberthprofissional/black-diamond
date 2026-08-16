@@ -92,6 +92,12 @@ export function useBookingSlots(
     setSelectedTime('');
     if (selectedDate) {
       let active = true;
+      // Ao trocar de data, limpa IMEDIATAMENTE os dados da data anterior.
+      // Sem isso, os horários antigos continuam visíveis até o novo fetch
+      // resolver (e o usuário seleciona um horário da data ERRADA, que depois
+      // some quando os dados reais chegam).
+      setAvailableSlots([]);
+      setExistingBookings([]);
       const loadData = async () => {
         try {
           const [bookingsResult, slotsData] = await Promise.all([

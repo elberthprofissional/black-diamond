@@ -11,7 +11,7 @@ export type { Notification } from '../types';
 
 // ─── Query Key ────────────────────────────────────────────────────────────
 
-export const notificationsQueryKey = ['notifications'] as const;
+const notificationsQueryKey = ['notifications'] as const;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
