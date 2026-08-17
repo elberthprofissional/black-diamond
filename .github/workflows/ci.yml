@@ -54,24 +54,10 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Run unit tests with coverage
+        # O vitest já aplica os thresholds configurados em vite.config.ts
+        # (coverage.thresholds) e falha com exit code != 0 se não baterem —
+        # não há checagem manual duplicada aqui.
         run: npm run test:run -- --coverage
-      - name: Check coverage thresholds
-        run: |
-          COVERAGE_FILE="coverage/coverage-summary.json"
-          if [ -f "$COVERAGE_FILE" ]; then
-            LINES=$(node -e "const c=require('$COVERAGE_FILE');console.log(c.total.lines.pct)" 2>/dev/null || echo "0")
-            STATEMENTS=$(node -e "const c=require('$COVERAGE_FILE');console.log(c.total.statements.pct)" 2>/dev/null || echo "0")
-            FUNCTIONS=$(node -e "const c=require('$COVERAGE_FILE');console.log(c.total.functions.pct)" 2>/dev/null || echo "0")
-            BRANCHES=$(node -e "const c=require('$COVERAGE_FILE');console.log(c.total.branches.pct)" 2>/dev/null || echo "0")
-            echo "Coverage: Lines=${LINES}% Statements=${STATEMENTS}% Functions=${FUNCTIONS}% Branches=${BRANCHES}%"
-            if (( $(echo "$LINES < 70" | bc -l) )); then echo "❌ Lines coverage below 70%"; exit 1; fi
-            if (( $(echo "$STATEMENTS < 70" | bc -l) )); then echo "❌ Statements coverage below 70%"; exit 1; fi
-            if (( $(echo "$FUNCTIONS < 70" | bc -l) )); then echo "❌ Functions coverage below 70%"; exit 1; fi
-            if (( $(echo "$BRANCHES < 70" | bc -l) )); then echo "❌ Branches coverage below 70%"; exit 1; fi
-            echo "✅ All coverage thresholds met!"
-          else
-            echo "⚠️ Coverage summary not found, skipping threshold check"
-          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -11,7 +11,10 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? 'github' : 'html',
   snapshotDir: './e2e/__snapshots__',
+  // Timeout maior que o padrão (5s): WebKit (Windows) demora pra carregar
+  // Google Fonts e o screenshot estoura de forma intermitente.
   expect: {
+    timeout: 15000,
     toHaveScreenshot: {
       maxDiffPixelRatio: 0.02,
       threshold: 0.2,

@@ -92,7 +92,7 @@ Sistema completo de agendamento online para barbearias, com painel administrativ
 ### Visao Geral do Projeto
 O Black Diamond foi projetado para ser **universal** — pronto para qualquer barbearia. O projeto inclui:
 - `DEPLOY_GUIDE.md` — Guia passo a passo para deploy em novas barbearias
-- `supabase/migrations/` — Migrations (8 arquivos: schema, rls, functions, triggers, seed, cron + remoção assinaturas + galeria barber_id)
+- `supabase/migrations/` — Migrations (11 arquivos: schema, rls, functions, triggers, seed, cron + remoção assinaturas + galeria barber_id + google linking + cupons resgatados + vitrine pública)
 - `supabase/seeds/` — Dados iniciais (depoimentos, etc)
 - Placeholder generico na secao About (sem foto fixa do Tato)
 - Sentry para error reporting em producao
@@ -142,8 +142,6 @@ Erros → Sentry (error reporting automatico)
 - `DashboardHeader` — Card de proximo cliente e lucro do dia
 - `SettingsGaleria` — Gerenciamento de galeria com multi-select e preview
 - `ForgotPasswordModal` — Modal de recuperacao de senha
-- `LoginBackground` — Background do login desktop
-- `LoginHeader` — Header do login
 - `LoginForm` — Formulario de login
 - `LoginToast` — Toast do login
 
@@ -226,7 +224,7 @@ No Settings > Conta, ao clicar na foto de perfil abre um popover com opcoes:
 - `useIsDesktop` — Deteccao de dispositivo
 
 ### Gerenciamento de Estado
-O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto via `AuthGuard`, e o estado compartilhado usa Context API + hooks customizados.
+O projeto removeu as stores Zustand. Autenticação usa `supabase.auth` direto via `AuthGuard`, e o estado de dados usa **TanStack React Query** (hooks `useQuery`/`useMutation` em `useBookings`, `useClientsData`, `useNotifications`, `useServices`, `useTestimonials`, entre outros) + Context API + hooks customizados para UI.
 
 ---
 
@@ -323,7 +321,7 @@ Schema completo: `supabase/migrations/` (migrations consolidadas)
 
 ### Migrations
 
-O projeto usa **8 migrations** em `supabase/migrations/` (6 consolidadas + 1 de remocao + 1 nova). Cada arquivo preserva os marcadores `-- >>> MIGRATION:` das migrations originais — veja `supabase/migrations/README.md` para o mapeamento completo.
+O projeto usa **11 migrations** em `supabase/migrations/` (6 consolidadas + 1 de remocao + 3 novas + 1 de google linking). Cada arquivo preserva os marcadores `-- >>> MIGRATION:` das migrations originais — veja `supabase/migrations/README.md` para o mapeamento completo.
 
 | Arquivo | Conteudo |
 |---------|----------|
@@ -336,7 +334,7 @@ O projeto usa **8 migrations** em `supabase/migrations/` (6 consolidadas + 1 de 
 | `007_remove_assinaturas_pix.sql` | **Remocao (2026-08-15):** dropa o sistema de assinaturas/PIX (subscriptions, payment_logs, payment_blocked_users e funcoes relacionadas) |
 | `008_gallery_barber_id.sql` | **Galeria (2026-08-16):** adiciona coluna `barber_id` na tabela `gallery_images` para filtrar fotos por barbeiro |
 
-> **Nota:** Para rodar tudo de uma vez, cole `supabase/_RODAR_NO_SQL_EDITOR.sql` no SQL Editor (contem as 8 migrations concatenadas em ordem).
+> **Nota:** Para rodar tudo de uma vez, cole `supabase/_RODAR_NO_SQL_EDITOR.sql` no SQL Editor (contem as 11 migrations concatenadas em ordem).
 
 > **Nota (v3.36.0):** A tabela `barbers` e a funcionalidade de multi-barbeiro foram mantidas. A etapa de selecao de barbeiro no fluxo publico so aparece com mais de um barbeiro ativo; o escopo por barbeiro no banco e garantido pela migration `004_escopo_barbeiro_acesso.sql`. A rota `/barber` (painel do funcionario) continua fora do app.
 
@@ -720,8 +718,6 @@ Black Diamond/
 │   │   │   ├── AuthGuard.tsx
 │   │   │   ├── BottomTabs.tsx
 │   │   │   ├── ForgotPasswordModal.tsx  # Modal de recuperacao de senha
-│   │   │   ├── LoginBackground.tsx      # Background do login desktop
-│   │   │   ├── LoginHeader.tsx          # Header do login
 │   │   │   ├── LoginForm.tsx            # Formulario de login
 │   │   │   ├── LoginToast.tsx           # Toast do login
 │   │   │   ├── Navbar.tsx
@@ -895,7 +891,7 @@ Black Diamond/
 │   └── vite-env.d.ts           # Tipos globais (Window, Navigator)
 ├── supabase/
 │   ├── seeds/                  # Dados iniciais (depoimentos)
-│   ├── migrations/             # Migrations (8 arquivos)
+│   ├── migrations/             # Migrations (11 arquivos)
 │   │   ├── 001_schema_core.sql          # Schema base + RPCs + triggers + seeds + cron
 │   │   ├── 002_multi_barber_pagamentos.sql # Multi-barbeiro + pagamentos
 │   │   ├── 003_auditoria_rls.sql        # Performance + auditoria + RLS estrito
@@ -989,8 +985,8 @@ O CI bloqueia merge se a cobertura ficar abaixo de 70%:
 
 ### Cobertura atual
 
-- **116 arquivos de teste**
-- **1211 testes** (unit + E2E)
+- **114 arquivos de teste**
+- **1181 testes** (unit + E2E)
 - Hooks, Utils, API, Componentes e Paginas cobertos
 - CI/CD com GitHub Actions: lint → test:coverage → typecheck → build
 - **Coverage minimo:** 70% (statements, branches, functions, lines)

@@ -14,9 +14,12 @@ test.describe('Acessibilidade - Home Page', () => {
 
   test('skip link funciona com navegação por teclado', async ({ page }) => {
     await page.goto('/');
-    await page.keyboard.press('Tab');
 
+    // Espera o React montar o app antes de navegar por teclado — senão o Tab
+    // é pressionado com a página ainda vazia e o foco nunca chega no skip link.
     const skipLink = page.locator('.skip-link');
+    await expect(skipLink).toBeAttached();
+    await page.keyboard.press('Tab');
     await expect(skipLink).toBeFocused();
   });
 

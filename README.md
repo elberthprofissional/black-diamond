@@ -245,7 +245,7 @@ Decisões de arquitetura documentadas em [`docs/adr/`](docs/adr/):
 
 | Tipo | Framework | Status |
 |------|-----------|--------|
-| **Unitários** | Vitest | 1211 testes em 116 arquivos |
+| **Unitários** | Vitest | 1181 testes em 114 arquivos |
 | **Integração** | Vitest + Supabase mock | APIs |
 | **E2E** | Playwright | Fluxos críticos |
 | **Visual** | Playwright | Screenshots responsivos |

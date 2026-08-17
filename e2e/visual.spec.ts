@@ -16,6 +16,19 @@ const mobile = { viewport: { width: 375, height: 667 } };
 // Tablet viewport (768x1024)
 const tablet = { viewport: { width: 768, height: 1024 } };
 
+// Seções animadas (marquee da galeria, slider de depoimentos, hover effects)
+// nunca "estabilizam" — cada screenshot sai num frame diferente e o teste
+// falha de forma intermitente. Congela animações/transições em todo o DOM
+// ANTES do carregamento, deixando os screenshots determinísticos.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    const style = document.createElement('style');
+    style.textContent =
+      '*, *::before, *::after { animation: none !important; animation-play-state: paused !important; transition: none !important; }';
+    document.head.appendChild(style);
+  });
+});
+
 test.describe('Regressao visual — Paginas publicas', () => {
   // O slider de depoimentos tem autoplay (JS setInterval de 4s) que o
   // Playwright não desabilita automaticamente — faz o screenshot nunca
@@ -128,7 +141,8 @@ test.describe('Regressao visual — Admin', () => {
     await page.fill('[data-testid="input-email"]', 'erro@test.com');
     await page.fill('[data-testid="input-password"]', 'senha_errada');
     await page.click('[data-testid="btn-login"]');
-    await page.waitForTimeout(2000);
+    // Espera o erro real chegar da rede (tempo variável) em vez de espera fixa
+    await expect(page.getByText(/incorret|erro/i)).toBeVisible();
     await expect(page).toHaveScreenshot('admin-login-erro.png', { fullPage: true });
   });
 
@@ -258,7 +272,11 @@ test.describe('Regressao visual — Componentes', () => {
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await page.waitForTimeout(1000);
     const location = page.locator('#localizacao');
-    await expect(location).toHaveScreenshot('location-section.png');
+    // O iframe do Google Maps carrega tiles de forma assíncrona e dependente
+    // de rede — mascarado pra screenshot determinístico.
+    await expect(location).toHaveScreenshot('location-section.png', {
+      mask: [page.locator('#localizacao iframe')],
+    });
   });
 
   test('Testimonials section', async ({ page }) => {
