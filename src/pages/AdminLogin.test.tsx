@@ -29,6 +29,9 @@ vi.mock('../lib/supabase', () => ({
   supabase: {
     auth: {
       getSession: (...args: unknown[]) => mockGetSession(...args),
+      onAuthStateChange: vi
+        .fn()
+        .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
       signInWithPassword: (...args: unknown[]) => mockSignIn(...args),
       resetPasswordForEmail: (...args: unknown[]) => mockResetPassword(...args),
     },
