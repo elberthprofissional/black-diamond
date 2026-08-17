@@ -7,6 +7,7 @@ import {
   Scissors,
   Loader2,
   AlertTriangle,
+  ArrowLeft,
   CalendarCheck,
   TrendingUp,
   CreditCard,
@@ -23,11 +24,14 @@ import {
   Download,
   Smartphone,
   User,
+  Tag,
 } from 'lucide-react';
+import ClientProfileCoupons from './ClientProfileCoupons';
+import LogoutConfirmModal from './Admin/profile/LogoutConfirmModal';
 import { formatPhone, formatDateBR, formatPrice } from '../lib/utils';
 import { usePwaInstall } from '../hooks/usePwaInstall';
 import type { BookingEntry, ClientStats, MensalistaInfo } from './ClientProfileTypes';
-import type { Coupon, MilestoneProgress } from '../types';
+import type { Coupon, MilestoneProgress, RedeemedCoupon } from '../types';
 
 // ─── Props ───
 
@@ -47,6 +51,10 @@ interface ClientProfileDashboardProps {
   isLimitedAccess: boolean;
   milestones: MilestoneProgress[];
   coupons: Coupon[];
+  couponsError: string;
+  redeemedCoupons: RedeemedCoupon[];
+  redeemingCode: string;
+  onRedeem: (code: string) => Promise<string | null>;
   onLogout: () => void;
   onCancel: (booking: BookingEntry) => void;
   onReschedule: (booking: BookingEntry) => void;
@@ -56,7 +64,7 @@ interface ClientProfileDashboardProps {
 
 // ─── Sidebar Nav Item (admin-style with gold indicator) ───
 
-type NavTab = 'dashboard' | 'history' | 'settings';
+type NavTab = 'dashboard' | 'coupons' | 'history' | 'settings';
 
 const SidebarNavItem: FC<{
   icon: typeof Calendar;
@@ -344,6 +352,213 @@ const HistoryItem: FC<{ booking: BookingEntry; onRebook: () => void }> = memo(
 );
 HistoryItem.displayName = 'HistoryItem';
 
+/* ─── Configurações do cliente — mesmo padrão visual do admin ───
+ * Mobile: header com voltar + lista (SettingsList) ou seção.
+ * Desktop: sidebar w-[200px] + conteúdo à direita (igual AdminProfileSettings). */
+
+type ClientSettingsSection = 'conta' | 'seguranca' | 'app';
+
+const CLIENT_SETTINGS_NAV: { id: ClientSettingsSection; label: string; icon: typeof User }[] = [
+  { id: 'conta', label: 'Conta', icon: User },
+  { id: 'seguranca', label: 'Segurança', icon: ShieldCheck },
+  { id: 'app', label: 'Aplicativo', icon: Smartphone },
+];
+
+const settingsSectionTitle = (s: ClientSettingsSection | null) => {
+  const titles: Record<ClientSettingsSection, string> = {
+    conta: 'Conta',
+    seguranca: 'Segurança',
+    app: 'Aplicativo',
+  };
+  return s ? titles[s] : 'Configurações';
+};
+
+/** Lista de opções (mobile) — replica o SettingsList do admin. */
+const ClientSettingsList: FC<{
+  onSelect: (s: ClientSettingsSection) => void;
+  canInstall: boolean;
+  isStandalone: boolean;
+  onLogout: () => void;
+}> = ({ onSelect, canInstall, isStandalone, onLogout }) => {
+  const items = CLIENT_SETTINGS_NAV.filter((i) => i.id !== 'app' || (canInstall && !isStandalone));
+  return (
+    <div className="max-w-lg mx-auto space-y-6 px-4 sm:px-0">
+      <div className="space-y-2">
+        <h2 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] px-1">
+          Conta
+        </h2>
+        <div className="divide-y divide-white/5 bg-white/[0.02] sm:bg-transparent rounded-2xl sm:rounded-none px-4 sm:px-0">
+          {items.map((cat) => {
+            const Icon = cat.icon;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => onSelect(cat.id)}
+                className="w-full flex items-center gap-4 py-4 transition-all cursor-pointer hover:bg-white/[0.02]"
+              >
+                <Icon size={18} className="shrink-0 text-zinc-400" />
+                <span className="flex-1 text-left text-[14px] font-medium text-white">
+                  {cat.label}
+                </span>
+                <ChevronRight size={16} className="text-zinc-600" />
+              </button>
+            );
+          })}
+          {/* Sair da conta — item de perigo no fim da lista (como o admin) */}
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center gap-4 py-4 transition-all cursor-pointer hover:bg-red-500/[0.04] border border-transparent hover:border-red-500/20 rounded-xl px-1"
+          >
+            <LogOut size={18} className="shrink-0 text-red-500/80" />
+            <span className="flex-1 text-left text-[14px] font-medium text-red-400/90">
+              Sair da conta
+            </span>
+            <ChevronRight size={16} className="text-zinc-600" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/** Conteúdo das seções de configurações (conta/seguranca/app). */
+const ClientSettingsContent: FC<{
+  section: ClientSettingsSection;
+  clientName: string;
+  phone: string;
+  initials: string;
+  canInstall: boolean;
+  isStandalone: boolean;
+  handleInstall: () => void;
+}> = ({ section, clientName, phone, initials, canInstall, isStandalone, handleInstall }) => (
+  <AnimatePresence mode="wait">
+    {/* --- SEÇÃO CONTA --- */}
+    {section === 'conta' && (
+      <motion.div
+        key="conta"
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 10 }}
+        transition={{ duration: 0.15 }}
+        className="space-y-6"
+      >
+        <div className="bg-[#111111] border border-white/[0.06] rounded-2xl overflow-hidden">
+          <div className="p-6 flex flex-col sm:flex-row items-center gap-5 border-b border-white/[0.04]">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-full bg-gold/10 border-2 border-gold/20 flex items-center justify-center text-[24px] font-bold text-gold">
+                {initials}
+              </div>
+              <div className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-[#111111] rounded-full" />
+            </div>
+            <div className="text-center sm:text-left">
+              <h2 className="text-xl font-bold text-white tracking-tight">{clientName}</h2>
+              <p className="text-[13px] text-zinc-500 mt-1">Cliente Black Diamond</p>
+            </div>
+          </div>
+          <div className="divide-y divide-white/[0.04]">
+            <div className="p-5 flex items-center justify-between hover:bg-white/[0.01] transition-colors cursor-default">
+              <div>
+                <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider mb-1">
+                  Nome completo
+                </p>
+                <p className="text-[14px] text-white">{clientName}</p>
+              </div>
+              <ChevronRight size={16} className="text-zinc-600" />
+            </div>
+            <div className="p-5 flex items-center justify-between hover:bg-white/[0.01] transition-colors cursor-default">
+              <div>
+                <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider mb-1">
+                  WhatsApp
+                </p>
+                <p className="text-[14px] text-white">{formatPhone(phone)}</p>
+              </div>
+              <ChevronRight size={16} className="text-zinc-600" />
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    )}
+
+    {/* --- SEÇÃO SEGURANÇA --- */}
+    {section === 'seguranca' && (
+      <motion.div
+        key="seguranca"
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 10 }}
+        transition={{ duration: 0.15 }}
+        className="space-y-6"
+      >
+        <div className="bg-[#111111] border border-white/[0.06] rounded-2xl overflow-hidden divide-y divide-white/[0.04]">
+          <div className="p-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors cursor-pointer group">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center group-hover:bg-white/[0.05] transition-colors">
+                <Lock size={16} className="text-zinc-400 group-hover:text-gold transition-colors" />
+              </div>
+              <div>
+                <p className="text-[14px] font-bold text-white mb-0.5">Senha de acesso</p>
+                <p className="text-[12px] text-zinc-500">Proteja seu login com uma senha</p>
+              </div>
+            </div>
+            <ChevronRight
+              size={16}
+              className="text-zinc-600 group-hover:text-zinc-400 transition-colors"
+            />
+          </div>
+          <div className="p-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors cursor-pointer group">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center group-hover:bg-white/[0.05] transition-colors">
+                <Mail size={16} className="text-zinc-400 group-hover:text-gold transition-colors" />
+              </div>
+              <div>
+                <p className="text-[14px] font-bold text-white mb-0.5">E-mail de recuperação</p>
+                <p className="text-[12px] text-zinc-500">Recupere sua senha por e-mail</p>
+              </div>
+            </div>
+            <ChevronRight
+              size={16}
+              className="text-zinc-600 group-hover:text-zinc-400 transition-colors"
+            />
+          </div>
+        </div>
+      </motion.div>
+    )}
+
+    {/* --- SEÇÃO APP --- */}
+    {section === 'app' && canInstall && !isStandalone && (
+      <motion.div
+        key="app"
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 10 }}
+        transition={{ duration: 0.15 }}
+      >
+        <div className="bg-gradient-to-br from-gold/[0.06] to-transparent border border-gold/15 rounded-2xl p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
+            <div className="w-16 h-16 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+              <Smartphone size={28} className="text-gold" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-white mb-2">Instalar Black Diamond</h3>
+              <p className="text-[13px] text-zinc-400 leading-relaxed mb-5 max-w-md">
+                Acesse seus agendamentos direto do seu celular, com a experiência rápida e nativa de
+                um aplicativo.
+              </p>
+              <button
+                onClick={handleInstall}
+                className="h-11 px-6 rounded-xl bg-gradient-to-r from-gold to-[#b8944d] text-black font-bold text-[12px] uppercase tracking-[0.15em] hover:brightness-110 transition-all cursor-pointer flex items-center justify-center sm:justify-start gap-2 shadow-lg shadow-gold/20 w-full sm:w-auto"
+              >
+                <Download size={14} />
+                Instalar Agora
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+
 // ─── Main Dashboard ───
 
 const ClientProfileDashboard: FC<ClientProfileDashboardProps> = ({
@@ -362,6 +577,10 @@ const ClientProfileDashboard: FC<ClientProfileDashboardProps> = ({
   isLimitedAccess,
   milestones,
   coupons,
+  couponsError,
+  redeemedCoupons,
+  redeemingCode,
+  onRedeem,
   onLogout,
   onCancel,
   onReschedule,
@@ -370,7 +589,8 @@ const ClientProfileDashboard: FC<ClientProfileDashboardProps> = ({
 }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
-  const [settingsSection, setSettingsSection] = useState<'conta' | 'seguranca' | 'app'>('conta');
+  const [settingsSection, setSettingsSection] = useState<ClientSettingsSection | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const { canInstall, isStandalone, handleInstall } = usePwaInstall();
 
   const initials = clientName
@@ -379,6 +599,11 @@ const ClientProfileDashboard: FC<ClientProfileDashboardProps> = ({
     .slice(0, 2)
     .join('')
     .toUpperCase();
+
+  // Cupons ainda não resgatados — badge da sidebar/bottom tabs
+  const availableCouponsCount = coupons.filter(
+    (c) => !redeemedCoupons.some((r) => r.coupon_id === c.id)
+  ).length;
 
   return (
     <div className="min-h-dvh min-h-[100dvh] bg-[#0A0A0A] text-white font-sans flex selection:bg-gold/30">
@@ -427,6 +652,13 @@ const ClientProfileDashboard: FC<ClientProfileDashboardProps> = ({
               />
             )}
             <SidebarNavItem
+              icon={Tag}
+              label="Cupons"
+              active={activeTab === 'coupons'}
+              badge={availableCouponsCount}
+              onClick={() => setActiveTab('coupons')}
+            />
+            <SidebarNavItem
               icon={Settings}
               label="Configurações"
               active={activeTab === 'settings'}
@@ -438,7 +670,7 @@ const ClientProfileDashboard: FC<ClientProfileDashboardProps> = ({
         {/* Profile + Logout — admin-style */}
         <div className="mt-auto border-t border-white/5 p-4">
           <button
-            onClick={onLogout}
+            onClick={() => setShowLogoutConfirm(true)}
             className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-zinc-500 hover:text-red-400 hover:bg-red-500/[0.04] transition-all cursor-pointer"
           >
             <LogOut size={16} className="text-zinc-600" />
@@ -579,47 +811,6 @@ const ClientProfileDashboard: FC<ClientProfileDashboardProps> = ({
                         </div>
                       </div>
                     )}
-
-                    {/* Coupons */}
-                    {coupons.length > 0 && (
-                      <div className="mt-4 bg-[#111111] border border-white/[0.06] rounded-2xl p-4 sm:p-5">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                            <CalendarCheck size={16} className="text-emerald-500" />
-                          </div>
-                          <div>
-                            <p className="text-[13px] font-bold text-emerald-500">Meus Cupons</p>
-                            <p className="text-[10px] text-zinc-500">
-                              Ofertas disponíveis para você
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          {coupons.map((c) => (
-                            <div
-                              key={c.id}
-                              className="flex items-center justify-between bg-white/[0.02] border border-white/[0.04] p-3 rounded-xl border-dashed"
-                            >
-                              <div>
-                                <p className="text-[12px] font-bold text-white uppercase tracking-wider">
-                                  {c.code}
-                                </p>
-                                <p className="text-[10px] text-zinc-500 mt-0.5">{c.description}</p>
-                              </div>
-                              <div className="text-right">
-                                <span className="text-[14px] font-black text-emerald-400 block">
-                                  {c.discount_type === 'percentage'
-                                    ? `${c.discount_value}% OFF`
-                                    : c.discount_type === 'fixed'
-                                      ? `R$ ${c.discount_value} OFF`
-                                      : 'GRÁTIS'}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
 
@@ -730,7 +921,26 @@ const ClientProfileDashboard: FC<ClientProfileDashboardProps> = ({
               </motion.div>
             )}
 
-            {/* ── TAB: Configurações ── */}
+            {/* ── TAB: Cupons (tela dedicada estilo Shopee) ── */}
+            {activeTab === 'coupons' && (
+              <motion.div
+                key="coupons"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="max-w-[1000px]"
+              >
+                <ClientProfileCoupons
+                  coupons={coupons}
+                  couponsError={couponsError}
+                  redeemedCoupons={redeemedCoupons}
+                  redeemingCode={redeemingCode}
+                  onRedeem={onRedeem}
+                />
+              </motion.div>
+            )}
+
+            {/* ── TAB: Configurações — mesmo layout do admin ── */}
             {activeTab === 'settings' && (
               <motion.div
                 key="settings"
@@ -739,268 +949,88 @@ const ClientProfileDashboard: FC<ClientProfileDashboardProps> = ({
                 exit={{ opacity: 0, y: -8 }}
                 className="space-y-6 lg:space-y-8 max-w-[1000px]"
               >
-                {/* Page Header — admin-style */}
-                <div className="pb-4 border-b border-white/[0.06]">
-                  <h1 className="text-lg lg:text-2xl font-bold tracking-tight text-white uppercase">
-                    Configurações
-                  </h1>
-                  <p className="text-[13px] text-zinc-500 mt-1">
-                    Gerencie seus dados e preferências da conta.
-                  </p>
+                {/* Mobile header — igual ao admin (voltar + título) */}
+                <div className="lg:hidden flex items-center gap-3 px-4 -mt-1 mb-4">
+                  <button
+                    onClick={() => {
+                      if (settingsSection) setSettingsSection(null);
+                      else setActiveTab('dashboard');
+                    }}
+                    className="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                    aria-label="Voltar"
+                  >
+                    <ArrowLeft size={20} />
+                  </button>
+                  <div className="flex-1">
+                    <h1 className="text-lg font-bold tracking-tight text-white">
+                      {settingsSectionTitle(settingsSection)}
+                    </h1>
+                  </div>
                 </div>
 
-                {/* Container: Submenu Lateral + Conteúdo Principal */}
-                <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-start">
-                  {/* Submenu Lateral (Apenas Desktop) */}
-                  <div className="hidden lg:block w-[220px] shrink-0 sticky top-24">
-                    <div className="space-y-1.5">
-                      <button
-                        onClick={() => setSettingsSection('conta')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] transition-all cursor-pointer ${settingsSection === 'conta' ? 'bg-white/5 text-white font-medium' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02]'}`}
-                      >
-                        <User
-                          size={16}
-                          className={settingsSection === 'conta' ? 'text-gold' : 'text-zinc-600'}
-                        />
-                        Conta
-                      </button>
-                      <button
-                        onClick={() => setSettingsSection('seguranca')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] transition-all cursor-pointer ${settingsSection === 'seguranca' ? 'bg-white/5 text-white font-medium' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02]'}`}
-                      >
-                        <ShieldCheck
-                          size={16}
-                          className={
-                            settingsSection === 'seguranca' ? 'text-gold' : 'text-zinc-600'
-                          }
-                        />
-                        Segurança
-                      </button>
-                      {canInstall && !isStandalone && (
-                        <button
-                          onClick={() => setSettingsSection('app')}
-                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] transition-all cursor-pointer ${settingsSection === 'app' ? 'bg-white/5 text-white font-medium' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02]'}`}
-                        >
-                          <Smartphone
-                            size={16}
-                            className={settingsSection === 'app' ? 'text-gold' : 'text-zinc-600'}
-                          />
-                          Aplicativo
-                        </button>
-                      )}
+                {/* Mobile: lista (null) ou seção — igual ao admin */}
+                <div className="lg:hidden">
+                  {settingsSection === null ? (
+                    <ClientSettingsList
+                      onSelect={setSettingsSection}
+                      canInstall={canInstall}
+                      isStandalone={isStandalone}
+                      onLogout={() => setShowLogoutConfirm(true)}
+                    />
+                  ) : (
+                    <ClientSettingsContent
+                      section={settingsSection}
+                      clientName={clientName}
+                      phone={phone}
+                      initials={initials}
+                      canInstall={canInstall}
+                      isStandalone={isStandalone}
+                      handleInstall={handleInstall}
+                    />
+                  )}
+                </div>
 
-                      <div className="pt-3 mt-3 border-t border-white/[0.04]">
+                {/* Desktop: sidebar + conteúdo — igual ao admin */}
+                <div className="hidden lg:flex gap-8 items-start">
+                  <div className="w-[200px] shrink-0 sticky top-6 self-start">
+                    <div className="space-y-2">
+                      <h2 className="label-gold px-3 mb-4">Configurações</h2>
+                      {CLIENT_SETTINGS_NAV.map((item) => {
+                        const Icon = item.icon;
+                        if (item.id === 'app' && !(canInstall && !isStandalone)) return null;
+                        const active = (settingsSection ?? 'conta') === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => setSettingsSection(item.id)}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] transition-all cursor-pointer ${active ? 'bg-white/5 text-white font-medium' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03]'}`}
+                          >
+                            <Icon size={15} className={active ? 'text-gold' : 'text-zinc-500'} />
+                            {item.label}
+                          </button>
+                        );
+                      })}
+                      <div className="pt-4 mt-4 border-t border-white/[0.06]">
                         <button
-                          onClick={onLogout}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] transition-all cursor-pointer text-red-400/70 hover:text-red-400 hover:bg-red-500/[0.04]"
+                          onClick={() => setShowLogoutConfirm(true)}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] text-red-400/80 hover:text-red-400 hover:bg-red-500/[0.04] transition-all cursor-pointer"
                         >
-                          <LogOut size={16} />
+                          <LogOut size={15} />
                           Sair da conta
                         </button>
                       </div>
                     </div>
                   </div>
-
-                  {/* Submenu Mobile (Scroll horizontal) */}
-                  <div className="lg:hidden w-full overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
-                    <div className="flex gap-2 min-w-max pb-2">
-                      <button
-                        onClick={() => setSettingsSection('conta')}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-medium transition-colors ${settingsSection === 'conta' ? 'bg-white/10 text-white' : 'bg-white/[0.03] text-zinc-400 border border-white/[0.05]'}`}
-                      >
-                        <User
-                          size={14}
-                          className={settingsSection === 'conta' ? 'text-gold' : 'text-zinc-500'}
-                        />
-                        Conta
-                      </button>
-                      <button
-                        onClick={() => setSettingsSection('seguranca')}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-medium transition-colors ${settingsSection === 'seguranca' ? 'bg-white/10 text-white' : 'bg-white/[0.03] text-zinc-400 border border-white/[0.05]'}`}
-                      >
-                        <ShieldCheck
-                          size={14}
-                          className={
-                            settingsSection === 'seguranca' ? 'text-gold' : 'text-zinc-500'
-                          }
-                        />
-                        Segurança
-                      </button>
-                      {canInstall && !isStandalone && (
-                        <button
-                          onClick={() => setSettingsSection('app')}
-                          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-medium transition-colors ${settingsSection === 'app' ? 'bg-white/10 text-white' : 'bg-white/[0.03] text-zinc-400 border border-white/[0.05]'}`}
-                        >
-                          <Smartphone
-                            size={14}
-                            className={settingsSection === 'app' ? 'text-gold' : 'text-zinc-500'}
-                          />
-                          Aplicativo
-                        </button>
-                      )}
-
-                      <div className="w-px h-6 bg-white/[0.06] mx-1 self-center" />
-
-                      <button
-                        onClick={onLogout}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-medium transition-colors bg-white/[0.02] text-red-400/70 border border-red-500/10 hover:bg-red-500/[0.04] hover:text-red-400"
-                      >
-                        <LogOut size={14} />
-                        Sair
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Conteúdo Principal */}
-                  <div className="flex-1 min-w-0 w-full space-y-6">
-                    <AnimatePresence mode="wait">
-                      {/* --- SEÇÃO CONTA --- */}
-                      {settingsSection === 'conta' && (
-                        <motion.div
-                          key="conta"
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 10 }}
-                          transition={{ duration: 0.15 }}
-                          className="space-y-6"
-                        >
-                          <div className="bg-[#111111] border border-white/[0.06] rounded-2xl overflow-hidden">
-                            <div className="p-6 flex flex-col sm:flex-row items-center gap-5 border-b border-white/[0.04]">
-                              <div className="relative">
-                                <div className="w-20 h-20 rounded-full bg-gold/10 border-2 border-gold/20 flex items-center justify-center text-[24px] font-bold text-gold">
-                                  {initials}
-                                </div>
-                                <div className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-[#111111] rounded-full" />
-                              </div>
-                              <div className="text-center sm:text-left">
-                                <h2 className="text-xl font-bold text-white tracking-tight">
-                                  {clientName}
-                                </h2>
-                                <p className="text-[13px] text-zinc-500 mt-1">
-                                  Cliente Black Diamond
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="divide-y divide-white/[0.04]">
-                              <div className="p-5 flex items-center justify-between hover:bg-white/[0.01] transition-colors cursor-default">
-                                <div>
-                                  <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider mb-1">
-                                    Nome completo
-                                  </p>
-                                  <p className="text-[14px] text-white">{clientName}</p>
-                                </div>
-                                <ChevronRight size={16} className="text-zinc-600" />
-                              </div>
-                              <div className="p-5 flex items-center justify-between hover:bg-white/[0.01] transition-colors cursor-default">
-                                <div>
-                                  <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider mb-1">
-                                    WhatsApp
-                                  </p>
-                                  <p className="text-[14px] text-white">{formatPhone(phone)}</p>
-                                </div>
-                                <ChevronRight size={16} className="text-zinc-600" />
-                              </div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-
-                      {/* --- SEÇÃO SEGURANÇA --- */}
-                      {settingsSection === 'seguranca' && (
-                        <motion.div
-                          key="seguranca"
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 10 }}
-                          transition={{ duration: 0.15 }}
-                          className="space-y-6"
-                        >
-                          <div className="bg-[#111111] border border-white/[0.06] rounded-2xl overflow-hidden divide-y divide-white/[0.04]">
-                            <div className="p-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors cursor-pointer group">
-                              <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center group-hover:bg-white/[0.05] transition-colors">
-                                  <Lock
-                                    size={16}
-                                    className="text-zinc-400 group-hover:text-gold transition-colors"
-                                  />
-                                </div>
-                                <div>
-                                  <p className="text-[14px] font-bold text-white mb-0.5">
-                                    Senha de acesso
-                                  </p>
-                                  <p className="text-[12px] text-zinc-500">
-                                    Proteja seu login com uma senha
-                                  </p>
-                                </div>
-                              </div>
-                              <ChevronRight
-                                size={16}
-                                className="text-zinc-600 group-hover:text-zinc-400 transition-colors"
-                              />
-                            </div>
-
-                            <div className="p-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors cursor-pointer group">
-                              <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center group-hover:bg-white/[0.05] transition-colors">
-                                  <Mail
-                                    size={16}
-                                    className="text-zinc-400 group-hover:text-gold transition-colors"
-                                  />
-                                </div>
-                                <div>
-                                  <p className="text-[14px] font-bold text-white mb-0.5">
-                                    E-mail de recuperação
-                                  </p>
-                                  <p className="text-[12px] text-zinc-500">
-                                    Recupere sua senha por e-mail
-                                  </p>
-                                </div>
-                              </div>
-                              <ChevronRight
-                                size={16}
-                                className="text-zinc-600 group-hover:text-zinc-400 transition-colors"
-                              />
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-
-                      {/* --- SEÇÃO APP --- */}
-                      {settingsSection === 'app' && canInstall && !isStandalone && (
-                        <motion.div
-                          key="app"
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 10 }}
-                          transition={{ duration: 0.15 }}
-                        >
-                          <div className="bg-gradient-to-br from-gold/[0.06] to-transparent border border-gold/15 rounded-2xl p-6 sm:p-8">
-                            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
-                              <div className="w-16 h-16 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
-                                <Smartphone size={28} className="text-gold" />
-                              </div>
-                              <div className="flex-1">
-                                <h3 className="text-lg font-bold text-white mb-2">
-                                  Instalar Black Diamond
-                                </h3>
-                                <p className="text-[13px] text-zinc-400 leading-relaxed mb-5 max-w-md">
-                                  Acesse seus agendamentos direto do seu celular, com a experiência
-                                  rápida e nativa de um aplicativo.
-                                </p>
-                                <button
-                                  onClick={handleInstall}
-                                  className="h-11 px-6 rounded-xl bg-gradient-to-r from-gold to-[#b8944d] text-black font-bold text-[12px] uppercase tracking-[0.15em] hover:brightness-110 transition-all cursor-pointer flex items-center justify-center sm:justify-start gap-2 shadow-lg shadow-gold/20 w-full sm:w-auto"
-                                >
-                                  <Download size={14} />
-                                  Instalar Agora
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                  <div className="flex-1 min-w-0 min-h-[600px]">
+                    <ClientSettingsContent
+                      section={settingsSection ?? 'conta'}
+                      clientName={clientName}
+                      phone={phone}
+                      initials={initials}
+                      canInstall={canInstall}
+                      isStandalone={isStandalone}
+                      handleInstall={handleInstall}
+                    />
                   </div>
                 </div>
               </motion.div>
@@ -1016,6 +1046,12 @@ const ClientProfileDashboard: FC<ClientProfileDashboardProps> = ({
         <div className="flex items-center justify-around px-2 py-2.5">
           {[
             { tab: 'dashboard' as const, icon: Calendar, label: 'Início', badge: bookings.length },
+            {
+              tab: 'coupons' as const,
+              icon: Tag,
+              label: 'Cupons',
+              badge: availableCouponsCount,
+            },
             ...(isLimitedAccess
               ? []
               : [
@@ -1060,6 +1096,16 @@ const ClientProfileDashboard: FC<ClientProfileDashboardProps> = ({
           />
         )}
       </AnimatePresence>
+
+      {/* Logout confirmation — mesmo visual do dashboard do admin */}
+      <LogoutConfirmModal
+        open={showLogoutConfirm}
+        onConfirm={() => {
+          setShowLogoutConfirm(false);
+          onLogout();
+        }}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
 
       {/* Error Toast */}
       <AnimatePresence>

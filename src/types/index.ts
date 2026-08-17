@@ -183,3 +183,27 @@ export interface GalleryImage {
   barber_id?: string | null;
   created_at?: string;
 }
+
+/** Cupom resgatado pelo cliente (vínculo em client_coupons — RPC get_client_coupons). */
+export interface RedeemedCoupon {
+  id: string;
+  coupon_id: string;
+  code: string;
+  description: string;
+  discount_type: 'percentage' | 'fixed' | 'free';
+  discount_value: number;
+  valid_from: string;
+  valid_until: string | null;
+  max_uses: number | null;
+  current_uses: number;
+  is_active: boolean;
+  redeemed_at: string;
+  used_at: string | null;
+}
+
+export interface RedeemResult {
+  ok: boolean;
+  message?: string;
+  coupon_id?: string;
+  code?: string;
+}

@@ -98,8 +98,14 @@ export function useDashboardData(barberId?: string) {
         channelRef.current = null;
       }
 
+      // Nome ÚNICO por setup: o supabase.channel(nome) reutiliza um canal já
+      // existente com o mesmo nome. No StrictMode (dev) o efeito monta 2x — o
+      // segundo setup pegaria o canal do primeiro (ainda assinado, pois o
+      // removeChannel do cleanup é fire-and-forget) e o `.on('postgres_changes')`
+      // rodaria DEPOIS do `.subscribe()`, lançando:
+      //   "cannot add postgres_changes callbacks after subscribe()"
       const channel = supabase
-        .channel('dashboard-bookings')
+        .channel(`dashboard-bookings-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`)
         .on(
           'postgres_changes',
           {

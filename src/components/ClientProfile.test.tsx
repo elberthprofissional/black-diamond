@@ -42,6 +42,9 @@ import React from 'react';
 const mockGetBookingsByPhone = vi.hoisted(() => vi.fn());
 const mockGetClientByPhone = vi.hoisted(() => vi.fn());
 const mockGetClientDashboard = vi.hoisted(() => vi.fn());
+const mockGetAvailableCoupons = vi.hoisted(() => vi.fn());
+const mockGetClientCoupons = vi.hoisted(() => vi.fn());
+const mockResgatarCupom = vi.hoisted(() => vi.fn());
 
 vi.mock('../lib/api', () => ({
   getBookingsByPhone: mockGetBookingsByPhone,
@@ -49,6 +52,10 @@ vi.mock('../lib/api', () => ({
   cancelBooking: vi.fn(),
   getServices: vi.fn().mockResolvedValue([]),
   getClientDashboard: mockGetClientDashboard,
+  getClientMilestonesPublic: vi.fn().mockResolvedValue([]),
+  getAvailableCoupons: mockGetAvailableCoupons,
+  getClientCoupons: mockGetClientCoupons,
+  resgatarCupom: mockResgatarCupom,
 }));
 
 vi.mock('../lib/api/mensalista', () => ({
@@ -113,6 +120,12 @@ const renderPage = () => {
   );
 };
 
+// Navega até a tela dedicada de Cupons (sidebar desktop + bottom tab mobile)
+const goToCouponsTab = async () => {
+  const couponButtons = screen.getAllByRole('button', { name: /cupons/i });
+  await userEvent.click(couponButtons[0] ?? couponButtons[0]!);
+};
+
 describe('ClientProfile (sem código de acesso)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -124,6 +137,9 @@ describe('ClientProfile (sem código de acesso)', () => {
     mockCriarSenhaCliente.mockResolvedValue({ ok: true });
     mockAtualizarEmailCliente.mockResolvedValue({ ok: true, message: 'E-mail atualizado!' });
     mockAlterarSenhaCliente.mockResolvedValue({ ok: true });
+    mockGetAvailableCoupons.mockResolvedValue([]);
+    mockGetClientCoupons.mockResolvedValue([]);
+    mockResgatarCupom.mockResolvedValue({ ok: true, message: 'Cupom resgatado!' });
   });
 
   it('mostra a tela de telefone no primeiro acesso', () => {
@@ -206,5 +222,412 @@ describe('ClientProfile (sem código de acesso)', () => {
       expect(screen.getByText('BLACK')).toBeInTheDocument();
       expect(screen.getByText('DIAMOND')).toBeInTheDocument();
     });
+  });
+
+  it('resgata cupom da vitrine com 1 clique', async () => {
+    mockGetAvailableCoupons.mockResolvedValue([
+      {
+        id: 'c1',
+        code: 'DESCONTO10',
+        description: '10% em corte',
+        discount_type: 'percentage',
+        discount_value: 10,
+        valid_from: '2026-01-01',
+        valid_until: null,
+        max_uses: null,
+        current_uses: 0,
+        is_active: true,
+        applicable_service_ids: [],
+      },
+    ]);
+    mockGetClientCoupons.mockResolvedValueOnce([]).mockResolvedValue([
+      {
+        id: 'cc1',
+        coupon_id: 'c1',
+        code: 'DESCONTO10',
+        description: '10% em corte',
+        discount_type: 'percentage',
+        discount_value: 10,
+        valid_from: '2026-01-01',
+        valid_until: null,
+        max_uses: null,
+        current_uses: 0,
+        is_active: true,
+        redeemed_at: '2026-08-01',
+        used_at: null,
+      },
+    ]);
+    mockResgatarCupom.mockResolvedValue({
+      ok: true,
+      message: 'Cupom resgatado!',
+      coupon_id: 'c1',
+      code: 'DESCONTO10',
+    });
+    localStorage.setItem(
+      'bd_client_session',
+      JSON.stringify({
+        phone: '11988888888',
+        name: 'Maria Oliveira',
+        expiresAt: Date.now() + 60_000,
+      })
+    );
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Agendamentos')).toBeInTheDocument();
+    });
+    await goToCouponsTab();
+
+    await waitFor(() => {
+      expect(screen.getByText('DESCONTO10')).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: /resgatar/i }));
+
+    await waitFor(() => {
+      expect(mockResgatarCupom).toHaveBeenCalledWith('11988888888', 'DESCONTO10');
+    });
+    await waitFor(() => {
+      // Card da oferta vira "✓ Resgatado" + feedback + cupom na lista de resgatados
+      expect(screen.getAllByText(/resgatado/i).length).toBeGreaterThan(0);
+      // "Oferta disponível" (card) + "Disponível" (status do resgatado)
+      expect(screen.getAllByText(/disponível/i).length).toBeGreaterThan(0);
+      expect(
+        screen.getByRole('button', { name: /usar cupom|usar no agendamento/i })
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('carrega a vitrine mesmo quando o lookup do cliente falha', async () => {
+    mockGetClientByPhone.mockResolvedValue(null); // lookup falha (ex.: rate limit)
+    mockGetAvailableCoupons.mockResolvedValue([
+      {
+        id: 'c1',
+        code: 'DESCONTO10',
+        description: '10% em corte',
+        discount_type: 'percentage',
+        discount_value: 10,
+        valid_from: '2026-01-01',
+        valid_until: null,
+        max_uses: null,
+        current_uses: 0,
+        is_active: true,
+        applicable_service_ids: [],
+      },
+    ]);
+    mockGetClientCoupons.mockResolvedValue([]);
+    localStorage.setItem(
+      'bd_client_session',
+      JSON.stringify({
+        phone: '11988888888',
+        name: 'Maria Oliveira',
+        expiresAt: Date.now() + 60_000,
+      })
+    );
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Agendamentos')).toBeInTheDocument();
+    });
+    await goToCouponsTab();
+
+    await waitFor(() => {
+      expect(screen.getByText('DESCONTO10')).toBeInTheDocument();
+    });
+  });
+
+  it('exibe o desconto fixo com formatação monetária brasileira (milhar com ponto, centavos com vírgula)', async () => {
+    mockGetAvailableCoupons.mockResolvedValue([
+      {
+        id: 'c1',
+        code: 'FIXO111',
+        description: 'Corte + barba',
+        discount_type: 'fixed',
+        discount_value: 111,
+        valid_from: '2026-01-01',
+        valid_until: null,
+        max_uses: null,
+        current_uses: 0,
+        is_active: true,
+        applicable_service_ids: [],
+      },
+      {
+        id: 'c2',
+        code: 'FIXO1500',
+        description: 'Combo premium',
+        discount_type: 'fixed',
+        discount_value: 1500,
+        valid_from: '2026-01-01',
+        valid_until: null,
+        max_uses: null,
+        current_uses: 0,
+        is_active: true,
+        applicable_service_ids: [],
+      },
+      {
+        id: 'c3',
+        code: 'FIXO1050',
+        description: 'Degradê + finalização',
+        discount_type: 'fixed',
+        discount_value: 10.5,
+        valid_from: '2026-01-01',
+        valid_until: null,
+        max_uses: null,
+        current_uses: 0,
+        is_active: true,
+        applicable_service_ids: [],
+      },
+    ]);
+    mockGetClientCoupons.mockResolvedValue([]);
+    localStorage.setItem(
+      'bd_client_session',
+      JSON.stringify({
+        phone: '11988888888',
+        name: 'Maria Oliveira',
+        expiresAt: Date.now() + 60_000,
+      })
+    );
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Agendamentos')).toBeInTheDocument();
+    });
+    await goToCouponsTab();
+
+    await waitFor(() => {
+      expect(screen.getByText('R$ 111 OFF')).toBeInTheDocument();
+    });
+    // Inteiro >= 1000: milhar com ponto (1500 → "R$ 1.500 OFF")
+    expect(screen.getByText('R$ 1.500 OFF')).toBeInTheDocument();
+    // Com centavos: vírgula decimal (10,50 → "R$ 10,50 OFF")
+    expect(screen.getByText('R$ 10,50 OFF')).toBeInTheDocument();
+    // Nunca "R$ 1500 OFF" sem ponto de milhar
+    expect(screen.queryByText('R$ 1500 OFF')).not.toBeInTheDocument();
+  });
+
+  it('mostra estado vazio quando o barbeiro ainda não publicou cupons', async () => {
+    mockGetAvailableCoupons.mockResolvedValue([]);
+    mockGetClientCoupons.mockResolvedValue([]);
+    localStorage.setItem(
+      'bd_client_session',
+      JSON.stringify({
+        phone: '11988888888',
+        name: 'Maria Oliveira',
+        expiresAt: Date.now() + 60_000,
+      })
+    );
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Agendamentos')).toBeInTheDocument();
+    });
+    await goToCouponsTab();
+
+    await waitFor(() => {
+      expect(screen.getByText('Nenhum cupom disponível no momento')).toBeInTheDocument();
+    });
+  });
+
+  it('mostra erro amigável ao tentar resgatar cupom já resgatado', async () => {
+    mockGetAvailableCoupons.mockResolvedValue([
+      {
+        id: 'c1',
+        code: 'DESCONTO10',
+        description: '10% em corte',
+        discount_type: 'percentage',
+        discount_value: 10,
+        valid_from: '2026-01-01',
+        valid_until: null,
+        max_uses: null,
+        current_uses: 0,
+        is_active: true,
+        applicable_service_ids: [],
+      },
+    ]);
+    mockResgatarCupom.mockResolvedValue({
+      ok: false,
+      message: 'Você já resgatou este cupom.',
+    });
+    localStorage.setItem(
+      'bd_client_session',
+      JSON.stringify({
+        phone: '11988888888',
+        name: 'Maria Oliveira',
+        expiresAt: Date.now() + 60_000,
+      })
+    );
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Agendamentos')).toBeInTheDocument();
+    });
+    await goToCouponsTab();
+
+    await waitFor(() => {
+      expect(screen.getByText('DESCONTO10')).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: /resgatar/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/já resgatou este cupom/i)).toBeInTheDocument();
+    });
+  });
+
+  it('Configurações mobile mostra lista estilo admin (Conta, Segurança, Sair da conta)', async () => {
+    localStorage.setItem(
+      'bd_client_session',
+      JSON.stringify({
+        phone: '11988888888',
+        name: 'Maria Oliveira',
+        expiresAt: Date.now() + 60_000,
+      })
+    );
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Agendamentos')).toBeInTheDocument();
+    });
+
+    // Navega até Configurações (sidebar desktop + bottom tab mobile)
+    const settingsBtns = screen.getAllByRole('button', { name: /config/i });
+    await userEvent.click(settingsBtns[0] ?? settingsBtns[0]!);
+
+    // Lista de opções estilo admin
+    await waitFor(() => {
+      expect(screen.getAllByText('Conta').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Segurança').length).toBeGreaterThan(0);
+      expect(screen.getAllByRole('button', { name: /sair da conta/i }).length).toBeGreaterThan(0);
+    });
+  });
+
+  it('Configurações: clicar em Conta abre a seção e voltar retorna à lista', async () => {
+    localStorage.setItem(
+      'bd_client_session',
+      JSON.stringify({
+        phone: '11988888888',
+        name: 'Maria Oliveira',
+        expiresAt: Date.now() + 60_000,
+      })
+    );
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Agendamentos')).toBeInTheDocument();
+    });
+
+    const settingsBtns = screen.getAllByRole('button', { name: /config/i });
+    await userEvent.click(settingsBtns[0] ?? settingsBtns[0]!);
+
+    await waitFor(() => {
+      expect(screen.getAllByText('Conta').length).toBeGreaterThan(0);
+    });
+    // Item da lista "Conta" (span) — o primeiro botão com texto exato
+    const contaItem = screen.getAllByRole('button', { name: /^conta$/i });
+    await userEvent.click(contaItem[0] ?? contaItem[0]!);
+
+    // Seção Conta com os dados do cliente (renderizada no mobile e no desktop)
+    await waitFor(() => {
+      expect(screen.getAllByText('Nome completo').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Maria Oliveira').length).toBeGreaterThan(0);
+    });
+
+    // Botão voltar retorna à lista (mobile)
+    await userEvent.click(screen.getByRole('button', { name: /voltar/i }));
+    await waitFor(() => {
+      expect(screen.getAllByText('Segurança').length).toBeGreaterThan(0);
+    });
+  });
+
+  it('mostra aviso de confirmação ao clicar em "Sair da conta" (mesmo do admin)', async () => {
+    localStorage.setItem(
+      'bd_client_session',
+      JSON.stringify({
+        phone: '11988888888',
+        name: 'Maria Oliveira',
+        expiresAt: Date.now() + 60_000,
+      })
+    );
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Agendamentos')).toBeInTheDocument();
+    });
+
+    const logoutBtn = screen.getAllByRole('button', { name: /sair da conta/i })[0];
+    await userEvent.click(logoutBtn!);
+
+    // Aviso idêntico ao do admin: "Sair da conta?" com botões Sair/Manter
+    await waitFor(() => {
+      expect(screen.getByText('Sair da conta?')).toBeInTheDocument();
+    });
+    expect(screen.getByRole('button', { name: /^sair$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /manter/i })).toBeInTheDocument();
+  });
+
+  it('"Manter" no aviso de logout mantém o cliente no dashboard', async () => {
+    localStorage.setItem(
+      'bd_client_session',
+      JSON.stringify({
+        phone: '11988888888',
+        name: 'Maria Oliveira',
+        expiresAt: Date.now() + 60_000,
+      })
+    );
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Agendamentos')).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getAllByRole('button', { name: /sair da conta/i })[0]!);
+    await waitFor(() => {
+      expect(screen.getByText('Sair da conta?')).toBeInTheDocument();
+    });
+    await userEvent.click(screen.getByRole('button', { name: /manter/i }));
+
+    // Continua logado no dashboard
+    expect(screen.getByText('Agendamentos')).toBeInTheDocument();
+    expect(screen.queryByText('Sair da conta?')).not.toBeInTheDocument();
+    // Sessão continua salva
+    expect(JSON.parse(localStorage.getItem('bd_client_session') || '{}').phone).toBe('11988888888');
+  });
+
+  it('"Sair" no aviso de logout desloga e volta para a tela de telefone', async () => {
+    localStorage.setItem(
+      'bd_client_session',
+      JSON.stringify({
+        phone: '11988888888',
+        name: 'Maria Oliveira',
+        expiresAt: Date.now() + 60_000,
+      })
+    );
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Agendamentos')).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getAllByRole('button', { name: /sair da conta/i })[0]!);
+    await waitFor(() => {
+      expect(screen.getByText('Sair da conta?')).toBeInTheDocument();
+    });
+    await userEvent.click(screen.getByRole('button', { name: /^sair$/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Digite seu telefone/)).toBeInTheDocument();
+    });
+    // Sessão limpa
+    expect(localStorage.getItem('bd_client_session')).toBeNull();
   });
 });

@@ -8,8 +8,10 @@ import {
   cancelBooking,
   getClientDashboard,
   getClientMilestonesPublic,
-  getCoupons,
+  getAvailableCoupons,
   getServices,
+  getClientCoupons,
+  resgatarCupom,
 } from '../lib/api';
 import { verificarSenhaCliente } from '../lib/api/clientAuth';
 import { getMensalistaPlanName, getMensalistaPlanServices } from '../lib/api/mensalista';
@@ -17,6 +19,7 @@ import { formatPhone } from '../lib/utils';
 import { logError } from '../lib/logger';
 import { getClientSession, saveClientSession, clearClientSession } from '../lib/clientSession';
 import type { BookingEntry, ClientStats, MensalistaInfo, Step } from './ClientProfileTypes';
+import type { Coupon, MilestoneProgress, RedeemedCoupon } from '../types';
 import ClientProfileDashboard from './ClientProfileDashboard';
 
 // ─── Phone Step Component ───
@@ -131,8 +134,11 @@ const ClientProfile: FC = () => {
   const [confirmCancel, setConfirmCancel] = useState<BookingEntry | null>(null);
   const [historyBookings, setHistoryBookings] = useState<BookingEntry[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [milestones, setMilestones] = useState<any[]>([]);
-  const [coupons, setCoupons] = useState<any[]>([]);
+  const [milestones, setMilestones] = useState<MilestoneProgress[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [couponsError, setCouponsError] = useState('');
+  const [redeemedCoupons, setRedeemedCoupons] = useState<RedeemedCoupon[]>([]);
+  const [redeemingCode, setRedeemingCode] = useState('');
 
   // ── API calls ──
 
@@ -208,30 +214,42 @@ const ClientProfile: FC = () => {
     setLoading(true);
     setError('');
     try {
-      const [bookingData, statsData, clientLookup] = await Promise.all([
+      const [bookingData, statsData, clientLookup, redeemed] = await Promise.all([
         getBookingsByPhone(phoneNumber),
         fetchClientStats(phoneNumber),
         getClientByPhone(phoneNumber).catch(() => null),
+        getClientCoupons(phoneNumber).catch(() => []),
       ]);
       setBookings(bookingData as BookingEntry[]);
       setStats(statsData);
+      setRedeemedCoupons(redeemed);
 
       if (clientLookup && clientLookup.id) {
-        Promise.all([
-          getClientMilestonesPublic(clientLookup.id).catch(() => []),
-          getCoupons().catch(() => []),
-        ]).then(([m, c]) => {
-          setMilestones(m);
+        getClientMilestonesPublic(clientLookup.id)
+          .catch(() => [])
+          .then(setMilestones);
+      }
+
+      // Vitrine de cupons: NÃO depende do clientLookup — a RPC pública
+      // `get_available_coupons` não recebe argumentos. Se o lookup do cliente
+      // falhar (ex.: rate limit), a vitrine continua carregando. E NÃO engole
+      // o erro em silêncio: se a RPC não existir (migrations 009/010 não
+      // aplicadas), o cliente vê o motivo em vez de "nenhum cupom".
+      getAvailableCoupons()
+        .then((c) => {
+          setCouponsError('');
           setCoupons(
             c.filter(
-              (coupon: any) =>
+              (coupon) =>
                 coupon.is_active &&
                 (!coupon.max_uses || coupon.current_uses < coupon.max_uses) &&
                 (!coupon.valid_until || new Date(coupon.valid_until) >= new Date())
             )
           );
+        })
+        .catch(() => {
+          setCouponsError('Não foi possível carregar os cupons agora. Tente novamente mais tarde.');
         });
-      }
 
       if (bookingData.length === 0) {
         setError('Nenhum agendamento futuro encontrado para este telefone.');
@@ -320,6 +338,25 @@ const ClientProfile: FC = () => {
     navigate('/cancelar', { state: { phone: phone.replace(/\D/g, ''), bookingId: booking.id } });
   };
 
+  /** Retorna null em sucesso ou a mensagem de erro — a tela de cupons exibe inline. */
+  const handleRedeem = async (code: string): Promise<string | null> => {
+    if (!phone) return 'Sessão expirada. Entre novamente.';
+    setRedeemingCode(code);
+    try {
+      const res = await resgatarCupom(phone, code);
+      if (res.ok) {
+        const updated = await getClientCoupons(phone).catch(() => []);
+        setRedeemedCoupons(updated);
+        return null;
+      }
+      return res.message || 'Erro ao resgatar cupom.';
+    } catch {
+      return 'Erro ao resgatar cupom. Tente novamente.';
+    } finally {
+      setRedeemingCode('');
+    }
+  };
+
   const handleLogout = () => {
     clearClientSession();
     setStep('phone');
@@ -356,6 +393,10 @@ const ClientProfile: FC = () => {
         isLimitedAccess={!needsPassword}
         milestones={milestones}
         coupons={coupons}
+        couponsError={couponsError}
+        redeemedCoupons={redeemedCoupons}
+        redeemingCode={redeemingCode}
+        onRedeem={handleRedeem}
         onLogout={handleLogout}
         onCancel={handleCancel}
         onReschedule={handleReschedule}

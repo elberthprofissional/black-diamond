@@ -234,7 +234,8 @@ describe('useDashboardData', () => {
 
   it('sets up realtime subscription on mount', () => {
     renderHook(() => useDashboardData());
-    expect(mockSupabaseChannel).toHaveBeenCalledWith('dashboard-bookings');
+    // Canal com nome único por setup (evita reuso de canal assinado no StrictMode)
+    expect(mockSupabaseChannel).toHaveBeenCalledWith(expect.stringMatching(/^dashboard-bookings-/));
   });
 
   it('cleans up realtime subscription on unmount', () => {

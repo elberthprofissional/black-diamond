@@ -216,6 +216,19 @@ export function BookingWizardProvider({
     handleConfirm: rawConfirm,
   } = useBookingPayment(selectedServices, showError, () => setStep(totalSteps + 1));
 
+  // ── Prefill de cupom vindo da vitrine do cliente (?coupon=CODIGO) ──
+  // O cliente resgatou na vitrine e clicou "Usar no agendamento" — o código já
+  // vem na URL, valida sozinho (sem digitar) e revalida quando os serviços
+  // forem escolhidos.
+  const couponPrefillRan = useRef(false);
+  useEffect(() => {
+    const prefillCode = new URLSearchParams(location.search).get('coupon');
+    if (!prefillCode || couponPrefillRan.current) return;
+    couponPrefillRan.current = true;
+    void handleCouponValidate(prefillCode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
+
   // Modo solo: expõe apenas o barbeiro principal (nunca mostra seletor)
   const effectiveBarbers = useMemo(
     () => (singleBarberMode ? bookableBarbers.slice(0, 1) : bookableBarbers),

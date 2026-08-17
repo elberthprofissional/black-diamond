@@ -28,8 +28,18 @@ vi.mock('../supabase', () => ({
   },
 }));
 
-const { getCoupons, createCoupon, updateCoupon, deleteCoupon, validateCoupon, applyCoupon } =
-  await import('./coupons');
+const {
+  getCoupons,
+  getAvailableCoupons,
+  createCoupon,
+  updateCoupon,
+  deleteCoupon,
+  validateCoupon,
+  applyCoupon,
+  resgatarCupom,
+  getClientCoupons,
+  usarCupomResgatado,
+} = await import('./coupons');
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -61,6 +71,38 @@ describe('getCoupons', () => {
   it('lança erro quando supabase retorna erro', async () => {
     queryResult = { data: null, error: new Error('DB error') };
     await expect(getCoupons()).rejects.toThrow('DB error');
+  });
+});
+
+describe('getAvailableCoupons', () => {
+  it('retorna cupons disponíveis via RPC pública', async () => {
+    mockRpc.mockResolvedValue({
+      data: [
+        { id: 'c1', code: 'DESCONTO10', discount_type: 'percentage', discount_value: 10 },
+        { id: 'c2', code: 'FIXO20', discount_type: 'fixed', discount_value: 20 },
+      ],
+      error: null,
+    });
+
+    const result = await getAvailableCoupons();
+
+    expect(result).toHaveLength(2);
+    expect(result[0].code).toBe('DESCONTO10');
+    expect(mockRpc).toHaveBeenCalledWith('get_available_coupons');
+  });
+
+  it('retorna array vazio quando não há cupons ativos', async () => {
+    mockRpc.mockResolvedValue({ data: [], error: null });
+
+    const result = await getAvailableCoupons();
+
+    expect(result).toEqual([]);
+  });
+
+  it('lança erro quando RPC falha', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: new Error('RPC error') });
+
+    await expect(getAvailableCoupons()).rejects.toThrow('RPC error');
   });
 });
 
@@ -202,5 +244,76 @@ describe('applyCoupon', () => {
     mockRpc.mockResolvedValue({ error: new Error('Not found') });
 
     await expect(applyCoupon('invalid-id')).rejects.toThrow('Not found');
+  });
+});
+
+describe('resgatarCupom', () => {
+  it('resgata cupom com sucesso', async () => {
+    mockRpc.mockResolvedValue({
+      data: { ok: true, message: 'Cupom resgatado!', coupon_id: 'c1', code: 'DESCONTO10' },
+      error: null,
+    });
+
+    const result = await resgatarCupom('11999999999', 'DESCONTO10');
+
+    expect(result.ok).toBe(true);
+    expect(mockRpc).toHaveBeenCalledWith('resgatar_cupom', {
+      p_phone: '11999999999',
+      p_code: 'DESCONTO10',
+    });
+  });
+
+  it('retorna erro amigável quando cupom já foi resgatado', async () => {
+    mockRpc.mockResolvedValue({
+      data: { ok: false, message: 'Você já resgatou este cupom.' },
+      error: null,
+    });
+
+    const result = await resgatarCupom('11999999999', 'DESCONTO10');
+
+    expect(result.ok).toBe(false);
+    expect(result.message).toContain('já resgatou');
+  });
+
+  it('lança erro quando RPC falha', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: new Error('RPC error') });
+
+    await expect(resgatarCupom('11999999999', 'X')).rejects.toThrow('RPC error');
+  });
+});
+
+describe('getClientCoupons', () => {
+  it('retorna lista de cupons resgatados do cliente', async () => {
+    mockRpc.mockResolvedValue({
+      data: [{ id: 'cc1', coupon_id: 'c1', code: 'DESCONTO10', used_at: null }],
+      error: null,
+    });
+
+    const result = await getClientCoupons('11999999999');
+
+    expect(result).toHaveLength(1);
+    expect(result[0].code).toBe('DESCONTO10');
+    expect(mockRpc).toHaveBeenCalledWith('get_client_coupons', { p_phone: '11999999999' });
+  });
+
+  it('retorna array vazio quando não há resgates', async () => {
+    mockRpc.mockResolvedValue({ data: [], error: null });
+
+    const result = await getClientCoupons('11999999999');
+
+    expect(result).toEqual([]);
+  });
+});
+
+describe('usarCupomResgatado', () => {
+  it('chama RPC usar_cupom_resgatado com telefone e cupom', async () => {
+    mockRpc.mockResolvedValue({ data: { ok: true }, error: null });
+
+    await usarCupomResgatado('11999999999', 'c1');
+
+    expect(mockRpc).toHaveBeenCalledWith('usar_cupom_resgatado', {
+      p_phone: '11999999999',
+      p_coupon_id: 'c1',
+    });
   });
 });

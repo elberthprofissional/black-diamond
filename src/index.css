@@ -196,6 +196,30 @@
   scrollbar-color: transparent transparent !important;
 }
 
+/* ========================================================================= */
+/* CUPOM TICKET (Meus Cupons) — recortes semicirculares nas laterais        */
+/* ========================================================================= */
+/* O círculo (mesma cor do fundo da página, #0a0a0a) meio dentro / meio     */
+/* fora da borda cria o recorte de ticket sem depender de máscara.          */
+.coupon-ticket::before,
+.coupon-ticket::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: #0a0a0a;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.coupon-ticket::before {
+  left: -11px;
+}
+.coupon-ticket::after {
+  right: -11px;
+}
+
 /* Custom tuning for installed PWA standalone mode — reduce vertical rhythm on compact screens */
 @media (display-mode: standalone) {
   .skip-link {

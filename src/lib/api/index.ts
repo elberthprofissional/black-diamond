@@ -68,11 +68,15 @@ export {
 } from './loyalty';
 export {
   getCoupons,
+  getAvailableCoupons,
   createCoupon,
   updateCoupon,
   deleteCoupon,
   validateCoupon,
   applyCoupon,
+  resgatarCupom,
+  getClientCoupons,
+  usarCupomResgatado,
 } from './coupons';
 
 export {

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { createBooking, validateCoupon } from '../lib/api';
+import { createBooking, validateCoupon, usarCupomResgatado } from '../lib/api';
 import { getErrorMessage } from '../lib/utils';
 import { openWhatsApp, formatWaDate, formatWaTime, formatWaCurrency } from '../lib/whatsapp';
 import { useBarberSettings } from './useBarberSettings';
@@ -211,6 +211,13 @@ export function useBookingPayment(
         const token = result?.token || '';
         const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
         const manageUrl = token ? `${siteUrl}/gerenciar?token=${token}` : '';
+
+        // Cupom resgatado na vitrine: marca como usado (fire-and-forget).
+        if (couponId) {
+          fireAndForget(usarCupomResgatado(userInfo.phone, couponId), {
+            context: 'useBookingPayment/markRedeemedUsed',
+          });
+        }
 
         // WhatsApp notification
         try {

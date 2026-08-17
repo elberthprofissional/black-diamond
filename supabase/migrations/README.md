@@ -4,7 +4,7 @@ Estrutura de `supabase/migrations/`. As migrations são a **fonte de verdade**
 do schema — o arquivo `supabase/_RODAR_NO_SQL_EDITOR.sql` é apenas uma
 consolidação gerada por `scripts/regenerate-mega.mjs`.
 
-## Estrutura (8 arquivos)
+## Estrutura (11 arquivos)
 
 | Arquivo | Conteúdo | Origem (migrations antigas) |
 |---------|----------|------------------------------|
@@ -16,6 +16,9 @@ consolidação gerada por `scripts/regenerate-mega.mjs`.
 | `006_agenda_duration_auth.sql` | Conflito por duração (slots que não comportam o serviço somem) + integração Supabase Auth (`sync_client_user`, `clients.user_id`) | 018_duration_overlap, 019_client_supabase_auth |
 | `007_remove_assinaturas_pix.sql` | Remoção do sistema de assinaturas/PIX (tabelas, funções, trigger, cron, `owner_pix_key`) | — (nova em 2026-08-15) |
 | `008_gallery_barber_id.sql` | Adiciona coluna `barber_id` na tabela `gallery_images` para filtrar fotos por barbeiro | — (nova em 2026-08-16) |
+| `20260816223353_add_google_linking.sql` | Integração Login com Google: `buscar_cliente_por_email_auth` + link de conta de cliente com auth do Google | — (nova em 2026-08-16) |
+| `009_cupons_resgatados.sql` | Cupons estilo Shopee: tabela `client_coupons` (posse cliente↔cupom) + RPCs `resgatar_cupom`, `get_client_coupons`, `usar_cupom_resgatado` (rate limit 10/min) | — (nova em 2026-08-17) |
+| `010_cupons_vitrine_publica.sql` | Fix RLS: RPC pública `get_available_coupons` para a vitrine do `/cliente` (a tabela `coupons` é admin-only, então SELECT direto voltava vazio para o anon) | — (nova em 2026-08-17) |
 
 Cada arquivo preserva os marcadores `-- >>> MIGRATION: <arquivo_original> <<<`
 para rastreabilidade, e o conteúdo é **idêntico** ao das migrations originais

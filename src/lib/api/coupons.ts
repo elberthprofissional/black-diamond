@@ -1,5 +1,17 @@
 import { supabase } from '../supabase';
-import type { Coupon, CouponValidation } from '../../types';
+import type { Coupon, CouponValidation, RedeemedCoupon, RedeemResult } from '../../types';
+
+/**
+ * Lista cupons disponíveis para o cliente (vitrine do /cliente).
+ *
+ * Usa RPC SECURITY DEFINER (`get_available_coupons`) porque a tabela `coupons`
+ * tem RLS admin-only — SELECT direto volta vazio para o anon.
+ */
+export const getAvailableCoupons = async (): Promise<Coupon[]> => {
+  const { data, error } = await supabase.rpc('get_available_coupons');
+  if (error) throw error;
+  return (data || []) as Coupon[];
+};
 
 /** Busca todos os cupons (admin). */
 export const getCoupons = async (): Promise<Coupon[]> => {
@@ -72,4 +84,31 @@ export const applyCoupon = async (couponId: string): Promise<void> => {
     p_coupon_id: couponId,
   });
   if (error) throw error;
+};
+
+/** Resgata um cupom pelo cliente (1 clique na vitrine — RPC server-side). */
+export const resgatarCupom = async (phone: string, code: string): Promise<RedeemResult> => {
+  const { data, error } = await supabase.rpc('resgatar_cupom', {
+    p_phone: phone,
+    p_code: code,
+  });
+  if (error) throw error;
+  return (data || { ok: false, message: 'Erro ao resgatar cupom.' }) as RedeemResult;
+};
+
+/** Lista os cupons resgatados do cliente (RPC server-side). */
+export const getClientCoupons = async (phone: string): Promise<RedeemedCoupon[]> => {
+  const { data, error } = await supabase.rpc('get_client_coupons', {
+    p_phone: phone,
+  });
+  if (error) throw error;
+  return (data || []) as RedeemedCoupon[];
+};
+
+/** Marca um cupom resgatado como usado após o agendamento ser criado. */
+export const usarCupomResgatado = async (phone: string, couponId: string): Promise<void> => {
+  await supabase.rpc('usar_cupom_resgatado', {
+    p_phone: phone,
+    p_coupon_id: couponId,
+  });
 };
