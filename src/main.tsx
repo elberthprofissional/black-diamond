@@ -1,0 +1,22 @@
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { AuthProvider } from "./hooks/useAuth";
+import { ToastProvider } from "./hooks/useToast";
+import { App } from "./App";
+import "./styles/base.css";
+import "./styles/ui.css";
+import "./styles/layout.css";
+import "./styles/pages.css";
+
+const rootEl = document.getElementById("root");
+if (!rootEl) throw new Error("Elemento #root não encontrado");
+
+createRoot(rootEl).render(
+  <StrictMode>
+    <ToastProvider>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </ToastProvider>
+  </StrictMode>
+);
