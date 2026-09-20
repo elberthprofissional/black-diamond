@@ -174,9 +174,7 @@ export function HomePage() {
             <div className="bd-hero__text">
               <Eyebrow>Barbearia no Tupi · Belo Horizonte</Eyebrow>
               <h1 className="bd-hero__title">
-                Não é apenas um corte.
-                <br />
-                <span className="bd-hero__title-gold">É um ritual.</span>
+                Black <span className="bd-hero__title-gold">Diamond</span>
               </h1>
               <p className="bd-hero__lead">
                 O cuidado masculino elevado ao padrão de um clube de cavalheiros — Black Diamond.
@@ -212,17 +210,6 @@ export function HomePage() {
             </div>
           </div>
         </section>
-
-        {/* Faixa de identidade */}
-        <aside className="bd-strip" aria-hidden="true">
-          <div className="bd-wrap bd-strip__inner">
-            <span className="bd-strip__cell">Tupi • Belo Horizonte</span>
-            <span className="bd-strip__divider" />
-            <span className="bd-strip__cell bd-strip__cell--gold">◆</span>
-            <span className="bd-strip__divider" />
-            <span className="bd-strip__cell">Corte • Barba • Acabamento</span>
-          </div>
-        </aside>
 
         {shop.services.length > 0 ? (
           <section id="servicos" className="bd-section">
