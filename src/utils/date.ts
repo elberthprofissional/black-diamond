@@ -59,6 +59,18 @@ export function sundayOfWeek(monday: string): string {
   return addDaysISO(monday, 6);
 }
 
+/**
+ * Último dia útil da semana iniciada em `monday`, dado os dias abertos
+ * (`openWeekdays` = getDay: 0=dom ... 6=sáb). Sem horários, o domingo.
+ */
+export function lastOpenOfWeek(monday: string, openWeekdays: number[]): string {
+  if (!openWeekdays.length) return sundayOfWeek(monday);
+  const pos = (dow: number) => (dow === 0 ? 7 : dow);
+  const lastPos = Math.max(...openWeekdays.map(pos));
+  const offset = lastPos === 7 ? 6 : lastPos - 1;
+  return addDaysISO(monday, offset);
+}
+
 export function formatDatePt(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
   return `${pad(d)}/${pad(m)}/${y}`;

@@ -1,31 +1,86 @@
+/* =============================================================
+   BLACK DIAMOND — design system (remake sóbrio)
+   Preto frio profundo + amarelo-ouro forte. Sem glow, sem
+   glassmorfismo: hierarquia tipográfica, respiro e detalhes finos.
+   ============================================================= */
+
 :root {
-  --bg: #0c0c0c;
-  --surface: #141414;
-  --surface-2: #181818;
-  --surface-3: #1e1e1e;
-  --border: #292929;
-  --border-soft: #1f1f1f;
-  --text: #f1eee7;
-  --text-strong: #f7f4ee;
-  --muted: #92908a;
-  --accent: #b99a5b;
-  --accent-ink: #14100a;
-  --accent-soft: rgba(185, 154, 91, 0.1);
-  --accent-line: rgba(185, 154, 91, 0.42);
-  --danger: #d96b5f;
-  --danger-soft: rgba(217, 107, 95, 0.12);
-  --success: #76b57d;
-  --success-soft: rgba(118, 181, 125, 0.12);
-  --warning: #cc9a5f;
-  --warning-soft: rgba(204, 154, 95, 0.12);
-  --info: #7d98c4;
-  --info-soft: rgba(125, 152, 196, 0.12);
-  --radius: 8px;
-  --radius-sm: 5px;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.32);
+  /* — Fundos: preto frio — */
+  --bg: #0a0a0a;
+  --bg-2: #0c0c0e;
+  --surface: #141416;
+  --surface-2: #1a1a1d;
+  --surface-3: #202024;
+  --surface-glass: rgba(20, 20, 22, 0.85);
+  --hairline: rgba(255, 255, 255, 0.05);
+
+  /* — Bordas: muito sutis — */
+  --border: #27272a;
+  --border-soft: #1f1f22;
+
+  /* — Texto — */
+  --text: #e4e4e7;
+  --text-strong: #ffffff;
+  --muted: #a1a1aa;
+  --muted-2: #6b6b72;
+
+  /* — Amarelo-ouro forte (o amarelo da versão antiga) — */
+  --accent: #e8b923;
+  --accent-bright: #f0c14b;
+  --accent-deep: #a87f13;
+  --accent-ink: #171104;
+  --accent-soft: rgba(232, 185, 35, 0.1);
+  --accent-line: rgba(232, 185, 35, 0.4);
+  --gold-grad: linear-gradient(180deg, #f6cf5a 0%, #e8b923 55%, #cf9f17 100%);
+  --gold-grad-ink: linear-gradient(180deg, #2b2208 0%, #171104 100%);
+  --gold-sheen: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 244, 210, 0.22) 46%,
+    transparent 62%
+  );
+
+  /* — Status: cores semânticas contidas — */
+  --danger: #e25c3a;
+  --danger-bright: #f5674a;
+  --danger-soft: rgba(226, 92, 58, 0.1);
+  --success: #8bb86b;
+  --success-soft: rgba(139, 184, 107, 0.1);
+  --warning: #d9a83b;
+  --warning-soft: rgba(217, 168, 59, 0.1);
+  --info: #9aa0a6;
+  --info-soft: rgba(154, 160, 166, 0.1);
+
+  /* — Raios e sombras (flat, sem glow) — */
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow-1:
+    0 1px 0 rgba(255, 255, 255, 0.02) inset,
+    0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-2:
+    0 1px 0 rgba(255, 255, 255, 0.03) inset,
+    0 24px 48px -20px rgba(0, 0, 0, 0.85);
+  --glow: 0 0 0 1px var(--accent-line);
+  --gold-glow: 0 0 0 1px var(--accent-line);
+
+  /* — Granulado cinematográfico (noise) — */
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+
+  /* — Tipografia — */
   --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display: "Oswald", "Inter", system-ui, sans-serif;
   --font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-body: var(--font);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -55,6 +110,18 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Camada de granulado sobre tudo (não captura clique; só quebra o banding) */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  pointer-events: none;
+  background-image: var(--noise);
+  background-size: 160px 160px;
+  opacity: 0.03;
+}
+
 h1,
 h2,
 h3,
@@ -73,7 +140,7 @@ h2,
 h3,
 h4 {
   color: var(--text-strong);
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 
@@ -89,11 +156,12 @@ h3 {
 
 .eyebrow {
   display: block;
-  font-size: 11px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--muted);
+  letter-spacing: 0.3em;
+  color: var(--accent);
 }
 
 a {
@@ -121,10 +189,11 @@ textarea {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 1px solid var(--accent-bright);
   outline-offset: 2px;
 }
 
+/* — Scrollbar — */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -133,17 +202,17 @@ textarea {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2c2c32;
+  background: #26262a;
   border-radius: 6px;
   border: 2px solid var(--bg);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3a3a42;
+  background: #3c3c42;
 }
 
 .accent {
   color: var(--accent);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .muted,
@@ -161,67 +230,49 @@ textarea {
 
 .section-label {
   display: block;
+  font-family: var(--font-display);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.22em;
   color: var(--muted);
   margin-bottom: 8px;
 }
 
 .field-label {
+  font-family: var(--font-display);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.2em;
   color: var(--muted);
 }
 
 .link-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   background: none;
   border: none;
   padding: 0;
   color: var(--accent);
+  font-family: var(--font-display);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 
 .link-btn:hover {
-  text-decoration: underline;
-  color: var(--accent);
-}
-
-.icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--muted);
-  cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
-}
-
-.icon-btn:hover:not(:disabled) {
-  color: var(--text);
-  border-color: var(--border);
-  background: var(--surface-2);
-}
-
-.icon-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  color: var(--accent-bright);
+  border-bottom-color: var(--accent-line);
 }
 
 .form-error {
-  color: var(--danger);
+  color: var(--danger-bright);
   font-size: 13px;
   font-weight: 500;
 }

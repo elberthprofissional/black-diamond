@@ -153,10 +153,17 @@ export function AgendaPage() {
               <button
                 key={dow}
                 type="button"
-                className={"week-filter__btn" + (dayFilter === dow ? " is-active" : "")}
+                className={
+                  "week-filter__btn" +
+                  (weekdayOf(today) === dow ? " is-today" : "") +
+                  (dayFilter === dow ? " is-active" : "")
+                }
                 onClick={() => setDayFilter(dow)}
               >
-                {WEEKDAYS_SHORT[dow]}
+                <span className="week-filter__num">
+                  {Number(weekDays[(dow + 6) % 7].slice(8, 10))}
+                </span>
+                <span className="week-filter__label">{WEEKDAYS_SHORT[dow]}</span>
               </button>
             ))}
           </div>

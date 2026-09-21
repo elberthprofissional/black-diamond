@@ -141,7 +141,9 @@ export function SuperAdminPage() {
       <header className="system-topbar">
         <div className="system-topbar__brand">
           <img src="/logo.webp" alt="BLACK DIAMOND" className="sidebar__logo" />
-          <strong>BLACK DIAMOND</strong>
+          <strong>
+            BLACK <span className="sidebar__brand-gold">DIAMOND</span>
+          </strong>
           <span className="badge badge--ghost">SUPERADMIN</span>
         </div>
         <div className="system-topbar__right">

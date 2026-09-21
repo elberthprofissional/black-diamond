@@ -1,36 +1,15 @@
 import { useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
-import { Header } from "../components/Header";
-import { useAuth } from "../hooks/useAuth";
-
-const TITLES: Record<string, string> = {
-  "/admin/agenda": "Agenda da semana",
-  "/admin/agendamentos": "Agendamentos",
-  "/admin/clientes": "Clientes",
-  "/admin/servicos": "Serviços",
-  "/admin/equipe": "Equipe",
-  "/admin/galeria": "Galeria",
-  "/admin/cupons": "Cupons",
-  "/admin/bloqueios": "Bloqueios",
-  "/admin/financeiro": "Financeiro",
-  "/admin/perfil": "Meu perfil",
-  "/admin/configuracao": "Configuração",
-};
+import { Icon } from "../components/ui/Icon";
 
 export function AdminLayout() {
-  const { role } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-  const location = useLocation();
-
-  const title = TITLES[location.pathname] ?? "Painel";
 
   return (
     <div className="app">
-      <Sidebar
-        role={role}
-        onNavigate={() => setMenuOpen(false)}
-      />
+      <Sidebar onNavigate={() => setMenuOpen(false)} />
+
       {menuOpen ? (
         <button
           type="button"
@@ -41,11 +20,19 @@ export function AdminLayout() {
       ) : null}
 
       <div className="app__main">
-        <Header title={title} onMenu={() => setMenuOpen((v) => !v)} />
         <main className="app__content">
           <Outlet />
         </main>
       </div>
+
+      <button
+        type="button"
+        className="icon-btn icon-btn--menu menu-fab"
+        onClick={() => setMenuOpen((v) => !v)}
+        aria-label="Abrir menu"
+      >
+        <Icon name="menu" size={20} />
+      </button>
     </div>
   );
 }

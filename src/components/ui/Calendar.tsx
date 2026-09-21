@@ -7,9 +7,10 @@ interface CalendarProps {
   onChange: (date: string) => void;
   min?: string; // yyyy-mm-dd
   max?: string; // yyyy-mm-dd
+  enabledWeekdays?: number[]; // getDay (0=dom ... 6=sáb) selecionáveis
 }
 
-export function Calendar({ value, onChange, min, max }: CalendarProps) {
+export function Calendar({ value, onChange, min, max, enabledWeekdays }: CalendarProps) {
   const minimum = min ?? todayISO();
   const [view, setView] = useState(() => {
     const [y, m] = value.split("-").map(Number);
@@ -82,7 +83,8 @@ export function Calendar({ value, onChange, min, max }: CalendarProps) {
         {cells.map((cell, i) => {
           if (!cell) return <span key={`b${i}`} />;
           const dt = new Date(`${cell}T00:00:00`);
-          const disabled = dt < minDate || (maxDate !== null && dt > maxDate);
+          const closedWeekday = enabledWeekdays && !enabledWeekdays.includes(dt.getDay());
+          const disabled = dt < minDate || (maxDate !== null && dt > maxDate) || closedWeekday;
           const isSel = cell === selected;
           const isToday = cell === todayISO();
           return (

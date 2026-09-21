@@ -22,12 +22,12 @@ import type { BookResult, PublicShop } from "../../services/api";
 import {
   activeWeekStartISO,
   formatDatePt,
-  sundayOfWeek,
+  lastOpenOfWeek,
   todayISO,
   WEEKDAYS_SHORT,
   weekdayOf,
 } from "../../utils/date";
-import { buildWhatsappLink, formatCurrency } from "../../utils/format";
+import { buildWhatsappLink, formatCurrency, formatShortAddress, formatWhatsapp } from "../../utils/format";
 import { isValidName, isValidWhatsapp } from "../../utils/validation";
 
 export function BookingPage() {
@@ -55,7 +55,7 @@ export function BookingPage() {
   const [bookingBusy, setBookingBusy] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-useEffect(() => {
+  useEffect(() => {
     setShop(null);
     setShopError(null);
     setBooking(null);
@@ -77,7 +77,7 @@ useEffect(() => {
       .catch((e) => setShopError(toErrorMessage(e instanceof ApiError ? e : { message: e.message })));
   }, [slug]);
 
-  // Busca horÃ¡rios livres sempre que serviÃ§o/profissional/data mudarem.
+  // Busca horários livres sempre que serviço/profissional/data mudarem.
   useEffect(() => {
     setSlots([]);
     setSlot(null);
@@ -100,21 +100,30 @@ useEffect(() => {
 
   const today = todayISO();
   const weekStart = activeWeekStartISO(today, openWeekdays);
-  const maxDate = sundayOfWeek(weekStart);
+  const maxDate = lastOpenOfWeek(weekStart, openWeekdays);
 
   const pickService = (id: string) => {
     setServiceId(id);
     setMemberId(null);
     setDate(null);
     setSlot(null);
-    setStep(2);
+    setStep(3);
   };
 
   const pickBarber = (id: string) => {
     setMemberId(id);
     setDate(null);
     setSlot(null);
-    setStep(3);
+    setStep(4);
+  };
+
+  const goNextFromData = () => {
+    const errs: typeof stepErrors = {};
+    if (!isValidName(name)) errs.name = "Informe seu nome.";
+    if (!isValidWhatsapp(whatsapp)) errs.whatsapp = "Informe um WhatsApp válido com DDD.";
+    setStepErrors(errs);
+    if (Object.keys(errs).length) return;
+    setStep(2);
   };
 
   const resetToPublic = () => {
@@ -134,7 +143,7 @@ useEffect(() => {
 
     const errs: typeof stepErrors = {};
     if (!isValidName(name)) errs.name = "Informe seu nome.";
-    if (!isValidWhatsapp(whatsapp)) errs.whatsapp = "Informe um WhatsApp vÃ¡lido com DDD.";
+    if (!isValidWhatsapp(whatsapp)) errs.whatsapp = "Informe um WhatsApp válido com DDD.";
     setStepErrors(errs);
     if (Object.keys(errs).length) return;
 
@@ -150,8 +159,7 @@ useEffect(() => {
         clientWhatsapp: whatsapp,
       });
       setBooking(result);
-      setStep(5);
-      showToast("HorÃ¡rio agendado!", "success");
+      showToast("Horário agendado!", "success");
     } catch (e) {
       setSubmitError(toErrorMessage(e));
     } finally {
@@ -159,15 +167,22 @@ useEffect(() => {
     }
   };
 
+  const stepItems = [
+    { label: "Seus dados" },
+    { label: "Serviço" },
+    { label: "Profissional" },
+    { label: "Data e horário" },
+  ];
+
   if (shopError) {
     return (
       <div className="booking-page">
         <BookingNavbar slug={slug} />
         <div className="booking-page__body">
           <EmptyState
-            icon="â—†"
-            title="Barbearia nÃ£o encontrada"
-            description="Confira o endereÃ§o (slug) da pÃ¡gina ou verifique se a barbearia estÃ¡ ativa."
+            icon="◆"
+            title="Barbearia não encontrada"
+            description="Confira o endereço (slug) da página ou verifique se a barbearia está ativa."
           />
         </div>
       </div>
@@ -205,15 +220,64 @@ useEffect(() => {
       <main className="booking-page__body">
         <div className="booking-flow">
           <ol className="steps">
-            <li className={step >= 1 ? "is-done" : ""}>ServiÃ§o</li>
-            <li className={step >= 2 ? "is-done" : ""}>Profissional</li>
-            <li className={step >= 3 ? "is-done" : ""}>Data e horÃ¡rio</li>
-            <li className={step >= 4 ? "is-done" : ""}>ConfirmaÃ§Ã£o</li>
+            {stepItems.map((item, i) => {
+              const n = i + 1;
+              const done = step > n;
+              const active = step === n;
+              return (
+                <li key={item.label} className={`${done ? "is-done" : ""} ${active ? "is-active" : ""}`}>
+                  <span className="steps__dia">
+                    <span className="steps__num">{done ? <Icon name="check" size={11} /> : `0${n}`}</span>
+                  </span>
+                  <span className="steps__label">{item.label}</span>
+                </li>
+              );
+            })}
           </ol>
 
           {step === 1 ? (
             <section className="booking-step">
-              <h2>Escolha o serviÃ§o</h2>
+              <h2>
+                <span className="booking-step__idx">01</span> Seus dados
+              </h2>
+              <div className="booking-form booking-form--lead">
+                <Input
+                  label="Seu nome"
+                  name="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  error={stepErrors.name}
+                  placeholder="Como o barbeiro deve te chamar"
+                  autoComplete="name"
+                />
+                <Input
+                  label="WhatsApp"
+                  name="whatsapp"
+                  inputMode="tel"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  error={stepErrors.whatsapp}
+                  placeholder="(11) 99999-0000"
+                  autoComplete="tel"
+                />
+                <p className="field__hint">
+                  Sem conta e sem senha — só isto para guardar o seu horário.
+                </p>
+                <Button onClick={goNextFromData} className="w-full">
+                  Continuar
+                </Button>
+              </div>
+            </section>
+          ) : null}
+
+          {step === 2 ? (
+            <section className="booking-step">
+              <div className="booking-step__head">
+                <BackButton onClick={() => setStep(1)} />
+                <h2>
+                  <span className="booking-step__idx">02</span> Escolha o serviço
+                </h2>
+              </div>
               <div className="card-grid-2">
                 {shop.services.map((svc) => (
                   <ServiceCard
@@ -225,16 +289,18 @@ useEffect(() => {
                 ))}
               </div>
               {shop.services.length === 0 ? (
-                <EmptyState icon="âœ‚ï¸" title="Sem serviÃ§os disponÃ­veis" description="Nenhum serviÃ§o ativo no momento." />
+                <EmptyState icon="✂️" title="Sem serviços disponíveis" description="Nenhum serviço ativo no momento." />
               ) : null}
             </section>
           ) : null}
 
-          {step === 2 ? (
+          {step === 3 ? (
             <section className="booking-step">
               <div className="booking-step__head">
-                <BackButton onClick={() => setStep(1)} />
-                <h2>Escolha o profissional</h2>
+                <BackButton onClick={() => setStep(2)} />
+                <h2>
+                  <span className="booking-step__idx">03</span> Escolha o profissional
+                </h2>
               </div>
               <div className="card-grid-3">
                 {shop.barbers.map((m) => (
@@ -247,21 +313,21 @@ useEffect(() => {
                 ))}
               </div>
               {shop.barbers.length === 0 ? (
-                <EmptyState icon="ðŸ’ˆ" title="Sem profissionais disponÃ­veis" description="Volte em breve." />
+                <EmptyState icon="💈" title="Sem profissionais disponíveis" description="Volte em breve." />
               ) : null}
             </section>
           ) : null}
 
-{step === 3 ? (
+          {step === 4 ? (
             <section className="booking-step">
               <div className="booking-step__head">
-                <BackButton onClick={() => setStep(2)} />
-                <h2>Data e horário</h2>
+                <BackButton onClick={() => setStep(3)} />
+                <h2>
+                  <span className="booking-step__idx">04</span> Data e horário
+                </h2>
               </div>
-              <p className="muted">
-                A agenda abre por semana: escolha um dia da semana em curso.
-              </p>
-              <div className="booking-slot-layout">
+              <p className="muted">A agenda abre por semana: toque no dia e em seguida escolha o horário.</p>
+              <div className="booking-date-layout">
                 <Calendar
                   value={date ?? today}
                   onChange={(d) => {
@@ -270,22 +336,27 @@ useEffect(() => {
                   }}
                   min={today}
                   max={maxDate}
+                  enabledWeekdays={openWeekdays.length ? openWeekdays : undefined}
                 />
                 <div className="slot-panel">
                   {!date ? (
-                    <EmptyState icon="ðŸ“…" title="Escolha uma data" description="Selecione o dia no calendÃ¡rio." />
+                    <EmptyState
+                      icon="🕒"
+                      title="Escolha um dia"
+                      description="Selecione o dia no calendário para ver os horários."
+                    />
                   ) : slotsLoading ? (
-                    <Loading label="Buscando horÃ¡rios..." />
+                    <Loading label="Buscando horários..." />
                   ) : slots.length === 0 ? (
                     <EmptyState
-                      icon="â›”"
-                      title="Sem horÃ¡rios disponÃ­veis"
-                      description={`NÃ£o hÃ¡ horÃ¡rios livres em ${formatDatePt(date)} para este serviÃ§o e profissional. Tente outro dia.`}
+                      icon="⛔"
+                      title="Sem horários disponíveis"
+                      description={`Não há horários livres em ${formatDatePt(date)} para este serviço e profissional. Tente outro dia.`}
                     />
                   ) : (
                     <>
                       <p className="section-label">
-                        HorÃ¡rios em {formatDatePt(date)} Â· {WEEKDAYS_SHORT[weekdayOf(date)]}
+                        Horários em {formatDatePt(date)} · {WEEKDAYS_SHORT[weekdayOf(date)]}
                       </p>
                       <div className="slot-list">
                         {slots.map((sl) => (
@@ -306,84 +377,17 @@ useEffect(() => {
                   )}
                 </div>
               </div>
+              {submitError ? <p className="form-error">{submitError}</p> : null}
               {slot ? (
                 <div className="booking-cta">
                   <span>
-                    {selectedService?.name} Â· {selectedBarber?.full_name}
+                    {selectedService?.name} · {selectedBarber?.full_name}
                   </span>
-                  <Button onClick={() => setStep(4)}>Continuar</Button>
+                  <Button onClick={handleConfirm} loading={bookingBusy}>
+                    Confirmar agendamento
+                  </Button>
                 </div>
               ) : null}
-            </section>
-          ) : null}
-
-          {step === 4 ? (
-            <section className="booking-step">
-              <div className="booking-step__head">
-                <BackButton onClick={() => setStep(3)} />
-                <h2>ConfirmaÃ§Ã£o</h2>
-              </div>
-
-              <div className="booking-review">
-                <dl>
-                  <div>
-                    <dt>ServiÃ§o</dt>
-                    <dd>{selectedService?.name}</dd>
-                  </div>
-                  <div>
-                    <dt>Profissional</dt>
-                    <dd>{selectedBarber?.full_name}</dd>
-                  </div>
-                  <div>
-                    <dt>Data</dt>
-                    <dd>{slot ? formatDatePt(slot.slice(0, 10)) : "â€”"}</dd>
-                  </div>
-                  <div>
-                    <dt>HorÃ¡rio</dt>
-                    <dd>
-                      {slot
-                        ? new Date(slot).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
-                        : "â€”"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Valor</dt>
-                    <dd className="accent">{formatCurrency(selectedService?.price ?? 0)}</dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="booking-form">
-                <Input
-                  label="Seu nome"
-                  name="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  error={stepErrors.name}
-                  placeholder="Como o barbeiro deve te chamar"
-                  autoComplete="name"
-                />
-                <Input
-                  label="WhatsApp"
-                  name="whatsapp"
-                  inputMode="tel"
-                  value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value)}
-                  error={stepErrors.whatsapp}
-                  placeholder="(11) 99999-0000"
-                  autoComplete="tel"
-                />
-                {submitError ? <p className="form-error">{submitError}</p> : null}
-                <p className="field__hint">
-                  VocÃª nÃ£o precisa criar conta. O horÃ¡rio Ã© reservado apenas depois da confirmaÃ§Ã£o.
-                </p>
-                <Button onClick={handleConfirm} loading={bookingBusy} className="w-full">
-                  Confirmar agendamento
-                </Button>
-                <button type="button" className="link-btn w-full" onClick={() => setStep(3)}>
-                  <Icon name="chevronLeft" size={14} /> Voltar para os horÃ¡rios
-                </button>
-              </div>
             </section>
           ) : null}
         </div>
@@ -406,10 +410,12 @@ function BookingNavbar({ slug }: { slug?: string }) {
   return (
     <header className="booking-nav">
       <Link to={`/agendar/${slug ?? ""}`} className="booking-nav__brand">
-        <span className="booking-nav__mark">â—†</span>
-        <strong>BLACK DIAMOND</strong>
+        <span className="booking-nav__mark">◆</span>
+        <strong>
+          BLACK <span className="sidebar__brand-gold">DIAMOND</span>
+        </strong>
       </Link>
-      <Link to="/login" className="link-btn">
+      <Link to="/login" className="booking-nav__cta">
         Painel
       </Link>
     </header>
@@ -425,11 +431,12 @@ function BookingHero({ shop }: { shop: PublicShop }) {
       style={{ "--accent": b.primary_color, "--accent-ink": readableInk(b.primary_color) } as CSSProperties}
     >
       <div className="booking-hero__inner">
+        <span className="booking-hero__eyebrow">Agendamento online</span>
         <div className="booking-hero__brand">
           {b.logo_url ? (
             <img src={b.logo_url} alt={b.name} className="booking-hero__logo" />
           ) : (
-            <span className="booking-hero__mark">â—†</span>
+            <span className="booking-hero__mark">◆</span>
           )}
           <div>
             <h1>{b.name}</h1>
@@ -438,11 +445,11 @@ function BookingHero({ shop }: { shop: PublicShop }) {
         </div>
         {b.about ? <p className="booking-hero__about">{b.about}</p> : null}
         <ul className="booking-hero__meta">
-          {s.show_address && b.address ? <li>{b.address}</li> : null}
+          {s.show_address && b.address ? <li>{formatShortAddress(b.address)}</li> : null}
           {s.show_whatsapp && b.whatsapp ? (
             <li>
-              <a href={buildWhatsappLink(b.whatsapp, "OlÃ¡! Gostaria de saber mais.")} target="_blank" rel="noreferrer">
-                {b.whatsapp}
+              <a href={buildWhatsappLink(b.whatsapp, "Olá! Gostaria de saber mais.")} target="_blank" rel="noreferrer">
+                {formatWhatsapp(b.whatsapp)}
               </a>
             </li>
           ) : null}
@@ -474,25 +481,25 @@ function SuccessPanel({
   });
 
   const waText = [
-    `*${shop.name}* â€” Agendamento realizado`,
+    `*${shop.name}* — Agendamento realizado`,
     "",
     `Cliente: ${result.client_name}`,
-    `ServiÃ§o: ${result.service_name}`,
+    `Serviço: ${result.service_name}`,
     `Barbeiro: ${result.member_name}`,
     `Data: ${formatDatePt(result.start_at.slice(0, 10))}`,
-    `HorÃ¡rio: ${time}`,
+    `Horário: ${time}`,
     `Valor: ${formatCurrency(result.service_price)}`,
     "Status: Agendado",
     "",
-    "Venho confirmar meu horÃ¡rio.",
+    "Venho confirmar meu horário.",
   ].join("\n");
 
   return (
     <div className="booking-success">
       <div className="booking-success__icon">
-        <Icon name="check" size={26} />
+        <Icon name="check" size={24} />
       </div>
-      <h2>HorÃ¡rio garantido!</h2>
+      <h2>Horário garantido!</h2>
       <p className="text-muted">Seu agendamento foi registrado. Confira os dados:</p>
 
       <dl className="booking-success__list">
@@ -501,7 +508,7 @@ function SuccessPanel({
           <dd>{result.client_name}</dd>
         </div>
         <div>
-          <dt>ServiÃ§o</dt>
+          <dt>Serviço</dt>
           <dd>{result.service_name}</dd>
         </div>
         <div>
@@ -513,7 +520,7 @@ function SuccessPanel({
           <dd>{formatDatePt(result.start_at.slice(0, 10))}</dd>
         </div>
         <div>
-          <dt>HorÃ¡rio</dt>
+          <dt>Horário</dt>
           <dd>{time}</dd>
         </div>
         <div>
@@ -561,7 +568,7 @@ export function BookingFooter({
     <footer className="booking-footer">
       <div className="booking-footer__inner">
         {s.show_whatsapp && b.whatsapp ? (
-          <a href={buildWhatsappLink(b.whatsapp, "OlÃ¡!")} target="_blank" rel="noreferrer">
+          <a href={buildWhatsappLink(b.whatsapp, "Olá!")} target="_blank" rel="noreferrer">
             WhatsApp
           </a>
         ) : null}
@@ -570,8 +577,8 @@ export function BookingFooter({
             Instagram
           </a>
         ) : null}
-        {s.show_address && b.address ? <span>{b.address}</span> : null}
-{s.show_credits ? (
+        {s.show_address && b.address ? <span>{formatShortAddress(b.address)}</span> : null}
+        {s.show_credits ? (
           <span className="booking-footer__credit">{s.credits_text || b.name}</span>
         ) : null}
       </div>
@@ -579,7 +586,7 @@ export function BookingFooter({
   );
 }
 
-/** Cor de texto legÃ­vel sobre a cor de destaque (contraste). */
+/** Cor de texto legível sobre a cor de destaque (contraste). */
 export function readableInk(hex: string): string {
   const clean = hex.replace("#", "");
   if (clean.length < 6) return "#16130c";
