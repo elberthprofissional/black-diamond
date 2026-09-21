@@ -20,9 +20,6 @@ const BookingPage = lazy(() =>
 const HomePage = lazy(() =>
   import("./pages/public/HomePage").then((m) => ({ default: m.HomePage }))
 );
-const DashboardPage = lazy(() =>
-  import("./pages/admin/DashboardPage").then((m) => ({ default: m.DashboardPage }))
-);
 const AgendaPage = lazy(() =>
   import("./pages/admin/AgendaPage").then((m) => ({ default: m.AgendaPage }))
 );
@@ -143,7 +140,7 @@ export function App() {
             </RequireAuth>
           }
         >
-          <Route index element={<DashboardPage />} />
+          <Route index element={<Navigate to="/admin/agenda" replace />} />
           <Route path="agenda" element={<AgendaPage />} />
           <Route
             path="agendamentos"

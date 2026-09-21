@@ -5,7 +5,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
     <div className="auth">
       <div className="auth__card">
         <div className="auth__brand">
-          <span className="auth__logo">◆</span>
+          <img src="/logo.webp" alt="BLACK DIAMOND" className="auth__logo" />
           <strong>BLACK DIAMOND</strong>
           <span>Sistema de gestão para barbearias</span>
         </div>

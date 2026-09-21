@@ -1,30 +1,31 @@
 :root {
-  --bg: #0d0d0f;
-  --surface: #151517;
-  --surface-2: #1b1b1e;
-  --surface-3: #232327;
-  --border: #26262b;
-  --border-soft: #202024;
-  --text: #ececf0;
-  --text-strong: #f4f4f7;
-  --muted: #9a9aa4;
-  --accent: #c2a878;
-  --accent-ink: #16130c;
-  --accent-soft: rgba(194, 168, 120, 0.12);
-  --danger: #e0554f;
-  --danger-soft: rgba(224, 85, 79, 0.12);
-  --success: #67bd6e;
-  --success-soft: rgba(103, 189, 110, 0.12);
-  --warning: #d9a35f;
-  --warning-soft: rgba(217, 163, 95, 0.12);
-  --info: #7aa7de;
-  --info-soft: rgba(122, 167, 222, 0.12);
-  --radius: 6px;
-  --radius-sm: 4px;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 20px rgba(0, 0, 0, 0.28);
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display: "Oswald", "Arial Narrow", system-ui, sans-serif;
-  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bg: #0c0c0c;
+  --surface: #141414;
+  --surface-2: #181818;
+  --surface-3: #1e1e1e;
+  --border: #292929;
+  --border-soft: #1f1f1f;
+  --text: #f1eee7;
+  --text-strong: #f7f4ee;
+  --muted: #92908a;
+  --accent: #b99a5b;
+  --accent-ink: #14100a;
+  --accent-soft: rgba(185, 154, 91, 0.1);
+  --accent-line: rgba(185, 154, 91, 0.42);
+  --danger: #d96b5f;
+  --danger-soft: rgba(217, 107, 95, 0.12);
+  --success: #76b57d;
+  --success-soft: rgba(118, 181, 125, 0.12);
+  --warning: #cc9a5f;
+  --warning-soft: rgba(204, 154, 95, 0.12);
+  --info: #7d98c4;
+  --info-soft: rgba(125, 152, 196, 0.12);
+  --radius: 8px;
+  --radius-sm: 5px;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.32);
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Oswald", "Inter", system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -84,6 +85,15 @@ h2 {
 }
 h3 {
   font-size: 16px;
+}
+
+.eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
 }
 
 a {
@@ -160,8 +170,10 @@ textarea {
 }
 
 .field-label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
   color: var(--muted);
 }
 

@@ -5,8 +5,7 @@ import { Header } from "../components/Header";
 import { useAuth } from "../hooks/useAuth";
 
 const TITLES: Record<string, string> = {
-  "/admin": "Visão geral",
-  "/admin/agenda": "Agenda",
+  "/admin/agenda": "Agenda da semana",
   "/admin/agendamentos": "Agendamentos",
   "/admin/clientes": "Clientes",
   "/admin/servicos": "Serviços",
@@ -20,7 +19,7 @@ const TITLES: Record<string, string> = {
 };
 
 export function AdminLayout() {
-  const { role, activeMembership } = useAuth();
+  const { role } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -30,7 +29,6 @@ export function AdminLayout() {
     <div className="app">
       <Sidebar
         role={role}
-        shop={activeMembership}
         onNavigate={() => setMenuOpen(false)}
       />
       {menuOpen ? (

@@ -6,14 +6,12 @@ import { Loading } from "../../components/ui/Loading";
 import {
   ApiError,
   fetchPublicShop,
-  listBusinessHours,
   listGallery,
   toErrorMessage,
 } from "../../services/api";
 import type { PublicShop } from "../../services/api";
-import type { Barbershop, BusinessHour, GalleryItem } from "../../types";
+import type { Barbershop, GalleryItem } from "../../types";
 import { formatCurrency, buildWhatsappLink } from "../../utils/format";
-import { WEEKDAYS_FULL, WEEKDAYS_SHORT } from "../../utils/date";
 import { readableInk } from "./BookingPage";
 
 const DEFAULT_SLUG = "black-diamond";
@@ -50,76 +48,23 @@ const TESTIMONIALS: { name: string; text: string }[] = [
   },
 ];
 
-interface HourGroup {
-  label: string;
-  time: string;
-  isClosed: boolean;
-  isToday: boolean;
-}
 
-// Agrupa os dias consecutivos com o mesmo horário em faixas legíveis
-// (ex.: "Segunda-feira a Sábado — 08:00 – 18:00", "Domingo — Fechado").
-function summarizeHours(hours: BusinessHour[], todayWeekday: number): HourGroup[] {
-  if (hours.length === 0) return [];
-  const rowOf = (d: number) => hours.find((h) => h.weekday === d);
-  const groups: HourGroup[] = [];
-  let i = 0;
-  while (i < 7) {
-    const h = rowOf(i);
-    if (!h) {
-      i++;
-      continue;
-    }
-    if (h.is_closed) {
-      groups.push({ label: WEEKDAYS_FULL[i], time: "Fechado", isClosed: true, isToday: i === todayWeekday });
-      i++;
-      continue;
-    }
-    let j = i;
-    while (j < 6 && rowOf(j + 1) && !rowOf(j + 1)!.is_closed) j++;
-    const label = j === i ? WEEKDAYS_FULL[i] : `${WEEKDAYS_FULL[i]} a ${WEEKDAYS_FULL[j]}`;
-    groups.push({
-      label,
-      time: `${h.open_time.slice(0, 5)} – ${h.close_time.slice(0, 5)}`,
-      isClosed: false,
-      isToday: todayWeekday >= i && todayWeekday <= j,
-    });
-    i = j + 1;
-  }
-  return groups;
-}
-
-// Resumo curto ("Seg-Sáb · 08:00–18:00") usado no hero e pixels de suporte.
-function hoursShort(hours: BusinessHour[]): string | null {
-  const open = hours.filter((h) => !h.is_closed);
-  if (open.length === 0) return null;
-  const first = Math.min(...open.map((o) => o.weekday));
-  const last = Math.max(...open.map((o) => o.weekday));
-  const label = first === last ? WEEKDAYS_SHORT[first] : `${WEEKDAYS_SHORT[first]}-${WEEKDAYS_SHORT[last]}`;
-  const t = open.find((o) => o.weekday === first)!;
-  return `${label} · ${t.open_time.slice(0, 5)}–${t.close_time.slice(0, 5)}`;
-}
 
 export function HomePage() {
   const { slug } = useParams<{ slug: string }>();
   const activeSlug = slug ?? DEFAULT_SLUG;
 
   const [shop, setShop] = useState<PublicShop | null>(null);
-  const [hours, setHours] = useState<BusinessHour[]>([]);
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setShop(null);
-    setHours([]);
     setGallery([]);
     setError(null);
     fetchPublicShop(activeSlug)
       .then((data) => {
         setShop(data);
-        listBusinessHours(data.barbershop.id)
-          .then(setHours)
-          .catch(() => {});
         listGallery(data.barbershop.id)
           .then(setGallery)
           .catch(() => {});
@@ -151,9 +96,7 @@ export function HomePage() {
 
   const b = shop.barbershop;
   const s = b.settings;
-  const todayWeekday = new Date().getDay();
-  const hourGroups = summarizeHours(hours, todayWeekday);
-  const shortHours = hoursShort(hours);
+
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     `${b.name} ${b.address}`
   )}`;
@@ -170,6 +113,7 @@ export function HomePage() {
 
       <main>
         <section id="inicio" className="bd-hero">
+          <div className="bd-hero__bg" aria-hidden="true" />
           <div className="bd-wrap bd-hero__grid">
             <div className="bd-hero__text">
               <Eyebrow>Barbearia no Tupi · Belo Horizonte</Eyebrow>
@@ -196,17 +140,6 @@ export function HomePage() {
                   </a>
                 ) : null}
               </div>
-              {shortHours ? (
-                <p className="bd-hero__meta">
-                  <span className="bd-mark">◆</span>
-                  Atendimento {shortHours}
-                </p>
-              ) : null}
-            </div>
-
-            <div className="bd-hero__photo">
-              <img src="/fundo-desktop.webp" alt="Interior da barbearia BLACK DIAMOND" className="bd-hero__photo-img" />
-              <span className="bd-hero__photo-tag">Tupi · Belo Horizonte</span>
             </div>
           </div>
         </section>
@@ -315,36 +248,12 @@ export function HomePage() {
 
         <section id="local" className="bd-section bd-hoursloc">
           <div className="bd-wrap bd-hoursloc__grid">
-            {hourGroups.length > 0 ? (
-              <div className="bd-hoursloc__col">
-                <Eyebrow>Horário</Eyebrow>
-                <h2 className="bd-title">Quando a gente atende.</h2>
-                <ul className="bd-hours">
-                  {hourGroups.map((g) => (
-                    <li key={g.label} className={`bd-hours__row${g.isToday ? " is-today" : ""}`}>
-                      <span className="bd-hours__day">
-                        {g.label}
-                        {g.isToday ? <em>hoje</em> : null}
-                      </span>
-                      <span className={`bd-hours__value${g.isClosed ? " is-closed" : ""}`}>
-                        {g.time}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
 
             {s.show_address && b.address ? (
               <div className="bd-hoursloc__col">
-                <Eyebrow>Onde estamos</Eyebrow>
-                <h2 className="bd-title">O endereço da casa.</h2>
+                <Eyebrow>Localização</Eyebrow>
+                <h2 className="bd-title">Onde estamos localizados</h2>
                 <address className="bd-address">{b.address}</address>
-                {b.phone ? (
-                  <a className="bd-address__phone" href={`tel:${b.phone.replace(/\D/g, "")}`}>
-                    {b.phone}
-                  </a>
-                ) : null}
                 <div className="bd-map">
                   <iframe
                     title={`Mapa — ${b.name}`}
@@ -377,25 +286,36 @@ function Eyebrow({ children }: { children: ReactNode }) {
   return <p className="bd-eyebrow">{children}</p>;
 }
 
-// Depoimentos em cards navegáveis: swipe no mobile, setas no desktop.
+// Depoimentos em cards: grade no desktop, swipe no mobile.
 function Testimonials() {
   const trackRef = useRef<HTMLDivElement>(null);
   const scrollStep = () => {
     const el = trackRef.current;
-    if (!el) return 360;
+    if (!el) return 380;
     const card = el.querySelector<HTMLElement>(".bd-quote");
-    return card ? card.offsetWidth + 16 : 360;
+    return card ? card.offsetWidth + 20 : 380;
   };
   const scrollPrev = () =>
     trackRef.current?.scrollBy({ left: -scrollStep(), behavior: "smooth" });
   const scrollNext = () =>
     trackRef.current?.scrollBy({ left: scrollStep(), behavior: "smooth" });
+  const initials = (name: string) =>
+    name
+      .split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+
   return (
     <>
       <div className="bd-head">
         <div>
           <Eyebrow>Quem senta, volta</Eyebrow>
           <h2 className="bd-title">O que dizem nossos clientes</h2>
+          <p className="bd-testi__sub">
+            Avaliações reais de quem já faz parte da casa.
+          </p>
         </div>
         <div className="bd-carousel__nav" aria-hidden="false">
           <button
@@ -420,12 +340,17 @@ function Testimonials() {
       <div className="bd-quotes" ref={trackRef}>
         {TESTIMONIALS.map((t) => (
           <figure key={t.name} className="bd-quote">
-            <blockquote>
-              <span className="bd-quote__mark">“</span>
-              {t.text}
-            </blockquote>
+            <span className="bd-quote__mark" aria-hidden="true">
+              “
+            </span>
+            <span className="bd-quote__stars" aria-label="Avaliação 5 de 5">
+              ★★★★★
+            </span>
+            <blockquote>{t.text}</blockquote>
             <figcaption className="bd-quote__name">
-              <span className="bd-mark">◆</span>
+              <span className="bd-quote__avatar" aria-hidden="true">
+                {initials(t.name)}
+              </span>
               {t.name}
             </figcaption>
           </figure>
@@ -456,9 +381,6 @@ function SiteHeader({ slug, shop }: { slug: string; shop: Barbershop }) {
               {l.label}
             </a>
           ))}
-          <Link to="/login" className="bd-header__link bd-header__link--muted" onClick={() => setOpen(false)}>
-            Painel
-          </Link>
           <Link
             to={`/agendar/${slug}`}
             className="btn-bd btn-bd--gold bd-header__cta"
@@ -496,50 +418,64 @@ function SiteFooter({
     barberflow_branding: boolean;
   };
 }) {
+  const year = new Date().getFullYear();
   return (
     <footer className="bd-footer">
-      <div className="bd-wrap bd-footer__bar">
-        <span className="bd-brand">
-          <span className="bd-brand__mark">◆</span>
-          <span className="bd-brand__name">{b.name}</span>
-        </span>
-        <nav className="bd-footer__nav" aria-label="Links">
-          {s.show_whatsapp && b.whatsapp ? (
-            <a
-              href={buildWhatsappLink(b.whatsapp, "Olá!")}
-              target="_blank"
-              rel="noreferrer"
-              className="bd-footer__link"
-            >
-              WhatsApp
-            </a>
-          ) : null}
-          {s.show_instagram && b.instagram ? (
-            <a
-              href={`https://instagram.com/${b.instagram.replace("@", "")}`}
-              target="_blank"
-              rel="noreferrer"
-              className="bd-footer__link"
-            >
-              Instagram
-            </a>
-          ) : null}
-          {s.show_address && b.address ? (
-            <a href="#local" className="bd-footer__link">
-              Localização
-            </a>
-          ) : null}
-        </nav>
-      </div>
-      <div className="bd-wrap bd-footer__meta">
-        <span className="bd-footer__tagline">Cortes clássicos. Estilo atual.</span>
-        {s.show_credits ? (
-          <span className="bd-footer__credit">
-            {s.credits_text || b.name} · © {new Date().getFullYear()}
+      <div className="bd-wrap">
+        <div className="bd-footer__top">
+          <span className="bd-brand">
+            <span className="bd-brand__mark">◆</span>
+            <span className="bd-brand__name">{b.name}</span>
           </span>
-        ) : (
-          <span className="bd-footer__credit">© {new Date().getFullYear()} BLACK DIAMOND</span>
-        )}
+
+          <nav className="bd-footer__nav" aria-label="Links">
+            {s.show_whatsapp && b.whatsapp ? (
+              <a
+                href={buildWhatsappLink(b.whatsapp, "Olá!")}
+                target="_blank"
+                rel="noreferrer"
+                className="bd-footer__link"
+              >
+                <Icon name="phone" size={13} />
+                WhatsApp
+              </a>
+            ) : null}
+            {s.show_instagram && b.instagram ? (
+              <a
+                href={`https://instagram.com/${b.instagram.replace("@", "")}`}
+                target="_blank"
+                rel="noreferrer"
+                className="bd-footer__link"
+              >
+                <Icon name="camera" size={13} />
+                Instagram
+              </a>
+            ) : null}
+            {s.show_address && b.address ? (
+              <a href="#local" className="bd-footer__link">
+                <Icon name="pin" size={13} />
+                Localização
+              </a>
+            ) : null}
+          </nav>
+        </div>
+
+        <div className="bd-footer__mid">
+          <span className="bd-footer__tagline">Cortes clássicos. Estilo atual.</span>
+          <span className="bd-footer__credit">
+            {s.show_credits ? s.credits_text || b.name : "BLACK DIAMOND"} · © {year}
+          </span>
+        </div>
+
+        <div className="bd-footer__base">
+          <p className="bd-footer__legal">
+            {b.name} — o cuidado masculino elevado ao padrão de um clube de cavalheiros.
+          </p>
+          <Link to="/login" className="bd-footer__admin" title="Acesso restrito · Área do administrador">
+            <Icon name="lock" size={12} />
+            admin
+          </Link>
+        </div>
       </div>
     </footer>
   );

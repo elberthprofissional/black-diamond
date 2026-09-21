@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { Icon } from "../../components/ui/Icon";
+import type { IconName } from "../../components/ui/Icon";
 import { Input } from "../../components/ui/Input";
 import { Loading } from "../../components/ui/Loading";
 import { HoursEditor, normalizeHours } from "../../components/HoursEditor";
@@ -17,6 +19,41 @@ import {
 } from "../../services/api";
 import { readableInk } from "../../pages/public/BookingPage";
 import type { BarbershopSettings } from "../../types";
+import { ServicesPage } from "./ServicesPage";
+import { TeamPage } from "./TeamPage";
+import { CouponsPage } from "./CouponsPage";
+import { BlockedPage } from "./BlockedPage";
+import { GalleryPage } from "./GalleryPage";
+import { ProfilePage } from "./ProfilePage";
+
+type SettingsTab =
+  | "identity"
+  | "contact"
+  | "profile"
+  | "appearance"
+  | "services"
+  | "team"
+  | "hours"
+  | "blocks"
+  | "coupons"
+  | "gallery"
+  | "footer";
+
+const FORM_TABS: SettingsTab[] = ["identity", "contact", "appearance", "footer", "hours"];
+
+const TABS: { id: SettingsTab; label: string; icon: IconName }[] = [
+  { id: "identity", label: "Identidade", icon: "user" },
+  { id: "contact", label: "Contato", icon: "phone" },
+  { id: "profile", label: "Perfil", icon: "user" },
+  { id: "appearance", label: "Aparência", icon: "sliders" },
+  { id: "services", label: "Serviços", icon: "scissors" },
+  { id: "team", label: "Equipe", icon: "users" },
+  { id: "hours", label: "Horário de funcionamento", icon: "clock" },
+  { id: "blocks", label: "Bloqueios", icon: "ban" },
+  { id: "coupons", label: "Cupons", icon: "percent" },
+  { id: "gallery", label: "Galeria", icon: "camera" },
+  { id: "footer", label: "Rodapé", icon: "info" },
+];
 
 export function SettingsPage() {
   const { activeMembership } = useAuth();
@@ -45,6 +82,22 @@ export function SettingsPage() {
   const [settings, setSettings] = useState<BarbershopSettings | null>(null);
   const [hours, setHours] = useState<HourRow[] | null>(null);
   const [saveBusy, setSaveBusy] = useState(false);
+
+  const [tab, setTab] = useState<SettingsTab | null>(() =>
+    typeof window !== "undefined" && window.matchMedia("(max-width: 720px)").matches
+      ? null
+      : "identity",
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 720px)");
+    const onChange = (e: MediaQueryListEvent) => {
+      if (e.matches) setTab(null);
+      else setTab((t) => t ?? "identity");
+    };
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
     if (!data) return;
@@ -130,71 +183,174 @@ export function SettingsPage() {
   return (
     <div className="page">
       <div className="page-heading">
-        <h2>Configuração da página</h2>
+        <span className="eyebrow">Sistema</span>
+        <h2>Configurações</h2>
         <p className="text-muted">
-          Esses dados alimentam a página pública de agendamento ({window.location.origin}/agendar/
-          {form.slug}). O rodapé e a cor de destaque também são controlados aqui.
+          Identidade, contato, horários e aparência da página de agendamento do cliente.
         </p>
       </div>
 
-      <div className="settings-grid">
-        <section className="card">
-          <div className="card__head">
-            <h3>Identidade e contato</h3>
-          </div>
-          <div className="form-stack">
-            <div className="form-grid-2">
-              <Input label="Nome" name="st-name" value={form.name} onChange={(e) => set({ name: e.target.value })} />
-              <Input label="Slug (endereço)" name="st-slug" value={form.slug} onChange={(e) => set({ slug: e.target.value })} hint="Usado na URL pública." />
-            </div>
-            <Input label="Descrição curta" name="st-desc" value={form.description} onChange={(e) => set({ description: e.target.value })} />
-            <Input label="Sobre (texto principal)" name="st-about" value={form.about} onChange={(e) => set({ about: e.target.value })} />
-            <Input label="Endereço" name="st-address" value={form.address} onChange={(e) => set({ address: e.target.value })} />
-            <div className="form-grid-2">
-              <Input label="Telefone" name="st-phone" value={form.phone} onChange={(e) => set({ phone: e.target.value })} />
-              <Input label="WhatsApp (com DDD)" name="st-wa" value={form.whatsapp} onChange={(e) => set({ whatsapp: e.target.value })} />
-            </div>
-            <Input label="Instagram" name="st-ig" value={form.instagram} onChange={(e) => set({ instagram: e.target.value })} placeholder="minha.barbearia" />
-            <div className="form-grid-2">
-              <Input label="URL do logo" name="st-logo" value={form.logo_url} onChange={(e) => set({ logo_url: e.target.value })} />
-              <Input label="URL da imagem principal" name="st-hero" value={form.hero_image_url} onChange={(e) => set({ hero_image_url: e.target.value })} />
-            </div>
-            <div className="form-grid-2">
-              <Input label="Cor de destaque" type="color" name="st-color" value={form.primary_color} onChange={(e) => set({ primary_color: e.target.value })} />
-              <Input label="Cor (hex)" name="st-color-hex" value={form.primary_color} onChange={(e) => set({ primary_color: e.target.value })} />
-            </div>
-          </div>
+      <div className={`settings-layout${tab ? " is-detail" : ""}`}>
+        <nav className="settings-nav" aria-label="Seções de configuração">
+          <span className="settings-nav__title">Configurações</span>
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={`settings-nav__item${tab === t.id ? " is-active" : ""}`}
+              onClick={() => setTab(t.id)}
+            >
+              <Icon name={t.icon} size={16} />
+              {t.label}
+            </button>
+          ))}
+        </nav>
+
+        <section className="settings-panel">
+          {tab ? (
+            <>
+              {FORM_TABS.includes(tab) ? (
+                <>
+                  <div className="settings-panel__head">
+                    <button type="button" className="settings-back" onClick={() => setTab(null)}>
+                      <Icon name="chevronLeft" size={16} />
+                      Voltar
+                    </button>
+                    <h3>{TABS.find((t) => t.id === tab)?.label}</h3>
+                  </div>
+
+                  {tab === "identity" ? (
+                    <section className="card">
+                      <div className="card__head">
+                        <h3>Nome e textos</h3>
+                      </div>
+                      <div className="form-stack">
+                        <div className="form-grid-2">
+                          <Input label="Nome" name="st-name" value={form.name} onChange={(e) => set({ name: e.target.value })} />
+                          <Input label="Slug (endereço)" name="st-slug" value={form.slug} onChange={(e) => set({ slug: e.target.value })} hint="Usado na URL pública." />
+                        </div>
+                        <Input label="Descrição curta" name="st-desc" value={form.description} onChange={(e) => set({ description: e.target.value })} />
+                        <Input label="Sobre (texto principal)" name="st-about" value={form.about} onChange={(e) => set({ about: e.target.value })} />
+                      </div>
+                    </section>
+                  ) : null}
+
+                  {tab === "contact" ? (
+                    <section className="card">
+                      <div className="card__head">
+                        <h3>Canais de atendimento</h3>
+                      </div>
+                      <div className="form-stack">
+                        <Input label="Endereço" name="st-address" value={form.address} onChange={(e) => set({ address: e.target.value })} />
+                        <div className="form-grid-2">
+                          <Input label="Telefone" name="st-phone" value={form.phone} onChange={(e) => set({ phone: e.target.value })} />
+                          <Input label="WhatsApp (com DDD)" name="st-wa" value={form.whatsapp} onChange={(e) => set({ whatsapp: e.target.value })} />
+                        </div>
+                        <Input label="Instagram" name="st-ig" value={form.instagram} onChange={(e) => set({ instagram: e.target.value })} placeholder="minha.barbearia" />
+                      </div>
+                    </section>
+                  ) : null}
+
+                  {tab === "appearance" ? (
+                    <section className="card">
+                      <div className="card__head">
+                        <h3>Logo, imagem e cor</h3>
+                      </div>
+                      <div className="form-stack">
+                        <Input label="URL do logo" name="st-logo" value={form.logo_url} onChange={(e) => set({ logo_url: e.target.value })} />
+                        <Input label="URL da imagem principal" name="st-hero" value={form.hero_image_url} onChange={(e) => set({ hero_image_url: e.target.value })} />
+                        <div className="form-grid-2">
+                          <Input label="Cor de destaque" type="color" name="st-color" value={form.primary_color} onChange={(e) => set({ primary_color: e.target.value })} />
+                        </div>
+                      </div>
+                    </section>
+                  ) : null}
+
+                  {tab === "footer" ? (
+                    <section className="card">
+                      <div className="card__head">
+                        <h3>Rodapé da página pública</h3>
+                      </div>
+                      <div className="form-stack">
+                        <ToggleRow label="Mostrar endereço" checked={settings.show_address} onChange={(v) => setSetting({ show_address: v })} />
+                        <ToggleRow label="Mostrar Instagram" checked={settings.show_instagram} onChange={(v) => setSetting({ show_instagram: v })} />
+                        <ToggleRow label="Mostrar WhatsApp" checked={settings.show_whatsapp} onChange={(v) => setSetting({ show_whatsapp: v })} />
+                        <ToggleRow label="Mostrar créditos do sistema" checked={settings.show_credits} onChange={(v) => setSetting({ show_credits: v })} />
+                        {settings.show_credits ? (
+                          <Input label="Texto dos créditos" name="st-credits" value={settings.credits_text} onChange={(e) => setSetting({ credits_text: e.target.value })} />
+                        ) : null}
+                      </div>
+                    </section>
+                  ) : null}
+
+                  {tab === "hours" ? (
+                    <section className="card">
+                      <div className="card__head">
+                        <h3>Horário de funcionamento</h3>
+                        <span className="muted">A disponibilidade considera o horário da barbearia E o do profissional.</span>
+                      </div>
+                      <HoursEditor rows={hours} onChange={setHours} />
+                    </section>
+                  ) : null}
+
+                  <div className="page-actions">
+                    <Button onClick={save} loading={saveBusy}>
+                      Salvar alterações
+                    </Button>
+                  </div>
+                </>
+              ) : tab === "services" ? (
+                <div className="settings-depth">
+                  <button type="button" className="settings-back" onClick={() => setTab(null)}>
+                    <Icon name="chevronLeft" size={16} />
+                    Voltar
+                  </button>
+                  <ServicesPage />
+                </div>
+              ) : tab === "team" ? (
+                <div className="settings-depth">
+                  <button type="button" className="settings-back" onClick={() => setTab(null)}>
+                    <Icon name="chevronLeft" size={16} />
+                    Voltar
+                  </button>
+                  <TeamPage />
+                </div>
+              ) : tab === "coupons" ? (
+                <div className="settings-depth">
+                  <button type="button" className="settings-back" onClick={() => setTab(null)}>
+                    <Icon name="chevronLeft" size={16} />
+                    Voltar
+                  </button>
+                  <CouponsPage />
+                </div>
+              ) : tab === "blocks" ? (
+                <div className="settings-depth">
+                  <button type="button" className="settings-back" onClick={() => setTab(null)}>
+                    <Icon name="chevronLeft" size={16} />
+                    Voltar
+                  </button>
+                  <BlockedPage />
+                </div>
+              ) : tab === "profile" ? (
+                <div className="settings-depth">
+                  <button type="button" className="settings-back" onClick={() => setTab(null)}>
+                    <Icon name="chevronLeft" size={16} />
+                    Voltar
+                  </button>
+                  <ProfilePage />
+                </div>
+              ) : (
+                <div className="settings-depth">
+                  <button type="button" className="settings-back" onClick={() => setTab(null)}>
+                    <Icon name="chevronLeft" size={16} />
+                    Voltar
+                  </button>
+                  <GalleryPage />
+                </div>
+              )}
+            </>
+          ) : null}
         </section>
-
-        <section className="card">
-          <div className="card__head">
-            <h3>Rodapé da página pública</h3>
-          </div>
-          <div className="form-stack">
-            <ToggleRow label="Mostrar endereço" checked={settings.show_address} onChange={(v) => setSetting({ show_address: v })} />
-            <ToggleRow label="Mostrar Instagram" checked={settings.show_instagram} onChange={(v) => setSetting({ show_instagram: v })} />
-            <ToggleRow label="Mostrar WhatsApp" checked={settings.show_whatsapp} onChange={(v) => setSetting({ show_whatsapp: v })} />
-            <ToggleRow label="Mostrar créditos do sistema" checked={settings.show_credits} onChange={(v) => setSetting({ show_credits: v })} />
-            {settings.show_credits ? (
-              <Input label="Texto dos créditos" name="st-credits" value={settings.credits_text} onChange={(e) => setSetting({ credits_text: e.target.value })} />
-            ) : null}
-            <ToggleRow label={"Marca \"BarberFlow\" (futuro)"} checked={settings.barberflow_branding} onChange={(v) => setSetting({ barberflow_branding: v })} hint="Exibe a assinatura da plataforma no rodapé." />
-          </div>
-        </section>
-      </div>
-
-      <section className="card" style={{ marginTop: 20 }}>
-        <div className="card__head">
-          <h3>Horário de funcionamento</h3>
-          <span className="muted">A disponibilidade considera o horário da barbearia E o do profissional.</span>
-        </div>
-        <HoursEditor rows={hours} onChange={setHours} />
-      </section>
-
-      <div className="page-actions">
-        <Button onClick={save} loading={saveBusy}>
-          Salvar alterações
-        </Button>
       </div>
     </div>
   );

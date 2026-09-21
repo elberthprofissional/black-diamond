@@ -9,6 +9,12 @@ interface HeaderProps {
   onMenu: () => void;
 }
 
+const ROLE_LABELS: Record<string, string> = {
+  superadmin: "Administrador",
+  owner: "Proprietário",
+  barber: "Barbeiro",
+};
+
 export function Header({ title, onMenu }: HeaderProps) {
   const { profile, memberships, activeMembership, setActiveMembership, signOut } = useAuth();
   const { showToast } = useToast();
@@ -17,6 +23,10 @@ export function Header({ title, onMenu }: HeaderProps) {
     await signOut();
     window.location.assign("/login");
   };
+
+  const roleLabel = activeMembership
+    ? ROLE_LABELS[activeMembership.role] ?? activeMembership.role
+    : loginRoleLabel(profile);
 
   return (
     <header className="topbar">
@@ -50,8 +60,11 @@ export function Header({ title, onMenu }: HeaderProps) {
         ) : null}
 
         <div className="topbar__user">
-          <Avatar name={profile?.full_name ?? "Usuário"} src={profile?.avatar_url} size="sm" />
-          <span className="topbar__username">{profile?.full_name ?? "Usuário"}</span>
+          <Avatar name={profile?.full_name ?? "Usuário"} src={profile?.avatar_url} size="md" />
+          <div className="topbar__user-block">
+            <span className="topbar__username">{profile?.full_name ?? "Usuário"}</span>
+            <span className="topbar__userrole">{roleLabel}</span>
+          </div>
           <button
             type="button"
             className="icon-btn"
@@ -65,4 +78,9 @@ export function Header({ title, onMenu }: HeaderProps) {
       </div>
     </header>
   );
+}
+
+function loginRoleLabel(profile: { is_superadmin?: boolean } | null): string {
+  if (profile?.is_superadmin) return "Administrador";
+  return "Acesso";
 }

@@ -15,12 +15,14 @@ import {
   bookAppointment,
   fetchAvailableSlots,
   fetchPublicShop,
+  listBusinessHours,
   toErrorMessage,
 } from "../../services/api";
 import type { BookResult, PublicShop } from "../../services/api";
 import {
-  addDaysISO,
+  activeWeekStartISO,
   formatDatePt,
+  sundayOfWeek,
   todayISO,
   WEEKDAYS_SHORT,
   weekdayOf,
@@ -28,14 +30,13 @@ import {
 import { buildWhatsappLink, formatCurrency } from "../../utils/format";
 import { isValidName, isValidWhatsapp } from "../../utils/validation";
 
-const MAX_DAYS_AHEAD = 60;
-
 export function BookingPage() {
   const { slug } = useParams<{ slug: string }>();
   const { showToast } = useToast();
 
   const [shop, setShop] = useState<PublicShop | null>(null);
   const [shopError, setShopError] = useState<string | null>(null);
+  const [openWeekdays, setOpenWeekdays] = useState<number[]>([]);
 
   const [step, setStep] = useState(1);
   const [serviceId, setServiceId] = useState<string | null>(null);
@@ -54,15 +55,24 @@ export function BookingPage() {
   const [bookingBusy, setBookingBusy] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  useEffect(() => {
+useEffect(() => {
     setShop(null);
     setShopError(null);
     setBooking(null);
     if (!slug) {
-      setShopError("Barbearia nÃ£o encontrada.");
+      setShopError("Barbearia não encontrada.");
       return;
     }
     fetchPublicShop(slug)
+      .then(async (s) => {
+        const hours = await listBusinessHours(s.barbershop.id).catch(() => []);
+        setOpenWeekdays(
+          hours
+            .filter((h) => !h.is_closed && h.open_time && h.close_time)
+            .map((h) => h.weekday),
+        );
+        return s;
+      })
       .then(setShop)
       .catch((e) => setShopError(toErrorMessage(e instanceof ApiError ? e : { message: e.message })));
   }, [slug]);
@@ -89,7 +99,8 @@ export function BookingPage() {
   );
 
   const today = todayISO();
-  const maxDate = addDaysISO(today, MAX_DAYS_AHEAD);
+  const weekStart = activeWeekStartISO(today, openWeekdays);
+  const maxDate = sundayOfWeek(weekStart);
 
   const pickService = (id: string) => {
     setServiceId(id);
@@ -241,12 +252,15 @@ export function BookingPage() {
             </section>
           ) : null}
 
-          {step === 3 ? (
+{step === 3 ? (
             <section className="booking-step">
               <div className="booking-step__head">
                 <BackButton onClick={() => setStep(2)} />
-                <h2>Data e horÃ¡rio</h2>
+                <h2>Data e horário</h2>
               </div>
+              <p className="muted">
+                A agenda abre por semana: escolha um dia da semana em curso.
+              </p>
               <div className="booking-slot-layout">
                 <Calendar
                   value={date ?? today}
@@ -557,11 +571,8 @@ export function BookingFooter({
           </a>
         ) : null}
         {s.show_address && b.address ? <span>{b.address}</span> : null}
-        {s.show_credits ? (
-          <span className="booking-footer__credit">
-            {s.credits_text || b.name}
-            {s.barberflow_branding ? " Â· powered by BarberFlow" : ""}
-          </span>
+{s.show_credits ? (
+          <span className="booking-footer__credit">{s.credits_text || b.name}</span>
         ) : null}
       </div>
     </footer>

@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import type { EffectiveRole, Membership } from "../types";
+import type { EffectiveRole } from "../types";
 import { Icon } from "./ui/Icon";
 import type { IconName } from "./ui/Icon";
 
@@ -10,71 +10,77 @@ interface NavItem {
   roles: EffectiveRole[];
 }
 
-const NAV: NavItem[] = [
-  { to: "/admin", label: "Visão geral", icon: "home", roles: ["superadmin", "owner", "barber"] },
-  { to: "/admin/agenda", label: "Agenda", icon: "calendar", roles: ["superadmin", "owner", "barber"] },
-  { to: "/admin/agendamentos", label: "Agendamentos", icon: "clock", roles: ["superadmin", "owner"] },
-  { to: "/admin/clientes", label: "Clientes", icon: "users", roles: ["superadmin", "owner", "barber"] },
-  { to: "/admin/servicos", label: "Serviços", icon: "scissors", roles: ["superadmin", "owner"] },
-  { to: "/admin/equipe", label: "Equipe", icon: "user", roles: ["superadmin", "owner"] },
-  { to: "/admin/galeria", label: "Galeria", icon: "camera", roles: ["superadmin", "owner"] },
-  { to: "/admin/cupons", label: "Cupons", icon: "percent", roles: ["superadmin", "owner"] },
-  { to: "/admin/cupons", label: "Cupons", icon: "percent", roles: ["superadmin", "owner"] },
-  { to: "/admin/bloqueios", label: "Bloqueios", icon: "ban", roles: ["superadmin", "owner", "barber"] },
-  { to: "/admin/financeiro", label: "Financeiro", icon: "card", roles: ["superadmin", "owner"] },
-  { to: "/admin/perfil", label: "Meu perfil", icon: "user", roles: ["superadmin", "owner", "barber"] },
-  { to: "/admin/configuracao", label: "Configuração", icon: "sliders", roles: ["superadmin", "owner"] },
-];
-
 interface SidebarProps {
   role: EffectiveRole | null;
-  shop: Membership | null;
   onNavigate?: () => void;
 }
 
-export function Sidebar({ role, shop, onNavigate }: SidebarProps) {
-  const items = NAV.filter((i) => role && i.roles.includes(role));
+const GROUPS: { label: string; items: NavItem[] }[] = [
+  {
+    label: "Operação",
+    items: [
+      { to: "/admin/agenda", label: "Agenda", icon: "calendar", roles: ["superadmin", "owner", "barber"] },
+      { to: "/admin/clientes", label: "Clientes", icon: "users", roles: ["superadmin", "owner", "barber"] },
+      { to: "/admin/agendamentos", label: "Agendamentos", icon: "clock", roles: ["superadmin", "owner"] },
+      { to: "/admin/financeiro", label: "Financeiro", icon: "card", roles: ["superadmin", "owner"] },
+      { to: "/admin/bloqueios", label: "Bloqueios", icon: "ban", roles: ["barber"] },
+    ],
+  },
+  {
+    label: "Sistema",
+    items: [
+      { to: "/admin/configuracao", label: "Configurações", icon: "sliders", roles: ["superadmin", "owner"] },
+      { to: "/admin/perfil", label: "Perfil", icon: "user", roles: ["barber"] },
+    ],
+  },
+];
+
+/** Sidebar administrativa. */
+export function Sidebar({ role, onNavigate }: SidebarProps) {
+  if (!role) return null;
+
+  const groups = GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((i) => i.roles.includes(role)),
+  })).filter((group) => group.items.length > 0);
+  const isSuper = role === "superadmin";
+
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    "sidebar__link" + (isActive ? " is-active" : "");
 
   return (
     <aside className="sidebar">
       <div className="sidebar__brand">
-        <span className="sidebar__logo">◆</span>
-        <div>
-          <strong>BLACK DIAMOND</strong>
-          <span className="sidebar__system">Sistema de barbearia</span>
-        </div>
+        <img src="/logo.webp" alt="BLACK DIAMOND" className="sidebar__logo" />
+        <strong>BLACK DIAMOND</strong>
       </div>
 
-      {shop ? (
-        <div className="sidebar__shop" title={shop.barbershop_name}>
-          <span className="sidebar__shop-name">{shop.barbershop_name}</span>
-          <span className="badge badge--ghost">{shop.role}</span>
-        </div>
-      ) : null}
-
       <nav className="sidebar__nav" aria-label="Menu principal">
-        {items.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === "/admin"}
-            className={({ isActive }) => `sidebar__link ${isActive ? "is-active" : ""}`}
-            onClick={onNavigate}
-          >
-            <Icon name={item.icon} size={17} />
-            {item.label}
-          </NavLink>
+        {groups.map((group) => (
+          <div key={group.label} className="sidebar__group">
+            <span className="sidebar__heading">{group.label}</span>
+            {group.items.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end
+                className={linkClass}
+                onClick={onNavigate}
+              >
+                <Icon name={item.icon} size={17} />
+                {item.label}
+              </NavLink>
+            ))}
+          </div>
         ))}
 
-        {role === "superadmin" ? (
-          <NavLink
-            to="/sistema"
-            className={({ isActive }) => `sidebar__link ${isActive ? "is-active" : ""}`}
-            onClick={onNavigate}
-          >
-            <Icon name="chart" size={17} />
-            Sistema global
-          </NavLink>
+        {isSuper ? (
+          <div className="sidebar__foot">
+            <NavLink to="/sistema" className={linkClass} onClick={onNavigate}>
+              <Icon name="chart" size={17} />
+              Sistema global
+            </NavLink>
+          </div>
         ) : null}
       </nav>
     </aside>

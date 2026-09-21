@@ -34,6 +34,31 @@ export function weekdayOf(iso: string): number {
   return new Date(y, m - 1, d).getDay();
 }
 
+/** Segunda-feira da semana da data (getDay: 0=dom, 1=seg ... 6=sáb). */
+export function mondayOfWeek(iso: string): string {
+  return addDaysISO(iso, -((weekdayOf(iso) + 6) % 7));
+}
+
+/**
+ * Início (segunda) da semana ativa: a semana em curso, ou a próxima quando
+ * "hoje" cai em dia fechado após o último dia útil da semana.
+ * `openWeekdays` = dias em que a barbearia funciona (getDay: 0=dom ... 6=sáb).
+ * Sem horários definido, a semana ativa é sempre a atual.
+ */
+export function activeWeekStartISO(iso: string, openWeekdays: number[]): string {
+  const monday = mondayOfWeek(iso);
+  if (!openWeekdays.length) return monday;
+  const pos = (dow: number) => (dow === 0 ? 7 : dow);
+  const lastOpen = Math.max(...openWeekdays.map(pos));
+  const todayPos = pos(weekdayOf(iso));
+  return todayPos > lastOpen ? addDaysISO(monday, 7) : monday;
+}
+
+/** Último dia (domingo) da semana iniciada em `monday` (yyyy-mm-dd). */
+export function sundayOfWeek(monday: string): string {
+  return addDaysISO(monday, 6);
+}
+
 export function formatDatePt(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
   return `${pad(d)}/${pad(m)}/${y}`;

@@ -67,6 +67,7 @@ export function ClientsPage() {
   return (
     <div className="page">
       <div className="page-heading">
+        <span className="eyebrow">Operação</span>
         <h2>Clientes</h2>
         <p className="text-muted">
           {withStats.length} cliente(s) cadastrado(s) · {withStats.reduce((a, c) => a + c.visit_count, 0)} visita(s) concluída(s)

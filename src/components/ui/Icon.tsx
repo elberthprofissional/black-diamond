@@ -27,7 +27,8 @@ export type IconName =
   | "arrowRight"
   | "arrowUpRight"
   | "percent"
-  | "tag";
+  | "tag"
+  | "lock";
 
 const PATHS: Record<IconName, ReactElement> = {
   menu: <path d="M4 6h16M4 12h16M4 18h16" />,
@@ -149,6 +150,12 @@ const PATHS: Record<IconName, ReactElement> = {
     <>
       <path d="M12 2H2v10l9.29 9.29a1 1 0 001.42 0l8.58-8.58a1 1 0 000-1.42z" />
       <circle cx="7" cy="7" r="1.5" />
+    </>
+  ),
+  lock: (
+    <>
+      <rect x="4" y="10" width="16" height="11" rx="2" />
+      <path d="M8 10V7a4 4 0 018 0v3M12 14.5v2" />
     </>
   ),
 };

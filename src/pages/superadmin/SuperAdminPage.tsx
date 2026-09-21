@@ -140,7 +140,7 @@ export function SuperAdminPage() {
     <div className="system-page">
       <header className="system-topbar">
         <div className="system-topbar__brand">
-          <span className="sidebar__logo">◆</span>
+          <img src="/logo.webp" alt="BLACK DIAMOND" className="sidebar__logo" />
           <strong>BLACK DIAMOND</strong>
           <span className="badge badge--ghost">SUPERADMIN</span>
         </div>

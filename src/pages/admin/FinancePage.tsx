@@ -61,38 +61,49 @@ export function FinancePage() {
     );
   }
 
-  const cards = [
-    { label: "Hoje", value: formatCurrency(sums.today.concluded), sub: `${sums.today.count} concluído(s)` },
-    { label: "Esta semana", value: formatCurrency(sums.week.concluded), sub: `${sums.week.count} concluído(s)` },
-    { label: "Este mês", value: formatCurrency(sums.month.concluded), sub: `${sums.month.count} concluído(s)` },
-    { label: "Total agendado (mês)", value: formatCurrency(sums.month.total), sub: "todos os agendamentos do mês" },
-  ];
-
   const concludedThisMonth = (data?.monthAppts ?? []).filter((a) => a.status === "concluido");
 
   return (
-    <div className="page">
+    <div className="page finance">
       <div className="page-heading">
+        <span className="eyebrow">Gestão</span>
         <h2>Financeiro</h2>
         <p className="text-muted">
           Calculado a partir dos atendimentos concluídos. Nenhum pagamento é processado aqui.
         </p>
       </div>
 
-      <div className="stat-grid">
-        {cards.map((c) => (
-          <div key={c.label} className="stat-card">
-            <span className="stat-card__label">{c.label}</span>
-            <strong className="stat-card__value">{c.value}</strong>
-            <span className="stat-card__sub">{c.sub}</span>
+      <div className="finance-hero">
+        <div className="finance-hero__main">
+          <span className="stat-card__label">Este mês</span>
+          <strong className="finance-hero__value">{formatCurrency(sums.month.concluded)}</strong>
+          <span className="stat-card__sub">
+            {sums.month.count} atendimento(s) concluído(s)
+          </span>
+        </div>
+        <div className="finance-hero__side">
+          <div className="finance-metric">
+            <span>Hoje</span>
+            <strong>{formatCurrency(sums.today.concluded)}</strong>
+            <span className="stat-card__sub">{sums.today.count} concluído(s)</span>
           </div>
-        ))}
+          <div className="finance-metric">
+            <span>Esta semana</span>
+            <strong>{formatCurrency(sums.week.concluded)}</strong>
+            <span className="stat-card__sub">{sums.week.count} concluído(s)</span>
+          </div>
+          <div className="finance-metric">
+            <span>Total agendado (mês)</span>
+            <strong>{formatCurrency(sums.month.total)}</strong>
+            <span className="stat-card__sub">todos os agendamentos do mês</span>
+          </div>
+        </div>
       </div>
 
       <section className="card">
         <div className="card__head">
-          <h3>Concluídos neste mês</h3>
-          <span className="muted">{concludedThisMonth.length} registros</span>
+          <h3>Atendimentos concluídos</h3>
+          <span className="muted">{concludedThisMonth.length} registro(s)</span>
         </div>
         {concludedThisMonth.length === 0 ? (
           <EmptyState icon="💰" title="Nada concluído neste mês" description="Quando atendimentos forem concluídos, eles aparecem aqui." />
@@ -114,11 +125,11 @@ export function FinancePage() {
                 {concludedThisMonth.map((a) => (
                   <tr key={a.id}>
                     <td>{formatDatePt(a.start_at.slice(0, 10))}</td>
-                    <td>{timeFromISO(a.start_at)}</td>
+                    <td className="muted">{timeFromISO(a.start_at)}</td>
                     <td>
                       <strong>{a.client_name}</strong>
                     </td>
-                    <td>{a.service?.name ?? "—"}</td>
+                    <td className="muted">{a.service?.name ?? "—"}</td>
                     <td className="muted">{a.member?.full_name ?? "—"}</td>
                     <td>{formatCurrency(a.price)}</td>
                     <td>
