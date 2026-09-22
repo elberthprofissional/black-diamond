@@ -150,6 +150,28 @@ export async function checkCoupon(
   return data as CouponValidation | null;
 }
 
+/** Último serviço agendado (passado e não cancelado) do cliente — para o "repetir" na página pública. */
+export async function getClientLastService(
+  shopId: string,
+  whatsapp: string
+): Promise<{ serviceId: string; serviceName: string; price: number; durationMinutes: number } | null> {
+  const { data, error } = await supabase.rpc("get_client_last_service", {
+    p_barbershop_id: shopId,
+    p_phone: whatsapp,
+  });
+  if (error) throw error;
+  const row = data as
+    | { service_id: string; service_name: string; price: number; duration_minutes: number }
+    | null;
+  if (!row) return null;
+  return {
+    serviceId: row.service_id,
+    serviceName: row.service_name,
+    price: row.price,
+    durationMinutes: row.duration_minutes,
+  };
+}
+
 /** Cancelar/Reagendar: agenda futura do cliente identificado por nome + WhatsApp. */
 export async function getClientAppointments(
   shopId: string,

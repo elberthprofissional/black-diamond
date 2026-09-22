@@ -1,4 +1,5 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { Ban, Scissors, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { Link, useParams } from "react-router-dom";
 import { BarberCard } from "../../components/BarberCard";
@@ -15,6 +16,7 @@ import {
   checkCoupon,
   fetchAvailableSlots,
   fetchPublicShop,
+  getClientLastService,
   listBusinessHours,
   toErrorMessage,
 } from "../../services/api";
@@ -44,6 +46,8 @@ export function BookingPage() {
 
   const [step, setStep] = useState(1);
   const [serviceId, setServiceId] = useState<string | null>(null);
+  const [lastServiceId, setLastServiceId] = useState<string | null>(null);
+  const [repeatBusy, setRepeatBusy] = useState(false);
   const [memberId, setMemberId] = useState<string | null>(null);
   const [date, setDate] = useState<string | null>(null);
   const [slot, setSlot] = useState<string | null>(null);
@@ -92,6 +96,7 @@ export function BookingPage() {
     setWhatsapp("");
     setStepErrors({});
     setSubmitError(null);
+    setLastServiceId(null);
   }, [slug]);
 
   const openWeekdays = useMemo(
@@ -130,6 +135,13 @@ export function BookingPage() {
     () => shop?.barbers.find((b) => b.id === memberId) ?? null,
     [shop, memberId]
   );
+
+  // Serviço do último agendamento (para oferecer "repetir") — só se ainda estiver ativo.
+  const repeatService = useMemo(
+    () => (lastServiceId ? (shop?.services.find((s) => s.id === lastServiceId) ?? null) : null),
+    [shop, lastServiceId]
+  );
+  const firstName = name.trim().split(/\s+/)[0] ?? "";
 
   const today = todayISO();
   const weekStart = activeWeekStartISO(today, openWeekdays);
@@ -232,13 +244,24 @@ export function BookingPage() {
     setStep(4);
   };
 
-  const goNextFromData = () => {
+  const goNextFromData = async () => {
     const errs: typeof stepErrors = {};
     if (!isValidName(name)) errs.name = "Informe seu nome.";
     if (!isValidWhatsapp(whatsapp)) errs.whatsapp = "Informe um WhatsApp válido com DDD.";
     setStepErrors(errs);
-    if (Object.keys(errs).length) return;
-    setStep(2);
+    if (Object.keys(errs).length || !shop) return;
+    // Procura o último serviço do cliente para oferecer repetir. Erro aqui não
+    // pode travar ninguém: segue direto pro fluxo normal de serviço.
+    setRepeatBusy(true);
+    try {
+      const last = await getClientLastService(shop.barbershop.id, whatsapp);
+      setLastServiceId(last?.serviceId ?? null);
+    } catch {
+      setLastServiceId(null);
+    } finally {
+      setRepeatBusy(false);
+      setStep(2);
+    }
   };
 
   const goToReview = () => {
@@ -260,6 +283,7 @@ export function BookingPage() {
     setSubmitError(null);
     setName("");
     setWhatsapp("");
+    setLastServiceId(null);
     removeCoupon();
   };
 
@@ -390,7 +414,7 @@ export function BookingPage() {
                     placeholder="(11) 99999-0000"
                     autoComplete="tel"
                   />
-                  <Button onClick={goNextFromData} className="booking-continue">
+                  <Button onClick={goNextFromData} className="booking-continue" loading={repeatBusy}>
                     Continuar <Icon name="arrowRight" size={16} />
                   </Button>
                 </div>
@@ -398,26 +422,61 @@ export function BookingPage() {
             ) : null}
 
             {step === 2 ? (
-              <section className="booking-step">
-                <div className="booking-step__head">
-                  <BackButton onClick={() => setStep(1)} />
-                  <h2 className="booking-step__title">Escolha seu serviço.</h2>
-                  <p className="booking-step__sub">Selecione o cuidado que você deseja hoje.</p>
-                </div>
-                <div className="card-grid-2">
-                  {shop.services.map((svc) => (
-                    <ServiceCard
-                      key={svc.id}
-                      service={svc}
-                      selected={svc.id === serviceId}
-                      onClick={() => pickService(svc.id)}
-                    />
-                  ))}
-                </div>
-                {shop.services.length === 0 ? (
-                  <EmptyState icon="✂️" title="Sem serviços disponíveis" description="Nenhum serviço ativo no momento." />
-                ) : null}
-              </section>
+              repeatService ? (
+                <section className="booking-step">
+                  <div className="booking-step__head">
+                    <BackButton onClick={() => setStep(1)} />
+                    <h2 className="booking-step__title">
+                      Bem-vindo de volta{firstName ? `, ${firstName}` : ""}!
+                    </h2>
+                    <p className="booking-step__sub">Quer repetir seu último agendamento?</p>
+                  </div>
+                  <div className="card">
+                    <div className="card__head">
+                      <h3>
+                        {repeatService.name}{" "}
+                        <span className="muted">
+                          · {repeatService.duration_minutes} min · {formatCurrency(repeatService.price)}
+                        </span>
+                      </h3>
+                    </div>
+                    <div className="form-stack">
+                      <p className="text-muted">
+                        Mesmo serviço de antes — você só escolhe o barbeiro, o dia e o horário.
+                      </p>
+                      <div className="btn-row">
+                        <Button onClick={() => pickService(repeatService.id)}>
+                          Sim, repetir <Icon name="arrowRight" size={16} />
+                        </Button>
+                        <Button variant="ghost" onClick={() => setLastServiceId(null)}>
+                          Não, escolher outro
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              ) : (
+                <section className="booking-step">
+                  <div className="booking-step__head">
+                    <BackButton onClick={() => setStep(1)} />
+                    <h2 className="booking-step__title">Escolha seu serviço.</h2>
+                    <p className="booking-step__sub">Selecione o cuidado que você deseja hoje.</p>
+                  </div>
+                  <div className="card-grid-2">
+                    {shop.services.map((svc) => (
+                      <ServiceCard
+                        key={svc.id}
+                        service={svc}
+                        selected={svc.id === serviceId}
+                        onClick={() => pickService(svc.id)}
+                      />
+                    ))}
+                  </div>
+                  {shop.services.length === 0 ? (
+                    <EmptyState icon={<Scissors size={22} strokeWidth={1.5} />} title="Sem serviços disponíveis" description="Nenhum serviço ativo no momento." />
+                  ) : null}
+                </section>
+              )
             ) : null}
 
             {step === 3 ? (
@@ -438,7 +497,7 @@ export function BookingPage() {
                   ))}
                 </div>
                 {shop.barbers.length === 0 ? (
-                  <EmptyState icon="💈" title="Sem profissionais disponíveis" description="Volte em breve." />
+                  <EmptyState icon={<Users size={22} strokeWidth={1.5} />} title="Sem profissionais disponíveis" description="Volte em breve." />
                 ) : null}
               </section>
             ) : null}
@@ -492,7 +551,7 @@ export function BookingPage() {
                     <Loading label="Buscando horários..." />
                   ) : slotGrid === null ? null : slotGrid.length === 0 ? (
                     <EmptyState
-                      icon="⛔"
+                      icon={<Ban size={22} strokeWidth={1.5} />}
                       title="Sem horários disponíveis"
                       description={`Não há horários nesta data. Tente outro dia.`}
                     />

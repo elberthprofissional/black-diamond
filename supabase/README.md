@@ -3,7 +3,7 @@
 O schema é multi-tenant. Cada registro de negócio possui `barbershop_id`
 e as RLS policies isolam os dados por barbearia.
 
-As migrations foram consolidadas em **6 arquivos** para manter a
+As migrations foram consolidadas em **7 arquivos** para manter a
 estrutura organizada. Se o seu banco já foi criado com as versões
 anteriores (0001–0012), o caminho recomendado é:
 
@@ -25,6 +25,7 @@ editor SQL do dashboard, na ordem):
 | `0004_functions.sql` | RPCs: disponibilidade (passo de 1h), agendamento com cupom, convites, cancelar/reagendar, bootstrap de superadmin |
 | `0005_seed_development.sql` | Seed de dev (BLACK DIAMOND, João, Carlos, Pedro) — sem clientes fake |
 | `0006_clients_manual.sql` | `clients.is_manual` para cadastro manual no painel; policy de INSERT libera barbeiro |
+| `0007_repeat_last_service.sql` | RPC público: último serviço do cliente (WhatsApp) para o "repetir agendamento" |
 
 > Clientes e agendamentos **não** são seedados: eles nascem da página
 > pública de agendamento. Para limpar dados demo de bases antigas, veja
