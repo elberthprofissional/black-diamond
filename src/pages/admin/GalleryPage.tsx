@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Input } from "../../components/ui/Input";
@@ -16,15 +16,16 @@ import {
   toErrorMessage,
   updateGalleryItem,
 } from "../../services/api";
+import { uploadGalleryImage } from "../../services/upload";
 import type { GalleryItem } from "../../types";
 
 interface FormState {
   id: string | null;
   caption: string;
-  imageUrl: string;
+  file: File | null;
 }
 
-const EMPTY_FORM: FormState = { id: null, caption: "", imageUrl: "" };
+const EMPTY_FORM: FormState = { id: null, caption: "", file: null };
 
 export function GalleryPage() {
   const { activeMembership } = useAuth();
@@ -38,32 +39,58 @@ export function GalleryPage() {
   const [busy, setBusy] = useState(false);
   const [toDelete, setToDelete] = useState<GalleryItem | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const itemsAll = data ?? [];
+  const items = itemsAll.filter((g) => g.image_url);
 
-  const openNew = () => setForm({ ...EMPTY_FORM });
+  const openNew = () => {
+    setForm({ ...EMPTY_FORM });
+    setPreviewUrl(null);
+  };
 
-  const openEdit = (g: GalleryItem) =>
-    setForm({ id: g.id, caption: g.caption ?? "", imageUrl: g.image_url ?? "" });
+  const openEdit = (g: GalleryItem) => {
+    setForm({ id: g.id, caption: g.caption ?? "", file: null });
+    setPreviewUrl(g.image_url ?? null);
+  };
 
   const closeModal = () => {
     setForm(null);
     setFormError(null);
+    setPreviewUrl(null);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  const pickFile = (file: File | null) => {
+    if (!file || !form) return;
+    const isImage = file.type.startsWith("image/");
+    if (!isImage) {
+      setFormError("Selecione um arquivo de imagem (JPG, PNG, HEIC, WebP...).");
+      return;
+    }
+    setFormError(null);
+    const next = URL.createObjectURL(file);
+    if (previewUrl && previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(next);
+    setForm({ ...form, file });
   };
 
   const save = async () => {
     if (!form) return;
-    if (!form.caption.trim() && !form.imageUrl.trim()) {
-      return setFormError("Informe uma legenda ou cole o link da foto.");
-    }
-    const imageUrl = form.imageUrl.trim() || null;
-    if (imageUrl && !/^https?:\/\//i.test(imageUrl)) {
-      return setFormError("O link da foto deve começar com http:// ou https://.");
+    if (!form.caption.trim() && !form.file) {
+      return setFormError("Informe uma legenda ou escolha a foto.");
     }
 
     setBusy(true);
     setFormError(null);
     try {
+      const imageUrl = form.file ? await uploadGalleryImage(shopId, form.file) : null;
       if (form.id) {
         await updateGalleryItem(form.id, {
           image_url: imageUrl,
@@ -91,9 +118,9 @@ export function GalleryPage() {
 
   const move = async (index: number, dir: -1 | 1) => {
     const target = index + dir;
-    if (target < 0 || target >= itemsAll.length) return;
-    const a = itemsAll[index];
-    const b = itemsAll[target];
+    if (target < 0 || target >= items.length) return;
+    const a = items[index];
+    const b = items[target];
     try {
       await Promise.all([
         updateGalleryItem(a.id, { position: b.position }),
@@ -147,26 +174,19 @@ export function GalleryPage() {
           description={error}
           action={<button onClick={reload} className="btn btn--ghost">Tentar de novo</button>}
         />
-      ) : itemsAll.length === 0 ? (
+      ) : items.length === 0 ? (
         <EmptyState
           icon="📷"
-          title="Sem fotos ainda"
-          description="Adicione o primeiro quadro com a foto de um corte."
+          title="Nenhuma foto na galeria"
+          description="Adicione o primeiro quadro escolhendo a foto de um corte."
           action={<Button onClick={openNew}>+ Novo quadro</Button>}
         />
       ) : (
         <div className="gallery-admin">
-          {itemsAll.map((g, i) => (
+          {items.map((g, i) => (
             <div key={g.id} className={`gallery-item-card ${!g.is_active ? "is-muted" : ""}`}>
               <div className="gallery-item-card__thumb">
-                {g.image_url ? (
-                  <img src={g.image_url} alt={g.caption ?? "Foto da galeria"} />
-                ) : (
-                  <div className="gallery-item-card__placeholder">
-                    <Icon name="camera" size={22} />
-                    <span>sem foto</span>
-                  </div>
-                )}
+                <img src={g.image_url ?? undefined} alt={g.caption ?? "Foto da galeria"} />
               </div>
               <div className="gallery-item-card__body">
                 <strong>{g.caption || "Sem legenda"}</strong>
@@ -174,7 +194,7 @@ export function GalleryPage() {
                   <button type="button" className="icon-btn" title="Mover para cima" disabled={i === 0} onClick={() => move(i, -1)}>
                     <Icon name="chevronLeft" size={15} />
                   </button>
-                  <button type="button" className="icon-btn" title="Mover para baixo" disabled={i === itemsAll.length - 1} onClick={() => move(i, 1)}>
+                  <button type="button" className="icon-btn" title="Mover para baixo" disabled={i === items.length - 1} onClick={() => move(i, 1)}>
                     <Icon name="chevronRight" size={15} />
                   </button>
                   <button
@@ -224,13 +244,52 @@ export function GalleryPage() {
               onChange={(e) => setForm({ ...form, caption: e.target.value })}
               placeholder="Ex.: Corte degradê"
             />
-            <Input
-              label="Link da foto (opcional)"
-              name="gal-url"
-              value={form.imageUrl}
-              onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-              placeholder="https://..."
-            />
+
+            <div className="field">
+              <label htmlFor="gal-photo">Foto</label>
+              {previewUrl ? (
+                <div className="gallery-upload">
+                  <img src={previewUrl} alt="Pré-visualização da foto" />
+                  <span className="gallery-upload__name">
+                    {form.file?.name ?? "Foto atual"}
+                  </span>
+                  <div className="gallery-upload__actions">
+                    <Button variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()}>
+                      Trocar
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        if (previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
+                        setPreviewUrl(null);
+                        setForm({ ...form, file: null });
+                      }}
+                    >
+                      Remover
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="gallery-upload gallery-upload--empty"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Icon name="camera" size={20} />
+                  <span>Escolher foto do arquivo</span>
+                  <small>JPG, PNG, HEIC ou WebP — converte para WebP automaticamente</small>
+                </button>
+              )}
+              <input
+                ref={fileInputRef}
+                id="gal-photo"
+                type="file"
+                accept="image/*"
+                className="gallery-upload__input"
+                onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+              />
+            </div>
             {formError ? <p className="form-error">{formError}</p> : null}
           </div>
         ) : null}

@@ -7,6 +7,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { AdminLayout } from "./layouts/AdminLayout";
+import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { useAuth } from "./hooks/useAuth";
 import { Loading } from "./components/ui/Loading";
 import type { EffectiveRole } from "./types";
@@ -16,6 +17,9 @@ const LoginPage = lazy(() =>
 );
 const BookingPage = lazy(() =>
   import("./pages/public/BookingPage").then((m) => ({ default: m.BookingPage }))
+);
+const ManagePage = lazy(() =>
+  import("./pages/public/ManagePage").then((m) => ({ default: m.ManagePage }))
 );
 const HomePage = lazy(() =>
   import("./pages/public/HomePage").then((m) => ({ default: m.HomePage }))
@@ -109,15 +113,17 @@ function ScrollToTop() {
 
 export function App() {
   return (
-    <BrowserRouter>
-      <ScrollToTop />
-      <Suspense fallback={<FullPageLoader />}>
-        <Routes>
-          <Route path="/" element={<RootRedirect />} />
+    <ErrorBoundary>
+      <BrowserRouter>
+        <ScrollToTop />
+        <Suspense fallback={<FullPageLoader />}>
+          <Routes>
+            <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/black-diamond" element={<HomePage />} />
         <Route path="/:slug" element={<HomePage />} />
         <Route path="/agendar/:slug" element={<BookingPage />} />
+        <Route path="/gerenciar/:slug" element={<ManagePage />} />
 
         <Route
           path="/sistema"
@@ -206,6 +212,7 @@ export function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       </Suspense>
-    </BrowserRouter>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }

@@ -1,11 +1,14 @@
 -- =====================================================================
--- BLACK DIAMOND — 0002_schema.sql
--- Schema multi-tenant: perfis, barbearias, membros, serviços,
--- horários, bloqueios, clientes e agendamentos.
+-- BLACK DIAMOND — 0001_schema.sql
+-- Extensões + schema multi-tenant base: perfis, barbearias, membros,
+-- serviços, horários, bloqueios, clientes e agendamentos.
 --
 -- Todo dado "de negócio" pertence a uma barbershop (tenant) e carrega
 -- barbershop_id. Os membros (member_id) são reutilizados como "barbeiros".
 -- =====================================================================
+
+create extension if not exists "pgcrypto";
+create extension if not exists "uuid-ossp";
 
 -- ---------------------------------------------------------------------
 -- Tipos
@@ -64,7 +67,6 @@ create table if not exists public.members (
   role          public.member_role not null default 'barber',
   is_active     boolean not null default true,
   full_name     text not null,
-  specialty     text,
   bio           text,
   avatar_url    text,
   created_at    timestamptz not null default now(),
@@ -183,6 +185,8 @@ create table if not exists public.appointments (
   updated_at     timestamptz not null default now(),
   check (end_at > start_at)
 );
+
+-- coupon_id/discount chegam na migration 0003_features (junto da tabela coupons).
 
 create index if not exists appointments_shop_start_idx on public.appointments (barbershop_id, start_at);
 create index if not exists appointments_member_start_idx on public.appointments (member_id, start_at);

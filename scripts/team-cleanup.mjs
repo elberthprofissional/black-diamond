@@ -5,7 +5,7 @@
 // Uso:
 //   node scripts/team-cleanup.mjs list                      -> somente leitura
 //   node scripts/team-cleanup.mjs remove --names "Joao,Carlos,Pedro" [--delete-auth] [--force]
-//   node scripts/team-cleanup.mjs add --name Elberth --email e@x.com --password senha [--specialty "..."]
+//   node scripts/team-cleanup.mjs add --name Elberth --email e@x.com --password senha
 // =====================================================================
 
 import { createClient } from "@supabase/supabase-js";
@@ -47,7 +47,7 @@ async function list() {
   const { data: shops, error } = await admin.from("barbershops").select("id, name, slug, is_active").order("name");
   if (error) throw error;
   for (const shop of shops) {
-    const { data: members } = await admin.from("members").select("id, full_name, role, is_active, user_id, specialty").eq("barbershop_id", shop.id).order("role").order("full_name");
+    const { data: members } = await admin.from("members").select("id, full_name, role, is_active, user_id").eq("barbershop_id", shop.id).order("role").order("full_name");
     console.log(`\n## ${shop.name} [${shop.slug}] (${shop.id}) ativa=${shop.is_active}`);
     for (const m of members ?? []) {
       const { count: appts } = await admin.from("appointments").select("id", { count: "exact", head: true }).eq("member_id", m.id);

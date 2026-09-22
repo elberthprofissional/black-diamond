@@ -132,8 +132,11 @@ export function SuperAdminPage() {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate("/login");
+    try {
+      await signOut();
+    } finally {
+      navigate("/login");
+    }
   };
 
   return (

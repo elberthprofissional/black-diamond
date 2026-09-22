@@ -10,12 +10,15 @@ import type {
   BlockedTime,
   BookResult,
   BusinessHour,
+  CancelResult,
   Client,
+  ClientAppointment,
   Coupon,
   CouponValidation,
   GalleryItem,
   Member,
   Membership,
+  RescheduleResult,
   Service,
   Slot,
 } from "../types";
@@ -68,7 +71,7 @@ export async function fetchPublicShop(slug: string): Promise<PublicShop> {
       .order("name"),
     supabase
       .from("members")
-      .select("id, barbershop_id, user_id, role, is_active, full_name, specialty, bio, avatar_url")
+.select("id, barbershop_id, user_id, role, is_active, full_name, bio, avatar_url")
       .eq("is_active", true)
       .order("full_name"),
   ]);
@@ -79,7 +82,7 @@ export async function fetchPublicShop(slug: string): Promise<PublicShop> {
   const shop = shopRes.data as Barbershop;
   const services = (servicesRes.data ?? []) as Service[];
   const barbers = ((barbersRes.data ?? []) as Member[]).filter(
-    (m) => m.barbershop_id === shop.id && m.role === "barber"
+    (m) => m.barbershop_id === shop.id && (m.role === "barber" || m.role === "owner")
   );
 
   return { barbershop: shop, services, barbers };
@@ -145,6 +148,58 @@ export async function checkCoupon(
   });
   if (error) throw error;
   return data as CouponValidation | null;
+}
+
+/** Cancelar/Reagendar: agenda futura do cliente identificado por nome + WhatsApp. */
+export async function getClientAppointments(
+  shopId: string,
+  clientName: string,
+  clientWhatsapp: string
+): Promise<ClientAppointment[]> {
+  const { data, error } = await supabase.rpc("get_client_appointments", {
+    p_barbershop_id: shopId,
+    p_client_name: clientName,
+    p_client_whatsapp: clientWhatsapp,
+    p_timezone: BUSINESS_TZ,
+  });
+  if (error) throw error;
+  return (data ?? []) as ClientAppointment[];
+}
+
+export async function cancelAppointment(
+  shopId: string,
+  appointmentId: string,
+  clientName: string,
+  clientWhatsapp: string
+): Promise<CancelResult> {
+  const { data, error } = await supabase.rpc("cancel_appointment", {
+    p_barbershop_id: shopId,
+    p_appointment_id: appointmentId,
+    p_client_name: clientName,
+    p_client_whatsapp: clientWhatsapp,
+    p_timezone: BUSINESS_TZ,
+  });
+  if (error) throw error;
+  return requireData(data as CancelResult | null, "Não foi possível cancelar o agendamento.");
+}
+
+export async function rescheduleAppointment(
+  shopId: string,
+  appointmentId: string,
+  clientName: string,
+  clientWhatsapp: string,
+  newStartAt: string
+): Promise<RescheduleResult> {
+  const { data, error } = await supabase.rpc("reschedule_appointment", {
+    p_barbershop_id: shopId,
+    p_appointment_id: appointmentId,
+    p_client_name: clientName,
+    p_client_whatsapp: clientWhatsapp,
+    p_new_start_at: newStartAt,
+    p_timezone: BUSINESS_TZ,
+  });
+  if (error) throw error;
+  return requireData(data as RescheduleResult | null, "Não foi possível trocar o horário.");
 }
 
 // =====================================================================
@@ -250,7 +305,7 @@ export async function listMembers(shopId: string): Promise<Member[]> {
 export async function listAllMembers(): Promise<Member[]> {
   const { data, error } = await supabase
     .from("members")
-    .select("id, barbershop_id, user_id, role, is_active, full_name, specialty, bio, avatar_url")
+    .select("id, barbershop_id, user_id, role, is_active, full_name, bio, avatar_url")
     .order("full_name");
   if (error) throw error;
   return (data ?? []) as Member[];
@@ -262,7 +317,6 @@ export async function inviteMember(input: {
   email: string;
   role: "owner" | "barber";
   tempPassword: string;
-  specialty?: string | null;
   bio?: string | null;
 }): Promise<string> {
   const { data, error } = await supabase.rpc("admin_invite_member", {
@@ -271,7 +325,6 @@ export async function inviteMember(input: {
     p_email: input.email,
     p_role: input.role,
     p_temp_password: input.tempPassword,
-    p_specialty: input.specialty ?? null,
     p_bio: input.bio ?? null,
   });
   if (error) throw error;
@@ -281,7 +334,7 @@ export async function inviteMember(input: {
 export async function updateMember(
   id: string,
   patch: Partial<
-    Pick<Member, "full_name" | "specialty" | "bio" | "avatar_url" | "is_active" | "role">
+    Pick<Member, "full_name" | "bio" | "avatar_url" | "is_active" | "role">
   >
 ): Promise<void> {
   const { error } = await supabase.from("members").update(patch).eq("id", id);

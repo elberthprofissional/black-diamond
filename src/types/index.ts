@@ -56,7 +56,6 @@ export interface Member {
   role: MemberRole;
   is_active: boolean;
   full_name: string;
-  specialty: string | null;
   bio: string | null;
   avatar_url: string | null;
   created_at: string;
@@ -177,6 +176,38 @@ export interface BookResult {
   status: AppointmentStatus;
   coupon_id: string | null;
   discount: number;
+}
+
+export interface ClientAppointment {
+  id: string;
+  service_id: string;
+  member_id: string;
+  service_name: string;
+  member_name: string;
+  start_at: string;
+  end_at: string;
+  status: AppointmentStatus;
+  price: number;
+  duration_minutes: number;
+}
+
+export interface CancelResult {
+  id: string;
+  cancelled: boolean;
+  start_at: string;
+}
+
+export interface RescheduleResult {
+  id: string;
+  old_id: string;
+  service_id: string;
+  service_name: string;
+  member_id: string;
+  member_name: string;
+  client_name: string;
+  start_at: string;
+  end_at: string;
+  status: AppointmentStatus;
 }
 
 export type CouponDiscountType = "fixed" | "percent";

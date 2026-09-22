@@ -79,10 +79,6 @@ export function ClientsPage() {
       {selected ? (
         <ClientHistoryModal client={selected} onClose={() => setSelected(null)} />
       ) : null}
-
-      <p className="muted" style={{ marginTop: 16 }}>
-        Clientes são identificados pelo WhatsApp informado no agendamento.
-      </p>
     </div>
   );
 }

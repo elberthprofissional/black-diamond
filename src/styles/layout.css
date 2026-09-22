@@ -1578,21 +1578,38 @@
 }
 
 .auth__main {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  gap: 22px;
-  padding: 32px;
+  gap: 26px;
+  padding: 48px clamp(24px, 4vw, 88px);
+  background:
+    radial-gradient(120% 90% at 100% -10%, rgba(232, 185, 35, 0.045), transparent 55%),
+    radial-gradient(140% 60% at 50% 115%, rgba(0, 0, 0, 0.55), transparent 70%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0) 36%),
+    var(--bg);
+}
+
+.auth__mark {
+  position: absolute;
+  right: -56px;
+  bottom: -74px;
+  z-index: 0;
+  font-size: 330px;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(232, 185, 35, 0.11);
+  transform: rotate(45deg) scale(1, 0.55);
+  pointer-events: none;
 }
 
 .auth__card {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  max-width: 384px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 34px;
+  max-width: 424px;
 }
 
 .auth__brand--mobile {
@@ -1602,35 +1619,89 @@
 .auth__form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 
 .auth__form h2 {
+  position: relative;
+  padding-bottom: 16px;
   font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-strong);
 }
 
+.auth__form h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 42px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), rgba(232, 185, 35, 0.05));
+}
+
 .auth__form h2 + .text-muted {
-  margin-top: -8px;
-  font-size: 13px;
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+.auth__form .field > label {
+  font-size: 11.5px;
+  color: var(--text);
+}
+
+.auth__form .input,
+.auth__form .select {
+  height: 52px;
+  padding: 0 15px;
+  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.auth__form .input::placeholder {
+  color: var(--muted-2);
+}
+
+.auth__form .input:focus,
+.auth__form .select:focus {
+  outline: none;
+  border-color: rgba(232, 185, 35, 0.55);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .auth__form .btn {
-  height: 48px;
-  margin-top: 4px;
+  height: 54px;
+  margin-top: 8px;
+  border-radius: 8px;
   font-family: var(--font-display);
   font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+  font-weight: 700;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -10px 20px -14px rgba(120, 85, 10, 0.6);
+}
+
+.auth__form .btn:hover:not(:disabled) {
+  filter: brightness(1.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -10px 20px -14px rgba(120, 85, 10, 0.6);
+}
+
+.auth__form .btn:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .auth__form .link-btn {
-  align-self: center;
+  align-self: flex-start;
   color: var(--muted);
   cursor: pointer;
 }
@@ -1640,16 +1711,18 @@
 }
 
 .auth__hint {
-  margin: 18px 0 0;
-  text-align: center;
+  margin: 8px 0 0;
+  text-align: left;
   font-size: 12px;
+  letter-spacing: 0.04em;
   color: var(--muted-2);
 }
 
 .auth__foot {
   font-size: 12px;
+  letter-spacing: 0.06em;
   color: var(--muted-2);
-  text-align: center;
+  text-align: left;
 }
 
 @media (max-width: 860px) {
@@ -1681,10 +1754,21 @@
     letter-spacing: 0.18em;
   }
 
+  .auth__mark {
+    display: none;
+  }
+
   .auth__card {
     max-width: 420px;
-    padding: 24px 18px;
+    border-left: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 12px;
+    padding: 24px 18px;
+  }
+
+  .auth__card::before {
+    display: none;
   }
 
   .auth__form h2,
@@ -1694,6 +1778,7 @@
 
   .auth__foot {
     font-size: 11px;
+    text-align: center;
   }
 }
 

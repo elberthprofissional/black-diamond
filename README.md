@@ -24,11 +24,13 @@ React 18 + TypeScript + Vite 5 · React Router 6 · Supabase (Postgres + Auth + 
 ### 2. Configurar o Supabase
 
 1. Em **Database → Extensions**, habilite `pgcrypto` (usada pelo seed) — ou rode a migração abaixo que já cobre isso.
-2. Aplique as migrações. Você pode copiar/colar o conteúdo dos arquivos em `supabase/migrations/` na ordem (`0001` → `0007`) no **SQL Editor**, ou usar a CLI:
+2. Aplique as migrações. Copie/cole o conteúdo dos arquivos em `supabase/migrations/` na ordem (`0001` → `0005`) no **SQL Editor**, ou use a CLI:
    ```bash
    npx supabase link --project-ref SEU_PROJETO_REF
    npx supabase db push
    ```
+   > As migrations já foram consolidadas em 5 arquivos; em bases antigas
+   > (0001–0012) prefira `supabase db reset` para recriar a partir delas.
 3. Em **Authentication → Providers**, deixe **Email** habilitado (com Confirm email ligado ou desligado — o convite de membros já envia email confirmado).
 4. Pegue em **Settings → API**:
    - `Project URL` → `VITE_SUPABASE_URL`
@@ -58,7 +60,7 @@ npm install
 npm run dev
 ```
 
-**Seed de desenvolvimento** (cria a barbearia demo **BLACK DIAMOND**, slug `black-diamond`, dono João e barbeiros Carlos/Pedro, serviços, horários e agendamentos de exemplo):
+**Seed de desenvolvimento** (cria a barbearia demo **BLACK DIAMOND**, slug `black-diamond`, dono João e barbeiros Carlos/Pedro, serviços, horários e quadros de galeria de exemplo — **sem clientes/agendamentos fake**, eles nascem do agendamento real):
 
 ```bash
 npm run seed:dev
@@ -106,7 +108,7 @@ Usa `launcher/start-dev.ps1`: instala dependências, inicia o Vite, abre o naveg
 
 - **Multi-tenant**: `barbershop_id` em todas as tabelas de negócio; RLS impede cruzamento entre barbearias.
 - **Papéis**: `profiles.is_superadmin` (global) e `members.role` (`owner`/`barber` por barbearia). Clientes não criam conta.
-- **Disponibilidade**: a função `_find_slots` cruza horário de funcionamento × horários do barbeiro × bloqueios × agendamentos ativos, em passos de 15 minutos, e retorna apenas horários futuros. `book_appointment` revalida tudo no servidor com `pg_advisory_xact_lock` para evitar reserva dupla.
+- **Disponibilidade**: a função `_find_slots` cruza horário de funcionamento × horários do barbeiro × bloqueios × agendamentos ativos, em passos de 1 hora, e retorna apenas horários futuros. `book_appointment` revalida tudo no servidor com `pg_advisory_xact_lock` para evitar reserva dupla.
 - **Convites**: `admin_invite_member` cria o usuário via Auth com `email_confirm = true`; o convidado entra com a senha temporária.
 - Detalhes de funções, políticas e RPCs: `supabase/README.md`.
 
@@ -126,5 +128,5 @@ src/
   styles/                        # base, ui, layout, páginas
 scripts/                         # bootstrap (seed, superadmin) — service_role
 launcher/                        # launcher Windows
-supabase/migrations/             # schema (0001–0007) + documentação
+supabase/migrations/             # schema (0001–0005) + documentação
 ```

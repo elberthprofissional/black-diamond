@@ -7,6 +7,7 @@ import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
+import { PhotoPicker } from "../../components/PhotoPicker";
 import { HoursEditor, normalizeHours } from "../../components/HoursEditor";
 import type { HourRow } from "../../components/HoursEditor";
 import { useAsyncData } from "../../hooks/useAsyncData";
@@ -39,14 +40,13 @@ export function TeamPage() {
     email: "",
     role: "barber" as "owner" | "barber",
     password: "",
-    specialty: "",
     bio: "",
   });
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteBusy, setInviteBusy] = useState(false);
 
   const [editMember, setEditMember] = useState<Member | null>(null);
-  const [editForm, setEditForm] = useState({ full_name: "", specialty: "", bio: "", avatar_url: "" });
+  const [editForm, setEditForm] = useState({ full_name: "", bio: "", avatar_url: "" });
   const [editError, setEditError] = useState<string | null>(null);
   const [editBusy, setEditBusy] = useState(false);
 
@@ -61,7 +61,6 @@ export function TeamPage() {
     setEditMember(m);
     setEditForm({
       full_name: m.full_name,
-      specialty: m.specialty ?? "",
       bio: m.bio ?? "",
       avatar_url: m.avatar_url ?? "",
     });
@@ -99,12 +98,11 @@ export function TeamPage() {
         email: invite.email.trim(),
         role: invite.role,
         tempPassword: invite.password,
-        specialty: invite.specialty.trim() || null,
         bio: invite.bio.trim() || null,
       });
       showToast(`${invite.name} adicionado à equipe.`, "success");
       setInviteOpen(false);
-      setInvite({ name: "", email: "", role: "barber", password: "", specialty: "", bio: "" });
+      setInvite({ name: "", email: "", role: "barber", password: "", bio: "" });
       reload();
     } catch (e) {
       setInviteError(toErrorMessage(e));
@@ -124,7 +122,6 @@ export function TeamPage() {
     try {
       await updateMember(editMember.id, {
         full_name: editForm.full_name.trim(),
-        specialty: editForm.specialty.trim() || null,
         bio: editForm.bio.trim() || null,
         avatar_url: editForm.avatar_url.trim() || null,
       });
@@ -193,7 +190,6 @@ export function TeamPage() {
               <tr>
                 <th>Profissional</th>
                 <th>Função</th>
-                <th>Especialidade</th>
                 <th>Status</th>
                 <th aria-label="Ações"></th>
               </tr>
@@ -219,7 +215,6 @@ export function TeamPage() {
                       {m.role === "owner" ? "Dono" : "Barbeiro"}
                     </span>
                   </td>
-                  <td className="muted">{m.specialty ?? "—"}</td>
                   <td>
                     {m.is_active ? (
                       <span className="badge badge--concluido">Ativo</span>
@@ -280,7 +275,6 @@ export function TeamPage() {
             </Select>
             <Input label="Senha temporária" type="text" name="inv-pass" value={invite.password} onChange={(e) => setInvite({ ...invite, password: e.target.value })} />
           </div>
-          <Input label="Especialidade (opcional)" name="inv-spec" value={invite.specialty} onChange={(e) => setInvite({ ...invite, specialty: e.target.value })} />
           <Input label='Sobre (opcional)' name="inv-bio" value={invite.bio} onChange={(e) => setInvite({ ...invite, bio: e.target.value })} />
           {inviteError ? <p className="form-error">{inviteError}</p> : null}
         </div>
@@ -304,8 +298,11 @@ export function TeamPage() {
       >
         <div className="form-stack">
           <Input label="Nome" name="edit-name" value={editForm.full_name} onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })} />
-          <Input label="URL da foto" name="edit-avatar" value={editForm.avatar_url} onChange={(e) => setEditForm({ ...editForm, avatar_url: e.target.value })} hint="Endereço de imagem (ex.: URL de um upload público)." />
-          <Input label="Especialidade" name="edit-spec" value={editForm.specialty} onChange={(e) => setEditForm({ ...editForm, specialty: e.target.value })} />
+          <PhotoPicker
+            name="edit-avatar"
+            value={editForm.avatar_url || null}
+            onChange={(url) => setEditForm({ ...editForm, avatar_url: url })}
+          />
           <Input label="Sobre mim" name="edit-bio" value={editForm.bio} onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })} />
           {editError ? <p className="form-error">{editError}</p> : null}
         </div>

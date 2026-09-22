@@ -30,10 +30,7 @@ const GROUPS: { label: string; items: NavItem[] }[] = [
   },
   {
     label: "Sistema",
-    items: [
-      { to: "/admin/configuracao", label: "Configurações", icon: "sliders", roles: ["superadmin", "owner"] },
-      { to: "/admin/perfil", label: "Perfil", icon: "user", roles: ["barber"] },
-    ],
+    items: [{ to: "/admin/perfil", label: "Perfil", icon: "user", roles: ["barber"] }],
   },
 ];
 
@@ -79,8 +76,11 @@ export function Sidebar({ onNavigate }: SidebarProps) {
     "sidebar__link" + (isActive ? " is-active" : "");
 
   const handleSignOut = async () => {
-    await signOut();
-    window.location.assign("/login");
+    try {
+      await signOut();
+    } finally {
+      window.location.assign("/login");
+    }
   };
 
   const settingsTo = role === "barber" ? "/admin/perfil" : "/admin/configuracao";

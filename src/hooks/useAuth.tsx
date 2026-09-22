@@ -47,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const refresh = useCallback(async () => {
+    setIsLoading(true);
     const {
       data: { session: current },
     } = await supabase.auth.getSession();
@@ -106,7 +107,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Limpa o estado local mesmo se a chamada à API falhar,
+      // para o usuário nunca ficar preso numa sessão inválida.
+    }
     setSession(null);
     setProfile(null);
     setMemberships([]);

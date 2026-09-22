@@ -230,7 +230,7 @@ export function HomePage() {
               <img src="/fundo-mobile.webp" alt="Um dia de trabalho na BLACK DIAMOND" loading="lazy" />
             </figure>
             <div className="bd-experience__text">
-              <Eyebrow>A experiência</Eyebrow>
+              <Eyebrow>Sobre</Eyebrow>
               <h2 className="bd-title">Não é só cortar o cabelo.</h2>
               <p className="bd-experience__lead">
                 É sentar, relaxar e sair daqui sabendo que o corte ficou certo.
@@ -312,9 +312,33 @@ function Testimonials() {
       <div className="bd-head">
         <div>
           <Eyebrow>Quem senta, volta</Eyebrow>
-          <h2 className="bd-title">O que dizem nossos clientes</h2>
+          <h2 className="bd-title">O que nossos clientes dizem</h2>
           <p className="bd-testi__sub">
-            Avaliações reais de quem já faz parte da casa.
+            <svg
+              className="bd-google"
+              width="16"
+              height="16"
+              viewBox="0 0 48 48"
+              aria-hidden="true"
+            >
+              <path
+                fill="#FFC107"
+                d="M43.611 20.083H42V20H24v8h11.303C33.793 33.879 29.89 37 24 37c-7.18 0-13-5.82-13-13s5.82-13 13-13c3.317 0 6.276 1.145 8.627 3.026l5.654-5.654A19.92 19.92 0 0 0 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
+              />
+              <path
+                fill="#FF3D00"
+                d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.317 0 6.276 1.145 8.627 3.026l5.654-5.654A19.92 19.92 0 0 0 24 4 19.93 19.93 0 0 0 6.306 14.691z"
+              />
+              <path
+                fill="#4CAF50"
+                d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"
+              />
+              <path
+                fill="#1976D2"
+                d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
+              />
+            </svg>
+            Avaliações reais no Google
           </p>
         </div>
         <div className="bd-carousel__nav" aria-hidden="false">
@@ -382,6 +406,13 @@ function SiteHeader({ slug, shop }: { slug: string; shop: Barbershop }) {
             </a>
           ))}
           <Link
+            to={`/gerenciar/${slug}`}
+            className="bd-header__link bd-header__link--muted"
+            onClick={() => setOpen(false)}
+          >
+            Cancelar ou reagendar
+          </Link>
+          <Link
             to={`/agendar/${slug}`}
             className="btn-bd btn-bd--gold bd-header__cta"
             onClick={() => setOpen(false)}
@@ -423,10 +454,13 @@ function SiteFooter({
     <footer className="bd-footer">
       <div className="bd-wrap">
         <div className="bd-footer__top">
-          <span className="bd-brand">
-            <span className="bd-brand__mark">◆</span>
-            <span className="bd-brand__name">{b.name}</span>
-          </span>
+          <div className="bd-footer__brand">
+            <span className="bd-brand">
+              <span className="bd-brand__mark">◆</span>
+              <span className="bd-brand__name">{b.name}</span>
+            </span>
+            <span className="bd-footer__tagline">Cortes clássicos. Estilo atual.</span>
+          </div>
 
           <nav className="bd-footer__nav" aria-label="Links">
             {s.show_whatsapp && b.whatsapp ? (
@@ -460,20 +494,13 @@ function SiteFooter({
           </nav>
         </div>
 
-        <div className="bd-footer__mid">
-          <span className="bd-footer__tagline">Cortes clássicos. Estilo atual.</span>
-          <span className="bd-footer__credit">
-            {s.show_credits ? s.credits_text || b.name : "BLACK DIAMOND"} · © {year}
-          </span>
-        </div>
-
         <div className="bd-footer__base">
-          <p className="bd-footer__legal">
-            {b.name} — o cuidado masculino elevado ao padrão de um clube de cavalheiros.
-          </p>
-          <Link to="/login" className="bd-footer__admin" title="Acesso restrito · Área do administrador">
+          <span className="bd-footer__credit">
+            © {year} {s.show_credits ? s.credits_text || b.name : b.name}
+          </span>
+          <Link to="/login" className="bd-footer__admin" title="Área do administrador">
             <Icon name="lock" size={12} />
-            admin
+            Área do administrador
           </Link>
         </div>
       </div>

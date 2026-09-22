@@ -8,6 +8,9 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <main className="auth__main">
+        <span className="auth__mark" aria-hidden="true">
+          ◆
+        </span>
         <div className="auth__card">
           <div className="auth__brand auth__brand--mobile">
             <img src="/logo.webp" alt="BLACK DIAMOND" className="auth__logo" />

@@ -4,6 +4,7 @@ import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Input } from "../../components/ui/Input";
 import { Loading } from "../../components/ui/Loading";
+import { PhotoPicker } from "../../components/PhotoPicker";
 import { HoursEditor, normalizeHours } from "../../components/HoursEditor";
 import type { HourRow } from "../../components/HoursEditor";
 import { useAsyncData } from "../../hooks/useAsyncData";
@@ -31,7 +32,7 @@ export function ProfilePage() {
     return { me, hours };
   }, [shopId, memberId]);
 
-  const [form, setForm] = useState({ avatar_url: "", specialty: "", bio: "" });
+  const [form, setForm] = useState({ avatar_url: "", bio: "" });
   const [hours, setHours] = useState<HourRow[] | null>(null);
   const [saveBusy, setSaveBusy] = useState(false);
   const [hoursBusy, setHoursBusy] = useState(false);
@@ -40,7 +41,6 @@ export function ProfilePage() {
     if (!data?.me) return;
     setForm({
       avatar_url: data.me.avatar_url ?? "",
-      specialty: data.me.specialty ?? "",
       bio: data.me.bio ?? "",
     });
     setHours(normalizeHours(data.hours));
@@ -68,7 +68,6 @@ export function ProfilePage() {
     try {
       await updateMember(me.id, {
         avatar_url: form.avatar_url.trim() || null,
-        specialty: form.specialty.trim() || null,
         bio: form.bio.trim() || null,
       });
       showToast("Perfil atualizado.", "success");
@@ -117,8 +116,11 @@ export function ProfilePage() {
             <h3>Dados exibidos</h3>
           </div>
           <div className="form-stack">
-            <Input label="URL da foto" name="pf-avatar" value={form.avatar_url} onChange={(e) => setForm({ ...form, avatar_url: e.target.value })} hint="Endereço de imagem pública." />
-            <Input label="Especialidade" name="pf-spec" value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} />
+            <PhotoPicker
+              name="pf-avatar"
+              value={form.avatar_url || null}
+              onChange={(url) => setForm({ ...form, avatar_url: url })}
+            />
             <Input label="Sobre mim" name="pf-bio" value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Uma breve apresentação para os clientes" />
             <Button onClick={saveProfile} loading={saveBusy}>
               Salvar perfil
