@@ -1,3 +1,4 @@
+import { Camera } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { EmptyState } from "../../components/ui/EmptyState";
@@ -176,7 +177,7 @@ export function GalleryPage() {
         />
       ) : items.length === 0 ? (
         <EmptyState
-          icon="📷"
+          icon={<Camera size={22} strokeWidth={1.5} />}
           title="Nenhuma foto na galeria"
           description="Adicione o primeiro quadro escolhendo a foto de um corte."
           action={<Button onClick={openNew}>+ Novo quadro</Button>}

@@ -1,3 +1,4 @@
+import { Ban } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { EmptyState } from "../../components/ui/EmptyState";
@@ -364,7 +365,7 @@ export function ManagePage() {
                     <Loading label="Buscando horários..." />
                   ) : slots.length === 0 ? (
                     <EmptyState
-                      icon="⛔"
+                      icon={<Ban size={22} strokeWidth={1.5} />}
                       title="Sem horários disponíveis"
                       description="Não há horários nesta data. Tente outro dia."
                     />

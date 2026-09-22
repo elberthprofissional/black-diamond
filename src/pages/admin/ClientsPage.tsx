@@ -1,3 +1,4 @@
+import { CalendarDays } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ClientTable } from "../../components/ClientTable";
 import type { ClientWithStats } from "../../components/ClientTable";
@@ -186,7 +187,7 @@ function ClientHistoryModal({ client, onClose }: { client: ClientWithStats; onCl
         WhatsApp: {client.whatsapp} · {history.length} agendamento(s)
       </p>
       {history.length === 0 ? (
-        <EmptyState icon="🗓️" title="Sem histórico" description="Nenhum agendamento encontrado para este cliente." />
+        <EmptyState icon={<CalendarDays size={22} strokeWidth={1.5} />} title="Sem histórico" description="Nenhum agendamento encontrado para este cliente." />
       ) : (
         <div className="table-wrap">
           <table className="table">

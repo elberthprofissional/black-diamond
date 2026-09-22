@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { AuthProvider } from "./hooks/useAuth";
 import { ToastProvider } from "./hooks/useToast";
 import { App } from "./App";
+import "./styles/tailwind.css";
 import "./styles/base.css";
 import "./styles/ui.css";
 import "./styles/layout.css";

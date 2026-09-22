@@ -1,3 +1,4 @@
+import { Wallet } from "lucide-react";
 import { useMemo } from "react";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Loading } from "../../components/ui/Loading";
@@ -106,7 +107,7 @@ export function FinancePage() {
           <span className="muted">{concludedThisMonth.length} registro(s)</span>
         </div>
         {concludedThisMonth.length === 0 ? (
-          <EmptyState icon="💰" title="Nada concluído neste mês" description="Quando atendimentos forem concluídos, eles aparecem aqui." />
+          <EmptyState icon={<Wallet size={22} strokeWidth={1.5} />} title="Nada concluído neste mês" description="Quando atendimentos forem concluídos, eles aparecem aqui." />
         ) : (
           <div className="table-wrap">
             <table className="table">

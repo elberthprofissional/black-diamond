@@ -1,3 +1,4 @@
+import { Users } from "lucide-react";
 import { useState } from "react";
 import { Avatar } from "../../components/ui/Avatar";
 import { EmptyState } from "../../components/ui/EmptyState";
@@ -182,7 +183,7 @@ export function TeamPage() {
       ) : error ? (
         <EmptyState icon="!" title="Erro ao carregar" description={error} action={<button onClick={reload} className="btn btn--ghost">Tentar de novo</button>} />
       ) : (members ?? []).length === 0 ? (
-        <EmptyState icon="👥" title="Time vazio" description="Adicione o primeiro barbeiro para começar." action={<Button onClick={() => setInviteOpen(true)}>+ Adicionar</Button>} />
+        <EmptyState icon={<Users size={22} strokeWidth={1.5} />} title="Time vazio" description="Adicione o primeiro barbeiro para começar." action={<Button onClick={() => setInviteOpen(true)}>+ Adicionar</Button>} />
       ) : (
         <div className="table-wrap">
           <table className="table">

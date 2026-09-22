@@ -1,3 +1,4 @@
+import { CalendarDays } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AppointmentModal } from "../../components/AppointmentModal";
 import { EmptyState } from "../../components/ui/EmptyState";
@@ -102,7 +103,7 @@ export function AppointmentsPage() {
       ) : error ? (
         <EmptyState icon="!" title="Erro ao carregar" description={error} action={<button onClick={reload} className="btn btn--ghost">Tentar de novo</button>} />
       ) : filtered.length === 0 ? (
-        <EmptyState icon="🗓️" title="Nada por aqui" description="Nenhum agendamento encontrado com esses filtros." />
+        <EmptyState icon={<CalendarDays size={22} strokeWidth={1.5} />} title="Nada por aqui" description="Nenhum agendamento encontrado com esses filtros." />
       ) : (
         <div className="table-wrap">
           <table className="table">

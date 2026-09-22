@@ -1,3 +1,4 @@
+import { Lock } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Loading } from "../../components/ui/Loading";
@@ -115,7 +116,7 @@ export function BlockedPage() {
       ) : error ? (
         <EmptyState icon="!" title="Erro ao carregar" description={error} action={<button onClick={reload} className="btn btn--ghost">Tentar de novo</button>} />
       ) : (data?.blocks ?? []).length === 0 ? (
-        <EmptyState icon="🔒" title="Sem bloqueios" description="Não há períodos bloqueados no momento." />
+        <EmptyState icon={<Lock size={22} strokeWidth={1.5} />} title="Sem bloqueios" description="Não há períodos bloqueados no momento." />
       ) : (
         <div className="table-wrap">
           <table className="table">

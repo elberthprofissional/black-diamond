@@ -6,6 +6,7 @@ import type { IconName } from "../../components/ui/Icon";
 import { Input } from "../../components/ui/Input";
 import { Loading } from "../../components/ui/Loading";
 import { HoursEditor, normalizeHours } from "../../components/HoursEditor";
+import { PhotoPicker } from "../../components/PhotoPicker";
 import type { HourRow } from "../../components/HoursEditor";
 import { useAsyncData } from "../../hooks/useAsyncData";
 import { useAuth } from "../../hooks/useAuth";
@@ -56,7 +57,7 @@ const TABS: { id: SettingsTab; label: string; icon: IconName }[] = [
 ];
 
 export function SettingsPage() {
-  const { activeMembership } = useAuth();
+  const { activeMembership, role } = useAuth();
   const shopId = activeMembership?.barbershop_id ?? "";
   const { showToast } = useToast();
 
@@ -193,7 +194,7 @@ export function SettingsPage() {
       <div className={`settings-layout${tab ? " is-detail" : ""}`}>
         <nav className="settings-nav" aria-label="Seções de configuração">
           <span className="settings-nav__title">Configurações</span>
-          {TABS.map((t) => (
+          {TABS.filter((t) => t.id !== "appearance" || role === "superadmin").map((t) => (
             <button
               key={t.id}
               type="button"
@@ -257,8 +258,8 @@ export function SettingsPage() {
                         <h3>Logo, imagem e cor</h3>
                       </div>
                       <div className="form-stack">
-                        <Input label="URL do logo" name="st-logo" value={form.logo_url} onChange={(e) => set({ logo_url: e.target.value })} />
-                        <Input label="URL da imagem principal" name="st-hero" value={form.hero_image_url} onChange={(e) => set({ hero_image_url: e.target.value })} />
+                        <PhotoPicker name="st-logo" label="Logo" value={form.logo_url || null} onChange={(url) => set({ logo_url: url })} />
+                        <PhotoPicker name="st-hero" label="Imagem principal" value={form.hero_image_url || null} onChange={(url) => set({ hero_image_url: url })} />
                         <div className="form-grid-2">
                           <Input label="Cor de destaque" type="color" name="st-color" value={form.primary_color} onChange={(e) => set({ primary_color: e.target.value })} />
                         </div>

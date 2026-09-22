@@ -9,11 +9,12 @@ import { uploadGalleryImage } from "../services/upload";
 
 interface PhotoPickerProps {
   name?: string;
+  label?: string;
   value: string | null;
   onChange: (url: string) => void;
 }
 
-export function PhotoPicker({ name, value, onChange }: PhotoPickerProps) {
+export function PhotoPicker({ name, value, onChange, label }: PhotoPickerProps) {
   const { activeMembership } = useAuth();
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -44,7 +45,7 @@ export function PhotoPicker({ name, value, onChange }: PhotoPickerProps) {
 
   return (
     <div className="field">
-      <label htmlFor={name ?? "photo"}>Foto</label>
+      <label htmlFor={name ?? "photo"}>{label ?? "Foto"}</label>
       {value ? (
         <div className="gallery-upload">
           <Avatar name="" src={value} size="lg" />

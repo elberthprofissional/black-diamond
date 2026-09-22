@@ -1,3 +1,4 @@
+import { Building2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Avatar } from "../../components/ui/Avatar";
@@ -262,7 +263,7 @@ export function SuperAdminPage() {
                 </table>
               </div>
               {(data?.shops ?? []).length === 0 ? (
-                <EmptyState icon="🏢" title="Nenhuma barbearia" description="Crie a primeira barbearia para começar a operar." />
+                <EmptyState icon={<Building2 size={22} strokeWidth={1.5} />} title="Nenhuma barbearia" description="Crie a primeira barbearia para começar a operar." />
               ) : null}
             </section>
           </>

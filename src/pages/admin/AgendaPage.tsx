@@ -1,3 +1,4 @@
+import { CalendarX2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AppointmentCard } from "../../components/AppointmentCard";
 import { AppointmentModal } from "../../components/AppointmentModal";
@@ -138,7 +139,7 @@ export function AgendaPage() {
       ) : error ? (
         <EmptyState icon="!" title="Erro ao carregar" description={error} action={<button onClick={reload} className="btn btn--ghost">Tentar de novo</button>} />
       ) : (data?.appts ?? []).length === 0 ? (
-        <EmptyState icon="💈" title="Semana sem horários" description="Agendamentos aparecem aqui conforme os clientes marcam na página pública." />
+        <EmptyState icon={<CalendarX2 size={22} strokeWidth={1.5} />} title="Semana sem horários" description="Agendamentos aparecem aqui conforme os clientes marcam na página pública." />
       ) : (
         <>
           <div className="week-filter" role="tablist" aria-label="Filtrar por dia da semana">

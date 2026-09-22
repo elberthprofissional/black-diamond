@@ -1,3 +1,4 @@
+import { UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Avatar } from "../../components/ui/Avatar";
 import { Button } from "../../components/ui/Button";
@@ -58,7 +59,7 @@ export function ProfilePage() {
     );
   }
   if (!data?.me) {
-    return <EmptyState icon="👤" title="Perfil não encontrado" description="Verifique o vínculo da sua conta com a barbearia." />;
+    return <EmptyState icon={<UserRound size={22} strokeWidth={1.5} />} title="Perfil não encontrado" description="Verifique o vínculo da sua conta com a barbearia." />;
   }
 
   const me: Member = data.me;

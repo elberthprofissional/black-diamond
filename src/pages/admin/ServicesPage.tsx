@@ -1,3 +1,4 @@
+import { Scissors } from "lucide-react";
 import { useState } from "react";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Loading } from "../../components/ui/Loading";
@@ -116,7 +117,7 @@ export function ServicesPage() {
       ) : error ? (
         <EmptyState icon="!" title="Erro ao carregar" description={error} action={<button onClick={reload} className="btn btn--ghost">Tentar de novo</button>} />
       ) : (data ?? []).length === 0 ? (
-        <EmptyState icon="✂️" title="Nenhum serviço" description="Crie o primeiro serviço para começar a receber agendamentos." action={<Button onClick={openNew}>+ Novo serviço</Button>} />
+        <EmptyState icon={<Scissors size={22} strokeWidth={1.5} />} title="Nenhum serviço" description="Crie o primeiro serviço para começar a receber agendamentos." action={<Button onClick={openNew}>+ Novo serviço</Button>} />
       ) : (
         <div className="table-wrap">
           <table className="table">
