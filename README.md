@@ -6,6 +6,7 @@ Sistema de gestão e agendamento para barbearias — **multi-tenant**, com pági
 
 - **Página pública por barbearia** (`/agendar/:slug`): sem login, o cliente escolhe serviço → profissional → dia/horário, preenche nome/WhatsApp e recebe link de confirmação via WhatsApp.
 - **Painel do dono** (`/admin`): agenda do dia, agendamentos com filtros, clientes, serviços, equipe (convidar barbeiros), bloqueios, financeiro, configuração da página pública (identidade, contatos, rodapé, cor de destaque e horários).
+- **Lista de clientes**: clientes entram automaticamente após o **2º atendimento** (quem voltou é cliente); dono, superadmin e barbeiro também podem cadastrar cliente manualmente (`is_manual`).
 - **Painel do barbeiro**: vê apenas a própria agenda, bloqueia seus próprios horários e edita a própria disponibilidade/perfil.
 - **Superadmin** (`/sistema`): cria/desativa barbearias, promove donos e vê métricas globais.
 - **Permissões no banco**: cada papel é validado via RLS; o frontend nunca é a única barreira.
@@ -24,12 +25,12 @@ React 18 + TypeScript + Vite 5 · React Router 6 · Supabase (Postgres + Auth + 
 ### 2. Configurar o Supabase
 
 1. Em **Database → Extensions**, habilite `pgcrypto` (usada pelo seed) — ou rode a migração abaixo que já cobre isso.
-2. Aplique as migrações. Copie/cole o conteúdo dos arquivos em `supabase/migrations/` na ordem (`0001` → `0005`) no **SQL Editor**, ou use a CLI:
+2. Aplique as migrações. Copie/cole o conteúdo dos arquivos em `supabase/migrations/` na ordem (`0001` → `0006`) no **SQL Editor**, ou use a CLI:
    ```bash
    npx supabase link --project-ref SEU_PROJETO_REF
    npx supabase db push
    ```
-   > As migrations já foram consolidadas em 5 arquivos; em bases antigas
+   > As migrations já foram consolidadas em 6 arquivos; em bases antigas
    > (0001–0012) prefira `supabase db reset` para recriar a partir delas.
 3. Em **Authentication → Providers**, deixe **Email** habilitado (com Confirm email ligado ou desligado — o convite de membros já envia email confirmado).
 4. Pegue em **Settings → API**:
@@ -128,5 +129,5 @@ src/
   styles/                        # base, ui, layout, páginas
 scripts/                         # bootstrap (seed, superadmin) — service_role
 launcher/                        # launcher Windows
-supabase/migrations/             # schema (0001–0005) + documentação
+supabase/migrations/             # schema (0001–0006) + documentação
 ```

@@ -1,20 +1,25 @@
 import { useMemo, useState } from "react";
 import { ClientTable } from "../../components/ClientTable";
 import type { ClientWithStats } from "../../components/ClientTable";
+import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { Input } from "../../components/ui/Input";
 import { Loading } from "../../components/ui/Loading";
 import { Modal } from "../../components/ui/Modal";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { useAsyncData } from "../../hooks/useAsyncData";
 import { useAuth } from "../../hooks/useAuth";
-import { fetchAppointments, listClients } from "../../services/api";
+import { useToast } from "../../hooks/useToast";
+import { createClient, fetchAppointments, listClients, toErrorMessage } from "../../services/api";
 import { endOfDayISO, formatDatePt, startOfDayISO, timeFromISO, todayISO } from "../../utils/date";
 import { formatCurrency } from "../../utils/format";
+import { isValidName, isValidWhatsapp } from "../../utils/validation";
 import type { AppointmentWithRelations } from "../../types";
 
 export function ClientsPage() {
   const { activeMembership } = useAuth();
   const shopId = activeMembership?.barbershop_id ?? "";
+  const { showToast } = useToast();
 
   const { data, loading, error, reload } = useAsyncData(async () => {
     const [clients, appts] = await Promise.all([
@@ -50,7 +55,13 @@ export function ClientsPage() {
     });
   }, [data]);
 
+  const visible = useMemo(
+    () => withStats.filter((c) => c.visit_count >= 2 || c.is_manual),
+    [withStats]
+  );
+
   const [selected, setSelected] = useState<ClientWithStats | null>(null);
+  const [adding, setAdding] = useState(false);
 
   if (loading) return <Loading label="Carregando clientes..." />;
   if (error) {
@@ -66,20 +77,103 @@ export function ClientsPage() {
 
   return (
     <div className="page">
-      <div className="page-heading">
-        <span className="eyebrow">Operação</span>
-        <h2>Clientes</h2>
-        <p className="text-muted">
-          {withStats.length} cliente(s) cadastrado(s) · {withStats.reduce((a, c) => a + c.visit_count, 0)} visita(s) concluída(s)
-        </p>
+      <div className="page-heading page-heading--row">
+        <div>
+          <span className="eyebrow">Operação</span>
+          <h2>Clientes</h2>
+          <p className="text-muted">
+            {visible.length} cliente(s) nesta lista · {visible.reduce((a, c) => a + c.visit_count, 0)} visita(s) concluída(s)
+          </p>
+        </div>
+        <Button onClick={() => setAdding(true)}>+ Adicionar cliente</Button>
       </div>
 
-      <ClientTable clients={withStats} onSelect={setSelected} onRefresh={reload} />
+      {adding ? (
+        <AddClientModal
+          shopId={shopId}
+          onClose={() => setAdding(false)}
+          onCreated={() => {
+            showToast("Cliente adicionado.", "success");
+            reload();
+          }}
+        />
+      ) : null}
+
+      <ClientTable clients={visible} onSelect={setSelected} onRefresh={reload} />
 
       {selected ? (
         <ClientHistoryModal client={selected} onClose={() => setSelected(null)} />
       ) : null}
     </div>
+  );
+}
+
+function AddClientModal({
+  shopId,
+  onClose,
+  onCreated,
+}: {
+  shopId: string;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [name, setName] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const save = async () => {
+    setFormError(null);
+    if (!isValidName(name)) return setFormError("Informe o nome do cliente.");
+    if (!isValidWhatsapp(whatsapp))
+      return setFormError("Telefone inválido. Use o WhatsApp com DDD, ex.: 11 98888-7777.");
+
+    setBusy(true);
+    try {
+      await createClient(shopId, name, whatsapp);
+      onCreated();
+      onClose();
+    } catch (e) {
+      setFormError(toErrorMessage(e));
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title="Adicionar cliente"
+      width="sm"
+      footer={
+        <div className="modal-actions">
+          <Button variant="ghost" onClick={onClose} disabled={busy}>
+            Cancelar
+          </Button>
+          <Button onClick={save} loading={busy}>
+            Salvar cliente
+          </Button>
+        </div>
+      }
+    >
+      <div className="form-stack">
+        <Input
+          label="Nome"
+          name="client-name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Nome do cliente"
+        />
+        <Input
+          label="WhatsApp"
+          name="client-whatsapp"
+          value={whatsapp}
+          onChange={(e) => setWhatsapp(e.target.value)}
+          placeholder="(11) 98888-7777"
+        />
+      </div>
+      {formError ? <p className="form-error">{formError}</p> : null}
+    </Modal>
   );
 }
 

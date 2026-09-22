@@ -419,6 +419,25 @@ export async function listClients(shopId: string): Promise<Client[]> {
   return (data ?? []) as Client[];
 }
 
+export async function createClient(
+  shopId: string,
+  name: string,
+  whatsapp: string
+): Promise<Client> {
+  const { data, error } = await supabase
+    .from("clients")
+    .insert({
+      barbershop_id: shopId,
+      name: name.trim(),
+      whatsapp: whatsapp.replace(/\D/g, ""),
+      is_manual: true,
+    })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return requireData(data as Client | null);
+}
+
 // =====================================================================
 // CONFIGURAÇÃO DA BARBEARIA (OWNER/Superadmin)
 // =====================================================================

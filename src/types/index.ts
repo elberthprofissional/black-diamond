@@ -119,6 +119,7 @@ export interface Client {
   barbershop_id: string;
   name: string;
   whatsapp: string;
+  is_manual: boolean;
   created_at: string;
   updated_at: string;
 }

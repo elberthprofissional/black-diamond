@@ -22,7 +22,7 @@ export function ClientTable({ clients, onSelect, onRefresh }: ClientTableProps) 
         <EmptyState
           icon="◆"
           title="Nenhum cliente ainda"
-          description="Os clientes aparecem aqui automaticamente ao marcar horários."
+          description="Clientes entram nesta lista após o 2º atendimento. Você também pode cadastrar manualmente com o botão '+ Adicionar cliente'."
           action={
             <button type="button" className="btn btn--ghost" onClick={onRefresh}>
               Atualizar
@@ -39,7 +39,7 @@ export function ClientTable({ clients, onSelect, onRefresh }: ClientTableProps) 
               onClick={() => onSelect(c)}
             >
               <span
-                className={"client-card__dot" + (c.visit_count === 0 ? " is-new" : "")}
+                className={"client-card__dot" + (c.visit_count === 0 && !c.is_manual ? " is-new" : "")}
                 aria-hidden
               />
               <span className="client-card__head">
